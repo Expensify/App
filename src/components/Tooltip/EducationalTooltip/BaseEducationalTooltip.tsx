@@ -1,6 +1,7 @@
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useIsResizing from '@hooks/useIsResizing';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
@@ -8,7 +9,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-native';
+import type {HostInstance, LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 
 import {NavigationContext, useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
@@ -33,7 +34,7 @@ function BaseEducationalTooltip({
 }: EducationalTooltipProps) {
     const shouldShowTooltip = shouldDisplayTooltip ?? shouldRender;
     const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
-    const tooltipElementRef = useRef<Readonly<NativeMethods> | undefined>(undefined);
+    const tooltipElementRef = useRef<Readonly<HostInstance> | undefined>(undefined);
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<(() => void) | undefined>(undefined);
@@ -42,6 +43,7 @@ function BaseEducationalTooltip({
     const navigator = useContext(NavigationContext);
     const isFocused = useIsFocused();
     const insets = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
 
     const isResizing = useIsResizing();
 
@@ -61,6 +63,12 @@ function BaseEducationalTooltip({
 
         getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
             updateTargetBounds(bounds);
+
+            if (!shouldHideOnScroll) {
+                showTooltip();
+                return;
+            }
+
             const {x, y, width: elementWidth, height} = bounds;
 
             const offset = 10; // Tooltip hides when content moves 10px past header/footer.
@@ -68,9 +76,12 @@ function BaseEducationalTooltip({
             const top = y - (insets.top || 0);
             const bottom = y + height + insets.bottom || 0;
             const left = x - (insets.left || 0);
-            const right = x + elementWidth + (insets.right || 0);
+            // dimensions already excludes the horizontal safe-area insets, so anchoring the right edge to
+            // the inset-adjusted left keeps both on the same origin. Adding the right inset back counted it
+            // twice and read anything near the right edge as overflowing, hiding the tooltip in landscape.
+            const right = left + elementWidth;
             // Calculate the available space at the top, considering the header height and offset
-            const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
+            const availableHeightForTop = top - (contentHeaderHeight - offset);
 
             // Calculate the total height available after accounting for the bottom tab and offset
             const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
@@ -86,7 +97,7 @@ function BaseEducationalTooltip({
                 showTooltip();
             }
         });
-    }, [insets.top, insets.bottom, insets.left, insets.right, shouldShowTooltip, shouldSuppressTooltip]);
+    }, [contentHeaderHeight, insets.top, insets.bottom, insets.left, shouldHideOnScroll, shouldShowTooltip, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
@@ -151,6 +162,9 @@ function BaseEducationalTooltip({
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
             show.current?.();
+            // Mark the first display as done only once it has actually happened, so paths that re-measure
+            // on a later layout (e.g. rotation) don't fire against a still-animating layout beforehand.
+            hasDisplayedTooltipRef.current = true;
         }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
@@ -167,7 +181,6 @@ function BaseEducationalTooltip({
         if (hasDisplayedTooltipRef.current) {
             renderTooltip();
         }
-        hasDisplayedTooltipRef.current = true;
     }, [shouldRender, shouldShowTooltip, shouldSuppressTooltip, shouldMeasure, renderTooltip]);
 
     useEffect(() => {
@@ -202,6 +215,12 @@ function BaseEducationalTooltip({
                         const target = e.target || e.nativeEvent.target;
                         tooltipElementRef.current = target;
                         show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
+
+                        // The wrapped component just moved (e.g. the device rotated). measure() only reports the
+                        // new position once the native layout has landed, so this is the earliest we can trust it.
+                        if (hasDisplayedTooltipRef.current) {
+                            renderTooltip();
+                        }
                     },
                 });
             }}

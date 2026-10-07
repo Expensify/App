@@ -28,14 +28,13 @@ function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchRes
     const validGroupBy = getValidGroupBy(queryJSON.groupBy);
     const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
 
-    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0;
+    // Until search() stores the response code, handing off to Search would swap in its skeleton at a different offset.
+    const hasClassifiedErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && searchResults?.search?.responseJsonCode != null;
 
-    // Show page-level skeleton when no data has ever arrived for this query,
-    // or when card feeds are still loading for card-grouped searches.
-    // Once data arrives (even empty []), Search mounts and handles its own
-    // loading/empty states internally via shouldShowLoadingState.
-    // When errors are present, let Search mount so it can render FullPageErrorView.
-    return (hasNoData && !hasErrors) || isCardFeedsLoading;
+    // Keep the page skeleton visible until the first response arrives and while card feeds load.
+    // SearchPage turns a completed response with no data into an empty result, so Search can render its empty state.
+    // Errors bypass the missing-data skeleton so Search can render FullPageErrorView.
+    return (hasNoData && !hasClassifiedErrors) || isCardFeedsLoading;
 }
 
 export default useSearchLoadingState;

@@ -10,7 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteApprovalAccount} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteApprovalAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuiteApprovalAccountOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -82,6 +83,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteApprovalAccountSelectPage"
             headerContent={headerContent}
+            titleNumberOfLines={2}
             data={netsuiteApprovalAccountOptions}
             onSelectRow={updateCollectionAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}

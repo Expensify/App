@@ -16,6 +16,8 @@ function buildFeedErrors(overrides: Partial<CardFeedErrorState>): CardFeedErrorS
         hasFeedErrors: false,
         hasWorkspaceErrors: false,
         isFeedConnectionBroken: false,
+        shouldPromptBrokenConnection: false,
+        hasFeedConnectionIssue: false,
         ...overrides,
     };
 }
@@ -43,6 +45,20 @@ describe('getShouldShowBrokenConnectionError', () => {
         const feedErrors = buildFeedErrors({isFeedConnectionBroken: true});
 
         expect(getShouldShowBrokenConnectionError(CSV_FEED, feedErrors)).toBe(false);
+    });
+
+    // A 434 card is left out of `isFeedConnectionBroken`, but the wallet still sends its holder here to fix it, so
+    // the page has to offer the fix.
+    it('shows the error for a direct feed whose only issue is an actionable scrape status', () => {
+        const feedErrors = buildFeedErrors({hasFeedConnectionIssue: true});
+
+        expect(getShouldShowBrokenConnectionError(DIRECT_FEED, feedErrors)).toBe(true);
+    });
+
+    it('does not show the error for a commercial feed whose only issue is an actionable scrape status', () => {
+        const feedErrors = buildFeedErrors({hasFeedConnectionIssue: true});
+
+        expect(getShouldShowBrokenConnectionError(COMMERCIAL_FEED, feedErrors)).toBe(false);
     });
 
     it('does not show the error for a direct feed with no broken connection and no feed errors', () => {

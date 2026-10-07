@@ -5,8 +5,7 @@ import type CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 import type {ColorScheme, StatusBarStyle} from '..';
-
-type Color = string;
+import type {Color} from './colors';
 
 type ThemePreference = ValueOf<typeof CONST.THEME>;
 type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM | typeof CONST.THEME.SYSTEM_CONTRAST>;
@@ -73,6 +72,7 @@ type ThemeColors = {
     textBackground: Color;
     textMutedReversed: Color;
     textError: Color;
+    textSuccess: Color;
     offline: Color;
     modalBackground: Color;
     cardBG: Color;
@@ -95,6 +95,8 @@ type ThemeColors = {
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
+    /** Background of a selected option among mutually exclusive choices */
+    selectedOptionBG: Color;
     reactionActiveText: Color;
     badgeDefaultBG: Color;
     badgeSuccessBG: Color;
@@ -143,6 +145,9 @@ type ThemeColors = {
     navigationBarButtonsStyle: NavBarButtonStyle;
     translucentNavigationBarBackgroundColor: Color;
     colorScheme: ColorScheme;
+
+    /** Whether this is a high-contrast theme (light-contrast / dark-contrast). Used to underline links for WCAG 1.4.1. */
+    isHighContrast?: boolean;
 };
 
 export {type ThemePreferenceWithoutSystem, type ThemeColors, type Color};

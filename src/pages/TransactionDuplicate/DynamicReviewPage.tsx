@@ -1,0 +1,338 @@
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
+import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
+
+import {clearDeleteTransactionNavigateBackUrl, openReport} from '@libs/actions/Report';
+import {dismissDuplicateTransactionViolation, getDuplicateTransactionDetails} from '@libs/actions/Transaction';
+import {CAROUSEL_SOURCE, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
+import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
+import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
+import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
+import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import DuplicateTransactionsList from './DuplicateTransactionsList';
+
+function DynamicReviewPage() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW>>();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.path);
+
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
+    const currentPersonalDetails = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const {isOffline} = useNetwork();
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`, {selector: Boolean});
+    const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${route.params.reportID}`);
+    const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    // Read alongside the IDs so the fallback below can hand a snapshot-backed carousel back intact. The module
+    // mirror is empty after a reload (it only ever lives for one JS session), and rebuilding from the IDs alone
+    // dropped the hash and the descriptors, which is exactly the data the siblings are resolved from.
+    const [activeSnapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
+    const [activeSiblingDescriptors] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+
+    // The whole carousel this screen is about to displace, so the restore effect below can hand it back exactly as
+    // it was. The owner has to be the screen the carousel came from (Search, or a report's list): re-seeding the
+    // previous screen's list under duplicate review's own source would leave that screen unable to refresh or
+    // release its own carousel. The snapshot hash and descriptors have to come back too, or a snapshot-backed
+    // carousel loses the data its siblings are resolved from.
+    const displacedCarouselRef = useRef<{
+        ids: string[];
+        source: string | undefined;
+        snapshotHash: number | undefined;
+        descriptors: Record<string, TransactionThreadNavigationDescriptor> | undefined;
+    } | null>(null);
+
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const transactionID = getLinkedTransactionID(reportAction);
+    const transactionViolations = useTransactionViolations(transactionID);
+    const duplicateTransactionIDs = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs;
+
+    const transactions: Transaction[] = [];
+    for (const id of transactionIDs) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        if (transaction) {
+            transactions.push(transaction);
+        }
+    }
+    transactions.sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
+    const [selectedTransactionID, setSelectedTransactionID] = useState<string | undefined>(transactionID);
+    const defaultSelectedTransactionID = transactionID ?? transactions.at(0)?.transactionID;
+    const effectiveSelectedTransactionID = transactions.some((transaction) => transaction.transactionID === selectedTransactionID) ? selectedTransactionID : defaultSelectedTransactionID;
+    const selectedTransaction = transactions.find((transaction) => transaction.transactionID === effectiveSelectedTransactionID);
+    const [selectedTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedTransaction?.reportID}`);
+    const [selectedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionReport?.policyID}`);
+    const [selectedTransactionPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${selectedTransactionReport?.policyID}`);
+    const [selectedTransactionPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${selectedTransactionReport?.policyID}`);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+
+    const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
+    const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
+    const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportLoadingState, isOffline);
+    const {hasLoadedParentReportActions, wasParentActionDeleted} = getParentReportActionDeletionStatus({
+        parentReportID: report?.parentReportID,
+        parentReportActionID: report?.parentReportActionID,
+        parentReportAction: reportAction,
+        parentReportLoadingState,
+        isOffline,
+        shouldRequireParentReportActionID: false,
+        shouldTreatMissingParentReportAsDeleted: true,
+    });
+    const wasTransactionDeleted = isThreadReportDeletedForReview || wasParentActionDeleted;
+    const isLoadingPage =
+        (!report?.reportID && !hasLoadedThreadReportActions && !isThreadReportDeletedForReview) ||
+        (!reportAction?.reportActionID && !hasLoadedParentReportActions && !wasParentActionDeleted && !isThreadReportDeletedForReview);
+    const isDeleteNavigateBackToThisReview = doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview(deleteTransactionNavigateBackUrl, route.params.reportID);
+    const isNavigatingBackToDeletedReview = !!deleteTransactionNavigateBackUrl && !(isDeleteNavigateBackToThisReview && wasTransactionDeleted);
+
+    const shouldShowNotFound = !isNavigatingBackToDeletedReview && (wasTransactionDeleted || (!isLoadingPage && !transactionID));
+
+    useEffect(() => {
+        if (!route.params.reportID || report?.reportID) {
+            return;
+        }
+        openReport({
+            reportID: route.params.reportID,
+            introSelected,
+            conciergeChat,
+            hasReportActions,
+            currentUserAccountID: currentPersonalDetails.accountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
+    }, [
+        report?.reportID,
+        route.params.reportID,
+        introSelected,
+        conciergeChat,
+        hasReportActions,
+        currentPersonalDetails.accountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
+
+    useEffect(() => {
+        if (!transactionID) {
+            return;
+        }
+        getDuplicateTransactionDetails(transactionID);
+    }, [transactionID]);
+
+    useEffect(() => {
+        if (!isDeleteNavigateBackToThisReview || !wasTransactionDeleted) {
+            return;
+        }
+        clearDeleteTransactionNavigateBackUrl();
+    }, [isDeleteNavigateBackToThisReview, wasTransactionDeleted]);
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (!deleteTransactionNavigateBackUrl) {
+                    return;
+                }
+                clearDeleteTransactionNavigateBackUrl();
+            };
+        }, [deleteTransactionNavigateBackUrl]),
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            const displaced = displacedCarouselRef.current;
+            if (!displaced) {
+                return;
+            }
+            setActiveTransactionIDs(displaced.ids, {source: displaced.source, snapshotHash: displaced.snapshotHash, descriptors: displaced.descriptors});
+        }, []),
+    );
+
+    const onPreviewPressed = (reportID: string, pressedTransactionID: string | undefined) => {
+        // Capture the carousel we are about to displace before overwriting it, on the first press only, so the
+        // restore effect re-seeds what was active when this screen mounted. setActiveTransactionIDs updates the
+        // module mirror synchronously, so reading it afterwards would only ever return our own write back.
+        if (!displacedCarouselRef.current) {
+            const active = getActiveTransactionIDs();
+            displacedCarouselRef.current = {
+                ids: active.ids ?? transactionIDsList,
+                source: active.source ?? undefined,
+                snapshotHash: active.snapshotHash ?? activeSnapshotHash,
+                descriptors: active.descriptors ?? activeSiblingDescriptors,
+            };
+        }
+
+        const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
+        setActiveTransactionIDs(siblingTransactionIDsList, {source: CAROUSEL_SOURCE.duplicateReview(transactionID)}).then(() => {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute(), anchorTransactionID: pressedTransactionID}));
+        });
+    };
+
+    const currentTransactionViolations = transactionIDs.map((id) => ({
+        transactionID: id,
+        violations: allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [],
+    }));
+
+    const keepAll = () => {
+        dismissDuplicateTransactionViolation({
+            transactionIDs,
+            dismissedPersonalDetails: currentPersonalDetails,
+            expenseReport,
+            policy,
+            isASAPSubmitBetaEnabled,
+            allTransactions,
+            rules,
+            currentTransactionViolations,
+            isTrackIntentUser,
+        });
+        Navigation.goBack();
+    };
+
+    const keepSelected = () => {
+        if (!selectedTransaction || !selectedTransactionReport) {
+            return;
+        }
+
+        Navigation.navigate(
+            getReviewNavigationRoute(
+                Navigation.getActiveRoute(),
+                route.params.reportID,
+                selectedTransaction,
+                transactions.filter((transaction) => transaction.transactionID !== selectedTransaction.transactionID),
+                selectedTransactionPolicy,
+                selectedTransactionPolicyCategories,
+                selectedTransactionPolicyTags ?? {},
+                selectedTransactionReport,
+            ),
+        );
+    };
+
+    if (isLoadingPage) {
+        return (
+            <ScreenWrapper testID="DynamicReviewPage">
+                <View style={[styles.flex1]}>
+                    <View style={[styles.appContentHeader, contentHeaderHeightStyle, styles.borderBottom]}>
+                        <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
+                    </View>
+                    <ReportActionsSkeletonView />
+                </View>
+            </ScreenWrapper>
+        );
+    }
+
+    if (!shouldShowNotFound && transactionID && duplicateTransactionIDs.length === 0) {
+        return (
+            <ScreenWrapper testID="DynamicReviewPage">
+                <HeaderWithBackButton
+                    title={translate('iou.reviewDuplicates')}
+                    onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
+                />
+                <ConfirmationPage
+                    heading={translate('iou.noDuplicatesTitle')}
+                    description={translate('iou.noDuplicatesDescription')}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
+                />
+            </ScreenWrapper>
+        );
+    }
+
+    return (
+        <ScreenWrapper
+            testID="DynamicReviewPage"
+            shouldEnableMaxHeight
+            includeSafeAreaPaddingBottom
+        >
+            <FullPageNotFoundView shouldShow={shouldShowNotFound}>
+                <HeaderWithBackButton
+                    title={translate('iou.reviewDuplicates')}
+                    onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
+                />
+                <View style={styles.flex1}>
+                    <ScrollView
+                        style={styles.flex1}
+                        contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
+                    >
+                        {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesArePaid')}</Text>}
+                        <DuplicateTransactionsList
+                            transactions={transactions}
+                            selectedTransactionID={effectiveSelectedTransactionID}
+                            shouldShowSelection={!hasSettledOrApprovedTransaction}
+                            onSelectTransaction={setSelectedTransactionID}
+                            onPreviewPressed={onPreviewPressed}
+                        />
+                    </ScrollView>
+                    <FixedFooter style={[styles.mtAuto, styles.gap3]}>
+                        <Button
+                            variant={hasSettledOrApprovedTransaction ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            onPress={keepAll}
+                        >
+                            <Button.Text>{translate('iou.keepAll')}</Button.Text>
+                        </Button>
+                        {!hasSettledOrApprovedTransaction && (
+                            <Button
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                onPress={keepSelected}
+                                isDisabled={!selectedTransaction || !selectedTransactionReport}
+                            >
+                                <Button.Text>{translate('iou.keepSelected')}</Button.Text>
+                            </Button>
+                        )}
+                    </FixedFooter>
+                </View>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
+    );
+}
+
+export default DynamicReviewPage;

@@ -1,7 +1,9 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -20,13 +22,8 @@ import {View} from 'react-native';
 import type {WorkspaceTagTableRowData} from '.';
 
 type WorkspaceTagsTableRowProps = {
-    /** Data about the tag or tag list */
     item: WorkspaceTagTableRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
     /** Whether the GL Code column is visible on web screens or not */
@@ -52,6 +49,8 @@ export default function WorkspaceTagsTableRow({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
     const tagCountSubtitle = item.tagCount !== undefined ? translate('workspace.tags.tagCount', {count: item.tagCount}) : '';
 
     let enabledStatusLabel = null;
@@ -63,16 +62,15 @@ export default function WorkspaceTagsTableRow({
         item.name,
         tagCountSubtitle,
         enabledStatusLabel,
-        item.showRequiredSwitch && item.required ? translate('common.required') : null,
         shouldShowGLCodeColumn && item.glCode ? `${translate('workspace.tags.glCode')}: ${item.glCode}` : null,
         shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
     ]
         .filter(Boolean)
         .join(', ');
 
-    const switchValue = item.showRequiredSwitch ? !!item.required : item.enabled;
-    const switchAccessibilityLabel = item.showRequiredSwitch ? translate('workspace.tags.requiresTag') : translate('workspace.tags.enableTag');
-    const handleSwitchToggle = item.showRequiredSwitch ? item.onToggleRequired : item.onToggleEnabled;
+    const switchValue = item.enabled;
+    const switchAccessibilityLabel = translate('workspace.tags.enableTag');
+    const handleSwitchToggle = item.onToggleEnabled;
     const isSwitchControlDisabled = !!item.disabled || !!item.isSwitchDisabled;
 
     return (
@@ -91,12 +89,16 @@ export default function WorkspaceTagsTableRow({
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>
-                        <TextWithTooltip
-                            shouldShowTooltip
-                            numberOfLines={1}
-                            text={item.name}
-                            style={styles.optionDisplayName}
+                    <View
+                        style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
+                        <InlineTextEditCell
+                            value={item.name}
+                            accessibilityLabel={translate('common.name')}
+                            canEdit={!!item.canEditName && !item.disabled}
+                            onSave={item.onRenameName}
+                            displayTextStyle={styles.optionDisplayName}
                         />
                         {shouldUseNarrowTableLayout && !!tagCountSubtitle && (
                             <Text
@@ -109,7 +111,10 @@ export default function WorkspaceTagsTableRow({
                     </View>
 
                     {!shouldUseNarrowTableLayout && shouldShowGLCodeColumn && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -119,15 +124,17 @@ export default function WorkspaceTagsTableRow({
                     )}
 
                     {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
-                        <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             {!!item.approverDisplayName && (
                                 <>
                                     {!!item.approverAccountID && (
-                                        <Avatar
-                                            name={item.approverDisplayName}
+                                        <UserAvatar
                                             source={item.approverAvatar}
-                                            type={CONST.ICON_TYPE_AVATAR}
-                                            size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                            accountID={item.approverAccountID}
+                                            size={CONST.AVATAR_SIZE.XXX_SMALL}
                                         />
                                     )}
                                     <TextWithTooltip
@@ -141,30 +148,39 @@ export default function WorkspaceTagsTableRow({
                     )}
 
                     {!shouldUseNarrowTableLayout && shouldShowTagCountColumn && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <Text numberOfLines={1}>{tagCountSubtitle}</Text>
                         </View>
                     )}
 
-                    {(item.showEnabledSwitch || item.showRequiredSwitch) && !!handleSwitchToggle && (
-                        <View style={[styles.justifyContentCenter, styles.alignItemsEnd]}>
+                    {item.showEnabledSwitch && !!handleSwitchToggle && (
+                        <View
+                            style={[styles.justifyContentCenter, styles.alignItemsEnd]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <Switch
                                 isOn={switchValue}
                                 showLockIcon={item.isLocked}
                                 disabled={isSwitchControlDisabled}
+                                pending={item.pending}
                                 accessibilityLabel={`${switchAccessibilityLabel}: ${item.name}`}
                                 onToggle={handleSwitchToggle}
                             />
                         </View>
                     )}
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

@@ -25,7 +25,10 @@ As the codebase and contributor base grow, AI reviewers help maintain consistent
 
 ## Guiding Principles
 
-These are recommendations for working effectively with AI reviewers, not strict requirements.
+These are recommendations for working effectively with AI reviewers, not strict requirements — with one exception: responding to AI reviewer comments is required, as described below.
+
+### Always respond to AI reviewer comments
+PR authors must respond to every comment left by an AI reviewer before requesting final review. React with 👍 when applying the feedback or 👎 when not, and leave a short comment explaining the reasoning either way. Acting on the feedback is optional; responding to it is not. Silence leaves human reviewers unable to tell whether a point was considered and dismissed or simply missed, which is the most common gap we see in PRs from new contributors.
 
 ### Treat AI feedback as suggestions
 AI reviewers provide automated feedback to assist human reviewers, but their output is not infallible. Contributors and reviewers should evaluate each piece of feedback on its merits rather than blindly accepting or rejecting it.
@@ -37,7 +40,7 @@ When AI feedback is unclear or ambiguous, contributors will benefit from discuss
 When AI feedback is incorrect or not applicable, reach out to the AI reviewer maintainers in the #expensify-open-source Slack channel to help improve the system. This feedback helps refine the reviewers and prevents the same issues from recurring.
 
 ### Keep rule documentation in sync with AI reviewer prompts
-When adding or modifying rules, the corresponding documentation should be updated. The coding standard files in `.claude/skills/coding-standards/` are the source of truth for code review rules.
+When adding or modifying rules, the corresponding documentation should be updated. The coding standard files in `.claude/skills/app-coding-standards/` are the source of truth for code review rules.
 
 ## Reviewer Setup
 
@@ -46,7 +49,7 @@ When adding or modifying rules, the corresponding documentation should be update
 **code-inline-reviewer (Smart Linter)**
 - Reviews source code PRs for specific, predefined violations
 - Creates inline comments on lines that violate rules
-- See `.claude/skills/coding-standards/` for current rule definitions
+- See `.claude/skills/app-coding-standards/` for current rule definitions
 
 **Holistic Reviewer**
 - Provides general code review without predefined rules

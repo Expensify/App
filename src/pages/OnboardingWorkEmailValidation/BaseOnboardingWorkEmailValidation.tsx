@@ -1,11 +1,11 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OnboardingHeader from '@components/OnboardingHeader';
 import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,9 +21,7 @@ import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
-import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -44,8 +42,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-    const isFocused = useIsFocused();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION);
 
     useEffect(() => {
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
@@ -69,7 +65,21 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb, isFocused]);
+    }, [onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.shouldRedirectToClassicAfterMerge, onboardingValues?.isMergeAccountStepSkipped, isVsb, isSmb]);
+
+    const handleBackPress = () => {
+        // The merge request cannot be cancelled. Leaving mid-flight lets the work email screen consume the success
+        // and route through PRIVATE_DOMAIN instead of Join a workspace.
+        if (isValidateCodeFormSubmitting) {
+            return true;
+        }
+        updateOnboardingValuesAndNavigation(onboardingValues);
+        return true;
+    };
+
+    // The work email screen force-replaces itself with this one, so Android's system Back would otherwise pop the whole
+    // onboarding modal while `shouldValidate` is still set. Run the same handler as the header Back button.
+    useAndroidBackButtonHandler(handleBackPress);
 
     const sendValidateCode = () => {
         if (!credentials?.login) {
@@ -89,14 +99,9 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
             testID="BaseOnboardingWorkEmailValidation"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton
+            <OnboardingHeader
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
-                onBackButtonPress={() => {
-                    updateOnboardingValuesAndNavigation(onboardingValues);
-                }}
-                shouldDisplayHelpButton={false}
+                onBackButtonPress={handleBackPress}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
@@ -113,7 +118,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                     >
                         {translate('onboarding.workEmailValidation.title')}
                     </Text>
-                    <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', workEmail)}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.securityCodeSent', workEmail)}</Text>
                     <ValidateCodeForm
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}

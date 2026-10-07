@@ -4,6 +4,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -27,7 +28,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {configureExpensifyCardsForPolicy, setIssueNewCardStepAndData} from '@userActions/Card';
+import {clearIssueNewCardFormData, configureExpensifyCardsForPolicy, setIssueNewCardStepAndData} from '@userActions/Card';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -128,6 +129,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         if (!policyID) {
             return;
         }
+        clearIssueNewCardFormData();
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.dismissModal();
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
@@ -174,7 +176,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             <View style={styles.flex1}>
                                 <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
                                 {renderBankOptions()}
-                                <MenuItem
+                                <MenuItemAction
                                     icon={icons.Plus}
                                     title={translate('workspace.expensifyCard.addNewBankAccount')}
                                     onPress={handleAddBankAccount}

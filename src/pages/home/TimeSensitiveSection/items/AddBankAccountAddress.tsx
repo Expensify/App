@@ -1,22 +1,20 @@
+/**
+ * Home widget that opens the address form for an open US bank account missing addressState.
+ */
 import BaseWidgetItem from '@components/BaseWidgetItem';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 
+import {openWorkspaceBankAccountAddress, resetPersonalBankAccountForUpdate} from '@libs/actions/BankAccounts';
 import Navigation from '@libs/Navigation/Navigation';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
 
-import colors from '@styles/theme/colors';
-
-import {openReimbursementAccountPage, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
-
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 
 import React from 'react';
-import Onyx from 'react-native-onyx';
 
 type AddBankAccountAddressProps = {
     /** The ID of the bank account missing an address */
@@ -28,53 +26,16 @@ type AddBankAccountAddressProps = {
     /** Policy ID for workspace VBAs */
     policyID?: string;
 
-    /** The policy name — undefined means personal account (subtitle: 'Wallet') */
+    /** Undefined for a personal account, where the subtitle is Wallet */
     policyName?: string;
+
+    /** Personal-account details used to prefill the address form */
+    additionalData?: BankAccountAdditionalData;
 };
 
-function navigateToWorkspaceAddressEdit(workspacePolicyID: string) {
-    Navigation.navigate(
-        ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
-            policyID: workspacePolicyID,
-            page: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY,
-            subPage: CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
-            action: 'edit',
-        }),
-    );
-}
-
-function loadWorkspaceBankAccountAndNavigateToAddressEdit(workspacePolicyID: string, workspaceBankAccountID: number) {
-    openReimbursementAccountPage({
-        policyID: workspacePolicyID,
-        bankAccountID: workspaceBankAccountID,
-        stepToOpen: CONST.BANK_ACCOUNT.STEP.COMPANY,
-        subStep: CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
-    });
-
-    const connection = Onyx.connect({
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        callback: (reimbursementAccount) => {
-            if (reimbursementAccount?.isLoading) {
-                return;
-            }
-
-            const loadedBankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
-            if (loadedBankAccountID !== workspaceBankAccountID || reimbursementAccount?.achData?.policyID !== workspacePolicyID) {
-                return;
-            }
-
-            Onyx.disconnect(connection);
-            navigateToWorkspaceAddressEdit(workspacePolicyID);
-        },
-    });
-}
-
-function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, policyName}: AddBankAccountAddressProps) {
+function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, policyName, additionalData}: AddBankAccountAddressProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
-    const [accountData] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
-        selector: (list) => list?.[String(bankAccountID)]?.accountData,
-    });
 
     const title = policyName
         ? translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceTitle')
@@ -86,7 +47,6 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
 
     const handleCtaPress = () => {
         if (isPersonalAccount) {
-            const additionalData = accountData?.additionalData;
             const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
             resetPersonalBankAccountForUpdate(
                 bankAccountID,
@@ -114,7 +74,7 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
         }
 
         if (policyID) {
-            loadWorkspaceBankAccountAndNavigateToAddressEdit(policyID, bankAccountID);
+            openWorkspaceBankAccountAddress(policyID, bankAccountID);
             return;
         }
 
@@ -124,13 +84,11 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
     return (
         <BaseWidgetItem
             icon={icons.Bank}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
             title={title}
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.addBankAccountAddress.cta')}
             onCtaPress={handleCtaPress}
-            buttonProps={{danger: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

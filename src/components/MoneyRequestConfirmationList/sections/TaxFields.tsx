@@ -1,4 +1,5 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -11,16 +12,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount, getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -28,6 +31,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {taxSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -46,10 +51,11 @@ type TaxFieldsProps = {
 };
 
 function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError, clearFormErrors}: TaxFieldsProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
-    const {isNewManualExpenseFlowEnabled, isEditingSplitBill} = useConfirmationFields();
+    const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -87,13 +93,14 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
         const taxAmountInSmallestCurrencyUnits = toBackendTaxAmount(newAmount);
 
-        // Clear a previously surfaced tax error as the user edits; validation re-runs on submit.
-        clearFormErrors(['iou.error.invalidTaxAmount']);
+        onTaxAmountEmptyChange?.(newAmount.trim() === '');
+
+        clearFormErrors(['iou.error.invalidTaxAmount', 'iou.error.invalidAmount']);
 
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -101,9 +108,6 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     };
 
     useEffect(() => {
-        if (!isNewManualExpenseFlowEnabled) {
-            return;
-        }
         // Compare the numeric value rather than the formatted string. An in-progress edit such as "5.0" (or an
         // empty field) represents the same stored amount as the re-padded "5.00", so it must not be overwritten
         // while the user is typing. Only refresh the field when the stored tax amount genuinely differs (e.g. the
@@ -116,39 +120,101 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             }
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
-    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput]);
+        onTaxAmountEmptyChange?.(false);
+    }, [taxAmount, taxAmountInput, onTaxAmountEmptyChange]);
 
     useEffect(() => {
-        if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
+        if (canModifyTaxFields) {
+            return () => onTaxAmountEmptyChange?.(false);
+        }
+        onTaxAmountEmptyChange?.(false);
+    }, [canModifyTaxFields, onTaxAmountEmptyChange]);
+
+    useEffect(() => {
+        if (formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
             return;
         }
         clearFormErrors(['iou.error.invalidTaxAmount']);
-    }, [isNewManualExpenseFlowEnabled, formError, taxAmount, maxTaxAmount, clearFormErrors]);
+    }, [formError, taxAmount, maxTaxAmount, clearFormErrors]);
+
+    const openTaxRatePage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID)));
+    };
+
+    const openTaxAmountPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
+    };
+
+    // Only ever rendered in place of the editable amount field, so the row is never interactive and never opens
+    // the tax-amount page: it reads the amount out for a user who cannot change it. Being non-interactive, the
+    // dropdown-row form renders it as a disabled field rather than as one waiting to be filled in.
+    const readOnlyTaxAmountRow = shouldUseDropdownRows ? (
+        <ExpenseFieldRow
+            name={translate('iou.taxAmount')}
+            value={formattedTaxAmount}
+            onPress={openTaxAmountPage}
+            isDisabled={didConfirm}
+            isInteractive={false}
+            testID={`${taxRates?.name}_amount`}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
+        />
+    ) : (
+        <MenuItemField
+            key={`${taxRates?.name}_amount`}
+            testID={`${taxRates?.name}_amount`}
+            value={formattedTaxAmount}
+            name={translate('iou.taxAmount')}
+            onPress={canModifyTaxFields ? openTaxAmountPage : undefined}
+            isDisabled={didConfirm}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
+        />
+    );
 
     return (
         <>
-            <MenuItemWithTopDescription
-                key={`${taxRates?.name}_rate`}
-                pressableTestID={`${taxRates?.name}_rate`}
-                shouldShowRightIcon={canModifyTaxFields}
-                title={taxRateTitle}
-                description={taxRates?.name}
-                style={[styles.moneyRequestMenuItem]}
-                titleStyle={styles.flex1}
-                onPress={() => {
-                    if (!transactionID) {
-                        return;
-                    }
-
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
-                }}
-                disabled={didConfirm}
-                interactive={canModifyTaxFields}
-                brickRoadIndicator={shouldDisplayTaxRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
-            />
-            {isNewManualExpenseFlowEnabled && canModifyTaxFields ? (
+            {shouldUseDropdownRows ? (
+                <ExpenseFieldRow
+                    name={taxRates?.name ?? translate('iou.taxRate')}
+                    value={taxRateTitle}
+                    errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
+                    onPress={openTaxRatePage}
+                    isDisabled={didConfirm}
+                    isInteractive={canModifyTaxFields}
+                    testID={`${taxRates?.name}_rate`}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
+                />
+            ) : (
+                <MenuItem.Root
+                    key={`${taxRates?.name}_rate`}
+                    testID={`${taxRates?.name}_rate`}
+                    onPress={canModifyTaxFields ? callFunctionIfActionIsAllowed(openTaxRatePage) : undefined}
+                    isDisabled={didConfirm}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
+                >
+                    <MenuItemField.Row
+                        name={taxRates?.name ?? ''}
+                        value={taxRateTitle}
+                    >
+                        {shouldDisplayTaxRateError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {canModifyTaxFields && <MenuItem.Chevron />}
+                    </MenuItemField.Row>
+                    {shouldDisplayTaxRateError && (
+                        <MenuItem.HelpText
+                            isError
+                            message={translate(formError as TranslationPaths)}
+                        />
+                    )}
+                </MenuItem.Root>
+            )}
+            {canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
                         numberFormRef={numberFormRef}
@@ -167,25 +233,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                     />
                 </View>
             ) : (
-                <MenuItemWithTopDescription
-                    key={`${taxRates?.name}_amount`}
-                    pressableTestID={`${taxRates?.name}_amount`}
-                    shouldShowRightIcon={canModifyTaxFields}
-                    title={formattedTaxAmount}
-                    description={translate('iou.taxAmount')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transactionID) {
-                            return;
-                        }
-
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
-                    }}
-                    disabled={didConfirm}
-                    interactive={canModifyTaxFields}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
-                />
+                readOnlyTaxAmountRow
             )}
         </>
     );

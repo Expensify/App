@@ -6,6 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type DynamicCategoryRequireReceiptsOverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_RECEIPTS_OVER>;
 
@@ -48,12 +49,19 @@ function DynamicCategoryRequireReceiptsOverPage({
     const styles = useThemeStyles();
     const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path);
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString} = useCurrencyListActions();
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
     const isAlwaysSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === 0;
     const isNeverSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
     const isPolicyReceiptDisabled = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoReceipt === undefined;
+
+    const persistedOptionKey = getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected, isPolicyReceiptDisabled);
+
+    const [draftOptionKey, setDraftOptionKey] = useState<ValueOf<typeof CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS>>();
+    const selectedOptionKey = draftOptionKey ?? persistedOptionKey;
 
     const requireReceiptsOverListData = [
         ...(!isPolicyReceiptDisabled
@@ -65,7 +73,7 @@ function DynamicCategoryRequireReceiptsOverPage({
                           convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
                       ),
                       keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
-                      isSelected: !isAlwaysSelected && !isNeverSelected,
+                      isSelected: selectedOptionKey === CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
                   },
               ]
             : []),
@@ -73,17 +81,43 @@ function DynamicCategoryRequireReceiptsOverPage({
             value: CONST.DISABLED_MAX_EXPENSE_VALUE,
             text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER,
-            isSelected: isPolicyReceiptDisabled ? !isAlwaysSelected : isNeverSelected,
+            isSelected: selectedOptionKey === CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER,
         },
         {
             value: 0,
             text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.always`),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.ALWAYS,
-            isSelected: isAlwaysSelected,
+            isSelected: selectedOptionKey === CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.ALWAYS,
         },
     ];
 
-    const initiallyFocusedOptionKey = getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected, isPolicyReceiptDisabled);
+    const saveAndGoBack = () => {
+        if (selectedOptionKey === CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT) {
+            removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
+        } else if (selectedOptionKey === CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER) {
+            if (policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                setPolicyCategoryReceiptsAndItemizedReceiptRequired(
+                    policyData,
+                    categoryName,
+                    CONST.DISABLED_MAX_EXPENSE_VALUE,
+                    CONST.DISABLED_MAX_EXPENSE_VALUE,
+                    isVendorMatchingBetaEnabled,
+                );
+            } else {
+                setPolicyCategoryReceiptsRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, isVendorMatchingBetaEnabled);
+            }
+        } else {
+            setPolicyCategoryReceiptsRequired(policyData, categoryName, 0, isVendorMatchingBetaEnabled);
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        isDisabled: selectedOptionKey === persistedOptionKey,
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -105,20 +139,12 @@ function DynamicCategoryRequireReceiptsOverPage({
                     data={requireReceiptsOverListData}
                     ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
-                        if (typeof item.value === 'number') {
-                            if (item.value === CONST.DISABLED_MAX_EXPENSE_VALUE && policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
-                                setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE);
-                            } else {
-                                setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
-                            }
-                        } else {
-                            removePolicyCategoryReceiptsRequired(policyData, categoryName);
-                        }
-                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
+                        setDraftOptionKey(item.keyForList as ValueOf<typeof CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS>);
                     }}
+                    confirmButtonOptions={confirmButtonOptions}
                     style={{containerStyle: styles.pt3}}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                    initiallyFocusedItemKey={persistedOptionKey}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>

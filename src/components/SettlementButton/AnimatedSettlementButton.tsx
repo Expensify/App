@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, ReportMetadata} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -31,10 +32,9 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
 
-    // Whether this is a DEW approval that needs backend validation before showing "Approved"
+    /** Whether this is a DEW approval that needs backend validation before showing "Approved" */
     isDEWApproval?: boolean;
 
-    // The report id for which the button is displayed
     reportID?: string;
 };
 
@@ -141,7 +141,7 @@ function AnimatedSettlementButton({
         icon = expensifyIcons.Checkmark;
     }
 
-    const animatedViewRef = (el: View | null) => {
+    const animatedViewRef = (el: ComponentRef<typeof View> | null) => {
         if (!el || !isAnimationRunning) {
             return;
         }
@@ -173,18 +173,19 @@ function AnimatedSettlementButton({
                     exiting={buttonAnimation}
                 >
                     <Button
-                        text={isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         isLoading={isDEWApprovalLoading}
-                        success
-                        icon={icon}
-                    />
+                    >
+                        {!!icon && <Button.Icon src={icon} />}
+                        <Button.Text>{isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}</Button.Text>
+                    </Button>
                 </Animated.View>
             )}
             {!isAnimationRunning && (
                 <SettlementButton
                     {...settlementButtonProps}
                     wrapperStyle={wrapperStyle}
-                    isDisabled={isAnimationRunning || isDisabled}
+                    isDisabled={isDisabled}
                     sentryLabel={sentryLabel}
                 />
             )}

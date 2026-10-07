@@ -1,7 +1,9 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -10,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getDefaultExpensifyCardLimitType, getDisplayedExpensifyCardLimitType, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -18,39 +20,50 @@ import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceExpensifyCardTableRowData} from '.';
 
+import WorkspaceExpensifyCardLimitCell from './WorkspaceExpensifyCardLimitCell';
+import WorkspaceExpensifyCardLimitTypeCell from './WorkspaceExpensifyCardLimitTypeCell';
+
 type WorkspaceExpensifyCardsTableRowProps = {
-    /** Data about the Expensify card */
     item: WorkspaceExpensifyCardTableRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
+
+    /** Policy used to determine which limit types can be assigned from the inline editor */
+    policy: OnyxEntry<Policy>;
+
+    /** Whether the Export account column is shown, so the row must keep its cell in step with the column */
+    shouldShowExportAccountColumn: boolean;
 };
 
-export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceExpensifyCardsTableRowProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'FreezeCard']);
+export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldUseNarrowTableLayout, policy, shouldShowExportAccountColumn}: WorkspaceExpensifyCardsTableRowProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FreezeCard']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const theme = useTheme();
     const session = useSession();
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
-    const cardholderName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate});
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
+    const cardholderName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate, formatPhoneNumber});
     const narrowLayoutSubtitle = [item.lastFourPAN, item.name].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     const cardType = item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
-    const limitTypeLabel = translate(getTranslationKeyForLimitType(item.limitType));
+    const limitTypeLabel = translate(getTranslationKeyForLimitType(getDisplayedExpensifyCardLimitType(item.limitType, getDefaultExpensifyCardLimitType(policy))));
     const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
     const statusLabel = statusTranslationKey ? translate(statusTranslationKey) : '';
     const formattedLimit = convertToShortDisplayString(item.limit, item.currency);
-    const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const formattedRemainingLimit = convertToShortDisplayString(item.remainingLimit, item.currency);
+    const formattedFrozenDate = item.frozenDate ? DateUtils.formatWithUTCTimeZone(item.frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale) : '';
     let frozenByText: string | undefined;
     if (formattedFrozenDate) {
         if (item.frozenByAccountID === session?.accountID) {
@@ -61,7 +74,20 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
         }
     }
 
-    const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, statusLabel, formattedLimit, frozenByText].filter(Boolean).join(', ');
+    const accessibilityLabel = [
+        cardholderName,
+        item.name,
+        cardType,
+        limitTypeLabel,
+        item.lastFourPAN,
+        statusLabel,
+        item.exportAccountTitle,
+        formattedLimit,
+        formattedRemainingLimit,
+        frozenByText,
+    ]
+        .filter(Boolean)
+        .join(', ');
 
     const frozenByRowFooter = !!frozenByText && (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}>
@@ -97,14 +123,16 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                        <Avatar
-                            source={item.cardholder?.avatar ?? icons.FallbackAvatar}
-                            avatarID={item.cardholder?.accountID}
-                            type={CONST.ICON_TYPE_AVATAR}
+                    <View
+                        style={[styles.flex1, styles.mnw0, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
+                        <UserAvatar
+                            source={item.cardholder?.avatar}
+                            accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                             size={avatarSize}
                         />
-                        <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>
+                        <View style={[styles.flex1, styles.mnw0, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -119,18 +147,24 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             ) : (
-                                <TextWithTooltip
-                                    shouldShowTooltip
-                                    numberOfLines={1}
-                                    text={item.name}
-                                    style={styles.textLabelSupporting}
-                                />
+                                <View style={styles.editableCellFlushWithSibling}>
+                                    <InlineTextEditCell
+                                        value={item.name}
+                                        accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}
+                                        canEdit={!!item.canEditName}
+                                        onSave={item.onRenameName}
+                                        displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                                    />
+                                </View>
                             )}
                         </View>
                     </View>
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -140,17 +174,25 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}>
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={limitTypeLabel}
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <WorkspaceExpensifyCardLimitTypeCell
+                                limitType={item.limitType}
+                                card={item.card}
+                                policy={policy}
+                                canEdit={!!item.canEditLimitType}
+                                onSave={item.onChangeLimitType}
                             />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -160,11 +202,27 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
                                 text={statusLabel}
+                            />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowExportAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.exportAccountTitle ?? ''}
                             />
                         </View>
                     )}
@@ -175,12 +233,16 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                             shouldUseNarrowTableLayout ? styles.alignItemsEnd : styles.flex1,
                             shouldUseNarrowTableLayout ? styles.justifyContentStart : styles.alignItemsCenter,
                             shouldUseNarrowTableLayout ? undefined : styles.justifyContentEnd,
+                            !shouldUseNarrowTableLayout && styles.editableCellColumn,
                         ]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <TextWithTooltip
-                            shouldShowTooltip
-                            numberOfLines={1}
-                            text={formattedLimit}
+                        <WorkspaceExpensifyCardLimitCell
+                            limit={item.limit}
+                            currency={item.currency}
+                            displayText={formattedLimit}
+                            canEdit={!!item.canEditLimit}
+                            onSave={item.onChangeLimit}
                         />
                         {shouldUseNarrowTableLayout && (
                             <Text
@@ -192,7 +254,23 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                         )}
                     </View>
 
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                    {!shouldUseNarrowTableLayout && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.editableCellHeader]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={formattedRemainingLimit}
+                            />
+                        </View>
+                    )}
+
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <Icon
                             src={icons.ArrowRight}
                             fill={theme.icon}

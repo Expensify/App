@@ -1,12 +1,15 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCompanyCardConnectionError from '@hooks/useCompanyCardConnectionError';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -14,21 +17,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 
 import {updateSelectedFeed} from '@libs/actions/Card';
-import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCompanyCardErrors, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {WebViewNavigation} from 'react-native-webview';
 
@@ -37,7 +39,6 @@ import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 
 type BankConnectionProps = {
-    /** ID of the policy */
     policyID?: string;
 
     /** Selected feed for assign card flow */
@@ -72,26 +73,16 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
-    const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({cardFeeds, addNewCard, newFeed, isAddingNewCard: !feed});
+    // importPlaidAccounts only writes these errors while repairing an existing feed, so the add-card flow ignores them
+    const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BankConnection',
-        isAllFeedsResultLoading,
-        isBlockedToAddNewFeedsWithoutFeed: isBlockedToAddNewFeeds && !feed,
-        isConnectionCompleted,
-        isPlaid,
-    };
-    const renderLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BankConnection',
-    };
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={renderLoadingReasonAttributes}
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 
@@ -111,6 +102,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        clearAddNewCompanyCardErrors();
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
@@ -119,18 +111,34 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        // A failed import is rendered instead. Clearing isRefreshing must not fall through to the healthy feed close below.
+        if (hasImportError) {
+            return;
+        }
+
         // Handle assign card flow
-        if (feed && !isFeedExpired) {
-            if (isFeedConnectionBroken) {
-                updateBrokenConnection();
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        if (feed) {
+            if (!isFeedExpired) {
+                if (isFeedConnectionBroken) {
+                    updateBrokenConnection();
+                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                    return;
+                }
+                // The host pages only render the connection steps, so an assign flow that detoured here is not resumed.
+                // The panel closes and the admin assigns the card again on the reconnected feed. During a refresh the
+                // panel stays open because RefreshCardFeedConnectionPage closes it once the reconnect completes.
+                if (!assignCard?.isRefreshing) {
+                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                    return;
+                }
+            }
+            // Repairing an existing Plaid feed: PlaidConnectionStep already fired importPlaidAccounts with the
+            // prefixed feed + domainAccountID. Don't queue a second import from the bare institutionId here (it would
+            // miss the `plaid.` prefix and take the server's create-new-feed branch, duplicating the feed). This
+            // mirrors the web effect, which returns for a still-expired Plaid feed.
+            if (isPlaid) {
                 return;
             }
-            setAssignCardStepAndData({
-                currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                isEditing: false,
-            });
-            return;
         }
 
         // Handle add new card flow
@@ -157,12 +165,13 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         url,
         feed,
         isFeedExpired,
-        assignCard?.cardToAssign?.dateOption,
+        assignCard?.isRefreshing,
         isPlaid,
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        hasImportError,
         checkForDuplicateFeed,
     ]);
 
@@ -201,17 +210,29 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                         renderLoading={renderLoading}
                     />
                 )}
-                {(isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
+                {(isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && !hasImportError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        reasonAttributes={activityReasonAttributes}
+                    />
+                )}
+                {hasImportError && (
+                    <ConfirmationPage
+                        heading={translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle')}
+                        description={translate('common.genericErrorMessage')}
+                        illustration={illustrations.BrokenCompanyCardBankConnection}
+                        illustrationStyle={styles.errorStateCardIllustration}
+                        containerStyle={styles.h100}
+                        shouldShowButton
+                        buttonText={translate('common.buttonConfirm')}
+                        onButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
                     />
                 )}
                 {isNewFeedHasError && (
                     <WorkspaceCompanyCardsErrorConfirmation
                         policyID={policyID}
                         newFeed={newFeed}
+                        errorMessage={errorMessage}
                     />
                 )}
             </FullPageOfflineBlockingView>

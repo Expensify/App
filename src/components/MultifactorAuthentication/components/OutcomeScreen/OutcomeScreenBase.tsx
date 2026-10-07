@@ -15,6 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Parser from '@libs/Parser';
 
+import CONST from '@src/CONST';
+
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -116,12 +118,13 @@ function OutcomeScreenBaseContent({
                 </ScrollView>
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     <Button
-                        large
-                        success
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         style={styles.flex1}
                         onPress={onClose}
-                        text={translate('common.buttonConfirm')}
-                    />
+                    >
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
                 </View>
             </View>
         </ScreenWrapper>

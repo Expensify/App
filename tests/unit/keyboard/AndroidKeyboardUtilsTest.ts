@@ -1,4 +1,6 @@
-import type {SimplifiedKeyboardEvent} from '@src/utils/keyboard/index';
+import type * as AndroidKeyboardModule from '@src/utils/keyboard/index.android';
+
+type SimplifiedKeyboardEvent = AndroidKeyboardModule.SimplifiedKeyboardEvent;
 
 const mockKeyboardListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) => void>> = {};
 const mockKeyboardControllerListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) => void>> = {};
@@ -73,8 +75,7 @@ describe('Keyboard utils: Android', () => {
         // Clear module cache and reimport to reset isVisible state
         jest.resetModules();
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        utils = require('@src/utils/keyboard/index.android').default as {dismiss: () => Promise<void>; dismissKeyboardAndExecute: (cb: () => void) => Promise<void>};
+        utils = jest.requireActual<typeof AndroidKeyboardModule>('@src/utils/keyboard/index.android').default;
     });
 
     describe('dismiss', () => {

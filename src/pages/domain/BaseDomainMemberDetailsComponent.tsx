@@ -1,7 +1,8 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -9,7 +10,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -18,23 +19,16 @@ import {temporaryGetDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDe
 import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PersonalDetailsList} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainMemberDetailsComponentProps = {
-    /** Domain ID */
     domainAccountID: number;
-
-    /** User account ID */
     accountID: number;
 
     /** List of additional fields (e.g., force 2FA) */
@@ -49,12 +43,9 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
 
-    const personalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID], [accountID]);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector,
-    });
+    const [personalDetails] = usePersonalDetail(accountID);
 
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
     const phoneNumber = getPhoneNumber(personalDetails);
     const memberLogin = personalDetails?.login ?? '';
     const isSMSLogin = Str.isSMSLogin(memberLogin);
@@ -72,13 +63,11 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
-                                <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
-                                    imageStyles={[styles.avatarXLarge]}
+                                <UserAvatar
+                                    containerStyles={[styles.mb4, styles.noOutline]}
                                     source={personalDetails?.avatar}
-                                    avatarID={accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.X_LARGE}
+                                    accountID={accountID}
+                                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={personalDetails?.fallbackIcon}
                                 />
                             </OfflineWithFeedback>
@@ -94,19 +83,17 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                             {avatarButton}
                         </View>
                         <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                title={copyableName}
-                                copyValue={copyableName}
-                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                interactive={false}
-                                copyable
-                            />
+                            <MenuItemField
+                                name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                value={copyableName}
+                            >
+                                <MenuItem.Copy value={copyableName} />
+                            </MenuItemField>
                             {children}
-                            <MenuItem
+                            <MenuItemNavigation
                                 title={translate('common.profile')}
                                 icon={icons.Info}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)))}
-                                shouldShowRightIcon
                             />
                         </View>
                     </View>

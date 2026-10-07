@@ -1,7 +1,9 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,13 +14,18 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearAgentAvatarUpdateError, clearAgentNameUpdateError, clearAgentPromptUpdateError, deleteAgent} from '@libs/actions/Agent';
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -36,16 +43,18 @@ type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, t
 function EditAgentPage({route}: EditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
     const accountID = route.params.accountID;
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
+    const [personalDetails, personalDetailsMetadata] = usePersonalDetail(accountID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
     const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
-    const shouldShowNotFoundPage = isOnyxLoaded && !agent && !personalDetails;
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const shouldShowNotFoundPage = isLoadingApp === false && isOnyxLoaded && !agent && !personalDetails;
 
     const agentLogin = personalDetails?.login ?? '';
     const handleBackPress = () => Navigation.goBack();
@@ -53,12 +62,17 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(accountID));
     const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID));
     const handleDeletePress = async () => {
+        const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(accountID, allPolicies);
+        if (ruleBotEnforcedPolicy) {
+            showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
+            return;
+        }
         const result = await showConfirmModal({
             title: translate('editAgentPage.deleteAgentTitle'),
             prompt: translate('editAgentPage.deleteAgentMessage'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
         if (result.action !== ModalActions.CONFIRM) {
@@ -68,16 +82,32 @@ function EditAgentPage({route}: EditAgentPageProps) {
     };
     const isPendingAddOrDelete = agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin;
+    const agentPrompt = Str.htmlDecode(agent?.prompt?.trim() ?? '');
     const handleChatPress = () => {
         chatWithAgent(accountID);
     };
     const handleCopilotPress = () => {
         switchToDelegator(agentLogin);
     };
+    const handleViewHistoryPress = () => {
+        const query = buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            from: [String(accountID)],
+        });
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+    };
 
     if (shouldShowNotFoundPage) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS)} />;
     }
+
+    const agentAvatar = personalDetails?.avatar ? (
+        <UserAvatar
+            source={personalDetails.avatar}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            accountID={accountID}
+        />
+    ) : null;
 
     return (
         <ScreenWrapper
@@ -98,11 +128,8 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     <View style={[styles.alignItemsCenter, styles.pv5]}>
                         <AvatarButtonWithIcon
                             text={translate('editAgentAvatarPage.title')}
-                            source={personalDetails?.avatar ?? ''}
-                            avatarID={accountID}
+                            avatar={agentAvatar}
                             onPress={handleEditAvatarPress}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
-                            avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                             pendingAction={personalDetails?.pendingFields?.avatar}
                             sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
                             editIconStyle={styles.smallEditIconAccount}
@@ -114,11 +141,10 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     errorRowStyles={[styles.mh5, styles.mb2]}
                     onClose={() => clearAgentNameUpdateError(accountID)}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('editAgentPage.agentName')}
-                        title={personalDetails?.displayName ?? ''}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('editAgentPage.agentName')}
                         onPress={handleEditNamePress}
+                        value={personalDetails?.displayName}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback
@@ -126,29 +152,32 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     errorRowStyles={[styles.mh5, styles.mb2]}
                     onClose={() => clearAgentPromptUpdateError(accountID)}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('editAgentPage.instructions')}
-                        title={Str.htmlDecode(agent?.prompt?.trim() ?? '')}
-                        shouldParseTitle
-                        shouldTruncateTitle
+                    <MenuItemFieldHTML
+                        name={translate('editAgentPage.instructions')}
+                        value={agentPrompt ? Parser.replace(agentPrompt, {disabledRules: ['reportMentions']}) : undefined}
                         characterLimit={CONST.AGENT_PROMPT_LIMIT}
-                        shouldShowRightIcon
                         onPress={handleEditPromptPress}
                     />
                 </OfflineWithFeedback>
-                <MenuItem
+                <MenuItemAction
+                    title={translate('editAgentPage.viewAgentHistory')}
+                    icon={icons.MagnifyingGlass}
+                    onPress={handleViewHistoryPress}
+                    isDisabled={areActionsDisabled}
+                />
+                <MenuItemAction
                     title={translate('editAgentPage.chatWithAgent')}
                     icon={icons.ChatBubble}
                     onPress={handleChatPress}
-                    disabled={areActionsDisabled}
+                    isDisabled={areActionsDisabled}
                 />
-                <MenuItem
+                <MenuItemAction
                     title={translate('editAgentPage.copilotIntoAccount')}
                     icon={icons.Users}
                     onPress={handleCopilotPress}
-                    disabled={areActionsDisabled}
+                    isDisabled={areActionsDisabled}
                 />
-                <MenuItem
+                <MenuItemAction
                     title={translate('editAgentPage.deleteAgent')}
                     icon={icons.Trashcan}
                     onPress={handleDeletePress}

@@ -1,9 +1,7 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SettlementButton from '@components/SettlementButton';
-import type {PaymentActionParams} from '@components/SettlementButton/types';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import useLocalize from '@hooks/useLocalize';
@@ -17,68 +15,64 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import React from 'react';
 import {View} from 'react-native';
 
-type ConfirmationFooterContentProps = {
-    /** IOU type currently being confirmed (submit / split / track / pay / invoice) */
-    iouType: IOUType;
+import {useConfirmationData} from './ConfirmationDataContext';
+import useConfirmationCtaText from './hooks/useConfirmationCtaText';
+import useReceiptTraining from './hooks/useReceiptTraining';
 
-    /** Click handler invoked when the user taps the primary confirmation button */
-    confirm: (params: PaymentActionParams) => void;
-
-    /** Currency the IOU is being created in, used by the Pay settlement button */
-    iouCurrencyCode: string;
-
-    /** Policy the IOU belongs to, when applicable */
-    policyID: string | undefined;
-
-    /** Report the IOU is being created on */
-    reportID: string;
-
-    /** Whether the confirmation has already been submitted (locks the button) */
-    isConfirmed: boolean | undefined;
-
-    /** Whether a confirmation request is currently in flight */
-    isConfirming: boolean | undefined;
-
-    /** Whether a SmartScan receipt is still being processed */
-    isLoadingReceipt: boolean;
-
-    /** Dropdown options for the primary CTA (e.g. Submit / Submit & Close) */
-    splitOrRequestOptions: Array<DropdownOption<string>>;
-
-    /** Inline error message displayed above the button, if any */
-    errorMessage: string | undefined;
-
-    /** Number of expenses that will be created on confirm (drives bulk copy) */
-    expensesNumber: number;
-
-    /** Optional callback to show a confirm-modal before removing an expense */
-    showRemoveExpenseConfirmModal: (() => void) | undefined;
-
-    /** Whether the product-training tooltip should anchor to the button */
-    shouldShowProductTrainingTooltip: boolean;
-
-    /** Renders the product-training tooltip content */
-    renderProductTrainingTooltip: () => React.ReactElement;
+/**
+ * A Sentry label aggregates every interaction that shares it, so the confirmation CTA reports one series per IOU flow
+ * instead of blending submit, split, track and invoice into a single INP measurement. Flows absent from this map fall
+ * back to CONFIRMATION_SUBMIT_BUTTON.
+ */
+const CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE: Partial<Record<IOUType, string>> = {
+    [CONST.IOU.TYPE.SPLIT]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SPLIT_BUTTON,
+    [CONST.IOU.TYPE.SPLIT_EXPENSE]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SPLIT_BUTTON,
+    [CONST.IOU.TYPE.TRACK]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_TRACK_BUTTON,
+    [CONST.IOU.TYPE.INVOICE]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_INVOICE_BUTTON,
 };
 
-function ConfirmationFooterContent({
-    iouType,
-    confirm,
-    iouCurrencyCode,
-    policyID,
-    reportID,
-    isConfirmed,
-    isConfirming,
-    isLoadingReceipt,
-    splitOrRequestOptions,
-    errorMessage,
-    expensesNumber,
-    showRemoveExpenseConfirmModal,
-    shouldShowProductTrainingTooltip,
-    renderProductTrainingTooltip,
-}: ConfirmationFooterContentProps) {
+function ConfirmationFooterContent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const {
+        iouType,
+        confirm,
+        iouCurrencyCode,
+        policyID,
+        reportID,
+        isConfirmed,
+        isConfirming,
+        receiptOptions,
+        errorMessage,
+        expensesNumber,
+        showRemoveExpenseConfirmModal,
+        transaction,
+        policy,
+        iouAmount,
+        isTypeSplit,
+        formattedAmount,
+        isPerDiemRequest,
+        isDistanceRequestWithPendingRoute,
+    } = useConfirmationData();
+
+    const {receiptPath = '', isLoadingReceipt = false} = receiptOptions;
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useReceiptTraining({transaction});
+
+    const splitOrRequestOptions = useConfirmationCtaText({
+        expensesNumber,
+        isTypeInvoice: iouType === CONST.IOU.TYPE.INVOICE,
+        isTypeSplit,
+        isTypeRequest: iouType === CONST.IOU.TYPE.SUBMIT,
+        iouAmount,
+        iouType,
+        policy,
+        formattedAmount,
+        receiptPath,
+        isDistanceRequestWithPendingRoute,
+        isPerDiemRequest,
+    });
 
     const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
 
@@ -110,12 +104,13 @@ function ConfirmationFooterContent({
         <>
             {expensesNumber > 1 && (
                 <Button
-                    large
-                    text={translate('iou.removeThisExpense')}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={showRemoveExpenseConfirmModal}
                     style={styles.mb3}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_REMOVE_EXPENSE_BUTTON}
-                />
+                >
+                    <Button.Text>{translate('iou.removeThisExpense')}</Button.Text>
+                </Button>
             )}
             <EducationalTooltip
                 shouldRender={shouldShowProductTrainingTooltip}
@@ -139,7 +134,7 @@ function ConfirmationFooterContent({
                         useKeyboardShortcuts
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || because we want undefined and false to both be treated as falsy for isLoading
                         isLoading={isConfirmed || isConfirming || isLoadingReceipt}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
+                        sentryLabel={CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE[iouType] ?? CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
                     />
                 </View>
             </EducationalTooltip>

@@ -9,7 +9,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 
@@ -24,7 +24,7 @@ jest.mock('@libs/SidebarUtils', () => ({
     getReportsToDisplayInLHN: jest.fn(),
     updateReportsToDisplayInLHN: jest.fn(),
     filterReportsForInboxTab: jest.fn((reportIDs: string[]) => reportIDs),
-    getInboxTabCounts: jest.fn(() => ({})),
+    getInboxTabSummary: jest.fn(() => ({counts: {}, hasStaleUnreadReport: false})),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),
@@ -36,7 +36,7 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportIDFromLink: jest.fn(() => ''),
 }));
 
-const mockSidebarUtils = SidebarUtils as jest.Mocked<typeof SidebarUtils>;
+const mockSidebarUtils = jest.mocked(SidebarUtils);
 
 describe('useSidebarOrderedReports', () => {
     beforeAll(async () => {
@@ -70,12 +70,11 @@ describe('useSidebarOrderedReports', () => {
                 [ONYXKEYS.COLLECTION.REPORT]: {},
                 [ONYXKEYS.COLLECTION.POLICY]: {},
                 [ONYXKEYS.COLLECTION.TRANSACTION]: {},
-                [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {},
                 [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {},
-                [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: {},
                 [ONYXKEYS.BETAS]: [],
                 [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
-            } as unknown as OnyxMultiSetInput);
+                [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: [],
+            } satisfies OnyxMultiSetInput);
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -125,8 +124,14 @@ describe('useSidebarOrderedReports', () => {
     it('should prevent unnecessary re-renders when reports have same content but different references', async () => {
         // Given reports with same content but different object references
         const reportsContent = {
-            report1: {reportName: 'Chat 1', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-            report2: {reportName: 'Chat 2', lastVisibleActionCreated: '2024-01-01 11:00:00'},
+            report1: {
+                reportName: 'Chat 1',
+                lastVisibleActionCreated: '2024-01-01 10:00:00',
+            },
+            report2: {
+                reportName: 'Chat 2',
+                lastVisibleActionCreated: '2024-01-01 11:00:00',
+            },
         };
 
         // When the initial reports are set
@@ -141,6 +146,14 @@ describe('useSidebarOrderedReports', () => {
         });
 
         await waitForBatchedUpdatesWithAct();
+
+        const fullScanCall = mockSidebarUtils.getReportsToDisplayInLHN.mock.calls.at(0);
+        if (!fullScanCall) {
+            throw new Error('SidebarUtils.getReportsToDisplayInLHN was not called');
+        }
+        const [{transactionViolations, draftComments}] = fullScanCall;
+        expect(Object.keys(transactionViolations ?? {})).toHaveLength(0);
+        expect(Object.keys(draftComments ?? {})).toHaveLength(0);
 
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
@@ -174,9 +187,9 @@ describe('useSidebarOrderedReports', () => {
         // Then the initial reports are set
         await act(async () => {
             await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: initialReports['1'],
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: initialReports['2'],
-            } as unknown as OnyxMultiSetInput);
+                [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: initialReports['1'],
+                [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: initialReports['2'],
+            } satisfies OnyxMultiSetInput);
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -317,5 +330,216 @@ describe('useSidebarOrderedReports', () => {
 
         // Then sortReportsToDisplayInLHN should be called when priority mode changes
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalled();
+    });
+
+    it('should recompute all reports when guide accountIDs hydrate and guide emails become available', async () => {
+        const guideAccountID = '8';
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+        const domainRoomReport = {
+            reportID: '2',
+            reportName: 'Domain Room',
+            lastVisibleActionCreated: '2024-01-01 10:00:00',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+            participants: {
+                [guideAccountID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
+        } as Report;
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, domainRoomReport);
+            await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, []);
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // The guide's personal details arriving is what turns the derived value from empty into a populated list.
+        // Deriving that list from the personal details is covered by tests/unit/OnyxDerived/guideAccountIDsTest.ts.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, [Number(guideAccountID)]);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({
+                updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}1`, `${ONYXKEYS.COLLECTION.REPORT}2`]),
+            }),
+        );
+    });
+
+    it('should not recompute all reports when the guide accountIDs are recomputed to the same set', async () => {
+        const participantAccountID = '8';
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                ...displayedReports['1'],
+                participants: {
+                    [participantAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            });
+            await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, [Number(participantAccountID)]);
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // An unrelated personal-details change (a new avatar, a display name edit) recomputes the derived value to a
+        // fresh but shallow-equal array. That must not look like guide hydration and force a full LHN re-scan.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, [Number(participantAccountID)]);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        const updateCalls = mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls;
+        const fullRecomputeCall = updateCalls.find((call) => {
+            const updatedReportsKeys = call[0]?.updatedReportsKeys ?? [];
+            return updatedReportsKeys.length > 1;
+        });
+
+        expect(fullRecomputeCall).toBeUndefined();
+    });
+
+    it('should recheck a hidden report when only its derived attributes change', async () => {
+        // Given a displayed chat and a chat thread that is hidden from the LHN because its derived attributes still mark it as empty
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+        const threadReport = {
+            reportID: '2',
+            reportName: 'Thread',
+            lastVisibleActionCreated: '2024-01-01 10:00:00',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: '1',
+            parentReportActionID: '100',
+        } as Report;
+        const createThreadAttributes = (isEmpty: boolean): ReportAttributesDerivedValue['reports'][string] => ({
+            reportName: 'Thread',
+            isEmpty,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+        });
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, threadReport);
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[threadReport.reportID]: createThreadAttributes(true)}, locale: null});
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When the derived attributes land a render after the report change that caused them (e.g. a first reply in the thread),
+        // so the reports collection itself does not change in this render
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[threadReport.reportID]: createThreadAttributes(false)}, locale: null});
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the hidden thread is rechecked with the fresh attributes, instead of only the already-displayed reports
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({
+                updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}2`]),
+            }),
+        );
+    });
+
+    it('should only recheck reports whose derived attributes actually changed', async () => {
+        // Given two reports whose derived attributes are stored in Onyx, with report 1 remaining unchanged
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Chat A'},
+        });
+        const report2 = createMockReports({
+            report2: {reportName: 'Chat B'},
+        })['2'];
+        const unchangedAttributes: ReportAttributesDerivedValue['reports'][string] = {
+            reportName: 'Chat A',
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+        };
+        const createReport2Attributes = (isEmpty: boolean): ReportAttributesDerivedValue['reports'][string] => ({
+            reportName: 'Chat B',
+            isEmpty,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+        });
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, report2);
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+                reports: {
+                    [displayedReports['1'].reportID]: unchangedAttributes,
+                    [report2.reportID]: createReport2Attributes(true),
+                },
+                locale: null,
+            });
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+        await waitForBatchedUpdatesWithAct();
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When only report 2's derived attributes change, while report 1 keeps the same input object reference
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+                reports: {
+                    [displayedReports['1'].reportID]: unchangedAttributes,
+                    [report2.reportID]: createReport2Attributes(false),
+                },
+                locale: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the incremental LHN update should recheck report 2 only
+        const callForReport2 = mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls.find((call) => call[0]?.updatedReportsKeys.includes(`${ONYXKEYS.COLLECTION.REPORT}2`));
+        expect(callForReport2?.[0]?.updatedReportsKeys).toEqual([`${ONYXKEYS.COLLECTION.REPORT}2`]);
     });
 });

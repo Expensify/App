@@ -1,14 +1,14 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,8 +39,7 @@ function RulesMaxExpenseAgePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const maxExpenseAgeDefaultValue = policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge ? '' : `${policy?.maxExpenseAge}`;
 
@@ -56,7 +55,7 @@ function RulesMaxExpenseAgePage({
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
@@ -64,15 +63,12 @@ function RulesMaxExpenseAgePage({
                 shouldEnableMaxHeight
                 testID="RulesMaxExpenseAgePage"
             >
-                <HeaderWithBackButton
-                    title={translate(isRevamp ? 'workspace.rules.generalTab.expensesOlderThan' : 'workspace.rules.individualExpenseRules.maxExpenseAge')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.expensesOlderThan')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
                     onSubmit={({maxExpenseAge}) => {
-                        setPolicyMaxExpenseAge(policyID, maxExpenseAge, policy?.maxExpenseAge);
+                        setPolicyMaxExpenseAge(policyID, maxExpenseAge, policy?.maxExpenseAge, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}

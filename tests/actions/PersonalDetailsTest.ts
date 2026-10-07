@@ -14,19 +14,24 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import Onyx from 'react-native-onyx';
 
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
+import createMock from '../utils/createMock';
+import {getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
-const mockAPI = API as jest.Mocked<typeof API>;
+const mockAPI = jest.mocked(API);
 
 jest.mock('@libs/Navigation/Navigation');
-const mockNavigation = Navigation as jest.Mocked<typeof Navigation>;
+const mockNavigation = jest.mocked(Navigation);
 
-jest.mock('@libs/PersonalDetailsUtils');
-const mockPersonalDetailsUtils = PersonalDetailsUtils as jest.Mocked<typeof PersonalDetailsUtils>;
+jest.mock('@libs/PersonalDetailsUtils', () => {
+    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
+    return {...actual, getFormattedStreet: jest.fn(), createDisplayName: jest.fn()};
+});
+const mockPersonalDetailsUtils = jest.mocked(PersonalDetailsUtils);
 
 jest.mock('@libs/UserAvatarUtils');
-const mockUserAvatarUtils = UserAvatarUtils as jest.Mocked<typeof UserAvatarUtils>;
+const mockUserAvatarUtils = jest.mocked(UserAvatarUtils);
 
 describe('actions/PersonalDetails', () => {
     beforeAll(() => {
@@ -43,6 +48,54 @@ describe('actions/PersonalDetails', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    describe('setPersonalDetailsAndRevealExpensifyCard', () => {
+        const personalDetails = {
+            legalFirstName: 'Test',
+            legalLastName: 'User',
+            phoneNumber: '+15005550006',
+            addressCity: 'San Francisco',
+            addressStreet: '123 Main St',
+            addressStreet2: '',
+            addressZip: '94105',
+            addressCountry: 'US',
+            dob: '1990-01-01',
+            addressState: 'CA',
+            addressProvince: '',
+        };
+
+        it.each([
+            [CONST.JSON_CODE.TOO_MANY_REQUESTS, 'validateCodeForm.error.tooManyAttempts'],
+            [CONST.JSON_CODE.INCORRECT_VALIDATE_CODE, 'validateCodeForm.error.incorrectSecurityCode'],
+            [CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR, 'cardPage.unexpectedError'],
+            [CONST.HTTP_STATUS.UNAUTHORIZED, 'cardPage.cardDetailsLoadingFailure'],
+        ])('maps response %s to %s', async (jsonCode, translationKey) => {
+            mockAPI.makeRequestWithSideEffects.mockResolvedValue({jsonCode});
+
+            await expect(PersonalDetailsActions.setPersonalDetailsAndRevealExpensifyCard(personalDetails, 123, '123456')).rejects.toBe(translationKey);
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns card details after a successful reveal', async () => {
+            const cardDetails = {
+                pan: '4111111111111111',
+                expiration: '12/30',
+                cvv: '123',
+            };
+            mockAPI.makeRequestWithSideEffects.mockResolvedValue({
+                jsonCode: CONST.JSON_CODE.SUCCESS,
+                ...cardDetails,
+            });
+
+            await expect(PersonalDetailsActions.setPersonalDetailsAndRevealExpensifyCard(personalDetails, 123, '123456')).resolves.toEqual(cardDetails);
+        });
+
+        it('preserves the connection error for failed requests', async () => {
+            mockAPI.makeRequestWithSideEffects.mockRejectedValue(new Error('Network error'));
+
+            await expect(PersonalDetailsActions.setPersonalDetailsAndRevealExpensifyCard(personalDetails, 123, '123456')).rejects.toBe('cardPage.cardDetailsLoadingFailure');
+        });
     });
 
     describe('updateAddress', () => {
@@ -345,34 +398,38 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.write).toHaveBeenCalledWith(
-                WRITE_COMMANDS.UPDATE_LEGAL_NAME,
-                {legalFirstName, legalLastName},
+            const [command, parameters, onyxData] = getRequiredWriteCall(mockAPI.write.mock.calls);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_LEGAL_NAME);
+            expect(parameters).toEqual({legalFirstName, legalLastName});
+            const optimisticUpdates = getRequiredOnyxUpdates(onyxData, 'optimisticData');
+            const personalDetails = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.PERSONAL_DETAILS_LIST, Onyx.METHOD.MERGE, true).value[123];
+            const displayName = personalDetails && typeof personalDetails === 'object' && 'displayName' in personalDetails ? personalDetails.displayName : undefined;
+            if (typeof displayName !== 'string') {
+                throw new Error('Expected the optimistic personal details displayName to be a string.');
+            }
+            expect(onyxData).toEqual({optimisticData: optimisticUpdates});
+            expect(optimisticUpdates).toEqual([
                 {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                            value: {
-                                legalFirstName,
-                                legalLastName,
-                            },
-                        },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    displayName: expect.any(String) as string,
-                                    firstName: legalFirstName,
-                                    lastName: legalLastName,
-                                },
-                            },
-                        },
-                    ],
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        legalFirstName,
+                        legalLastName,
+                    },
                 },
-            );
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        123: {
+                            displayName,
+                            firstName: legalFirstName,
+                            lastName: legalLastName,
+                        },
+                    },
+                },
+            ]);
         });
 
         it('should use currentUserAccountID from session for personal details update', async () => {
@@ -390,34 +447,38 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.write).toHaveBeenCalledWith(
-                WRITE_COMMANDS.UPDATE_LEGAL_NAME,
-                {legalFirstName, legalLastName},
+            const [command, parameters, onyxData] = getRequiredWriteCall(mockAPI.write.mock.calls);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_LEGAL_NAME);
+            expect(parameters).toEqual({legalFirstName, legalLastName});
+            const optimisticUpdates = getRequiredOnyxUpdates(onyxData, 'optimisticData');
+            const personalDetails = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.PERSONAL_DETAILS_LIST, Onyx.METHOD.MERGE, true).value[456];
+            const displayName = personalDetails && typeof personalDetails === 'object' && 'displayName' in personalDetails ? personalDetails.displayName : undefined;
+            if (typeof displayName !== 'string') {
+                throw new Error('Expected the optimistic personal details displayName to be a string.');
+            }
+            expect(onyxData).toEqual({optimisticData: optimisticUpdates});
+            expect(optimisticUpdates).toEqual([
                 {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                            value: {
-                                legalFirstName,
-                                legalLastName,
-                            },
-                        },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                456: {
-                                    displayName: expect.any(String) as string,
-                                    firstName: legalFirstName,
-                                    lastName: legalLastName,
-                                },
-                            },
-                        },
-                    ],
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        legalFirstName,
+                        legalLastName,
+                    },
                 },
-            );
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        456: {
+                            displayName,
+                            firstName: legalFirstName,
+                            lastName: legalLastName,
+                        },
+                    },
+                },
+            ]);
         });
     });
 
@@ -532,10 +593,10 @@ describe('actions/PersonalDetails', () => {
 
     describe('updateAvatar', () => {
         it('should call API.write with correct parameters and optimistic data for File', async () => {
-            const mockFile = {
+            const mockFile = createMock<File>({
                 uri: 'file://test-avatar.jpg',
                 name: 'test-avatar.jpg',
-            } as File;
+            });
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: 'old-avatar-thumb.jpg',
@@ -606,12 +667,12 @@ describe('actions/PersonalDetails', () => {
         });
 
         it('should call API.write with correct parameters and optimistic data for CustomRNImageManipulatorResult', async () => {
-            const mockFile = {
+            const mockFile = createMock<CustomRNImageManipulatorResult>({
                 uri: 'file://test-avatar.jpg',
                 name: 'test-avatar.jpg',
                 size: 1024,
                 type: 'image/jpeg',
-            } as CustomRNImageManipulatorResult;
+            });
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: 'old-avatar-thumb.jpg',
@@ -757,10 +818,10 @@ describe('actions/PersonalDetails', () => {
         });
 
         it('should handle null avatarThumbnail in failure data', async () => {
-            const mockFile = {
+            const mockFile = createMock<File>({
                 uri: 'file://test-avatar.jpg',
                 name: 'test-avatar.jpg',
-            } as File;
+            });
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: undefined,
@@ -797,10 +858,10 @@ describe('actions/PersonalDetails', () => {
         it('should return early when currentUserAccountID is not set', async () => {
             await waitForBatchedUpdates();
 
-            const mockFile = {
+            const mockFile = createMock<File>({
                 uri: 'file://test-avatar.jpg',
                 name: 'test-avatar.jpg',
-            } as File;
+            });
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: 'old-avatar-thumb.jpg',

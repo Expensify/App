@@ -1,7 +1,8 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OptionItem from '@components/OptionsPicker/OptionItem';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,7 +25,6 @@ import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplifiedCollectSubscriptionUI} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -55,10 +55,11 @@ function SubscriptionSettings() {
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU']);
-    const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
-        lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
-        upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
-    });
+    const priceDetails = translate(
+        `subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`,
+        convertToShortDisplayString(subscriptionPrice, preferredCurrency),
+        convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
+    );
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins?.toString() : undefined;
     const shouldUseSimplifiedCollectUI = shouldUseSimplifiedCollectSubscriptionUI(subscriptionPlan, hasTeam2025Pricing);
     const collectPriceDisplay = convertToShortDisplayString(subscriptionPrice, preferredCurrency);
@@ -79,12 +80,14 @@ function SubscriptionSettings() {
 
     const subscriptionSizeSection =
         privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && privateSubscription?.userCount ? (
-            <MenuItemWithTopDescription
-                description={translate('subscription.details.subscriptionSize')}
-                title={`${privateSubscription?.userCount}`}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-                style={styles.mt5}
-            />
+            <View style={styles.mt5}>
+                <MenuItemSectionRoot>
+                    <MenuItemField.Row
+                        name={translate('subscription.details.subscriptionSize')}
+                        value={String(privateSubscription.userCount)}
+                    />
+                </MenuItemSectionRoot>
+            </View>
         ) : null;
 
     if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
@@ -92,8 +95,7 @@ function SubscriptionSettings() {
     }
 
     if (!privateSubscription) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettings', privateSubscriptionLoaded: false};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

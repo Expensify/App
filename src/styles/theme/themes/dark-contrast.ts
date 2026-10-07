@@ -8,6 +8,10 @@ const darkContrastTheme = {
     border: colors.productDark500,
     icon: colors.productDark700,
     textSupporting: colors.productDark800,
+    // The default theme trades some contrast for a softer look on RBR and GBR text. High contrast takes it back,
+    // so a reader who needs the extra separation from the background gets it.
+    textError: colors.tangerine200,
+    textSuccess: colors.green200,
     buttonSuccessText: colors.productLight900,
     buttonDangerText: colors.productDark100,
     bordersBold: colors.productDark700,
@@ -19,6 +23,7 @@ const darkContrastTheme = {
     ourMentionBG: colors.green100,
     ourMentionText: colors.green700,
     receiptPlaceholderPlus: colors.green800,
+    isHighContrast: true,
 } satisfies ThemeColors;
 
 export default darkContrastTheme;

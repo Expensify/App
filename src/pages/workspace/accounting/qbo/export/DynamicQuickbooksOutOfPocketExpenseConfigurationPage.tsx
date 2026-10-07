@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -12,8 +13,11 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 
 import Navigation from '@navigation/Navigation';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -40,6 +44,7 @@ const accountOrExportDestination = [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSE
 
 function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -114,6 +119,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             displayName="QuickbooksOutOfPocketExpenseConfigurationPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.qbo.exportOutOfPocketExpensesDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.exportOutOfPocketExpensesDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -130,14 +136,16 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                     errors={section.errors}
                     errorRowStyles={[styles.ph5]}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        onPress={section.onPress}
-                        shouldShowRightIcon
-                        brickRoadIndicator={section.brickRoadIndicator}
-                        hintText={section.hintText}
-                    />
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress)}>
+                        <MenuItemField.Row
+                            name={section.description ?? ''}
+                            value={section.title}
+                        >
+                            {!!section.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={section.brickRoadIndicator} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {!!section.hintText && <MenuItem.HelpText message={section.hintText} />}
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
             ))}
         </ConnectionLayout>

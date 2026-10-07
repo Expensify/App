@@ -1,6 +1,7 @@
 import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -85,6 +86,20 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADING);
     });
 
+    it('settles the snapshot to loaded through finally data', async () => {
+        const queryJSON = getQueryJSON();
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        const {optimisticData, finallyData} = getCapturedSearchOnyxData();
+        await Onyx.update(optimisticData ?? []);
+        await Onyx.update(finallyData ?? []);
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
+    });
+
     it('resolves the snapshot to loaded on a successful response', async () => {
         const queryJSON = getQueryJSON();
 
@@ -102,22 +117,31 @@ describe('search snapshot terminal state', () => {
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
         expect(snapshot?.search?.hasResults).toBe(true);
     });
 
-    it('resolves the snapshot to error on a failed response', async () => {
+    it('resolves the snapshot to loaded with errors on a failed response', async () => {
         const queryJSON = getQueryJSON();
 
         await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
         await simulateResolvedRequest({jsonCode: FAILURE_JSON_CODE});
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
-        // finallyData runs after failureData; the error state must survive it.
-        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.ERROR);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
+        expect(snapshot?.errors).toBeDefined();
     });
 
     it('reaches a terminal state when a successful response resolves without any snapshot data', async () => {
         const queryJSON = getQueryJSON();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {
+            search: {
+                hash: queryJSON.hash,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            },
+        });
 
         await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
         // The bug scenario: a 200 response that writes no server onyxData at all.
@@ -125,9 +149,136 @@ describe('search snapshot terminal state', () => {
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        // The hash lets the UI match this completed request to the current query.
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
+        expect(isSearchDataLoaded(snapshot, queryJSON)).toBe(true);
     });
 
-    it('resolves the snapshot to error when the request promise rejects, instead of staying loading', async () => {
+    it('resolves the snapshot to loaded without an error when the API layer skips failureData for a 460 response', async () => {
+        const queryJSON = getQueryJSON();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {
+            search: {
+                hash: queryJSON.hash,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            },
+        });
+
+        jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await Onyx.update(onyxData?.finallyData ?? []);
+            return {jsonCode: CONST.JSON_CODE.ADMIN_REQUIRED};
+        });
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.search?.isLoading).toBe(false);
+        expect(snapshot?.errors).toBeUndefined();
+        expect(isSearchDataLoaded(snapshot, queryJSON)).toBe(true);
+    });
+
+    it('persists the failing jsonCode so a reload can still classify the failure', async () => {
+        const queryJSON = getQueryJSON();
+        jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await Onyx.update(onyxData?.failureData ?? []);
+            await Onyx.update(onyxData?.finallyData ?? []);
+            return {jsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY};
+        });
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.errors).toBeDefined();
+        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+    });
+
+    it('does not write a response code in failureData', async () => {
+        // Given a request whose failureData has been applied
+        const queryJSON = getQueryJSON();
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        const {optimisticData, failureData} = getCapturedSearchOnyxData();
+        await Onyx.update(optimisticData ?? []);
+        await Onyx.update(failureData ?? []);
+        await waitForBatchedUpdates();
+
+        // Then the errors carry no code yet. failureData cannot know the code, and a guessed NO_RESPONSE rendered the
+        // "Refresh needed" copy for a frame before the real code replaced it (#101615)
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.errors).toBeDefined();
+        expect(snapshot?.search?.responseJsonCode).toBeUndefined();
+    });
+
+    it('records NO_RESPONSE when the failed response carries no numeric jsonCode', async () => {
+        // Given a response the API layer treats as a failure (not 200) but that has no numeric code to classify it with
+        const queryJSON = getQueryJSON();
+        jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await Onyx.update(onyxData?.failureData ?? []);
+            await Onyx.update(onyxData?.finallyData ?? []);
+            return {};
+        });
+
+        // When the request resolves
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        // Then the errors still get a code, otherwise the error view would hold its skeleton waiting for one that never comes
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.errors).toBeDefined();
+        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.NO_RESPONSE);
+    });
+
+    it('does not persist a jsonCode for a successful response', async () => {
+        const queryJSON = getQueryJSON();
+        jest.mocked(makeRequestWithSideEffects).mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.responseJsonCode).toBeUndefined();
+    });
+
+    it('clears a previously persisted jsonCode when a new request starts', async () => {
+        const queryJSON = getQueryJSON();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY}});
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        const {optimisticData} = getCapturedSearchOnyxData();
+        await Onyx.update(optimisticData ?? []);
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.responseJsonCode).toBeUndefined();
+    });
+
+    it('deduplicates concurrent requests for the same hash and offset', async () => {
+        const queryJSON = getQueryJSON();
+        let resolveRequest: ((value: Awaited<ReturnType<typeof makeRequestWithSideEffects>>) => void) | undefined;
+        jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    resolveRequest = resolve;
+                }),
+        );
+
+        const firstRequest = search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await Promise.resolve();
+        const duplicateRequest = search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await Promise.resolve();
+
+        expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+
+        resolveRequest?.({jsonCode: CONST.JSON_CODE.SUCCESS});
+        await Promise.all([firstRequest, duplicateRequest]);
+    });
+
+    it('resolves the snapshot to loaded with errors when the request promise rejects', async () => {
         const queryJSON = getQueryJSON();
         jest.mocked(makeRequestWithSideEffects).mockRejectedValueOnce(new Error('Network request failed'));
 
@@ -139,6 +290,45 @@ describe('search snapshot terminal state', () => {
         await waitForBatchedUpdates();
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
-        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.ERROR);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.errors).toBeDefined();
+        // There is no response to read a code from, but the errors still need one so the error view can
+        // classify them after a reload. NO_RESPONSE records "failed without a usable code" rather than leaving a gap.
+        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.NO_RESPONSE);
+    });
+
+    it('records the query string on the snapshot even when the response replaces the search info', async () => {
+        // Given a search with a non-empty query. IOU optimistic updates read `search.inputQuery` to decide
+        // which loaded snapshots a new expense belongs in, so every searched snapshot must carry it.
+        const queryJSON = buildSearchQueryJSON('type:expense from:3');
+        if (!queryJSON) {
+            throw new Error('Query JSON should be defined for test setup');
+        }
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+
+        // When only the optimistic data has been applied, as when the request is still queued offline
+        const {optimisticData} = getCapturedSearchOnyxData();
+        await Onyx.update(optimisticData ?? []);
+        await waitForBatchedUpdates();
+
+        // Then the query is already on the snapshot
+        const optimisticSnapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(optimisticSnapshot?.search?.inputQuery).toBe(queryJSON.inputQuery);
+
+        // When the server response replaces the whole snapshot, dropping the client-only query
+        await simulateResolvedRequest({
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+            serverOnyxData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
+                    value: {search: {hasResults: true}},
+                },
+            ],
+        });
+
+        // Then finallyData writes the query back
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.search?.inputQuery).toBe(queryJSON.inputQuery);
     });
 });

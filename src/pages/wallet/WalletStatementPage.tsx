@@ -1,5 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
@@ -38,7 +39,7 @@ type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigato
 function WalletStatementPage({route}: WalletStatementPageProps) {
     const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {environment} = useEnvironment();
     const {isOffline} = useNetwork();
     const themePreference = useThemePreference();
@@ -49,7 +50,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const yearMonth = route.params.yearMonth ?? null;
     const year = yearMonth?.substring(0, 4) || getYear(new Date());
     const month = yearMonth?.substring(4) || getMonth(new Date());
-    const monthName = format(new Date(Number(year), Number(month) - 1), CONST.DATE.MONTH_FORMAT);
+    const monthName = format(new Date(Number(year), Number(month) - 1), CONST.DATE.MONTH_FORMAT, {locale: dateFnsLocale});
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const cachedFileName = yearMonth ? walletStatement?.[yearMonth] : undefined;
@@ -97,12 +98,14 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             testID="WalletStatementPage"
         >
-            <HeaderWithBackButton
-                title={Str.recapitalize(translate('statementPage.title', year, monthName))}
-                shouldShowDownloadButton={!isOffline || isDownloading}
-                isDownloading={isDownloading}
-                onDownloadButtonPress={processDownload}
-            />
+            <HeaderWithBackButtonAndTitle title={Str.recapitalize(translate('statementPage.title', year, monthName))}>
+                {(!isOffline || isDownloading) && (
+                    <Header.DownloadButton
+                        onPress={processDownload}
+                        isLoading={isDownloading}
+                    />
+                )}
+            </HeaderWithBackButtonAndTitle>
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <WalletStatementModal statementPageURL={url} />
             </FullPageOfflineBlockingView>

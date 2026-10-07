@@ -341,27 +341,6 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     return parsedPhoneNumber.possible && validUSRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
 }
 
-/**
- * Validates a phone number from the North American Numbering Plan (+1 calling code).
- * Accepts the US, US territories, and Canada. Canada shares the +1 calling code under NANP
- * but parses to its own ISO region code (CA), so isValidUSPhone rejects it.
- */
-function isValidNANPPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
-    const phone = phoneNumber || '';
-    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
-
-    // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
-    // so we need to check if it is a valid phone.
-    if (regionCode && !Str.isValidPhoneFormat(phone)) {
-        return false;
-    }
-
-    const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
-
-    const validNANPRegionCodes: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI, CONST.COUNTRY.AS, CONST.COUNTRY.MP, CONST.COUNTRY.CA];
-    return parsedPhoneNumber.possible && validNANPRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
-}
-
 function isValidPhoneNumber(phoneNumber: string): boolean {
     if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber)) {
         return false;
@@ -426,6 +405,14 @@ function isValidDisplayName(name: string): boolean {
  */
 function isValidLegalName(name: string): boolean {
     return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+}
+
+/**
+ * Checks that the provided name on card does not contain HTML-like tags (e.g. `<script>`).
+ * Lone `<` or `>` characters are allowed; the backend sanitizes the value before embossing.
+ */
+function isValidNameOnCard(name: string): boolean {
+    return !CONST.REGEX.NAME_ON_CARD_INVALID_CHARS.test(name);
 }
 
 /**
@@ -759,7 +746,10 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
  */
 function isValidInputLength(inputValue: string, byteLength: number) {
     const valueByteLength = StringUtils.getUTF8ByteLength(inputValue);
-    return {isValid: valueByteLength <= byteLength, byteLength: valueByteLength};
+    return {
+        isValid: valueByteLength <= byteLength,
+        byteLength: valueByteLength,
+    };
 }
 
 /**
@@ -826,6 +816,35 @@ function isValidTaxIDEINNumber(number: string, country: Country | '') {
  */
 function isInvalidMerchantValue(merchant?: string): boolean {
     return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+}
+
+type MerchantValidationError = {type: 'required'} | {type: 'invalidValue'} | {type: 'tooLong'; byteLength: number};
+
+/**
+ * Returns the first merchant validation error (required, invalid value, or too long), or `undefined` if the merchant is valid.
+ */
+function getMerchantError(merchant: string | undefined, isMerchantRequired: boolean): MerchantValidationError | undefined {
+    const trimmedMerchant = merchant?.trim() ?? '';
+
+    if (isMerchantRequired && !trimmedMerchant) {
+        return {type: 'required'};
+    }
+    if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+        return {type: 'invalidValue'};
+    }
+    const {isValid: isLengthValid, byteLength} = isValidInputLength(trimmedMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
+    if (!isLengthValid) {
+        return {type: 'tooLong', byteLength};
+    }
+    return undefined;
+}
+
+/**
+ * Checks if a merchant is a placeholder the user never typed: the flow seeded the "Expense" / "(none)" value,
+ * so it should be treated as empty rather than as an invalid entry the user is responsible for.
+ */
+function isUntypedPlaceholderMerchant(isMerchantSet: boolean | undefined, merchant?: string): boolean {
+    return !isMerchantSet && isInvalidMerchantValue(merchant);
 }
 
 /**
@@ -897,7 +916,6 @@ export {
     isRequiredFulfilled,
     getFieldRequiredErrors,
     isValidUSPhone,
-    isValidNANPPhone,
     isValidPhoneNumber,
     isValidWebsite,
     isValidTwoFactorCode,
@@ -912,6 +930,7 @@ export {
     isValidTaxID,
     isValidValidateCode,
     isValidCompanyName,
+    isValidNameOnCard,
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,
@@ -936,6 +955,8 @@ export {
     isValidInputLength,
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
+    getMerchantError,
+    isUntypedPlaceholderMerchant,
     isValidPIN,
     containsHtmlTag,
 };

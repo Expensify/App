@@ -13,11 +13,9 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {getCompanyCardCustomName, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
-import {addErrorMessage} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {getCardNameError, getCardNameErrorMessage, getCompanyCardCustomName, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
+import StringUtils from '@libs/StringUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -28,7 +26,6 @@ import {updateCompanyCardName} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -36,9 +33,11 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {companyCardCustomNamesSelector} from '@selectors/Card';
 import React from 'react';
 
+import {getCompanyCardDetailsBackPath} from './utils';
+
 type WorkspaceCompanyCardEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME>;
 
-function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditCardNamePageProps) {
+function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceCompanyCardEditCardNamePageProps) {
     const {policyID, cardID, feed} = route.params;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
@@ -50,8 +49,7 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     const [cardFeeds, cardFeedsMetadata] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
-    const backPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feed, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-    const goBackToCardDetails = () => Navigation.goBack(backPath, {compareParams: false});
+    const goBackToCardDetails = () => Navigation.goBack(getCompanyCardDetailsBackPath(policyID, feed, cardID, navigation.getState()));
 
     const [sharedCardCustomNames, sharedCardCustomNamesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {
         selector: companyCardCustomNamesSelector,
@@ -59,18 +57,18 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     const defaultValue = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
-        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, values[INPUT_IDS.NAME], getCompanyCardFeed(feed), defaultValue);
+        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, StringUtils.sanitizeName(values[INPUT_IDS.NAME]), getCompanyCardFeed(feed), defaultValue);
         goBackToCardDetails();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
-        if (values.name) {
-            const {isValid, byteLength} = isValidInputLength(values.name, CONST.STANDARD_LENGTH_LIMIT);
-            if (!isValid) {
-                addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
-            }
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> = {};
+        const error = getCardNameError(values.name);
+
+        if (error) {
+            errors[INPUT_IDS.NAME] = getCardNameErrorMessage(translate, error, values.name);
         }
+
         return errors;
     };
 

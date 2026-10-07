@@ -29,6 +29,7 @@ type ExecSyncOptions = Omit<ExecSyncOptionsWithStringEncoding, 'encoding' | 'cwd
 
 function execSync(command: string, options?: ExecSyncOptions) {
     const optionsWithEncoding: ExecSyncOptionsWithStringEncoding = {
+        maxBuffer: 1024 * 1024 * 200, // Large diffs (e.g. bundled action output) can exceed Node's 1MB default.
         ...options,
         encoding: 'utf8',
         cwd: process.cwd(),
@@ -38,7 +39,7 @@ function execSync(command: string, options?: ExecSyncOptions) {
 }
 
 const IS_CI = process.env.CI === 'true';
-const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF as string | undefined;
+const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF;
 
 /**
  * Represents a single changed line in a git diff.
@@ -116,10 +117,11 @@ class Git {
      * @param fromRef - The starting reference (commit, branch, tag, etc.)
      * @param toRef - The ending reference (defaults to working directory if not provided)
      * @param filePaths - Optional specific file path(s) to diff (relative to git repo root)
+     * @param untrackedFileExtensions - Optional extensions (e.g. ['.ts', '.tsx']) to restrict which untracked files get read; avoids reading unrelated untracked files (media, snapshots, etc.) in full
      * @returns Structured diff result with line numbers and change information
      * @throws Error when git command fails (invalid refs, not a git repo, file not found, etc.)
      */
-    static diff(fromRef: string, toRef?: string, filePaths?: string | string[], shouldIncludeUntrackedFiles = false): DiffResult {
+    static diff(fromRef: string, toRef?: string, filePaths?: string | string[], shouldIncludeUntrackedFiles = false, untrackedFileExtensions?: string[]): DiffResult {
         // Build git diff command (with 0 context lines for easier parsing, -M for rename detection)
         let command = `git diff -U0 -M ${fromRef}`;
         if (toRef) {
@@ -138,7 +140,10 @@ class Git {
 
         // Include untracked files when diffing against working directory
         if (!toRef && shouldIncludeUntrackedFiles) {
-            const untrackedFiles = Git.getUntrackedFiles(filePaths);
+            let untrackedFiles = Git.getUntrackedFiles(filePaths);
+            if (untrackedFileExtensions) {
+                untrackedFiles = untrackedFiles.filter((file) => untrackedFileExtensions.some((ext) => file.endsWith(ext)));
+            }
             const untrackedFileDiffs = Git.createFileDiffsForUntrackedFiles(untrackedFiles);
 
             // Merge untracked files into the diff result
@@ -501,7 +506,7 @@ class Git {
      * In CI, uses the GitHub API with pagination for accuracy.
      * Locally, uses git diff against the provided ref.
      */
-    static async getChangedFilesWithStatus(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<ChangedFile[]> {
+    static async getChangedFilesWithStatus(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false, untrackedFileExtensions?: string[]): Promise<ChangedFile[]> {
         if (IS_CI) {
             const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
                 owner: CONST.GITHUB_OWNER,
@@ -519,7 +524,7 @@ class Git {
             }));
         }
 
-        const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
+        const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles, untrackedFileExtensions);
         return diffResult.files.map((file) => ({
             filename: file.filePath,
             status: file.diffType,
@@ -540,19 +545,16 @@ class Git {
      */
     static getUntrackedFiles(filePaths?: string | string[]): string[] {
         try {
-            // Get all untracked files
-            const untrackedOutput = execSync('git ls-files --others --exclude-standard', {
+            // -z avoids git C-quoting non-ASCII/special-character paths, so the raw path is preserved for later filtering
+            const untrackedOutput = execSync('git ls-files -z --others --exclude-standard', {
                 stdio: 'pipe',
             });
 
-            if (!untrackedOutput.trim()) {
+            if (!untrackedOutput) {
                 return [];
             }
 
-            let untrackedFiles = untrackedOutput
-                .trim()
-                .split('\n')
-                .filter((file) => file.length > 0);
+            let untrackedFiles = untrackedOutput.split('\0').filter((file) => file.length > 0);
 
             // Filter by filePaths if provided
             if (filePaths) {

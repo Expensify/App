@@ -42,6 +42,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -60,7 +61,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         // We keep the policyID in the route so the newly connected account still links to the workspace's Workflows > Payments.
         // We must not set the loading flag here: during the change flow the page skips fetchData, so nothing would reset it.
         if (isChangingBankAccount) {
-            prepareNewBankAccountSetup(policyCurrency);
+            prepareNewBankAccountSetup(policyCurrency, reimbursementAccount);
         } else {
             setReimbursementAccountLoading(true);
         }
@@ -125,25 +126,24 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             />
             {isSelectingBankAccount ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'ConnectExistingBusinessBankAccountPage'}}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
-                <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
+                <ScrollView style={[styles.w100, styles.ph5, shouldUseNarrowLayout ? styles.pt3 : styles.pt5, styles.pb5]}>
                     <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
                     <PaymentMethodList
                         onPress={handleItemPress}
                         onAddBankAccountPress={handleAddBankAccountPress}
-                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        style={[styles.mt5, styles.mhn5]}
+                        listItemStyle={styles.ph5}
                         itemIconRight={icons.ArrowRight}
                         filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                         filterCurrency={policyCurrency}
                         excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
                         excludeBankAccountID={isChangingBankAccount ? connectedAccountBankAccountID : undefined}
                         shouldHideDefaultBadge
+                        // The workspace bank account flow asks for the magic code itself and keeps the policyID after validation
+                        shouldSkipDefaultAccountValidation
                     />
                 </ScrollView>
             )}

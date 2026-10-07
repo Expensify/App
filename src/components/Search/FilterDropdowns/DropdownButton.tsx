@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -22,27 +23,23 @@ import FilterPopupButton from './FilterPopupButton';
 
 type DropdownButtonProps = WithSentryLabel &
     Omit<FilterPopupButtonProps, 'renderButton' | 'viewportOffsetTop'> & {
-        /** The label to display on the select */
         label: string;
-
-        /** The selected value(s) if any */
         value: string | string[] | null;
 
         /** Whether to use medium size button instead of small */
         medium?: boolean;
 
-        /** Button inner styles */
         innerStyles?: StyleProp<ViewStyle>;
-
-        /** Button label style */
         labelStyle?: StyleProp<TextStyle>;
-
-        /** Caret wrapper style */
         caretWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Styles applied while the button is hovered or its popover is open */
+        hoverStyles?: StyleProp<ViewStyle>;
+
         onClosePress?: () => void;
     };
 
-function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
+function DropdownButton({label, value, medium = false, labelStyle, innerStyles, caretWrapperStyle, hoverStyles, sentryLabel, onClosePress, ...props}: DropdownButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
@@ -70,14 +67,25 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                     <Button
                         ref={ref}
                         style={styles.flexShrink1}
-                        innerStyles={[isExpanded && styles.buttonHoveredBG, {maxWidth: variables.filterPillMaxWidth}, styles.flexShrink1, innerStyles, shouldShowCloseButton && styles.pr2]}
+                        innerStyles={[
+                            // Restores the size padding: there is no `Button.Text` child here to contribute its `ph1`.
+                            medium ? styles.ph4 : styles.ph3,
+                            isExpanded && styles.buttonHoveredBG,
+                            {maxWidth: variables.filterPillMaxWidth},
+                            styles.flexShrink1,
+                            innerStyles,
+                            isExpanded && hoverStyles,
+                            shouldShowCloseButton && styles.pr2,
+                        ]}
+                        hoverStyles={hoverStyles}
                         onPress={onPress}
                         sentryLabel={sentryLabel}
-                        shouldRemoveRightBorderRadius={shouldShowCloseButton}
-                        {...(medium ? {medium: true} : {small: true})}
+                        removeBorderRadius={shouldShowCloseButton ? CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT : undefined}
+                        size={medium ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL}
                     >
                         <CaretWrapper
-                            style={[styles.flex1, styles.mw100, caretWrapperStyle]}
+                            // Replaces flex1 with flexShrink1 so a long label truncates instead of widening the pill.
+                            style={[styles.flexShrink1, styles.mw100, caretWrapperStyle]}
                             caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
                             caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
                             isActive={isExpanded}
@@ -94,8 +102,8 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                         <>
                             <View style={[styles.buttonDivider]} />
                             <Button
-                                small
-                                shouldRemoveLeftBorderRadius
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                removeBorderRadius={CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT}
                                 innerStyles={[styles.pl0, styles.pr0half, styles.filterDropDownCloseIcon]}
                                 onPress={onClosePress}
                             >

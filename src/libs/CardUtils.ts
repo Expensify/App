@@ -27,7 +27,7 @@ import type {
     Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {UnassignedCard} from '@src/types/onyx/Card';
+import type {CardLimitType, UnassignedCard} from '@src/types/onyx/Card';
 import type {
     BankName,
     CardFeed,
@@ -43,13 +43,15 @@ import type {
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
+import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {format, fromUnixTime, isBefore, parse} from 'date-fns';
+import {format, fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 
@@ -57,6 +59,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {hasInProgressVBBA} from './ReimbursementAccountUtils';
 import StringUtils from './StringUtils';
 
 /**
@@ -119,6 +122,29 @@ type CompanyCardBankIconName = TupleToUnion<typeof COMPANY_CARD_BANK_ICON_NAMES>
 type CompanyCardBankIcons = Record<CompanyCardBankIconName, IconAsset>;
 
 const CUSTOM_FEED_PREFIXES = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+
+type CardConnectionStatusDisplay = {
+    statusKey: TranslationPaths;
+    statusTone: 'default' | 'success' | 'danger';
+    messageKey?: TranslationPaths;
+    actionKey?: TranslationPaths;
+    shouldUsePersonalCardFix?: boolean;
+    shouldUseCompanyCardsLink?: boolean;
+    shouldUseReauthMessage?: boolean;
+};
+
+type CardConnectionStatusDisplayParams = {
+    shouldShowConnectionStatus: boolean;
+    isCardBroken: boolean;
+    shouldShowRBR: boolean;
+    isCardInactive: boolean;
+    isCardPending: boolean;
+    isExpensifyCard: boolean;
+    isPersonalCard: boolean;
+    isAdminForCardPolicy: boolean;
+    doesCardNeedReauthentication?: boolean;
+    policyID?: string;
+};
 
 const feedNamesMapping = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.CSV,
@@ -266,6 +292,19 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
     }
 
     return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
+}
+
+/**
+ * `cardFeedsForDomain` must be scoped to the card's own domain (keyed by `card.fundID`), not the full
+ * cross-domain collection: a user in two domains can have the same feed key with a different nickname in each.
+ */
+function getCommercialFeedCardDescription(translate: LocalizedTranslate, card: Card | undefined, cardFeedsForDomain: OnyxEntry<CardFeeds>): string | undefined {
+    if (!card?.lastFourPAN || !isCustomFeed(card.bank)) {
+        return undefined;
+    }
+
+    const customFeedName = cardFeedsForDomain?.settings?.companyCardNicknames?.[card.bank];
+    return `${getCustomOrFormattedFeedName(translate, card.bank, customFeedName)} - ${card.lastFourPAN}`;
 }
 
 function isCard(item: Card | Record<string, string>): item is Card {
@@ -457,6 +496,16 @@ function getDefaultExpensifyCardLimitType(policy?: OnyxEntry<Policy>): ValueOf<t
     return areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
 }
 
+/**
+ * Cards issued before a limit type was stored have none, and those fall back to the policy default rather than to the
+ * `smartLimit` translation `getTranslationKeyForLimitType` returns for a missing type. Everything that shows a card's
+ * limit type has to resolve it the same way, or the visible text, accessibility label, sort order, column width and
+ * CSV export disagree with each other.
+ */
+function getDisplayedExpensifyCardLimitType(limitType: CardLimitType | undefined, defaultLimitType: CardLimitType): CardLimitType {
+    return limitType ?? defaultLimitType;
+}
+
 function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
@@ -469,6 +518,110 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
             return 'workspace.card.issueNewCard.singleUse';
         default:
             return 'workspace.card.issueNewCard.smartLimit';
+    }
+}
+
+/**
+ * Switching from Monthly or Fixed to Smart, or from Smart or Fixed to Monthly, can start
+ * declining new spend when unapproved spend is already at the limit.
+ */
+const EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS: Array<[CardLimitType, CardLimitType]> = [
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
+];
+
+/**
+ * Whether Fixed should be offered when editing an Expensify card's limit type.
+ * Hidden when a monthly or Smart card has already spent its full unapproved limit.
+ * `fallbackLimitType` is the policy default, used when the card has no `limitType` yet.
+ */
+function shouldShowExpensifyCardFixedLimitType(card?: Card, fallbackLimitType?: CardLimitType): boolean {
+    if (!card?.totalSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
+        return true;
+    }
+
+    const currentLimitType = card.nameValuePairs.limitType ?? fallbackLimitType;
+    if (currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY && currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART) {
+        return true;
+    }
+
+    return Math.abs(card.totalSpend) < card.nameValuePairs.unapprovedExpenseLimit;
+}
+
+/**
+ * Smart and Monthly are always offered. Fixed is hidden once spend is already at the limit, and Single Use only exists on virtual cards.
+ */
+function getVisibleExpensifyCardLimitTypes(card: Card | undefined, policy: OnyxEntry<Policy>): CardLimitType[] {
+    const limitTypes: CardLimitType[] = [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY];
+    if (shouldShowExpensifyCardFixedLimitType(card, getDefaultExpensifyCardLimitType(policy))) {
+        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED);
+    }
+    if (card?.nameValuePairs?.isVirtual) {
+        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE);
+    }
+    return limitTypes;
+}
+
+/**
+ * Whether changing to `newLimitType` can decline new transactions because unapproved spend is already at the limit.
+ * `fallbackLimitType` is the policy default, used when the card has no `limitType` yet.
+ */
+function shouldConfirmExpensifyCardLimitTypeChange(card: Card | undefined, newLimitType: CardLimitType, fallbackLimitType?: CardLimitType): boolean {
+    if (!card?.unapprovedSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
+        return false;
+    }
+
+    const unapprovedSpend = Math.abs(card.unapprovedSpend);
+    if (unapprovedSpend < card.nameValuePairs.unapprovedExpenseLimit) {
+        return false;
+    }
+
+    const currentLimitType = card.nameValuePairs.limitType ?? fallbackLimitType;
+    return EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS.some(([fromLimitType, toLimitType]) => currentLimitType === fromLimitType && newLimitType === toLimitType);
+}
+
+/**
+ * Warning copy for a limit-type change that would start declining transactions.
+ * Monthly and Fixed warn about switching to Smart; every other current type warns about Monthly.
+ */
+function getExpensifyCardLimitTypeChangeWarningKey(
+    currentLimitType: CardLimitType | undefined,
+): 'workspace.expensifyCard.changeCardSmartLimitTypeWarning' | 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning' {
+    if (currentLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY || currentLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED) {
+        return 'workspace.expensifyCard.changeCardSmartLimitTypeWarning';
+    }
+
+    return 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
+}
+
+type ExpensifyCardLimitChangeWarningKey = 'workspace.expensifyCard.smartLimitWarning' | 'workspace.expensifyCard.monthlyLimitWarning' | 'workspace.expensifyCard.fixedLimitWarning';
+
+/**
+ * Remaining spend after applying `newLimit` in cents. Current spend is
+ * `unapprovedExpenseLimit - availableSpend`, matching the RHP limit form so inline
+ * table edits use the same formula.
+ */
+function getExpensifyCardNewAvailableSpend(card: Card | undefined, newLimit: number): number {
+    const currentLimit = card?.nameValuePairs?.unapprovedExpenseLimit ?? 0;
+    const currentSpend = currentLimit - (card?.availableSpend ?? 0);
+    return newLimit - currentSpend;
+}
+
+/**
+ * Warning copy when a new limit would leave remaining spend at or below zero.
+ * Matches the RHP limit form so inline edits and the full-page form stay in sync.
+ */
+function getExpensifyCardLimitChangeWarningKey(limitType: CardLimitType | undefined): ExpensifyCardLimitChangeWarningKey {
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+            return 'workspace.expensifyCard.smartLimitWarning';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+            return 'workspace.expensifyCard.monthlyLimitWarning';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+        default:
+            return 'workspace.expensifyCard.fixedLimitWarning';
     }
 }
 
@@ -557,6 +710,37 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
     );
 }
 
+type ExpensifyCardEnrollmentRouteParams = {
+    /** Policy to do the enrollment on */
+    policyID: string;
+
+    /** Selected policy's outputCurrency */
+    currencyCode: string | undefined;
+
+    /** Return value from useCanEnrollNewExpensifyCardProgram */
+    isUkEuCurrencySupported: boolean;
+
+    /** ONYXKEYS.BANK_ACCOUNT_LIST */
+    bankAccountsList: OnyxEntry<BankAccountList>;
+
+    /** ONYXKEYS.CARD_SUPPORTED_COUNTRIES */
+    supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>;
+
+    /** ONYXKEYS.REIMBURSEMENT_ACCOUNT ACH data, to know if the user should be shown the bank account setup flow */
+    achData: ACHDataReimbursementAccount | undefined;
+};
+
+/** Returns the next enrollment route based on whether the workspace can use an existing bank account or must add one. */
+function getExpensifyCardEnrollmentRoute({policyID, currencyCode, isUkEuCurrencySupported, bankAccountsList, supportedCountriesByCurrency, achData}: ExpensifyCardEnrollmentRouteParams) {
+    const eligibleBankAccounts = isUkEuCurrencySupported
+        ? getEligibleBankAccountsForUkEuCard(bankAccountsList, supportedCountriesByCurrency, currencyCode)
+        : getEligibleBankAccountsForCard(bankAccountsList);
+    if (!eligibleBankAccounts.length || hasInProgressVBBA(achData, currencyCode !== CONST.CURRENCY.USD, policyID)) {
+        return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)});
+    }
+    return ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID);
+}
+
 /**
  * Returns whether any assigned card matches the predicate, skipping the `cardList` bucket of cards that are
  * still available to assign. Short-circuits on the first match and avoids the intermediate array/object copy
@@ -614,12 +798,13 @@ function sortCardsByCardholderName(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
         const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
         const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
-        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate});
-        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate});
+        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate, formatPhoneNumber});
+        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate, formatPhoneNumber});
         return localeCompare(aName, bName);
     });
 }
@@ -824,6 +1009,31 @@ function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): strin
     return result;
 }
 
+const ANZ_NZ_COMMERCIAL_FEED_BASE = 'vcfanzfav';
+const ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME = 'ANZ NZ';
+
+const COMMERCIAL_FEED_DISPLAY_BASES = [
+    {base: ANZ_NZ_COMMERCIAL_FEED_BASE, displayName: ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME, shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX), shouldHideOne: true},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA), shouldHideOne: true},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: true},
+] as const;
+
+function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeedWithDomainID | undefined): string | undefined {
+    const feedName = getCompanyCardFeed(feed);
+    const displayBase = COMMERCIAL_FEED_DISPLAY_BASES.find(({base}) => feedName.startsWith(base));
+    if (!displayBase) {
+        return;
+    }
+
+    const suffix = feedName.slice(displayBase.base.length);
+    if (!suffix || !/^\d+$/.test(suffix) || (displayBase.shouldHideOne && suffix === '1')) {
+        return displayBase.displayName;
+    }
+
+    return `${displayBase.displayName} ${suffix}`;
+}
+
 const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
     const iconMap: Record<BankName, IconAsset> = {
         [CONST.COMPANY_CARDS.BANKS.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetail,
@@ -855,7 +1065,7 @@ function getCustomOrFormattedFeedName(
         return '';
     }
 
-    const feedName = getBankName(feed);
+    const feedName = getDefaultCommercialFeedDisplayName(feed) ?? getBankName(feed);
     const formattedFeedName = feedName && shouldAddCardsSuffix ? translate('workspace.companyCards.feedName', feedName) : feedName;
 
     // Custom feed name can be empty. Fallback to default feed name
@@ -928,7 +1138,7 @@ function getFeedNameForDisplay(
         return translate('workspace.companyCards.deletedFeed');
     }
 
-    // Travel Invoicing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
+    // Travel Billing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
     if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
         return translate('search.filters.card.travelInvoicing');
     }
@@ -1001,8 +1211,22 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID
     return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
+function getCardFeedWithDomainID(feedName: CompanyCardFeedWithNumber, domainID: number | string): CompanyCardFeedWithDomainID;
+function getCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number | string): CardFeedWithDomainID;
 function getCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number | string): CardFeedWithDomainID {
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
+}
+
+/**
+ * The company card feed a card belongs to, in the `feed#domainID` form used by `lastSelectedFeed`.
+ * Returns undefined for personal cards and Expensify cards, which have no company card feed.
+ */
+function getCompanyCardFeedWithDomainIDForCard(card: Card): CompanyCardFeedWithDomainID | undefined {
+    if (!card.fundID || isPersonalCard(card) || isExpensifyCard(card)) {
+        return undefined;
+    }
+
+    return getCardFeedWithDomainID(getCompanyCardFeed(card.bank), card.fundID);
 }
 
 function splitCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined): {feedName: CardFeedWithNumber; domainID: number | undefined} | undefined {
@@ -1139,6 +1363,84 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+/** The reason a proposed card name is invalid. Callers translate it via `getCardNameErrorMessage`. */
+type CardNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+
+/**
+ * Validates a card name. Sanitize first so RHP forms, assign/issue steps, and inline
+ * table edits reject and persist the same value.
+ */
+function getCardNameError(newName: string): CardNameError | undefined {
+    const sanitized = StringUtils.sanitizeName(newName);
+
+    if (StringUtils.isEmptyString(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    if (StringUtils.getUTF8ByteLength(sanitized) > CONST.STANDARD_LENGTH_LIMIT) {
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+    }
+
+    return undefined;
+}
+
+/** Translates a {@link CardNameError} into a user-facing message for the given name. */
+function getCardNameErrorMessage(translate: LocaleContextProps['translate'], error: CardNameError, name: string): string {
+    switch (error) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
+        default:
+            return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(StringUtils.sanitizeName(name)), CONST.STANDARD_LENGTH_LIMIT);
+    }
+}
+
+/** The reason a proposed Expensify card limit is invalid. Callers translate it via `getExpensifyCardLimitErrorMessage`. */
+type ExpensifyCardLimitError =
+    | typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED
+    | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID
+    | typeof CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER
+    | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH;
+
+/**
+ * Validates an Expensify card limit against the same rules the RHP edit form uses.
+ * `newLimit` is the dollar amount as a string. Returns an error code, or undefined when the limit is valid.
+ */
+function getExpensifyCardLimitError(newLimit: string): ExpensifyCardLimitError | undefined {
+    if (!newLimit) {
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    if (Number.isNaN(Number(newLimit))) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
+    }
+
+    if (!Number.isInteger(Number(newLimit))) {
+        return CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER;
+    }
+
+    if (Number(newLimit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH;
+    }
+
+    return undefined;
+}
+
+/** Translates an {@link ExpensifyCardLimitError} into a user-facing message. */
+function getExpensifyCardLimitErrorMessage(translate: LocaleContextProps['translate'], error: ExpensifyCardLimitError): string {
+    switch (error) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER:
+            return translate('iou.error.invalidIntegerAmount');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH:
+            return translate('workspace.card.issueNewCard.cardLimitError');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+        default:
+            return translate('iou.error.invalidAmount');
+    }
+}
+
 /** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
 function getCompanyCardCustomName(
     cardID: string | number | undefined,
@@ -1177,17 +1479,18 @@ function getCardAssignmentStartDate(isEditing: boolean | undefined, existingStar
 
 function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsData: CombinedCardFeeds, plaidBank?: string) {
     const prevFeeds = Object.keys(prevFeedsData);
-    const currentFeeds = Object.keys(currentFeedsData);
+    const currentFeeds = Object.keys(currentFeedsData) as CompanyCardFeedWithDomainID[];
+    const newFeed = currentFeeds.find((feed) => !prevFeeds.includes(feed));
 
-    const plaidBankFound =
-        plaidBank &&
-        currentFeeds.find((feed) => {
-            return splitCardFeedWithDomainID(feed as CompanyCardFeedWithDomainID)?.feedName === `${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`;
-        });
+    const plaidBankFound = plaidBank
+        ? currentFeeds.find((feed) => {
+              return splitCardFeedWithDomainID(feed)?.feedName === `${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`;
+          })
+        : undefined;
 
     return {
         isNewFeedConnected: currentFeeds.length > prevFeeds.length || plaidBankFound,
-        newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeedWithDomainID | undefined,
+        newFeed,
     };
 }
 
@@ -1349,28 +1652,163 @@ function isCardConnectionBroken(card: Card): boolean {
 }
 
 /**
+ * Whether a card's connection has a problem worth reflecting in its status. This is broader than
+ * `isCardConnectionBroken`, which ignores some scrape statuses so we do not prompt about them. One of those, 434,
+ * still needs the user to act because the bank changed the account number, so a card reporting it would otherwise
+ * read as Active. This keys off the scrape result rather than the card's errors, which the user can dismiss and
+ * which would then leave a still-broken card reading as Active.
+ *
+ * @param card the card to check
+ * @returns true if the card's connection has a problem to show, false otherwise
+ */
+function hasCardConnectionIssue(card: Card): boolean {
+    if (card.pendingFields?.lastScrape) {
+        return false;
+    }
+    if (isCardConnectionBroken(card)) {
+        return true;
+    }
+    return !!card.lastScrapeResult && CONST.COMPANY_CARDS.ACTIONABLE_IGNORED_SCRAPE_STATUSES.includes(card.lastScrapeResult);
+}
+
+/**
+ * Check if the card connection is broken specifically because the user needs to re-authenticate with their bank
+ *
+ * @param card the card to check
+ * @returns true if the connection needs re-authentication, false otherwise
+ */
+function doesCardConnectionNeedReauthentication(card: Card): boolean {
+    return isCardConnectionBroken(card) && !!card.lastScrapeResult && CONST.COMPANY_CARDS.REAUTH_SCRAPE_STATUSES.includes(card.lastScrapeResult);
+}
+
+function getCardConnectionStatusDisplay({
+    shouldShowConnectionStatus,
+    isCardBroken,
+    shouldShowRBR,
+    isCardInactive: isCardInactiveStatus,
+    isCardPending: isCardPendingStatus,
+    isExpensifyCard: isExpensifyCardStatus,
+    isPersonalCard: isPersonalCardStatus,
+    isAdminForCardPolicy,
+    doesCardNeedReauthentication,
+    policyID,
+}: CardConnectionStatusDisplayParams): CardConnectionStatusDisplay | undefined {
+    if (!shouldShowConnectionStatus) {
+        return undefined;
+    }
+
+    // An Expensify Card is suspended by the back end rather than disconnected from a bank feed, and it has no bank
+    // feed to break, so a feed or workspace error is never something its cardholder can fix and no connection message
+    // is right for it in any state. It still reports its status so the row keeps the background, hover and press
+    // styling every other row in the list gets, which hangs off the status being present rather than the message.
+    if (isExpensifyCardStatus) {
+        if (isCardInactiveStatus) {
+            return {statusKey: 'walletPage.cardStatus.inactive', statusTone: 'default'};
+        }
+        // A card waiting to be issued or activated cannot be spent on yet. It shares the tone with a pending bank
+        // account, so the wallet reads the same way whichever kind of row the status is on.
+        if (isCardPendingStatus) {
+            return {statusKey: 'walletPage.cardStatus.pending', statusTone: 'danger'};
+        }
+        return {statusKey: 'walletPage.cardStatus.active', statusTone: 'success'};
+    }
+
+    const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;
+    const shouldUsePersonalCardFix = shouldShowMessage && isPersonalCardStatus;
+    const shouldUseCompanyCardsLink = shouldShowMessage && !isPersonalCardStatus && isAdminForCardPolicy && !!policyID;
+    const shouldUseReauthMessage = shouldShowMessage && !!doesCardNeedReauthentication && isPersonalCardStatus;
+    let messageKey: TranslationPaths | undefined;
+
+    if (shouldShowMessage) {
+        if (shouldUseCompanyCardsLink) {
+            messageKey = 'walletPage.cardStatus.fixConnectionIn';
+        } else if (shouldUseReauthMessage) {
+            messageKey = 'walletPage.cardStatus.reconnectBank';
+        } else if (isPersonalCardStatus) {
+            messageKey = 'walletPage.cardStatus.fixConnection';
+        } else {
+            messageKey = 'walletPage.cardStatus.askAdminToFixConnection';
+        }
+    }
+
+    return {
+        statusKey: shouldShowMessage ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active',
+        statusTone: shouldShowMessage ? 'danger' : 'success',
+        messageKey,
+        actionKey: shouldUsePersonalCardFix ? 'common.actionBadge.fix' : undefined,
+        shouldUsePersonalCardFix,
+        shouldUseCompanyCardsLink,
+        shouldUseReauthMessage,
+    };
+}
+
+/**
+ * Parses a card's last sync. `card.lastScrape` is usually the Expensify DB datetime format ("2024-11-27 11:00:53"),
+ * which carries no offset but is UTC, so it is turned into ISO 8601 with a `Z` rather than read as device local time.
+ * That matches how the App reads a DB datetime elsewhere, see `DateUtils.getLocalDateFromDatetime`. A personal card's
+ * value can already be ISO 8601, which the fallback handles.
+ *
+ * @param card the card to read
+ * @returns the parsed date, or undefined when there is no usable value
+ */
+function parseCardLastScrape(card: Card): Date | undefined {
+    if (!card.lastScrape) {
+        return undefined;
+    }
+    let lastScrapeDate = new Date(`${card.lastScrape.replace(' ', 'T')}Z`);
+    if (Number.isNaN(lastScrapeDate.getTime())) {
+        lastScrapeDate = new Date(card.lastScrape);
+    }
+    return Number.isNaN(lastScrapeDate.getTime()) ? undefined : lastScrapeDate;
+}
+
+/**
+ * Check whether a card's last successful sync is at least the dismiss threshold (90 days) old.
+ *
+ * `lastScrape` is the last successful update timestamp (a separate `lastImportAttempt` tracks
+ * attempts), so its age equals how long the card has gone without a working sync. A card can carry
+ * a server-set connection error even when `lastScrapeResult` is one of the ignored statuses (e.g.
+ * 434), so this deliberately does NOT require `isCardConnectionBroken`. Use it to decide whether
+ * a card's errors should still surface account-level indicators.
+ *
+ * @param card the card to check
+ * @returns true if the last successful sync is at least the grace period old
+ */
+function isLastScrapePastDismissThreshold(card: Card): boolean {
+    const lastScrapeDate = parseCardLastScrape(card);
+    if (!lastScrapeDate) {
+        return false;
+    }
+    return DateUtils.getDifferenceInDaysFromNow(lastScrapeDate) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
+}
+
+/**
+ * Turn the Expensify Card monthly settlement day of the month into a date, so it can be formatted for display.
+ *
+ * @param dayOfMonth the day of the month the workspace settles on
+ * @returns a date on that day of the month, or undefined when the value is not a day of the month
+ */
+function toMonthlySettlementDate(dayOfMonth: ExpensifyCardSettingsBase['monthlySettlementDate']): Date | undefined {
+    if (!dayOfMonth) {
+        return undefined;
+    }
+
+    if (!Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
+        return undefined;
+    }
+    return new Date(new Date().getFullYear(), 0, dayOfMonth);
+}
+
+/**
  * Check whether a broken card connection has been unresolved long enough that we should stop
  * actively prompting the user (remove the time-sensitive task and the RBR). The error itself is
  * kept, so this is only used to gate the proactive surfacing, not the underlying broken state.
- *
- * `lastScrape` is the last successful update timestamp (a separate `lastImportAttempt` tracks
- * attempts), so for a broken connection its age equals how long the connection has been failing.
  *
  * @param card the card to check
  * @returns true if the connection is broken and has been unresolved for at least the grace period
  */
 function isBrokenConnectionPastDismissThreshold(card: Card): boolean {
-    if (!isCardConnectionBroken(card) || !card.lastScrape) {
-        return false;
-    }
-    // `card.lastScrape` uses the Expensify DB datetime format (e.g. "2024-11-27 11:00:53"). Parse it explicitly with the
-    // matching format instead of relying on `new Date()`, whose handling of this non-ISO string is not portable across JS
-    // engines — an invalid parse would make the difference NaN, so the comparison would always be false and never dismiss.
-    const lastScrapeDate = parse(card.lastScrape, 'yyyy-MM-dd HH:mm:ss', new Date());
-    if (Number.isNaN(lastScrapeDate.getTime())) {
-        return false;
-    }
-    return DateUtils.getDifferenceInDaysFromNow(lastScrapeDate) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
+    return isCardConnectionBroken(card) && isLastScrapePastDismissThreshold(card);
 }
 
 /**
@@ -1391,7 +1829,7 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
 /**
  * The set of valid card program keys used to key nested settings in ExpensifyCardSettings.
  * 'US' and 'GB' are geo-based programs, 'CURRENT' is the legacy pre-2024 US program,
- * and 'TRAVEL_US' is the travel invoicing program. These map directly to the keys
+ * and 'TRAVEL_US' is the travel billing program. These map directly to the keys
  * the backend nests card settings under.
  */
 type CardProgramKey = typeof CONST.COUNTRY.US | typeof CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT | typeof CONST.COUNTRY.GB | typeof CONST.TRAVEL.PROGRAM_TRAVEL_US;
@@ -1549,6 +1987,56 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+/** The two states a card passes through before it can be spent on, whether or not the cardholder can act on them. */
+function isCardPendingIssueOrActivation(card?: Card) {
+    return isCardPendingIssue(card) || isCardPendingActivate(card);
+}
+
+/**
+ * True when an Expensify Card is waiting to be issued or activated and so cannot be spent on yet.
+ *
+ * Those two states describe a physical card on its way to the cardholder. A virtual card is issued and spendable as
+ * soon as it is assigned and has no activation step, so it is never waiting on either, which is why
+ * `isExpensifyCardPendingAction` leaves virtual cards out as well.
+ */
+function isExpensifyCardPending(card?: Card) {
+    return card?.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual && isCardPendingIssueOrActivation(card);
+}
+
+/** True when this card has a wallet addition waiting for the cardholder to confirm or deny. */
+function isCardPendingDigitalWalletApproval(card?: Card) {
+    return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
+}
+
+/** An Expensify Card in a state the Wallet and Home surfaces display. */
+function isActiveExpensifyCard(card: Card) {
+    return isCard(card) && isExpensifyCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0);
+}
+
+/** True when the user holds an Expensify Card. */
+function hasActiveExpensifyCard(cards: CardList | undefined) {
+    return hasAssignedCardMatching(cards, isActiveExpensifyCard);
+}
+
+/** True when one of the user's Expensify Cards has a wallet addition waiting to be confirmed or denied. */
+function hasCardPendingDigitalWalletApproval(cards: CardList | undefined) {
+    return hasAssignedCardMatching(cards, (card) => isActiveExpensifyCard(card) && isCardPendingDigitalWalletApproval(card));
+}
+
+/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. Only the generic name needs a capitalized variant. */
+function getWalletProviderNameKey(
+    walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>,
+    shouldStartSentence = false,
+): 'appleWallet' | 'googleWallet' | 'digitalWallet' | 'digitalWalletCapitalized' {
+    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
+        return 'appleWallet';
+    }
+    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
+        return 'googleWallet';
+    }
+    return shouldStartSentence ? 'digitalWalletCapitalized' : 'digitalWallet';
+}
+
 function isCardWithCustomZeroLimit(card: Card): boolean {
     return !!card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0;
 }
@@ -1563,26 +2051,17 @@ function isCardWithPotentialFraud(card: Card): boolean {
 
 function isCardPendingReplace(card?: Card) {
     return (
-        (isCardPendingActivate(card) || isCardPendingIssue(card)) &&
+        isCardPendingIssueOrActivation(card) &&
         !!card?.nameValuePairs?.terminationReason &&
         card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED
     );
-}
-
-/**
- * Check if card has a broken connection
- *
- * @param card personal card to check
- */
-function isPersonalCardBrokenConnection(card?: Card) {
-    return card?.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card?.lastScrapeResult);
 }
 
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
         !card.nameValuePairs?.isVirtual &&
-        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails)) &&
+        (isCardPendingIssueOrActivation(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails)) &&
         (!card.lastScrapeResult || CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult))
     );
 }
@@ -1602,7 +2081,7 @@ function isActionableVirtualExpensifyCard(card: Card | undefined): boolean {
 
 function hasVirtualExpensifyCardMissingPersonalDetails(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails, isActingAsDelegate?: boolean) {
     // Delegates can't complete the missing-personal-details flow (it requires the original
-    // account's magic code), so surfacing a brick road in the wallet would be misleading.
+    // account's validateCode), so surfacing a brick road in the wallet would be misleading.
     // Mirrors the same gate applied in useTimeSensitiveCards for the home prompt.
     if (isActingAsDelegate) {
         return false;
@@ -1631,14 +2110,18 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
+function getCardFeedWithoutDomainID(feedWithDomainID: string): string {
+    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+    return feed;
+}
+
 /** Extract feed from feed with domainID */
 function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithDomainID | undefined): CompanyCardFeedWithNumber {
     if (!feedWithDomainID) {
         return '' as CompanyCardFeedWithNumber;
     }
 
-    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
-    return feed as CompanyCardFeedWithNumber;
+    return getCardFeedWithoutDomainID(feedWithDomainID) as CompanyCardFeedWithNumber;
 }
 
 /**
@@ -1860,7 +2343,9 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
 /**
  * Active, non-Expensify, non-cash cards (employer feed or personal Plaid) that are not flagged
- * as broken at the card- or feed-level, sorted by cardID ascending.
+ * as broken at the card- or feed-level, sorted by cardID ascending. The card-level check is
+ * `hasCardConnectionIssue` so that a card the wallet reports as Inactive is not counted as
+ * spendable here, which also covers the scrape statuses the broken check ignores (e.g. 434).
  *
  * No `domainName` dedupe: third-party cards don't share the Expensify "one domain ⇒ one
  * physical+virtual pair" invariant, so deduping would silently collapse distinct cards.
@@ -1880,7 +2365,7 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
             !isExpensifyCard(card) &&
             (!!card.domainName || isPersonalCard(card)) &&
             card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
-            !isCardConnectionBroken(card) &&
+            !hasCardConnectionIssue(card) &&
             !cardsWithBrokenFeedConnection[card.cardID] &&
             !personalCardsWithBrokenConnection[card.cardID],
     );
@@ -1964,13 +2449,19 @@ function getSelectedCardsSharedCurrency(cardIDs: string[] | undefined, cardsList
     return Array.from(currencies).at(0);
 }
 
-function getCardHintText(validFrom: string | undefined, validThru: string | undefined, assigneeTimeZone: SelectedTimezone | undefined, translate: LocalizedTranslate) {
+function getCardHintText(
+    validFrom: string | undefined,
+    validThru: string | undefined,
+    assigneeTimeZone: SelectedTimezone | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+    translate: LocalizedTranslate,
+) {
     if (!validFrom || !validThru) {
         return;
     }
     const formatDateForDisplay = (utcDateTime: string): string => {
         const dateInTimezone = DateUtils.formatUTCDateTimeToDateInTimezone(utcDateTime, assigneeTimeZone);
-        return dateInTimezone ? DateUtils.formatToReadableString(dateInTimezone) : '';
+        return dateInTimezone ? DateUtils.formatToReadableString(dateInTimezone, dateFnsLocale) : '';
     };
     const startDate = formatDateForDisplay(validFrom);
     const endDate = formatDateForDisplay(validThru);
@@ -2013,6 +2504,12 @@ export {
     getCardFeedBackgroundColor,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
+    getDisplayedExpensifyCardLimitType,
+    shouldShowExpensifyCardFixedLimitType,
+    shouldConfirmExpensifyCardLimitTypeChange,
+    getExpensifyCardLimitTypeChangeWarningKey,
+    getExpensifyCardNewAvailableSpend,
+    getExpensifyCardLimitChangeWarningKey,
     isExpensifyCard,
     isUkEuExpensifyCard,
     isOfflinePINMarket,
@@ -2027,18 +2524,20 @@ export {
     getMCardNumberString,
     getTranslationKeyForLimitType,
     getTranslationKeyForCardStatus,
+    getVisibleExpensifyCardLimitTypes,
     maskPin,
     getEligibleBankAccountsForCard,
+    getExpensifyCardEnrollmentRoute,
     sortCardsByCardholderName,
     isCurrencySupportedForECards,
     getCardFeedIcon,
     getBankName,
+    getDefaultCommercialFeedDisplayName,
     isSelectedFeedExpired,
     isTravelCard,
     isTravelCardTransaction,
     getCompanyFeeds,
     hasCompanyCardFeeds,
-    isPersonalCardBrokenConnection,
     isCustomFeed,
     isCSVUploadFeed,
     isCSVFeedOrExpensifyCard,
@@ -2056,6 +2555,10 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    getCardNameError,
+    getCardNameErrorMessage,
+    getExpensifyCardLimitError,
+    getExpensifyCardLimitErrorMessage,
     getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
@@ -2067,7 +2570,12 @@ export {
     getCSVFeedType,
     getFeedType,
     isCardConnectionBroken,
+    hasCardConnectionIssue,
+    doesCardConnectionNeedReauthentication,
+    getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
+    isLastScrapePastDismissThreshold,
+    toMonthlySettlementDate,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,
@@ -2090,6 +2598,12 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isExpensifyCardPending,
+    isCardPendingDigitalWalletApproval,
+    isActiveExpensifyCard,
+    hasActiveExpensifyCard,
+    hasCardPendingDigitalWalletApproval,
+    getWalletProviderNameKey,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
@@ -2100,14 +2614,17 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
+    getCommercialFeedCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
     isDirectFeed,
     feedHasCards,
     getOriginalCompanyFeeds,
+    getCardFeedWithoutDomainID,
     getCompanyCardFeed,
     getCardFeedWithDomainID,
+    getCompanyCardFeedWithDomainIDForCard,
     splitCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
     getSupportedCardCountriesForCurrency,

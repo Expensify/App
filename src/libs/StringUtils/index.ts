@@ -9,6 +9,7 @@ import deburr from 'lodash/deburr';
 
 import decodeUnicode from './decodeUnicode';
 import hash from './hash';
+import startsWithVowel from './startsWithVowel';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -17,6 +18,14 @@ import hash from './hash';
  */
 function sanitizeString(str: string): string {
     return deburr(str).toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
+}
+
+/**
+ * Converts non-breaking spaces to regular spaces and trims surrounding whitespace.
+ * Pasted names from docs and spreadsheets often include NBSP, which would otherwise fail uniqueness and empty checks.
+ */
+function sanitizeName(name: string): string {
+    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
 }
 
 /**
@@ -90,13 +99,51 @@ function removeInvisibleCharacters(value: string): string {
     return result.trim();
 }
 
+// not /g, test() would advance lastIndex
+const NON_ASCII_REGEX = /[\u0080-\uffff]/;
+
+// safe to skip normalizing ASCII: NFD is identity below U+0080 and everything the normalizers strip is above it
+function isAscii(text: string) {
+    return !NON_ASCII_REGEX.test(text);
+}
+
 /**
  * Remove accents/diacritics
  * @param text - The input string
  * @returns The string with all accents/diacritics removed
  */
 function normalizeAccents(text: string) {
+    if (isAscii(text)) {
+        return text;
+    }
     return text.normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '');
+}
+
+/**
+ * Remove zero-width layout characters: zero-width space (U+200B), word joiner (U+2060), and BOM/zero-width no-break space (U+FEFF).
+ * Some translations embed these to control line wrapping, which breaks substring/equality matching.
+ * Note: zero-width joiner (U+200D) and non-joiner (U+200C) are intentionally left in place because they are
+ * semantically meaningful in some scripts and in emoji sequences.
+ * @param text - The input string
+ * @returns The string with zero-width layout characters removed
+ */
+function removeZeroWidthCharacters(text: string) {
+    if (isAscii(text)) {
+        return text;
+    }
+    return text.replaceAll(/[\u200b\u2060\ufeff]/g, '');
+}
+
+/**
+ * Normalize a string for matching/comparison: strip accents/diacritics and zero-width characters.
+ * Prefer this over `normalizeAccents` whenever the result is only used to compare or search two strings,
+ * so invisible characters embedded in labels (e.g. for line wrapping) cannot cause false negatives.
+ * Case is left untouched so callers can apply their own case handling.
+ * @param text - The input string
+ * @returns The normalized string suitable for comparison
+ */
+function normalizeForMatch(text: string) {
+    return removeZeroWidthCharacters(normalizeAccents(text));
 }
 
 /**
@@ -178,15 +225,6 @@ function countWhiteSpaces(str: string): number {
     return (str.match(/\s/g) ?? []).length;
 }
 
-/**
- * Check if the string starts with a vowel
- * @param str - The input string
- * @returns True if the string starts with a vowel, false otherwise
- */
-function startsWithVowel(str: string): boolean {
-    return /^[aeiouAEIOU]/.test(str);
-}
-
 function camelToHyphenCase(str: string) {
     return str.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 }
@@ -212,12 +250,27 @@ function escapeRegExp(str: string): string {
     return str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/**
+ * Cuts a string to at most maxLength UTF-16 code units, without splitting a surrogate pair (for example an emoji) in half.
+ */
+function truncate(str: string, maxLength: number): string {
+    if (str.length <= maxLength) {
+        return str;
+    }
+    const lastCharCode = str.charCodeAt(maxLength - 1);
+    const isHighSurrogate = lastCharCode >= 0xd800 && lastCharCode <= 0xdbff;
+    return str.slice(0, isHighSurrogate ? maxLength - 1 : maxLength);
+}
+
 export default {
     sanitizeString,
+    sanitizeName,
     isEmptyString,
     removeInvisibleCharacters,
     normalize,
     normalizeAccents,
+    removeZeroWidthCharacters,
+    normalizeForMatch,
     normalizeCRLF,
     lineBreaksToSpaces,
     getFirstLine,
@@ -234,4 +287,5 @@ export default {
     camelToKebabCase,
     toLowerCase,
     escapeRegExp,
+    truncate,
 };

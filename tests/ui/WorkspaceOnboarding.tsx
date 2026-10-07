@@ -11,6 +11,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 
@@ -20,15 +21,20 @@ import {completeOnboarding} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -75,12 +81,39 @@ const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
 const navigate = jest.spyOn(Navigation, 'navigate');
 
-const renderOnboardingWorkspacesPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORKSPACES, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORKSPACES]) => {
+// Stands in for whatever screen precedes a later visit to "Join a workspace"; only its presence on the stack matters.
+function OnboardingPersonalDetailsStub() {
+    return <View testID="onboarding-personal-details-stub" />;
+}
+
+/**
+ * `shouldRenderScreenBehind` seeds a real route behind "Join a workspace". Leaving it off is not a detail of the
+ * harness: it is the stack the work email merge and the private domain screen actually leave behind when they
+ * force-replace into this screen, which is what makes Back impossible there.
+ */
+const renderOnboardingWorkspacesPage = (
+    initialRouteName: typeof SCREENS.ONBOARDING.WORKSPACES,
+    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORKSPACES],
+    shouldRenderScreenBehind = false,
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
-                <NavigationContainer>
+                <NavigationContainer
+                    initialState={
+                        shouldRenderScreenBehind
+                            ? {
+                                  index: 1,
+                                  routes: [{name: SCREENS.ONBOARDING.PERSONAL_DETAILS}, {name: initialRouteName, params: initialParams}],
+                              }
+                            : undefined
+                    }
+                >
                     <Stack.Navigator initialRouteName={initialRouteName}>
+                        <Stack.Screen
+                            name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                            component={OnboardingPersonalDetailsStub}
+                        />
                         <Stack.Screen
                             name={SCREENS.ONBOARDING.WORKSPACES}
                             component={OnboardingWorkspaces}
@@ -102,10 +135,12 @@ describe('OnboardingWorkspaces Page', () => {
     });
 
     beforeEach(() => {
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
@@ -181,22 +216,86 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should not show the back button on join workspace after Add work email flow', async () => {
+    it('should clear the blocked-back error message when skip is pressed', async () => {
+        // Given this screen after a blocked Back press, which leaves the navigation guard's error in Onyx
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.purpose.errorBackButton');
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When "Skip for now" moves the flow forward
+        fireEvent.press(screen.getByTestId('onboardingWorkSpaceSkipButton'));
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the message is cleared, so the next screen does not open showing an error the user just resolved
+        let onboardingErrorMessage: OnyxEntry<TranslationPaths>;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            callback: (value) => {
+                onboardingErrorMessage = value;
+            },
+        });
+
+        expect(onboardingErrorMessage).toBeFalsy();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not show the back button on join workspace after merging a work email', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
-                shouldValidate: false,
+                shouldValidate: true,
+                isMergeAccountStepCompleted: true,
+                isMergeAccountStepSkipped: false,
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        // The merge force-replaces into this screen, which discards every route before it, so this screen is the only
+        // one left in the onboarding stack and there is nothing to go back to.
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined});
 
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the back button on a later visit to join workspace after merging a work email', async () => {
+        await TestHelper.signInWithTestUser();
+
+        // Identical Onyx state to the post-merge case above: the merge flags stay set for the rest of onboarding and
+        // cannot tell the two apart. What differs is the stack — reaching this screen again (Skip for now, Employer,
+        // Personal Details, forward to here) leaves a real screen behind it, so Back must work.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                isMergeAccountStepCompleted: true,
+                isMergeAccountStepSkipped: false,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: undefined}, true);
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
         });
 
         unmount();
@@ -212,7 +311,8 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        // Personal Details sits behind this screen, so Back stays.
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()}, true);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -224,7 +324,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should create a Submit workspace when skip is pressed with EMPLOYER purpose and Submit2026 beta', async () => {
+    it('should create a Submit workspace when skip is pressed with EMPLOYER purpose', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -235,7 +335,6 @@ describe('OnboardingWorkspaces Page', () => {
                 hasCompletedGuidedSetupFlow: false,
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
         });
 
         const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
@@ -271,14 +370,16 @@ describe('OnboardingWorkspaces Page', () => {
         });
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+            expect(navigate).toHaveBeenCalledWith(
+                ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+            );
         });
 
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should complete onboarding without passing the joined workspace policyID and open Categories in the admins room', async () => {
+    it('should complete onboarding without passing the joined workspace policyID and open Spend > Expenses in the admins room', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -289,7 +390,6 @@ describe('OnboardingWorkspaces Page', () => {
                 hasCompletedGuidedSetupFlow: false,
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
                 firstName: 'Test',
                 lastName: 'User',
@@ -332,7 +432,9 @@ describe('OnboardingWorkspaces Page', () => {
 
         await waitFor(() => {
             expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-            expect(navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('submit-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+            expect(navigate).toHaveBeenCalledWith(
+                ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+            );
         });
 
         onyxSetSpy.mockRestore();

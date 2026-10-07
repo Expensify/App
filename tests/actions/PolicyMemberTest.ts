@@ -7,11 +7,11 @@ import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -21,6 +21,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -35,8 +36,8 @@ describe('actions/PolicyMember', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -47,10 +48,8 @@ describe('actions/PolicyMember', () => {
                 ...createRandomReport(0, undefined),
                 policyID: fakePolicy.id,
             };
-            const fakeReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
+            const fakeReportAction = createRandomReportAction(0);
+            fakeReportAction.actionName = CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -66,12 +65,19 @@ describe('actions/PolicyMember', () => {
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
-                        const reportAction = reportActions?.[fakeReportAction.reportActionID] as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
+                        const reportAction = reportActions?.[fakeReportAction.reportActionID];
 
-                        if (!isEmptyObject(reportAction)) {
-                            expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice)?.toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
-                            expect(reportAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        if (!reportAction) {
+                            throw new Error('Expected the optimistic report action to exist');
                         }
+                        if (isEmptyObject(reportAction)) {
+                            throw new Error('Expected the optimistic report action to be populated');
+                        }
+                        if (!ReportActionsUtils.isActionableJoinRequest(reportAction)) {
+                            throw new Error('Expected the optimistic report action to be an actionable join request');
+                        }
+                        expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice).toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
+                        expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
                     },
                 });
@@ -221,6 +227,50 @@ describe('actions/PolicyMember', () => {
                 });
             });
         });
+
+        it('Reassign the payer to the new owner when the outgoing owner was the payer', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: undefined,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Member.requestWorkspaceOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe(fakeEmail);
+        });
+
+        it('Keep the existing payer when the workspace has a bank account', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: createMock<PolicyType['achAccount']>({bankAccountID: 1234, reimburser: 'owner@gmail.com'}),
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Member.requestWorkspaceOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe('owner@gmail.com');
+        });
     });
     describe('addBillingCardAndRequestPolicyOwnerChange', () => {
         it('Add billing card and change the workspace`s owner', async () => {
@@ -240,7 +290,7 @@ describe('actions/PolicyMember', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -286,7 +336,7 @@ describe('actions/PolicyMember', () => {
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -302,6 +352,37 @@ describe('actions/PolicyMember', () => {
                 });
             });
         });
+
+        it('Reassign the payer to the new owner when the outgoing owner was the payer', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: undefined,
+            };
+            const fakeCard = {
+                cardNumber: '1234567890123456',
+                cardYear: '2023',
+                cardMonth: '05',
+                cardCVV: '123',
+                addressName: 'John Doe',
+                addressZip: '123456',
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe(fakeEmail);
+        });
     });
 
     describe('verifySetupIntentAndRequestPolicyOwnerChange', () => {
@@ -312,7 +393,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -336,7 +417,7 @@ describe('actions/PolicyMember', () => {
             const fakeAccountID = 42;
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -352,6 +433,28 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
+        });
+
+        it('Reassign the payer to the new owner when the outgoing owner was the payer', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: undefined,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe(fakeEmail);
         });
     });
 
@@ -715,17 +818,18 @@ describe('actions/PolicyMember', () => {
                 );
 
             type BuildResult = ReturnType<typeof buildForCurrentUser>;
+            type ReportActionsUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
+            type ReportActionsValueUpdate = Extract<ReportActionsUpdate, {onyxMethod: typeof Onyx.METHOD.SET | typeof Onyx.METHOD.MERGE}>;
+            type ReportActionsValue = NonNullable<ReportActionsValueUpdate['value']>;
+            type ReportActionUpdateEntry = NonNullable<ReportActionsValue[string]>;
 
-            const findOptimisticCreatedAction = (optimisticData: BuildResult['optimisticData']) => {
-                for (const update of optimisticData) {
-                    if (!update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-                        continue;
-                    }
-                    const value = update.value as Record<string, ReportAction> | null | undefined;
-                    if (!value) {
-                        continue;
-                    }
-                    const createdAction = Object.values(value).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            const findOptimisticCreatedAction = (optimisticData: BuildResult['optimisticData']): ReportActionUpdateEntry | undefined => {
+                const reportActionsUpdates = optimisticData.filter(
+                    (update): update is ReportActionsValueUpdate =>
+                        (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE) && update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS),
+                );
+                for (const update of reportActionsUpdates) {
+                    const createdAction = Object.values(update.value ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
                     if (createdAction) {
                         return createdAction;
                     }
@@ -870,14 +974,14 @@ describe('actions/PolicyMember', () => {
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
                 connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({
                         verified: true,
                         accountID: '123456',
                         options: {
-                            data: {} as NetSuiteConnectionData,
-                            config: {
+                            data: createMock<NetSuiteConnectionData>({}),
+                            config: createMock<NetSuiteConnectionConfig>({
                                 exporter: adminEmail,
-                            } as NetSuiteConnectionConfig,
+                            }),
                         },
                         lastSync: {
                             errorDate: '',
@@ -888,7 +992,7 @@ describe('actions/PolicyMember', () => {
                             source: 'NEWEXPENSIFY',
                             successfulDate: '',
                         },
-                    } as NetSuiteConnection,
+                    }),
                 },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
@@ -1028,11 +1132,13 @@ describe('actions/PolicyMember', () => {
         });
 
         // For more details on what a detached member is, see https://github.com/Expensify/App/issues/75514#issuecomment-3568453686
-        it('should remove "detached" members', async () => {
+        it('should not remove unrelated members that only lack personal details', async () => {
             const policyID = '23456';
             const ownerEmail = 'owner@gmail.com';
             const userEmail = 'user@gmail.com';
-            const detachedUserEmail = 'detacheduser@gmail.com';
+            // Two members whose personal details aren't loaded, unrelated to the member being removed.
+            const missingDetailsEmail1 = 'missing1@gmail.com';
+            const missingDetailsEmail2 = 'missing2@gmail.com';
             const ownerAccountID = 1;
             const userAccountID = 4321;
 
@@ -1046,7 +1152,8 @@ describe('actions/PolicyMember', () => {
                 employeeList: {
                     [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
-                    [detachedUserEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [missingDetailsEmail1]: {role: CONST.POLICY.ROLE.USER},
+                    [missingDetailsEmail2]: {role: CONST.POLICY.ROLE.USER},
                 },
             };
 
@@ -1066,8 +1173,56 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Only the selected member is removed; the other missing-details members stay.
             expect(employeeList?.[userEmail]).toBeUndefined();
-            expect(employeeList?.[detachedUserEmail]).toBeUndefined();
+            expect(employeeList?.[missingDetailsEmail1]).toBeDefined();
+            expect(employeeList?.[missingDetailsEmail2]).toBeDefined();
+            expect(employeeList?.[ownerEmail]).toBeDefined();
+        });
+
+        it('should also remove the paired login of a member invited by a secondary login', async () => {
+            const policyID = '23456';
+            const ownerEmail = 'owner@gmail.com';
+            const primaryEmail = 'primary@gmail.com';
+            const secondaryEmail = 'secondary@gmail.com';
+            const ownerAccountID = 1;
+            const primaryAccountID = 4321;
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [ownerAccountID]: {login: ownerEmail},
+                [primaryAccountID]: {login: primaryEmail},
+            });
+
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                // primaryLoginsInvited maps the secondary login used at invite time to the primary login the backend returns.
+                primaryLoginsInvited: {[secondaryEmail]: primaryEmail},
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [primaryEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [secondaryEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Remove the primary (rendered) login; the paired secondary entry should be cleared as well.
+            Member.removeMembers(policy, [primaryEmail], {[primaryEmail]: primaryAccountID});
+
+            await waitForBatchedUpdates();
+
+            const employeeList = await new Promise<PolicyEmployeeList | undefined>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyResult) => {
+                        Onyx.disconnect(connection);
+                        resolve(policyResult?.employeeList);
+                    },
+                });
+            });
+
+            expect(employeeList?.[primaryEmail]).toBeUndefined();
+            expect(employeeList?.[secondaryEmail]).toBeUndefined();
             expect(employeeList?.[ownerEmail]).toBeDefined();
         });
     });
@@ -1082,8 +1237,8 @@ describe('actions/PolicyMember', () => {
             const importFinalModal = await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: 'user'}]);
 
             // Then it should show the singular member added success message
-            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAdded');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 1});
             expect(importFinalModal.pendingMessageKey).toBeUndefined();
         });
 
@@ -1107,8 +1262,8 @@ describe('actions/PolicyMember', () => {
             ]);
 
             // Then it should show the plural member added success message
-            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAdded');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 2});
         });
 
         it('should show a "no members added/updated message" when no new members are added or updated', async () => {
@@ -1129,8 +1284,8 @@ describe('actions/PolicyMember', () => {
             const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: userRole}]);
 
             // Then it should show the no member added/updated message
-            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersNoneAddedOrUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual(undefined);
         });
 
         it('should show a "single member updated message" when a member is updated', async () => {
@@ -1151,8 +1306,8 @@ describe('actions/PolicyMember', () => {
             const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: 'admin'}]);
 
             // Then it should show the singular member updated success message
-            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 1});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 1});
         });
 
         it('should show a "multiple members updated message" when multiple members are updated', async () => {
@@ -1181,8 +1336,8 @@ describe('actions/PolicyMember', () => {
             ]);
 
             // Then it should show the plural member updated success message
-            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 2});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 2});
         });
 
         it('should show a "single member added and updated message" when a member is both added and updated', async () => {
@@ -1206,7 +1361,7 @@ describe('actions/PolicyMember', () => {
             ]);
 
             // Then it should show the singular member added and updated success message
-            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAddedAndUpdated');
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 1});
         });
 
@@ -1238,7 +1393,7 @@ describe('actions/PolicyMember', () => {
             ]);
 
             // Then it should show the plural member added and updated success message
-            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAddedAndUpdated');
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
         });
     });
@@ -1261,12 +1416,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             // Then the draft should be saved to the correct Onyx key
-            const draft = await new Promise<typeof invitedEmailsToAccountIDs | null | undefined>((resolve) => {
+            const draft = await new Promise<InvitedEmailsToAccountIDs | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as typeof invitedEmailsToAccountIDs | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1307,7 +1462,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1343,7 +1498,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1375,7 +1530,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID1}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1385,7 +1540,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID2}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1417,7 +1572,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1448,7 +1603,7 @@ describe('actions/PolicyMember', () => {
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });

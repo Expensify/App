@@ -3,9 +3,9 @@ import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import OnboardingHeader from '@components/OnboardingHeader';
 import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -15,7 +15,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,18 +25,17 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {AddWorkEmail} from '@userActions/Session';
-import {addWorkEmailFormError, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
+import {addWorkEmailFormError, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, setOnboardingShouldValidate} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import {useIsFocused} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -55,6 +53,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears', 'Profile']);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (acc) => ({
@@ -73,8 +72,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const {isOffline} = useNetwork();
     const ICON_SIZE = 48;
     const operatingSystem = getOperatingSystem();
-    const isFocused = useIsFocused();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL);
 
     useEffect(() => {
         setOnboardingErrorMessage(null);
@@ -95,7 +92,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
         // A validated account has no reason to be on the onboarding "add work email" screen. For a public-domain primary the
         // PRIVATE_DOMAIN screen would reference gmail.com (etc.) so skip it.
-        if (account?.validated) {
+        // During incomplete guided setup (e.g. required-2FA handoff), stay on work-email even if the account is validated.
+        if (account?.validated && hasCompletedGuidedSetupFlow) {
             navigateToNextStep(account?.isFromPublicDomain);
             return;
         }
@@ -106,7 +104,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         setOnboardingErrorMessage(null);
 
         if (onboardingValues?.shouldValidate) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            // Replace instead of push so this screen unmounts. Left mounted, its effect re-runs once the merge response
+            // updates the account and pushes a second copy of the remaining flow.
+            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
             return;
         }
 
@@ -114,17 +114,25 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, [
         account?.validated,
         account?.isFromPublicDomain,
+        hasCompletedGuidedSetupFlow,
         onboardingValues?.shouldValidate,
         isVsb,
         isSmb,
-        isFocused,
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.isMergeAccountStepSkipped,
     ]);
 
-    const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
-        AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());
-    }, []);
+    const submitWorkEmail = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+        const submittedWorkEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim();
+
+        // AddWorkEmail already made this the account's login, and resending it would merge the account into itself, so restore the shouldValidate: false that going back cleared
+        if (session?.email && submittedWorkEmail.toLowerCase() === session.email.toLowerCase()) {
+            setOnboardingShouldValidate(false);
+            return;
+        }
+
+        AddWorkEmail(submittedWorkEmail);
+    };
 
     useEffect(() => {
         if (!onboardingErrorMessageTranslationKey) {
@@ -163,11 +171,15 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        if (session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !isOffline) {
-            addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.sameAsSignupEmail'));
-        } else if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
+        // AddWorkEmail can make the submitted work email the account's login, so session.email is only the signup email while it is still on a public domain
+        if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
             Log.hmmm('User is trying to add an invalid work email', {userEmail, domain});
-            addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));
+            const isSignupEmail = !!session?.email && userEmail.toLowerCase() === session.email.toLowerCase();
+            addErrorMessage(
+                errors,
+                INPUT_IDS.ONBOARDING_WORK_EMAIL,
+                translate(isSignupEmail ? 'onboarding.workEmailValidationError.sameAsSignupEmail' : 'onboarding.workEmailValidationError.publicEmail'),
+            );
         }
 
         if (isOffline ?? false) {
@@ -204,12 +216,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
-                shouldShowBackButton={false}
-                shouldDisplayHelpButton={false}
-            />
+            <OnboardingHeader shouldShowBackButton={false} />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                     <OnboardingMergingAccountBlockedView
@@ -242,8 +249,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             onClose={() => setOnboardingErrorMessage(null)}
                         >
                             <Button
-                                large
-                                text={translate('common.skip')}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 testID="onboardingPrivateEmailSkipButton"
                                 onPress={() => {
                                     setOnboardingErrorMessage(null);
@@ -251,7 +257,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                     setOnboardingMergeAccountStepValue(true, true);
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
-                            />
+                            >
+                                <Button.Text>{translate('common.skip')}</Button.Text>
+                            </Button>
                         </OfflineWithFeedback>
                     }
                     shouldRenderFooterAboveSubmit

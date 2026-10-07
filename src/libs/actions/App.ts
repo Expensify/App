@@ -1,19 +1,12 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
-import getCurrentUrl from '@libs/Navigation/currentUrl';
-import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
-import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
-import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
@@ -22,7 +15,6 @@ import CONST from '@src/CONST';
 import getPathFromState from '@src/libs/Navigation/helpers/getPathFromState';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
@@ -33,14 +25,12 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 // Issue - https://github.com/Expensify/App/issues/26719
 import {findFocusedRoute} from '@react-navigation/native';
-import {Str} from 'expensify-common';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
-import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -48,9 +38,10 @@ type PolicyParamsForOpenOrReconnect = {
 
 // `currentSessionData` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
 // If React components need this value in the future, use `useOnyx` instead.
-let currentSessionData: {accountID?: number; email: string} = {
+let currentSessionData: {accountID?: number; email: string; authToken?: string} = {
     accountID: undefined,
     email: '',
+    authToken: undefined,
 };
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -58,6 +49,7 @@ Onyx.connectWithoutView({
         currentSessionData = {
             accountID: val?.accountID,
             email: val?.email ?? '',
+            authToken: val?.authToken,
         };
     },
 });
@@ -153,13 +145,14 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.PRESERVED_USER_SESSION,
     ONYXKEYS.PRESERVED_ACCOUNT,
     ONYXKEYS.HYBRID_APP,
-    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.STASHED_CREDENTIALS,
-
+    ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
@@ -231,16 +224,13 @@ function setSidebarLoaded() {
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, true);
 }
 
-function setAppLoading(isLoading: boolean) {
-    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
-}
-
 /**
  * Saves the current navigation path to lastVisitedPath before app goes to background
  */
 function saveCurrentPathBeforeBackground() {
     try {
-        if (!navigationRef.isReady()) {
+        // Signed out there is only the sign-in page to save, and on Android the SAML browser backgrounds the app.
+        if (!navigationRef.isReady() || !currentSessionData.authToken) {
             return;
         }
 
@@ -411,8 +401,9 @@ function getOnyxDataForOpenOrReconnect(
  * @param shouldKeepPublicRooms - Whether to keep public rooms in Onyx
  * @param allReportsWithDraftComments - All reports with draft comments
  * @param forceRun - Force run even when using imported state (used when exiting imported state mode)
+ * @param shouldDedupeWithInFlight - Pass false when the response has to reflect state an in-flight OpenApp could not have seen.
  */
-function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false) {
+function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false, shouldDedupeWithInFlight = true) {
     // Don't make API calls when using imported state to avoid infinite loading
     // The imported state already contains all the data, so we just need to mark the app as loaded
     // Exception: When forceRun is true (exiting imported state), always make the API call
@@ -434,20 +425,27 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     }
 
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
-    const openAppPromise = API.writeWithNoDuplicatesConflictAction(
-        WRITE_COMMANDS.OPEN_APP,
+
+    // Preservation adds successData an in-flight OpenApp knows nothing about, so this call cannot be dropped.
+    const hasPreservationData = shouldKeepPublicRooms || !!allReportsWithDraftComments;
+    const openAppPromise = API.writeWithNoDuplicatesOpenAppConflictAction(
         params,
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
+        shouldDedupeWithInFlight && !hasPreservationData,
     ).finally(() => {
         if (!bootsplashSpan) {
             return;
         }
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
-
-    loadPostDataForOpenOrReconnect();
+    loadPersonalDetails();
 
     return openAppPromise;
+}
+
+function loadPersonalDetails() {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- API.read would wait for OpenApp, so it cannot run in parallel
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOAD_PERSONAL_DETAILS, null);
 }
 
 /**
@@ -500,8 +498,9 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
-
-        loadPostDataForOpenOrReconnect();
+        if (isFullReconnect) {
+            loadPersonalDetails();
+        }
 
         return reconnectAppPromise;
     });
@@ -541,6 +540,35 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
 }
 
 /**
+ * Incremental ReconnectApp as a side-effect request (bypasses the paused queue) so the pause watchdog can
+ * close the update gap before unpausing. Must not clear IS_LOADING_APP — outside the queue it could race an
+ * in-flight OpenApp (see getOnyxDataForOpenOrReconnect).
+ */
+function reconnectAppWithSideEffects(updateIDFrom = 0): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
+    // Mirror reconnectApp's guards — an incremental reconnect assumes base app state that isn't there yet.
+    // hasLoadedApp is undefined until Onyx hydrates, so reading it before hasLoadedAppPromise settles would treat a
+    // loaded app as unloaded and fire a full openApp instead.
+    return hasLoadedAppPromise.then(() => {
+        if (!hasLoadedApp) {
+            openApp();
+            return Promise.resolve();
+        }
+        if (isUsingImportedState) {
+            return Promise.resolve();
+        }
+
+        const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
+
+        // The watchdog must await the gap closing; same justified exception as the sibling functions above.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, !updateIDFrom));
+    });
+}
+
+/**
  * Fetches data when the client has discovered it missed some Onyx updates from the server
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
@@ -558,315 +586,6 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0
     // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the updates aren't applied in the proper order.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, parameters, getOnyxDataForOpenOrReconnect());
-}
-
-type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
-
-type CreateWorkspaceWithPolicyDraftParams = {
-    isSelfTourViewed: boolean | undefined;
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    policyOwnerEmail?: string;
-    policyName: string;
-    transitionFromOldDot?: boolean;
-    makeMeAdmin?: boolean;
-    backTo?: string;
-    policyID?: string;
-    currency: string;
-    file?: File;
-    routeToNavigateAfterCreate?: Route;
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
-    activePolicy: OnyxEntry<OnyxTypes.Policy>;
-    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    shouldCreateControlPolicy?: boolean;
-    type?: PolicyType;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    hasActiveAdminPolicies: boolean;
-    isAnnualSubscription?: boolean;
-};
-
-/**
- * Create a new draft workspace and navigate to it
- */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWithPolicyDraftParams) {
-    const {
-        introSelected,
-        policyOwnerEmail = '',
-        policyName,
-        transitionFromOldDot = false,
-        makeMeAdmin = false,
-        backTo = '',
-        policyID = '',
-        currency,
-        file,
-        routeToNavigateAfterCreate,
-        lastUsedPaymentMethod,
-        activePolicy,
-        conciergeChat,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        shouldCreateControlPolicy,
-        type,
-        isSelfTourViewed,
-        betas,
-        hasActiveAdminPolicies,
-        isAnnualSubscription = false,
-    } = params;
-
-    const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace({
-        introSelected,
-        workspaceName: policyName,
-        currentUserAccountID: currentUserAccountIDParam,
-        currentUserEmail: currentUserEmailParam,
-        currency,
-        policyID: policyIDWithDefault,
-        makeMeAdmin,
-        file,
-        type,
-    });
-    Navigation.isNavigationReady().then(() => {
-        if (transitionFromOldDot) {
-            // We must call goBack() to remove the /transition route from history
-            Navigation.goBack();
-        }
-        const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-        savePolicyDraftByNewWorkspace({
-            policyID: policyIDWithDefault,
-            policyName,
-            policyOwnerEmail,
-            makeMeAdmin,
-            currency,
-            file,
-            lastUsedPaymentMethod,
-            introSelected,
-            activePolicy,
-            conciergeChat,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            allReportsParam: allReports,
-            shouldCreateControlPolicy,
-            type,
-            isSelfTourViewed,
-            betas,
-            hasActiveAdminPolicies,
-            isAnnualSubscription,
-        });
-
-        if (transitionFromOldDot) {
-            Navigation.navigate(routeToNavigate);
-        } else if (Navigation.isTopmostRouteModalScreen()) {
-            // `revealRouteBeforeDismissingModal` only works for fullscreen targets. Modal targets
-            // (e.g. workspace confirmation success) still need to open after the current RHP closes.
-            if (willRouteNavigateToRHP(routeToNavigate)) {
-                Navigation.dismissModal({
-                    afterTransition: () => Navigation.navigate(routeToNavigate),
-                });
-                return;
-            }
-
-            WorkspaceCreationReveal.beginRevealUnderRHP();
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
-        } else {
-            Navigation.navigate(routeToNavigate, {forceReplace: true});
-        }
-    });
-}
-
-function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftParams) {
-    const {
-        introSelected,
-        policyOwnerEmail = '',
-        policyName,
-        makeMeAdmin = false,
-        policyID = '',
-        currency,
-        file,
-        lastUsedPaymentMethod,
-        activePolicy,
-        conciergeChat,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        shouldCreateControlPolicy,
-        isSelfTourViewed,
-        betas,
-        hasActiveAdminPolicies,
-    } = params;
-
-    createDraftInitialWorkspace({
-        introSelected,
-        workspaceName: policyName,
-        currentUserAccountID: currentUserAccountIDParam,
-        currentUserEmail: currentUserEmailParam,
-        currency,
-        policyID,
-        makeMeAdmin,
-        file,
-    });
-    savePolicyDraftByNewWorkspace({
-        policyID,
-        policyName,
-        policyOwnerEmail,
-        makeMeAdmin,
-        currency,
-        file,
-        lastUsedPaymentMethod,
-        introSelected,
-        activePolicy,
-        conciergeChat,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        allReportsParam: allReports,
-        shouldCreateControlPolicy,
-        isSelfTourViewed,
-        betas,
-        hasActiveAdminPolicies,
-    });
-}
-
-type SavePolicyDraftByNewWorkspaceParams = {
-    isSelfTourViewed: boolean | undefined;
-    policyID?: string;
-    policyName: string;
-    policyOwnerEmail?: string;
-    makeMeAdmin?: boolean;
-    currency?: string;
-    file?: File;
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicy: OnyxEntry<OnyxTypes.Policy>;
-    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    allReportsParam: OnyxCollection<OnyxTypes.Report>;
-    shouldCreateControlPolicy?: boolean;
-    type?: PolicyType;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    hasActiveAdminPolicies: boolean;
-    isAnnualSubscription?: boolean;
-};
-
-/**
- * Create a new workspace and delete the draft
- */
-function savePolicyDraftByNewWorkspace({
-    policyID,
-    policyName,
-    policyOwnerEmail = '',
-    makeMeAdmin = false,
-    currency = '',
-    file,
-    lastUsedPaymentMethod,
-    introSelected,
-    activePolicy,
-    conciergeChat,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    allReportsParam,
-    shouldCreateControlPolicy,
-    type,
-    isSelfTourViewed,
-    betas,
-    hasActiveAdminPolicies,
-    isAnnualSubscription = false,
-}: SavePolicyDraftByNewWorkspaceParams) {
-    createWorkspace({
-        policyOwnerEmail,
-        makeMeAdmin,
-        policyName,
-        policyID,
-        engagementChoice: isTrackOnboardingChoice(introSelected?.choice) ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-        currency,
-        file,
-        lastUsedPaymentMethod,
-        introSelected,
-        activePolicy,
-        conciergeChat,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        allReportsParam,
-        shouldCreateControlPolicy,
-        type,
-        isSelfTourViewed,
-        betas,
-        hasActiveAdminPolicies,
-        isAnnualSubscription,
-    });
-}
-
-/**
- * This action runs when the Navigator is ready and the current route changes
- *
- * currentPath should be the path as reported by the NavigationContainer
- *
- * The transition link contains an exitTo param that contains the route to
- * navigate to after the user is signed in. A user can transition from OldDot
- * with a different account than the one they are currently signed in with, so
- * we only navigate if they are not signing in as a new user. Once they are
- * signed in as that new user, this action will run again and the navigation
- * will occur.
-
- * When the exitTo route is 'workspace/new', we create a new
- * workspace and navigate to it
- */
-function setUpPoliciesAndNavigate(
-    session: OnyxEntry<OnyxTypes.Session>,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    currency: string,
-    activePolicy: OnyxEntry<OnyxTypes.Policy>,
-    isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    hasActiveAdminPolicies: boolean,
-    lastWorkspaceNumber: number | undefined,
-    translate: LocalizedTranslate,
-    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>,
-) {
-    const currentUrl = getCurrentUrl();
-    if (!session || !currentUrl?.includes('exitTo')) {
-        return;
-    }
-
-    const isLoggingInAsNewUser = !!session.email && isLoggingInAsNewUserSessionUtils(currentUrl, session.email);
-    const url = new URL(currentUrl);
-    const exitTo = url.searchParams.get('exitTo') as Route | null;
-
-    // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
-    // and those are passed as a search parameter when using transition links
-    const policyOwnerEmail = url.searchParams.get('ownerEmail') ?? session.email ?? '';
-    const makeMeAdmin = !!url.searchParams.get('makeMeAdmin');
-    const policyName = url.searchParams.get('policyName') ?? '';
-
-    // Sign out the current user if we're transitioning with a different user
-    const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
-
-    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
-    if (shouldCreateFreePolicy) {
-        createWorkspaceWithPolicyDraftAndNavigateToIt({
-            introSelected,
-            currency,
-            policyOwnerEmail,
-            policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
-            transitionFromOldDot: true,
-            makeMeAdmin,
-            activePolicy,
-            conciergeChat,
-            currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            currentUserEmailParam: currentSessionData.email ?? '',
-            isSelfTourViewed,
-            betas,
-            hasActiveAdminPolicies,
-        });
-        return;
-    }
-    if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.waitForProtectedRoutes().then(() => {
-            Navigation.navigate(exitTo);
-        });
-    }
 }
 
 function handleRestrictedEvent(eventName: string) {
@@ -902,8 +621,9 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     Navigation.clearPreloadedRoutes();
-    // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
-    // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
+    // The helper seeds the loading state and LAST_FULL_RECONNECT_TIME so consumers cannot evaluate transient
+    // post-clear state and subscribeToFullReconnect doesn't fire a duplicate ReconnectApp once the
+    // openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
     const resetPromise = clearWorkboxRecoveryCaches().then(() =>
         clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE)
             .then(() => {
@@ -967,25 +687,32 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
     Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, payload);
 }
 
+/**
+ * Clears the Corpay pay modal signal for the current session.
+ */
+function clearCorpayPayModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL, null);
+}
+
 export {
     setLocale,
     setSidebarLoaded,
-    setUpPoliciesAndNavigate,
+    saveCurrentPathBeforeBackground,
     openApp,
-    setAppLoading,
     reconnectApp,
+    loadPostDataForOpenOrReconnect,
     triggerFullReconnect,
     handleRestrictedEvent,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
-    createWorkspaceWithPolicyDraftAndNavigateToIt,
+    reconnectAppWithSideEffects,
     updateLastVisitedPath,
-    createWorkspaceWithPolicyDraft,
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
+    clearCorpayPayModal,
     setPreservedUserSession,
     getNonOptimisticPolicyIDs,
     setPreservedAccount,

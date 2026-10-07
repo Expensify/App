@@ -1,7 +1,7 @@
 ---
 title: Approve Expenses
 description: Approve, hold, reject, and unapprove submitted expenses
-keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
+keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, reject expense error, expense already moved or rejected, could not reject expense, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
 internalScope: Audience is Workspace approvers and admins. Covers approving and managing submitted expenses and reports. Does not cover creating or submitting expenses.
 ---
 
@@ -82,7 +82,7 @@ Workspace admins can bypass the approval workflow on a report to final approve i
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**.
 2. Select two or more reports using the checkboxes.
-3. Choose **Selected**, then **Change approver**.
+3. On the selection bar, choose **Change approver**.
 4. Select **Add approver** or **Bypass approvers**.
 5. If you selected **Add approver**, choose the approver and click **Save**.
 
@@ -131,7 +131,7 @@ As the assigned approver, you can reject an entire expense report to return it t
 
 ## What happens after a report is rejected
 
-- **Rejected to the submitter**: The report moves back to Draft. The submitter must fix any issues and manually resubmit — rejected reports are skipped during scheduled submit.
+- **Rejected to the submitter**: The report moves back to Draft. The submitter must fix any issues and manually resubmit — rejected reports are skipped when Submissions is enabled.
 - **Rejected to a previous approver**: The report stays Outstanding and prior approvals are preserved, so it won't restart the entire approval workflow.
 
 ---
@@ -148,6 +148,23 @@ The rejected expense will be removed from the report, and the submitter will be 
 
 ---
 
+## How to resolve the error when an expense cannot be rejected
+
+If the expense was moved to another report or already rejected by someone else before your rejection went through, the expense stays on the report with this error:
+
+**The expense could not be rejected because it may have already been moved or rejected.**
+
+This is most common when you reject an expense while offline, because your rejection is only sent once you reconnect.
+
+To clear the error:
+
+1. Open the report that shows the error.
+2. Click the **X** next to the error message.
+
+The outdated row is removed from the report. The expense itself is not deleted — it remains on the report it was moved to, or it keeps the rejection that was already applied. While the error is displayed, the expense row cannot be opened or edited.
+
+---
+
 # FAQ
 
 ## Why can't I action a pending expense? 
@@ -160,10 +177,17 @@ Only Workspace admins can bypass the prescribed approval workflow. If **Prevent 
 
 Rejecting a report sends the entire report back while keeping all expenses grouped together. Rejecting an expense removes only that expense from the report and sends it back to the submitter.
 
+## Why did my expense rejection fail after I came back online?
+
+A rejection made while offline is only sent once you reconnect. If the expense was moved to another report or rejected by someone else in the meantime, the rejection can no longer be applied and the expense shows an error on the report. Click the **X** next to the error message to remove the outdated row.
+
 ## Why can’t I unapprove a report?
 
 ## What are expense reports?
 Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Spend > Expenses**.
+
+## Why can I see a member's Draft report that isn't waiting for my approval?
+Approvers in a member's approval workflow, Workspace Admins, and the member's copilots can view the member's reports in **Spend > Reports**, including Draft (unsubmitted) reports. A Draft report only appears in **Needs approval** after the member submits it.
 
 ## What happens after I approve a report?
 

@@ -1,8 +1,9 @@
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarPageFooter from '@components/AvatarPageFooter';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -12,7 +13,8 @@ import useAvatarCrop from '@hooks/useAvatarCrop';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
@@ -28,7 +30,6 @@ import {updateAgentAvatar} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -60,9 +61,11 @@ type EditAgentAvatarContentProps = {
 function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPresetID}: EditAgentAvatarContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
+    const presetAvatarSize = StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.X_LARGE);
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
+    const [personalDetails] = usePersonalDetail(accountID);
 
     const initialBotAvatar = useMemo<AgentAvatarID | null>(() => {
         if (!initialPresetID || !AGENT_AVATARS.isAvatarID(initialPresetID)) {
@@ -158,13 +161,12 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
-                    <Avatar
-                        containerStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                        imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+                    <UserAvatar
+                        containerStyles={styles.alignSelfCenter}
+                        imageStyles={styles.alignSelfCenter}
                         source={previewSource}
-                        avatarID={accountID}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
-                        type={CONST.ICON_TYPE_AVATAR}
+                        accountID={accountID}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                     />
                     <AttachmentPicker
                         type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
@@ -172,15 +174,16 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                     >
                         {({openPicker}) => (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         )}
                     </AttachmentPicker>
                 </View>
@@ -202,12 +205,14 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                                     }}
                                     style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
                                 >
-                                    <Avatar
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        source={local}
-                                        size={CONST.AVATAR_SIZE.MEDIUM}
-                                        containerStyles={styles.avatarSelectorContainer}
-                                    />
+                                    <View style={styles.avatarSelectorContainer}>
+                                        <Icon
+                                            src={local}
+                                            width={presetAvatarSize}
+                                            height={presetAvatarSize}
+                                            additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_LARGE, CONST.AVATAR_SHAPE.CIRCLE)}
+                                        />
+                                    </View>
                                 </PressableWithFeedback>
                             );
                         })}

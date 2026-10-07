@@ -4,8 +4,11 @@ import {isBankAccountMissingAddressState} from '@libs/BankAccountUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Policy} from '@src/types/onyx';
+import type {BankAccountList} from '@src/types/onyx';
+import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {TimeSensitiveAdminPolicy} from '@selectors/Policy';
 
 import {primaryLoginSelector} from '@selectors/Account';
 
@@ -24,9 +27,12 @@ type BankAccountMissingAddress = {
 
     /** The policy name — undefined means personal account */
     policyName?: string;
+
+    /** Personal-account details used to prefill the address form */
+    additionalData?: BankAccountAdditionalData;
 };
 
-function useTimeSensitiveBankAccountAddress(adminPolicies: Policy[] | undefined) {
+function useTimeSensitiveBankAccountAddress(adminPolicies: TimeSensitiveAdminPolicy[] | undefined) {
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const bankAccountsMissingAddress: BankAccountMissingAddress[] = [];
@@ -75,6 +81,7 @@ function useTimeSensitiveBankAccountAddress(adminPolicies: Policy[] | undefined)
             key: `personal-${bankAccountID}`,
             bankAccountID,
             isPersonalAccount: true,
+            additionalData: accountData?.additionalData,
         });
     }
 
@@ -84,4 +91,3 @@ function useTimeSensitiveBankAccountAddress(adminPolicies: Policy[] | undefined)
 }
 
 export default useTimeSensitiveBankAccountAddress;
-export type {BankAccountMissingAddress};

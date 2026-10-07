@@ -1,22 +1,26 @@
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
+    getCategoryDefaultTaxRate,
     getCategoryGLCode,
+    getCategoryNameError,
+    getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
     isCategoryMissing,
     processCategoryNameSegments,
 } from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {translateLocal} from '../utils/TestHelper';
+import createMock from '../utils/createMock';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
 describe(`isMissingCategory`, () => {
     it('returns true if category is undefined', () => {
@@ -39,13 +43,13 @@ describe(`isMissingCategory`, () => {
 });
 
 describe('formatRequireItemizedReceiptsOverText', () => {
-    const mockPolicy: Policy = {
+    const mockPolicy = createMock<Policy>({
         id: '1',
         name: 'Test Policy',
         type: CONST.POLICY.TYPE.CORPORATE,
         outputCurrency: CONST.CURRENCY.USD,
         maxExpenseAmountNoItemizedReceipt: 7500,
-    } as Policy;
+    });
 
     it('returns "Always" text when category amount is 0', () => {
         const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, 0, convertToDisplayString);
@@ -220,7 +224,7 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
         expect(result[keyOther]?.TestCategory3).toBeDefined();
     });
 
-    describe('processCategoryNameSegments and getDecodedLeafCategoryName', () => {
+    describe('category name formatting', () => {
         describe('processCategoryNameSegments', () => {
             it('returns a single segment for colon‑only names', () => {
                 expect(processCategoryNameSegments(':')).toEqual([':']);
@@ -243,6 +247,41 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
             it('returns the leaf for normal hierarchies (trimmed)', () => {
                 expect(getDecodedLeafCategoryName('Food: Meat')).toEqual('Meat');
                 expect(getDecodedLeafCategoryName('A: B:')).toEqual('B:');
+            });
+        });
+
+        describe('getDecodedFullCategoryName', () => {
+            it('returns the full name for colon‑only categories', () => {
+                expect(getDecodedFullCategoryName(':')).toEqual(':');
+                expect(getDecodedFullCategoryName('::')).toEqual('::');
+            });
+
+            it('returns the full path for normal hierarchies', () => {
+                expect(getDecodedFullCategoryName('Food: Meat')).toEqual('Food: Meat');
+                expect(getDecodedFullCategoryName('A: B:')).toEqual('A: B:');
+                expect(getDecodedFullCategoryName('Meals and Entertainment: Other')).toEqual('Meals and Entertainment: Other');
+            });
+
+            it('normalizes separator spacing for display', () => {
+                expect(getDecodedFullCategoryName('A:B')).toEqual('A: B');
+                expect(getDecodedFullCategoryName('A:  B')).toEqual('A: B');
+            });
+
+            it('drops empty middle segments', () => {
+                expect(getDecodedFullCategoryName('Food: : Meat')).toEqual('Food: Meat');
+            });
+
+            it('keeps a single trailing colon on the last segment', () => {
+                expect(getDecodedFullCategoryName('A: B::')).toEqual('A: B:');
+            });
+
+            it('returns single segments and empty input unchanged', () => {
+                expect(getDecodedFullCategoryName('Plain')).toEqual('Plain');
+                expect(getDecodedFullCategoryName('')).toEqual('');
+            });
+
+            it('decodes HTML entities in every segment', () => {
+                expect(getDecodedFullCategoryName('Travel &amp; Lodging: Other')).toEqual('Travel & Lodging: Other');
             });
         });
     });
@@ -433,5 +472,73 @@ describe('getCategoryGLCode', () => {
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+});
+
+describe('getCategoryNameError', () => {
+    const encodedFoodAndDrink = 'Food &amp; Drink';
+    const categories: PolicyCategories = {
+        Food: {name: 'Food', enabled: true, pendingAction: null},
+        [encodedFoodAndDrink]: {name: encodedFoodAndDrink, enabled: true, pendingAction: null},
+    };
+
+    it('does not flag an HTML-encoded category as a duplicate of its decoded name', () => {
+        // Given a category stored under an HTML-encoded key
+        // When the caller passes the already-decoded display name as the name being edited
+        // Then keeping that display name is allowed, because decoding it again would change the comparison
+        expect(getCategoryNameError(categories, 'Food & Drink', 'Food & Drink')).toBeUndefined();
+    });
+
+    it('keeps a display name that still contains an entity distinct from its decoded form', () => {
+        const doubleEncodedFoodAndDrink = 'Food &amp;amp; Drink';
+        const categoriesWithEntityName: PolicyCategories = {
+            ...categories,
+            [doubleEncodedFoodAndDrink]: {name: doubleEncodedFoodAndDrink, enabled: true, pendingAction: null},
+        };
+
+        // Given a category whose once-decoded name still contains an entity, beside a different category named Food & Drink
+        // When validation receives that once-decoded name as the name being edited
+        // Then renaming it to Food & Drink is a duplicate, because decoding currentName again would treat the two as the same category
+        expect(getCategoryNameError(categoriesWithEntityName, 'Food & Drink', 'Food &amp; Drink')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+
+        // Then saving the unchanged display name is allowed, because a second decode would make it look like a different category
+        expect(getCategoryNameError(categoriesWithEntityName, 'Food &amp; Drink', 'Food &amp; Drink')).toBeUndefined();
+    });
+
+    it('flags a decoded name that already exists as an encoded category', () => {
+        expect(getCategoryNameError(categories, 'Food & Drink')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        expect(getCategoryNameError(categories, 'Food & Drink', 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+    });
+
+    it('still flags an exact-key duplicate', () => {
+        expect(getCategoryNameError(categories, 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        expect(getCategoryNameError(categories, 'Food', 'Food')).toBeUndefined();
+    });
+});
+
+describe('getCategoryDefaultTaxRate', () => {
+    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
+        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        tax: {field_id_TAX: {externalID: taxID}},
+    });
+
+    it("returns the category's own rate", () => {
+        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
+    });
+
+    it('falls back to the workspace rate when the category has no rule', () => {
+        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
+    });
+
+    it('ignores a rule that carries the name on some other condition', () => {
+        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
+        // rate the admin never set for this category.
+        const tagNamedAfterTheCategory: ExpenseRule = {
+            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
+        };
+        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
     });
 });

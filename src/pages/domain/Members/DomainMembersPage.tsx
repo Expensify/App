@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -46,7 +47,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -56,7 +57,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
+    const illustrations = useMemoizedLazyIllustrations(['LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -72,11 +73,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: memberPendingActionSelector});
-    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     const {showConfirmModal} = useConfirmModal();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.domainMembers');
@@ -121,19 +121,14 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 keyForList: String(accountID),
                 accountID,
                 login,
-                name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+                name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                 email: formatPhoneNumber(login),
                 groupName: group?.details.name ?? '-',
                 errors: getLatestError(customProps?.errors),
                 pendingAction: customProps?.pendingAction,
                 disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
                 action: () => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID)),
-                dismissError: () => {
-                    if (!defaultSecurityGroupID) {
-                        return;
-                    }
-                    clearDomainMemberError(domainAccountID, accountID, login, defaultSecurityGroupID, customProps?.pendingAction);
-                },
+                dismissError: () => clearDomainMemberError(domainAccountID, accountID, login, group?.id, !!details?.isOptimisticPersonalDetail),
             };
         });
 
@@ -165,7 +160,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             prompt: translate('domain.members.closeAccountPrompt'),
             confirmText: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldShowCancelButton: true,
         });
 
@@ -182,7 +177,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 continue;
             }
             const securityGroupData = selectSecurityGroupForAccount(accountID)(domain);
-            closeUserAccount(domainAccountID, domainName, memberLogin, securityGroupData, shouldForceCloseAccount);
+            closeUserAccount(domainAccountID, domainName, memberLogin, accountID, securityGroupData, shouldForceCloseAccount);
         }
 
         setShouldForceCloseAccount(undefined);
@@ -195,9 +190,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             text: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.CLOSE_ACCOUNT,
             icon: icons.RemoveMembers,
-            onSelected: () => {
-                setIsModalVisible(true);
-            },
+            shouldSkipFocusRestore: true,
+            onSelected: () => setIsModalVisible(true),
         },
         {
             text: translate('domain.members.moveToGroup'),
@@ -229,7 +223,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     prompt: translate('common.downloadFailedDescription'),
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
-                    success: false,
                     shouldHandleNavigationBack: true,
                 });
             },
@@ -256,13 +249,14 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         ) : (
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                    text={translate('domain.members.addMember')}
-                    icon={icons.Plus}
                     innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
                     style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
-                />
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('domain.members.addMember')}</Button.Text>
+                </Button>
                 <ButtonWithDropdownMenu
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
@@ -302,8 +296,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     <HeaderWithBackButton
                         title={translate('domain.domainMembers')}
                         onBackButtonPress={Navigation.goBack}
-                        icon={illustrations.Profile}
                         shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldUseHeadlineHeader
                         shouldDisplayHelpButton
                     />
                     <ScrollView
@@ -345,7 +339,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 domainAccountID={domainAccountID}
                 members={members}
                 headerTitle={translate('domain.members.title')}
-                headerIcon={illustrations.Profile}
                 headerContent={getHeaderButtons()}
                 selectedMembers={selectedMembers}
                 setSelectedMembers={setSelectedMembers}

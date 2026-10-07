@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAncestors from '@hooks/useAncestors';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -22,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
@@ -43,7 +45,9 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isDraftReportSelector} from '@selectors/Report';
+import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
@@ -58,14 +62,17 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
@@ -78,12 +85,43 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
+    const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(report?.reportID)}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const currentUserAccountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, policy],
+        () =>
+            getReportDisplayOption({
+                dateFnsLocale,
+                convertToDisplayString,
+                report,
+                unknownUserDetails,
+                personalDetails,
+                privateIsArchived,
+                policy,
+                conciergeReportID,
+                translate,
+                currentUserAccountID,
+                reportAttributesDerived,
+                rules,
+                pendingDeleteMemberAccountIDs,
+            }),
+        [
+            report,
+            unknownUserDetails,
+            personalDetails,
+            privateIsArchived,
+            policy,
+            conciergeReportID,
+            translate,
+            currentUserAccountID,
+            reportAttributesDerived,
+            dateFnsLocale,
+            convertToDisplayString,
+            rules,
+            pendingDeleteMemberAccountIDs,
+        ],
     );
 
     const shouldShowAttachment = !isTextShared;
@@ -161,8 +199,11 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 })) ?? [],
                         personalDetails,
                         newReportObject: report,
-                        betas,
+                        conciergeChat,
                         hasReportActions: false,
+                        currentUserAccountID: personalDetail.accountID,
+                        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     });
                 }
                 if (report.reportID) {
@@ -233,7 +274,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 }}
                                 pressableStyle={[styles.flexRow]}
                                 shouldSyncFocus={false}
-                                keyForList={displayReport.keyForList}
                             />
                         </View>
                     )}

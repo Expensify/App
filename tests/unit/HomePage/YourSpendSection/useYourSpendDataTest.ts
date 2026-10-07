@@ -6,19 +6,28 @@
  *   - query builders are called with the current user's accountID
  *   - awaitingApprovalQuery / repaidLast30DaysQuery are exposed on the return value
  *   - search() is dispatched when focused and online; suppressed when offline
+ *   - isApprovalStale / isPaymentStale: true while a queued or in-flight change would move
+ *     that specific total — state transitions and amount edits read from the action queue
+ *     (plus the report's pendingFields.total for cross-currency edits), classified by the
+ *     report's status and scoped to each query (approval: paid-group reports; payment: any
+ *     owned report). The grey persists after reconnect until the queue flushes.
+ *   - summary rows replay their last settled online result while offline, so a row never
+ *     appears, disappears or changes value offline — it may only grey out
  */
 import {act, renderHook} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsTabFocused from '@hooks/useIsTabFocused';
 import useNetwork from '@hooks/useNetwork';
 
 import {search} from '@libs/actions/Search';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import {YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/const';
-import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
+import {buildAwaitingApprovalQuery, buildCardGroupQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
 import {useYourSpendData} from '@pages/home/YourSpendSection/useYourSpendData';
 
 import CONST from '@src/CONST';
@@ -27,6 +36,12 @@ import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+
+import createMock from '../../../utils/createMock';
 
 // Constants
 
@@ -53,9 +68,12 @@ const CARD_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${CARD_ID_2}`;
 const THIRD_PARTY_QUERY_1 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PARTY_CARD_ID_1}`;
 const THIRD_PARTY_QUERY_2 = `type:expense from:${ACCOUNT_ID} cardID:${THIRD_PARTY_CARD_ID_2}`;
 
+const CARD_GROUP_QUERY = buildCardGroupQuery(ACCOUNT_ID);
+
 // Module mocks
 
 jest.mock('@pages/home/YourSpendSection/queries', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@pages/home/YourSpendSection/queries'),
     buildAwaitingApprovalQuery: jest.fn(),
     buildRepaidLast30DaysQuery: jest.fn(),
     buildRecentCardTransactionsQuery: jest.fn(),
@@ -64,6 +82,13 @@ jest.mock('@pages/home/YourSpendSection/queries', () => ({
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: jest.fn(() => true),
     createNavigationContainerRef: () => ({}),
+}));
+
+// Mandatory: the real hook reads the root navigation state, which is never ready under Jest, so it
+// would report "not focused" and the searches would silently never fire.
+jest.mock('@hooks/useIsTabFocused', () => ({
+    __esModule: true,
+    default: jest.fn(() => true),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
@@ -94,6 +119,8 @@ jest.mock('@libs/PolicyUtils', () => ({
 // Typed references to mocked modules
 
 const mockedUseNetwork = jest.mocked(useNetwork);
+const mockedUseIsTabFocused = jest.mocked(useIsTabFocused);
+const mockedUseIsFocused = jest.mocked(useIsFocused);
 const mockedUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockedSearch = jest.mocked(search);
 const mockedGetDisplayableExpensifyCards = jest.mocked(getDisplayableExpensifyCards);
@@ -105,7 +132,7 @@ const mockedBuildRecentCardTransactionsQuery = jest.mocked(buildRecentCardTransa
 
 // useOnyx mock
 
-const onyxData: Record<string, unknown> = {};
+const onyxData: Record<string, unknown> & Partial<Record<typeof ONYXKEYS.COLLECTION.SNAPSHOT, OnyxCollection<SearchResults>>> = {};
 
 const mockUseOnyx = jest.fn((key: string, options?: {selector?: (v: unknown) => unknown}) => {
     const value = onyxData[key];
@@ -128,7 +155,6 @@ function makeCorporatePolicy(overrides: Partial<Policy> = {}): Policy {
         role: 'admin',
         owner: 'test@example.com',
         ownerAccountID: ACCOUNT_ID,
-        isPolicyExpenseChatEnabled: true,
         outputCurrency: CONST.CURRENCY.USD,
         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -142,6 +168,8 @@ function makeSearchResultsWithCount(count: number): SearchResults {
             type: 'expense',
             offset: 0,
             hash: 0,
+            sortBy: 'date',
+            sortOrder: 'desc',
             hasMoreResults: false,
             hasResults: count > 0,
             isLoading: false,
@@ -168,36 +196,40 @@ function setupPaymentSnapshot(results: SearchResults | undefined) {
     onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
 }
 
-/** Seeds the allSnapshots collection with a card snapshot so the hook can read count/total/currency. */
-function setupCardSnapshot(cardID: number, results: SearchResults | undefined) {
-    let cardQuery: string;
-    switch (cardID) {
-        case CARD_ID_1:
-            cardQuery = CARD_QUERY_1;
-            break;
-        case CARD_ID_2:
-            cardQuery = CARD_QUERY_2;
-            break;
-        case THIRD_PARTY_CARD_ID_1:
-            cardQuery = THIRD_PARTY_QUERY_1;
-            break;
-        case THIRD_PARTY_CARD_ID_2:
-            cardQuery = THIRD_PARTY_QUERY_2;
-            break;
-        default:
-            cardQuery = CARD_QUERY_2;
-            break;
+type CardGroupFixture = {cardID: number; count: number; total?: number; currency?: string};
+
+function setupCardGroups(groups: CardGroupFixture[], searchOverrides: Partial<SearchResults['search']> = {}) {
+    const hash = buildSearchQueryJSON(CARD_GROUP_QUERY)?.hash;
+    const data: SearchResults['data'] = {};
+    for (const {cardID, count, total, currency} of groups) {
+        if (!count) {
+            continue;
+        }
+        data[`${CONST.SEARCH.GROUP_PREFIX}${cardID}`] = {
+            accountID: ACCOUNT_ID,
+            cardID,
+            count,
+            total: total ?? 0,
+            currency: currency ?? CONST.CURRENCY.USD,
+            bank: 'Visa',
+            cardName: 'card',
+            lastFourPAN: '',
+        };
     }
-    const hash = buildSearchQueryJSON(cardQuery)?.hash;
-    if (!onyxData[ONYXKEYS.COLLECTION.SNAPSHOT]) {
-        onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] = {};
-    }
-    (onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] as Record<string, unknown>)[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+    const results = makeSearchResultsWithCount(1);
+    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = {...results, search: {...results.search, ...searchOverrides}, data};
 }
 
 /** Builds a fully-populated `CardFeedErrors` value for `onyxData[ONYXKEYS.DERIVED.CARD_FEED_ERRORS]`. */
 function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedErrors {
-    const defaultState: CardFeedErrorState = {shouldShowRBR: false, isFeedConnectionBroken: false, hasFeedErrors: false, hasWorkspaceErrors: false};
+    const defaultState: CardFeedErrorState = {
+        shouldShowRBR: false,
+        isFeedConnectionBroken: false,
+        shouldPromptBrokenConnection: false,
+        hasFeedErrors: false,
+        hasWorkspaceErrors: false,
+        hasFeedConnectionIssue: false,
+    };
     return {
         cardFeedErrors: {},
         cardsWithBrokenFeedConnection: {},
@@ -213,21 +245,23 @@ function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedEr
 }
 
 /** Builds third-party `Card[]` fixtures for `getDisplayableThirdPartyCards.mockReturnValue`. */
-function makeThirdPartyCards(cards: Array<{cardID: number; lastFourPAN?: string; cardName?: string; bank?: string; fundID?: string; lastScrapeResult?: number}>): Card[] {
-    return cards.map((c) => ({
-        accountID: ACCOUNT_ID,
-        bank: c.bank ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-        cardID: c.cardID,
-        cardName: c.cardName ?? '480801XXXXXX2554',
-        domainName: 'feed-a.exfy',
-        fraud: 'none',
-        fundID: c.fundID ?? '767578',
-        lastFourPAN: c.lastFourPAN ?? '',
-        lastScrape: '',
-        lastUpdated: '',
-        lastScrapeResult: c.lastScrapeResult,
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-    })) as unknown as Card[];
+function makeThirdPartyCards(cards: Array<{cardID: number; lastFourPAN?: string; cardName?: string; bank?: Card['bank']; fundID?: string; lastScrapeResult?: number}>): Card[] {
+    return cards.map((c) =>
+        createMock<Card>({
+            accountID: ACCOUNT_ID,
+            bank: c.bank ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            cardID: c.cardID,
+            cardName: c.cardName ?? '480801XXXXXX2554',
+            domainName: 'feed-a.exfy',
+            fraud: 'none',
+            fundID: c.fundID ?? '767578',
+            lastFourPAN: c.lastFourPAN ?? '',
+            lastScrape: '',
+            lastUpdated: '',
+            lastScrapeResult: c.lastScrapeResult,
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        }),
+    );
 }
 
 /** Returns a typed offline payload for `useNetwork.mockReturnValue`. */
@@ -237,7 +271,7 @@ function networkState(isOffline: boolean): ReturnType<typeof useNetwork> {
 
 /** Builds a `Card[]` payload for `getDisplayableExpensifyCards.mockReturnValue`. */
 function makeDisplayableCards(cards: Array<{cardID: number; lastFourPAN: string}>): Card[] {
-    return cards as unknown as Card[];
+    return cards.map((card) => createMock<Card>(card));
 }
 
 // Common beforeEach
@@ -248,6 +282,8 @@ beforeEach(() => {
     }
     mockUseOnyx.mockClear();
     mockedSearch.mockClear();
+    mockedUseIsTabFocused.mockReturnValue(true);
+    mockedUseIsFocused.mockReturnValue(true);
 
     mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY);
     mockedBuildRepaidLast30DaysQuery.mockReturnValue(PAYMENT_QUERY);
@@ -389,16 +425,16 @@ describe('useYourSpendData — cardRows', () => {
         expect(result.current.cardRows).toHaveLength(0);
     });
 
-    it('excludes a card whose snapshot has count === 0 (no transactions in last 30 days)', () => {
+    it('excludes a card the grouped snapshot returns no group for (no transactions in last 30 days)', () => {
         mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
-        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(0));
+        setupCardGroups([{cardID: CARD_ID_1, count: 0}]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(0);
     });
 
     it('returns one row with correct cardID, lastFour, and query when snapshot confirms recent transactions', () => {
         mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
-        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(3));
+        setupCardGroups([{cardID: CARD_ID_1, count: 3}]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(1);
         expect(result.current.cardRows.at(0)).toMatchObject({
@@ -415,8 +451,10 @@ describe('useYourSpendData — cardRows', () => {
                 {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
             ]),
         );
-        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(5));
-        setupCardSnapshot(CARD_ID_2, makeSearchResultsWithCount(2));
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 5},
+            {cardID: CARD_ID_2, count: 2},
+        ]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(2);
         expect(result.current.cardRows.at(0)).toMatchObject({cardID: CARD_ID_1, lastFour: CARD_LAST_FOUR_1, query: CARD_QUERY_1});
@@ -430,11 +468,36 @@ describe('useYourSpendData — cardRows', () => {
                 {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
             ]),
         );
-        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(0));
-        setupCardSnapshot(CARD_ID_2, makeSearchResultsWithCount(4));
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 0},
+            {cardID: CARD_ID_2, count: 4},
+        ]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(1);
         expect(result.current.cardRows.at(0)).toMatchObject({cardID: CARD_ID_2, lastFour: CARD_LAST_FOUR_2});
+    });
+
+    it('resolves each card row total from its own group in the one grouped snapshot', () => {
+        // Given a grouped snapshot carrying a group per card
+        mockedGetDisplayableExpensifyCards.mockReturnValue(
+            makeDisplayableCards([
+                {cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1},
+                {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
+            ]),
+        );
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 5, total: 1500, currency: 'USD'},
+            {cardID: CARD_ID_2, count: 2, total: 700, currency: 'USD'},
+        ]);
+
+        // When the hook renders
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then each row carries its own card's total and its own tap-through query
+        expect(result.current.cardRows).toEqual([
+            expect.objectContaining({cardID: CARD_ID_1, total: 1500, currency: 'USD', query: CARD_QUERY_1}),
+            expect.objectContaining({cardID: CARD_ID_2, total: 700, currency: 'USD', query: CARD_QUERY_2}),
+        ]);
     });
 });
 
@@ -501,11 +564,94 @@ describe('useYourSpendData — search dispatch', () => {
         );
     });
 
+    it('does not replay the set when an RHP opens and closes over Home', () => {
+        // Given Home has already fired its searches
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const callsAfterFirstRender = mockedSearch.mock.calls.length;
+        expect(callsAfterFirstRender).toBeGreaterThan(0);
+
+        // When an RHP is pushed over Home and popped again, leaving the Home tab active throughout
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then closing it does not refetch a set the account already has
+        expect(mockedSearch).toHaveBeenCalledTimes(callsAfterFirstRender);
+    });
+
     it('does not dispatch search() when offline', () => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         mockedUseNetwork.mockReturnValue(networkState(true));
         renderHook(() => useYourSpendData());
         expect(search).not.toHaveBeenCalled();
+    });
+
+    it('costs one search() for a multi-card account, not one per card', () => {
+        // Given an account with two Expensify cards and no paid group workspace, so no
+        // approval or payment search is fired alongside them
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
+        mockedGetDisplayableExpensifyCards.mockReturnValue(
+            makeDisplayableCards([
+                {cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1},
+                {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
+            ]),
+        );
+
+        // When Home renders focused and online
+        renderHook(() => useYourSpendData());
+
+        // Then the whole card set costs a single grouped request
+        expect(search).toHaveBeenCalledTimes(1);
+        expect(search).toHaveBeenCalledWith(
+            expect.objectContaining({
+                queryJSON: expect.objectContaining({hash: buildSearchQueryJSON(CARD_GROUP_QUERY)?.hash}),
+            }),
+        );
+    });
+
+    it('fires no card search when the account has no displayable cards', () => {
+        // Given an account with no displayable cards and no paid group workspace
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
+        mockedGetDisplayableExpensifyCards.mockReturnValue([]);
+        mockedGetDisplayableThirdPartyCards.mockReturnValue([]);
+
+        // When Home renders focused and online
+        renderHook(() => useYourSpendData());
+
+        // Then nothing is sent. An unfiltered grouped query would return every card the user has.
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('keeps the surviving rows when a card is deleted, without refetching', () => {
+        // Given Home has totals for two cards
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
+        onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}, [CARD_ID_2]: {cardID: CARD_ID_2}};
+        mockedGetDisplayableExpensifyCards.mockReturnValue(
+            makeDisplayableCards([
+                {cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1},
+                {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
+            ]),
+        );
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 5, total: 1500, currency: 'USD'},
+            {cardID: CARD_ID_2, count: 2, total: 700, currency: 'USD'},
+        ]);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.cardRows).toHaveLength(2);
+        expect(search).toHaveBeenCalledTimes(1);
+
+        // When one card is optimistically deleted, as `deletePersonalCard` does even while offline
+        act(() => {
+            onyxData[ONYXKEYS.CARD_LIST] = {[CARD_ID_1]: {cardID: CARD_ID_1}};
+        });
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        rerender(undefined);
+
+        // Then the remaining row keeps its total off the same snapshot and nothing is refetched
+        expect(result.current.cardRows).toEqual([expect.objectContaining({cardID: CARD_ID_1, total: 1500, currency: 'USD'})]);
+        expect(search).toHaveBeenCalledTimes(1);
     });
 
     it('dispatches search() with the approval queryJSON hash', () => {
@@ -520,19 +666,14 @@ describe('useYourSpendData — search dispatch', () => {
     });
 });
 
-// third-party card rows
-//
-// These tests exercise the third-party card branch end-to-end via the hook.
-// `getDisplayableThirdPartyCards` and `getDisplayableExpensifyCards` are both mocked,
-// so each test seeds the displayable cards explicitly. Snapshot results are seeded
-// through the same `setupCardSnapshot` helper used by the Expensify cardRows block.
-
 describe('useYourSpendData — third-party cardRows', () => {
     it('orders Expensify Card rows before third-party card rows when both exist', () => {
         mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]));
-        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(2));
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, makeSearchResultsWithCount(3));
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 2},
+            {cardID: THIRD_PARTY_CARD_ID_1, count: 3},
+        ]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(2);
         expect(result.current.cardRows.at(0)?.cardID).toBe(CARD_ID_1);
@@ -541,22 +682,22 @@ describe('useYourSpendData — third-party cardRows', () => {
 
     it('produces a row for a third-party card with snapshot count > 0', () => {
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]));
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, makeSearchResultsWithCount(5));
+        setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 5}]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(1);
         expect(result.current.cardRows.at(0)).toMatchObject({cardID: THIRD_PARTY_CARD_ID_1, lastFour: THIRD_PARTY_LAST_FOUR_1, query: THIRD_PARTY_QUERY_1});
     });
 
-    it('produces no row for a third-party card with snapshot count === 0', () => {
+    it('produces no row for a third-party card the grouped snapshot returns no group for', () => {
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]));
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, makeSearchResultsWithCount(0));
+        setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 0}]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(0);
     });
 
     it('tags the third-party row with kind=thirdParty and leaves spentFraction undefined', () => {
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]));
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, makeSearchResultsWithCount(1));
+        setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 1}]);
         const {result} = renderHook(() => useYourSpendData());
         const row = result.current.cardRows.at(0);
         expect(row?.kind).toBe('thirdParty');
@@ -565,7 +706,7 @@ describe('useYourSpendData — third-party cardRows', () => {
 
     it('resolves lastFour from cardName ending in 4 digits when lastFourPAN is empty', () => {
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: '', cardName: 'Chase 9876'}]));
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, makeSearchResultsWithCount(1));
+        setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 1}]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(1);
         expect(result.current.cardRows.at(0)?.lastFour).toBe('9876');
@@ -573,7 +714,7 @@ describe('useYourSpendData — third-party cardRows', () => {
 
     it('suppresses the row when lastFourPAN is empty and cardName has no trailing 4 digits', () => {
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: '', cardName: 'Chase'}]));
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, makeSearchResultsWithCount(1));
+        setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 1}]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(0);
     });
@@ -582,45 +723,24 @@ describe('useYourSpendData — third-party cardRows', () => {
         // The selector receives `cardFeedErrors` and is unit-tested separately. Here we just verify
         // the hook respects whatever set the selector returns: when the selector returns [], no row.
         mockedGetDisplayableThirdPartyCards.mockReturnValue([]);
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, makeSearchResultsWithCount(5));
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(0);
     });
 
-    it('persists cached READY totals for a third-party card when the snapshot count is wiped', () => {
+    it('reads per-card totals from `data`, so a wipe of the snapshot-level totals cannot drop a row', () => {
+        // Given a third-party card with a group in the current snapshot
         mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]));
-        // First render: READY snapshot with count > 0 → row produced and total cached.
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, {
-            search: {type: 'expense', offset: 0, hash: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: 3, total: 1234, currency: 'USD'},
-            data: {},
-        });
+        setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 3, total: 1234, currency: 'USD'}]);
         const {result, rerender} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows.at(0)?.total).toBe(1234);
 
-        // Search screen wipes count/total/currency on the shared snapshot.
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, {
-            search: {type: 'expense', offset: 0, hash: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: undefined, total: undefined, currency: undefined},
-            data: {},
-        });
+        // When a `shouldCalculateTotals: false` search nulls the snapshot-level count/total/currency
+        setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 3, total: 1234, currency: 'USD'}], {count: undefined, total: undefined, currency: undefined});
         rerender(undefined);
-        // Cached total/currency must survive the wipe so the row stays.
-        expect(result.current.cardRows).toHaveLength(1);
-        expect(result.current.cardRows.at(0)?.total).toBe(1234);
-        expect(result.current.cardRows.at(0)?.currency).toBe('USD');
-    });
 
-    it('fires search() for each third-party card snapshot when focused and online', () => {
-        mockedGetDisplayableThirdPartyCards.mockReturnValue(
-            makeThirdPartyCards([
-                {cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1},
-                {cardID: THIRD_PARTY_CARD_ID_2, lastFourPAN: THIRD_PARTY_LAST_FOUR_2},
-            ]),
-        );
-        renderHook(() => useYourSpendData());
-        const hash1 = buildSearchQueryJSON(THIRD_PARTY_QUERY_1)?.hash;
-        const hash2 = buildSearchQueryJSON(THIRD_PARTY_QUERY_2)?.hash;
-        expect(search).toHaveBeenCalledWith(expect.objectContaining({queryJSON: expect.objectContaining({hash: hash1})}));
-        expect(search).toHaveBeenCalledWith(expect.objectContaining({queryJSON: expect.objectContaining({hash: hash2})}));
+        // Then the row survives: that write only touches `search`, never the `group_` entries
+        expect(result.current.cardRows).toHaveLength(1);
+        expect(result.current.cardRows.at(0)).toMatchObject({total: 1234, currency: 'USD'});
     });
 
     it('does not aggregate totals when two third-party rows have different currencies', () => {
@@ -630,14 +750,10 @@ describe('useYourSpendData — third-party cardRows', () => {
                 {cardID: THIRD_PARTY_CARD_ID_2, lastFourPAN: THIRD_PARTY_LAST_FOUR_2},
             ]),
         );
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, {
-            search: {type: 'expense', offset: 0, hash: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: 2, total: 500, currency: 'USD'},
-            data: {},
-        });
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_2, {
-            search: {type: 'expense', offset: 0, hash: 0, hasMoreResults: false, hasResults: true, isLoading: false, count: 3, total: 2200, currency: 'EUR'},
-            data: {},
-        });
+        setupCardGroups([
+            {cardID: THIRD_PARTY_CARD_ID_1, count: 2, total: 500, currency: 'USD'},
+            {cardID: THIRD_PARTY_CARD_ID_2, count: 3, total: 2200, currency: 'EUR'},
+        ]);
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(2);
         const [r1, r2] = result.current.cardRows;
@@ -652,7 +768,7 @@ describe('useYourSpendData — third-party cardRows', () => {
                 (c) => !errors.cardsWithBrokenFeedConnection[c.cardID] && !errors.personalCardsWithBrokenConnection[c.cardID],
             ),
         );
-        setupCardSnapshot(THIRD_PARTY_CARD_ID_1, makeSearchResultsWithCount(1));
+        setupCardGroups([{cardID: THIRD_PARTY_CARD_ID_1, count: 1}]);
         // Start: card is in broken-feed-connection map → row absent.
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const brokenCard = makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]).at(0)!;
@@ -700,7 +816,7 @@ describe('useYourSpendData — approval cache is keyed by query hash', () => {
         // Switch to query B (different hash), with count missing on B's snapshot — the situation
         // that would let a stale-cache reuse happen if the cache weren't keyed by hash.
         mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY_B);
-        setupApprovalSnapshotForQuery(APPROVAL_QUERY_B, {search: {count: undefined}, data: {}} as unknown as SearchResults);
+        setupApprovalSnapshotForQuery(APPROVAL_QUERY_B, createMock<SearchResults>({search: {count: undefined}, data: {}}));
         rerender(undefined);
 
         // Should NOT be READY — the cache for hash A must not apply to hash B.
@@ -732,9 +848,94 @@ describe('useYourSpendData — refires search when a relevant report state chang
         return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === approvalHash).length;
     }
 
+    function paymentSearchCallCount(): number {
+        const paymentHash = buildSearchQueryJSON(PAYMENT_QUERY)?.hash;
+        return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === paymentHash).length;
+    }
+
+    function cardGroupSearchCallCount(): number {
+        const cardGroupHash = buildSearchQueryJSON(CARD_GROUP_QUERY)?.hash;
+        return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === cardGroupHash).length;
+    }
+
     beforeEach(() => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('holds an approval behind an open RHP and refires once it closes', () => {
+        // Given Home has searched with one OUTSTANDING report
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // When the report is approved behind an open RHP, and the RHP is then closed
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        rerender(undefined);
+        expect(approvalSearchCallCount()).toBe(before);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then the refresh is not lost: it fires once, after Home is visible again
+        expect(approvalSearchCallCount()).toBe(before + 1);
+    });
+
+    it('refires the payment search when an owned report is reimbursed', () => {
+        // Given an owned report that has been approved but not yet paid
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = paymentSearchCallCount();
+
+        // When the report is reimbursed, which no snapshot update ever patches
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        rerender(undefined);
+
+        // Then the repaid row fetches again instead of showing the pre-payment total
+        expect(paymentSearchCallCount()).toBeGreaterThan(before);
+    });
+
+    it('refires the card search when an expense on the user`s card changes', () => {
+        // Given Home has loaded with one displayable card
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = cardGroupSearchCallCount();
+
+        // When a card expense changes, which moves the derived counter but no query
+        onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 1};
+        rerender(undefined);
+
+        // Then the grouped card totals refetch
+        expect(cardGroupSearchCallCount()).toBeGreaterThan(before);
+    });
+
+    it('does not refire the card search for an expense that is not on the user`s card', () => {
+        // Given Home has loaded with one displayable card
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = cardGroupSearchCallCount();
+
+        // When an expense changes that is not charged to one of the user's cards
+        onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 0};
+        rerender(undefined);
+
+        // Then the card totals are left alone
+        expect(cardGroupSearchCallCount()).toBe(before);
+    });
+
+    it('refires the approval search when an expense on an outstanding report changes', () => {
+        // Given Home has searched with one OUTSTANDING report
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // When an expense on it is marked non-reimbursable, which keeps the report OUTSTANDING and moves only the expense counter
+        onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 0};
+        rerender(undefined);
+
+        // Then Awaiting approval fetches again instead of still counting the expense
+        expect(approvalSearchCallCount()).toBe(before + 1);
     });
 
     it('refires the approval search when an owned report leaves the OUTSTANDING state', () => {
@@ -793,7 +994,7 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
     }
 
     // A zero-result search comes back with `count` missing (undefined), not 0.
-    const WIPED_SNAPSHOT = {search: {count: undefined}, data: {}} as unknown as SearchResults;
+    const WIPED_SNAPSHOT = createMock<SearchResults>({search: {count: undefined}, data: {}});
 
     beforeEach(() => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
@@ -828,5 +1029,360 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
         rerender(undefined);
 
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+});
+
+// isApprovalStale / isPaymentStale — grey only the total a queued change would move
+
+describe('useYourSpendData — per-row staleness', () => {
+    const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
+    type QueuedRequest = {command: string; data?: Record<string, unknown>};
+
+    function makeReport(overrides: Partial<Report> = {}): Report {
+        return {
+            reportID: 'r1',
+            policyID: 'policy_1',
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ...overrides,
+        } as Report;
+    }
+
+    function setupReports(reports: Report[]) {
+        onyxData[ONYXKEYS.COLLECTION.REPORT] = Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
+    }
+
+    /** Seeds the offline action queue that classifies state-transition staleness. */
+    function setupQueue(requests: QueuedRequest[]) {
+        onyxData[ONYXKEYS.PERSISTED_REQUESTS] = requests;
+    }
+
+    beforeEach(() => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('keeps the grey after reconnect while a relevant change is still queued', () => {
+        // Going back online does not make the totals trustworthy — the queue has to flush
+        // and the snapshots refresh first, so the grey must not clear on reconnect alone.
+        mockedUseNetwork.mockReturnValue(networkState(false));
+        setupReports([makeReport()]);
+        setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('keeps the grey while the request is in flight after leaving the queue', () => {
+        mockedUseNetwork.mockReturnValue(networkState(false));
+        setupReports([makeReport()]);
+        onyxData[ONYXKEYS.PERSISTED_ONGOING_REQUESTS] = {command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}};
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys neither row when offline but nothing is queued and no amount change is pending', () => {
+        setupReports([makeReport()]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a pending total change on a SUBMITTED report (reject/delete/edit)', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, pendingFields: {total: UPDATE}})]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a queued SubmitReport', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED})]);
+        setupQueue([{command: WRITE_COMMANDS.SUBMIT_REPORT, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a queued RetractReport', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        setupQueue([{command: WRITE_COMMANDS.RETRACT_REPORT, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a queued ApproveMoneyRequest', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Repaid for a queued PayMoneyRequest (reportID carried as iouReportID)', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([{command: WRITE_COMMANDS.PAY_MONEY_REQUEST, data: {iouReportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('greys only Repaid for a queued MarkReportPaymentReceived', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([{command: WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('greys only Repaid for a queued CancelPayment', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([{command: WRITE_COMMANDS.CANCEL_PAYMENT, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('greys only Awaiting approval for a queued amount edit on a SUBMITTED report', () => {
+        // Same-currency edits recompute the report total client-side without marking
+        // pendingFields.total, so the queued command is the only staleness signal.
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED})]);
+        setupQueue([{command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('does not grey for a queued amount edit on an OPEN draft report', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        setupQueue([{command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Awaiting approval for a queued RejectMoneyRequest on a SUBMITTED report', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED})]);
+        setupQueue([{command: WRITE_COMMANDS.REJECT_MONEY_REQUEST, data: {reportID: 'r1', transactionID: 't1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys Awaiting approval for a queued DeleteMoneyRequest while a report awaits approval', () => {
+        // DeleteMoneyRequest carries only a transactionID, so it cannot be tied to a report —
+        // grey the approval total conservatively while an awaiting-approval report exists.
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED})]);
+        setupQueue([{command: WRITE_COMMANDS.DELETE_MONEY_REQUEST, data: {transactionID: 't1', reportActionID: 'ra1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('does not grey for a queued DeleteMoneyRequest when nothing awaits approval', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        setupQueue([{command: WRITE_COMMANDS.DELETE_MONEY_REQUEST, data: {transactionID: 't1', reportActionID: 'ra1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('greys only Repaid for a queued PayMoneyRequest on an IOU report outside any workspace', () => {
+        // The repaid query has no policy filter, so repayments on plain IOU reports count too.
+        setupReports([makeReport({policyID: undefined, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([{command: WRITE_COMMANDS.PAY_MONEY_REQUEST, data: {iouReportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('keeps Awaiting approval greyed after paying an already-approved report offline (approve then pay)', () => {
+        // Both actions target the same report; the final status is REIMBURSED but the queued
+        // ApproveMoneyRequest must keep the approval total greyed too — the original bug.
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([
+            {command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}},
+            {command: WRITE_COMMANDS.PAY_MONEY_REQUEST, data: {iouReportID: 'r1'}},
+        ]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(true);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
+    it('does not grey when only an amount change is pending on an OPEN draft (adding an expense)', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.OPEN, pendingFields: {total: UPDATE}})]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('does not grey when the only pending field is irrelevant to the totals', () => {
+        setupReports([makeReport({pendingFields: {createChat: UPDATE}})]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('ignores queued commands for reports the user does not own', () => {
+        setupReports([makeReport({ownerAccountID: ACCOUNT_ID + 1})]);
+        setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('ignores queued commands for reports outside the paid group policies', () => {
+        setupReports([makeReport({policyID: 'policy_other'})]);
+        setupQueue([{command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+
+    it('ignores queued commands unrelated to the Your spend totals', () => {
+        setupReports([makeReport()]);
+        setupQueue([{command: WRITE_COMMANDS.ADD_COMMENT, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(false);
+    });
+});
+
+// Summary rows are frozen while offline — they may only grey out, never move
+
+describe('useYourSpendData — summary rows are frozen while offline', () => {
+    // A zero-result search comes back with `count` missing (undefined), not 0.
+    const WIPED_SNAPSHOT: SearchResults = (() => {
+        const results = makeSearchResultsWithCount(0);
+        return {...results, search: {...results.search, count: undefined}};
+    })();
+
+    function makeReport(overrides: Partial<Report> = {}): Report {
+        return {
+            reportID: 'r1',
+            policyID: 'policy_1',
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ...overrides,
+        } as Report;
+    }
+
+    function setupReports(reports: Report[]) {
+        onyxData[ONYXKEYS.COLLECTION.REPORT] = Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
+    }
+
+    function makeSnapshotWithTotal(count: number, total: number): SearchResults {
+        const results = makeSearchResultsWithCount(count);
+        return {...results, search: {...results.search, total, currency: CONST.CURRENCY.USD}};
+    }
+
+    beforeEach(() => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('keeps the approval row visible after the last outstanding report is approved offline', () => {
+        setupReports([makeReport()]);
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        setupApprovalSnapshot(WIPED_SNAPSHOT);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+        expect(result.current.approvalTotals.total).toBe(10000);
+    });
+
+    it('does not add the payment row while offline when it was empty online', () => {
+        setupPaymentSnapshot(makeSearchResultsWithCount(0));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.paymentRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupPaymentSnapshot(makeSnapshotWithTotal(1, 5000));
+        rerender(undefined);
+
+        expect(result.current.paymentRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+    });
+
+    it('keeps the last online total when the snapshot value changes offline', () => {
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalTotals.total).toBe(10000);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(makeSnapshotWithTotal(3, 77700));
+        rerender(undefined);
+
+        expect(result.current.approvalTotals.total).toBe(10000);
+    });
+
+    it('releases the freeze once back online', () => {
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(makeSnapshotWithTotal(3, 77700));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(10000);
+
+        mockedUseNetwork.mockReturnValue(networkState(false));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(77700);
+    });
+
+    it('falls through to the live state when the app starts offline with no prior online result', () => {
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(undefined);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+    });
+
+    it('does not replay a LOADING state offline, which would leave the row stuck in a skeleton', () => {
+        setupApprovalSnapshot(undefined);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('drops the frozen approval row when the query hash changes', () => {
+        const APPROVAL_QUERY_B = `type:expense status:outstanding from:${ACCOUNT_ID} reimbursable:yes policyID:other_policy`;
+
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        // The user's paid-workspace set changes while offline, so the frozen total belongs to a query
+        // that is no longer being rendered.
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY_B);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).not.toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('hides the approval row offline when the workspace no longer has an approval flow', () => {
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN);
     });
 });

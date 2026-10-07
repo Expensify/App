@@ -14,6 +14,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,10 +23,10 @@ import {clearUberEmployeeError, inviteWorkspaceEmployeesToUber} from '@libs/acti
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {formatMemberForList, getHeaderMessage, sortAlphabetically} from '@libs/OptionsListUtils';
+import {formatMemberForList, getHeaderMessage} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -60,6 +61,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const inviteOrResend = useCallback(
         (email: string) => {
@@ -146,7 +148,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 continue;
             }
-            const personalDetail = getPersonalDetailByEmail(email);
+            const personalDetail = employeePersonalDetails[email ?? ''];
             const status = deriveStatus(email);
 
             let rightElement;
@@ -205,6 +207,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
                 ...option,
                 rightElement,
                 errors: uberEmployeesByEmail[email]?.errors,
+                itemStyle: styles.cursorDefault,
             };
 
             list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
@@ -223,6 +226,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
         icons.Checkmark,
         icons.FallbackAvatar,
         formatPhoneNumber,
+        employeePersonalDetails,
     ]);
 
     const applyTabStatusFilter = useCallback(
@@ -333,7 +337,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
                                             ListItem={BareUserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
-                                            style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
+                                            style={{listStyle: styles.mt3}}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}
                                             textInputOptions={{

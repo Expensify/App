@@ -1,12 +1,13 @@
+import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
-import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports} from './selectionBuilders';
+import {SearchSelectionActionsContext, SearchSelectionClearGenerationContext, SearchSelectionContext} from './SearchContextDefinitions';
+import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -14,41 +15,89 @@ type SearchSelectionProviderProps = {
 
 type SelectionState = {
     selectedTransactions: SelectedTransactions;
+    excludedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
     currentSelectedTransactionReportID: string | undefined;
     shouldTurnOffSelectionMode: boolean;
     areAllMatchingItemsSelected: boolean;
+    clearGeneration: number;
 };
 
 const defaultSelectionState: SelectionState = {
     selectedTransactions: {},
+    excludedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     currentSelectedTransactionReportID: undefined,
     shouldTurnOffSelectionMode: false,
     areAllMatchingItemsSelected: false,
+    clearGeneration: 0,
 };
 
 // Owns selection state + pure setters only; the write actions (toggle/toggleAll) live in SearchWriteActionsProvider.
 function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
-    const {currentSearchHash} = useSearchQueryContext();
+    const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
+    const supportsAllMatchingExclusions = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const areTransactionsEmpty = useRef(true);
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
-    const currentSearchHashRef = useRef(currentSearchHash);
+    const [{actions: selectionActionsValue, syncSelection, syncSearchHash}] = useState(() => createSelectionActions(setSelectionState, currentSearchHash));
+
+    // The whole selection is synced as one object, so a handler never reads parts of it from different renders.
+    useLayoutEffect(() => {
+        syncSelection(selectionState);
+    });
+
+    // A passive effect, so it runs after the page's own passive effect has cleared the selection against the old hash.
     useEffect(() => {
-        currentSearchHashRef.current = currentSearchHash;
-    }, [currentSearchHash]);
+        syncSearchHash(currentSearchHash);
+    }, [currentSearchHash, syncSearchHash]);
+
+    const hasSelectedTransactions =
+        (supportsAllMatchingExclusions && selectionState.areAllMatchingItemsSelected) ||
+        selectionState.selectedTransactionIDs.length > 0 ||
+        Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
+
+    const {clearGeneration, ...selection} = selectionState;
+    const selectionValue: SearchSelectionContextValue = {
+        ...selection,
+        hasSelectedTransactions,
+    };
+
+    return (
+        <SearchSelectionContext value={selectionValue}>
+            <SearchSelectionActionsContext value={selectionActionsValue}>
+                <SearchSelectionClearGenerationContext value={clearGeneration}>{children}</SearchSelectionClearGenerationContext>
+            </SearchSelectionActionsContext>
+        </SearchSelectionContext>
+    );
+}
+
+type SelectionActions = {
+    /** The context value, stable for the provider's lifetime */
+    actions: SearchSelectionActionsValue;
+
+    /** Pushes the latest render's values in, from the provider's layout effect */
+    syncSelection: (selectionState: SelectionState) => void;
+
+    /** Separate from the selection, since the two are synced in different effects */
+    syncSearchHash: (currentSearchHash: number) => void;
+};
+
+/** Built once per provider, so a consumer may list any of these in an effect's dependencies. */
+function createSelectionActions(setSelectionState: React.Dispatch<React.SetStateAction<SelectionState>>, initialSearchHash: number): SelectionActions {
+    let latestSelectionState = defaultSelectionState;
+    // Starts at the current hash rather than undefined, because a child's layout effect runs before the sync below and may already clear against it.
+    let latestSearchHash = initialSearchHash;
+    let isTransactionIDListEmpty = true;
 
     const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
-            if (!transactionIDs.length && areTransactionsEmpty.current) {
-                areTransactionsEmpty.current = true;
+            if (!transactionIDs.length && isTransactionIDListEmpty) {
                 return;
             }
-            areTransactionsEmpty.current = false;
+            isTransactionIDListEmpty = false;
             setSelectionState((prevState) => ({
                 ...prevState,
                 selectedTransactionIDs: transactionIDs,
@@ -78,21 +127,52 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     // Read-modify-write the selection atomically. The updater receives the previous map so write actions never
     // need to close over (and re-render on) selection state. `totalSelectableItemsCount` unchecks select-all when
     // the new selection no longer covers every item; omitting it (e.g. during data reconcile) leaves select-all
-    // untouched, which is what the former `isRefreshingSelection` flag protected.
+    // untouched, which is what the former `isRefreshingSelection` flag protected. Expense and report row toggles
+    // preserve an all-matching selection and record their removed entries as explicit exclusions.
     const applySelection: SearchSelectionActionsValue['applySelection'] = (updater, options) => {
         setSelectionState((prevState) => {
-            const selectedTransactions = updater(prevState.selectedTransactions);
-            if (selectedTransactions === prevState.selectedTransactions) {
+            const selectedTransactions = updater(prevState.selectedTransactions, {
+                excludedTransactions: prevState.excludedTransactions,
+                areAllMatchingItemsSelected: prevState.areAllMatchingItemsSelected,
+            });
+            const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
+            if (selectedTransactions === prevState.selectedTransactions && (!reconciledExcludedTransactions || reconciledExcludedTransactions === prevState.excludedTransactions)) {
                 return prevState;
             }
 
             const totalSelectableItemsCount = options?.totalSelectableItemsCount;
-            const areAllMatchingItemsSelected =
+            let areAllMatchingItemsSelected =
                 totalSelectableItemsCount && totalSelectableItemsCount !== Object.keys(selectedTransactions).length ? false : prevState.areAllMatchingItemsSelected;
+            let excludedTransactions = reconciledExcludedTransactions ?? prevState.excludedTransactions;
+
+            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions);
+            if (shouldClearAllMatchingSelection) {
+                areAllMatchingItemsSelected = false;
+            }
+            if (prevState.areAllMatchingItemsSelected && options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection) {
+                areAllMatchingItemsSelected = true;
+                excludedTransactions = {...prevState.excludedTransactions};
+                for (const [key, transaction] of Object.entries(prevState.selectedTransactions)) {
+                    if (!Object.hasOwn(selectedTransactions, key)) {
+                        excludedTransactions[key] = transaction;
+                    }
+                }
+                for (const [key, transaction] of Object.entries(selectedTransactions)) {
+                    if (!Object.hasOwn(prevState.selectedTransactions, key) && Object.hasOwn(excludedTransactions, key)) {
+                        delete excludedTransactions[key];
+                    }
+                    if (!Object.hasOwn(prevState.selectedTransactions, key) && transaction.isSelectedViaGroup && transaction.groupKey) {
+                        delete excludedTransactions[transaction.groupKey];
+                    }
+                }
+            } else if (!areAllMatchingItemsSelected) {
+                excludedTransactions = {};
+            }
 
             return {
                 ...prevState,
                 selectedTransactions,
+                excludedTransactions,
                 areAllMatchingItemsSelected,
                 selectedReports: options?.data ? deriveSelectedReports(selectedTransactions, options.data) : prevState.selectedReports,
                 shouldTurnOffSelectionMode: false,
@@ -126,36 +206,46 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
     const selectAllMatchingItems: SearchSelectionActionsValue['selectAllMatchingItems'] = (shouldSelectAll) => {
         setSelectionState((prevState) => {
-            if (prevState.areAllMatchingItemsSelected === shouldSelectAll) {
+            if (prevState.areAllMatchingItemsSelected === shouldSelectAll && isEmptyObject(prevState.excludedTransactions)) {
                 return prevState;
             }
             return {
                 ...prevState,
                 areAllMatchingItemsSelected: shouldSelectAll,
+                excludedTransactions: {},
             };
         });
     };
 
     const clearSelectedTransactions: SearchSelectionActionsValue['clearSelectedTransactions'] = (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
         if (typeof searchHashOrClearIDsFlag === 'boolean') {
-            setSelectedTransactions([]);
+            // No clear-counter bump: this empties the report list's ID selection, and the counter only tells Search that its own selection was cleared.
+            setSelectionState((prevState) => (prevState.selectedTransactionIDs.length === 0 ? prevState : {...prevState, selectedTransactionIDs: []}));
             return;
         }
 
-        if (searchHashOrClearIDsFlag === currentSearchHashRef.current) {
+        if (searchHashOrClearIDsFlag === latestSearchHash) {
             return;
         }
 
         setSelectionState((prevState) => {
-            if (prevState.selectedReports.length === 0 && isEmptyObject(prevState.selectedTransactions) && !prevState.shouldTurnOffSelectionMode && !prevState.areAllMatchingItemsSelected) {
+            if (
+                prevState.selectedReports.length === 0 &&
+                isEmptyObject(prevState.selectedTransactions) &&
+                isEmptyObject(prevState.excludedTransactions) &&
+                !prevState.shouldTurnOffSelectionMode &&
+                !prevState.areAllMatchingItemsSelected
+            ) {
                 return prevState;
             }
             return {
                 ...prevState,
                 shouldTurnOffSelectionMode,
                 selectedTransactions: {},
+                excludedTransactions: {},
                 selectedReports: [],
                 areAllMatchingItemsSelected: false,
+                clearGeneration: prevState.clearGeneration + 1,
             };
         });
     };
@@ -167,9 +257,10 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
         setSelectionState((prevState) => {
             const hasSelectedTransactions = !isEmptyObject(prevState.selectedTransactions);
+            const hasExcludedTransactions = !isEmptyObject(prevState.excludedTransactions);
             const hasSelectedIDs = prevState.selectedTransactionIDs.length > 0;
 
-            if (!hasSelectedTransactions && !hasSelectedIDs) {
+            if (!hasSelectedTransactions && !hasExcludedTransactions && !hasSelectedIDs) {
                 return prevState;
             }
 
@@ -184,6 +275,11 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                 }, {} as SelectedTransactions);
                 newState.selectedTransactions = newSelectedTransactions;
             }
+            if (hasExcludedTransactions) {
+                const newExcludedTransactions = {...prevState.excludedTransactions};
+                delete newExcludedTransactions[transactionID];
+                newState.excludedTransactions = newExcludedTransactions;
+            }
             if (hasSelectedIDs) {
                 newState.selectedTransactionIDs = prevState.selectedTransactionIDs.filter((ID) => transactionID !== ID);
             }
@@ -191,28 +287,26 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         });
     };
 
-    const hasSelectedTransactions = selectionState.selectedTransactionIDs.length > 0 || Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
-
-    const selectionValue: SearchSelectionContextValue = {
-        ...selectionState,
-        hasSelectedTransactions,
+    return {
+        actions: {
+            setSelectedTransactions,
+            applySelection,
+            getSelectedTransactions: () => latestSelectionState.selectedTransactions,
+            getExcludedTransactions: () => latestSelectionState.excludedTransactions,
+            getAreAllMatchingItemsSelected: () => latestSelectionState.areAllMatchingItemsSelected,
+            setSelectedReports,
+            setCurrentSelectedTransactionReportID,
+            clearSelectedTransactions,
+            removeTransaction,
+            selectAllMatchingItems,
+        },
+        syncSelection: (selectionState) => {
+            latestSelectionState = selectionState;
+        },
+        syncSearchHash: (currentSearchHash) => {
+            latestSearchHash = currentSearchHash;
+        },
     };
-
-    const selectionActionsValue: SearchSelectionActionsValue = {
-        setSelectedTransactions,
-        applySelection,
-        setSelectedReports,
-        setCurrentSelectedTransactionReportID,
-        clearSelectedTransactions,
-        removeTransaction,
-        selectAllMatchingItems,
-    };
-
-    return (
-        <SearchSelectionContext value={selectionValue}>
-            <SearchSelectionActionsContext value={selectionActionsValue}>{children}</SearchSelectionActionsContext>
-        </SearchSelectionContext>
-    );
 }
 
 /**
@@ -241,12 +335,12 @@ function useSyncSelectedReports(data: SearchData) {
 }
 
 /** Narrow per-row selection read: whether the row for `keyForList` is selected (or covered by select-all). */
-function useRowSelection(keyForList: string | undefined): {isSelected: boolean} {
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+function useRowSelection(keyForList: string | undefined, parentGroupKey?: string): {isSelected: boolean} {
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     if (!keyForList) {
         return {isSelected: false};
     }
-    return {isSelected: areAllMatchingItemsSelected || !!selectedTransactions[keyForList]?.isSelected};
+    return {isSelected: isRowChecked({rowKey: keyForList, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})};
 }
 
 /** Aggregate count of currently-selected transactions, for the selection top bar. */

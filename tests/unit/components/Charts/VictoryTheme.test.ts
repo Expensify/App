@@ -1,14 +1,14 @@
 import {CHART_FONT_FAMILY_NAMES} from '@components/Charts/utils/chartFontConstants';
-import type VictoryThemeType from '@components/Charts/VictoryTheme';
+import type * as VictoryThemeModule from '@components/Charts/VictoryTheme';
 
 import colors from '@styles/theme/colors';
 
 /**
- * Loads VictoryTheme via require so individual tests can mock
+ * Loads VictoryTheme after each module reset so individual tests can mock
  * `@styles/theme/colors` before the module's IIFE runs.
  */
-function loadVictoryTheme(): typeof VictoryThemeType {
-    const mod = require('@components/Charts/VictoryTheme') as {default: typeof VictoryThemeType};
+function loadVictoryTheme(): typeof VictoryThemeModule.default {
+    const mod = jest.requireActual<typeof VictoryThemeModule>('@components/Charts/VictoryTheme');
     return mod.default;
 }
 
@@ -51,13 +51,6 @@ describe('VictoryTheme', () => {
         it('matches getColor(3)', () => {
             const VictoryTheme = loadVictoryTheme();
             expect(VictoryTheme.colors.default).toBe(VictoryTheme.colors.getColor(3));
-        });
-    });
-
-    describe('colors.defaultDot', () => {
-        it('equals the palette entry at the default dot index (green500)', () => {
-            const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.colors.defaultDot).toBe(colors.green500);
         });
     });
 
@@ -127,6 +120,7 @@ describe('VictoryTheme', () => {
                 xLineWidth: 0,
                 yLineWidth: 1,
                 labelGap: 12,
+                xAxisLabelGap: 24,
                 padding: {top: 5, left: 5, right: 5, bottom: 5},
             });
         });

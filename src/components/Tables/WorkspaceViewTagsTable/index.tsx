@@ -1,5 +1,5 @@
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTableRow from '@components/Tables/WorkspaceTagsTable/WorkspaceTagsTableRow';
 
@@ -10,6 +10,8 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -17,14 +19,26 @@ import React from 'react';
 type WorkspaceViewTagColumnKey = 'name' | 'enabled' | 'actions';
 
 type WorkspaceViewTagsTableProps = {
+    /** Tag rows to render */
     tags: WorkspaceTagTableRowData[];
+
+    /** Whether this tag list has dependent tag levels */
     hasDependentTags: boolean;
+
+    /** Whether multi-selection is enabled */
     selectionEnabled: boolean;
+
+    /** The selected row keys */
     selectedKeys: string[];
+
+    /** Page-level content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
+
+    /** Callback when the selected rows change */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceViewTagsTableProps) {
+export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectionEnabled, selectedKeys, headerComponent, onRowSelectionChange}: WorkspaceViewTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -74,6 +88,30 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
         return results.length > 0;
     };
 
+    const isItemInFilter: IsItemInFilterCallback<WorkspaceTagTableRowData> = (item, filterValues) => {
+        if (!filterValues || filterValues.length === 0) {
+            return true;
+        }
+        if (filterValues.includes('enabled') && item.enabled) {
+            return true;
+        }
+        if (filterValues.includes('disabled') && !item.enabled) {
+            return true;
+        }
+        return false;
+    };
+
+    const filterConfig: FilterConfig = {
+        status: {
+            filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
+            label: translate('common.status'),
+            options: [
+                {label: translate('common.enabled'), value: 'enabled'},
+                {label: translate('common.disabled'), value: 'disabled'},
+            ],
+        },
+    };
+
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceTagTableRowData>) => (
         <WorkspaceTagsTableRow
             item={item}
@@ -85,9 +123,7 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
         />
     );
 
-    if (tags.length === 0) {
-        return null;
-    }
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.tags.findTag')} />);
 
     return (
         <Table
@@ -101,10 +137,12 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
             renderItem={renderItem}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
+            filters={shouldShowEnabledColumn ? filterConfig : undefined}
+            isItemInFilter={isItemInFilter}
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.tags.findTag')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

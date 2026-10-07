@@ -2,9 +2,14 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useHtmlPaste from '@hooks/useHtmlPaste';
 
-import type {RefObject} from 'react';
-import type {TextInput} from 'react-native';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 
+import type {RefObject} from 'react';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 type UseHtmlPasteReturn = {
@@ -16,24 +21,24 @@ jest.mock('@src/hooks/useHtmlPaste', (): typeof useHtmlPaste => {
 });
 
 describe('useHtmlPaste - handlePastePlainText', () => {
-    let textInputRef: RefObject<(HTMLDivElement & Partial<TextInput>) | null>;
+    let textInputRef: RefObject<HTMLDivElement | null>;
+    let textInputElement: HTMLDivElement;
 
     const createMockClipboardEvent = (text: string): ClipboardEvent => {
-        const clipboardData = {
-            getData: (type: string) => (type === 'text/plain' ? text : ''),
-            files: [] as unknown as FileList,
-            items: [] as unknown as DataTransferItemList,
-            types: ['text/plain'],
-        };
-        return {
-            clipboardData,
+        return createMock<ClipboardEvent>({
+            clipboardData: {
+                getData: (type: string) => (type === 'text/plain' ? text : ''),
+                files: [],
+                items: [],
+                types: ['text/plain'],
+            },
             preventDefault: jest.fn(),
-        } as unknown as ClipboardEvent;
+        });
     };
 
     const mockWindowSelection = (selectedText: string) => {
         const range = document.createRange();
-        range.selectNodeContents(textInputRef.current as Node);
+        range.selectNodeContents(textInputElement);
         range.deleteContents();
         const textNode = document.createTextNode(selectedText);
         range.insertNode(textNode);
@@ -46,11 +51,11 @@ describe('useHtmlPaste - handlePastePlainText', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        const div = document.createElement('div');
-        div.setAttribute('contenteditable', 'true');
-        div.textContent = '';
-        document.body.appendChild(div);
-        textInputRef = {current: div} as RefObject<HTMLDivElement & Partial<TextInput>>;
+        textInputElement = document.createElement('div');
+        textInputElement.setAttribute('contenteditable', 'true');
+        textInputElement.textContent = '';
+        document.body.appendChild(textInputElement);
+        textInputRef = {current: textInputElement};
 
         if (!Range.prototype.getBoundingClientRect) {
             Range.prototype.getBoundingClientRect = () =>
@@ -69,7 +74,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
     });
 
     afterEach(() => {
-        document.body.removeChild(textInputRef.current as Node);
+        document.body.removeChild(textInputElement);
     });
 
     it('Paste URL with selection → produces Markdown link', async () => {
@@ -80,7 +85,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection(selectedText);
         const event = createMockClipboardEvent(url);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef));
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -90,7 +96,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(markdownLink);
+            expect(textInputElement.textContent).toBe(markdownLink);
         }
     });
 
@@ -99,7 +105,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection('');
         const event = createMockClipboardEvent(url);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef));
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -109,7 +116,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(url);
+            expect(textInputElement.textContent).toBe(url);
         }
     });
 
@@ -118,7 +125,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection('what up');
         const event = createMockClipboardEvent(plainText);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef));
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -128,7 +136,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(plainText);
+            expect(textInputElement.textContent).toBe(plainText);
         }
     });
 
@@ -137,7 +145,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection('');
         const event = createMockClipboardEvent(textWithTrailingWhitespace);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef));
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -147,8 +156,90 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(textWithTrailingWhitespace);
-            expect(textInputRef.current?.textContent?.endsWith('   ')).toBe(true);
+            expect(textInputElement.textContent).toBe(textWithTrailingWhitespace);
+            expect(textInputElement.textContent?.endsWith('   ')).toBe(true);
         }
+    });
+});
+
+describe('useHtmlPaste - handlePastedHTML', () => {
+    const MENTIONED_REPORT_ID = '1';
+    const ROOM_NAME = '#general';
+    const PASTED_HTML = `Hey <mention-report reportID="${MENTIONED_REPORT_ID}"/> team`;
+
+    let textInputRef: RefObject<HTMLDivElement | null>;
+    let textInputElement: HTMLDivElement;
+
+    /** The HTML flavour of the clipboard, which is what Clipboard.setHtml writes when copying a message. */
+    const createHtmlClipboardEvent = (html: string): Event => {
+        const event = new Event('paste', {bubbles: true, cancelable: true});
+        Object.defineProperty(event, 'clipboardData', {
+            value: {
+                getData: (type: string) => (type === 'text/html' ? html : ''),
+                types: ['text/html'],
+                files: [],
+                items: [],
+            },
+        });
+        return event;
+    };
+
+    const pasteHtmlIntoActiveInput = async (html: string) => {
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            document.dispatchEvent(createHtmlClipboardEvent(html));
+            await waitForBatchedUpdatesWithAct();
+        });
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+
+        textInputElement = document.createElement('div');
+        textInputElement.setAttribute('contenteditable', 'true');
+        textInputElement.textContent = '';
+        document.body.appendChild(textInputElement);
+        // The hook ignores a paste when the input is not focused, and a bare DOM node has no isFocused().
+        Object.defineProperty(textInputElement, 'isFocused', {value: () => true, configurable: true});
+        textInputRef = {current: textInputElement};
+
+        const range = document.createRange();
+        range.selectNodeContents(textInputElement);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+    });
+
+    afterEach(() => {
+        document.body.removeChild(textInputElement);
+    });
+
+    it('resolves a pasted report mention to the room name', async () => {
+        // Given the mentioned report is in Onyx, as it is when copying from a chat you can see
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${MENTIONED_REPORT_ID}`, {reportID: MENTIONED_REPORT_ID, reportName: ROOM_NAME} as Report);
+
+        // When the HTML flavour of the clipboard is pasted into the input
+        await pasteHtmlIntoActiveInput(PASTED_HTML);
+
+        // Then the mention lands as the room name. Without the map ExpensiMark cannot resolve the
+        // reportID and the user would silently paste "#Hidden" over a real mention.
+        expect(textInputElement.textContent).toBe(`Hey ${ROOM_NAME} team`);
+    });
+
+    it('falls back to #Hidden when the mentioned report is not available', async () => {
+        // Given a mention of a report the user has no access to, so it is absent from Onyx
+
+        // When that HTML is pasted
+        await pasteHtmlIntoActiveInput(PASTED_HTML);
+
+        // Then ExpensiMark's own fallback shows, rather than leaking a raw reportID
+        expect(textInputElement.textContent).toBe('Hey #Hidden team');
     });
 });

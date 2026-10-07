@@ -1,14 +1,13 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
@@ -35,9 +34,9 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
+    const policy = usePolicy(policyID);
     const [isLoading, setIsLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'CardAuthenticationModal', isLoading};
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
 
     const onModalClose = useCallback(() => {
@@ -60,14 +59,14 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             const message = event.data;
             if (message === CONST.SCA_AUTHENTICATION_COMPLETE) {
                 if (policyID) {
-                    verifySetupIntentAndRequestPolicyOwnerChange(policyID, currentUserAccountID, currentUserEmail);
+                    verifySetupIntentAndRequestPolicyOwnerChange(policy, currentUserAccountID, currentUserEmail);
                 } else {
                     verifySetupIntent(currentUserAccountID, true);
                 }
                 onModalClose();
             }
         },
-        [currentUserAccountID, currentUserEmail, onModalClose, policyID],
+        [currentUserAccountID, currentUserEmail, onModalClose, policy, policyID],
     );
 
     useEffect(() => {
@@ -98,7 +97,6 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                     onBackButtonPress={onModalClose}
                     shouldDisplayHelpButton={false}
                 />
-                {isLoading && <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />}
                 <View style={[styles.flex1]}>
                     <iframe
                         src={authenticationLink}
@@ -111,6 +109,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                             setIsLoading(false);
                         }}
                     />
+                    {isLoading && <LoadingIndicator />}
                 </View>
             </ScreenWrapper>
         </Modal>

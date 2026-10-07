@@ -7,6 +7,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -14,15 +15,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, isExpensifyCard as isExpensifyCardUtil} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import variables from '@styles/variables';
 
@@ -54,20 +57,28 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
     // We need to have an unchanged active route for getExportMenuItem so the export page link is not updated incorrectly when user is in other pages
     // See https://github.com/Expensify/App/issues/72352 for more details.
     const activeRoute = Navigation.getActiveRoute();
-    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, activeRoute);
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card, activeRoute);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
     const defaultAccount = translate('workspace.accounting.defaultAccount');
-    const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const [cardFeeds] = useCardFeeds(policyID);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, cardFeeds?.[feed]);
 
-    const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.text ?? option.value]);
+    // This page is a dynamic page and is used by both Expensify Cards and Company Cards
+    const isExpensifyCard = isExpensifyCardUtil(card);
+    const featureName = isExpensifyCard ? CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED;
+    const policyFeature = isExpensifyCard ? CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD : CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS;
+
+    // Freeze the export account selected when the page opened so it stays pinned to the top of the list.
+    const selectedExportValue = exportMenuItem?.data?.find((option) => option.isSelected)?.value;
+    const initialExportValue = useInitialSelection(selectedExportValue, {resetOnFocus: true});
+    // Pin the frozen initial account to the top of the full list before filtering, so it stays pinned while searching.
+    const orderedListOptions = moveInitialSelectionToTop(exportMenuItem?.data ?? [], initialExportValue !== undefined ? [String(initialExportValue)] : []);
+    const searchedListOptions = tokenizedSearch(orderedListOptions, searchText, (option) => [option.text ?? option.value]);
 
     const listEmptyContent = (
         <BlockingView
@@ -86,7 +97,7 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
         }
         const isDefaultSelected = value === defaultCard || value === defaultVendor || value === defaultAccount;
         const exportValue = isDefaultSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
-        setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
+        setCompanyCardExportAccount(policyID, Number(card?.fundID ?? domainOrWorkspaceAccountID), cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
 
         Navigation.goBack(backPath);
     };
@@ -94,8 +105,8 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            featureName={featureName}
+            policyFeature={policyFeature}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <SelectionScreen
@@ -105,21 +116,17 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
                         {!!exportMenuItem?.description && (
                             <View style={[styles.renderHTML, styles.flexRow]}>
                                 <RenderHTML
-                                    html={
-                                        isXeroConnection
-                                            ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', exportMenuItem.description)
-                                            : translate(
-                                                  'workspace.moreFeatures.companyCards.integrationExportTitle',
-                                                  exportMenuItem.description,
-                                                  `${environmentURL}/${exportMenuItem.exportPageLink}`,
-                                              )
-                                    }
+                                    html={translate(
+                                        'workspace.moreFeatures.companyCards.integrationExportTitle',
+                                        exportMenuItem.description,
+                                        exportMenuItem.exportPageLink ? `${environmentURL}/${exportMenuItem.exportPageLink}` : undefined,
+                                    )}
                                 />
                             </View>
                         )}
                     </View>
                 }
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+                featureName={featureName}
                 displayName="DynamicWorkspaceCompanyCardAccountSelectCardPage"
                 data={searchedListOptions ?? []}
                 textInputOptions={{
@@ -129,12 +136,13 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
                 }}
                 onSelectRow={updateExportAccount}
                 initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
+                shouldUpdateFocusedIndex
                 onBackButtonPress={() => Navigation.goBack(backPath)}
                 headerTitleAlreadyTranslated={exportMenuItem?.description}
                 listEmptyContent={listEmptyContent}
                 connectionName={connectedIntegration}
                 shouldShowTextInput={shouldShowTextInput}
-                isRowMultilineSupported
+                titleNumberOfLines={2}
             />
         </AccessOrNotFoundWrapper>
     );

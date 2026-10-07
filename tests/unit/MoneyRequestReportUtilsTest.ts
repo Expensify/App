@@ -1,9 +1,17 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {
+    getReportIDForTransaction,
+    isBillableEnabledOnPolicy,
+    isEveryReportTransactionSelected,
+    isSelectableReportTransaction,
+    shouldWaitForTransactions,
+} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+
+import createMock from '../utils/createMock';
 
 const policyBaseMock: Policy = {
     id: '123456789A',
@@ -12,7 +20,6 @@ const policyBaseMock: Policy = {
     outputCurrency: 'USD',
     type: 'team',
     owner: 'admin@test.com',
-    isPolicyExpenseChatEnabled: true,
 };
 
 const reportBaseMock: Report = {
@@ -118,6 +125,9 @@ const transactionItemBaseMock: TransactionListItemType = {
     violations: [],
 };
 
+/** Errors the backend records are keyed by when they happened. */
+const REJECTED_AT = '1700000000000';
+
 describe('MoneyRequestReportUtils', () => {
     describe('getReportIDForTransaction', () => {
         it('returns transaction thread ID if its not from one transaction report', () => {
@@ -155,37 +165,114 @@ describe('MoneyRequestReportUtils', () => {
         });
 
         test('returns true when policy is paid group and defaultBillable is enabled', () => {
-            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: false}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: false}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(true);
         });
 
         test('returns true when policy is paid group and defaultBillable is missing', () => {
-            const policy = {type: CONST.POLICY.TYPE.CORPORATE, disabledFields: {}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.CORPORATE, disabledFields: {}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(true);
         });
 
         test('returns false when policy is paid group and defaultBillable is disabled', () => {
-            const policy = {type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: true}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM, disabledFields: {defaultBillable: true}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
         });
 
         test('returns false when policy is non-paid group', () => {
-            const policy = {type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}} as unknown as Policy;
+            const policy = createMock<Policy>({type: CONST.POLICY.TYPE.PERSONAL, disabledFields: {defaultBillable: false}});
             expect(isBillableEnabledOnPolicy(policy)).toBe(false);
         });
     });
 
-    describe('hasNonReimbursableTransactions', () => {
-        test('returns false when all transactions are reimbursable by default', () => {
-            const t1 = {reimbursable: undefined} as unknown as Transaction;
-            const t2 = {reimbursable: true} as unknown as Transaction;
-            expect(hasNonReimbursableTransactions([t1, t2])).toBe(false);
+    describe('isSelectableReportTransaction', () => {
+        test('accepts an ordinary expense, which is what a click, Select All and a range all reach', () => {
+            // Given an expense with nothing against it
+            const transaction = createMock<Transaction>({transactionID: '1'});
+
+            // When the list asks whether anything may select it
+            // Then it counts as selectable
+            expect(isSelectableReportTransaction(transaction)).toBe(true);
         });
 
-        test('returns true when any transaction is non-reimbursable', () => {
-            const reimbursable = {reimbursable: true} as unknown as Transaction;
-            const nonReimbursable = {reimbursable: false} as unknown as Transaction;
-            expect(hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
+        test('refuses an expense being deleted, since its checkbox is disabled', () => {
+            // Given an expense the user has deleted, still on screen until the server drops it
+            const transaction = createMock<Transaction>({transactionID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+
+        test('refuses an expense the backend rejected, whose checkbox is disabled for the same reason', () => {
+            // Given an expense carrying a reject the backend recorded against it
+            const transaction = createMock<Transaction>({transactionID: '1', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+            // When the list asks whether anything may select it
+            // Then nothing may select it, so Select All and a range agree with the checkbox
+            expect(isSelectableReportTransaction(transaction)).toBe(false);
+        });
+    });
+
+    describe('isEveryReportTransactionSelected', () => {
+        const ordinary = createMock<Transaction>({transactionID: '1'});
+        const other = createMock<Transaction>({transactionID: '2'});
+        const rejected = createMock<Transaction>({transactionID: '3', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
+
+        test('counts a report covered once every row Select All can write is selected', () => {
+            // Given a report whose third expense the backend refused to reject, so no checkbox can put it in the selection
+            // When the other two are selected, which is everything Select All writes
+            // Then the report reads covered, or the report-level actions would be unreachable on it for good
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1', '2'])).toBe(true);
+        });
+
+        test('does not count a report while a row the user can still check is out', () => {
+            // Given the same report
+            // When only one of its two selectable rows is selected
+            // Then it does not read covered, since a checkbox is left the user has not pressed
+            expect(isEveryReportTransactionSelected([ordinary, other, rejected], ['1'])).toBe(false);
+        });
+
+        test('does not count an empty selection, whichever rows the report holds', () => {
+            // Given a report of two ordinary expenses
+            // When nothing is selected
+            // Then the report is not covered, so pressing nothing cannot offer an action over everything
+            expect(isEveryReportTransactionSelected([ordinary, other], [])).toBe(false);
+        });
+
+        test('does not count a report holding no row anything can select', () => {
+            // Given a report whose only expense carries a refused reject
+            // When a selection is left holding its ID
+            // Then it does not read covered: `every` over an empty list is vacuously true, which would offer the actions on nothing
+            expect(isEveryReportTransactionSelected([rejected], ['3'])).toBe(false);
+        });
+    });
+
+    describe('shouldWaitForTransactions', () => {
+        const zeroTotalReport = {...reportBaseMock, total: 0};
+
+        test('ignores a stored loading flag when no report load is pending', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, false, false)).toBe(false);
+        });
+
+        test('waits for transactions when a report load is pending despite a false stored loading flag', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, true, false)).toBe(true);
+        });
+
+        test('does not wait after report actions have loaded successfully', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, true, false)).toBe(false);
+        });
+
+        test('still waits for a nonzero report total when no transactions are available', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
         });
     });
 });

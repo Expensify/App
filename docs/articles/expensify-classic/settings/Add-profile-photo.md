@@ -34,5 +34,5 @@ You can update your Expensify profile photo on both desktop and mobile.
 # FAQ
 
 ## Why do I already have a profile picture I didn’t add?
-Expensify may automatically add an image if one is associated with your email address. If no image is found, a randomly selected cartoon-style avatar is assigned to new accounts.
+Expensify may automatically add an image if one is associated with your email address. If no image is found, your avatar shows your initials on a colored background based on your name or email. Accounts without a name or email—such as phone number-only accounts—are assigned an illustrated avatar instead.
 

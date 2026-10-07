@@ -8,8 +8,7 @@ import Tooltip from '@components/Tooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,7 +19,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDelegateAccountIDFromReportAction, getHumanAgentAccountIDFromReportAction, getManagerOnVacation, getModerationFlagState, getVacationer} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -28,7 +26,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
+import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -39,7 +37,6 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 import VacationDelegateText from './VacationDelegateText';
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
-    /** All the data of the action */
     action: OnyxEntry<ReportAction>;
 
     /** Styles for the outermost View */
@@ -51,13 +48,8 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** IOU Report for this action, if any */
     iouReport?: OnyxEntry<Report>;
 
-    /** Show header for action */
     showHeader?: boolean;
-
-    /** If the action is being hovered */
     isHovered?: boolean;
-
-    /** If the action is active */
     isActive?: boolean;
 };
 
@@ -85,8 +77,7 @@ function ReportActionItemSingle({
     const {latestDecision, hasBeenFlagged} = getModerationFlagState(action);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const isOnSearch = useIsOnSearch();
 
     const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action, shouldUseRealActor: isOnSearch});
@@ -129,8 +120,8 @@ function ReportActionItemSingle({
         }
     };
 
-    const optimisticCheckAccountID = action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const [isOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(optimisticCheckAccountID)});
+    const optimisticCheckAccountID = delegateAccountID ? Number(delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const [isOptimistic] = usePersonalDetail(optimisticCheckAccountID, isPersonalDetailOptimistic);
     const shouldDisableDetailPage = CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) || (!details.isWorkspaceActor && !!isOptimistic);
 
     const getBackgroundColor = () => {
@@ -145,7 +136,13 @@ function ReportActionItemSingle({
 
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(translate, details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
+    const formattedDate = DateUtils.getStatusUntilDate(
+        translate,
+        dateFnsLocale,
+        details.status?.clearAfter ?? '',
+        details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
+        currentSelectedTimezone,
+    );
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
@@ -163,15 +160,10 @@ function ReportActionItemSingle({
             >
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
                     <ReportActionAvatars
-                        singleAvatarContainerStyle={[styles.actionAvatar]}
-                        subscriptAvatarBorderColor={getBackgroundColor()}
-                        noRightMarginOnSubscriptContainer
+                        singleAvatarContainerStyle={styles.actionAvatar}
+                        subscriptAvatarContainerStyle={styles.mr0}
+                        backdropColor={getBackgroundColor()}
                         isInReportAction
-                        shouldShowTooltip
-                        secondaryAvatarContainerStyle={[
-                            StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
-                            isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
-                        ]}
                         reportID={iouReportID}
                         chatReportID={source.iouReport?.chatReportID ?? reportID}
                         action={action}
@@ -198,7 +190,7 @@ function ReportActionItemSingle({
                                     key={`person-${action?.reportActionID}-${index}`}
                                     accountID={Number(details.delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
-                                    delegateAccountID={action?.delegateAccountID}
+                                    delegateAccountID={delegateAccountID}
                                     isSingleLine
                                     actorIcon={primaryAvatar}
                                     moderationDecision={latestDecision}

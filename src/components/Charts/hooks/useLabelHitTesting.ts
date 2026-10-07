@@ -76,7 +76,7 @@ function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelR
         const iconThirdSin = (variables.iconSizeExtraSmall / 3) * sinA;
         const additionalOffset = getAdditionalOffset(angleRad);
         labelHitGeometry = {
-            labelYOffset: VictoryTheme.axis.labelGap + rotatedLabelYOffset(ascent, descent, angleRad) - additionalOffset,
+            labelYOffset: VictoryTheme.axis.xAxisLabelGap + rotatedLabelYOffset(ascent, descent, angleRad) - additionalOffset,
             iconSin: variables.iconSizeExtraSmall * sinA,
             labelSins: truncatedLabelWidths.map((w) => w * sinA),
             halfWidths: truncatedLabelWidths.map((w) => w / 2),
@@ -147,7 +147,7 @@ function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelR
             if (tickX === undefined) {
                 continue;
             }
-            if (isCursorOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom}, i)) {
+            if (isCursorOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom, targetIndex: i}, i)) {
                 return tickX;
             }
         }

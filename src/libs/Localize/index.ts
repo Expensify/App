@@ -6,39 +6,18 @@ import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
 
 import * as RNLocalize from 'react-native-localize';
-import Onyx from 'react-native-onyx';
 
-// Current user mail is needed for handling missing translations
-let userEmail = '';
+// Note: these Intl instances are created lazily, per locale, rather than at the top level of the file. Two reasons:
+// Intl is polyfilled, so touching it upon import would run before the polyfill is installed and barf; and an Intl
+// instance resolves its locale at construction, so one built before that locale's polyfill data has loaded is stuck
+// formatting in English for the lifetime of the app. Going through IntlStore.getCurrentLocale() avoids that, because
+// IntlStore only sets the current locale once every loader for it (translations, date-fns, Intl data) has resolved.
+const createConjunctionListFormat = (locale: Locale): Intl.ListFormat => new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+const memoizedCreateConjunctionListFormat = memoize(createConjunctionListFormat);
 
-// TODO: Remove this Onyx.connectWithoutView after deprecating translateLocal (#64943) and completing Onyx.connect deprecation - see https://github.com/Expensify/App/issues/66329
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        userEmail = val?.email ?? '';
-    },
-});
-
-// Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
-// and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
-let CONJUNCTION_LIST_FORMATS_FOR_LOCALES: Record<string, Intl.ListFormat>;
-
-function init() {
-    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = Object.values(CONST.LOCALES).reduce((memo: Record<string, Intl.ListFormat>, locale) => {
-        // eslint-disable-next-line no-param-reassign
-        memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
-        return memo;
-    }, {});
-}
-
-// Memoized function to create PluralRules instances
 const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
 const memoizedCreatePluralRules = memoize(createPluralRules);
 
@@ -132,9 +111,6 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = Array.isArray(path) ? path.join('.') : path;
         Log.alert(`${phraseString} was not found in the ${locale} locale`);
-        if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
-            return CONST.MISSING_TRANSLATION;
-        }
         return phraseString;
     }
     throw new Error(`${path} was not found in the ${locale} locale`);
@@ -151,11 +127,7 @@ function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parame
 }
 
 function getPreferredListFormat(): Intl.ListFormat {
-    if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
-        init();
-    }
-
-    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT];
+    return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT);
 }
 
 /**

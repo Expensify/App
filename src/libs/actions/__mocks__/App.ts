@@ -11,17 +11,7 @@ jest.mock('@libs/actions/OnyxUpdates');
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
 const AppImplementation = jest.requireActual<typeof AppImport>('@libs/actions/App');
-const {
-    setLocale,
-    setSidebarLoaded,
-    setUpPoliciesAndNavigate,
-    openApp,
-    handleRestrictedEvent,
-    finalReconnectAppAfterActivatingReliableUpdates,
-    createWorkspaceWithPolicyDraftAndNavigateToIt,
-    updateLastVisitedPath,
-    KEYS_TO_PRESERVE,
-} = AppImplementation;
+const {setLocale, setSidebarLoaded, openApp, handleRestrictedEvent, finalReconnectAppAfterActivatingReliableUpdates, updateLastVisitedPath, KEYS_TO_PRESERVE} = AppImplementation;
 
 type AppMockValues<TKey extends OnyxKey = never> = {
     missingOnyxUpdatesToBeApplied: Array<OnyxUpdatesFromServer<TKey>> | undefined;
@@ -31,6 +21,7 @@ type AppMockValues<TKey extends OnyxKey = never> = {
 type AppActionsMock<TKey extends OnyxKey = never> = typeof AppImport & {
     getMissingOnyxUpdates: jest.Mock<Promise<OnyxResponse<never> | undefined | void>, [updateIDFrom?: number, updateIDTo?: number | string]>;
     reconnectApp: jest.Mock<void, [number?]>;
+    reconnectAppWithSideEffects: jest.Mock<Promise<void>, [number?]>;
     mockValues: AppMockValues<TKey>;
 };
 
@@ -41,6 +32,7 @@ const mockValues: AppMockValues = {
 const mockValuesProxy = createProxyForObject(mockValues);
 
 const reconnectApp = jest.fn();
+const reconnectAppWithSideEffects = jest.fn(() => Promise.resolve());
 
 const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number) => {
     // When a response is set, the server answers without serving the requested range: nothing is applied.
@@ -77,16 +69,15 @@ export {
     // Mocks
     getMissingOnyxUpdates,
     reconnectApp,
+    reconnectAppWithSideEffects,
     mockValuesProxy as mockValues,
 
     // Actual App implementation
     setLocale,
     setSidebarLoaded,
-    setUpPoliciesAndNavigate,
     openApp,
     handleRestrictedEvent,
     finalReconnectAppAfterActivatingReliableUpdates,
-    createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     KEYS_TO_PRESERVE,
 };

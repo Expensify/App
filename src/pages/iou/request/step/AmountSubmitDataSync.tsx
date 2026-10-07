@@ -2,6 +2,8 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
@@ -10,6 +12,7 @@ import type {SubmitAmountArgs} from '@libs/IOUAmountSubmission';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -34,14 +37,12 @@ type AmountSubmitData = Pick<
     | 'transactionDrafts'
     | 'transactionViolations'
     | 'storedTransaction'
-    | 'parentReportNextStep'
     | 'policyCategories'
     | 'userBillingGracePeriodEnds'
     | 'duplicateTransactions'
     | 'duplicateTransactionViolations'
     | 'reportAttributesDerivedValue'
-    | 'betas'
-    | 'betaConfiguration'
+    | 'isASAPSubmitBetaEnabled'
     | 'quickAction'
     | 'onboarding'
     | 'introSelected'
@@ -50,6 +51,8 @@ type AmountSubmitData = Pick<
     | 'amountOwed'
     | 'ownerBillingGracePeriodEnd'
     | 'conciergeReportID'
+    | 'conciergeChat'
+    | 'rules'
 >;
 
 type AmountSubmitDataSyncProps = {
@@ -78,7 +81,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const selfDMReport = useSelfDMReport();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -86,14 +89,12 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`, {selector: isDraftReportSelector});
     const [reportAttributesDerivedValue] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
+    const {isBetaEnabled} = usePermissions();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -102,6 +103,8 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const duplicateTransactionIDs = isEditing && transactionID ? [transactionID] : [];
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(duplicateTransactionIDs);
@@ -123,14 +126,12 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             transactionDrafts,
             transactionViolations,
             storedTransaction,
-            parentReportNextStep,
             policyCategories,
             userBillingGracePeriodEnds,
             duplicateTransactions,
             duplicateTransactionViolations,
             reportAttributesDerivedValue,
-            betas,
-            betaConfiguration,
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             quickAction,
             onboarding,
             introSelected,
@@ -139,6 +140,8 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             amountOwed,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            conciergeChat,
+            rules,
         };
     }, [
         submitDataRef,
@@ -154,14 +157,12 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         transactionDrafts,
         transactionViolations,
         storedTransaction,
-        parentReportNextStep,
         policyCategories,
         userBillingGracePeriodEnds,
         duplicateTransactions,
         duplicateTransactionViolations,
         reportAttributesDerivedValue,
-        betas,
-        betaConfiguration,
+        isBetaEnabled,
         quickAction,
         onboarding,
         introSelected,
@@ -170,6 +171,8 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         amountOwed,
         ownerBillingGracePeriodEnd,
         conciergeReportID,
+        conciergeChat,
+        rules,
     ]);
 
     return null;

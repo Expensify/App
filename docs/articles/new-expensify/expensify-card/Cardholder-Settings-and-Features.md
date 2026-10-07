@@ -26,7 +26,7 @@ Once your card arrives, you can manage your PIN — including revealing, changin
 2. Complete the task labeled **Activate your Expensify Card**.
 3. Enter the last 4 digits of your physical card to activate it.
 
-Once activated, your card is ready to use!
+Until you activate your physical card, it shows a **Pending** status under **Cards** in **Wallet**. Once activated, the status changes to **Active** and your card is ready to use!
 
 ---
 
@@ -104,7 +104,7 @@ A virtual card is a secure, flexible way to manage online spending:
 2. Click your Expensify Card.
 3. Click **Reveal** to view the card number, expiration date, CVV, and billing address.
 
-If any of your personal details are missing, you'll be prompted to add them before your card details can be revealed. Click **Add details**, then enter your legal name, date of birth, address, and phone number. After you confirm these details, authenticate to reveal your card. US cardholders confirm with a magic code sent to their email, while UK and EU cardholders confirm with biometrics or a passkey.
+If any of your personal details are missing, you'll be prompted to add them before your card details can be revealed. Click **Add details**, then enter your legal name, date of birth, address, and phone number. After you confirm these details, authenticate to reveal your card. US cardholders confirm with a security code sent to their email, while UK and EU cardholders confirm with biometrics or a passkey.
 
 ---
 

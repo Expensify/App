@@ -16,7 +16,7 @@ const filterInactiveCardsInCollection = (cardsLists: OnyxCollection<WorkspaceCar
 };
 
 /* Custom hook that retrieves all cards lists (excluding inactive cards from each list). */
-const useCardsLists = (): [OnyxCollection<WorkspaceCardsList>, ResultMetadata<OnyxCollection<WorkspaceCardsList>>] => {
+const useCardsLists = (): [OnyxCollection<WorkspaceCardsList>, ResultMetadata] => {
     const [cardsLists, cardsListsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {
         selector: filterInactiveCardsInCollection,
     });

@@ -1,5 +1,4 @@
 import type colors from '@styles/theme/colors';
-import type variables from '@styles/variables';
 
 import type CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -12,27 +11,8 @@ type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType)
 
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
+type AvatarShape = ValueOf<typeof CONST.AVATAR_SHAPE>;
 type EReceiptColorName = ValueOf<typeof CONST.ERECEIPT_COLORS>;
-type AvatarSizeValue = ValueOf<
-    Pick<
-        typeof variables,
-        | 'avatarSizeNormal'
-        | 'avatarSizeSmallSubscript'
-        | 'avatarSizeMidSubscript'
-        | 'avatarSizeSubscript'
-        | 'avatarSizeSmall'
-        | 'avatarSizeSmaller'
-        | 'avatarSizeXLarge'
-        | 'avatarSizeLarge'
-        | 'avatarSizeMedium'
-        | 'avatarSizeMediumLarge'
-        | 'avatarSizeLargeBordered'
-        | 'avatarSizeHeader'
-        | 'avatarSizeMentionIcon'
-        | 'avatarSizeSmallNormal'
-        | 'avatarSizeLargeNormal'
-    >
->;
 
 type AvatarStyle = Dimensions & {
     borderRadius: number;
@@ -46,25 +26,39 @@ type ButtonVariantStyles = {
     normal: Record<ButtonVariant, StyleProp<ViewStyle>>;
     disabled: Record<ButtonVariant, StyleProp<ViewStyle>>;
 };
-type AvatarSize = {width: number};
+
+type GetIconFillColorParams = {
+    /** Interaction state of the pressable the icon belongs to, usually built with `getButtonState` */
+    buttonState?: ButtonStateName;
+
+    /** Whether the icon sits inside a menu row, e.g. `MenuItem` */
+    isMenuIcon?: boolean;
+
+    /** Whether the icon sits in a pane, e.g. Account or Workspace Settings */
+    isPane?: boolean;
+};
 
 type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
-type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue; titleColor: ColorValue};
+type EreceiptColorStyle = {
+    backgroundColor: ColorValue;
+    color: ColorValue;
+    titleColor: ColorValue;
+};
 type TextColorStyle = {color: string};
 
 export type {
     AllStyles,
     ParsableStyle,
     ColorValue,
+    AvatarShape,
     AvatarSizeName,
     EReceiptColorName,
-    AvatarSizeValue,
     AvatarStyle,
     ButtonSizeValue,
     ButtonStateName,
     ButtonVariant,
     ButtonVariantStyles,
-    AvatarSize,
+    GetIconFillColorParams,
     SVGAvatarColorStyle,
     EreceiptColorStyle,
     TextColorStyle,

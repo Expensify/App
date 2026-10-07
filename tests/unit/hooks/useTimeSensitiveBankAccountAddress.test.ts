@@ -6,24 +6,26 @@ import useTimeSensitiveBankAccountAddress from '@pages/home/TimeSensitiveSection
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccount, BankAccountList} from '@src/types/onyx';
-import type Policy from '@src/types/onyx/Policy';
+
+import type {TimeSensitiveAdminPolicy} from '@selectors/Policy';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const PRIMARY_LOGIN = 'user@example.com';
 const OTHER_LOGIN = 'other@example.com';
 
-function makePolicy(overrides: Partial<Policy> & {id: string}): Policy {
-    return {
+function makePolicy(overrides: Partial<TimeSensitiveAdminPolicy> & {id: string}): TimeSensitiveAdminPolicy {
+    return createMock<TimeSensitiveAdminPolicy>({
         ...overrides,
         name: overrides.name ?? `Policy ${overrides.id}`,
-    } as Policy;
+    });
 }
 
 function makeBankAccount(bankAccountID: number, state: string, type?: string, addressState?: string): BankAccount {
-    return {
+    return createMock<BankAccount>({
         bankCurrency: 'USD',
         bankCountry: 'US',
         accountData: {
@@ -35,7 +37,7 @@ function makeBankAccount(bankAccountID: number, state: string, type?: string, ad
                 country: CONST.COUNTRY.US,
             },
         },
-    } as BankAccount;
+    });
 }
 
 describe('useTimeSensitiveBankAccountAddress', () => {
@@ -53,12 +55,16 @@ describe('useTimeSensitiveBankAccountAddress', () => {
     });
 
     it('returns empty array when there are no bank accounts missing addressState', () => {
+        // Given a user with no bank accounts
+        // When the hook reads an empty policy list
         const {result} = renderHook(() => useTimeSensitiveBankAccountAddress([]));
 
+        // Then no address prompt is shown
         expect(result.current.bankAccountsMissingAddress).toEqual([]);
     });
 
     it('returns a personal entry when an open personal account is missing addressState', async () => {
+        // Given an open personal account with no addressState
         const bankAccountList: BankAccountList = {
             '200': makeBankAccount(200, CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.TYPE.PERSONAL),
         };
@@ -66,8 +72,10 @@ describe('useTimeSensitiveBankAccountAddress', () => {
         await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
         await waitForBatchedUpdates();
 
+        // When the hook evaluates the account list
         const {result} = renderHook(() => useTimeSensitiveBankAccountAddress([]));
 
+        // Then the personal account is prompted so the user can unblock reimbursements
         expect(result.current.bankAccountsMissingAddress).toHaveLength(1);
         expect(result.current.bankAccountsMissingAddress.at(0)).toMatchObject({
             bankAccountID: 200,
@@ -77,6 +85,7 @@ describe('useTimeSensitiveBankAccountAddress', () => {
     });
 
     it('skips personal accounts that already have addressState', async () => {
+        // Given an open personal account that already has a state
         const bankAccountList: BankAccountList = {
             '200': makeBankAccount(200, CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.TYPE.PERSONAL, 'CA'),
         };
@@ -84,12 +93,15 @@ describe('useTimeSensitiveBankAccountAddress', () => {
         await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
         await waitForBatchedUpdates();
 
+        // When the hook evaluates the account list
         const {result} = renderHook(() => useTimeSensitiveBankAccountAddress([]));
 
+        // Then the account is not prompted
         expect(result.current.bankAccountsMissingAddress).toHaveLength(0);
     });
 
     it('returns a workspace entry when the reimburser has an open VBA missing addressState', async () => {
+        // Given the current user reimburses an open workspace account with no addressState
         await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: PRIMARY_LOGIN});
         const bankAccountList: BankAccountList = {
             '100': makeBankAccount(100, CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.TYPE.BUSINESS),
@@ -111,8 +123,10 @@ describe('useTimeSensitiveBankAccountAddress', () => {
             },
         });
 
+        // When the hook evaluates that workspace
         const {result} = renderHook(() => useTimeSensitiveBankAccountAddress([policy]));
 
+        // Then the workspace account is prompted for the reimburser
         expect(result.current.bankAccountsMissingAddress).toHaveLength(1);
         expect(result.current.bankAccountsMissingAddress.at(0)).toMatchObject({
             bankAccountID: 100,
@@ -124,6 +138,7 @@ describe('useTimeSensitiveBankAccountAddress', () => {
     });
 
     it('skips the workspace entry when the current user is not the reimburser', async () => {
+        // Given an open workspace account whose reimburser is someone else
         await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: PRIMARY_LOGIN});
         const bankAccountList: BankAccountList = {
             '100': makeBankAccount(100, CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.TYPE.BUSINESS),
@@ -144,8 +159,10 @@ describe('useTimeSensitiveBankAccountAddress', () => {
             },
         });
 
+        // When the hook evaluates that workspace
         const {result} = renderHook(() => useTimeSensitiveBankAccountAddress([policy]));
 
+        // Then the current user is not asked to add the address
         expect(result.current.bankAccountsMissingAddress).toHaveLength(0);
     });
 });

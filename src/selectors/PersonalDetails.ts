@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {
     getLoginByAccountID,
@@ -25,28 +25,15 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
-const personalDetailByLoginSelector =
-    (login: string | undefined) =>
-    (personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined => {
-        if (!login) {
-            return undefined;
-        }
-        const lowerLogin = login.toLowerCase();
-        return Object.values(personalDetailsList ?? {}).find((detail) => detail?.login?.toLowerCase() === lowerLogin) ?? undefined;
-    };
-
-const avatarStyleColorSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
-    accountID ? personalDetailsList?.[accountID]?.avatarStyle?.color : undefined;
-
 const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
-const personalDetailsDisplayNameSelector = (accountID: number, translate: LocalizedTranslate) => (personalDetails: OnyxEntry<PersonalDetailsList>) =>
-    temporaryGetDisplayNameOrDefault({
-        passedPersonalDetails: personalDetails?.[accountID],
-        translate,
-    });
-
-const conciergePersonalDetailSelector = personalDetailsSelector(CONST.ACCOUNT_ID.CONCIERGE);
+const personalDetailsDisplayNameSelector =
+    (accountID: number, translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => (personalDetails: OnyxEntry<PersonalDetailsList>) =>
+        temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: personalDetails?.[accountID],
+            translate,
+            formatPhoneNumber,
+        });
 
 type DisplayDetails = Pick<PersonalDetails, 'accountID' | 'displayName' | 'login' | 'avatar'>;
 
@@ -93,17 +80,38 @@ function isPersonalDetailOptimistic(personalDetail: PersonalDetails | null | und
     return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
 }
 
-const isOptimisticPersonalDetailSelector =
-    (accountID: number) =>
-    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean => {
-        if (!personalDetailsList) {
-            return true;
+/**
+ * Returns only the personal details that were created optimistically. The optimistic set is tiny compared to the whole
+ * personal details list, so subscribers using it don't re-render every time an unrelated (server-backed) detail changes.
+ */
+const optimisticPersonalDetailsSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetailsList => {
+    const optimisticPersonalDetails: PersonalDetailsList = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetailsList ?? {})) {
+        if (!personalDetail?.isOptimisticPersonalDetail) {
+            continue;
         }
-        return isPersonalDetailOptimistic(personalDetailsList[accountID]);
-    };
+        optimisticPersonalDetails[accountID] = personalDetail;
+    }
+    return optimisticPersonalDetails;
+};
 
 const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, personalDetailsList);
+
+const displayNameSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.displayName;
+
+const accountIDSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.accountID;
+
+const loginSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.login;
+
+const avatarStyleColorSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.avatarStyle?.color;
+
+const doesPersonalDetailExist = (personalDetails: PersonalDetails | undefined) => !!personalDetails;
+
+const firstNameSelector = (personalDetails: PersonalDetails | undefined) => (personalDetails?.firstName?.trim() ? personalDetails.firstName : undefined);
+
+const displayNameOrDefaultSelector = (translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => (personalDetails: PersonalDetails | undefined) =>
+    temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
 
 export {
     avatarStyleColorSelector,
@@ -112,12 +120,17 @@ export {
     personalDetailsListSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
-    personalDetailByLoginSelector,
     personalDetailsLoginsSelector,
-    conciergePersonalDetailSelector,
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
-    isOptimisticPersonalDetailSelector,
+    isPersonalDetailOptimistic,
+    optimisticPersonalDetailsSelector,
     createDisplayDetailsByAccountIDsSelector,
     newAccountIDsAndLoginsSelector,
+    displayNameSelector,
+    accountIDSelector,
+    loginSelector,
+    firstNameSelector,
+    displayNameOrDefaultSelector,
+    doesPersonalDetailExist,
 };

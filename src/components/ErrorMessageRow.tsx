@@ -10,23 +10,19 @@ import React from 'react';
 import MessagesRow from './MessagesRow';
 
 type ErrorMessageRowProps = {
-    /** The errors to display  */
     errors?: OnyxCommon.Errors | ReceiptErrors | OnyxCommon.TranslationKeyErrors | null;
-
-    /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
-
-    /** Additional style object for the error row text */
     errorRowTextStyles?: StyleProp<TextStyle>;
 
     /** If passed, an X button next to the error will be shown and which triggers this callback */
     onDismiss?: () => void;
 
-    /** A function to dismiss error */
     dismissError?: () => void;
+
+    onRetryReceiptUpload?: () => void;
 };
 
-function ErrorMessageRow({errors, errorRowStyles, onDismiss, dismissError, errorRowTextStyles}: ErrorMessageRowProps) {
+function ErrorMessageRow({errors, errorRowStyles, onDismiss, dismissError, errorRowTextStyles, onRetryReceiptUpload}: ErrorMessageRowProps) {
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
     const errorEntries = Object.entries(errors ?? {});
     const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError | OnyxCommon.TranslationKeyError] => errorEntry[1] !== null);
@@ -41,6 +37,7 @@ function ErrorMessageRow({errors, errorRowStyles, onDismiss, dismissError, error
             containerStyles={errorRowStyles}
             errorTextStyles={errorRowTextStyles}
             dismissError={dismissError}
+            onRetryReceiptUpload={onRetryReceiptUpload}
         />
     ) : null;
 }

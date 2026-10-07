@@ -41,28 +41,29 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.STASHED_CREDENTIALS,
     ONYXKEYS.HYBRID_APP,
 
+    // Otherwise it's wiped and refetched by OpenApp, letting the product-marketing window flash back in
+    // before the dismissal value round-trips back from the server.
+    ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+
     // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
-    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
+
+    // Keep personal details through the switch so the nav avatar and user names render
+    // instantly instead of showing a skeleton while OpenApp responds. OpenApp overwrites
+    // this key with fresh data when its response lands, so stale entries are short lived.
+    ONYXKEYS.PERSONAL_DETAILS_LIST,
 ];
 
-/**
- * Atomically reset Onyx for a delegate-access transition. The IS_LOADING_APP=true
- * seed is delegate-specific: without it, consumers observe HAS_LOADED_APP=true and
- * IS_LOADING_APP=undefined together, which looks like a stuck app and triggers
- * DelegateAccessHandler's recovery effect, queueing a duplicate openApp.
- *
- * The reconnect-time seed is handled by clearOnyxAndSeedFullReconnect.
- */
+/** Atomically reset Onyx for a delegate-access transition. */
 function clearOnyxForDelegateTransition(): Promise<void> {
-    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, {
-        [ONYXKEYS.IS_LOADING_APP]: true,
-    });
+    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
 }
 
 type WithDelegatedAccess = {
@@ -143,10 +144,15 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
         return;
     }
 
+    if (isConnectedAsDelegate({delegatedAccess})) {
+        Log.info('[Delegate] Already connected as a delegate, skipping connect');
+        return;
+    }
+
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
     Onyx.set(ONYXKEYS.STASHED_SESSION, session ?? {});
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.IS_SWITCHING_TO_DELEGATOR>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -159,6 +165,11 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_SWITCHING_TO_DELEGATOR,
+            value: true,
         },
     ];
 
@@ -178,7 +189,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.IS_SWITCHING_TO_DELEGATOR>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -191,6 +202,11 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_SWITCHING_TO_DELEGATOR,
+            value: false,
         },
     ];
 
@@ -215,7 +231,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
             return SequentialQueue.waitForIdle()
                 .then(() => {
                     // Update authToken in Onyx so it persists if the further flow does not complete for any reason.
-                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
+                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken, CONST.AUTH_TOKEN_TYPES.DELEGATE);
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
@@ -364,6 +380,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: true,
                               pendingFields: {
                                   email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -416,6 +433,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: false,
                               pendingAction: null,
                               pendingFields: {email: null, role: null},
@@ -464,6 +482,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
                         ? delegate
                         : {
                               ...delegate,
+                              role,
                               isLoading: false,
                           },
                 ) ?? []
@@ -868,6 +887,7 @@ function openSecuritySettingsPage() {
 }
 
 export {
+    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
     connect,
     disconnect,
     clearDelegatorErrors,

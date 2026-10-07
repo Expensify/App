@@ -1,4 +1,5 @@
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
@@ -9,7 +10,7 @@ import {policyTypeSelector} from '@src/selectors/Policy';
 import type {ReportAction} from '@src/types/onyx';
 
 import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
-import {getReportChatType, getReportPolicyID} from '@selectors/Report';
+import {getReportChatType, getReportParentReportID, getReportPolicyID} from '@selectors/Report';
 import React, {createContext, useContext} from 'react';
 
 import {CONCIERGE_DRAFT_STATUS} from './conciergeDraftState';
@@ -50,10 +51,12 @@ const ConciergeDraftActionsContext = createContext<ConciergeDraftActions>(defaul
 function ConciergeDraftProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
-    const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
+    const [agentParticipantAccountID] = usePersonalDetailsByIDs(participantAccountIDs, getCustomAgentParticipantAccountID(participantAccountIDs));
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [parentReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParentReportID});
 
-    const isConciergeChat = reportID === conciergeReportID;
+    // Concierge answers each question in a thread off the Concierge DM, so those threads stream drafts too.
+    const isConciergeChat = !!conciergeReportID && (reportID === conciergeReportID || parentReportID === conciergeReportID);
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     // See AgentZeroStatusContext for the rationale: `isCustomAgent` lives on the participant's
     // personalDetails, stamped by Auth in `Account::formatNewDotPersonalDetails`.

@@ -2,7 +2,7 @@ import SkiaWebChart from '@components/Charts/SkiaWebChart';
 
 import React from 'react';
 
-import type {BarChartProps} from './BarChartContent';
+import type BarChartProps from './types';
 
 const getBarChartContent = () => import('./BarChartContent');
 function BarChart(props: BarChartProps) {
@@ -10,7 +10,6 @@ function BarChart(props: BarChartProps) {
         <SkiaWebChart
             getComponent={getBarChartContent}
             componentProps={props}
-            reasonContext="BarChart.SkiaWebLoading"
         />
     );
 }

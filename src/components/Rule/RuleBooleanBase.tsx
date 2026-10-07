@@ -19,8 +19,11 @@ import {View} from 'react-native';
 
 import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 
+/** Sentinel value for the "Don't change" option, kept local so it does not leak into CONST.SEARCH.BOOLEAN (shared with Search filters) */
+const KEEP_UNCHANGED = 'dontChange';
+
 type BooleanFilterItem = ListItem & {
-    value: ValueOf<typeof CONST.SEARCH.BOOLEAN>;
+    value: ValueOf<typeof CONST.SEARCH.BOOLEAN> | typeof KEEP_UNCHANGED;
 };
 
 type RuleBooleanBaseProps = {
@@ -55,15 +58,17 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, use
 
     const formValue = (form as Record<string, boolean | string | undefined>)?.[fieldID];
 
-    let selectedItem = null;
-    if (formValue !== undefined) {
+    // When the field is unset the selector defaults to "Don't change" - it is a true radio group that can never be cleared to nothing
+    let selectedItem: ValueOf<typeof CONST.SEARCH.BOOLEAN> | typeof KEEP_UNCHANGED = KEEP_UNCHANGED;
+    if (formValue !== undefined && formValue !== '') {
         // Handle both string ('true'/'false') and boolean (true/false) values
         const isTruthy = useStringValues ? formValue === 'true' : formValue === true;
-        const booleanValue = isTruthy ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
-        selectedItem = booleanValues.find((value) => booleanValue === value) ?? null;
+        selectedItem = isTruthy ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
     }
 
-    const items = booleanValues.map((value) => ({
+    const selectableValues: Array<ValueOf<typeof CONST.SEARCH.BOOLEAN> | typeof KEEP_UNCHANGED> = [KEEP_UNCHANGED, ...booleanValues];
+
+    const items = selectableValues.map((value) => ({
         value,
         keyForList: value,
         text: translate(`common.${value}`),
@@ -71,8 +76,8 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, use
     }));
 
     const onSelectItem = (selectedValue: BooleanFilterItem) => {
-        // If clicking on already-selected item, unselect it (set to undefined)
-        if (selectedValue.isSelected) {
+        // Picking "Don't change" clears the field (the existing "no action" state)
+        if (selectedValue.value === KEEP_UNCHANGED) {
             onSelect(fieldID, null);
             return;
         }

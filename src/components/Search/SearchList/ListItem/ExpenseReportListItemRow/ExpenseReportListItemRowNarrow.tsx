@@ -6,6 +6,8 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -15,16 +17,16 @@ import type {ExpenseReportListItemRowNarrowProps} from './types';
 
 function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSelectMultiple, isSelectAllChecked, isIndeterminate, isDisabledCheckbox}: ExpenseReportListItemRowNarrowProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const {amount: amountText, date: formattedDate, expenseCountText} = getExpenseReportRowDisplayValues(item, {translate, convertToDisplayString});
+    const {amount: amountText, date: formattedDate, expenseCountText} = getExpenseReportRowDisplayValues(item, {translate, dateFnsLocale, convertToDisplayString});
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.cursorPointer]}>
             {!!canSelectMultiple && (
                 <Checkbox
-                    onPress={onCheckboxPress}
+                    onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
                     isChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
                     containerStyle={styles.m0}

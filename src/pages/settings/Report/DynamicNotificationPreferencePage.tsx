@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportNotificationPreference, isArchivedNonExpenseReport, isHiddenForCurrentUser, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {getReportNotificationPreferenceForSettings, isArchivedNonExpenseReport, isHiddenForCurrentUser, isSelfDM} from '@libs/ReportUtils';
 
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
@@ -22,7 +22,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 
 type DynamicNotificationPreferencePageProps = WithReportOrNotFoundProps;
 
@@ -30,17 +30,20 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const isMoneyRequest = isMoneyRequestReport(report);
-    const currentNotificationPreference = getReportNotificationPreference(report);
-    const shouldDisableNotificationPreferences =
-        isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || (!isMoneyRequest && isHiddenForCurrentUser(currentNotificationPreference));
+    const currentUserParticipant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
+    const currentUserNotificationPreference = currentUserParticipant?.notificationPreference;
+    const currentNotificationPreference = getReportNotificationPreferenceForSettings(report, currentUserAccountID);
+
+    const [draftNotificationPreference, setDraftNotificationPreference] = useState<ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> | undefined>(undefined);
+    const selectedNotificationPreference = draftNotificationPreference ?? currentNotificationPreference;
+    const shouldDisableNotificationPreferences = isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || !currentUserParticipant;
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
         .filter((pref) => !isHiddenForCurrentUser(pref))
         .map((preference) => ({
             value: preference,
             text: translate(`notificationPreferencesPage.notificationPreferences.${preference}`),
             keyForList: preference,
-            isSelected: preference === currentNotificationPreference,
+            isSelected: preference === selectedNotificationPreference,
         }));
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path);
 
@@ -48,17 +51,21 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
         Navigation.goBack(backPath);
     }, [backPath]);
 
-    const updateNotificationPreferenceForReportAction = useCallback(
-        (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
-            updateNotificationPreference(report.reportID, currentNotificationPreference, value, currentUserAccountID, undefined, undefined);
-            goBack();
-        },
-        [report.reportID, currentNotificationPreference, currentUserAccountID, goBack],
-    );
+    const saveNotificationPreference = () => {
+        updateNotificationPreference(report.reportID, currentUserNotificationPreference, selectedNotificationPreference, currentUserAccountID, undefined, undefined);
+        goBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveNotificationPreference,
+        isDisabled: selectedNotificationPreference === currentUserNotificationPreference,
+    };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="NotificationPreferencePage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
@@ -69,9 +76,11 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
                 <SelectionList
                     data={notificationPreferenceOptions}
                     ListItem={SingleSelectListItem}
-                    onSelectRow={(option) => updateNotificationPreferenceForReportAction(option.value)}
+                    onSelectRow={(option) => setDraftNotificationPreference(option.value)}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={currentNotificationPreference}
+                    addBottomSafeAreaPadding
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

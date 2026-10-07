@@ -1,4 +1,4 @@
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,25 +14,27 @@ type WidgetContainerProps = {
     /** The text to display in the title of the widget */
     title?: string;
 
+    /** A custom node rendered in place of the title text. Takes precedence over the `title` prop */
+    titleContent?: ReactNode;
+
     /** The content to display inside the widget container */
     children: ReactNode;
 
-    /** Additional styles to pass to the container */
     containerStyles?: StyleProp<ViewStyle>;
-
-    /** The content to display on the right side of the title */
     titleRightContent?: ReactNode;
 };
 
-function WidgetContainer({children, title, containerStyles, titleRightContent}: WidgetContainerProps) {
+function WidgetContainer({children, title, titleContent, containerStyles, titleRightContent}: WidgetContainerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {values} = useLayoutSpacing();
 
     return (
         <View style={[styles.widgetContainer, containerStyles]}>
-            <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
-                <View style={[styles.flexShrink1, styles.flexGrow1, styles.gap2]}>{!!title && <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{title}</Text>}</View>
+            <View style={styles.getWidgetContainerHeaderStyle(values.cardPadding)}>
+                <View style={[styles.flexShrink1, styles.flexGrow1, styles.gap2]}>
+                    {titleContent ?? (!!title && <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{title}</Text>)}
+                </View>
                 {titleRightContent}
             </View>
             {children}

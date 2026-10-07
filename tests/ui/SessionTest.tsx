@@ -19,6 +19,7 @@ import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import {createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -118,7 +119,7 @@ describe('Deep linking', () => {
                 },
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
             });
-            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1);
+            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1, false, undefined, undefined);
         });
 
         // Set the keys the app needs to finish loading rather than going through
@@ -127,16 +128,18 @@ describe('Deep linking', () => {
         // request-queue round-trip with optimistic→network→finally Onyx data.
         // NVP_ONBOARDING suppresses the onboarding flow that would otherwise render
         // extra screens and inflate the React work queue drained by act().
-        // Single multiSet keeps this to one batched-update cycle. The report collection key
-        // is cast because multiSet's type only covers non-computed keys.
+        // Single multiSet keeps this to one batched-update cycle. The template-literal type preserves
+        // the relationship between the computed report collection key and its production value type.
+        const reportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+        const reportData = createMock<Pick<OnyxMultiSetInput, typeof reportKey>>({[reportKey]: report});
         jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
             Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                ...reportData,
                 [ONYXKEYS.IS_LOADING_APP]: false,
                 [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                 [ONYXKEYS.HAS_LOADED_APP]: true,
                 [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
-            } as unknown as OnyxMultiSetInput),
+            }),
         );
     });
 
@@ -411,7 +414,7 @@ describe('signInWithShortLivedAuthToken', () => {
             }),
         );
 
-        Session.signInWithShortLivedAuthToken('token', true);
+        Session.signInWithShortLivedAuthToken('token', true, undefined, undefined);
         await waitForBatchedUpdates();
 
         let isAuthenticating: boolean | undefined;

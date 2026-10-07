@@ -3,8 +3,6 @@ import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -24,7 +22,7 @@ function ReportPreviewActionButton() {
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {openReportFromPreview} = useReportPreviewActions();
 
-    const renderButton = () => {
+    const renderPrimaryButton = () => {
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT) {
             return <SubmitActionButton />;
         }
@@ -45,16 +43,32 @@ function ReportPreviewActionButton() {
             return <AddExpenseActionButton />;
         }
 
-        return (
-            <Button
-                text={translate('common.view')}
-                onPress={openReportFromPreview}
-                sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
-            />
-        );
+        return null;
     };
 
-    return <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{renderButton()}</View>;
+    const primaryButton = renderPrimaryButton();
+
+    const viewButton = (
+        <Button
+            // Only flex View when it shares the row with a primary action. A lone View sits in a column with no fixed height, where flex: 1 collapses it on iOS Safari and cuts off the button.
+            style={primaryButton ? styles.flex1 : undefined}
+            onPress={openReportFromPreview}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
+        >
+            <Button.Text>{translate('common.view')}</Button.Text>
+        </Button>
+    );
+
+    if (!primaryButton) {
+        return <View style={[buttonMaxWidth, styles.flex1, styles.reportPreviewActionRow]}>{viewButton}</View>;
+    }
+
+    return (
+        <View style={[buttonMaxWidth, styles.flex1, styles.flexRow, styles.gap2, styles.reportPreviewActionRow]}>
+            <View style={[styles.flex1]}>{primaryButton}</View>
+            {viewButton}
+        </View>
+    );
 }
 
 export default ReportPreviewActionButton;

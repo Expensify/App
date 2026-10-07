@@ -1,13 +1,19 @@
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import Navigation from '@libs/Navigation/Navigation';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import '@libs/actions/IOU/MoneyRequest';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
+import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
+
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -16,7 +22,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
-import {createRandomReport} from '../../utils/collections/reports';
+import createRandomPolicy from '../../utils/collections/policies';
+import createRandomReportAction from '../../utils/collections/reportActions';
+import {createPolicyExpenseChat, createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -48,29 +56,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-// In production, requestMoney defers its API.write() call until the target screen's
-// content lays out (or a safety timeout fires). In tests there is no target component
-// to flush the deferred write, so we bypass the deferral by executing the callback immediately.
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
+const mockedIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -155,6 +143,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with draftTransactionIDs
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -167,7 +156,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -186,6 +175,149 @@ describe('actions/IOU', () => {
 
             // New draft should be created for the transaction being categorized
             expect(updatedTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionToCategorize.transactionID}`]).toBeTruthy();
+        });
+
+        it('should link the track-expense action found in the passed reportActions', async () => {
+            // Given a selfDM report with a tracked transaction and its money request action
+            const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: 'tracked-transaction'};
+            const trackedExpenseAction: ReportAction = {
+                ...createRandomReportAction(101),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: selfDMReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When the draft is created with the report actions passed as a parameter
+            createDraftTransactionAndNavigateToParticipantSelector({
+                reportID: selfDMReport.reportID,
+                reportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: '1',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                draftTransactionIDs: [],
+                activePolicy: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                transaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the draft should be linked to the money request action found in the passed reportActions
+            let drafts: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                callback: (val) => {
+                    drafts = val;
+                },
+            });
+            const draft = drafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`];
+            expect(draft?.linkedTrackedExpenseReportAction?.reportActionID).toBe(trackedExpenseAction.reportActionID);
+            expect(draft?.linkedTrackedExpenseReportID).toBe(selfDMReport.reportID);
+        });
+
+        it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+            // Given a selfDM report with a tracked transaction, one matching action passed as a parameter and a different matching action stored in Onyx
+            const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: 'tracked-transaction'};
+            const originalMessage = {
+                IOUReportID: selfDMReport.reportID,
+                IOUTransactionID: transaction.transactionID,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            };
+            const passedAction: ReportAction = {...createRandomReportAction(102), actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage};
+            const onyxOnlyAction: ReportAction = {...createRandomReportAction(103), actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[onyxOnlyAction.reportActionID]: onyxOnlyAction});
+
+            // When the draft is created with only the passed action
+            createDraftTransactionAndNavigateToParticipantSelector({
+                reportID: selfDMReport.reportID,
+                reportActions: {[passedAction.reportActionID]: passedAction},
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: '1',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                draftTransactionIDs: [],
+                activePolicy: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                transaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the draft should be linked to the passed action, proving the Onyx-stored actions are not read
+            let drafts: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                callback: (val) => {
+                    drafts = val;
+                },
+            });
+            const draft = drafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`];
+            expect(draft?.linkedTrackedExpenseReportAction?.reportActionID).toBe(passedAction.reportActionID);
+        });
+
+        it('should not link any track-expense action when reportActions is undefined', async () => {
+            // Given a selfDM report with a tracked transaction and no reportActions passed
+            const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: 'tracked-transaction'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When the draft is created without reportActions
+            createDraftTransactionAndNavigateToParticipantSelector({
+                reportID: selfDMReport.reportID,
+                reportActions: undefined,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: '1',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                draftTransactionIDs: [],
+                activePolicy: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                transaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the draft should still be created, with no linked track-expense action
+            let drafts: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                callback: (val) => {
+                    drafts = val;
+                },
+            });
+            const draft = drafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`];
+            expect(draft).toBeTruthy();
+            expect(draft?.linkedTrackedExpenseReportAction).toBeFalsy();
         });
 
         it('should create a draft transaction with correct data when categorizing', async () => {
@@ -207,6 +339,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with empty allTransactionDrafts
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -219,7 +352,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -234,7 +367,7 @@ describe('actions/IOU', () => {
 
             const draftTransaction = transactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${originalTransaction.transactionID}`];
             expect(draftTransaction).toBeTruthy();
-            expect(draftTransaction?.amount).toBe(-originalTransaction.amount);
+            expect(draftTransaction?.amount).toBe(originalTransaction.amount);
             expect(draftTransaction?.currency).toBe(originalTransaction.currency);
             expect(draftTransaction?.actionableWhisperReportActionID).toBe(reportActionID);
             expect(draftTransaction?.linkedTrackedExpenseReportID).toBe(selfDMReport.reportID);
@@ -248,6 +381,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transaction
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -260,7 +394,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -284,6 +418,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined reportID
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: undefined,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -296,7 +431,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -310,6 +445,316 @@ describe('actions/IOU', () => {
             });
 
             expect(Object.keys(transactionDrafts ?? {}).length).toBe(0);
+        });
+
+        describe('submitting a tracked expense to an employer', () => {
+            const POLICY_ID = 'policy-with-access';
+            // A unix timestamp well in the past, so the owner's billing grace period has already elapsed.
+            const EXPIRED_GRACE_PERIOD_END = 1600000000;
+            // The workspace as the callers' policy selectors hand it to the billing gate: only the fields the gate reads.
+            const ACCESSIBLE_POLICY: BillingRestrictionPolicy = {id: POLICY_ID, ownerAccountID: RORY_ACCOUNT_ID};
+
+            async function setUpSelfDMTrackedExpense() {
+                const selfDMReport = createSelfDM(1, RORY_ACCOUNT_ID);
+                const policyExpenseChat: Report = {
+                    ...createPolicyExpenseChat(2),
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    policyID: POLICY_ID,
+                };
+                const trackedExpense: Transaction = {
+                    ...createRandomTransaction(1),
+                    transactionID: 'tracked-expense',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${trackedExpense.transactionID}`, trackedExpense);
+                await waitForBatchedUpdates();
+
+                return {selfDMReport, policyExpenseChat, trackedExpense};
+            }
+
+            /** Builds a workspace the current user owns, which makes `shouldRestrictUserBillableActions` fire once an amount is owed past the grace period. */
+            async function setUpRestrictedPolicy() {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: POLICY_ID,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    owner: RORY_EMAIL,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                await waitForBatchedUpdates();
+                return policy;
+            }
+
+            function getConfirmationRouteBackTo() {
+                const confirmationRoute = jest
+                    .mocked(Navigation.navigate)
+                    .mock.calls.map(([route]) => String(route))
+                    .find((route) => route.includes('confirmation'));
+                return new URLSearchParams(confirmationRoute?.split('?').at(1)).get('backTo');
+            }
+
+            async function getDraftTransaction(transactionID: string) {
+                let transactionDrafts: OnyxCollection<Transaction>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                    callback: (val) => {
+                        transactionDrafts = val;
+                    },
+                });
+                return transactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
+            }
+
+            it('should bind the draft transaction to the destination chat when exactly one workspace is accessible', async () => {
+                // Given a tracked self DM expense and a single workspace the user can submit to
+                const {selfDMReport, policyExpenseChat, trackedExpense} = await setUpSelfDMTrackedExpense();
+
+                // When the expense is submitted to the employer, skipping the destination picker
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    filteredPoliciesCount: 1,
+                    firstPolicy: ACCESSIBLE_POLICY,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the draft is no longer unreported, so the confirmation page resolves the destination workspace
+                const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
+                expect(draftTransaction?.reportID).toBe(policyExpenseChat.reportID);
+                expect(draftTransaction?.participants?.at(0)?.reportID).toBe(policyExpenseChat.reportID);
+
+                // And the user lands on the confirmation page for that workspace
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, trackedExpense.transactionID, policyExpenseChat.reportID),
+                );
+            });
+
+            it('should show the restricted action screen when the only accessible workspace has an expired required payment', async () => {
+                // Given a tracked self DM expense and a single workspace the user owns that is past its billing grace period
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                const restrictedPolicy = await setUpRestrictedPolicy();
+
+                // When the expense is submitted to the employer, which would otherwise skip the destination picker
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    ownerBillingGracePeriodEnd: EXPIRED_GRACE_PERIOD_END,
+                    amountOwed: 1000,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    filteredPoliciesCount: 1,
+                    firstPolicy: restrictedPolicy,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the user lands on the restricted action screen instead of the confirmation page
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(POLICY_ID));
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('confirmation'));
+
+                // And the draft is left unbound, so nothing can be submitted to the restricted workspace
+                const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
+                expect(draftTransaction?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+            });
+
+            it('should show the restricted action screen when the preferred workspace has an expired required payment', async () => {
+                // Given a tracked self DM expense and a preferred workspace the user owns that is past its billing grace period
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                const restrictedPolicy = await setUpRestrictedPolicy();
+
+                // When the expense is submitted, which would otherwise skip the participant picker for the preferred workspace
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    ownerBillingGracePeriodEnd: EXPIRED_GRACE_PERIOD_END,
+                    amountOwed: 1000,
+                    restrictedPreferredPolicy: restrictedPolicy,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    // Left unset so only the preferred-policy gate can drive the assertions below: the default
+                    // `submitDestination` is FRIEND, so the EMPLOYER branch that reads `firstPolicy` never runs.
+                    firstPolicy: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the user lands on the restricted action screen instead of the confirmation page
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(POLICY_ID));
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('confirmation'));
+            });
+
+            it('should submit straight to the preferred workspace when it is not billing-restricted', async () => {
+                // Given a tracked self DM expense and a preferred workspace with nothing owed
+                const {selfDMReport, policyExpenseChat, trackedExpense} = await setUpSelfDMTrackedExpense();
+
+                // When the expense is submitted, taking the preferred-workspace fast path past the gate
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    restrictedPreferredPolicy: ACCESSIBLE_POLICY,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicy: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the gate lets the flow through
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(POLICY_ID));
+
+                // And the draft is rebound to the preferred workspace's chat, so the confirmation page resolves it
+                const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
+                expect(draftTransaction?.reportID).toBe(policyExpenseChat.reportID);
+                expect(draftTransaction?.participants?.at(0)?.reportID).toBe(policyExpenseChat.reportID);
+
+                // And the user lands on the confirmation page for that workspace
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, trackedExpense.transactionID, policyExpenseChat.reportID),
+                );
+            });
+
+            it('should send the user back to the report they are viewing when a draft workspace is created', async () => {
+                // Given a tracked self DM expense the user drilled into, so the expense thread is the visible report
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                mockedIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+                // When the expense is submitted to the employer and there is no workspace to submit to
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    defaultWorkspaceName: "Rory's Workspace",
+                    filteredPoliciesCount: 0,
+                    firstPolicy: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then back from the confirmation page returns to the visible report, not the self DM the expense lives on
+                expect(getConfirmationRouteBackTo()).toBe(ROUTES.REPORT_WITH_ID.getRoute(topMostReportID));
+            });
+
+            it('should fall back to the expense report when no report is visible behind the confirmation page', async () => {
+                // Given the flow is started from somewhere other than a report, e.g. the Search tab
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+
+                // When the expense is submitted to the employer and there is no workspace to submit to
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    defaultWorkspaceName: "Rory's Workspace",
+                    filteredPoliciesCount: 0,
+                    firstPolicy: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then back returns to the report the expense lives on
+                expect(getConfirmationRouteBackTo()).toBe(ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID));
+            });
+
+            it('should leave the draft transaction unreported when the destination picker is shown', async () => {
+                // Given a tracked self DM expense and more than one workspace the user can submit to
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+
+                // When the expense is submitted to the employer
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    filteredPoliciesCount: 2,
+                    firstPolicy: ACCESSIBLE_POLICY,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the picker owns the binding, so the draft keeps the unreported ID it inherited
+                const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
+                expect(draftTransaction?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                            action: CONST.IOU.ACTION.SUBMIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: trackedExpense.transactionID,
+                            reportID: selfDMReport.reportID,
+                            isWorkspacesOnly: true,
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID),
+                    ),
+                );
+            });
         });
     });
 });

@@ -12,6 +12,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import {hasDefinedProperty, isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -35,16 +36,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native');
-
-jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
@@ -148,6 +139,8 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
@@ -159,12 +152,13 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         const transactionOptimisticEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData, selfDMTransaction.transactionID);
@@ -179,6 +173,8 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
@@ -190,12 +186,13 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // The selfDM failureData entry is distinguished from the general failure entry by
@@ -217,6 +214,8 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
@@ -228,12 +227,13 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // The selfDM-specific entry lacks pendingFields. The normal flow entry includes pendingFields.
@@ -245,6 +245,8 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
@@ -256,12 +258,13 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: false,
             isSelfDMSplit: true,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData, selfDMTransaction.transactionID);
@@ -271,6 +274,8 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
     it('does NOT add selfDM-specific transaction optimistic merge when transaction does not exist in Onyx', async () => {
         // Don't seed Onyx - transaction is absent
         const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: 'nonexistentTransactionID',
             transactionThreadReport,
@@ -282,12 +287,13 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData, 'nonexistentTransactionID');
@@ -308,6 +314,8 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
@@ -328,9 +336,10 @@ describe('split distance system message', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isSplitTransaction: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // For regular distance expenses with pending waypoints, the server creates the
@@ -342,6 +351,8 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params, onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
@@ -362,9 +373,10 @@ describe('split distance system message', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isSplitTransaction: true,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // For split transactions, merchant and amount are already computed, so we CAN build
@@ -382,6 +394,8 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
@@ -401,9 +415,10 @@ describe('split distance system message', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isSplitTransaction: true,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Even though it's a split transaction, without merchant the hasSplitDistanceMessageFields
@@ -415,6 +430,8 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
@@ -434,9 +451,10 @@ describe('split distance system message', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isSplitTransaction: true,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Without amount, hasSplitDistanceMessageFields is false, so no optimistic report action.

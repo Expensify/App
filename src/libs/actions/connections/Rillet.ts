@@ -12,20 +12,21 @@ import type {
     UpdateRilletExporterParams,
     UpdateRilletExportToMultipleAccountsParams,
     UpdateRilletFieldMappingParams,
+    UpdateRilletFxExpenseAccountParams,
     UpdateRilletSettlementsAccountParams,
     UpdateRilletSubsidiaryParams,
     UpdateRilletSyncExpensifyCardSettlementsParams,
     UpdateRilletSyncReimbursedReportsParams,
     UpdateRilletSyncTaxRatesParams,
-    UpdateRilletSyncTravelInvoicingSettlementsParams,
-    UpdateRilletTravelInvoicingSettlementsAccountParams,
+    UpdateRilletSyncTravelBillingSettlementsParams,
+    UpdateRilletTravelBillingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RilletAutoSync, RilletCoding, RilletConnectionsConfig, RilletExport, RilletSync} from '@src/types/onyx/Policy';
+import type {RilletAccount, RilletAutoSync, RilletCoding, RilletConnectionsConfig, RilletExport, RilletSync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -706,6 +707,15 @@ function updateRilletBillPaymentAccount(policyID: string, billPaymentAccountCode
     write(WRITE_COMMANDS.UPDATE_RILLET_BILL_PAYMENT_ACCOUNT, parameters, onyxData);
 }
 
+function updateRilletFxExpenseAccount(policyID: string, fxExpenseAccountCode: RilletAccount['code'], oldFxExpenseAccountCode?: RilletSync['fxExpenseAccountCode']) {
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE, fxExpenseAccountCode, oldFxExpenseAccountCode ?? null);
+    const parameters: UpdateRilletFxExpenseAccountParams = {
+        policyID,
+        fxExpenseAccountCode,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_FX_EXPENSE_ACCOUNT, parameters, onyxData);
+}
+
 function updateRilletSyncExpensifyCardSettlements(policyID: string, enabled: RilletSync['syncExpensifyCardSettlements'], oldEnabled?: RilletSync['syncExpensifyCardSettlements']) {
     const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletSyncExpensifyCardSettlementsParams = {
@@ -728,31 +738,31 @@ function updateRilletSettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_RILLET_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateRilletSyncTravelInvoicingSettlements(policyID: string, enabled: RilletSync['syncTravelInvoicingSettlements'], oldEnabled?: RilletSync['syncTravelInvoicingSettlements']) {
-    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS, enabled, oldEnabled ?? null);
-    const parameters: UpdateRilletSyncTravelInvoicingSettlementsParams = {
+function updateRilletSyncTravelBillingSettlements(policyID: string, enabled: RilletSync['syncTravelInvoicingSettlements'], oldEnabled?: RilletSync['syncTravelInvoicingSettlements']) {
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletSyncTravelBillingSettlementsParams = {
         policyID,
         enabled,
     };
-    write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_TRAVEL_INVOICING_SETTLEMENTS, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_TRAVEL_BILLING_SETTLEMENTS, parameters, onyxData);
 }
 
-function updateRilletTravelInvoicingSettlementsAccount(
+function updateRilletTravelBillingSettlementsAccount(
     policyID: string,
-    travelInvoicingSettlementsBankAccountID: RilletSync['travelInvoicingSettlementsBankAccountID'],
-    oldTravelInvoicingSettlementsBankAccountID?: RilletSync['travelInvoicingSettlementsBankAccountID'],
+    travelBillingSettlementsBankAccountID: RilletSync['travelInvoicingSettlementsBankAccountID'],
+    oldTravelBillingSettlementsBankAccountID?: RilletSync['travelInvoicingSettlementsBankAccountID'],
 ) {
     const onyxData = prepareRilletSyncOnyxData(
         policyID,
-        CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
-        travelInvoicingSettlementsBankAccountID,
-        oldTravelInvoicingSettlementsBankAccountID ?? null,
+        CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
+        travelBillingSettlementsBankAccountID,
+        oldTravelBillingSettlementsBankAccountID ?? null,
     );
-    const parameters: UpdateRilletTravelInvoicingSettlementsAccountParams = {
+    const parameters: UpdateRilletTravelBillingSettlementsAccountParams = {
         policyID,
-        travelInvoicingSettlementsBankAccountID,
+        travelBillingSettlementsBankAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_RILLET_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_RILLET_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
 function updateRilletExportToMultipleAccounts(policyID: string, enabled: RilletExport['exportToMultipleAccounts'], oldEnabled?: RilletExport['exportToMultipleAccounts']) {
@@ -794,10 +804,11 @@ export {
     updateRilletAccountingMethod,
     updateRilletSyncReimbursedReports,
     updateRilletBillPaymentAccount,
+    updateRilletFxExpenseAccount,
     updateRilletSyncExpensifyCardSettlements,
     updateRilletSettlementsAccount,
-    updateRilletSyncTravelInvoicingSettlements,
-    updateRilletTravelInvoicingSettlementsAccount,
+    updateRilletSyncTravelBillingSettlements,
+    updateRilletTravelBillingSettlementsAccount,
     updateRilletExportToMultipleAccounts,
     updateRilletCardProgramAccount,
 };

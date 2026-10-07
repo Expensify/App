@@ -81,7 +81,7 @@ export default function useCreateEmptyReportConfirmation({
 
         const handleLinkPress = () => {
             closeModal();
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}), searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS}));
         };
 
         showConfirmModal({

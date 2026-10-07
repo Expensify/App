@@ -1,6 +1,7 @@
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -32,6 +33,8 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Flag']);
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const accessibilityLabel = `${item.typeLabel}. ${item.conditionText}. ${item.ruleDescription}`;
 
@@ -85,7 +88,10 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
 
                     {!shouldUseNarrowTableLayout && (
                         <>
-                            <View style={[styles.justifyContentCenter]}>
+                            <View
+                                style={[styles.justifyContentCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <Badge
                                     text={item.typeLabel}
                                     icon={Expensicons.Flag}
@@ -101,7 +107,10 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     isCondensed
                                 />
                             </View>
-                            <View style={[styles.flex1]}>
+                            <View
+                                style={[styles.flex1]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     numberOfLines={1}
@@ -109,7 +118,10 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                 />
                             </View>
-                            <View style={[styles.flex1]}>
+                            <View
+                                style={[styles.flex1]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     numberOfLines={1}
@@ -120,13 +132,15 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                         </>
                     )}
 
-                    <Icon
-                        src={Expensicons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

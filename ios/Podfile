@@ -16,6 +16,10 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
+# Must come after react_native_pods.rb, which defines ReactNativeCoreUtils.
+require_relative '../scripts/artifacts-utils/ios/patched_ios_artifacts.rb'
+PatchedIOSArtifacts.setup
+
 MIN_IOS_VERSION = '16.4'
 platform :ios, MIN_IOS_VERSION
 prepare_react_native_project!
@@ -51,6 +55,9 @@ end
 # Configure Mapbox before installing dependencies
 pre_install do |installer|
   $RNMapboxMaps.pre_install(installer)
+
+  # Build RNFB/RNSentry as static libraries when consuming a prebuilt React Core.
+  PatchedIOSArtifacts.configure_prebuilt_pods(installer)
 end
 
 # Declare project globally so all targets inherit the same build configurations
@@ -68,6 +75,7 @@ target 'NewExpensify' do
   # pinning policy in CertificatePinning.swift applies to all URLSession traffic (fetch(),
   # react-native-blob-util, etc.) without per-call code changes.
   pod 'TrustKit', '~> 3.0'
+  pod 'NWWebSocket', '~> 0.5.10'
   use_expo_modules!
   post_integrate do |installer|
     begin
@@ -107,6 +115,10 @@ target 'NewExpensify' do
       # :ccache_enabled => true
     )
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
+
+    # Build phase keeping the extracted prebuilt React Core in sync with the patched
+    # artifact version resolved at install (no-op on a source build).
+    PatchedIOSArtifacts.add_sync_prebuilt_script_phase(installer)
 
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|

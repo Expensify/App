@@ -5,7 +5,7 @@ import type {
     TransactionListItemType,
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SearchGroupBy} from '@components/Search/types';
+import type {SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -14,7 +14,7 @@ import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ValueOf} from 'type-fest';
 
 import type {BankName} from './Bank';
-import type * as OnyxCommon from './OnyxCommon';
+import type {PendingAction, Errors} from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type Report from './Report';
@@ -43,11 +43,13 @@ type SearchResultsInfo = {
     /** Current search results offset/cursor */
     offset: number;
 
-    /** Type of search */
     type: SearchDataTypes;
 
     /** The hash of the current search */
     hash: number;
+
+    /** Client-only query string this snapshot was searched with, used to add optimistic expenses to matching snapshots */
+    inputQuery?: string;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
@@ -56,29 +58,43 @@ type SearchResultsInfo = {
      * whether they have created any invoice yet when the search type is invoice */
     hasResults: boolean;
 
-    /** Whether the search results are currently loading */
     isLoading: boolean;
+    sortBy: SearchSortBy;
 
-    /** Explicit terminal lifecycle state of the most recent search request for this snapshot.
+    /** The sort order of the current search */
+    sortOrder: SortOrder;
+
+    /** Explicit lifecycle state of the most recent search request for this snapshot.
      * Optional because snapshots persisted before this field existed (and snapshots written by
      * non-search actions) may not carry it.
      *
-     * Nothing reads this field yet. The existing isLoading/type/status-based loading and error gates
-     * migrate to read it in a follow-up PR.
-     *
-     * Residual limitation: if the app is killed or reloaded mid-request, no cleanup runs, so `loading` can
-     * still be stranded on disk. The future read side must treat a `loading` state with no in-flight request
-     * as stale. */
+     * Search pages use this state to decide whether to show a loading skeleton. If the app reloads while
+     * the state is `loading`, `useSearchPageSetup` starts the search again. `search()` ignores the call when
+     * the same request is already running. */
     state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
+
+    /** jsonCode of the most recent failed search response for this snapshot. Cleared when a new request starts.
+     *
+     * The error view reads it to tell an invalid query, where retrying cannot help, apart from a retryable
+     * failure. That verdict otherwise lives in component state, which a reload resets while the errored
+     * snapshot survives, so without this a reload would offer a pointless Retry. */
+    responseJsonCode?: number;
 
     /** The number of results */
     count?: number;
+
+    /** The number of matching reports across all pages, returned by the server for expense-report searches.
+     * Distinct from `count`, which is the number of expenses; used to label "Select all matching" on the Reports tab. */
+    reportCount?: number;
 
     /** The total spend */
     total?: number;
 
     /** The currency of the total spend */
     currency?: string;
+
+    /** The date from which violation snapshots are available for search */
+    violationSnapshotStartedAt?: string;
 };
 
 /** The action that can be performed for the transaction */
@@ -117,11 +133,8 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
-/** Model of member grouped search result */
-type SearchMemberGroup = {
-    /** Account ID */
-    accountID: number;
-
+/** Fields every grouped search result carries, whatever it is grouped by */
+type SearchGroupBase = {
     /** Number of transactions */
     count: number;
 
@@ -130,21 +143,24 @@ type SearchMemberGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
+
+    /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
+    pendingAction?: PendingAction;
+};
+
+/** Model of member grouped search result */
+type SearchMemberGroup = SearchGroupBase & {
+    /** Account ID */
+    accountID: number;
 };
 
 /** Model of card grouped search result */
-type SearchCardGroup = {
+type SearchCardGroup = SearchGroupBase & {
     /** Cardholder account ID */
     accountID: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 
     /** Bank name */
     bank: string;
@@ -163,23 +179,13 @@ type SearchCardGroup = {
 };
 
 /** Model of withdrawal ID grouped search result */
-type SearchWithdrawalIDGroup = {
+type SearchWithdrawalIDGroup = SearchGroupBase & {
     /** Withdrawal ID */
     entryID: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 
     /** Masked account number */
     accountNumber: string;
 
-    /** Bank name */
     bankName: BankName;
 
     /** When the withdrawal completed */
@@ -187,117 +193,84 @@ type SearchWithdrawalIDGroup = {
 
     /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
     state: number;
+
+    /** What the company was debited, when the settlement converted currencies */
+    debitedAmount?: number;
+
+    /** Currency the company was debited in */
+    debitedCurrency?: string;
+
+    /** What the employee was credited, when the settlement converted currencies */
+    creditedAmount?: number;
+
+    /** Currency the employee was credited in */
+    creditedCurrency?: string;
+
+    /** Workspace ID for the grouped settlement */
+    policyID?: string;
+
+    /** Expensify Card program for the grouped settlement */
+    feedCountry?: string;
+
+    /** The feed the settlement belongs to; absent when it spans more than one feed */
+    fundID?: number;
+
+    /** Whether the current user may export this settlement as a statement PDF (set by the backend, which applies the same admin authorization it uses to generate the PDF) */
+    canExportStatement?: boolean;
 };
 
 /** Model of category grouped search result */
-type SearchCategoryGroup = {
+type SearchCategoryGroup = SearchGroupBase & {
     /** Category name */
     category: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of merchant grouped search result */
-type SearchMerchantGroup = {
+type SearchMerchantGroup = SearchGroupBase & {
     /** Merchant name */
     merchant: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of tag grouped search result */
-type SearchTagGroup = {
+type SearchTagGroup = SearchGroupBase & {
     /** Tag name */
     tag: string;
+};
 
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
+/** Model of day grouped search result */
+type SearchDayGroup = SearchGroupBase & {
+    /** Date in YYYY-MM-DD format */
+    day: string;
 };
 
 /** Model of month grouped search result */
-type SearchMonthGroup = {
+type SearchMonthGroup = SearchGroupBase & {
     /** Year */
     year: number;
 
     /** Month (1-12) */
     month: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of week grouped search result */
-type SearchWeekGroup = {
+type SearchWeekGroup = SearchGroupBase & {
     /** Week start date in YYYY-MM-DD format */
     week: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of year grouped search result */
-type SearchYearGroup = {
+type SearchYearGroup = SearchGroupBase & {
     /** Year */
     year: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of quarter grouped search result */
-type SearchQuarterGroup = {
+type SearchQuarterGroup = SearchGroupBase & {
     /** Year */
     year: number;
 
     /** Quarter (1-4) */
     quarter: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** SearchResultDataType */
@@ -317,6 +290,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchCategoryGroup
         | SearchMerchantGroup
         | SearchTagGroup
+        | SearchDayGroup
         | SearchMonthGroup
         | SearchWeekGroup
         | SearchYearGroup
@@ -325,17 +299,14 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
 
 /** Model of search results */
 type SearchResults = {
-    /** Current search results state */
     search: SearchResultsInfo;
-
-    /** Search results data */
     data: SearchResultDataType;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
 
     /** Whether search data fetch has failed */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 };
 
 export default SearchResults;
@@ -347,12 +318,14 @@ export type {
     SearchDataTypes,
     SearchResultsInfo,
     SearchResultDataType,
+    SearchGroupBase,
     SearchMemberGroup,
     SearchCardGroup,
     SearchWithdrawalIDGroup,
     SearchCategoryGroup,
     SearchMerchantGroup,
     SearchTagGroup,
+    SearchDayGroup,
     SearchMonthGroup,
     SearchWeekGroup,
     SearchYearGroup,

@@ -22,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
+import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -44,7 +45,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [currentUserEmail = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
@@ -55,9 +56,8 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
     const shouldSendOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
     const [showNoPolicyError, setShowNoPolicyError] = useState(false);
 
-    const primaryLogin = account?.primaryLogin ?? '';
     // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
-    const signerEmail = !isProduction ? Str.replaceAll(primaryLogin, '+', '') : primaryLogin;
+    const signerEmail = !isProduction ? Str.replaceAll(currentUserEmail, '+', '') : currentUserEmail;
 
     const isSubmittingRef = useRef(false);
 

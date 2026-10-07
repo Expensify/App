@@ -1,11 +1,34 @@
-import checkFileExists from '@libs/fileDownload/checkFileExists';
+import {checkFileExistsWithReason} from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
 import type {Receipt} from '@src/types/onyx/Transaction';
 
+import RNFS from 'react-native-fs';
+
 import type PrepareRequestPayload from './types';
+
+async function getReceiptsFolderState(): Promise<{exists: boolean; entryCount?: number}> {
+    let folderPath: string;
+    try {
+        folderPath = getReceiptsUploadFolderPath();
+        if (!(await RNFS.exists(folderPath))) {
+            return {exists: false};
+        }
+    } catch {
+        return {exists: false};
+    }
+
+    try {
+        const entries = await RNFS.readDir(folderPath);
+        return {exists: true, entryCount: entries.length};
+    } catch {
+        return {exists: true};
+    }
+}
 
 /**
  * Prepares the request payload (body) for a given command and data.
@@ -24,16 +47,25 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
             }
 
             if (key === 'receipt') {
-                const {source, name, type, uri, receiptTraceId} = value as File & Pick<Receipt, 'receiptTraceId'>;
+                const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
+
                 if (source) {
-                    return checkFileExists(source).then((exists) => {
+                    // A bundled placeholder image (distance, per diem) is a require() asset id, so no file exists on disk.
+                    if (typeof source === 'number') {
+                        return Promise.resolve();
+                    }
+
+                    const localUri = ReceiptStorage.resolve(source) ?? source;
+
+                    return checkFileExistsWithReason(localUri).then(({exists, error}) => {
                         if (!exists) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
-                            logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name});
-                            return;
+                            return getReceiptsFolderState().then((receiptsFolder) => {
+                                logReceiptDropped({receiptTraceId, transactionID, command, source, localUri, fileName: name, statError: error, receiptsFolder});
+                            });
                         }
                         const receiptFormData = {
-                            uri,
+                            uri: localUri,
                             name,
                             type,
                         };

@@ -12,12 +12,15 @@ import ReportParticipantsTable from '@components/Tables/ReportParticipantsTable'
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useAllPersonalDetails, usePersonalDetail} from '@hooks/usePersonalDetails';
+import usePolicy from '@hooks/usePolicy';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -30,8 +33,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
+    canInviteMembersToReport,
     getReportPersonalDetailsParticipants,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
@@ -50,7 +54,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
+import {accountIDSelector} from '@src/selectors/Session';
 import type {PersonalDetails} from '@src/types/onyx';
 
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -72,6 +76,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -79,14 +84,15 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const tableRef = useRef<TableHandle<ReportParticipantRowData, ReportParticipantsTableColumnKey, string>>(null);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
-    const reportAttributes = useReportAttributes();
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const currentUserAccountID = Number(session?.accountID);
-    const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [personalDetails] = useAllPersonalDetails();
+    const isCurrentUserAdmin = currentUserAccountID !== undefined && isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
+    const policy = usePolicy(report?.policyID);
+    const shouldShowInviteButton = canInviteMembersToReport(report, policy, isReportArchived, currentUserAccountID);
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
 
@@ -104,8 +110,10 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
+    // Bulk member actions (remove, change role) only exist for group chats, so expense reports always render the invite button instead.
+    const shouldShowBulkActionsButton = isGroupChat && (isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0);
     const firstSelectedMember = selectedMembers?.at(0);
-    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
+    const [firstSelectedMemberDetails] = usePersonalDetail(firstSelectedMember);
 
     // The Table stores selection as string keys, while this page tracks accountIDs as numbers.
     const onRowSelectionChange = (keys: string[]) => setSelectedMembers(keys.map(Number));
@@ -148,7 +156,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (action === ModalActions.CONFIRM) {
@@ -177,7 +185,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             keyForList: `${accountID}`,
             accountID,
             login: details?.login ?? '',
-            name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+            name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
             email: formatPhoneNumber(details?.login ?? ''),
             isAdmin: role === CONST.REPORT.ROLE.ADMIN,
             isGroupChat,
@@ -198,6 +206,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
             icon: icons.RemoveMembers,
+            shouldSkipFocusRestore: true,
             onSelected: showRemoveMembersModal,
         },
     ];
@@ -227,6 +236,35 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             ? translate('common.members')
             : translate('common.details');
 
+    const reportParticipantsTableHeader = shouldShowInviteButton ? (
+        <View style={[pageGutter, styles.w100]}>
+            {shouldShowBulkActionsButton ? (
+                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    customText={translate('workspace.common.selected', {count: selectedMembers.length})}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    onPress={() => null}
+                    isSplitButton={false}
+                    options={bulkActionsButtonOptions}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                    isDisabled={!selectedMembers.length}
+                />
+            ) : (
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('workspace.invite.member')}</Button.Text>
+                </Button>
+            )}
+        </View>
+    ) : undefined;
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -247,40 +285,13 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                             navigateBackToReportDetails();
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(deprecatedGetReportName(report, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, derivedReportName))}
                 />
-                <View style={[styles.pl5, styles.pr5]}>
-                    {isGroupChat && (
-                        <View style={styles.w100}>
-                            {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
-                                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                    shouldAlwaysShowDropdownMenu
-                                    pressOnEnter
-                                    customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                                    size={CONST.BUTTON_SIZE.MEDIUM}
-                                    onPress={() => null}
-                                    isSplitButton={false}
-                                    options={bulkActionsButtonOptions}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                                    isDisabled={!selectedMembers.length}
-                                />
-                            ) : (
-                                <Button
-                                    success
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
-                                    text={translate('workspace.invite.member')}
-                                    icon={icons.Plus}
-                                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                                />
-                            )}
-                        </View>
-                    )}
-                </View>
+
                 <View style={[styles.w100, styles.flex1]}>
                     <ReportParticipantsTable
                         ref={tableRef}
+                        headerComponent={reportParticipantsTableHeader}
                         members={participants}
                         isGroupChat={isGroupChat}
                         selectionEnabled={isCurrentUserGroupChatAdmin}

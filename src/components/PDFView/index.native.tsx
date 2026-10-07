@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
 
 import CONST from '@src/CONST';
@@ -20,12 +19,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Keyboard, Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
 
 import type {PDFViewNativeProps} from './types';
 
+import isAllowedPDFLink from './isAllowedPDFLink';
 import PDFPasswordForm from './PDFPasswordForm';
 
 /**
@@ -63,16 +63,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const {insets} = useSafeAreaPaddings();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-
-    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
-        () => ({
-            context: 'PDFView',
-            shouldRequestPassword,
-            isPasswordInvalid,
-            shouldAttemptPDFLoad,
-        }),
-        [shouldRequestPassword, isPasswordInvalid, shouldAttemptPDFLoad],
-    );
 
     useEffect(() => {
         onToggleKeyboard?.(isKeyboardShown);
@@ -150,6 +140,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      */
     const handlePressLink = useCallback(
         (url: string) => {
+            if (!isAllowedPDFLink(url)) {
+                return;
+            }
+
             if (isTravelLink(url) && activePolicyID) {
                 const postLoginPath = getRelativeUrl(url);
                 openTravelDotLink(activePolicyID, postLoginPath);
@@ -189,12 +183,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                     <PDF
                         fitPolicy={0}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => (
-                            <LoadingIndicator
-                                style={loadingIndicatorStyles}
-                                reasonAttributes={reasonAttributes}
-                            />
-                        )}
+                        renderActivityIndicator={() => <LoadingIndicator style={loadingIndicatorStyles} />}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}

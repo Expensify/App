@@ -1,10 +1,9 @@
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type {MenuItemWithLink} from '@components/MenuItemList';
-import MenuItemList from '@components/MenuItemList';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -32,9 +31,6 @@ const CARD_LAYOUT = {
 } as const;
 
 type SectionProps = Partial<ChildrenProps> & {
-    /** An array of props that are passed to individual MenuItem components */
-    menuItems?: MenuItemWithLink[];
-
     /** The text to display in the title of the section */
     title?: string;
 
@@ -47,7 +43,6 @@ type SectionProps = Partial<ChildrenProps> & {
     /** Card layout that affects icon positioning, margins, sizes */
     cardLayout?: ValueOf<typeof CARD_LAYOUT>;
 
-    /** Whether the subtitle should have a muted style */
     subtitleMuted?: boolean;
 
     /** Customize the Section container */
@@ -65,10 +60,7 @@ type SectionProps = Partial<ChildrenProps> & {
     /** Customize the Section container */
     childrenStyles?: StyleProp<ViewStyle>;
 
-    /** Customize the Icon container */
     iconContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Customize the Central pane container */
     centralPaneContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether the section is in the central pane of the layout */
@@ -80,13 +72,8 @@ type SectionProps = Partial<ChildrenProps> & {
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
-    /** Customize the Illustration container */
     illustrationContainerStyle?: StyleProp<ViewStyle>;
-
-    /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
-
-    /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
 
     /** Overlay content to display on top of animation */
@@ -95,13 +82,8 @@ type SectionProps = Partial<ChildrenProps> & {
     /** The component to display in the title of the section */
     renderSubtitle?: () => ReactNode;
 
-    /** The component to display custom title */
     renderTitle?: () => ReactNode;
-
-    /** The width of the icon. */
     iconWidth?: number;
-
-    /** The height of the icon. */
     iconHeight?: number;
 
     /** Banner to display at the top of the section */
@@ -115,7 +97,6 @@ function Section({
     icon,
     cardLayout = CARD_LAYOUT.ICON_ON_RIGHT,
     iconContainerStyles,
-    menuItems,
     subtitle,
     subtitleStyles,
     subtitleTextStyles,
@@ -140,11 +121,12 @@ function Section({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding, pageGutterMargin, cardGapBottom} = useLayoutSpacing();
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     const lottieIllustration = isLottie ? illustration : undefined;
     return (
-        <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
+        <View style={[styles.pageWrapper, styles.cardSectionContainer, pageGutterMargin, cardGapBottom, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
             {banner}
             {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                 <IconSection
@@ -162,6 +144,7 @@ function Section({
                         styles.alignItemsCenter,
                         styles.justifyContentCenter,
                         StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG),
+                        styles.cardSectionIllustrationInset,
                         illustrationContainerStyle,
                     ]}
                 >
@@ -185,7 +168,7 @@ function Section({
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : (contentPaddingOnLargeScreens ?? styles.p8)), centralPaneContainerStyle]}>
+            <View style={[styles.w100, isCentralPane && (contentPaddingOnLargeScreens && !shouldUseNarrowLayout ? contentPaddingOnLargeScreens : cardPadding), centralPaneContainerStyle]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection
@@ -228,8 +211,6 @@ function Section({
                       )}
 
                 <View style={[styles.w100, childrenStyles]}>{children}</View>
-
-                <View style={[styles.w100]}>{!!menuItems && <MenuItemList menuItems={menuItems} />}</View>
             </View>
         </View>
     );

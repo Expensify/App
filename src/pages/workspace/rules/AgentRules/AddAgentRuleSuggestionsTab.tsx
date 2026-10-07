@@ -4,7 +4,7 @@
  */
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -12,6 +12,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,7 +21,7 @@ import useSuggestedAgentRules from '@hooks/useSuggestedAgentRules';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getSuggestedAgentRuleIcon, SUGGESTED_AGENT_RULE_ICON_NAMES} from '@libs/PolicyRulesUtils';
+import {groupSuggestedAgentRulesByCategory} from '@libs/AgentRulesUtils';
 
 import variables from '@styles/variables';
 
@@ -35,20 +37,43 @@ type AddAgentRuleSuggestionsTabProps = {
 };
 
 function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestionsTabProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldMoveFooterToScrollView = isInLandscapeMode && isKeyboardActive;
+
     const {data, isLoading} = useSuggestedAgentRules();
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
-    const icons = useMemoizedLazyExpensifyIcons([...SUGGESTED_AGENT_RULE_ICON_NAMES]);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const [searchValue, setSearchValue] = useState('');
     const [selectedSuggestionID, setSelectedSuggestionID] = useState<string | undefined>();
+    const [collapsedCategories, setCollapsedCategories] = useState<string[]>([]);
+
+    const updateSearchValue = (value: string) => {
+        setSearchValue(value);
+
+        // Expand all sections when the search changes. A collapsed section would otherwise hide the rules that match.
+        setCollapsedCategories([]);
+    };
+
+    const toggleCategory = (category: string) => {
+        setCollapsedCategories((currentCategories) =>
+            currentCategories.includes(category) ? currentCategories.filter((collapsedCategory) => collapsedCategory !== category) : [...currentCategories, category],
+        );
+    };
 
     const trimmedSearch = searchValue.trim().toLowerCase();
     const filteredSuggestions = !trimmedSearch
         ? data
-        : data.filter((suggestion) => suggestion.title?.toLowerCase().includes(trimmedSearch) || suggestion.prompt?.toLowerCase().includes(trimmedSearch));
+        : data.filter(
+              (suggestion) =>
+                  suggestion.title?.toLowerCase().includes(trimmedSearch) ||
+                  suggestion.prompt?.toLowerCase().includes(trimmedSearch) ||
+                  !!suggestion.category?.toLowerCase().includes(trimmedSearch),
+          );
 
     const selectedSuggestion = filteredSuggestions.find((suggestion) => suggestion.id === selectedSuggestionID);
     const hasNoSuggestions = data.length === 0;
@@ -65,10 +90,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     if (shouldShowLoadingIndicator) {
         return (
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'AddAgentRuleSuggestionsTab'}}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }
@@ -88,6 +110,18 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     }
 
     const hasNoFilteredSuggestions = filteredSuggestions.length === 0;
+    const suggestionSections = groupSuggestedAgentRulesByCategory(filteredSuggestions, localeCompare);
+
+    const button = (
+        <Button
+            variant="success"
+            size={CONST.BUTTON_SIZE.LARGE}
+            onPress={goToEditWithSelection}
+            isDisabled={!selectedSuggestion}
+        >
+            <Button.Text>{translate('common.next')}</Button.Text>
+        </Button>
+    );
 
     return (
         <View style={styles.flex1}>
@@ -96,14 +130,15 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                     label={translate('workspace.rules.agentRules.findSuggestion')}
                     accessibilityLabel={translate('workspace.rules.agentRules.findSuggestion')}
                     value={searchValue}
-                    onChangeText={setSearchValue}
+                    onChangeText={updateSearchValue}
+                    shouldHideClearButton={false}
                     autoGrowHeight={false}
                     role={CONST.ROLE.SEARCHBOX}
                 />
             </View>
             <ScrollView
                 style={styles.flex1}
-                contentContainerStyle={[styles.pb5, styles.gap2]}
+                contentContainerStyle={[styles.pb5, styles.gap3]}
                 keyboardShouldPersistTaps="handled"
             >
                 {hasNoFilteredSuggestions ? (
@@ -111,53 +146,67 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                         <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{translate('common.noResultsFound')}</Text>
                     </View>
                 ) : (
-                    filteredSuggestions.map((suggestion) => {
-                        const iconName = getSuggestedAgentRuleIcon(suggestion);
-                        const isSelected = suggestion.id === selectedSuggestionID;
-                        const suggestionLabel = suggestion.prompt ?? suggestion.title ?? '';
+                    suggestionSections.map((section) => {
+                        const isCollapsed = collapsedCategories.includes(section.category);
                         return (
-                            <PressableWithFeedback
-                                key={suggestion.id}
-                                accessibilityLabel={suggestionLabel}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityState={{selected: isSelected}}
-                                onPress={() => setSelectedSuggestionID(suggestion.id)}
-                                wrapperStyle={[styles.mh5]}
-                                style={[
-                                    styles.flexRow,
-                                    styles.alignItemsCenter,
-                                    styles.ph5,
-                                    styles.pv5,
-                                    styles.highlightBG,
-                                    styles.borderRadiusComponentNormal,
-                                    isSelected && styles.activeComponentBG,
-                                ]}
-                                hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SUGGESTED_AGENT_RULE}
+                            <View
+                                key={section.category}
+                                style={styles.gap2}
                             >
-                                <Icon
-                                    src={icons[iconName]}
-                                    width={variables.iconSizeLarge}
-                                    height={variables.iconSizeLarge}
-                                    fill={theme.icon}
-                                    additionalStyles={[styles.mr4]}
-                                />
-                                <Text style={[styles.flex1, styles.textNormal, styles.lh20]}>{suggestionLabel}</Text>
-                            </PressableWithFeedback>
+                                {!!section.category && (
+                                    <PressableWithFeedback
+                                        onPress={() => toggleCategory(section.category)}
+                                        style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pv2]}
+                                        role={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={section.category}
+                                        accessibilityState={{expanded: !isCollapsed}}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SUGGESTED_AGENT_RULE_CATEGORY}
+                                        hoverDimmingValue={1}
+                                        pressDimmingValue={0.2}
+                                    >
+                                        <Text
+                                            role={CONST.ROLE.HEADING}
+                                            style={[styles.flex1, styles.textLabelSupporting]}
+                                        >
+                                            {section.category}
+                                        </Text>
+                                        <Icon
+                                            src={isCollapsed ? icons.DownArrow : icons.UpArrow}
+                                            fill={theme.icon}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                        />
+                                    </PressableWithFeedback>
+                                )}
+                                {!isCollapsed &&
+                                    section.suggestions.map((suggestion) => {
+                                        const isSelected = suggestion.id === selectedSuggestionID;
+                                        return (
+                                            <PressableWithFeedback
+                                                key={suggestion.id}
+                                                accessibilityLabel={`${suggestion.title}, ${suggestion.prompt}`}
+                                                accessibilityRole={CONST.ROLE.BUTTON}
+                                                accessibilityState={{selected: isSelected}}
+                                                onPress={() => setSelectedSuggestionID(suggestion.id)}
+                                                wrapperStyle={[styles.mh5]}
+                                                style={[styles.gap1, styles.ph5, styles.pv5, styles.highlightBG, styles.borderRadiusComponentNormal, isSelected && styles.activeComponentBG]}
+                                                hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SUGGESTED_AGENT_RULE}
+                                            >
+                                                <Text style={[styles.textStrong, styles.lh20]}>{suggestion.title}</Text>
+                                                <Text style={[styles.textSupporting, styles.lh20]}>{suggestion.prompt}</Text>
+                                            </PressableWithFeedback>
+                                        );
+                                    })}
+                            </View>
                         );
                     })
                 )}
+
+                {shouldMoveFooterToScrollView && button}
             </ScrollView>
-            <FixedFooter style={styles.pt5}>
-                <Button
-                    variant="success"
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={goToEditWithSelection}
-                    isDisabled={!selectedSuggestion}
-                >
-                    <Button.Text>{translate('common.next')}</Button.Text>
-                </Button>
-            </FixedFooter>
+
+            {!shouldMoveFooterToScrollView && <FixedFooter style={styles.pt5}>{button}</FixedFooter>}
         </View>
     );
 }

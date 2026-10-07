@@ -9,6 +9,7 @@ import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPop
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 
 import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
+import type * as MoneyRequestReportUtils from '@libs/MoneyRequestReportUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {
     getNextApproverAccountID,
@@ -77,6 +78,7 @@ jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         isBetaEnabled: (beta: string) => beta === 'bulkSubmitApprovePay',
+        isBetaEnabledOrUnknown: (beta: string) => beta === 'bulkSubmitApprovePay',
     })),
 }));
 
@@ -135,6 +137,9 @@ function mockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean; is
         handleSubmitReport: mockLifecycleHandleSubmitReport,
         shouldBlockSubmit: overrides?.shouldBlockSubmit ?? false,
         isBlockSubmitDueToPreventSelfApproval: overrides?.isBlockSubmitDueToPreventSelfApproval ?? false,
+        approveSubMenuItems: undefined,
+        approveSubMenuHeaderText: '',
+        shouldShowApproveSubMenu: false,
     };
 }
 
@@ -144,20 +149,20 @@ jest.mock('@hooks/useLifecycleActions', () => ({
 }));
 
 const mockConfirmPayment = jest.fn();
-const mockShouldBlockAction = jest.fn(() => false);
+const mockRunPaymentAction = jest.fn();
 const mockOnSelectionModePaymentSelect = jest.fn();
 const mockSelectionModeKYCSuccess = jest.fn();
+const mockHandleWorkspaceSelected = jest.fn();
 
 jest.mock('@hooks/useSelectionModePayment', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         confirmPayment: mockConfirmPayment,
-        shouldBlockAction: mockShouldBlockAction,
+        runPaymentAction: mockRunPaymentAction,
         onSelectionModePaymentSelect: mockOnSelectionModePaymentSelect,
         selectionModeKYCSuccess: mockSelectionModeKYCSuccess,
         paymentSubMenuItems: [],
-        workspacePolicyOptions: [],
-        handleWorkspaceSelected: jest.fn(),
+        handleWorkspaceSelected: mockHandleWorkspaceSelected,
         hasPayInSelectionMode: false,
         hasActualPaymentOptions: false,
         isAnyTransactionOnHold: false,
@@ -288,6 +293,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 }));
 
 jest.mock('@libs/MoneyRequestReportUtils', () => ({
+    ...jest.requireActual<typeof MoneyRequestReportUtils>('@libs/MoneyRequestReportUtils'),
     __esModule: true,
     getTotalAmountForIOUReportPreviewButton: jest.fn(() => '$100.00'),
 }));
@@ -305,6 +311,7 @@ jest.mock('@libs/TransactionUtils', () => ({
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),
+    isTransactionPendingDelete: jest.fn(() => false),
 }));
 
 jest.mock('@userActions/Transaction', () => ({
@@ -438,6 +445,20 @@ describe('useSelectionModeReportActions', () => {
             });
 
             expect(result.current.allExpensesSelected).toBe(false);
+        });
+
+        it('returns true when Select All has written every row it can, leaving only an expense the backend refused to reject', () => {
+            // Given a report whose third expense carries a refused reject, which keeps it on the report until the user dismisses it
+            const transactions = [buildTransaction(1), buildTransaction(2), buildTransaction(3, {errorFields: {reject: {1700000000000: 'iou.rejectReport.couldNotRejectExpense'}}})];
+
+            // When Select All writes the two rows a checkbox can reach
+            const {result} = renderSelectionModeHook({
+                transactions,
+                selectedTransactionIDs: ['1', '2'],
+            });
+
+            // Then the report counts as covered, or Submit, Approve and Pay stay hidden for as long as that error stands
+            expect(result.current.allExpensesSelected).toBe(true);
         });
 
         it('returns false when no transactions are selected', () => {
@@ -653,10 +674,10 @@ describe('useSelectionModeReportActions', () => {
         });
     });
 
-    describe('shouldBlockAction guards', () => {
-        it('exposes shouldBlockAction from useSelectionModePayment', () => {
+    describe('handleWorkspaceSelected', () => {
+        it('exposes handleWorkspaceSelected from useSelectionModePayment', () => {
             const {result} = renderSelectionModeHook();
-            expect(result.current.shouldBlockAction).toBe(mockShouldBlockAction);
+            expect(result.current.handleWorkspaceSelected).toBe(mockHandleWorkspaceSelected);
         });
     });
 

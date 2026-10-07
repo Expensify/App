@@ -1,47 +1,56 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import React from 'react';
 
+import type {UseSearchFiltersBarResult} from './useSearchFiltersBar';
+
 import SearchFilterBar from './SearchFilterBar';
-import SearchFiltersClearButton from './SearchFiltersClearButton';
+import SearchFiltersActionButtons from './SearchFiltersActionButtons';
 import useSearchFiltersBar from './useSearchFiltersBar';
+
+type SearchFiltersBarWideContentProps = {
+    hasErrors: boolean;
+    shouldShowFiltersBarLoading: boolean;
+    filters: UseSearchFiltersBarResult['filters'];
+};
 
 type SearchFiltersBarWideProps = {
     queryJSON: SearchQueryJSON;
 };
 
-function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
-    const {filters, hasErrors, shouldShowFiltersBarLoading, clearFilters} = useSearchFiltersBar(queryJSON);
-
+function SearchFiltersBarWideContent({hasErrors, shouldShowFiltersBarLoading, filters}: SearchFiltersBarWideContentProps) {
     if (hasErrors) {
         return null;
     }
 
     if (shouldShowFiltersBarLoading) {
-        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'SearchFiltersBarWide',
-            shouldShowFiltersBarLoading,
-        };
-        return (
-            <SearchFiltersSkeleton
-                shouldAnimate
-                reasonAttributes={skeletonReasonAttributes}
-            />
-        );
+        return <SearchFiltersSkeleton shouldAnimate />;
     }
+
+    return filters.map((item) => (
+        <SearchFilterBar
+            key={item.key}
+            item={item}
+        />
+    ));
+}
+
+function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
+    const {filters, hasErrors, shouldShowFiltersBarLoading, canReset, canSave, resetFilters} = useSearchFiltersBar(queryJSON);
 
     return (
         <>
-            {filters.map((item) => (
-                <SearchFilterBar
-                    key={item.key}
-                    item={item}
-                />
-            ))}
-            {filters.length > 0 && <SearchFiltersClearButton onPress={clearFilters} />}
+            <SearchFiltersBarWideContent
+                hasErrors={hasErrors}
+                shouldShowFiltersBarLoading={shouldShowFiltersBarLoading}
+                filters={filters}
+            />
+            <SearchFiltersActionButtons
+                canReset={canReset}
+                canSave={canSave}
+                resetFilters={resetFilters}
+            />
         </>
     );
 }

@@ -1,12 +1,15 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
+import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -15,6 +18,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -25,7 +29,7 @@ type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customFie
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
-    role?: string;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
     name: string;
@@ -38,6 +42,8 @@ type WorkspaceMemberRowData = TableData & {
     invitedSecondaryLogin: string;
     action: () => void;
     dismissError: () => void;
+    canEditRole?: boolean;
+    onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 };
 
 type WorkspaceMembersTableProps = {
@@ -49,6 +55,7 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
@@ -71,16 +78,27 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField2Column,
     members,
     onRowSelectionChange,
+    headerComponent,
 }: WorkspaceMembersTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey>> = [
+    const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
         {
             key: 'member',
             label: translate('common.member'),
             sortable: true,
+            dynamicSizing: {
+                // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
+                // column's width.
+                getContentToMeasure: (item) => [
+                    {text: item.name, fontSize: fontScale.text},
+                    {text: item.email, fontSize: fontScale.label},
+                ],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+            },
         },
 
         ...(shouldShowCustomField1Column
@@ -89,6 +107,9 @@ export default function WorkspaceMembersTable({
                       sortable: true,
                       key: 'customField1' as const,
                       label: translate('workspace.common.customField1'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeeUserID ? [{text: item.employeeUserID, fontSize: fontScale.text}] : []),
+                      },
                   },
               ]
             : []),
@@ -98,6 +119,9 @@ export default function WorkspaceMembersTable({
                       sortable: true,
                       key: 'customField2' as const,
                       label: translate('workspace.common.customField2'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeePayrollID ? [{text: item.employeePayrollID, fontSize: fontScale.text}] : []),
+                      },
                   },
               ]
             : []),
@@ -105,7 +129,15 @@ export default function WorkspaceMembersTable({
             key: 'role',
             label: translate('common.role'),
             sortable: true,
-            width: variables.workspaceMembersRoleColumnWidth,
+            styling: {
+                // editableCellHeader matches the padded role cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
+                // A role is one of a short, known set of labels, so the column always shows them in full.
+                shouldFitContent: true,
+            },
         },
         {
             label: '',
@@ -124,75 +156,16 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'role') {
-            if (!item1.role && !item2.role) {
-                return memberNameComparison;
-            }
-
-            if (!item1.role) {
-                return 1;
-            }
-
-            if (!item2.role) {
-                return -1;
-            }
-
-            const roleComparison = localeCompare(translate('workspace.common.roleName', item1.role), translate('workspace.common.roleName', item2.role));
-
-            if (roleComparison !== 0) {
-                return roleComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            const compareRoleNames = (role1: string, role2: string) => localeCompare(translate('workspace.common.roleName', role1), translate('workspace.common.roleName', role2));
+            return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField1') {
-            const item1CustomField1Value = item1.employeeUserID;
-            const item2CustomField1Value = item2.employeeUserID;
-
-            if (!item1CustomField1Value && !item2CustomField1Value) {
-                return memberNameComparison;
-            }
-
-            if (!item1CustomField1Value) {
-                return 1;
-            }
-
-            if (!item2CustomField1Value) {
-                return -1;
-            }
-
-            const employeeIdComparison = localeCompare(item1CustomField1Value, item2CustomField1Value);
-
-            if (employeeIdComparison !== 0) {
-                return employeeIdComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            return compareOptionalValues(item1.employeeUserID, item2.employeeUserID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField2') {
-            const item1CustomField2Value = item1.employeePayrollID;
-            const item2CustomField2Value = item2.employeePayrollID;
-
-            if (!item1CustomField2Value && !item2CustomField2Value) {
-                return memberNameComparison;
-            }
-
-            if (!item1CustomField2Value) {
-                return 1;
-            }
-
-            if (!item2CustomField2Value) {
-                return -1;
-            }
-
-            const payrollIdComparison = localeCompare(item1CustomField2Value, item2CustomField2Value);
-
-            if (payrollIdComparison !== 0) {
-                return payrollIdComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            return compareOptionalValues(item1.employeePayrollID, item2.employeePayrollID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         return 1;
@@ -202,6 +175,8 @@ export default function WorkspaceMembersTable({
         const results = tokenizedSearch([item], searchValue, (option) => [option.name, option.email, option.login]);
         return results.length > 0;
     };
+
+    const approverLogins = getPolicyApproverLogins(policy);
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceMemberRowData> = (item, filterValues) => {
         if (!filterValues || filterValues.length === 0) {
@@ -213,8 +188,7 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
-        const isApprover = isPolicyApprover(policy, item.login);
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && isApprover) {
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && approverLogins.has(item.login)) {
             return true;
         }
 
@@ -310,12 +284,15 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                policy={policy}
             />
         );
     };
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.people.findMember')} />);
 
     return (
         <Table
+            shouldUseDynamicColumns
             ref={ref}
             data={members}
             filters={filterConfig}
@@ -331,7 +308,7 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.people.findMember')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

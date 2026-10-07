@@ -1,11 +1,12 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {DeleteMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayStringEnLocale} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLastVisibleAction, getLastVisibleMessage, getReportActionMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -15,14 +16,21 @@ import {
     getReimbursableTotal,
     getReportTransactions,
     getUnheldReimbursableTotal,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOutstandingChildRequest,
     isArchivedReport,
     isExpenseReport,
+    isInvoiceReport,
     isReportTotalPending,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
-import {getAmount, getCurrency, isOnHold, removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
+import {
+    getAmount,
+    getCurrency,
+    hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils,
+    isOnHold,
+    removeTransactionFromDuplicateTransactionViolation,
+} from '@libs/TransactionUtils';
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -40,8 +48,9 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
-import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
-import {getReportPreviewAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
+import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactions, getAllTransactionViolations} from '.';
+import {getReportPreviewReportAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
+import {getGroupPendingDeleteOnyxUpdate} from './SearchUpdate';
 
 type PrepareToCleanUpMoneyRequestResult = {
     shouldDeleteTransactionThread: boolean;
@@ -60,35 +69,60 @@ type PrepareToCleanUpMoneyRequestResult = {
 
 type DeleteMoneyRequestFunctionParams = {
     transactionID: string | undefined;
-    reportAction: OnyxTypes.ReportAction;
+    reportAction: OnyxTypes.ReportAction | undefined;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatIOUReportArchived?: boolean | undefined;
     isSingleTransactionView?: boolean;
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
+    /** The grouped-search snapshot hash the delete was fired from. */
+    searchHash?: number;
+
+    /** The group row this transaction belongs to when the delete wipes that group out entirely. */
+    fullyDeletedGroupKey?: SearchGroupKey;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+};
+
+type PrepareToCleanUpMoneyRequestParams = {
+    transactionID: string;
+    reportAction: OnyxTypes.ReportAction | undefined;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions?: OnyxTypes.Transaction[];
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    isChatReportArchived: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    shouldRemoveIOUTransactionID?: boolean;
+    transactionIDsPendingDeletion?: string[];
+    selectedTransactionIDs?: string[];
     policy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 /** Builds the Onyx surface a delete needs to touch: updated report + preview action, thread/report deletion flags, sticky-total marker. */
-function prepareToCleanUpMoneyRequest(
-    transactionID: string,
-    reportAction: OnyxTypes.ReportAction,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    isChatReportArchived: boolean | undefined,
+function prepareToCleanUpMoneyRequest({
+    transactionID,
+    reportAction,
+    transactionThreadReport,
+    iouReport,
+    iouReportTransactions = [],
+    chatReport,
+    isChatReportArchived,
+    getCurrencyDecimals,
     shouldRemoveIOUTransactionID = true,
-    transactionIDsPendingDeletion?: string[],
-    selectedTransactionIDs?: string[],
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-): PrepareToCleanUpMoneyRequestResult {
+    transactionIDsPendingDeletion,
+    selectedTransactionIDs,
+    policy,
+}: PrepareToCleanUpMoneyRequestParams): PrepareToCleanUpMoneyRequestResult {
     const allTransactions = getAllTransactions();
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -97,7 +131,7 @@ function prepareToCleanUpMoneyRequest(
 
     // STEP 1: Get all collections we're updating
     const iouReportID = iouReport?.reportID;
-    const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
+    const reportPreviewAction = getReportPreviewReportAction(iouReport?.chatReportID, iouReport?.reportID);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTransactionOnHold = isOnHold(transaction);
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -110,25 +144,29 @@ function prepareToCleanUpMoneyRequest(
     const shouldDeleteTransactionThread = !!transactionThreadReport?.reportID;
 
     // STEP 3: Update the IOU reportAction and decide if the iouReport should be deleted. We delete the iouReport if there are no visible comments left in the report.
-    const updatedReportAction = {
-        [reportAction.reportActionID]: {
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            previousMessage: reportAction.message,
-            message: [
-                {
-                    type: 'COMMENT',
-                    html: '',
-                    text: '',
-                    isEdited: true,
-                    isDeletedParentAction: shouldDeleteTransactionThread,
-                },
-            ],
-            originalMessage: {
-                IOUTransactionID: shouldRemoveIOUTransactionID ? null : transactionID,
-            },
-            errors: null,
-        },
-    } as Record<string, NullishDeep<OnyxTypes.ReportAction>>;
+    const updatedReportAction = (
+        reportAction
+            ? {
+                  [reportAction.reportActionID]: {
+                      pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      previousMessage: reportAction.message,
+                      message: [
+                          {
+                              type: 'COMMENT',
+                              html: '',
+                              text: '',
+                              isEdited: true,
+                              isDeletedParentAction: shouldDeleteTransactionThread,
+                          },
+                      ],
+                      originalMessage: {
+                          IOUTransactionID: shouldRemoveIOUTransactionID ? null : transactionID,
+                      },
+                      errors: null,
+                  },
+              }
+            : {}
+    ) as Record<string, NullishDeep<OnyxTypes.ReportAction>>;
 
     let canUserPerformWriteAction = true;
     if (chatReport) {
@@ -141,7 +179,7 @@ function prepareToCleanUpMoneyRequest(
     if (shouldDeleteIOUReport) {
         for (const [reportActionID, reportActionData] of Object.entries(iouReportActions ?? {})) {
             if (
-                reportAction.reportActionID === reportActionID ||
+                reportAction?.reportActionID === reportActionID ||
                 reportActionData.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                 reportActionData.actionName === 'CREATED' ||
                 !reportActionData.message ||
@@ -152,7 +190,7 @@ function prepareToCleanUpMoneyRequest(
 
             updatedReportAction[reportActionID] = {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                previousMessage: reportAction.message,
+                previousMessage: reportAction?.message,
                 message: [
                     {
                         type: 'COMMENT',
@@ -174,7 +212,9 @@ function prepareToCleanUpMoneyRequest(
     const transactionPendingDelete = transactionIDsPendingDeletion?.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const selectedTransactions = selectedTransactionIDs?.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const canEditTotal = !selectedTransactions?.some((trans) => getCurrency(trans) !== iouReport?.currency);
-    const isExpenseReportType = isExpenseReport(iouReport);
+    // Invoice reports store their totals expense-style (see MoneyRequestBuilder/UpdateMoneyRequest), so they must take
+    // the same sign math as expense reports here; otherwise the optimistic invoice total/preview would use IOU-style signs.
+    const isExpenseReportType = isExpenseReport(iouReport) || isInvoiceReport(iouReport);
     const amountDiff = getAmount(transaction, isExpenseReportType) + (transactionPendingDelete?.reduce((prev, curr) => prev + getAmount(curr, isExpenseReportType), 0) ?? 0);
     const unheldAmountDiff =
         getAmount(transaction, isExpenseReportType) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) ? getAmount(curr, isExpenseReportType) : 0), 0) ?? 0);
@@ -228,16 +268,9 @@ function prepareToCleanUpMoneyRequest(
     } else if (iouReport && !canEditTotal) {
         updatedIOUReport = {...iouReport};
     } else {
-        updatedIOUReport = updateIOUOwnerAndTotal(
-            iouReport,
-            reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
-            amountDiff,
-            currency,
-            true,
-            false,
-            isTransactionOnHold,
-            unheldAmountDiff,
-        );
+        // Without an IOU action, treat the report owner as the requester
+        const actorAccountID = reportAction ? reportAction.actorAccountID : iouReport?.ownerAccountID;
+        updatedIOUReport = updateIOUOwnerAndTotal(iouReport, actorAccountID ?? CONST.DEFAULT_NUMBER_ID, amountDiff, currency, true, false, isTransactionOnHold, unheldAmountDiff);
         // Match `updateIOUOwnerAndTotal`'s early-return guard so future refactors of that helper don't silently flip this flag.
         didUpdateOptimisticTotal = !!iouReport && currency === iouReport.currency;
     }
@@ -258,19 +291,20 @@ function prepareToCleanUpMoneyRequest(
                     overlay[priorTxn.transactionID] = {...priorTxn, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
                 }
             }
-            updatedIOUReport = maybeUpdateReportNameForFormulaTitle(updatedIOUReport, policy, overlay);
+            updatedIOUReport = maybeUpdateReportNameForFormulaTitle(updatedIOUReport, policy, getCurrencyDecimals, overlay);
         }
     }
 
     const isTotalIndeterminate = wasAlreadyIndeterminate || !didUpdateOptimisticTotal;
 
-    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(iouReportTransactions);
     const previewAmount = getReimbursableTotal(updatedIOUReport) + (updatedIOUReport?.nonReimbursableTotal ?? 0);
-    const messageText = Localize.translateLocal(
-        hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount',
-        convertToDisplayString(previewAmount, updatedIOUReport?.currency),
-        getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '',
-    );
+    // This message is stored on the report preview action, so it is built with hardcoded English strings
+    // and en-locale amount formatting regardless of the viewer's locale (same convention as
+    // getReportPreviewReportActionMessage). Keep in sync with iou.payerSpentAmount / iou.payerOwesAmount in en.ts.
+    const formattedPreviewAmount = convertToDisplayStringEnLocale(previewAmount, updatedIOUReport?.currency, getCurrencyDecimals);
+    const payerText = getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '';
+    const messageText = hasNonReimbursableTransactions ? `${payerText} spent ${formattedPreviewAmount}` : `${payerText} owes ${formattedPreviewAmount}`;
 
     if (getReportActionMessage(updatedReportPreviewAction)) {
         if (Array.isArray(updatedReportPreviewAction?.message)) {
@@ -315,24 +349,26 @@ function prepareToCleanUpMoneyRequest(
  */
 function getNavigationUrlOnMoneyRequestDelete(
     transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
+    reportAction: OnyxTypes.ReportAction | undefined,
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     isSingleTransactionView = false,
 ): Route | undefined {
     if (!transactionID) {
         return undefined;
     }
-    const {shouldDeleteTransactionThread, shouldDeleteIOUReport} = prepareToCleanUpMoneyRequest(
+    const {shouldDeleteTransactionThread, shouldDeleteIOUReport} = prepareToCleanUpMoneyRequest({
         transactionID,
         reportAction,
         transactionThreadReport,
         iouReport,
         chatReport,
         isChatReportArchived,
-    );
+        getCurrencyDecimals,
+    });
 
     // Determine which report to navigate back to
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
@@ -361,20 +397,50 @@ function getNavigationUrlOnMoneyRequestDelete(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function cleanUpMoneyRequest(
-    transactionID: string,
-    reportAction: OnyxTypes.ReportAction,
-    reportID: string,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    isChatIOUReportArchived: boolean | undefined,
-    originalReportID: string | undefined,
+type CleanUpMoneyRequestParams = {
+    transactionID: string;
+    reportAction: OnyxTypes.ReportAction;
+    reportID: string;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    isChatIOUReportArchived: boolean | undefined;
+    originalReportID: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    isOffline: boolean;
+    isSingleTransactionView?: boolean;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+};
+
+function cleanUpMoneyRequest({
+    transactionID,
+    reportAction,
+    reportID,
+    transactionThreadReport,
+    iouReport,
+    iouReportTransactions,
+    chatReport,
+    isChatIOUReportArchived,
+    originalReportID,
+    getCurrencyDecimals,
+    isOffline,
     isSingleTransactionView = false,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-) {
+    policy,
+}: CleanUpMoneyRequestParams) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
-        prepareToCleanUpMoneyRequest(transactionID, reportAction, transactionThreadReport, iouReport, chatReport, isChatIOUReportArchived, false, undefined, undefined, policy);
+        prepareToCleanUpMoneyRequest({
+            transactionID,
+            reportAction,
+            transactionThreadReport,
+            iouReport,
+            iouReportTransactions,
+            chatReport,
+            isChatReportArchived: isChatIOUReportArchived,
+            getCurrencyDecimals,
+            shouldRemoveIOUTransactionID: false,
+            policy,
+        });
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
         transactionID,
@@ -383,6 +449,7 @@ function cleanUpMoneyRequest(
         iouReport,
         chatReport,
         isChatIOUReportArchived,
+        getCurrencyDecimals,
         isSingleTransactionView,
     );
     // build Onyx data
@@ -540,7 +607,7 @@ function cleanUpMoneyRequest(
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
+        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID, isOffline);
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -548,7 +615,7 @@ function cleanUpMoneyRequest(
         Navigation.goBack(urlToNavigateBack, {
             afterTransition: () => {
                 if (shouldDeleteIOUReport) {
-                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
+                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID, isOffline);
                 }
                 Onyx.update(onyxUpdates);
             },
@@ -570,17 +637,33 @@ function getCleanUpTransactionThreadReportOnyxData({
     updatedReportPreviewAction,
     shouldAddUpdatedReportPreviewActionToOnyxData = true,
     currentUserAccountID,
+    transactionThread: transactionThreadParam,
+    iouReport,
+    chatReport,
+    transactionThreadReportActionsParam,
 }: {
     transactionThreadID?: string;
     shouldDeleteTransactionThread: boolean;
-    reportAction?: ReportAction;
     isChatIOUReportArchived?: boolean;
     updatedReportPreviewAction?: ReportAction;
     shouldAddUpdatedReportPreviewActionToOnyxData?: boolean;
     currentUserAccountID: number;
-}) {
-    const allReports = getAllReports();
-    const allReportActions = getAllReportActionsFromIOU();
+    transactionThread?: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReportActionsParam?: OnyxEntry<OnyxTypes.ReportActions>;
+} &
+    // IouReport and chatReport is required when reportAction is passed. As reportAction can be optional, this union gives better type check
+    (
+        | {
+              reportAction: ReportAction;
+              iouReport: OnyxEntry<OnyxTypes.Report>;
+              chatReport: OnyxEntry<OnyxTypes.Report>;
+          }
+        | {
+              reportAction?: undefined;
+              iouReport?: OnyxEntry<OnyxTypes.Report>;
+              chatReport?: OnyxEntry<OnyxTypes.Report>;
+          }
+    )) {
     const allReportNameValuePairs = getAllReportNameValuePairs();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -591,8 +674,8 @@ function getCleanUpTransactionThreadReportOnyxData({
         let transactionThread = null;
         let transactionThreadReportActions = null;
         if (transactionThreadID) {
-            transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
-            transactionThreadReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`] ?? null;
+            transactionThread = transactionThreadParam ?? null;
+            transactionThreadReportActions = transactionThreadReportActionsParam ?? null;
         }
 
         optimisticData.push(
@@ -641,9 +724,7 @@ function getCleanUpTransactionThreadReportOnyxData({
 
     // Update the child comment visible count for reportPreviewAction.
     const iouReportID = isMoneyRequestAction(reportAction) ? reportAction?.reportID : undefined;
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
-    const originalReportPreviewAction = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID) ?? undefined;
+    const originalReportPreviewAction = getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID) ?? undefined;
     let reportPreviewAction = updatedReportPreviewAction ?? originalReportPreviewAction;
     if (
         originalReportPreviewAction?.reportActionID &&
@@ -728,15 +809,20 @@ function deleteMoneyRequest({
     transactionThreadReport,
     violations,
     iouReport,
+    iouReportTransactions,
     chatReport,
     isChatIOUReportArchived,
     isSingleTransactionView = false,
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
+    searchHash,
+    fullyDeletedGroupKey,
     allTransactionViolationsParam,
     currentUserAccountID,
     currentUserEmail,
+    transactionThreadReportActions,
     policy,
+    getCurrencyDecimals,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -755,18 +841,20 @@ function deleteMoneyRequest({
         reportPreviewAction,
         iouReportActions,
         isTotalIndeterminate,
-    } = prepareToCleanUpMoneyRequest(
+    } = prepareToCleanUpMoneyRequest({
         transactionID,
         reportAction,
         transactionThreadReport,
         iouReport,
+        iouReportTransactions,
         chatReport,
-        isChatIOUReportArchived,
-        false,
+        isChatReportArchived: isChatIOUReportArchived,
+        getCurrencyDecimals,
+        shouldRemoveIOUTransactionID: false,
         transactionIDsPendingDeletion,
         selectedTransactionIDs,
         policy,
-    );
+    });
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
         transactionID,
@@ -775,13 +863,20 @@ function deleteMoneyRequest({
         iouReport,
         chatReport,
         isChatIOUReportArchived,
+        getCurrencyDecimals,
         isSingleTransactionView,
     );
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -797,7 +892,13 @@ function deleteMoneyRequest({
     });
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -888,6 +989,10 @@ function deleteMoneyRequest({
         reportAction,
         isChatIOUReportArchived,
         currentUserAccountID,
+        transactionThread: transactionThreadReport,
+        iouReport,
+        chatReport,
+        transactionThreadReportActionsParam: transactionThreadReportActions,
     });
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
 
@@ -901,11 +1006,13 @@ function deleteMoneyRequest({
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-                  value: {
-                      [reportAction.reportActionID]: {
-                          pendingAction: null,
-                      },
-                  },
+                  value: reportAction
+                      ? {
+                            [reportAction.reportActionID]: {
+                                pendingAction: null,
+                            },
+                        }
+                      : {},
               },
     ];
 
@@ -959,7 +1066,7 @@ function deleteMoneyRequest({
     const originalReportActionsUpdate = {} as Record<string, Partial<OnyxTypes.ReportAction>>;
     if (shouldDeleteIOUReport) {
         for (const action of Object.values(iouReportActions ?? {})) {
-            if (action.reportActionID === reportAction.reportActionID) {
+            if (action.reportActionID === reportAction?.reportActionID) {
                 continue;
             }
             originalReportActionsUpdate[action.reportActionID] = {
@@ -975,11 +1082,13 @@ function deleteMoneyRequest({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 ...originalReportActionsUpdate,
-                [reportAction.reportActionID]: {
-                    ...reportAction,
-                    pendingAction: null,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage', errorKey),
-                },
+                ...(reportAction && {
+                    [reportAction.reportActionID]: {
+                        ...reportAction,
+                        pendingAction: null,
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage', errorKey),
+                    },
+                }),
             },
         });
 
@@ -1032,8 +1141,17 @@ function deleteMoneyRequest({
 
     const parameters: DeleteMoneyRequestParams = {
         transactionID,
-        reportActionID: reportAction.reportActionID,
+        reportActionID: reportAction?.reportActionID,
     };
+
+    // A group row in a grouped search outlives its child transactions, so flagging the group's own snapshot entry
+    // is what keeps the row out of the list until the next Search response drops it. Riding along with this request
+    // is what puts the row back if the delete fails.
+    const groupPendingDeleteData = getGroupPendingDeleteOnyxUpdate(searchHash, fullyDeletedGroupKey ? [fullyDeletedGroupKey] : []);
+    if (groupPendingDeleteData) {
+        optimisticData.push(...(groupPendingDeleteData.optimisticData ?? []));
+        failureData.push(...(groupPendingDeleteData.failureData ?? []));
+    }
 
     // STEP 3: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
