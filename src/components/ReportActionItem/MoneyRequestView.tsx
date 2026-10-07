@@ -112,6 +112,7 @@ import {
     getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
+    getReservationNights,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -367,6 +368,12 @@ function MoneyRequestView({
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
     const formattedPerAttendeeAmount =
         shouldDisplayTransactionAmount && actualAmount !== undefined ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+    // Explains the per-night category limit check, so it uses the same reservation nights. Single-night stays show nothing.
+    const reservationNights = getReservationNights(updatedTransaction ?? transaction);
+    const reservationNightsHintText =
+        reservationNights > 1 && actualAmount !== undefined
+            ? translate('common.reservationNightsWithNightlyRate', {count: reservationNights, nightlyRate: convertToDisplayString(actualAmount / reservationNights, actualCurrency)})
+            : '';
 
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
@@ -1527,6 +1534,7 @@ function MoneyRequestView({
                                     message={getErrorForField('category')}
                                 />
                             )}
+                            {!!reservationNightsHintText && <MenuItem.HelpText message={reservationNightsHintText} />}
                         </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
