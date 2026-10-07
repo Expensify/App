@@ -119,7 +119,6 @@ describe('VictoryTheme', () => {
                 tickCount: 5,
                 xLineWidth: 0,
                 yLineWidth: 1,
-                gridDashIntervals: [4, 8],
                 labelGap: 12,
                 xAxisLabelGap: 24,
                 padding: {top: 5, left: 5, right: 5, bottom: 5},
