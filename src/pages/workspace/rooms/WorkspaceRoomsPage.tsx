@@ -8,6 +8,7 @@ import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable'
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -49,6 +50,7 @@ type WorkspaceRoomsTableSortColumn = 'name' | 'members';
 function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -161,7 +163,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
 
     const roomsTableHeader =
         shouldUseNarrowLayout && canCreateRooms ? (
-            <View style={[styles.ph5, styles.pb3]}>
+            <View style={[pageGutter, styles.pb3]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}

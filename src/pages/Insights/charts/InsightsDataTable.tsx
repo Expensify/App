@@ -4,7 +4,7 @@ import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -34,7 +34,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
 
     if (isLoading) {
         return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
@@ -45,7 +45,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
     }
 
     return (
-        <View style={[styles.chartInlineTable, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+        <View style={[styles.chartInlineTable, cardPaddingHorizontal]}>
             {rows.map(({item, point, color}) => (
                 <View
                     key={item.keyForList}

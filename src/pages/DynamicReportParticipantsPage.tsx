@@ -12,6 +12,7 @@ import ReportParticipantsTable from '@components/Tables/ReportParticipantsTable'
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -76,6 +77,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -238,7 +240,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             : translate('common.details');
 
     const reportParticipantsTableHeader = shouldShowInviteButton ? (
-        <View style={[styles.pl5, styles.pr5, styles.w100]}>
+        <View style={[pageGutter, styles.w100]}>
             {shouldShowBulkActionsButton ? (
                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
