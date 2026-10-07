@@ -3862,6 +3862,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             formLabel: '查看 PDF',
         },
         attachmentNotFound: '未找到附件',
+        loadTimedOut: '此图片加载时间过长。',
         retry: '重试',
     },
     messages: {

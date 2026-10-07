@@ -4015,6 +4015,7 @@ ${amount} dla ${merchant} - ${date}`,
             formLabel: 'Wyświetl PDF',
         },
         attachmentNotFound: 'Załącznik nie został znaleziony',
+        loadTimedOut: 'Ładowanie tego obrazu trwa zbyt długo.',
         retry: 'Ponów próbę',
     },
     messages: {

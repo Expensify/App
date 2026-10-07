@@ -35,6 +35,16 @@ jest.mock('@components/ActivityIndicator', () => {
     return {__esModule: true, default: () => MockReact.createElement(View, {testID: 'activity-indicator'})};
 });
 
+jest.mock('@components/ImageLoadTimeoutNotice', () => {
+    const MockReact = jest.requireActual<typeof React>('react');
+    const {View, Pressable} = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        __esModule: true,
+        default: ({onRetry}: {onRetry: () => void}) =>
+            MockReact.createElement(View, {testID: 'load-timeout-notice'}, MockReact.createElement(Pressable, {testID: 'retry-button', onPress: onRetry})),
+    };
+});
+
 let mockIsOffline = false;
 
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
@@ -243,19 +253,56 @@ describe('Lightbox', () => {
             return {onError};
         }
 
-        it('fails the load when the spinner is still showing after the timeout', () => {
+        it('stops the spinner and offers a retry when the load runs past the timeout', () => {
             // Given a lightbox whose image never emits onLoad or onError
             const {onError} = renderStandaloneLightbox();
             expect(screen.getByTestId('activity-indicator')).toBeTruthy();
 
             // When the spinner has been on screen for the whole timeout
             act(() => {
-                jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
             });
 
-            // Then the load is treated as a failure so the parent can show its error UI instead of an endless spinner
-            expect(onError).toHaveBeenCalledTimes(1);
+            // Then the spinner is replaced by a retry option, and the parent is not told the load failed
             expect(screen.queryByTestId('activity-indicator')).toBeNull();
+            expect(screen.getByTestId('retry-button')).toBeTruthy();
+            expect(onError).not.toHaveBeenCalled();
+        });
+
+        it('still shows an image that loads after the timeout', () => {
+            // Given a load that already timed out
+            const {onError} = renderStandaloneLightbox();
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+            expect(screen.getByTestId('retry-button')).toBeTruthy();
+
+            // When the slow load finally finishes
+            fireEvent(screen.getByTestId('image'), 'load', {nativeEvent: {width: 100, height: 100}});
+
+            // Then the timeout notice goes away and no failure is reported
+            expect(screen.queryByTestId('retry-button')).toBeNull();
+            expect(onError).not.toHaveBeenCalled();
+        });
+
+        it('restarts the load and the timer when retry is pressed', () => {
+            // Given a load that already timed out
+            const {onError} = renderStandaloneLightbox();
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+
+            // When the user presses retry
+            fireEvent.press(screen.getByTestId('retry-button'));
+
+            // Then the spinner shows again on a remounted image and gets a fresh timeout
+            expect(screen.getByTestId('activity-indicator')).toBeTruthy();
+            expect(screen.queryByTestId('retry-button')).toBeNull();
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+            expect(screen.getByTestId('retry-button')).toBeTruthy();
+            expect(onError).not.toHaveBeenCalled();
         });
 
         it('hides the spinner when the image fails to load', () => {
@@ -270,14 +317,14 @@ describe('Lightbox', () => {
             expect(screen.queryByTestId('activity-indicator')).toBeNull();
         });
 
-        it('does not fail an image that loads before the timeout', () => {
+        it('does not report a timeout for an image that loads before the timeout', () => {
             // Given a lightbox whose image is loading
             const {onError} = renderStandaloneLightbox();
 
             // When the image loads and the timeout then passes
             fireEvent(screen.getByTestId('image'), 'load', {nativeEvent: {width: 100, height: 100}});
             act(() => {
-                jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
             });
 
             // Then the timer was cleared with the spinner and never reports an error
@@ -285,17 +332,18 @@ describe('Lightbox', () => {
             expect(onError).not.toHaveBeenCalled();
         });
 
-        it('does not fail the load while offline', () => {
+        it('does not report a timeout while offline', () => {
             // Given the device is offline while the lightbox image is loading
             mockIsOffline = true;
             const {onError} = renderStandaloneLightbox();
 
             // When the timeout passes
             act(() => {
-                jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
             });
 
-            // Then the load is not failed, so the image can still load once the device is back online
+            // Then no timeout notice is offered, so the image can still load once the device is back online
+            expect(screen.queryByTestId('retry-button')).toBeNull();
             expect(onError).not.toHaveBeenCalled();
         });
     });

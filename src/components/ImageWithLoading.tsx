@@ -1,4 +1,4 @@
-import useFailStuckImageLoad from '@hooks/useFailStuckImageLoad';
+import useImageLoadStall from '@hooks/useImageLoadStall';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,6 +12,7 @@ import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/ty
 
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import Image from './Image';
+import ImageLoadTimeoutNotice from './ImageLoadTimeoutNotice';
 import LoadingIndicator from './LoadingIndicator';
 
 type ImageWithSizeLoadingProps = {
@@ -48,6 +49,8 @@ function ImageWithLoading({
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const [hasLoadTimedOut, setHasLoadTimedOut] = useState(false);
+    const [reloadKey, setReloadKey] = useState(0);
     const {isOffline} = useNetwork();
 
     const handleError = () => {
@@ -56,16 +59,30 @@ function ImageWithLoading({
             isLoadedRef.current = false;
             setIsImageCached(false);
         }
+        setHasLoadTimedOut(false);
         if (isOffline) {
             return;
         }
         setIsLoading(false);
     };
 
+    /** The transport went silent. Stop the spinner and offer a retry; the image and preview stay mounted in case the load still finishes. */
+    const handleLoadTimeout = () => {
+        setHasLoadTimedOut(true);
+        setIsLoading(false);
+    };
+
+    const retryLoad = () => {
+        setHasLoadTimedOut(false);
+        setIsLoading(true);
+        setReloadKey((key) => key + 1);
+    };
+
     const imageLoadedSuccessfully = (e: ImageOnLoadEvent) => {
         isLoadedRef.current = true;
         setIsLoading(false);
         setIsImageCached(true);
+        setHasLoadTimedOut(false);
         onLoad?.(e);
     };
 
@@ -85,14 +102,15 @@ function ImageWithLoading({
 
     const shouldShowLoadingIndicator = (previewUri ? isLoading : isLoading && !isImageCached) && !isOffline;
 
-    useFailStuckImageLoad(shouldShowLoadingIndicator, handleError);
+    // !hasLoadTimedOut keeps a cached image unwatched and lets Retry re-arm a fresh window
+    const reportLoadActivity = useImageLoadStall(isLoading && !isOffline && !hasLoadTimedOut, handleLoadTimeout);
 
     return (
         <View
             style={[styles.w100, styles.h100, containerStyles]}
             onLayout={onLayout}
         >
-            {isLoading &&
+            {(isLoading || hasLoadTimedOut) &&
                 !!previewUri && (
                     // Preview is a placeholder; parent onLoad should fire only when the full image is ready.
                     // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
@@ -108,6 +126,7 @@ function ImageWithLoading({
             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
             <Image
                 {...rest}
+                key={reloadKey}
                 style={[styles.w100, styles.h100, style]}
                 resizeMode={resizeMode}
                 onLoadStart={() => {
@@ -116,6 +135,7 @@ function ImageWithLoading({
                     }
                     setIsLoading(true);
                 }}
+                onProgress={reportLoadActivity}
                 onError={handleError}
                 onLoad={(e) => {
                     imageLoadedSuccessfully(e);
@@ -141,6 +161,7 @@ function ImageWithLoading({
                     }}
                 />
             )}
+            {hasLoadTimedOut && !isOffline && <ImageLoadTimeoutNotice onRetry={retryLoad} />}
             {isLoading && shouldShowOfflineIndicator && !isImageCached && <AttachmentOfflineIndicator isPreview />}
         </View>
     );
