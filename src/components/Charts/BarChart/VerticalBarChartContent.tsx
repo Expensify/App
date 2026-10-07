@@ -31,7 +31,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import {Bar, BarGroup, CartesianChart} from 'victory-native';
+import {Bar, CartesianChart} from 'victory-native';
 
 import type BarChartProps from './types';
 
@@ -189,19 +189,37 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
-    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds) => {
+    /** A lone series takes one palette color per item; compared series keep it and draw the other period a lighter shade. */
+    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, seriesIndex: number) => {
         const dataIndex = Number(point.xValue);
         const dataPoint = data.at(dataIndex);
+        const color = seriesIndex === 0 ? VictoryTheme.colors.getColor(dataIndex) : VictoryTheme.colors.getComparisonColor(dataIndex);
 
+        if (series.length === 1) {
+            return (
+                <Bar
+                    key={`bar-${dataPoint?.label}`}
+                    points={[point]}
+                    chartBounds={chartBounds}
+                    color={color}
+                    barWidth={barLayout.barWidth}
+                    barCount={data.length}
+                    roundedCorners={BAR_ROUNDED_CORNERS}
+                />
+            );
+        }
+
+        // Each bar of a group is shifted from the slot's center to its own place within the slot.
+        const offset = -barLayout.barWidth / 2 + seriesIndex * (groupedBarWidth + BAR_GROUP_INNER_GAP) + groupedBarWidth / 2;
         return (
             <Bar
-                key={`bar-${dataPoint?.label}`}
-                points={[point]}
+                key={`bar-${seriesKeys.at(seriesIndex)}-${dataPoint?.label}`}
+                points={[{...point, x: point.x + offset}]}
                 chartBounds={chartBounds}
-                color={series.at(0)?.color ?? VictoryTheme.colors.getColor(dataIndex)}
-                barWidth={barLayout.barWidth}
+                color={color}
+                barWidth={groupedBarWidth}
                 barCount={data.length}
-                roundedCorners={BAR_ROUNDED_CORNERS}
+                roundedCorners={GROUPED_BAR_ROUNDED_CORNERS}
             />
         );
     };
@@ -310,25 +328,8 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
                                         chartBounds={chartBounds}
                                         color={theme.border}
                                     />
-                                    {series.length > 1 ? (
-                                        <BarGroup
-                                            chartBounds={chartBounds}
-                                            // Sizes each group to the slot `getBarLayout` gives it, so groups are spaced like single bars.
-                                            betweenGroupPadding={barAreaWidth > 0 ? 1 - (barLayout.barWidth * data.length) / barAreaWidth : 0}
-                                            barWidth={groupedBarWidth > 0 ? groupedBarWidth : undefined}
-                                            roundedCorners={GROUPED_BAR_ROUNDED_CORNERS}
-                                        >
-                                            {series.map((seriesItem) => (
-                                                <BarGroup.Bar
-                                                    key={seriesItem.key}
-                                                    points={points[seriesItem.key] ?? []}
-                                                    color={seriesItem.color ?? VictoryTheme.colors.default}
-                                                />
-                                            ))}
-                                        </BarGroup>
-                                    ) : (
-                                        (points[primarySeriesKey] ?? []).map((point) => renderBar(point, chartBounds))
-                                    )}
+                                    {(series.length === 1 || groupedBarWidth > 0) &&
+                                        series.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesIndex)))}
                                 </>
                             )}
                         </CartesianChart>

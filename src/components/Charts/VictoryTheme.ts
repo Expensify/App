@@ -46,6 +46,15 @@ function getChartColor(index: number): string {
     return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
 }
 
+/** Shade of an item's comparison color: the same hue as its own color, lighter. */
+const CHART_COMPARISON_SHADE = 200;
+
+/** The color the period an item is compared with is drawn in, for the item `getChartColor(index)` colors. */
+function getChartComparisonColor(index: number): string {
+    const hue = CHART_PALETTE_HUES.at(index % CHART_PALETTE_HUES.length);
+    return colors[`${hue}${CHART_COMPARISON_SHADE}`] ?? getChartColor(index);
+}
+
 /** The palette color one shade darker than `color`, which a line's dots are drawn in. Falls back to `color` itself. */
 function getDarkerShade(color: string): string {
     const paletteName = Object.keys(colors).find((name) => /\d+$/.test(name) && colors[name] === color);
@@ -65,6 +74,7 @@ const VictoryTheme = {
         /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
         default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
         getColor: getChartColor,
+        getComparisonColor: getChartComparisonColor,
         getDarkerShade,
     },
     fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),

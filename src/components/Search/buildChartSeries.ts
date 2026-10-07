@@ -280,8 +280,7 @@ function buildChartSeries({
             let rowColor;
             if (pieColors) {
                 rowColor = pieColors.at(index);
-                // Compared series are colored by period, so only a lone series gets per-group colors.
-            } else if (view === CONST.SEARCH.VIEW.BAR && !comparison) {
+            } else if (view === CONST.SEARCH.VIEW.BAR) {
                 rowColor = VictoryTheme.colors.getColor(index);
             }
 

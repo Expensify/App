@@ -30,6 +30,19 @@ describe('VictoryTheme', () => {
         });
     });
 
+    describe('colors.getComparisonColor', () => {
+        it('lightens the color of each item to the 200 shade of the same hue', () => {
+            // Given the first items, colored by the 400 shade of each hue
+            const VictoryTheme = loadVictoryTheme();
+
+            // When getting the colors their compared periods are drawn in
+            const comparisonColors = [0, 1, 2].map(VictoryTheme.colors.getComparisonColor);
+
+            // Then each keeps its item's hue, so the two bars of a pair read as one item
+            expect(comparisonColors).toEqual([colors.yellow200, colors.tangerine200, colors.pink200]);
+        });
+    });
+
     describe('colors.palette', () => {
         it('contains 30 entries (5 shades × 6 hues)', () => {
             const VictoryTheme = loadVictoryTheme();

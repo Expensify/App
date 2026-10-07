@@ -358,12 +358,12 @@ describe('buildChartSeries with a compared period', () => {
         expect(model.rows.at(0)?.comparisonItem).toBe(comparisonItem);
     });
 
-    it('leaves the per-group palette off, because color tells the two periods apart', () => {
+    it('keeps the per-group palette, since each item keeps its color in both periods', () => {
         // Given two merchants plotted against the period before
         const model = buildComparison([merchantGroup('Person', 300000), merchantGroup('Target', 100000)], [], CONST.SEARCH.GROUP_BY.MERCHANT);
 
-        // Then no row carries a color of its own, since every bar takes the color of the period it belongs to
-        expect(model.rows.every((row) => row.color === undefined)).toBe(true);
+        // Then each row carries its palette color, the one its current-period bar is drawn in
+        expect(model.rows.map((row) => row.color)).toEqual([VictoryTheme.colors.getColor(0), VictoryTheme.colors.getColor(1)]);
     });
 });
 
