@@ -23112,6 +23112,7 @@ var require_ExpensiMark = __commonJS({
     var Constants = __importStar(require_CONST());
     var UrlPatterns = __importStar(require_Url());
     var Logger_1 = __importDefault(require_Logger());
+    var tlds_1 = __importDefault(require_tlds());
     var Utils = __importStar(require_utils());
     var EXTRAS_DEFAULT = {};
     var ASCII_DIGIT_START = "0".charCodeAt(0);
@@ -23124,6 +23125,9 @@ var require_ExpensiMark = __commonJS({
     var NON_BREAKING_SPACE_CODE = 160;
     var URL_PROTOCOLS = ["https://", "http://", "ftps://", "ftp://"];
     var URL_CANDIDATE_PREFIX_CHARACTERS = "@_*~";
+    var URL_TLD_LIST = tlds_1.default.toLowerCase().split("|");
+    var URL_TLDS = new Set(URL_TLD_LIST);
+    var MAX_URL_TLD_LENGTH = Math.max(...URL_TLD_LIST.map((tld) => tld.length));
     var PROTECTED_TAG_NAMES = /* @__PURE__ */ new Set(["a", "code", "pre", "video"]);
     var MARKDOWN_LINK_REGEX = new RegExp(`\\[((?:[^\\[\\]\\r\\n]*(?:\\[[^\\[\\]\\r\\n]*][^\\[\\]\\r\\n]*)*))]\\(${UrlPatterns.MARKDOWN_URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`, "gi");
     var MARKDOWN_IMAGE_REGEX = new RegExp(`\\!(?:\\[([^\\][]*(?:\\[[^\\][]*][^\\][]*)*)])?\\(${UrlPatterns.MARKDOWN_URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`, "gi");
@@ -23168,6 +23172,9 @@ var require_ExpensiMark = __commonJS({
         return text.replace(regexp, (...args) => replacement(extras, ...args));
       }
       return text.replace(regexp, replacement);
+    }
+    function canUseCandidateScanning(text, shouldEscapeText) {
+      return shouldEscapeText || !text.includes("<") && !text.includes(">");
     }
     function isAsciiAlphaNumeric(character) {
       if (!character) {
@@ -23240,15 +23247,59 @@ var require_ExpensiMark = __commonJS({
       }
       return URL_PROTOCOLS.find((protocol) => text.slice(position, position + protocol.length).toLowerCase() === protocol);
     }
-    function findHostnameEnd(text, hostnameStart, dotPosition) {
-      let hostnameEnd = dotPosition + 1;
-      while (hostnameEnd < text.length && (isAsciiAlphaNumeric(text[hostnameEnd]) || text[hostnameEnd] === "-")) {
-        hostnameEnd++;
+    function isValidHostnameLabel(text, start, end) {
+      if (start >= end || !isAsciiAlphaNumeric(text[start]) || !isAsciiAlphaNumeric(text[end - 1])) {
+        return false;
       }
-      if (hostnameStart === dotPosition || hostnameEnd === dotPosition + 1) {
-        return void 0;
+      for (let index = start + 1; index < end - 1; index++) {
+        if (!isAsciiAlphaNumeric(text[index]) && text[index] !== "-") {
+          return false;
+        }
       }
-      return hostnameEnd;
+      return true;
+    }
+    function findHostnameStart(text, dotPosition) {
+      let hostnameStart = dotPosition;
+      let labelEnd = dotPosition;
+      while (labelEnd > 0) {
+        let rawLabelStart = labelEnd - 1;
+        while (rawLabelStart >= 0 && text[rawLabelStart] !== "." && isHostnameCharacter(text[rawLabelStart])) {
+          rawLabelStart--;
+        }
+        rawLabelStart++;
+        let labelStart = rawLabelStart;
+        while (labelStart < labelEnd && text[labelStart] === "-") {
+          labelStart++;
+        }
+        if (!isValidHostnameLabel(text, labelStart, labelEnd)) {
+          break;
+        }
+        hostnameStart = labelStart;
+        if (labelStart !== rawLabelStart) {
+          break;
+        }
+        const separatorPosition = labelStart - 1;
+        if (separatorPosition < 0 || text[separatorPosition] !== ".") {
+          break;
+        }
+        labelEnd = separatorPosition;
+      }
+      return hostnameStart === dotPosition ? void 0 : hostnameStart;
+    }
+    function findKnownTldEnd(text, dotPosition) {
+      const maximumEnd = Math.min(text.length, dotPosition + 1 + MAX_URL_TLD_LENGTH);
+      for (let end = dotPosition + 2; end <= maximumEnd; end++) {
+        const currentCharacter = text[end - 1];
+        if (!isAsciiAlphaNumeric(currentCharacter) && currentCharacter !== "-") {
+          break;
+        }
+        const nextCharacter = text[end];
+        const hasValidBoundary = !nextCharacter || nextCharacter === ":" || nextCharacter === "_" || !isWordCharacter(nextCharacter);
+        if (hasValidBoundary && URL_TLDS.has(text.slice(dotPosition + 1, end).toLowerCase())) {
+          return end;
+        }
+      }
+      return void 0;
     }
     function extendUrlCandidateBoundaries(text, start, end) {
       let candidateStart = start;
@@ -23261,24 +23312,65 @@ var require_ExpensiMark = __commonJS({
       }
       return { start: candidateStart, end: candidateEnd };
     }
+    function startsWithIgnoreCase(text, expected, position) {
+      return text.slice(position, position + expected.length).toLowerCase() === expected;
+    }
+    function filterUrlCandidatesBlockedByFollowingHtml(text, candidates) {
+      var _a;
+      if (candidates.length === 0 || !text.includes("<") && !text.includes(">")) {
+        return candidates;
+      }
+      const validCandidates = [];
+      let candidateIndex = candidates.length - 1;
+      let nextLessThan = text.length;
+      let nextGreaterThan = text.length;
+      let nextOpeningAnchor = text.length;
+      let nextClosingAnchor = text.length;
+      for (let index = text.length; index >= 0 && candidateIndex >= 0; index--) {
+        if (text[index] === "<") {
+          nextLessThan = index;
+          if (((_a = text[index + 1]) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === "a") {
+            nextOpeningAnchor = index;
+          } else if (startsWithIgnoreCase(text, "</a>", index)) {
+            nextClosingAnchor = index;
+          }
+        } else if (text[index] === ">") {
+          nextGreaterThan = index;
+        }
+        while (candidateIndex >= 0 && candidates[candidateIndex].end === index) {
+          const firstHtmlBoundaryIsClosingTag = nextLessThan < nextGreaterThan && text.startsWith("</", nextLessThan) && !startsWithIgnoreCase(text, "</h1>", nextLessThan);
+          const firstTagIsProtectedClosingTag = startsWithIgnoreCase(text, "</pre>", nextLessThan) || startsWithIgnoreCase(text, "</code>", nextLessThan);
+          const isBlockedByFollowingHtml = (
+            // Mirrors `(?![^<]*>)`: reject when `>` appears before the next `<`.
+            nextGreaterThan < nextLessThan || // Mirrors `[^<>]*<\/(?!h1>)`: reject a later closing tag other than `</h1>`.
+            firstHtmlBoundaryIsClosingTag || // Mirrors `((?:(?!<a).)+)?<\/a>`: reject `</a>` unless another `<a>` appears first.
+            nextClosingAnchor < nextOpeningAnchor || // Mirrors `[^<]*(<\/pre>|<\/code>)`: reject a later protected closing tag.
+            firstTagIsProtectedClosingTag
+          );
+          if (!isBlockedByFollowingHtml) {
+            validCandidates.push(candidates[candidateIndex]);
+          }
+          candidateIndex--;
+        }
+      }
+      return validCandidates.reverse();
+    }
     function findUrlCandidates(text) {
       const candidates = [];
       const protectedTags = [];
       let index = 0;
-      let hostnameRunStart = 0;
       while (index < text.length) {
         if (text[index] === "<") {
           const nextIndex = updateProtectedTagStack(text, index, protectedTags);
           if (nextIndex === void 0) {
-            break;
+            index++;
+            continue;
           }
           index = nextIndex;
-          hostnameRunStart = index;
           continue;
         }
         if (protectedTags.length > 0) {
           index++;
-          hostnameRunStart = index;
           continue;
         }
         const matchedProtocol = getProtocolAt(text, index);
@@ -23286,29 +23378,23 @@ var require_ExpensiMark = __commonJS({
           const candidate2 = extendUrlCandidateBoundaries(text, index, index + matchedProtocol.length);
           candidates.push(candidate2);
           index = candidate2.end;
-          hostnameRunStart = candidate2.end;
-          continue;
-        }
-        if (!isHostnameCharacter(text[index])) {
-          hostnameRunStart = index + 1;
-          index++;
           continue;
         }
         if (text[index] !== ".") {
           index++;
           continue;
         }
-        const hostnameEnd = findHostnameEnd(text, hostnameRunStart, index);
-        if (hostnameEnd === void 0) {
+        const tldEnd = findKnownTldEnd(text, index);
+        const hostnameStart = tldEnd === void 0 ? void 0 : findHostnameStart(text, index);
+        if (tldEnd === void 0 || hostnameStart === void 0) {
           index++;
           continue;
         }
-        const candidate = extendUrlCandidateBoundaries(text, hostnameRunStart, hostnameEnd);
+        const candidate = extendUrlCandidateBoundaries(text, hostnameStart, tldEnd);
         candidates.push(candidate);
         index = candidate.end;
-        hostnameRunStart = candidate.end;
       }
-      return candidates;
+      return filterUrlCandidatesBlockedByFollowingHtml(text, candidates);
     }
     function replaceMarkdownCandidates(text, regexp, replacement, marker, canOpen) {
       if (!text.includes(marker)) {
@@ -23380,6 +23466,14 @@ var require_ExpensiMark = __commonJS({
       }
       output.push(text.slice(outputStart));
       return output.join("");
+    }
+    function processMarkdownRule(regex2, marker, canOpen) {
+      return (textToProcess, replacement, _shouldKeepRawInput, shouldEscapeText) => {
+        if (canUseCandidateScanning(textToProcess, shouldEscapeText)) {
+          return replaceMarkdownCandidates(textToProcess, regex2, replacement, marker, canOpen);
+        }
+        return replaceTextWithExtras(textToProcess, regex2, EXTRAS_DEFAULT, replacement);
+      };
     }
     function replaceBlockElementWithNewLine(htmlString) {
       let splitText = htmlString.replaceAll(/<blockquote>> (<div.*?>|<\/div>|<comment.*?>|\n<\/comment>|<\/comment>|<h1>|<\/h1>|<h2>|<\/h2>|<h3>|<\/h3>|<h4>|<\/h4>|<h5>|<\/h5>|<h6>|<\/h6>|<p>|<\/p>|<li>|<\/li>)/gi, "<blockquote>> ").split(/<div.*?>|<\/div>|<comment.*?>|\n<\/comment>|<\/comment>|<h1>|<\/h1>|<h2>|<\/h2>|<h3>|<\/h3>|<h4>|<\/h4>|<h5>|<\/h5>|<h6>|<\/h6>|<p>|<\/p>|<li>|<\/li>|<blockquote>|<\/blockquote>/);
@@ -23799,9 +23893,9 @@ var require_ExpensiMark = __commonJS({
            */
           {
             name: "autolink",
-            process: (textToProcess, replacement) => {
+            process: (textToProcess, replacement, _shouldKeepRawInput, shouldEscapeText) => {
               const regex2 = new RegExp(`(?![^<]*>|[^<>]*<\\/(?!h1>))([_*~]*?)${UrlPatterns.MARKDOWN_URL_REGEX}\\1(?!((?:(?!<a).)+)?<\\/a>|[^<]*(<\\/pre>|<\\/code>))`, "gi");
-              return this.modifyTextForUrlLinks(regex2, textToProcess, replacement, true);
+              return this.modifyTextForUrlLinks(regex2, textToProcess, replacement, canUseCandidateScanning(textToProcess, shouldEscapeText));
             },
             replacement: (_extras, _match, g1, g2) => {
               const href = str_1.default.sanitizeURL(g2);
@@ -23870,7 +23964,8 @@ ${"<blockquote>".repeat(i)}`, "\n");
             name: "autoEmail",
             regex: new RegExp(`([^\\w'#%+-]|^)${Constants.CONST.REG_EXP.MARKDOWN_EMAIL}(?!((?:(?!<a).)+)?<\\/a>|[^<>]*<\\/(?!em|h1|blockquote))`, "gim"),
             replacement: '$1<a href="mailto:$2">$2</a>',
-            rawInputReplacement: '$1<a href="mailto:$2" data-raw-href="$2" data-link-variant="auto">$2</a>'
+            rawInputReplacement: '$1<a href="mailto:$2" data-raw-href="$2" data-link-variant="auto">$2</a>',
+            shouldSkipProcessing: (textToCheck) => !textToCheck.includes("@")
           },
           /**
            * This regex matches a short user mention in a string.
@@ -23906,7 +24001,7 @@ ${"<blockquote>".repeat(i)}`, "\n");
             // \B will match everything that \b doesn't, so it works
             // for * and ~: https://www.rexegg.com/regex-boundaries.html#notb
             name: "bold",
-            process: (textToProcess, replacement) => replaceMarkdownCandidates(textToProcess, BOLD_MARKDOWN_REGEX, replacement, "*", canOpenBoldMarkdown),
+            process: processMarkdownRule(BOLD_MARKDOWN_REGEX, "*", canOpenBoldMarkdown),
             replacement: (_extras, match, g1, g2) => {
               if (g1.includes("_")) {
                 return `${g1}<strong>${g2}</strong>`;
@@ -23916,7 +24011,7 @@ ${"<blockquote>".repeat(i)}`, "\n");
           },
           {
             name: "strikethrough",
-            process: (textToProcess, replacement) => replaceMarkdownCandidates(textToProcess, STRIKETHROUGH_MARKDOWN_REGEX, replacement, "~", canOpenStrikethroughMarkdown),
+            process: processMarkdownRule(STRIKETHROUGH_MARKDOWN_REGEX, "~", canOpenStrikethroughMarkdown),
             replacement: (_extras, match, g1) => g1.includes("</pre>") || containsNonPairTag(g1) ? match : `<del>${g1}</del>`
           },
           {
@@ -24285,7 +24380,7 @@ ${g2}
           }
           const replacement = shouldKeepRawInput && rule.rawInputReplacement ? rule.rawInputReplacement : rule.replacement;
           if ("process" in rule) {
-            replacedText = rule.process(replacedText, replacement, shouldKeepRawInput);
+            replacedText = rule.process(replacedText, replacement, shouldKeepRawInput, shouldEscapeText);
           } else {
             replacedText = replaceTextWithExtras(replacedText, rule.regex, extras, replacement);
           }
