@@ -42,6 +42,16 @@ type Drag = {
 
     /** Whether the pointer passed the drag slop. Until then, releasing it is a click. */
     hasMovedPointer: boolean;
+
+    /** Whether the pointer went down while a click on this edge was waiting to fit, so releasing it is a double-click. */
+    isSecondClick: boolean;
+};
+
+/** A click waiting out the double-click interval before it fits its column. */
+type PendingFit = {
+    columnKey: string;
+
+    timeoutID: ReturnType<typeof setTimeout>;
 };
 
 function useColumnResize({
@@ -56,6 +66,9 @@ function useColumnResize({
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
+
+    // Fitting on the first click would move the edge before the second click, which would then land on the heading and sort it.
+    const pendingFitRef = useRef<PendingFit | null>(null);
 
     const resetDrag = () => {
         dragRef.current = null;
@@ -78,7 +91,6 @@ function useColumnResize({
         setTableColumnWidth(columnResizingID, drag.columnKey, width);
     };
 
-    // Idempotent, because a double-click fires two clicks before the reset.
     const fitColumnToContent = (columnKey: string) => {
         const contentWidth = fitColumnWidths?.[columnKey];
 
@@ -106,6 +118,29 @@ function useColumnResize({
         clearTableColumnWidth(columnResizingID, columnKey);
     };
 
+    const scheduleFit = (columnKey: string) => {
+        const timeoutID = setTimeout(() => {
+            pendingFitRef.current = null;
+            fitColumnToContent(columnKey);
+        }, CONST.TABLES.COLUMN_RESIZE.DOUBLE_CLICK_INTERVAL);
+
+        pendingFitRef.current = {columnKey, timeoutID};
+    };
+
+    /** Stops a waiting click. Returns the column it would have fitted. */
+    const cancelPendingFit = (): string | undefined => {
+        const pendingFit = pendingFitRef.current;
+
+        if (!pendingFit) {
+            return undefined;
+        }
+
+        clearTimeout(pendingFit.timeoutID);
+        pendingFitRef.current = null;
+
+        return pendingFit.columnKey;
+    };
+
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
         // Secondary buttons open context menus rather than dragging.
         if (event.button !== 0) {
@@ -119,11 +154,20 @@ function useColumnResize({
         // Keeps the drag on this handle once the pointer moves off it.
         event.currentTarget.setPointerCapture(event.pointerId);
 
+        const pendingFitColumnKey = cancelPendingFit();
+        const isSecondClick = pendingFitColumnKey === columnKey;
+
+        // A click on another edge isn't a double-click, so the waiting one fits now, before this press reads its width.
+        if (pendingFitColumnKey && !isSecondClick) {
+            fitColumnToContent(pendingFitColumnKey);
+        }
+
         dragRef.current = {
             columnKey,
             startClientX: event.clientX,
             startWidth: readColumnWidth(columnKey) ?? 0,
             hasMovedPointer: false,
+            isSecondClick,
         };
         document.body.style.cursor = CONST.TABLES.COLUMN_RESIZE.CURSOR;
     };
@@ -167,7 +211,13 @@ function useColumnResize({
         }
 
         resetDrag();
-        fitColumnToContent(drag.columnKey);
+
+        if (drag.isSecondClick) {
+            resetColumnWidth(drag.columnKey);
+            return;
+        }
+
+        scheduleFit(drag.columnKey);
     };
 
     /** Ends a drag whose pointer capture the browser reclaimed. Also fires after a normal pointerup, when it's a no-op. */
@@ -181,9 +231,11 @@ function useColumnResize({
         endDrag(drag);
     };
 
-    // Unmounting mid-drag would otherwise leave the resize cursor on the document and a dangling drag.
+    // Unmounting would otherwise fit a column that's gone, or mid-drag leave the resize cursor on the document.
     useEffect(
         () => () => {
+            cancelPendingFit();
+
             if (!dragRef.current) {
                 return;
             }
@@ -209,7 +261,6 @@ function useColumnResize({
             onPointerUp: handlePointerUp,
             onPointerCancel: handleLostPointerCapture,
             onLostPointerCapture: handleLostPointerCapture,
-            onDoubleClick: () => resetColumnWidth(columnKey),
         };
     };
 
