@@ -6848,9 +6848,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.textStrong,
             color: theme.text,
         },
-        chartTooltipWrapper: {
-            alignItems: 'center',
-        },
         chartTooltipBox: {
             backgroundColor: theme.appBG,
             borderColor: theme.border,
@@ -6868,20 +6865,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.label,
             color: theme.text,
             whiteSpace: 'nowrap',
-        },
-        chartTooltipPointerContainer: {
-            marginTop: -1,
-        },
-        chartTooltipPointer: {
-            width: 0,
-            height: 0,
-            backgroundColor: theme.transparent,
-            borderStyle: 'solid',
-        },
-        chartTooltipPointerFill: {
-            position: 'absolute',
-            top: 0,
-            left: 1,
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,

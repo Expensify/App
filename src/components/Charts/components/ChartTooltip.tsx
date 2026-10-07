@@ -1,7 +1,5 @@
-import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ComponentRef} from 'react';
@@ -39,7 +37,6 @@ function getAmountContent(amount: string, percentage?: string): string {
 }
 
 function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, initialTooltipPosition}: ChartTooltipProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
 
     /** Shared value to store the measured width of the tooltip container */
@@ -90,81 +87,35 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
         };
     }, [initialTooltipPosition]);
 
-    /**
-     * Animated style for the pointer (triangle).
-     * Calculates the relative offset to keep the pointer pinned to the data point (initialX)
-     * even when the main container is clamped to the edges.
-     */
-    const pointerStyle = useAnimatedStyle(() => {
-        const {x} = initialTooltipPosition.get();
-
-        const relativeOffset = x - clampedCenter.get();
-
-        return {
-            transform: [{translateX: relativeOffset}],
-        };
-    }, [initialTooltipPosition]);
-
     return (
         <Animated.View
             style={tooltipStyle}
             pointerEvents="none"
             ref={tooltipWrapperRef}
         >
-            <View style={styles.chartTooltipWrapper}>
-                <View style={styles.chartTooltipBox}>
+            <View style={styles.chartTooltipBox}>
+                <Text
+                    style={styles.chartTooltipTitle}
+                    numberOfLines={1}
+                >
+                    {label}
+                </Text>
+                {!!amountContent && (
                     <Text
-                        style={styles.chartTooltipTitle}
+                        style={styles.chartTooltipText}
                         numberOfLines={1}
                     >
-                        {label}
+                        {amountContent}
                     </Text>
-                    {!!amountContent && (
-                        <Text
-                            style={styles.chartTooltipText}
-                            numberOfLines={1}
-                        >
-                            {amountContent}
-                        </Text>
-                    )}
-                    {!!expenseCount && (
-                        <Text
-                            style={styles.chartTooltipText}
-                            numberOfLines={1}
-                        >
-                            {expenseCount}
-                        </Text>
-                    )}
-                </View>
-                <Animated.View style={[styles.chartTooltipPointerContainer, pointerStyle]}>
-                    <View
-                        style={[
-                            styles.chartTooltipPointer,
-                            {
-                                borderLeftWidth: VictoryTheme.tooltip.pointerWidth / 2,
-                                borderRightWidth: VictoryTheme.tooltip.pointerWidth / 2,
-                                borderTopWidth: VictoryTheme.tooltip.pointerHeight,
-                                borderLeftColor: theme.transparent,
-                                borderRightColor: theme.transparent,
-                                borderTopColor: theme.border,
-                            },
-                        ]}
-                    />
-                    <View
-                        style={[
-                            styles.chartTooltipPointer,
-                            styles.chartTooltipPointerFill,
-                            {
-                                borderLeftWidth: VictoryTheme.tooltip.pointerWidth / 2 - 1,
-                                borderRightWidth: VictoryTheme.tooltip.pointerWidth / 2 - 1,
-                                borderTopWidth: VictoryTheme.tooltip.pointerHeight - 1,
-                                borderLeftColor: theme.transparent,
-                                borderRightColor: theme.transparent,
-                                borderTopColor: theme.appBG,
-                            },
-                        ]}
-                    />
-                </Animated.View>
+                )}
+                {!!expenseCount && (
+                    <Text
+                        style={styles.chartTooltipText}
+                        numberOfLines={1}
+                    >
+                        {expenseCount}
+                    </Text>
+                )}
             </View>
         </Animated.View>
     );
