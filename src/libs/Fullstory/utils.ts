@@ -1,6 +1,6 @@
-import getHighestPolicyRole from '@libs/getHighestPolicyRole';
 import {filterObject} from '@libs/ObjectUtils';
 import {getActivePolicies, isControlPolicy} from '@libs/PolicyUtils';
+import getHighestPolicyRole from '@libs/PolicyUtils/getHighestPolicyRole';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

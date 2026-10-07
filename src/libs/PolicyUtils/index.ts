@@ -16,8 +16,6 @@ import {isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {ROLE_PERMISSION_BUNDLES, isControlPolicyOnlyRole} from '@libs/policyRolePermissions';
-import type {PolicyFeature, PolicyFeatureAccess} from '@libs/policyRolePermissions';
 import {isApprovalWorkflowRule, isRuleFilterComparison} from '@libs/RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
@@ -54,6 +52,10 @@ import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
+
+import type {PolicyFeature, PolicyFeatureAccess} from './permissions';
+
+import {ROLE_PERMISSION_BUNDLES, isControlPolicyOnlyRole} from './permissions';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
