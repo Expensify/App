@@ -17,7 +17,7 @@ import {
     useLabelHitTesting,
 } from '@components/Charts/hooks';
 import {getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,10 +27,11 @@ import variables from '@styles/variables';
 import type {LayoutChangeEvent} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
+import {DashPathEffect} from '@shopify/react-native-skia';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {CartesianChart, Line} from 'victory-native';
 
 import type {CartesianChartProps, ChartDataPoint} from '..';
@@ -49,6 +50,10 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const [boundsRight, setBoundsRight] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
+    const isLastPointInProgress = !!data.at(-1)?.isInProgress;
+
+    // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
+    const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
     const chartData = data.map((point, index) => ({
         x: index,
         y: point.total,
@@ -171,6 +176,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         chartBottom,
     });
 
+    const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
+
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
         const [rangeStart, rangeEnd] = xScale.range();
@@ -188,6 +195,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         const chartBoundsBottom = args.yScale(Math.min(...args.yTicks));
         chartBottom.set(chartBoundsBottom);
+
         return (
             <>
                 {xAxisLabelHeight !== undefined && !!fontManager && (
@@ -227,6 +235,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     dotColor={VictoryTheme.colors.default}
                     guidelineColor={VictoryTheme.colors.default}
                     guidelineOpacity={VictoryTheme.line.guidelineOpacity}
+                    isHollow={isActivePointHollow}
+                    hollowColor={theme.cardBG}
                 />
             </>
         );
@@ -288,29 +298,43 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points, yScale, yTicks, chartBounds}) => (
-                            <>
-                                <ChartGridLines
-                                    yTicks={yTicks}
-                                    yScale={yScale}
-                                    chartBounds={chartBounds}
-                                    color={theme.border}
-                                />
-                                <AreaGradient
-                                    points={points.y}
-                                    baselineY={yScale(Math.min(...yTicks))}
-                                    color={VictoryTheme.colors.default}
-                                />
-                                <Line
-                                    points={points.y}
-                                    color={VictoryTheme.colors.default}
-                                    strokeWidth={VictoryTheme.line.strokeWidth}
-                                    strokeCap="round"
-                                    strokeJoin="round"
-                                    curveType="linear"
-                                />
-                            </>
-                        )}
+                        {({points, yScale, yTicks, chartBounds}) => {
+                            const completePoints = shouldDashLastSegment ? points.y.slice(0, -1) : points.y;
+                            return (
+                                <>
+                                    <ChartGridLines
+                                        yTicks={yTicks}
+                                        yScale={yScale}
+                                        chartBounds={chartBounds}
+                                        color={theme.border}
+                                    />
+                                    <AreaGradient
+                                        points={completePoints}
+                                        baselineY={yScale(Math.min(...yTicks))}
+                                        color={VictoryTheme.colors.default}
+                                    />
+                                    <Line
+                                        points={completePoints}
+                                        color={VictoryTheme.colors.default}
+                                        strokeWidth={VictoryTheme.line.strokeWidth}
+                                        strokeCap="round"
+                                        strokeJoin="round"
+                                        curveType="linear"
+                                    />
+                                    {shouldDashLastSegment && (
+                                        <Line
+                                            points={points.y.slice(-2)}
+                                            color={VictoryTheme.colors.default}
+                                            strokeWidth={VictoryTheme.line.strokeWidth}
+                                            strokeCap="round"
+                                            curveType="linear"
+                                        >
+                                            <DashPathEffect intervals={DASH_INTERVALS} />
+                                        </Line>
+                                    )}
+                                </>
+                            );
+                        }}
                     </CartesianChart>
                 )}
                 <ChartTooltipLayer
