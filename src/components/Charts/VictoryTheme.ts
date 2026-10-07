@@ -49,16 +49,11 @@ function getChartColor(index: number): string {
 /** Index of the default single-color chart color (green400). */
 const DEFAULT_CHART_COLOR_INDEX = 3;
 
-/** Index of the default dot color (green500) */
-const DEFAULT_CHART_DOT_COLOR_INDEX = DEFAULT_CHART_COLOR_INDEX + CHART_PALETTE_HUES.length * 3;
-
 const VictoryTheme = {
     colors: {
         palette: CHART_PALETTE,
         /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
         default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
-        /** Default dot color for line chart data points, one shade darker than the line */
-        defaultDot: getChartColor(DEFAULT_CHART_DOT_COLOR_INDEX),
         getColor: getChartColor,
     },
     fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),
@@ -69,10 +64,24 @@ const VictoryTheme = {
         xLineWidth: 0,
         /** Line width for Y-axis grid lines */
         yLineWidth: 1,
-        /** Desired visual gap (px) between axis labels and the chart edge, used for both axes */
+        /** Dash and gap lengths (px) of the grid lines */
+        gridDashIntervals: [4, 8],
+        /** Desired visual gap (px) between axis labels and the chart edge */
         labelGap: 12,
+        /** Gap (px) between the plot and the X-axis labels */
+        xAxisLabelGap: 24,
         /** Base chart padding applied to all sides */
         padding: {top: 5, left: 5, right: 5, bottom: 5},
+    },
+    line: {
+        /** Stroke width of the line */
+        strokeWidth: 4,
+        /** Radius of the dot drawn on the line at the hovered data point */
+        activeDotRadius: 6,
+        /** Opacity of the vertical guideline drawn at the hovered data point */
+        guidelineOpacity: 0.2,
+        /** Base domain padding applied to all sides */
+        domainPadding: {top: 16, bottom: 16, left: 0, right: 0},
     },
     tooltip: {
         /** The height of the chart tooltip pointer */

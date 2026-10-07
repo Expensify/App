@@ -2,9 +2,12 @@ import {renderHook} from '@testing-library/react-native';
 
 import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
 
+import * as ReportActionMessageUtils from '@libs/ReportActionMessageUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportActionTypeGuards from '@libs/ReportActionTypeGuards';
 import * as ReportPrimaryActionUtils from '@libs/ReportPrimaryActionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import * as TransactionViolationUtils from '@libs/TransactionUtils/violations';
 
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -71,23 +74,25 @@ describe('useMoneyReportHeaderStatusBar - duplicate transactions', () => {
         // instead of it recomputing them via the deprecated getReportTransactions default).
         jest.spyOn(ReportActionsUtils, 'getFilteredReportActionsForReportView').mockReturnValue([]);
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(undefined);
-        jest.spyOn(ReportActionsUtils, 'getOriginalMessage').mockReturnValue(undefined);
-        jest.spyOn(ReportActionsUtils, 'isMoneyRequestAction').mockReturnValue(false);
+        // These two live in leaf modules that ReportActionsUtils only re-exports, and a re-export is a read-only property, so they must be spied at the leaf.
+        jest.spyOn(ReportActionMessageUtils, 'getOriginalMessage').mockReturnValue(undefined);
+        jest.spyOn(ReportActionTypeGuards, 'isMoneyRequestAction').mockReturnValue(false);
         jest.spyOn(ReportPrimaryActionUtils, 'isMarkAsResolvedAction').mockReturnValue(false);
         // isPaidGroupPolicy/isPaidGroupPolicyExpenseReport are billing-only and restricted from static import.
         // This hook never touches them, but a namespace import can't be statically proven not to, so these
         // ReportUtils spies go through require() instead (matches other tests spying on this module).
         jest.spyOn(require('@libs/ReportUtils'), 'hasOnlyHeldExpenses').mockReturnValue(false);
         jest.spyOn(require('@libs/ReportUtils'), 'isSettled').mockReturnValue(false);
-        jest.spyOn(TransactionUtils, 'allHavePendingRTERViolation').mockReturnValue(false);
-        jest.spyOn(TransactionUtils, 'hasDuplicateTransactions').mockReturnValue(false);
-        jest.spyOn(TransactionUtils, 'isBrokenConnectionViolation').mockReturnValue(false);
+        // The violation helpers live in the TransactionUtils/violations leaf module that TransactionUtils only re-exports, so they must be spied at the leaf too.
+        jest.spyOn(TransactionViolationUtils, 'allHavePendingRTERViolation').mockReturnValue(false);
+        jest.spyOn(TransactionViolationUtils, 'hasDuplicateTransactions').mockReturnValue(false);
+        jest.spyOn(TransactionViolationUtils, 'isBrokenConnectionViolation').mockReturnValue(false);
         jest.spyOn(TransactionUtils, 'hasReceipt').mockReturnValue(false);
         jest.spyOn(TransactionUtils, 'isPayAtEndExpense').mockReturnValue(false);
         jest.spyOn(TransactionUtils, 'isPending').mockReturnValue(false);
         jest.spyOn(TransactionUtils, 'isScanning').mockReturnValue(false);
-        jest.spyOn(TransactionUtils, 'shouldSuppressBrokenConnectionStatus').mockReturnValue(false);
-        jest.spyOn(TransactionUtils, 'shouldShowBrokenConnectionViolationForMultipleTransactions').mockReturnValue(false);
+        jest.spyOn(TransactionViolationUtils, 'shouldSuppressBrokenConnectionStatus').mockReturnValue(false);
+        jest.spyOn(TransactionViolationUtils, 'shouldShowBrokenConnectionViolationForMultipleTransactions').mockReturnValue(false);
     });
 
     afterEach(() => {
@@ -97,14 +102,14 @@ describe('useMoneyReportHeaderStatusBar - duplicate transactions', () => {
     it('passes the report transactions through to hasDuplicateTransactions', () => {
         renderHook(() => useMoneyReportHeaderStatusBar(REPORT_ID, CHAT_REPORT_ID));
 
-        expect(jest.mocked(TransactionUtils.hasDuplicateTransactions)).toHaveBeenCalledWith('test@example.com', 1, mockMoneyRequestReport, undefined, undefined, undefined, [
+        expect(jest.mocked(TransactionViolationUtils.hasDuplicateTransactions)).toHaveBeenCalledWith('test@example.com', 1, mockMoneyRequestReport, undefined, undefined, undefined, [
             mockTransaction1,
             mockTransaction2,
         ]);
     });
 
     it('shows the duplicates status bar when hasDuplicateTransactions reports duplicates on an unsettled report', () => {
-        jest.spyOn(TransactionUtils, 'hasDuplicateTransactions').mockReturnValue(true);
+        jest.spyOn(TransactionViolationUtils, 'hasDuplicateTransactions').mockReturnValue(true);
 
         const {result} = renderHook(() => useMoneyReportHeaderStatusBar(REPORT_ID, CHAT_REPORT_ID));
 
@@ -113,7 +118,7 @@ describe('useMoneyReportHeaderStatusBar - duplicate transactions', () => {
     });
 
     it('does not show the duplicates status bar when the report is already settled, even if duplicates are found', () => {
-        jest.spyOn(TransactionUtils, 'hasDuplicateTransactions').mockReturnValue(true);
+        jest.spyOn(TransactionViolationUtils, 'hasDuplicateTransactions').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportUtils'), 'isSettled').mockReturnValue(true);
 
         const {result} = renderHook(() => useMoneyReportHeaderStatusBar(REPORT_ID, CHAT_REPORT_ID));

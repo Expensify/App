@@ -1,8 +1,8 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories]
-internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, and inline category creation from the expense flow. Does not cover personal expense rules or accounting integration setup.
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories, description hint, category description hint, remind members what to write in description, auto-categorize new expenses, turn off auto-categorization]
+internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, inline category creation from the expense flow, and adding a Description hint to a category. Does not cover personal expense rules or accounting integration setup.
 ---
 
 # Create Expense Categories
@@ -62,13 +62,20 @@ The following columns are supported:
 | **GL Code** | No | Control |
 | **Require receipts over** | No | Control |
 | **Require itemized receipts over** | No | Control |
+| **Payroll code** | No | Control |
+| **Require description** | No | Collect, Control |
+| **Description hint** | No | Collect, Control |
+| **Flag amounts over** | No | Collect, Control |
+| **Expense limit type** | No | Collect, Control |
+
+The **Require description**, **Description hint**, **Flag amounts over**, and **Expense limit type** columns are available when **Rules** is enabled for the workspace. For **Expense limit type**, use `expense` (**Individual expense**) or `daily` (**Category total**).
 
 For the **Require receipts over** and **Require itemized receipts over** columns, use one of the following values:
 
 - `default` — Keep the existing workspace or category setting (no change).
 - `required` — Always require a receipt (or itemized receipt), regardless of amount.
 - `not_required` — Never require a receipt (or itemized receipt).
-- A number (e.g., `2500`) — Require a receipt (or itemized receipt) for expenses over that amount in cents.
+- A number (e.g., `25`) — Require a receipt (or itemized receipt) for expenses over that amount.
 
 ---
 
@@ -136,13 +143,38 @@ Everything else is created as a rule. The **Category rules** section at the bott
 2. In the **Category rules** section, click **Create new rule**.
 3. Choose what the rule should do:
    - **Flag for review** – Flag expenses in this category when the individual expense amount, or the daily category total on a report, goes above an amount you set.
-   - **Set field requirements** – Require or waive a description, attendees, a receipt, or an itemized receipt for this category.
+   - **Set field requirements** – Require a description, attendees, a receipt, or an itemized receipt for this category, or waive a receipt or itemized receipt requirement.
    - **Apply expense defaults** – Set a default tax rate for this category ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
 4. Configure the rule and click **Save rule**.
 
 You can also create and manage these rules from the **Flag for review**, **Field requirements**, and **Expense defaults** tabs of the **Rules** page. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
 
 Category Rules apply to all members who use that category. If both a Category Rule and a workspace-wide rule apply to the same expense, the Category Rule takes priority.
+
+---
+
+## How to add a Description hint to an expense category
+
+A **Description hint** tells members what to write in the **Description** field when they use a category. For example, you can ask for a campaign name on an Advertising expense.
+
+The **Description hint** setting appears on a category once **Rules** is enabled on the workspace, which requires the Control plan.
+
+1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Categories**.
+3. Select a category to open its settings panel.
+4. Select **Description hint**.
+5. Enter the hint in the **Hint** field. Keep it short.
+6. Select **Save**.
+
+To remove the hint, clear the **Hint** field and select **Save**.
+
+---
+
+## Where members see the Description hint
+
+The hint appears as text below the **Description** field on the expense, both while creating a new expense and while editing an existing one. It shows as soon as the member selects that category, and only members who use that category see it.
+
+The hint is a reminder, not a requirement. To make a description mandatory, create a **Set field requirements** rule for the category and require a description.
 
 ---
 
@@ -157,6 +189,7 @@ Expensify learns your category preferences over time and suggests them automatic
 - If you manually change a category, Expensify remembers the update.
 - Existing expenses are not updated retroactively.
 - These suggestions are based on patterns and may vary by user.
+- This is on by default. To stop new expenses from being categorized automatically, a Workspace Admin can go to **Workspaces > [workspace name] > Categories > More > Settings** and disable **Auto-categorize new expenses**.
 
 ## How to set default categories by MCC code
 

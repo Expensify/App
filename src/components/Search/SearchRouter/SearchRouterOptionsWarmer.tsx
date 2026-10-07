@@ -1,5 +1,6 @@
 import useFilteredOptions from '@hooks/useFilteredOptions';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
@@ -33,14 +34,16 @@ function SearchRouterOptionsWarmer({onDone}: SearchRouterOptionsWarmerProps) {
     // The high-churn inputs of the option-list cache, read through the same `useOnyx` layer that keys it.
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const reportAttributes = useReportAttributes();
     const sortedReportActionsData = useSortedReportActionsData();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const churnVersionRef = useRef(0);
     useEffect(() => {
         churnVersionRef.current += 1;
-    }, [reports, policies, personalDetails, reportAttributes, sortedReportActionsData]);
+    }, [reports, policies, personalDetails, reportAttributes, sortedReportActionsData, allPolicyTags, visibleReportActionsData]);
 
     useEffect(() => {
         let attempts = 0;

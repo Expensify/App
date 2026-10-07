@@ -119,6 +119,8 @@ function buildOptimisticCompanyCardCSVTransactions(
     const externalIDColumnIndex = isExternalIDColumnMapped ? mappedExternalIDColumnIndex : normalizedColumnMappings.length - 1;
 
     const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
+    const cardNameColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NAME);
+    const cardIdentityColumnIndex = cardNumberColumnIndex >= 0 ? cardNumberColumnIndex : cardNameColumnIndex;
     const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
     const originalTransactionDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE);
     const merchantColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.MERCHANT);
@@ -137,7 +139,7 @@ function buildOptimisticCompanyCardCSVTransactions(
             row[externalIDColumnIndex] = transactionID;
         }
 
-        const cardName = row.at(cardNumberColumnIndex)?.trim();
+        const cardName = cardIdentityColumnIndex >= 0 ? row.at(cardIdentityColumnIndex)?.trim() : undefined;
         const rawPostedDate = row.at(postedDateColumnIndex)?.trim();
         const created = rawPostedDate ? parseCSVDate(rawPostedDate) : null;
         const merchant = row.at(merchantColumnIndex)?.trim() ?? '';
@@ -213,6 +215,10 @@ function clearAddNewCardFlow() {
         currentStep: null,
         data: {},
     });
+}
+
+function clearAddNewCompanyCardErrors() {
+    Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {errors: null});
 }
 
 function addNewCompanyCardsFeed(
@@ -345,6 +351,7 @@ function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID:
 
     const parameters = {
         policyID,
+        domainAccountID: domainOrWorkspaceAccountID,
         bankName,
         liabilityType,
     };
@@ -816,7 +823,7 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-            value: {[cardID]: oldCardTitle},
+            value: {[cardID]: oldCardTitle ?? null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1383,6 +1390,8 @@ function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainI
         Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
     }
 
+    // An abandoned assign flow can leave errors or cardToAssign behind, which BankConnection would read as a failed import or as a Plaid token.
+    clearAssignCardStepAndData();
     setAssignCardStepAndData({
         currentStep,
         isRefreshing: true,
@@ -1487,6 +1496,7 @@ export {
     clearCompanyCardErrorField,
     setAddNewCompanyCardStepAndData,
     clearAddNewCardFlow,
+    clearAddNewCompanyCardErrors,
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
     openPolicyAddCardFeedPage,
