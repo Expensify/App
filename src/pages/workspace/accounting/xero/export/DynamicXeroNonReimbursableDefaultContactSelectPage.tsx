@@ -82,26 +82,22 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     // doesn't need the extra search row.
     const shouldShowTextInput = supplierOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
-    // Pin the supplier selected when the page opened to the top, before filtering. Freeze it so the optimistic update
-    // on select doesn't reorder the list for a frame before the page navigates back.
-    const initialContactID = useInitialValue(() => currentContactID);
-    const orderedSupplierOptions = moveInitialSelectionToTop(supplierOptions, initialContactID ? [initialContactID] : []);
-
-    const filteredSupplierOptions = useMemo(
-        () => (shouldShowTextInput ? tokenizedSearch(orderedSupplierOptions, searchText, (option) => [option.text ?? '']) : orderedSupplierOptions),
-        [shouldShowTextInput, orderedSupplierOptions, searchText],
-    );
-
-    // Only prepend the clear row when there's a default to clear or there are suppliers to choose
-    // between. Without this guard, an unsynced workspace with no defaultVendor set would render
-    // `[None]` and never show the noSuppliersFound BlockingView (SelectionScreen only renders
-    // listEmptyContent when data is empty). The clear row stays visible regardless of the search
-    // term so it's always reachable for clearing an existing default.
+    // Only include the clear row when there's a default to clear or there are suppliers to choose between. Without this
+    // guard, an unsynced workspace with no defaultVendor set would render `[None]` and never show the noSuppliersFound
+    // BlockingView (SelectionScreen only renders listEmptyContent when data is empty).
     const shouldShowClearOption = !!currentContactID || supplierOptions.length > 0;
-    const data: SelectorType[] = useMemo(
-        () => (shouldShowClearOption ? [clearOption, ...filteredSupplierOptions] : filteredSupplierOptions),
-        [shouldShowClearOption, clearOption, filteredSupplierOptions],
-    );
+
+    // Keep the clear row inside the ordered list so a pinned selection sits above it (matching the other account
+    // pickers, where "Default"/"None" shows below the selected item). Freeze the pinned value at mount so the optimistic
+    // update on select doesn't reorder the list for a frame before the page navigates back.
+    const initialContactID = useInitialValue(() => currentContactID);
+    const allOptions = shouldShowClearOption ? [clearOption, ...supplierOptions] : supplierOptions;
+    const orderedOptions = moveInitialSelectionToTop(allOptions, initialContactID ? [initialContactID] : []);
+
+    // Keep the clear row visible regardless of the search term so it stays reachable while filtering.
+    const data: SelectorType[] = shouldShowTextInput
+        ? orderedOptions.filter((option) => option.value === CLEAR_DEFAULT_VENDOR_VALUE || tokenizedSearch([option], searchText, (item) => [item.text ?? '']).length > 0)
+        : orderedOptions;
 
     const goBack = useCallback(() => {
         Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
