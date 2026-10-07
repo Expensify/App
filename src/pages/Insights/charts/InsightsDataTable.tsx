@@ -1,16 +1,21 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import type {ChartSeries} from '@components/Charts';
+import Icon from '@components/Icon';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {format} from '@libs/NumberFormatUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -37,18 +42,20 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
 }
 
-/** Change relative to the previous period, undefined when that is zero */
-function getRelativeChange(current: number, previous: number): number | undefined {
+/** Change relative to the previous period. A group the previous period didn't have counts as an infinite change. */
+function getRelativeChange(current: number, previous: number): number {
     if (previous === 0) {
-        return undefined;
+        return current === 0 ? 0 : Math.sign(current) * Infinity;
     }
 
     return (current - previous) / Math.abs(previous);
 }
 
 function InsightsDataTable({rows, series, isLoading}: InsightsDataTableProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
     const {preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -62,6 +69,13 @@ function InsightsDataTable({rows, series, isLoading}: InsightsDataTableProps) {
     }
 
     const isComparing = series.length > 1;
+
+    const getChangeColor = (relativeChange: number) => {
+        if (relativeChange === 0) {
+            return theme.textSupporting;
+        }
+        return relativeChange > 0 ? theme.danger : theme.successHover;
+    };
 
     return (
         <View style={[styles.chartInlineTable, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
@@ -91,9 +105,19 @@ function InsightsDataTable({rows, series, isLoading}: InsightsDataTableProps) {
                         <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
                             <Text style={styles.textAlignRight}>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
                             {relativeChange !== undefined && (
-                                <Text style={[styles.mutedNormalTextLabel, styles.textAlignRight]}>
-                                    {format(preferredLocale, relativeChange, {style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero'})}
-                                </Text>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gapHalf]}>
+                                    {relativeChange !== 0 && (
+                                        <Icon
+                                            src={relativeChange > 0 ? icons.ArrowUpLong : icons.ArrowDownLong}
+                                            fill={getChangeColor(relativeChange)}
+                                            width={variables.iconSizeXXSmall}
+                                            height={variables.iconSizeXXSmall}
+                                        />
+                                    )}
+                                    <Text style={[styles.textLabel, StyleUtils.getColorStyle(getChangeColor(relativeChange))]}>
+                                        {format(preferredLocale, relativeChange, {style: 'percent', maximumFractionDigits: 1, signDisplay: 'never'})}
+                                    </Text>
+                                </View>
                             )}
                         </View>
                     </View>
