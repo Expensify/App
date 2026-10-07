@@ -352,10 +352,10 @@ type Reservation = {
     company?: Company;
 
     /** In car and hotel reservations, this represents the cancellation policy */
-    cancellationPolicy?: string;
+    cancellationPolicy?: string | null;
 
     /** In car and hotel reservations, this represents the cancellation deadline */
-    cancellationDeadline?: string;
+    cancellationDeadline?: string | null;
 
     /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
@@ -556,6 +556,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
+
+        /** Draft-only marker set when waypoints come from a reused route, so the client must not refetch the route from the map SDK */
+        isReusedRoute?: boolean | null;
 
         /**
          * Tracks whether the user has explicitly set an amount in the new manual expense flow.
