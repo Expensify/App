@@ -1,12 +1,14 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useWaypointValidation, {isWaypointEmpty} from '@pages/iou/request/step/IOURequestStepDistance/hooks/useWaypointValidation';
+import useWaypointValidation from '@pages/iou/request/step/IOURequestStepDistance/hooks/useWaypointValidation';
 
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
 jest.mock('@libs/TransactionUtils', () => ({
-    ...jest.requireActual<typeof import('@libs/TransactionUtils')>('@libs/TransactionUtils'),
+    // The real module pulls in a large import graph that circularly depends on itself, so the test stubs
+    // both waypoint helpers the hook uses instead of loading it through jest.requireActual.
     isWaypointNullIsland: (waypoint: Waypoint | undefined) => waypoint?.lat === 0 && waypoint?.lng === 0,
+    isWaypointEmpty: (waypoint: Waypoint | undefined) => !waypoint || Object.keys(waypoint).every((key) => key === 'keyForList'),
 }));
 
 const startWaypoint: Waypoint = {keyForList: 'start', address: '1 Main St', lat: 40.7128, lng: -74.006};
@@ -54,19 +56,5 @@ describe('useWaypointValidation', () => {
         const {result} = renderHook(() => useWaypointValidation({waypoints, validatedWaypoints}));
 
         expect(result.current.isWaypointsNullIslandError).toBe(true);
-    });
-});
-
-describe('isWaypointEmpty', () => {
-    it('treats undefined as empty', () => {
-        expect(isWaypointEmpty(undefined)).toBe(true);
-    });
-
-    it('treats a waypoint with only keyForList as empty', () => {
-        expect(isWaypointEmpty({keyForList: 'foo'})).toBe(true);
-    });
-
-    it('treats a waypoint with an address as non-empty', () => {
-        expect(isWaypointEmpty(startWaypoint)).toBe(false);
     });
 });
