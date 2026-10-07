@@ -33,6 +33,7 @@ import {View} from 'react-native';
 import AmountFilterContentPageWrapper from './AmountFilterContentPageWrapper';
 import DateFilterContentPageWrapper from './DateFilterContentPageWrapper';
 import ListFilterContentPageWrapper from './ListFilterContentPageWrapper';
+import MerchantFilterContentPageWrapper from './MerchantFilterContentPageWrapper';
 import ReportFieldFilterContentPageWrapper from './ReportFieldFilterContentPageWrapper';
 import TextInputFilterContentPageWrapper from './TextInputFilterContentPageWrapper';
 
@@ -115,6 +116,7 @@ function SearchAdvancedFiltersContentBase() {
                                 ready={didScreenTransitionEnd}
                                 components={{
                                     List: ListFilterContentPageWrapper,
+                                    Merchant: MerchantFilterContentPageWrapper,
                                     Text: TextInputFilterContentPageWrapper,
                                     Amount: AmountFilterContentPageWrapper,
                                     Date: DateFilterContentPageWrapper,

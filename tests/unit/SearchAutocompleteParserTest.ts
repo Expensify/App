@@ -342,6 +342,21 @@ const tests: Array<{query: string; expected: ExpectedAutocompleteParserResult}> 
             ],
         },
     },
+    {
+        query: 'type:expense -merchant*:Uber',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'type', value: 'expense', negated: false, start: 5, length: 7}],
+        },
+    },
+    {
+        // The "contains" operator is only supported for the merchant field
+        query: 'type:expense category*:travel',
+        expected: {
+            autocomplete: null,
+            ranges: [{key: 'type', value: 'expense', negated: false, start: 5, length: 7}],
+        },
+    },
 ];
 
 const limitAutocompleteTests: Array<{query: string; expected: ExpectedAutocompleteParserResult; description: string}> = [
