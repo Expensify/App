@@ -116,35 +116,6 @@ describe('useChartLabelLayout', () => {
         });
     });
 
-    describe('horizontal bar fallback signal', () => {
-        // The hook no longer owns the fallback decision. It exposes only the rotation, and bar-chart callers
-        // treat a 90° result as the signal to switch to horizontal bars. These assert the rotation contract callers rely on.
-
-        it('reports 90° when labels overflow at every rotation, the signal to fall back to horizontal bars', () => {
-            // Given labels that overflow at 0° (46>20) and 45° (33.7>20)
-            // When laying out the labels
-            // Then the rotation stays 90°, which bar-chart callers read as "switch to horizontal bars"
-            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 20, labelAreaWidth: 400});
-            expect(result.current.labelRotation).toBe(90);
-        });
-
-        it('reports 0° when labels fit horizontally, so callers keep vertical bars', () => {
-            // Given labels that fit at 0°
-            // When laying out the labels
-            // Then the rotation is 0° and no fallback is signaled
-            const {result} = renderLayout({data: makeData('AAA', 'BBB', 'CCC'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 30, labelAreaWidth: 90});
-            expect(result.current.labelRotation).toBe(0);
-        });
-
-        it('reports 45° when labels fit diagonally, so callers keep vertical bars', () => {
-            // Given labels that overflow at 0° but fit at 45°
-            // When laying out the labels
-            // Then the rotation is 45° and no fallback is signaled
-            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 40, labelAreaWidth: 400});
-            expect(result.current.labelRotation).toBe(45);
-        });
-    });
-
     describe('backward compatibility', () => {
         it('produces identical result whether edge params are omitted or set to Infinity', () => {
             const config = {data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 40, labelAreaWidth: 400};

@@ -125,6 +125,18 @@ function DistanceRequestController({distanceState}: DistanceRequestControllerPro
             return;
         }
 
+        // For the case of moving a track expense we want to auto set best eligible rate from the workspace.
+        if (isMovingTransactionFromTrackExpense) {
+            const expenseDate = getCreated(transaction);
+            const bestRate = expenseDate ? DistanceRequestUtils.getBestEligibleRate(policyRates, expenseDate) : undefined;
+            const fallbackRateID = bestRate?.customUnitRateID ?? defaultMileageRateCustomUnitRateID;
+            if (fallbackRateID) {
+                setCustomUnitRateID(transactionID, fallbackRateID, transaction, policy, false, personalPolicy?.outputCurrency);
+                clearFormErrors([errorKey]);
+                return;
+            }
+        }
+
         // If none of the above conditions are met, display the rate error
         setFormError(errorKey);
     }, [
@@ -141,6 +153,7 @@ function DistanceRequestController({distanceState}: DistanceRequestControllerPro
         transaction,
         prevPolicy?.id,
         personalPolicy?.outputCurrency,
+        defaultMileageRateCustomUnitRateID,
     ]);
 
     useEffect(() => {

@@ -20,6 +20,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -37,7 +38,6 @@ import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
-import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportForHeader,
@@ -72,8 +72,8 @@ type DynamicRoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScre
 function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBERS.path);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'RemoveMembers']);
-    const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
-    const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+    const reportAction = useParentReportAction(report);
+    const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);

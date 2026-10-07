@@ -160,9 +160,10 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
     const airports = pnr.data.additionalMetadata?.airportInfo ?? [];
 
     for (const travelerInfo of pnrData.travelerInfos) {
-        const ticketSource = travelerInfo.tickets.some((t) => t.flightCoupons.length > 0) ? travelerInfo.tickets : (travelerInfo.lastConfirmedTickets ?? travelerInfo.tickets);
+        const tickets = travelerInfo.tickets ?? [];
+        const ticketSource = tickets.some((t) => (t.flightCoupons?.length ?? 0) > 0) ? tickets : (travelerInfo.lastConfirmedTickets ?? tickets);
         for (const ticket of ticketSource) {
-            const flightCoupons = ticket.flightCoupons;
+            const flightCoupons = ticket.flightCoupons ?? [];
             for (const [index, flightDetails] of flightCoupons.sort((a, b) => a.legIdx - b.legIdx).entries()) {
                 const legIdx = flightDetails.legIdx;
                 const flightIdx = flightDetails.flightIdx;
@@ -212,7 +213,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
                         value: flightObject?.vendorConfirmationNumber ?? '',
                     },
                 ];
-                const traveler = findTravelerInfo(travelers, travelerInfo.userId.id);
+                const traveler = findTravelerInfo(travelers, travelerInfo.userId?.id);
                 const reservationObject: Reservation = {
                     company,
                     start,
@@ -223,7 +224,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
                     arrivalGate: flightObject?.arrivalGate,
                     seatNumber: getSeatByLegAndFlight(travelerInfo, legIdx, flightIdx),
                     type: CONST.RESERVATION_TYPE.FLIGHT,
-                    duration: parseDurationToSeconds(flightObject?.duration.iso8601 ?? ''),
+                    duration: parseDurationToSeconds(flightObject?.duration?.iso8601 ?? ''),
                     reservationID: pnr.pnrId,
                     travelerPersonalInfo: {
                         name: getTravelerName(traveler),
@@ -286,22 +287,22 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIt
             value: pnrData.vendorConfirmationNumber,
         },
     ];
-    const travelerInfo = pnrData.travelerInfos.at(0);
-    const traveler = findTravelerInfo(travelers, travelerInfo?.userId.id);
+    const travelerInfo = pnrData.travelerInfos?.at(0);
+    const traveler = findTravelerInfo(travelers, travelerInfo?.userId?.id);
 
     reservationList.push({
         reservationIndex: 0,
         reservation: {
             reservationID: pnr.pnrId,
             start: {
-                date: pnrData.checkInDateTime?.iso8601,
+                date: pnrData.checkInDateTime?.iso8601 ?? '',
                 address: getAddressFromLocation(pnrData.hotelInfo.address),
                 longName: pnrData.hotelInfo.name,
                 shortName: pnrData.hotelInfo.chainCode,
                 cityName: pnrData.hotelInfo.address.locality,
             },
             end: {
-                date: pnrData.checkOutDateTime?.iso8601,
+                date: pnrData.checkOutDateTime?.iso8601 ?? '',
                 address: getAddressFromLocation(pnrData.hotelInfo.address),
                 longName: pnrData.hotelInfo.name,
                 shortName: pnrData.hotelInfo.chainCode,
@@ -349,12 +350,12 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
         reservation: {
             reservationID: pnr.pnrId,
             start: {
-                date: pnrData.pickupDateTime?.iso8601,
+                date: pnrData.pickupDateTime?.iso8601 ?? '',
                 location: getAddressFromLocation(pickupLocation, CONST.RESERVATION_TYPE.CAR),
                 cityName: pickupLocation.locality,
             },
             end: {
-                date: pnrData.dropOffDateTime?.iso8601,
+                date: pnrData.dropOffDateTime?.iso8601 ?? '',
                 location: getAddressFromLocation(dropLocation, CONST.RESERVATION_TYPE.CAR),
                 cityName: dropLocation.locality,
             },
@@ -363,7 +364,7 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
             vendor: pnrData.carInfo.vendor.name,
             carInfo: {name: pnrData.carInfo.carSpec.displayName, engine: pnrData.carInfo.carSpec.engineType},
             cancellationPolicy: pnrData.cancellationPolicy?.policy ?? null,
-            cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601 ?? null,
+            cancellationDeadline: pnrData.cancellationPolicy?.deadline?.iso8601 ?? null,
             duration: 0,
             travelerPersonalInfo: {
                 name: getTravelerName(traveler),
@@ -386,13 +387,14 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIte
     }
     const pnrData: RailPnr = pnr.data.railPnr;
 
-    for (const ticket of pnrData.tickets) {
+    for (const ticket of pnrData.tickets ?? []) {
         for (const [legIndex, legIdx] of ticket.legs.entries()) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const leg = pnrData.legInfos.at(legIdx)!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const travelerIdx = ticket.passengerRefs.at(legIndex)!;
-            const travelerInfo = pnrData.passengerInfos.at(travelerIdx);
+            const leg = pnrData.legInfos.at(legIdx);
+            if (!leg) {
+                continue;
+            }
+            const travelerIdx = ticket.passengerRefs.at(legIndex);
+            const travelerInfo = travelerIdx === undefined ? undefined : pnrData.passengerInfos?.at(travelerIdx);
 
             const traveler = findTravelerInfo(travelers, travelerInfo?.userOrgId?.userId?.id);
 
@@ -402,23 +404,23 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIte
                     legId: legIdx,
                     reservationID: pnr.pnrId,
                     start: {
-                        date: leg.departAt.iso8601,
-                        longName: leg.originInfo.name,
-                        shortName: getRailStationShortName(leg.originInfo.code),
-                        cityName: leg.originInfo.cityName,
+                        date: leg.departAt?.iso8601 ?? '',
+                        longName: leg.originInfo?.name,
+                        shortName: getRailStationShortName(leg.originInfo?.code),
+                        cityName: leg.originInfo?.cityName,
                     },
                     end: {
-                        date: leg.arriveAt.iso8601,
-                        longName: leg.destinationInfo.name,
-                        shortName: getRailStationShortName(leg.destinationInfo.code),
-                        cityName: leg.destinationInfo.cityName,
+                        date: leg.arriveAt?.iso8601 ?? '',
+                        longName: leg.destinationInfo?.name,
+                        shortName: getRailStationShortName(leg.destinationInfo?.code),
+                        cityName: leg.destinationInfo?.cityName,
                     },
                     route: {
                         name: `${leg.vehicle.carrierName} ${leg.vehicle.timetableId}`,
                         airlineCode: leg.vehicle.carrierName,
                         number: leg.vehicle.timetableId,
                     },
-                    duration: parseDurationToSeconds(leg.duration.iso8601),
+                    duration: parseDurationToSeconds(leg.duration?.iso8601 ?? ''),
                     type: CONST.RESERVATION_TYPE.TRAIN,
                     confirmations: [
                         {
