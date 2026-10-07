@@ -121,6 +121,50 @@ describe('useMarkAsRead', () => {
         expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
     });
 
+    it.each([
+        {hasNewerActions: false, isFocused: true, hasFocus: true, isVisible: true, shouldRead: true},
+        {hasNewerActions: true, isFocused: true, hasFocus: true, isVisible: true, shouldRead: false},
+        {hasNewerActions: false, isFocused: false, hasFocus: true, isVisible: true, shouldRead: false},
+        {hasNewerActions: false, isFocused: true, hasFocus: false, isVisible: true, shouldRead: false},
+        {hasNewerActions: false, isFocused: true, hasFocus: true, isVisible: false, shouldRead: false},
+    ])('completes skipped reads on scroll to the end only when the newest actions are visible: %j', ({hasNewerActions, isFocused, hasFocus, isVisible, shouldRead}) => {
+        mockIsUnread = false;
+        const readReport: OnyxTypes.Report = {...REPORT, lastVisibleActionCreated: REPORT.lastReadTime};
+        const {rerender} = renderHook(
+            (props: {report: OnyxTypes.Report; actions: OnyxTypes.ReportAction[]; isScrolledToEnd: boolean}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: props.report,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: props.actions,
+                    isScrolledToEnd: props.isScrolledToEnd,
+                    hasNewerActions,
+                }),
+            {initialProps: {report: readReport, actions: [] as OnyxTypes.ReportAction[], isScrolledToEnd: false}},
+        );
+        const exportAction: OnyxTypes.ReportAction = {
+            ...createRandomReportAction(2),
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            actorAccountID: 2,
+            created: REPORT.lastVisibleActionCreated ?? '',
+        };
+        mockIsUnread = true;
+        rerender({report: REPORT, actions: [exportAction], isScrolledToEnd: false});
+        expect(readNewestAction).not.toHaveBeenCalled();
+
+        mockIsFocused = isFocused;
+        mockHasFocus = hasFocus;
+        mockIsVisible = isVisible;
+        rerender({report: REPORT, actions: [exportAction], isScrolledToEnd: true});
+
+        if (shouldRead) {
+            expect(readNewestAction).toHaveBeenCalledTimes(1);
+            expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
+        } else {
+            expect(readNewestAction).not.toHaveBeenCalled();
+        }
+    });
+
     it('does not complete a mark-as-read when none was skipped', () => {
         const {result} = renderMarkAsRead({isScrolledToEnd: true});
         readNewestAction.mockClear();
