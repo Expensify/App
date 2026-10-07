@@ -4281,6 +4281,27 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 /**
  * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
+/**
+ * Returns the account that must add a bank account before a queued payment can finish. A bill pays the vendor who sent
+ * its invoice, so the vendor adds the bank account, not the bill's owner.
+ */
+function getQueuedPaymentPayeeAccountID(report: OnyxEntry<Report>): number | undefined {
+    if (report?.type === CONST.REPORT.TYPE.BILL) {
+        return report.billSenderAccountID ?? report.ownerAccountID;
+    }
+    return report?.ownerAccountID;
+}
+
+/**
+ * Returns the message for a queued payment. A bill's vendor needs a business deposit account, so its message doesn't ask for a personal bank account.
+ */
+function getReimbursementQueuedMessageKey(report: OnyxEntry<Report>, paymentType: string | undefined): TranslationPaths {
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        return 'iou.waitingOnEnabledWallet';
+    }
+    return report?.type === CONST.REPORT.TYPE.BILL ? 'iou.waitingOnVendorBankAccount' : 'iou.waitingOnBankAccount';
+}
+
 function getReimbursementQueuedActionMessage({
     reportAction,
     report,
@@ -4296,22 +4317,15 @@ function getReimbursementQueuedActionMessage({
     shouldUseShortDisplayName?: boolean;
     personalDetails?: Partial<PersonalDetailsList>;
 }): string {
-    const submitterDisplayName =
+    const payeeDisplayName =
         getDisplayNameForParticipant({
-            accountID: report?.ownerAccountID,
+            accountID: getQueuedPaymentPayeeAccountID(report),
             shouldUseShortForm: shouldUseShortDisplayName,
             personalDetailsData: personalDetails,
             formatPhoneNumber,
             hiddenTranslation: translate('common.hidden'),
         }) ?? '';
-    const originalMessage = getOriginalMessage(reportAction);
-    let messageKey: TranslationPaths;
-    if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        messageKey = 'iou.waitingOnEnabledWallet';
-    } else {
-        messageKey = 'iou.waitingOnBankAccount';
-    }
-    return translate(messageKey, submitterDisplayName);
+    return translate(getReimbursementQueuedMessageKey(report, getOriginalMessage(reportAction)?.paymentType), payeeDisplayName);
 }
 
 /**
@@ -12066,7 +12080,14 @@ function getIndicatedMissingPaymentMethod(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>,
     bankAccountList: OnyxEntry<BankAccountList>,
 ): MissingPaymentMethod | undefined {
-    const isSubmitterOfUnsettledReport = !!reportId && isCurrentUserSubmitter(getReport(reportId, deprecatedAllReports)) && !isSettled(reportId);
+    const report = reportId ? getReport(reportId, deprecatedAllReports) : undefined;
+
+    // The bill's owner pays the vendor, so the owner has no bank account to add.
+    if (report?.type === CONST.REPORT.TYPE.BILL) {
+        return undefined;
+    }
+
+    const isSubmitterOfUnsettledReport = !!reportId && isCurrentUserSubmitter(report) && !isSettled(reportId);
     if (!isSubmitterOfUnsettledReport) {
         return undefined;
     }
@@ -14526,6 +14547,8 @@ export {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getQueuedPaymentPayeeAccountID,
+    getReimbursementQueuedMessageKey,
     getReportDescription,
     getReportFieldKey,
     getReportFieldMaps,

@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
-import {getIndicatedMissingPaymentMethod, isChatThread} from '@libs/ReportUtils';
+import {getIndicatedMissingPaymentMethod, getQueuedPaymentPayeeAccountID, getReimbursementQueuedMessageKey, isChatThread} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -47,15 +47,14 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const targetReport = isChatThread(report) ? parentReport : report;
-    const [ownerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsDisplayNameSelector(targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, translate, formatPhoneNumber),
+    const [payeeDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsDisplayNameSelector(getQueuedPaymentPayeeAccountID(targetReport) ?? CONST.DEFAULT_NUMBER_ID, translate, formatPhoneNumber),
     });
-    const submitterDisplayName = ownerDisplayName ?? '';
     const paymentType = getOriginalMessage(action)?.paymentType ?? '';
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 
     return (
-        <ReportActionItemBasicMessage message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}>
+        <ReportActionItemBasicMessage message={translate(getReimbursementQueuedMessageKey(targetReport, paymentType), payeeDisplayName ?? '')}>
             <>
                 {missingPaymentMethod === CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT && (
                     <ActionableItemButtons layout="horizontal">

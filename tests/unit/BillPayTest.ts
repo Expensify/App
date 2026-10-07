@@ -1,7 +1,7 @@
 import {canApproveBill, canPayBill, isBillPayReport} from '@libs/BillPayUtils';
 import {translate} from '@libs/Localize';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
-import {canRejectReportAction} from '@libs/ReportUtils';
+import {canRejectReportAction, getReimbursementQueuedActionMessage} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchSuggestionUtils';
 import {createTypeMenuSections, getSections, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -79,6 +79,32 @@ describe('Bill Pay', () => {
 
         // Then Submitted offers Approve and final approval replaces it with Pay.
         expect(action).toBe(expectedAction);
+    });
+
+    it('names the vendor when a bill payment waits for a bank account', () => {
+        // Given an approved bill whose payment waits because its vendor has no deposit account.
+        const vendorAccountID = 456;
+        const waitingBill: Report = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, billSenderAccountID: vendorAccountID};
+        const queuedAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            originalMessage: {},
+        });
+        const personalDetails = {
+            [accountID]: {accountID, login: email, displayName: 'Bill Owner'},
+            [vendorAccountID]: {accountID: vendorAccountID, login: 'billing@vendor.com', displayName: 'Vendor'},
+        };
+
+        // When the bill shows the queued payment.
+        const message = getReimbursementQueuedActionMessage({
+            reportAction: queuedAction,
+            report: waitingBill,
+            translate: <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) => translate(CONST.LOCALES.EN, key, ...parameters),
+            formatPhoneNumber: (phone) => phone,
+            personalDetails,
+        });
+
+        // Then it waits for the vendor, who receives the payment, to add a bank account, not for the bill's owner to add a personal one.
+        expect(message).toBe('started payment, but is waiting for Vendor to add a bank account.');
     });
 
     it('does not offer Reject to the approver of a submitted bill', () => {
