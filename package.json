@@ -98,7 +98,7 @@
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.342",
-    "@expensify/react-native-wallet": "0.1.22",
+    "@expensify/react-native-wallet": "git+https://github.com/Expensify/react-native-wallet.git#12e1a6827ac0cbcd1efaa06b6e69368f95132e78",
     "@expo/metro-config": "57.0.7",
     "@expo/metro-runtime": "57.0.7",
     "@formatjs/intl-listformat": "^7.5.7",
