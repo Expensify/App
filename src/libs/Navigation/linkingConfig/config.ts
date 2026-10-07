@@ -354,6 +354,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.COLLECT_DEPOSIT_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.route,
                             exact: true,
@@ -1197,6 +1201,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_WORK_ARRANGEMENT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT.route,
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,

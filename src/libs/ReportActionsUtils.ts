@@ -4668,6 +4668,26 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
     return getReportActionText(reportAction);
 }
 
+function getPolicyWorkArrangementMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT)) {
+        return getReportActionText(reportAction);
+    }
+    const {newValue, oldValue} = getOriginalMessage(reportAction) ?? {};
+
+    if (typeof newValue !== 'boolean') {
+        return getReportActionText(reportAction);
+    }
+
+    const arrangement = getWorkArrangementLabel(translate, newValue);
+
+    if (typeof oldValue !== 'boolean') {
+        return translate('workspaceActions.workArrangement.set', {arrangement});
+    }
+
+    const previousArrangement = getWorkArrangementLabel(translate, oldValue);
+    return translate('workspaceActions.workArrangement.changed', {arrangement, previousArrangement});
+}
+
 function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
         return getReportActionText(reportAction);
@@ -5557,6 +5577,7 @@ export {
     getSendMoneyFlowAction,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedCommuterExclusionsMessage,
+    getPolicyWorkArrangementMessage,
     getUpdatedMemberWorkArrangementMessage,
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,

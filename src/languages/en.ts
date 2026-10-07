@@ -282,6 +282,7 @@ const translations = {
             invalidDateShouldBeFuture: 'Please choose today or a future date',
             invalidTimeShouldBeFuture: 'Please choose a time at least one minute ahead',
             invalidCharacter: 'Invalid character',
+            invalidField: (fieldName: string) => `Invalid ${fieldName}`,
             enterMerchant: 'Enter a merchant name',
             enterAmount: 'Enter an amount',
             missingMerchantName: 'Missing merchant name',
@@ -8141,6 +8142,20 @@ const translations = {
                     invalidAddress: 'Please enter a valid address',
                     distanceTooLarge: 'Distance is too large.',
                 },
+                workArrangement: {
+                    title: 'Default work arrangement',
+                    officeBasedTitle: 'Office-based',
+                    officeBasedHelp: 'Member commutes to an office. Ordinary commutes are excluded from reimbursement.',
+                    noRegularWorkplaceTitle: 'Remote or mobile',
+                    noRegularWorkplaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
+                    startingPrompt: {
+                        title: 'Set a typical work arrangement',
+                        prompt: 'Choose the arrangement that applies to most current members. You can update members individually or in bulk later.',
+                        officeBasedHelp: 'Most members commute to an office. Ordinary commutes are excluded.',
+                        noRegularWorkplaceHelp: "Most members work remotely, so home-to-work exclusions usually don't apply.",
+                        confirm: 'Apply',
+                    },
+                },
             },
             distance: 'Distance',
             centrallyManage: 'Centrally manage rates, track in miles or kilometers, and set a default category.',
@@ -9681,6 +9696,11 @@ const translations = {
             setCompanyAddressAsPrimary: 'set the company address as primary',
             removed: ({name}: {name: string}) => `removed the office location "${name}"`,
         },
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `changed the default work arrangement to ${arrangement} (previously ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `changed exclude commutes to a fixed distance per claim (previously ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `changed exclude commutes to calculate by home and office (previously ${previousMethod})`,
@@ -10126,6 +10146,8 @@ const translations = {
         mySavedSearch: 'My expenses',
         urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
+        periodSoFar: ({period}: {period: string}) => `${period} so far`,
+        weekOf: ({date}: {date: string}) => `Week of ${date}`,
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             editMultiple: 'Edit multiple',
@@ -10405,6 +10427,8 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
+        switchToTableView: 'Switch to table view',
+        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {

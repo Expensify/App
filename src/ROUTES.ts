@@ -2452,6 +2452,14 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
         },
     },
+    SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
+        route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `settings/wallet/collect-deposit-account${subPagePart}${actionPart}` as const;
+        },
+    },
     SETTINGS_ADD_US_BANK_ACCOUNT: {
         route: 'settings/wallet/add-us-bank-account/:subPage?/:action?',
         getRoute: (subPage?: string, action?: 'edit') => {
@@ -3953,6 +3961,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS: {
         route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions/work-arrangement',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions/work-arrangement` as const,
     },
     WORKSPACE_DISTANCE_RATE_DETAILS: {
         route: 'workspaces/:policyID/distance-rates/:rateID',

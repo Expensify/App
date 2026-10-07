@@ -560,6 +560,9 @@ const CONST = {
 
         // 15 seconds, don't wait too long because the server can always fall back to using the IP address
         TIMEOUT: 15000,
+
+        // 3 seconds, the longest a submit waits for a position before going out without one
+        SUBMIT_WAIT_TIMEOUT: 3000,
     },
 
     LEGAL_NAME: {
@@ -790,6 +793,10 @@ const CONST = {
                 OPEN: 'OPEN',
                 EXIT: 'EXIT',
             },
+        },
+        FIELDS_TYPE: {
+            LOCAL: 'local',
+            INTERNATIONAL: 'international',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -1655,6 +1662,7 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1958,6 +1966,7 @@ const CONST = {
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
+                    UPDATE_POLICY_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_POLICY_WORK_ARRANGEMENT',
                     UPDATE_MEMBER_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_MEMBER_WORK_ARRANGEMENT',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
@@ -2207,6 +2216,10 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
+        },
+        SINGLE_EXPENSE_REPORT_VIEW: {
+            EXPENSE: 'expense',
+            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -2506,6 +2519,7 @@ const CONST = {
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
+        ATTRIBUTE_LOCATION_SOURCE: 'location_source',
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
@@ -2574,6 +2588,12 @@ const CONST = {
         SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
             FOCUS: 'focus',
             LAYOUT: 'layout',
+        },
+        SUBMIT_EXPENSE_LOCATION_SOURCE: {
+            CACHED: 'cached',
+            WAITED: 'waited',
+            TIMED_OUT: 'timed_out',
+            NONE: 'none',
         },
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
@@ -4802,6 +4822,10 @@ const CONST = {
             NAME: 'name',
             ADDRESS: 'address',
             IS_DEFAULT: 'isDefault',
+        },
+        WORK_ARRANGEMENT: {
+            OFFICE_BASED: 'officeBased',
+            NO_REGULAR_WORKPLACE: 'noRegularWorkplace',
         },
         RECEIPT_PARTNERS: {
             NAME: {UBER: 'uber'},
@@ -9063,6 +9087,23 @@ const CONST = {
         },
     },
 
+    COLLECT_DEPOSIT_ACCOUNT: {
+        PAGE_NAME: {
+            COUNTRY: 'country',
+            BANK_ACCOUNT_DETAILS: 'bank-account-details',
+            CONFIRM: 'confirm',
+            SUCCESS: 'success',
+        },
+        INDEXES: {
+            MAPPING: {
+                COUNTRY_SELECTOR: 0,
+                BANK_ACCOUNT_DETAILS: 1,
+                CONFIRMATION: 2,
+                SUCCESS: 3,
+            },
+        },
+    },
+
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
     // Backend NVP name for the Submit migration modal. The Onyx key is prefixed with `nvp_`
@@ -9602,6 +9643,7 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
