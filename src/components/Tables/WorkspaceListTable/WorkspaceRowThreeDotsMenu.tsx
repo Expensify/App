@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
+import {canUnarchivePolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 
 import UnarchiveWorkspaceFlow from '@pages/workspace/archiveWorkspace/UnarchiveWorkspaceFlow';
@@ -172,7 +173,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         }
     }
 
-    if (item.isArchived && isOwner && canArchivePolicies) {
+    if (canUnarchivePolicy(item.isArchived, item.ownerAccountID, currentUserPersonalDetails.accountID, canArchivePolicies)) {
         menuItems.push({
             icon: icons.ArrowCircleClockwise,
             text: translate('workspace.common.unarchive'),

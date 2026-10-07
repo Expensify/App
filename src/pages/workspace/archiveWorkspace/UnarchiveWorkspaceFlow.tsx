@@ -36,6 +36,12 @@ function UnarchiveWorkspaceFlow({policyID, onDismiss}: UnarchiveWorkspaceFlowPro
 
     const isLoadingData = isLoadingOnyxValue(policyResult);
 
+    // The modal callbacks below run after the effect that created them, so they read the latest network state from a ref.
+    const isOfflineRef = useRef(isOffline);
+    useEffect(() => {
+        isOfflineRef.current = isOffline;
+    }, [isOffline]);
+
     // Closes the popover (if still open) and shows the confirmation modal once the policy entry has loaded.
     const hasStartedRef = useRef(false);
     useEffect(() => {
@@ -44,14 +50,18 @@ function UnarchiveWorkspaceFlow({policyID, onDismiss}: UnarchiveWorkspaceFlowPro
         }
         hasStartedRef.current = true;
 
+        const showOfflineModal = () => {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.offlinePrompt'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            }).then(() => onDismiss());
+        };
+
         close(() => {
-            if (isOffline) {
-                showConfirmModal({
-                    title: translate('common.youAppearToBeOffline'),
-                    prompt: translate('common.offlinePrompt'),
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                }).then(() => onDismiss());
+            if (isOfflineRef.current) {
+                showOfflineModal();
                 return;
             }
 
@@ -61,13 +71,21 @@ function UnarchiveWorkspaceFlow({policyID, onDismiss}: UnarchiveWorkspaceFlowPro
                 confirmText: translate('workspace.common.unarchive'),
                 cancelText: translate('common.cancel'),
             }).then((result) => {
-                if (result.action === ModalActions.CONFIRM) {
-                    unarchivePolicy({
-                        policyID,
-                        policyName: policy?.name,
-                        archivedDate: policy?.archivedDate,
-                    });
+                if (result.action !== ModalActions.CONFIRM) {
+                    onDismiss();
+                    return;
                 }
+
+                if (isOfflineRef.current) {
+                    showOfflineModal();
+                    return;
+                }
+
+                unarchivePolicy({
+                    policyID,
+                    policyName: policy?.name,
+                    archivedDate: policy?.archivedDate,
+                });
                 onDismiss();
             });
         });

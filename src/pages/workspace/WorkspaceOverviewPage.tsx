@@ -58,6 +58,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     canEditWorkspaceSettings,
+    canUnarchivePolicy,
     getRulesDocumentSourceURL,
     getUserFriendlyWorkspaceType,
     goBackFromInvalidPolicy,
@@ -378,7 +379,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const secondaryActions: Array<DropdownOption<string>> = [];
 
     if (readOnly) {
-        if (canArchivePolicies && isOwner && isArchivedPolicy(policy)) {
+        if (canUnarchivePolicy(isArchivedPolicy(policy), policy?.ownerAccountID, currentUserPersonalDetails.accountID, canArchivePolicies)) {
             secondaryActions.push({
                 value: 'unarchive',
                 text: translate('workspace.common.unarchive'),

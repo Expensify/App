@@ -109,6 +109,14 @@ function isArchivedPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
+ * Whether the current user can unarchive the workspace: only the owner of an archived workspace can, and only
+ * while the archive policies beta is enabled. Takes primitives so it works with both a Policy and a workspace row.
+ */
+function canUnarchivePolicy(isArchived: boolean, ownerAccountID: number | undefined, currentUserAccountID: number, isArchivePoliciesBetaEnabled: boolean): boolean {
+    return isArchivePoliciesBetaEnabled && isArchived && ownerAccountID === currentUserAccountID;
+}
+
+/**
  * Whether the policy is archived or is optimistically pending deletion. Deleting a workspace
  * archives it on the backend, but the optimistic data only sets pendingAction, so report state
  * transitions must also treat a pending delete as archived while the request is in flight.
@@ -2831,6 +2839,7 @@ export {
     isPolicyFieldListEmpty,
     isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
+    canUnarchivePolicy,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,

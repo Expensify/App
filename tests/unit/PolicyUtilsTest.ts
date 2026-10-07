@@ -13,6 +13,7 @@ import {
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
+    canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
     getVendorDisplayName,
@@ -445,6 +446,28 @@ describe('PolicyUtils', () => {
 
         it('returns false for an undefined policy', () => {
             expect(isArchivedPolicy(undefined)).toBe(false);
+        });
+    });
+
+    describe('canUnarchivePolicy', () => {
+        it('returns true for the owner of an archived workspace when the beta is enabled', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, true)).toBe(true);
+        });
+
+        it('returns false when the beta is disabled', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, false)).toBe(false);
+        });
+
+        it('returns false when the workspace is not archived', () => {
+            expect(canUnarchivePolicy(false, ownerAccountID, ownerAccountID, true)).toBe(false);
+        });
+
+        it('returns false when the current user is not the owner', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID + 1, true)).toBe(false);
+        });
+
+        it('returns false when the owner is unknown', () => {
+            expect(canUnarchivePolicy(true, undefined, ownerAccountID, true)).toBe(false);
         });
     });
 
