@@ -1,6 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
-import {isSelfDM} from '@libs/ReportUtils';
 import {getVisibleTransactionViolations, isDistanceRequest} from '@libs/TransactionUtils';
 import {syncCustomUnitOutOfPolicyViolation, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
@@ -33,7 +32,7 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     return useMemo(() => {
         const syncedDateRangeViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
         // `policy` already prefers distanceOriginalPolicy when the report policy lacks the rate.
-        const syncedViolations = syncCustomUnitOutOfPolicyViolation(syncedDateRangeViolations, transaction, policy, distanceOriginalPolicy, isSelfDM(iouReport));
+        const syncedViolations = syncCustomUnitOutOfPolicyViolation(syncedDateRangeViolations, transaction, policy, distanceOriginalPolicy);
 
         return getVisibleTransactionViolations(
             transaction,

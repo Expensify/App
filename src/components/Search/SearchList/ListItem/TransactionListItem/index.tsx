@@ -26,7 +26,7 @@ import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/acti
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {isInvoiceReport, isSelfDM, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
     isDeletedTransaction as isDeletedTransactionUtil,
     isDistanceRequest,
@@ -224,7 +224,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         isInvoice,
     );
 
-    const rateOnyxViolations = syncCustomUnitOutOfPolicyViolation(attendeeOnyxViolations, liveTransaction, policyForViolations, distanceOriginalPolicy, isSelfDM(reportForViolations));
+    const rateOnyxViolations = syncCustomUnitOutOfPolicyViolation(attendeeOnyxViolations, liveTransaction, policyForViolations, distanceOriginalPolicy);
 
     const transactionViolations = mergeProhibitedViolations(rateOnyxViolations);
 

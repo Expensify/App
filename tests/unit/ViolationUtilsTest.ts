@@ -868,13 +868,15 @@ describe('getViolationsOnyxData', () => {
             );
         });
 
-        it('should not add customUnitOutOfPolicy for a self-DM distance expense with a disabled workspace rate', () => {
+        it('should not add customUnitOutOfPolicy for an unreported self-DM distance expense with a disabled workspace rate', () => {
             const rate = policy.customUnits?.unitId.rates[customUnitRateID];
             if (rate) {
                 rate.enabled = false;
             }
+            // Self-DM Track expenses are stored unreported. Passing a boolean hid the broken report lookup.
+            transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
 
-            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy, undefined, true);
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
 
             expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });

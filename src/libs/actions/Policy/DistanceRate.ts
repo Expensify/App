@@ -1,7 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import type PolicyData from '@hooks/usePolicyData/types';
-
 import * as API from '@libs/API';
 import type {
     CreatePolicyDistanceRateParams,
@@ -26,7 +24,7 @@ import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
-import {getRoom, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
+import {getRoom} from '@libs/ReportUtils';
 import {getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
@@ -352,7 +350,7 @@ function updatePolicyDistanceRate(policyID: string, customUnit: CustomUnit, rate
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
 }
 
-function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[], policyData: PolicyData) {
+function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
@@ -372,7 +370,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
         }
     }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -413,27 +411,6 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
             },
         ],
     };
-
-    const existingCustomUnit = policyData.policy?.customUnits?.[customUnit.customUnitID];
-    const mergedRates = {...existingCustomUnit?.rates};
-    for (const rate of customUnitRates) {
-        mergedRates[rate.customUnitRateID] = {
-            ...(mergedRates[rate.customUnitRateID] ?? {}),
-            ...rate,
-        };
-    }
-
-    const policyOptimisticUpdate: Partial<Policy> = {
-        customUnits: {
-            ...policyData.policy?.customUnits,
-            [customUnit.customUnitID]: {
-                ...customUnit,
-                rates: mergedRates,
-            },
-        },
-    };
-
-    pushTransactionViolationsOnyxData(onyxData, policyData, undefined, policyOptimisticUpdate);
 
     const params: SetPolicyDistanceRatesEnabledParams = {
         policyID,

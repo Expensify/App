@@ -454,7 +454,6 @@ function syncCustomUnitOutOfPolicyViolation(
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     distanceOriginalPolicy?: OnyxEntry<Policy>,
-    isSelfDM = false,
 ): TransactionViolation[] {
     const isPerDiem = !!transaction && TransactionUtils.isPerDiemRequest(transaction);
     if (!transaction || (!TransactionUtils.isDistanceRequest(transaction) && !isPerDiem)) {
@@ -493,9 +492,10 @@ function syncCustomUnitOutOfPolicyViolation(
     const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 
     if (customRate.enabled === false) {
-        // A deleted rate on a self-DM is already cleared by getViolationsOnyxData. A disabled workspace
-        // rate on that same personal expense must stay clear too.
-        if (isSelfDM) {
+        // Unreported expenses (self-DM Track) store reportID '0', so callers cannot resolve a self-DM
+        // report. A deleted rate on that personal expense is already cleared by getViolationsOnyxData.
+        // A disabled workspace rate must stay clear too.
+        if (TransactionUtils.isExpenseUnreported(transaction ?? undefined)) {
             return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
         }
 
