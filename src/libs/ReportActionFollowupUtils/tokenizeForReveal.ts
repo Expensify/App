@@ -1,4 +1,4 @@
-import type {AnyNode, Document, Element as DomElement} from 'domhandler';
+import type {AnyNode, Document} from 'domhandler';
 
 import render from 'dom-serializer';
 import {ElementType} from 'domelementtype';
@@ -78,17 +78,21 @@ function buildClippedNodes(doc: Document, anchor: Anchor): AnyNode[] {
         }
         if (isLeaf) {
             if (stopNode.type === ElementType.Text && anchor.textEndIdx !== undefined) {
-                const truncated = {...stopNode, data: stopNode.data.slice(0, anchor.textEndIdx)} as unknown as AnyNode;
+                const truncated = Object.assign(stopNode.cloneNode(false), stopNode);
+                truncated.data = stopNode.data.slice(0, anchor.textEndIdx);
                 return [...before, truncated];
             }
             return [...before, stopNode];
         }
-        const elem = stopNode as DomElement;
-        const innerChildren = clip(elem.children as AnyNode[], depth + 1);
-        const partialElem = {...elem, children: innerChildren} as unknown as AnyNode;
+        if (stopNode.type !== ElementType.Tag) {
+            return [...before, stopNode];
+        }
+        const innerChildren = clip(stopNode.children, depth + 1);
+        const partialElem = Object.assign(stopNode.cloneNode(false), stopNode);
+        partialElem.children = innerChildren;
         return [...before, partialElem];
     };
-    return clip(doc.children as AnyNode[], 0);
+    return clip(doc.children, 0);
 }
 
 /**
