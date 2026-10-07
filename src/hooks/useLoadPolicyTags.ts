@@ -55,7 +55,8 @@ function useLoadPolicyTags(policyID: string | undefined) {
     // so the absent loading state would otherwise keep the skeleton up forever.
     const isLoadingPolicyTags = !!policyID && !isOffline && !hasOnceLoaded && !hasTags && (isLoading || loadingState === undefined);
 
-    return {isLoadingPolicyTags};
+    // Only a completed read guarantees the collection holds every tag list, so callers that rely on the full list count check this
+    return {isLoadingPolicyTags, hasLoadedPolicyTags: hasOnceLoaded};
 }
 
 export default useLoadPolicyTags;
