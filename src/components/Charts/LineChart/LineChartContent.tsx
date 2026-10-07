@@ -51,6 +51,9 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const yAxisDomain = useDynamicYDomain(data);
     const isLastPointInProgress = !!data.at(-1)?.isInProgress;
+
+    // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
+    const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
     const chartData = data.map((point, index) => ({
         x: index,
         y: point.total,
@@ -192,6 +195,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         const chartBoundsBottom = args.yScale(Math.min(...args.yTicks));
         chartBottom.set(chartBoundsBottom);
+
         return (
             <>
                 {xAxisLabelHeight !== undefined && !!fontManager && (
@@ -295,7 +299,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         data={chartData}
                     >
                         {({points, yScale, yTicks, chartBounds}) => {
-                            const completePoints = isLastPointInProgress ? points.y.slice(0, -1) : points.y;
+                            const completePoints = shouldDashLastSegment ? points.y.slice(0, -1) : points.y;
                             return (
                                 <>
                                     <ChartGridLines
@@ -317,7 +321,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                                         strokeJoin="round"
                                         curveType="linear"
                                     />
-                                    {isLastPointInProgress && points.y.length > 1 && (
+                                    {shouldDashLastSegment && (
                                         <Line
                                             points={points.y.slice(-2)}
                                             color={VictoryTheme.colors.default}
