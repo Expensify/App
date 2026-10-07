@@ -54,6 +54,9 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const handleSubmit = () => {
+        if (isLoading) {
+            return;
+        }
         const trimmedQuery = nlQuery.trim();
         if (!trimmedQuery) {
             return;
