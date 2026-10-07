@@ -23,6 +23,7 @@ import {
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getConnectedIntegration,
+    getConnectionExporters,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
@@ -5006,6 +5007,26 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toEqual([]);
             });
 
+            it('uses Campfire vendors when Campfire and Business Central are both configured', () => {
+                // Given a workspace configured with both Business Central and Campfire connections
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = createMock<Connections>({
+                    ...policy.connections,
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {isConfigured: true},
+                        data: {vendors: [{id: 'cf-1', name: 'Campfire vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR}]},
+                    },
+                });
+
+                // When resolving the vendor source without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then Campfire is the source, so the vendor field never shows the beta-gated Business Central list
+                expect(isVendorFeatureAvailable).toBe(true);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['cf-1']);
+            });
+
             it('uses the Business Central empty state when the synced list has no vendors', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
@@ -5330,19 +5351,22 @@ describe('PolicyUtils', () => {
             });
 
             it.each([
-                {isConfigured: true, isVendorMatchingBetaEnabled: false, expected: false},
-                {isConfigured: true, isVendorMatchingBetaEnabled: true, expected: true},
-                {isConfigured: false, isVendorMatchingBetaEnabled: true, expected: false},
-                {isConfigured: undefined, isVendorMatchingBetaEnabled: true, expected: false},
-            ])('keeps Campfire vendor matching gated for %j', ({isConfigured, isVendorMatchingBetaEnabled, expected}) => {
-                // Given a Campfire connection with the specified configuration state
-                const policy = createMock<Policy>({connections: {campfire: {config: {isConfigured}}}});
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Campfire vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Campfire workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: connection}});
 
-                // When checking the independent vendorMatching beta
-                const isVendorFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
 
-                // Then both beta access and a configured connection are required
-                expect(isVendorFeatureAvailable).toBe(expected);
+                // Then only a configured connection enables Campfire vendor matching
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
             });
 
             it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
@@ -5551,10 +5575,12 @@ describe('PolicyUtils', () => {
         describe('hasVendorFeatureOnAnyPolicy', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const campfirePolicy = createMock<Policy>({id: 'campfire', connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured: true}}}});
             const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
             const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
             const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
             const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const campfireKey = `${ONYXKEYS.COLLECTION.POLICY}campfire`;
             const businessCentralKey = `${ONYXKEYS.COLLECTION.POLICY}businessCentral`;
             const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
 
@@ -5574,6 +5600,17 @@ describe('PolicyUtils', () => {
                 const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
 
                 // Then the feature is available because Xero is generally available
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('is true for a Campfire workspace without the beta', () => {
+                // Given a configured Campfire workspace and a workspace with no accounting connection
+                const policies = {[campfireKey]: campfirePolicy, [plainKey]: plainPolicy};
+
+                // When Search checks vendor availability without beta enrollment
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then Campfire makes vendor filtering available
                 expect(isVendorFeatureAvailable).toBe(true);
             });
 
@@ -6703,5 +6740,25 @@ describe('shouldHideDynamicExternalWorkflowPeople', () => {
     it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
         const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
         expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+});
+
+describe('getConnectionExporters', () => {
+    it('includes the Business Central preferred exporter', () => {
+        // Given a workspace connected to Business Central with a preferred exporter
+        const policy = createMock<Policy>({
+            ...createRandomPolicy(0),
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                    config: {export: {exporter: 'exporter@example.com'}},
+                },
+            },
+        });
+
+        // When the workspace's connection exporters are read
+        const exporters = getConnectionExporters(policy);
+
+        // Then the Business Central exporter is listed, so that member can export reports to Business Central
+        expect(exporters).toContain('exporter@example.com');
     });
 });

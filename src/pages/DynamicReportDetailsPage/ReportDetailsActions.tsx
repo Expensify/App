@@ -15,15 +15,13 @@ import React from 'react';
 import type {ReportDetailsRequestData} from './types';
 
 import getReportDetailsCaseID from './getReportDetailsCaseID';
+import ReportDetailsMenuItems from './ReportDetailsMenuItems';
 import ReportDetailsRequestActions from './ReportDetailsRequestActions';
 import ReportDetailsTaskDeleteAction from './ReportDetailsTaskDeleteAction';
 import {CASES} from './types';
 
 type ReportDetailsActionsProps = {
     reportID: string;
-
-    /** Renders the menu rows. The request data is only passed for the money cases. */
-    renderMenu: (requestData?: ReportDetailsRequestData) => React.ReactNode;
 
     /** Confirms the delete, navigates away and then runs the passed delete */
     showDeleteModal: (requestData: ReportDetailsRequestData | undefined, onDelete: () => void) => Promise<void>;
@@ -33,7 +31,7 @@ type ReportDetailsActionsProps = {
 };
 
 /** Gates the money request subscriptions behind the caseID, so chats, rooms and tasks never mount them */
-function ReportDetailsActions({reportID, renderMenu, showDeleteModal, deleteTransaction}: ReportDetailsActionsProps) {
+function ReportDetailsActions({reportID, showDeleteModal, deleteTransaction}: ReportDetailsActionsProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const parentReportAction = useParentReportAction(report);
@@ -47,7 +45,7 @@ function ReportDetailsActions({reportID, renderMenu, showDeleteModal, deleteTran
     if (caseID === CASES.DEFAULT) {
         return (
             <>
-                {renderMenu()}
+                <ReportDetailsMenuItems reportID={reportID} />
                 <ReportDetailsTaskDeleteAction
                     reportID={reportID}
                     showDeleteModal={showDeleteModal}
@@ -59,7 +57,6 @@ function ReportDetailsActions({reportID, renderMenu, showDeleteModal, deleteTran
     return (
         <ReportDetailsRequestActions
             reportID={reportID}
-            renderMenu={renderMenu}
             showDeleteModal={showDeleteModal}
             deleteTransaction={deleteTransaction}
         />
