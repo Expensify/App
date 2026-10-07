@@ -1,3 +1,4 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
@@ -135,6 +136,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     columnWidthOverrides,
 }: UseDynamicColumnWidthsParams<DataType, ColumnKey>): UseDynamicColumnWidthsResult {
     const styles = useThemeStyles();
+    const {values} = useLayoutSpacing();
 
     const noDynamicWidths: UseDynamicColumnWidthsResult = {
         gridTemplateColumns: undefined,
@@ -176,7 +178,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     const selectionColumnWidth = hasSelectionColumn ? variables.tableCheckboxColumnWidth : 0;
     const totalColumnCount = columns.length + (hasSelectionColumn ? 1 : 0);
     const totalGapWidth = Math.max(totalColumnCount - 1, 0) * styles.gap3.gap;
-    const rowMarginWidth = styles.mh5.marginHorizontal * 2;
+    const rowMarginWidth = values.pageGutter * 2;
     const rowPaddingWidth = styles.ph3.paddingHorizontal * 2;
     const rowChromeWidth = rowMarginWidth + rowPaddingWidth;
     // Floored because the tracks are whole px. A fractional budget leaves a fraction over once they are rounded, and
