@@ -5,16 +5,22 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
+import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
+
+import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
 const mockGetExportTemplates = jest.mocked(getExportTemplates);
+const mockUnholdRequest = jest.mocked(unholdRequest);
 
 jest.mock('@libs/actions/Export', () => ({
     clearExportDownload: jest.fn(),
@@ -38,6 +44,10 @@ jest.mock('@libs/actions/Search', () => ({
     payMoneyRequestOnSearch: jest.fn(),
     submitMoneyRequestOnSearch: jest.fn(),
     unholdMoneyRequestOnSearch: jest.fn(),
+}));
+
+jest.mock('@libs/actions/IOU/Hold', () => ({
+    unholdRequest: jest.fn(),
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
@@ -537,5 +547,46 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(exportItems.some((item) => item.text === 'Default template')).toBe(false);
         expect(exportItems.some((item) => item.text === 'export.currentView')).toBe(true);
         expect(exportItems.some((item) => item.text === 'export.basicExport')).toBe(true);
+    });
+
+    describe('bulk unhold', () => {
+        it('calls unholdRequest with the live Onyx transaction instead of the stale selection snapshot', async () => {
+            const transactionID = 'tx1';
+            const liveTransaction = createRandomTransaction(1);
+            const staleSnapshotTransaction = createRandomTransaction(2);
+            liveTransaction.transactionID = transactionID;
+            liveTransaction.merchant = 'Live Onyx merchant';
+            staleSnapshotTransaction.transactionID = transactionID;
+            staleSnapshotTransaction.merchant = 'Stale snapshot merchant';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, liveTransaction);
+
+            mockSelectedTransactions = {
+                [transactionID]: makeSelectedTransaction({
+                    canUnhold: true,
+                    policyID: undefined,
+                    transaction: staleSnapshotTransaction,
+                    reportAction: createMock<ReportAction>({childReportID: 'childReport1'}),
+                }),
+            };
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBeDefined();
+            });
+
+            act(() => {
+                result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)?.onSelected?.();
+            });
+
+            expect(mockUnholdRequest).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID,
+                    transaction: expect.objectContaining({transactionID, merchant: 'Live Onyx merchant'}),
+                    reportID: 'childReport1',
+                }),
+            );
+        });
     });
 });
