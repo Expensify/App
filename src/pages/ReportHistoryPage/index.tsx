@@ -5,7 +5,6 @@ import ScrollView from '@components/ScrollView';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,7 +15,6 @@ import {isMoneyRequestReport} from '@libs/ReportUtils';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 
-import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -31,14 +29,13 @@ type ReportHistoryPageProps = WithReportOrNotFoundProps & PlatformStackScreenPro
 function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_HISTORY.path);
 
     const steps = getMockReportHistorySteps(report);
 
     return (
         <ScreenWrapper testID="ReportHistoryPage">
-            <FullPageNotFoundView shouldShow={!isBetaEnabled(CONST.BETAS.REPORT_HISTORY) || !isMoneyRequestReport(report)}>
+            <FullPageNotFoundView shouldShow={!isMoneyRequestReport(report)}>
                 <HeaderWithBackButtonAndTitle
                     title={translate('reportHistoryPage.title')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}

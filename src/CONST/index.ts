@@ -1154,7 +1154,6 @@ const CONST = {
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
-        REPORT_HISTORY: 'reportHistory',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
