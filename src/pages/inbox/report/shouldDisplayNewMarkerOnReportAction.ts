@@ -29,8 +29,6 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     /** Whether the action `prevUnreadMarkerReportActionID` points to is still present (not deleted/hidden) */
     isPrevUnreadMarkerReportActionPresent?: boolean;
 
-    /** The reportActionID the user explicitly marked as unread, if any */
-    manuallyMarkedUnreadReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
 
@@ -54,18 +52,9 @@ const shouldDisplayNewMarkerOnReportAction = ({
     isOffline,
     prevUnreadMarkerReportActionID,
     isPrevUnreadMarkerReportActionPresent = false,
-    manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
     newMessageBoundaryTime,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
-    // While a manual mark is active, the marked action is the sole anchor: every other action is suppressed.
-    // We anchor by reportActionID rather than timestamp because `created` shifts on the optimistic->confirmed
-    // transition and would wrongly read as already-read. The marked action is the oldest unread by construction
-    // (markCommentAsUnread sets lastReadTime = its created - 1ms), so it stays correct as newer messages arrive.
-    if (manuallyMarkedUnreadReportActionID) {
-        return message.reportActionID === manuallyMarkedUnreadReportActionID && !shouldHideNewMarker(message, isOffline);
-    }
-
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
 
     // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
@@ -109,7 +98,6 @@ const shouldDisplayNewMarkerOnReportAction = ({
 
     if (isFromCurrentUser) {
         // Only move/keep the marker on a self-authored action when one already exists in this session.
-        // An explicit mark-as-unread bypasses this guard via the early return at the top of the function.
         if (prevUnreadMarkerReportActionID) {
             return !shouldIgnoreUnreadForCurrentUserMessage;
         }
@@ -208,6 +196,7 @@ const getUnreadMarkerReportAction = ({
         manuallyMarkedUnreadReportAction && !shouldHideNewMarker(manuallyMarkedUnreadReportAction, isOffline) ? manuallyMarkedUnreadReportActionID : null;
 
     if (activeManuallyMarkedUnreadReportActionID) {
+        // Anchor by ID so optimistic-to-confirmed timestamp changes and newer arrivals cannot move an explicit manual mark.
         return [activeManuallyMarkedUnreadReportActionID, manuallyMarkedUnreadReportActionIndex];
     }
 
@@ -264,7 +253,6 @@ const getUnreadMarkerReportAction = ({
             isOffline,
             prevUnreadMarkerReportActionID,
             isPrevUnreadMarkerReportActionPresent,
-            manuallyMarkedUnreadReportActionID: activeManuallyMarkedUnreadReportActionID,
             hasWindowFocus,
             newMessageBoundaryTime,
         });
