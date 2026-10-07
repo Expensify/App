@@ -31,7 +31,20 @@ import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from 
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {
+    Card,
+    CardList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    PolicyTags,
+    PolicyVendors,
+    Report,
+    ReportAction,
+    Transaction,
+    TransactionViolation,
+    ViolationName,
+} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {RuleFilterNode} from '@src/types/onyx/RuleFilters';
@@ -61,6 +74,7 @@ type ViolationTranslationParams = {
     isMarkAsCash?: boolean;
     routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
+    policyVendors?: PolicyVendors;
 };
 
 /**
@@ -323,6 +337,7 @@ function buildRuleViolationMessage(
     currency: string,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     translate: LocaleContextProps['translate'],
+    policyVendors?: PolicyVendors,
 ): string {
     if (!filters || !isRuleFilterNode(filters)) {
         return translate('violations.ruleViolation.fallback');
@@ -406,12 +421,13 @@ function buildRuleViolationMessage(
                 hasMerchant = true;
             }
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
+            const vendorNamesString = values.map((value) => policyVendors?.[value]?.name ?? value).join(` ${translate('common.or')} `);
             if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 const vendorTranslationKey = hasMerchant ? 'violations.ruleViolation.withVendor' : 'violations.ruleViolation.fromVendor';
-                phrases.push(translate(vendorTranslationKey, filterValuesString));
+                phrases.push(translate(vendorTranslationKey, vendorNamesString));
             } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
                 const vendorTranslationKey = hasMerchant ? 'violations.ruleViolation.withoutVendor' : 'violations.ruleViolation.notFromVendor';
-                phrases.push(translate(vendorTranslationKey, filterValuesString));
+                phrases.push(translate(vendorTranslationKey, vendorNamesString));
             }
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
             const formattedAmountsString = values.map((value) => convertToDisplayString(Math.abs(Number(value)), currency)).join(` ${translate('common.or')} `);
@@ -1166,6 +1182,7 @@ const ViolationsUtils = {
             isMarkAsCash,
             routeDistanceMeters,
             distanceUnit,
+            policyVendors,
         } = params;
         const {
             brokenBankConnection = false,
@@ -1273,7 +1290,7 @@ const ViolationsUtils = {
             case 'customRules':
                 return translate('violations.customRules', message);
             case 'ruleViolation':
-                return buildRuleViolationMessage(violation.data?.filters, currency, convertToDisplayString, translate);
+                return buildRuleViolationMessage(violation.data?.filters, currency, convertToDisplayString, translate, policyVendors);
             case 'rter': {
                 let isPersonalCardViolation = false;
                 if (cardID !== undefined && cardID !== null && card) {
@@ -1340,6 +1357,7 @@ const ViolationsUtils = {
         cardList,
         isMarkAsCash,
         canEdit = true,
+        policyVendors,
     }: {
         transaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -1354,6 +1372,7 @@ const ViolationsUtils = {
         cardList?: CardList;
         isMarkAsCash?: boolean;
         canEdit?: boolean;
+        policyVendors?: PolicyVendors;
     }): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
@@ -1379,6 +1398,7 @@ const ViolationsUtils = {
                     isMarkAsCash,
                     routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
                     distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+                    policyVendors,
                 });
                 if (!message) {
                     return;

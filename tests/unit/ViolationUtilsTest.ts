@@ -7,7 +7,7 @@ import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardVio
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -4244,6 +4244,25 @@ describe('getViolationTranslation', () => {
 
         // Then it should preserve every rule criterion so members can understand why the expense violates the policy
         expect(message).toBe(expectedMessage);
+    });
+
+    it('should resolve vendor filter IDs to policy vendor names', () => {
+        // Given a rule violation with a vendor filter stored as an external ID
+        const vendorExternalID = 'vendor-office-depot';
+        const violation: TransactionViolation = {
+            name: CONST.VIOLATIONS.RULE_VIOLATION,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, vendorExternalID)},
+        };
+        const policyVendors: PolicyVendors = {
+            [vendorExternalID]: {externalID: vendorExternalID, name: 'Office Depot', enabled: true},
+        };
+
+        // When the client formats the violation with the workspace vendors
+        const message = ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation, translate: translateLocal, convertToDisplayString, policyVendors});
+
+        // Then it should display the workspace vendor name instead of the external ID
+        expect(message).toBe('Expense from Office Depot');
     });
 
     it('should return the correct message for broken card connection violation', () => {
