@@ -1,9 +1,8 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import type {ChartSeries} from '@components/Charts';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from '@components/Search/types';
+import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
 import Text from '@components/Text';
-import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -12,7 +11,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {format} from '@libs/NumberFormatUtils';
-import {formatPercentOfTotal} from '@libs/PercentageUtils';
 
 import CONST from '@src/CONST';
 
@@ -31,22 +29,12 @@ type InsightsDataTableProps = {
     /** Plotted series, primary first */
     series: ChartSeries[];
 
-    /** The chart type the rows are plotted on */
-    view: ChartView;
-
-    /** The dimension the rows are grouped by */
-    groupBy: SearchGroupBy;
-
     isLoading?: boolean;
 };
 
 /** Narrows a group to the member-based variants, the ones carrying the person's avatar and account ID. */
-function isMemberGroupBy(groupBy: SearchGroupBy) {
-    return groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
-}
-
 function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListItemType | TransactionCardGroupListItemType {
-    return isMemberGroupBy(item.groupedBy);
+    return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
 }
 
 /** Change relative to the previous period, undefined when that is zero */
@@ -58,79 +46,55 @@ function getRelativeChange(current: number, previous: number): number | undefine
     return (current - previous) / Math.abs(previous);
 }
 
-function InsightsDataTable({rows, series, view, groupBy, isLoading}: InsightsDataTableProps) {
+function InsightsDataTable({rows, series, isLoading}: InsightsDataTableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, preferredLocale} = useLocalize();
+    const {preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const shouldShowAvatar = isMemberGroupBy(groupBy);
-
     if (isLoading) {
-        return (
-            <InsightsDataTableSkeleton
-                fixedNumItems={SKELETON_ROW_COUNT}
-                shouldShowAvatar={shouldShowAvatar}
-            />
-        );
+        return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
     }
 
     if (rows.length === 0) {
         return null;
     }
 
-    const shouldShowColorDot = view === CONST.SEARCH.VIEW.PIE;
-    const comparisonSeries = series.at(1);
+    const isComparing = series.length > 1;
 
     return (
-        <View style={styles.chartInlineTable}>
-            {rows.map((row, index) => {
-                const {item, comparisonItem, point, color} = row;
-                const isLastRow = index === rows.length - 1;
-                // Compared rows show the change; lone rows show count and share.
-                const amountChange = (item.total ?? 0) - (comparisonItem?.total ?? 0);
-                const relativeChange = getRelativeChange(item.total ?? 0, comparisonItem?.total ?? 0);
-                let detailText = translate('iou.expenseCount', {count: item.count});
-                let supportingText =
-                    point.percentOfTotal === undefined
-                        ? undefined
-                        : translate('search.percentOfSpend', {percent: formatPercentOfTotal(point.percentOfTotal, item.total ?? 0, preferredLocale)});
-                if (comparisonSeries) {
-                    detailText = translate('insightsPage.compare.change', `${amountChange > 0 ? '+' : ''}${convertToDisplayString(amountChange, item.currency)}`);
-                    supportingText =
-                        relativeChange === undefined
-                            ? undefined
-                            : format(preferredLocale, relativeChange, {style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero'});
-                }
+        <View style={[styles.chartInlineTable, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+            {rows.map(({item, comparisonItem, point, color}) => {
+                const indicatorColor = color ?? series.at(0)?.color;
+                const relativeChange = isComparing ? getRelativeChange(item.total ?? 0, comparisonItem?.total ?? 0) : undefined;
 
                 return (
                     <View
                         key={item.keyForList}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv4, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, !isLastRow && styles.borderBottom]}
+                        style={[styles.flexRow, styles.alignItemsStart, styles.gap5]}
                     >
-                        {shouldShowColorDot && <View style={[styles.pieChartLegendDot, !!color && StyleUtils.getBackgroundColorStyle(color)]} />}
-                        {isMemberGroup(item) && (
-                            <UserAvatar
-                                size={CONST.AVATAR_SIZE.DEFAULT}
-                                source={item.avatar}
-                                accountID={item.accountID}
-                            />
-                        )}
-                        <View style={[styles.flex1, styles.flexColumn, styles.gap1, styles.alignSelfStretch]}>
-                            <TextWithTooltip
-                                text={point.label}
-                                shouldShowTooltip
-                            />
-                            <TextWithTooltip
-                                text={detailText}
-                                style={styles.mutedNormalTextLabel}
-                                shouldShowTooltip
-                            />
+                        <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsStart, styles.gap5]}>
+                            {isMemberGroup(item) ? (
+                                <View style={[styles.chartInlineTableAvatarBorder, !!indicatorColor && StyleUtils.getBorderColorStyle(indicatorColor)]}>
+                                    <UserAvatar
+                                        size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                        source={item.avatar}
+                                        accountID={item.accountID}
+                                    />
+                                </View>
+                            ) : (
+                                <View style={[styles.chartInlineTableDot, !!indicatorColor && StyleUtils.getBackgroundColorStyle(indicatorColor)]} />
+                            )}
+                            <Text style={[styles.flex1, styles.mnw0, styles.breakWord]}>{point.label}</Text>
                         </View>
-                        <View style={[styles.flexColumn, styles.alignItemsEnd, styles.gap1, styles.alignSelfStretch]}>
-                            <Text>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
-                            {!!supportingText && <Text style={styles.mutedNormalTextLabel}>{supportingText}</Text>}
+                        <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
+                            <Text style={styles.textAlignRight}>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
+                            {relativeChange !== undefined && (
+                                <Text style={[styles.mutedNormalTextLabel, styles.textAlignRight]}>
+                                    {format(preferredLocale, relativeChange, {style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero'})}
+                                </Text>
+                            )}
                         </View>
                     </View>
                 );

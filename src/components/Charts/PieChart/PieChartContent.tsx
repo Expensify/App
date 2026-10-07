@@ -141,7 +141,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
         return (
             <View
                 key={`legend-${slice.originalIndex}`}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.mr4, styles.mb2]}
+                style={[styles.flexRow, styles.alignItemsCenter]}
                 onMouseEnter={() => {
                     tooltipPosition.set(slice.tooltipPosition);
                     setActiveSliceIndex(slice.ordinalIndex);

@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useChartLabelFormats from '@components/Charts/hooks/useChartLabelFormats';
 import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
 
-let mockNumberFormat = (n: number) => n.toLocaleString('en-US');
+let mockNumberFormat = (n: number, options?: Intl.NumberFormatOptions) => n.toLocaleString('en-US', options);
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -17,7 +17,7 @@ const SAMPLE_DATA: ChartDataPoint[] = [
 ];
 
 beforeEach(() => {
-    mockNumberFormat = (n: number) => n.toLocaleString('en-US');
+    mockNumberFormat = (n: number, options?: Intl.NumberFormatOptions) => n.toLocaleString('en-US', options);
 });
 
 describe('useChartLabelFormats', () => {
@@ -37,6 +37,39 @@ describe('useChartLabelFormats', () => {
         mockNumberFormat = (n: number) => n.toLocaleString('de-DE');
         rerender({unit: {value: '€', fallback: 'EUR'}, position: 'right'});
         expect(result.current.formatValue(1000)).toBe('1.000€');
+    });
+
+    it('puts a leading unit after the minus sign', () => {
+        // Given a currency unit on the left
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '$', fallback: 'USD'}, unitPosition: 'left'}));
+
+        // When formatting negative values
+        const formatted = [result.current.formatValue(-1000), result.current.formatCompactValue(-50000)];
+
+        // Then the sign comes first, the way negative amounts are written, rather than sitting between the unit and the number
+        expect(formatted).toEqual(['-$1,000', '-$50k']);
+    });
+
+    it('keeps the minus sign in front of the number when the unit trails it', () => {
+        // Given a currency unit on the right
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '€', fallback: 'EUR'}, unitPosition: 'right'}));
+
+        // When formatting a negative value
+        const formatted = result.current.formatValue(-1000);
+
+        // Then nothing moves, since the sign already leads
+        expect(formatted).toBe('-1,000€');
+    });
+
+    it('abbreviates axis values while keeping the unit', () => {
+        // Given a currency unit on the left
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: 'zł', fallback: 'PLN'}, unitPosition: 'left'}));
+
+        // When formatting axis ticks compactly
+        const formatted = [100000, 1500000].map(result.current.formatCompactValue);
+
+        // Then the numbers are abbreviated with a lowercase k so axis labels stay short, and the multi-char unit keeps its separator
+        expect(formatted).toEqual(['zł 100k', 'zł 1.5M']);
     });
 });
 

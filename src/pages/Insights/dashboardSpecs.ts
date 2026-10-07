@@ -24,10 +24,10 @@ type InsightsChartSpec = {
     sortOrder?: string;
     limit?: number;
 
-    /** Primary series color. Left out, bars take palette colors by rank. */
+    /** Current period's color when comparing */
     color?: string;
 
-    /** Comparison series color */
+    /** Previous period's color when comparing */
     comparisonColor?: string;
 
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */

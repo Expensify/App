@@ -11,7 +11,7 @@ type ChartSeries = {
     /** Legend and tooltip name, absent for a single unnamed series */
     label?: string;
 
-    /** Left out, a lone series of vertical bars takes a palette color per bar, horizontal bars take blue, and anything else the default */
+    /** Left out, a lone series of bars takes a palette color per bar, and anything else the default */
     color?: string;
 };
 
@@ -27,6 +27,9 @@ type ChartDataPoint = {
 
     /** The point's signed share of total spend, in percentage points */
     percentOfTotal?: number;
+
+    /** Marks a time-based point whose period hasn't ended yet, so its total is still changing. Only a line chart's last point is drawn differently. */
+    isInProgress?: boolean;
 };
 
 /**

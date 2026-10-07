@@ -1,11 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import ActivePointIndicator from '@components/Charts/components/ActivePointIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
+import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartLegend from '@components/Charts/components/ChartLegend';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
-import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
-import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
     ChartFontsProvider,
@@ -18,8 +18,8 @@ import {
     useLabelHitTesting,
     useScaleChangeHandler,
 } from '@components/Charts/hooks';
-import {getPointValues, getSeriesValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getDomainPaddingForEdgeSpace, getSeriesValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,22 +29,14 @@ import variables from '@styles/variables';
 import type {LayoutChangeEvent} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
+import {DashPathEffect} from '@shopify/react-native-skia';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {CartesianChart, Line} from 'victory-native';
 
 import type {CartesianChartProps, ChartDataPoint} from '..';
-
-/** Inner dot radius for line chart data points */
-const DOT_RADIUS = 4;
-
-/** Extra hover area beyond the dot radius for easier touch targeting */
-const DOT_HOVER_EXTRA_RADIUS = 2;
-
-/** Base domain padding applied to all sides */
-const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 
 /** A point as victory-native reads it: the x index plus one entry per series, keyed by the series' key. */
 type LineChartDatum = Record<string, number>;
@@ -68,6 +60,10 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     const primarySeriesKey = seriesKeys.at(0) ?? '';
     // The primary series is drawn last so it sits over the period it is compared against.
     const seriesBackToFront = series.toReversed();
+    const isLastPointInProgress = !!data.at(-1)?.isInProgress;
+
+    // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
+    const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
     const chartData: LineChartDatum[] = data.map((point, index) => ({
         x: index,
         ...Object.fromEntries(seriesKeys.map((key) => [key, getSeriesValue(point, key)])),
@@ -76,12 +72,10 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     /** Canvas y of every series at every point */
     const seriesPointY = useSharedValue<number[][]>([]);
 
-    /** Series of the topmost dot under the cursor, else of the closest dot. The primary series is drawn on top. */
+    /** Series whose point is closest to the cursor vertically */
     const resolveSeriesKey = (index: number, cursorY: number): string => {
         const distances = seriesPointY.get().map((positions) => Math.abs((positions.at(index) ?? Infinity) - cursorY));
-        const topmostUnderCursor = distances.findIndex((distance) => distance <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS);
-        const closest = distances.indexOf(Math.min(...distances));
-        return seriesKeys.at(topmostUnderCursor >= 0 ? topmostUnderCursor : closest) ?? primarySeriesKey;
+        return seriesKeys.at(distances.indexOf(Math.min(...distances))) ?? primarySeriesKey;
     };
 
     const handlePointPress = (index: number, cursor: {x: number; y: number}) => {
@@ -99,24 +93,28 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     };
 
     const chartBottom = useSharedValue(0);
+    const plotTop = useSharedValue(0);
+    const plotLeft = useSharedValue(0);
+    const plotRight = useSharedValue(0);
+    const bandHalfWidth = useSharedValue(0);
 
     const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
     const {lineHeight, firstLabelWidth, lastLabelWidth, maxLabelWidth, labelWidths} = measurements;
 
-    const {formatValue} = useChartLabelFormats({
+    const {formatValue, formatCompactValue} = useChartLabelFormats({
         data,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
     });
 
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding);
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
-    const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;
+    const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING;
 
     const domainPadding = (() => {
         if (!firstLabelWidth || !lastLabelWidth) {
-            return BASE_DOMAIN_PADDING;
+            return VictoryTheme.line.domainPadding;
         }
         const labelsExceedTickSpacing = tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
         let leftOverhang = firstLabelWidth / 2;
@@ -128,11 +126,11 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
             rightOverhang = lineHeight / 2;
         }
 
-        return {
-            ...BASE_DOMAIN_PADDING,
-            left: Math.max(0, leftOverhang - chartPaddingLeft),
-            right: rightOverhang,
+        const edgeSpace = {
+            left: Math.max(0, leftOverhang - VictoryTheme.axis.padding.left),
+            right: Math.max(0, rightOverhang - chartPaddingRight - VictoryTheme.axis.labelGap),
         };
+        return {...VictoryTheme.line.domainPadding, ...getDomainPaddingForEdgeSpace(edgeSpace, plotAreaWidth)};
     })();
 
     const totalDomainPadding = domainPadding.left + domainPadding.right;
@@ -161,36 +159,53 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     });
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
+        plotTop.set(bounds.top);
+        plotLeft.set(bounds.left);
+        plotRight.set(bounds.right);
         setPlotAreaWidth(bounds.right - bounds.left);
         setBoundsLeft(bounds.left);
         setBoundsRight(bounds.right);
     };
 
-    const checkIsOverDot = (args: HitTestArgs) => {
+    const labelSpace = VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0);
+
+    const isInPlotArea = (args: HitTestArgs) => {
         'worklet';
 
-        const dx = args.cursorX - args.targetX;
-        const isOverDotAt = (dotY: number) => Math.sqrt(dx * dx + (args.cursorY - dotY) * (args.cursorY - dotY)) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
-        const positions = seriesPointY.get();
-
-        return positions.length > 0 ? positions.some((seriesPositions) => isOverDotAt(seriesPositions.at(args.targetIndex) ?? Infinity)) : isOverDotAt(args.targetY);
+        return args.cursorX >= plotLeft.get() && args.cursorX <= plotRight.get() && args.cursorY >= plotTop.get() && args.cursorY <= args.chartBottom + labelSpace;
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
+    const checkIsOverBand = (args: HitTestArgs) => {
+        'worklet';
+
+        return isInPlotArea(args) && Math.abs(args.cursorX - args.targetX) <= bandHalfWidth.get();
+    };
+
+    const checkIsOverLabelInPlotArea = (args: HitTestArgs, activeIndex: number) => {
+        'worklet';
+
+        return isInPlotArea(args) && isCursorOverLabel(args, activeIndex);
+    };
+
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition} = useChartInteractions({
         handlePress: handlePointPress,
-        checkIsOver: checkIsOverDot,
-        isCursorOverLabel,
+        checkIsOver: checkIsOverBand,
+        isCursorOverLabel: checkIsOverLabelInPlotArea,
         resolveLabelTouchX: findLabelCursorX,
         chartBottom,
     });
 
+    const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
+
     /** Stores canvas positions for hover, press and the tooltip */
     const updateHitPositions = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
+        const [rangeStart, rangeEnd] = xScale.range();
+        bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : Math.abs(rangeEnd - rangeStart));
         seriesPointY.set(seriesKeys.map((key) => data.map((point) => yScale(getSeriesValue(point, key)))));
         setPointPositions(
             chartData.map((point, index) => xScale(point.x ?? index)),
-            // The tooltip hangs above the topmost dot of the point, so it never covers the series below it.
+            // The tooltip hangs above the topmost point, so it never covers the series below it.
             data.map((point) => Math.min(...seriesKeys.map((key) => yScale(getSeriesValue(point, key))))),
         );
     };
@@ -202,24 +217,43 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     }));
 
     const renderOutside = (args: CartesianChartRenderArg<LineChartDatum, string>) => {
-        const chartBoundsBottom = args.yScale(Math.min(0, ...args.yTicks, ...data.flatMap(getPointValues)));
+        const chartBoundsBottom = args.chartBounds.bottom;
         chartBottom.set(chartBoundsBottom);
+        const primaryPoints = args.points[primarySeriesKey] ?? [];
+        const primaryColor = series.at(0)?.color ?? VictoryTheme.colors.default;
+
+        // Only the primary series can still be collecting expenses, since the period it is compared against has ended.
+        const completePrimaryPoints = shouldDashLastSegment ? primaryPoints.slice(0, -1) : primaryPoints;
+
         return (
             <>
-                <LeftFrameLine
-                    chartBounds={args.chartBounds}
-                    yTicks={args.yTicks}
-                    yScale={args.yScale}
-                    color={theme.border}
+                <AreaGradient
+                    points={completePrimaryPoints}
+                    baselineY={chartBoundsBottom}
+                    color={primaryColor}
                 />
                 {seriesBackToFront.map((seriesItem) => (
-                    <ScatterPoints
+                    <Line
                         key={seriesItem.key}
-                        points={args.points[seriesItem.key] ?? []}
-                        radius={DOT_RADIUS}
-                        color={VictoryTheme.colors.getDarkerShade(seriesItem.color ?? VictoryTheme.colors.default)}
+                        points={seriesItem.key === primarySeriesKey ? completePrimaryPoints : (args.points[seriesItem.key] ?? [])}
+                        color={seriesItem.color ?? VictoryTheme.colors.default}
+                        strokeWidth={VictoryTheme.line.strokeWidth}
+                        strokeCap="round"
+                        strokeJoin="round"
+                        curveType="linear"
                     />
                 ))}
+                {shouldDashLastSegment && (
+                    <Line
+                        points={primaryPoints.slice(-2)}
+                        color={primaryColor}
+                        strokeWidth={VictoryTheme.line.strokeWidth}
+                        strokeCap="round"
+                        curveType="linear"
+                    >
+                        <DashPathEffect intervals={DASH_INTERVALS} />
+                    </Line>
+                )}
                 {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
                         labels={originalLabels}
@@ -232,7 +266,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                         labelSkipInterval={labelSkipInterval}
                         fontSize={variables.iconSizeExtraSmall}
                         fontManager={fontManager}
-                        labelColor={theme.textSupporting}
+                        labelColor={theme.icon}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
                     />
@@ -241,24 +275,34 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                     <ChartYAxisLabels
                         yTicks={args.yTicks}
                         yScale={args.yScale}
-                        chartBounds={args.chartBounds}
+                        canvasWidth={args.canvasSize.width}
                         fontSize={variables.iconSizeExtraSmall}
                         fontManager={fontManager}
-                        labelColor={theme.textSupporting}
-                        formatValue={formatValue}
-                        leftAlign
+                        labelColor={theme.icon}
+                        formatValue={formatCompactValue}
                     />
                 )}
+                <ActivePointIndicator
+                    position={activePointPosition}
+                    isActive={isTooltipActive}
+                    top={args.chartBounds.top}
+                    bottom={chartBoundsBottom}
+                    dotRadius={VictoryTheme.line.activeDotRadius}
+                    dotColor={primaryColor}
+                    guidelineColor={primaryColor}
+                    guidelineOpacity={VictoryTheme.line.guidelineOpacity}
+                    isHollow={isActivePointHollow}
+                    hollowColor={theme.cardBG}
+                />
             </>
         );
     };
 
-    const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const chartPadding = {
         ...VictoryTheme.axis.padding,
         bottom: labelSpace + VictoryTheme.axis.padding.bottom,
-        left: chartPaddingLeft,
+        right: chartPaddingRight,
     };
 
     if (isLoading || !fontManager) {
@@ -295,12 +339,15 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                             xAxis={{
                                 tickCount: data.length,
                                 lineWidth: VictoryTheme.axis.xLineWidth,
+                                // "outset" makes victory-native reserve 2 * yAxis.labelOffset below the plot for labels it
+                                // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
+                                labelPosition: 'inset',
                             }}
                             yAxis={[
                                 {
                                     tickCount: VictoryTheme.axis.tickCount,
-                                    lineWidth: VictoryTheme.axis.yLineWidth,
-                                    lineColor: theme.border,
+                                    axisSide: 'right',
+                                    lineWidth: 0,
                                     labelOffset: VictoryTheme.axis.labelGap,
                                     domain: yAxisDomain,
                                 },
@@ -308,23 +355,13 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                             frame={{lineWidth: 0}}
                             data={chartData}
                         >
-                            {({points, yScale, yTicks}) => (
-                                <>
-                                    <AreaGradient
-                                        points={points[primarySeriesKey] ?? []}
-                                        baselineY={yScale(Math.min(...yTicks))}
-                                        color={series.at(0)?.color ?? VictoryTheme.colors.default}
-                                    />
-                                    {seriesBackToFront.map((seriesItem) => (
-                                        <Line
-                                            key={seriesItem.key}
-                                            points={points[seriesItem.key] ?? []}
-                                            color={seriesItem.color ?? VictoryTheme.colors.default}
-                                            strokeWidth={2}
-                                            curveType="linear"
-                                        />
-                                    ))}
-                                </>
+                            {({yScale, yTicks, chartBounds}) => (
+                                <ChartGridLines
+                                    yTicks={yTicks}
+                                    yScale={yScale}
+                                    chartBounds={chartBounds}
+                                    color={theme.border}
+                                />
                             )}
                         </CartesianChart>
                     )}

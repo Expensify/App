@@ -199,6 +199,26 @@ describe('buildChartSeries', () => {
         // placeholder rows to draw
         expect(rows).toEqual([]);
     });
+
+    it('relabels the group still collecting expenses, keeping its axis label', () => {
+        // Given two quarter groups, the last of which is still in progress
+        const data = [quarterGroup(3, 100000), quarterGroup(4, 20000)];
+        const quarterLabel = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : '');
+
+        // When the series is built with a label for the in-progress group
+        const rows = buildChartSeries({
+            data,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel: quarterLabel,
+            getCurrencyDecimals,
+            getInProgressLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 4 ? 'Q4 so far' : undefined),
+        });
+
+        // Then only that group is marked and relabeled, and its axis still names the whole quarter
+        expect(rows.map((row) => row.point.isInProgress)).toEqual([undefined, true]);
+        expect(rows.at(1)?.point.label).toBe('Q4 so far');
+        expect(rows.at(1)?.point.shortLabel).toBe('Q4 2026');
+    });
 });
 
 describe('getSliceColorsByDataIndex', () => {

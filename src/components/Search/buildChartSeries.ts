@@ -89,9 +89,6 @@ type BuildChartSeriesParams = {
     /** Grouped rows drawn as the primary series */
     rows: GroupedItem[];
 
-    /** Color of the primary series when nothing is compared */
-    color?: string;
-
     /** Second series, when comparing */
     comparison?: ChartComparison;
 
@@ -114,6 +111,9 @@ type BuildChartSeriesParams = {
     translate: LocaleContextProps['translate'];
 
     dateFnsLocale: LocaleContextProps['dateFnsLocale'];
+
+    /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
+    getInProgressLabel?: (item: GroupedItem) => string | undefined;
 };
 
 type SearchChartModel = {
@@ -226,7 +226,6 @@ function getComparedBucketLabel(
  */
 function buildChartSeries({
     rows: primaryRows,
-    color,
     comparison,
     view,
     groupBy,
@@ -235,8 +234,9 @@ function buildChartSeries({
     getCurrencyDecimals,
     translate,
     dateFnsLocale,
+    getInProgressLabel,
 }: BuildChartSeriesParams): SearchChartModel {
-    const series: ChartSeries[] = [{key: CHART_SERIES_KEY.PRIMARY, label: comparison?.primaryPeriod.label, color: comparison?.primaryPeriod.color ?? color}];
+    const series: ChartSeries[] = [{key: CHART_SERIES_KEY.PRIMARY, label: comparison?.primaryPeriod.label, color: comparison?.primaryPeriod.color}];
     if (comparison) {
         series.push({key: CHART_SERIES_KEY.COMPARISON, label: comparison.comparisonPeriod.label, color: comparison.comparisonPeriod.color});
     }
@@ -248,15 +248,26 @@ function buildChartSeries({
     const rows = primaryRows.map((item) => {
         const comparisonItem = comparison ? comparisonByPairingKey.get(getPairingKey(item, comparison.primaryPeriod.range.start, groupBy)) : undefined;
         const comparedLabel = comparison && bucketUnit && getBucketRange ? getComparedBucketLabel(getBucketRange(item).start, comparison, bucketUnit, translate, dateFnsLocale) : undefined;
+        const label = comparedLabel?.label ?? StringUtils.normalize(getLabel(item));
+        const shortLabel = comparedLabel ? comparedLabel.shortLabel : getShortLabel?.(item);
+        const inProgressLabel = getInProgressLabel?.(item);
         const point: ChartDataPoint = {
-            label: comparedLabel?.label ?? StringUtils.normalize(getLabel(item)),
-            shortLabel: comparedLabel ? comparedLabel.shortLabel : getShortLabel?.(item),
+            label,
+            shortLabel,
             values: {
                 [CHART_SERIES_KEY.PRIMARY]: getAmount(item),
                 ...(!!comparison && {[CHART_SERIES_KEY.COMPARISON]: comparisonItem ? getAmount(comparisonItem) : 0}),
             },
             percentOfTotal: item.percentOfTotal,
         };
+        if (inProgressLabel !== undefined) {
+            point.isInProgress = true;
+            // Compared buckets keep the name both periods share, like "January", so only a lone series is relabeled.
+            if (!comparison) {
+                point.label = inProgressLabel;
+                point.shortLabel = shortLabel ?? label;
+            }
+        }
 
         return {point, item, comparisonItem};
     });
@@ -271,7 +282,7 @@ function buildChartSeries({
                 rowColor = pieColors.at(index);
                 // Compared series are colored by period, so only a lone series gets per-group colors.
             } else if (view === CONST.SEARCH.VIEW.BAR && !comparison) {
-                rowColor = color ?? VictoryTheme.colors.getColor(index);
+                rowColor = VictoryTheme.colors.getColor(index);
             }
 
             return {...row, color: rowColor};

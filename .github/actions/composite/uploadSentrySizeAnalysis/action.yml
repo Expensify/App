@@ -61,9 +61,17 @@ runs:
         ASSET: ${{ inputs.asset-name }}
         PLATFORM: ${{ inputs.platform }}
       run: |
+        # Capture the exit code so bash -e does not discard the CLI diagnostic on failure
+        set +e
         OUTPUT=$(npx sentry-cli build upload "$ASSET" \
           --org expensify --project app --build-configuration Release --log-level info 2>&1)
+        EXIT_CODE=$?
+        set -e
         echo "$OUTPUT"
+        if [ "$EXIT_CODE" -ne 0 ]; then
+          echo "::error::${PLATFORM} Sentry size-analysis upload failed (exit $EXIT_CODE)"
+          exit "$EXIT_CODE"
+        fi
         SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ )"}]+' | head -1)
         if [ -n "$SENTRY_URL" ]; then
           echo "::notice::${PLATFORM} Sentry size analysis: $SENTRY_URL"

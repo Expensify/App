@@ -36,6 +36,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -267,6 +268,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
 
+    const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
+
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -292,8 +295,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
                 isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
+                canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
+                onRenameName: (newName: string) => renameCategoryInline(policyData, value.name, newName, isVendorMatchingBetaEnabled),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
             });
 
@@ -305,6 +310,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         shouldShowApproverColumn,
         categoryApproverEmails,
         canWriteCategories,
+        isSelectionModeActive,
+        policyData,
         policy,
         policyCategories,
         navigateToCategory,
@@ -312,6 +319,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         policyId,
         employeePersonalDetails,
         formatPhoneNumber,
+        isVendorMatchingBetaEnabled,
     ]);
 
     const navigateToCategoriesSettings = useCallback(() => {
