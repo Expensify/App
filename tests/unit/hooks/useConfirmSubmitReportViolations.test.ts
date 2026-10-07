@@ -122,9 +122,9 @@ describe('useConfirmSubmitReportViolations', () => {
         expect(onProceed).not.toHaveBeenCalled();
     });
 
-    it('does not call onProceed or mark-as-cash when the user cancels', async () => {
-        // Given a report with a pending RTER card-match violation
-        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
+    it('does not call onProceed or mark-as-cash when the user cancels a rejected-expense violation', async () => {
+        // Given a report whose only transaction has a rejected-expense violation
+        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
         const {result} = renderHook(() =>
             useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
         );
@@ -142,6 +142,29 @@ describe('useConfirmSubmitReportViolations', () => {
         // Then the report must stay a draft: neither the submit callback nor the cash-marking side effect may run,
         // so Cancel really means "make no changes" as promised by the modal copy
         expect(onProceed).not.toHaveBeenCalled();
+        expect(mockMarkPendingRTERTransactionsAsCash).not.toHaveBeenCalled();
+    });
+
+    it('still proceeds without marking as cash when the user cancels and a pending card match is the only violation', async () => {
+        // Given a report whose only violation is a pending card match - on main this never blocked Submit, it only
+        // asked whether to mark the match as cash first, and either answer still submitted
+        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
+        const {result} = renderHook(() =>
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+        );
+        const onProceed = jest.fn();
+
+        // When the user cancels the confirmation modal
+        result.current(onProceed);
+        resolveShowConfirmModal({action: MockModalActions.CLOSE});
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        // Then submission must still proceed (without the acknowledged flag, since nothing was resolved), and the
+        // match must stay pending rather than being marked as cash - otherwise a card transaction that later tries
+        // to match this expense could no longer merge into it
+        expect(onProceed).toHaveBeenCalledWith(undefined);
         expect(mockMarkPendingRTERTransactionsAsCash).not.toHaveBeenCalled();
     });
 
@@ -165,6 +188,39 @@ describe('useConfirmSubmitReportViolations', () => {
             expect(onProceed).toHaveBeenCalledWith(true);
         });
         expect(mockMarkPendingRTERTransactionsAsCash).toHaveBeenCalledWith([transaction1], violationsCollection, reportActions);
+    });
+
+    it('marks as cash using rawViolationsCollection instead of the (possibly display-filtered) violationsCollection', async () => {
+        // Given a caller that passes a display-filtered violationsCollection for the summary/modal (e.g. with a
+        // dismissed or role-hidden violation already removed), plus the real, unfiltered rawViolationsCollection -
+        // a caller that already subscribes to a shared context and has both readily available
+        const filteredViolationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
+        const rawViolationsCollection = {
+            [violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true}), violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)],
+        };
+        const {result} = renderHook(() =>
+            useConfirmSubmitReportViolations({
+                reportID: NO_REPORT_ID,
+                report: undefined,
+                policy: undefined,
+                transactions: [transaction1],
+                violationsCollection: filteredViolationsCollection,
+                rawViolationsCollection,
+                reportActions,
+            }),
+        );
+        const onProceed = jest.fn();
+
+        // When the user confirms "Submit anyway"
+        result.current(onProceed);
+        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+
+        // Then mark-as-cash must write back the raw collection, not the filtered one - writing the filtered one would
+        // silently drop the over-category-limit violation (and anything else filtered out for display) from Onyx
+        await waitFor(() => {
+            expect(onProceed).toHaveBeenCalledWith(true);
+        });
+        expect(mockMarkPendingRTERTransactionsAsCash).toHaveBeenCalledWith([transaction1], rawViolationsCollection, reportActions);
     });
 
     it('calls onProceed(false) without marking as cash when the only violation is an "other" violation', async () => {

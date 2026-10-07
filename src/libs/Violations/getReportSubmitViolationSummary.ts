@@ -2,6 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
+import Parser from '@libs/Parser';
 import {hasReportBeenRejectedToSubmitter} from '@libs/ReportUtils';
 import {hasPendingRTERViolation, hasTransactionBeenRejected, isPendingRTERViolation, shouldShowViolation} from '@libs/TransactionUtils';
 
@@ -93,13 +94,15 @@ type BuildSubmitViolationBulletsParams = {
  * pending card match. Other violations use the same full message (with amounts/thresholds) shown elsewhere in the
  * app (e.g. the RBR message under an expense row), via ViolationsUtils.getViolationTranslation, rather than the
  * short label - so e.g. a receipt-required violation says "Receipt required over $25.00" instead of just "Expense
- * receipt required".
+ * receipt required". That translation can include an HTML link (e.g. a broken-connection RTER message), which this
+ * modal has no renderer for and which this call site doesn't have the data to build anyway (company-card page URL,
+ * broken personal-card reconnect link); stripped to plain text here so an admin never sees a raw `<a href="...">`.
  */
 function buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString}: BuildSubmitViolationBulletsParams): string[] {
     const bullets: string[] = [];
 
     for (const violation of summary.otherViolations.values()) {
-        bullets.push(ViolationsUtils.getViolationTranslation({violation, translate, dateFnsLocale, convertToDisplayString}));
+        bullets.push(Parser.htmlToText(ViolationsUtils.getViolationTranslation({violation, translate, dateFnsLocale, convertToDisplayString})));
     }
     if (summary.hasReportBeenRejected) {
         bullets.push(translate('iou.confirmSubmitReportViolations.reportRejected'));
@@ -122,6 +125,17 @@ function hasAnySubmitViolation(summary: ReportSubmitViolationSummary): boolean {
 /** The shouldResolveAcknowledgedViolations flag to submit with, once the user has confirmed the modal. */
 function shouldResolveAcknowledgedViolations(summary: ReportSubmitViolationSummary): boolean {
     return summary.hasRejectedExpense || summary.hasPendingCardMatch;
+}
+
+/**
+ * Whether a pending card match is the only reason the modal has anything to show. Unlike every other violation
+ * here, a pending card match never blocked Submit on its own before this modal existed - the user was only ever
+ * asked whether to mark it as cash first, and either answer still submitted. Cancelling this modal must keep doing
+ * the same when nothing else needs acknowledging, or a card transaction that later tries to match this expense can
+ * no longer merge into it.
+ */
+function hasOnlyPendingCardMatch(summary: ReportSubmitViolationSummary): boolean {
+    return summary.hasPendingCardMatch && !summary.hasRejectedExpense && !summary.hasReportBeenRejected && summary.otherViolations.size === 0;
 }
 
 /**
@@ -148,4 +162,11 @@ function mergeReportSubmitViolationSummaries(summaries: ReportSubmitViolationSum
     return {hasRejectedExpense, hasReportBeenRejected, hasPendingCardMatch, otherViolations};
 }
 
-export {getReportSubmitViolationSummary, buildSubmitViolationBullets, hasAnySubmitViolation, shouldResolveAcknowledgedViolations, mergeReportSubmitViolationSummaries};
+export {
+    getReportSubmitViolationSummary,
+    buildSubmitViolationBullets,
+    hasAnySubmitViolation,
+    shouldResolveAcknowledgedViolations,
+    hasOnlyPendingCardMatch,
+    mergeReportSubmitViolationSummaries,
+};

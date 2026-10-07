@@ -113,6 +113,7 @@ function SubmitActionButtonContent() {
         shouldShowMarkAsDoneCopy,
         transactions,
         violationsCollection: filteredTransactionViolations,
+        rawViolationsCollection: transactionViolations,
         reportActions: Object.values(reportActions ?? {}),
     });
 

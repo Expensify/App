@@ -26,6 +26,7 @@ type UseConfirmSubmitReportViolationsParams = {
     shouldShowMarkAsDoneCopy?: boolean;
     transactions?: Array<OnyxEntry<Transaction>>;
     violationsCollection?: OnyxCollection<TransactionViolations>;
+    rawViolationsCollection?: OnyxCollection<TransactionViolations>;
     reportActions?: ReportAction[];
 };
 
@@ -40,6 +41,7 @@ function useConfirmSubmitReportViolations({
     shouldShowMarkAsDoneCopy = false,
     transactions: transactionsOverride,
     violationsCollection: violationsCollectionOverride,
+    rawViolationsCollection: rawViolationsCollectionOverride,
     reportActions: reportActionsOverride,
 }: UseConfirmSubmitReportViolationsParams) {
     const {showConfirmModal} = useConfirmModal();
@@ -51,6 +53,7 @@ function useConfirmSubmitReportViolations({
 
     const transactions = transactionsOverride ?? Object.values(ownedTransactions);
     const violationsCollection = violationsCollectionOverride ?? ownedViolationsCollection;
+    const rawViolationsCollection = rawViolationsCollectionOverride ?? violationsCollection;
     const reportActions = reportActionsOverride ?? Object.values(ownedReportActionsCollection ?? {});
 
     return (onProceed: ConfirmSubmitReportViolationsOnProceed) => {
@@ -62,7 +65,7 @@ function useConfirmSubmitReportViolations({
             dateFnsLocale,
             convertToDisplayString,
             shouldShowMarkAsDoneCopy,
-            onMarkPendingCardMatchAsCash: () => markPendingRTERTransactionsAsCash(transactions, violationsCollection, reportActions),
+            onMarkPendingCardMatchAsCash: () => markPendingRTERTransactionsAsCash(transactions, rawViolationsCollection, reportActions),
             onProceed,
         });
     };

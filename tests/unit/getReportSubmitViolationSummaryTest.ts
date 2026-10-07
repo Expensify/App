@@ -232,4 +232,27 @@ describe('buildSubmitViolationBullets', () => {
         expect(convertToDisplayString).toHaveBeenCalledWith(2500, 'USD');
         expect(bullets).toEqual(['violations.receiptRequired(2500 USD)']);
     });
+
+    it('strips HTML from a violation translation, since the modal renders bullets as plain text', () => {
+        // Given a violation whose translation includes an HTML link - a broken-connection RTER message for an admin
+        // is a real example: this call site doesn't have the company-card page URL needed to build a working link,
+        // so the real translation renders one with an "undefined" href if the markup isn't stripped
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrows the test double to the wider LocaleContextProps['translate'] signature the function under test expects
+        const htmlTranslate = jest.fn(() => 'Bank connection broken. <a href="undefined">Reconnect to match receipt</a>') as unknown as LocaleContextProps['translate'];
+        const rterViolation = violation(CONST.VIOLATIONS.RTER, {brokenBankConnection: true, isAdmin: true});
+        const summary = {
+            hasRejectedExpense: false,
+            hasReportBeenRejected: false,
+            hasPendingCardMatch: false,
+            otherViolations: new Map([[CONST.VIOLATIONS.RTER, rterViolation]]),
+        };
+
+        // When the bullets are built
+        const bullets = buildSubmitViolationBullets({summary, translate: htmlTranslate, dateFnsLocale, convertToDisplayString});
+
+        // Then the bullet must be plain text with no HTML tags, since SubmitViolationsList has no HTML renderer and
+        // would otherwise show the raw markup (including the broken "undefined" href) to the user
+        expect(bullets.at(0)).not.toContain('<a');
+        expect(bullets.at(0)).not.toContain('href=');
+    });
 });

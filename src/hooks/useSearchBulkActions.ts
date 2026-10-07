@@ -2879,7 +2879,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 onMarkPendingCardMatchAsCash: () =>
                                     markPendingRTERTransactionsAsCash(
                                         reportTransactionsForSubmit,
-                                        reportViolationsCollectionForSubmit,
+                                        allTransactionViolations,
                                         Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForSubmit}`] ?? {}),
                                     ),
                                 onProceed: openPopoverForSubmit,
@@ -2984,7 +2984,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             for (const reportID of reportIDsToSubmit) {
                                 markPendingRTERTransactionsAsCash(
                                     transactionsByReportID.get(reportID) ?? [],
-                                    filteredViolationsCollection,
+                                    allTransactionViolations,
                                     Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}),
                                 );
                             }

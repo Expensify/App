@@ -227,6 +227,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         shouldShowMarkAsDoneCopy,
         transactions: [transaction],
         violationsCollection: filteredViolationsCollection,
+        rawViolationsCollection: allViolations,
     });
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();

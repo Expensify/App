@@ -7,7 +7,7 @@ import type showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAft
 
 import type {getReportSubmitViolationSummary} from './getReportSubmitViolationSummary';
 
-import {hasAnySubmitViolation, shouldResolveAcknowledgedViolations} from './getReportSubmitViolationSummary';
+import {hasAnySubmitViolation, hasOnlyPendingCardMatch, shouldResolveAcknowledgedViolations} from './getReportSubmitViolationSummary';
 import showSubmitViolationsConfirmModal from './showSubmitViolationsConfirmModal';
 
 type ShowConfirmModal = Parameters<typeof showConfirmModalAfterMoreMenuDismiss>[0];
@@ -47,13 +47,15 @@ function confirmSubmitViolationsThenProceed({
     }
 
     showSubmitViolationsConfirmModal({summary, showConfirmModal, translate, dateFnsLocale, convertToDisplayString, shouldShowMarkAsDoneCopy}).then((result) => {
-        if (result.action !== ModalActions.CONFIRM) {
+        const isConfirmed = result.action === ModalActions.CONFIRM;
+
+        if (!isConfirmed && !hasOnlyPendingCardMatch(summary)) {
             return;
         }
-        if (summary.hasPendingCardMatch) {
+        if (isConfirmed && summary.hasPendingCardMatch) {
             onMarkPendingCardMatchAsCash();
         }
-        onProceed(shouldResolveAcknowledgedViolations(summary));
+        onProceed(isConfirmed ? shouldResolveAcknowledgedViolations(summary) : undefined);
     });
 }
 
