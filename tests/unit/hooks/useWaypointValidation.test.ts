@@ -5,6 +5,7 @@ import useWaypointValidation, {isWaypointEmpty} from '@pages/iou/request/step/IO
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
 jest.mock('@libs/TransactionUtils', () => ({
+    ...jest.requireActual<typeof import('@libs/TransactionUtils')>('@libs/TransactionUtils'),
     isWaypointNullIsland: (waypoint: Waypoint | undefined) => waypoint?.lat === 0 && waypoint?.lng === 0,
 }));
 
