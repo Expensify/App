@@ -1847,12 +1847,12 @@ function getTransactionThreadReport(
     transactionThreadReport: OnyxEntry<Report> | undefined,
     report: OnyxEntry<Report> | undefined,
 ): OnyxEntry<Report> | undefined {
-    if (transactionThreadReport?.reportID) {
+    if (transactionThreadReport?.reportID || !transaction?.transactionID) {
         return transactionThreadReport;
     }
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    if (transaction?.transactionID && getLinkedTransactionID(parentReportAction) === transaction.transactionID) {
+    if (getLinkedTransactionID(parentReportAction) === transaction.transactionID) {
         return report;
     }
 
