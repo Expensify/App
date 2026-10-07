@@ -1,3 +1,4 @@
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -69,6 +70,8 @@ function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const route = useRoute();
     const urlSubPage = (route.params as {subPage?: string} | undefined)?.subPage;
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccount] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
@@ -206,6 +209,11 @@ function AddPersonalBankAccountPage() {
         // Saving a changed name, address, or phone number to the user's private personal details requires a magic code, as it does from Profile > Private.
         if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
             if (getAccountData().hasPersonalDetailsChanges) {
+                // The magic code goes to the account owner, so a copilot can't change private personal details here, matching Profile > Private
+                if (isActingAsDelegate) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
                 nextPage();
                 return;
             }
