@@ -1,5 +1,5 @@
 import PaymentCardCurrencyHeader from '@components/AddPaymentCard/PaymentCardCurrencyHeader';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -79,7 +79,7 @@ function DynamicPaymentCardCurrencySelectorPage() {
             enableEdgeToEdgeBottomSafeAreaPadding
             testID="DynamicPaymentCardCurrencySelectorPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.currency')}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />

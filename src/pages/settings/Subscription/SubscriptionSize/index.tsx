@@ -1,6 +1,6 @@
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -80,7 +80,7 @@ function SubscriptionSizePage() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('subscription.subscriptionSize.title')}
                     onBackButtonPress={onBackButtonPress}
                 />

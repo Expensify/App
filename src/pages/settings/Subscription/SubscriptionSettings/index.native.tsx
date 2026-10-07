@@ -1,5 +1,5 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
@@ -103,10 +103,7 @@ function SubscriptionSettings() {
             testID="SubscriptionSettings"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('subscription.subscriptionSettings.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('subscription.subscriptionSettings.title')} />
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>
                 {shouldUseSimplifiedCollectUI ? (
