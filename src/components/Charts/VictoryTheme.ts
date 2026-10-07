@@ -64,8 +64,6 @@ const VictoryTheme = {
         xLineWidth: 0,
         /** Line width for Y-axis grid lines */
         yLineWidth: 1,
-        /** Dash and gap lengths (px) of the grid lines */
-        gridDashIntervals: [4, 8],
         /** Desired visual gap (px) between axis labels and the chart edge */
         labelGap: 12,
         /** Gap (px) between the plot and the X-axis labels */
@@ -131,6 +129,9 @@ const MAX_Y_AXIS_LABEL_WIDTH = 200;
 // Maximum width for X-axis labels in pixels
 const MAX_X_AXIS_LABEL_WIDTH = 500;
 
+/** Dash and gap lengths (px) of dashed chart lines, measured like an SVG `stroke-dasharray`, before round caps lengthen each dash. */
+const DASH_INTERVALS = [4, 8];
+
 // Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
 // getLongestLine() can slightly under-report the visual extent of the last glyph.
 const GLYPH_PADDING = 4;
@@ -147,5 +148,6 @@ export {
     MAX_X_AXIS_LABEL_WIDTH,
     MAX_Y_AXIS_LABEL_WIDTH,
     GLYPH_PADDING,
+    DASH_INTERVALS,
 };
 export default VictoryTheme;

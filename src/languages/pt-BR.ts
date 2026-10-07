@@ -10009,6 +10009,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             title: 'Mesclar relatórios',
             description: 'Selecione o relatório que você quer manter. Todas as despesas serão movidas para ele e os outros relatórios serão excluídos.',
         },
+        periodSoFar: ({period}: {period: string}) => `${period} até agora`,
+        weekOf: ({date}: {date: string}) => `Semana de ${date}`,
         saveEdits: {
             title: 'Salvar edições',
             prompt: ({name}: {name: string}) => `Atualizar as alterações em "${name}" ou criar um novo?`,
