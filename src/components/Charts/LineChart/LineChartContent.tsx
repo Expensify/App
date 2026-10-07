@@ -186,10 +186,23 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     }));
 
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-        const chartBoundsBottom = args.yScale(Math.min(...args.yTicks));
+        const chartBoundsBottom = args.chartBounds.bottom;
         chartBottom.set(chartBoundsBottom);
         return (
             <>
+                <AreaGradient
+                    points={args.points.y}
+                    baselineY={chartBoundsBottom}
+                    color={VictoryTheme.colors.default}
+                />
+                <Line
+                    points={args.points.y}
+                    color={VictoryTheme.colors.default}
+                    strokeWidth={VictoryTheme.line.strokeWidth}
+                    strokeCap="round"
+                    strokeJoin="round"
+                    curveType="linear"
+                />
                 {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
                         labels={originalLabels}
@@ -288,28 +301,13 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points, yScale, yTicks, chartBounds}) => (
-                            <>
-                                <ChartGridLines
-                                    yTicks={yTicks}
-                                    yScale={yScale}
-                                    chartBounds={chartBounds}
-                                    color={theme.border}
-                                />
-                                <AreaGradient
-                                    points={points.y}
-                                    baselineY={yScale(Math.min(...yTicks))}
-                                    color={VictoryTheme.colors.default}
-                                />
-                                <Line
-                                    points={points.y}
-                                    color={VictoryTheme.colors.default}
-                                    strokeWidth={VictoryTheme.line.strokeWidth}
-                                    strokeCap="round"
-                                    strokeJoin="round"
-                                    curveType="linear"
-                                />
-                            </>
+                        {({yScale, yTicks, chartBounds}) => (
+                            <ChartGridLines
+                                yTicks={yTicks}
+                                yScale={yScale}
+                                chartBounds={chartBounds}
+                                color={theme.border}
+                            />
                         )}
                     </CartesianChart>
                 )}

@@ -81,7 +81,7 @@ const VictoryTheme = {
         /** Opacity of the vertical guideline drawn at the hovered data point */
         guidelineOpacity: 0.2,
         /** Base domain padding applied to all sides */
-        domainPadding: {top: 16, bottom: 16, left: 0, right: 0},
+        domainPadding: {top: 16, bottom: 0, left: 0, right: 0},
     },
     tooltip: {
         /** The height of the chart tooltip pointer */
