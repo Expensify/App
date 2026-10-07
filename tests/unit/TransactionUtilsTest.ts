@@ -6405,6 +6405,33 @@ describe('getSelectedRouteDistance', () => {
         expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
         expect(TransactionUtils.getSelectedRouteDistance(undefined)).toBeUndefined();
     });
+
+    it('returns the route distance a reused route was taken with, since it is not routed again', () => {
+        // Given a draft seeded from a reused route, which carries the route distance of the expense it was reused from
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, isReusedRoute: true, comment: {customUnit: {routeDistanceMeters: 1500}}});
+
+        // When getting the distance to send for the selected route
+        // Then it is the reused route's, so the backend takes the same route alternative
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+    });
+
+    it('selects the alternative a reused route was taken with when its routes are fetched', () => {
+        // Given a reused route draft whose routes were fetched anyway, with the source expense on the longer alternative
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, isReusedRoute: true, comment: {customUnit: {routeDistanceMeters: 1500}}, routes});
+
+        // When getting the distance to send for the selected route
+        // Then it is the alternative closest to the reused route's distance, not the primary route
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+    });
+
+    it('ignores the stored route distance of an expense that was not reused', () => {
+        // Given a saved expense being moved, which carries its route distance but has no routes and wasn't reused
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {customUnit: {routeDistanceMeters: 1500}}});
+
+        // When getting the distance to send for the selected route
+        // Then there is none, as before, so moving the expense doesn't change how its route is picked
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
+    });
 });
 
 describe('getSelectedRouteKey', () => {
