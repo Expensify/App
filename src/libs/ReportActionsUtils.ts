@@ -75,6 +75,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
+import {getWorkArrangementLabel} from './WorkArrangementUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
@@ -103,6 +104,8 @@ function isPolicyExpenseChat(report: OnyxInputOrEntry<Report>): boolean {
 function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): boolean {
     return !!originalID && origin === 'harvest';
 }
+
+const paySiblingCache = new WeakMap<ReportActions, Set<string>>();
 
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -208,9 +211,11 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 
     // for report actions with this type we get an empty array as message by design
     if (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES ||
         isCardIssuedAction(reportAction) ||
         isPolicyCopyReportAction(reportAction)
     ) {
@@ -488,6 +493,19 @@ function getCrossBorderReimbursedMessage(
         debitBankAccount: originalMessage.debitBankAccountLast4 ?? fallbackDebitBankAccountLast4 ?? '',
         creditBankAccount: originalMessage.creditBankAccountLast4 ?? '',
     });
+}
+
+function getPaymentMessageWithExpectedDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, paymentMessage: string, expectedDate: string | undefined): string {
+    if (!expectedDate) {
+        return paymentMessage;
+    }
+
+    const formattedExpectedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale);
+    if (!formattedExpectedDate) {
+        return paymentMessage;
+    }
+    const expectedDateMessage = translate('nextStep.message.waitingForPayment', '', CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN, formattedExpectedDate, CONST.NEXT_STEP.ETA_TYPE.DATE_TIME);
+    return translate('iou.paymentWithExpectedDate', {paymentMessage, expectedDateMessage});
 }
 
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -1260,7 +1278,13 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * and supported type, it's not deleted and also not closed.
  */
 // TODO: Remove optional (?) on currentUserAccountID once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66408
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, currentUserAccountID?: number): boolean {
+function shouldReportActionBeVisible(
+    reportAction: OnyxEntry<ReportAction>,
+    key: string | number,
+    canUserPerformWriteAction?: boolean,
+    currentUserAccountID?: number,
+    reportID?: string,
+): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1333,6 +1357,12 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         if (originalMessage?.isNewDot || reportAction.shouldShow === false) {
             return false;
         }
+
+        // The isNewDot/shouldShow are baked at write time and can be stale for actions created outside NewDot (e.g OldDot or a background job).
+        // Not applied to REIMBURSED, which carries bank account details PAY doesn't replace.
+        if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction, reportAction.reportID ?? reportID)) {
+            return false;
+        }
     }
 
     if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
@@ -1373,18 +1403,18 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
+        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
         }
         if (!staticVisibility) {
             return false;
@@ -1394,7 +1424,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
 }
 
 /**
@@ -1729,21 +1759,41 @@ function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
  * @param persistedReportActionIDs - IDs of the report actions stored in Onyx
  */
 function getLatestConciergeFeedbackActionID(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: string[]): string | undefined {
-    const latestConciergeComment = sortedVisibleReportActions.find(
-        (action) =>
-            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
-            action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
-            !isDeletedAction(action) &&
-            !isWhisperAction(action) &&
-            // A failed comment does not exist on the server, so a reaction on it cannot be saved
-            isEmptyObject(action.errors),
-    );
+    const latestConciergeComment = sortedVisibleReportActions.find(isConciergeFeedbackCandidate);
 
     if (!latestConciergeComment || !persistedReportActionIDs.includes(latestConciergeComment.reportActionID)) {
         return undefined;
     }
 
     return latestConciergeComment.reportActionID;
+}
+
+/** Whether the comment can carry the inline feedback prompt, which needs a Concierge comment the server knows about */
+function isConciergeFeedbackCandidate(action: ReportAction): boolean {
+    return (
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
+        action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
+        !isDeletedAction(action) &&
+        !isWhisperAction(action) &&
+        // A failed comment does not exist on the server, so a reaction on it cannot be saved
+        isEmptyObject(action.errors)
+    );
+}
+
+/**
+ * Returns the ID of the newest Concierge comment in a report that can show the feedback prompt.
+ * Reading the report's own actions is what lets a thread decide about the message it hangs off, which lives in the parent report.
+ */
+function getLatestConciergeFeedbackActionIDFromReportActions(reportActions: OnyxEntry<ReportActions>): string | undefined {
+    let latestConciergeComment: ReportAction | undefined;
+
+    for (const action of Object.values(reportActions ?? {})) {
+        if (isConciergeFeedbackCandidate(action) && (!latestConciergeComment || action.created > latestConciergeComment.created)) {
+            latestConciergeComment = action;
+        }
+    }
+
+    return latestConciergeComment?.reportActionID;
 }
 
 /**
@@ -1849,6 +1899,70 @@ function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticI
 
 function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+}
+
+/**
+ * A cancellation, failed reimbursement, or workflow reset separates payment attempts on the same report.
+ */
+function isPaymentAttemptBoundary(action: OnyxEntry<ReportAction>): boolean {
+    return (
+        isReimbursementDeQueuedOrCanceledAction(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED)
+    );
+}
+
+/**
+ * Finds MARKED_REIMBURSED actions with a PAY sibling in the same payment attempt. A historical PAY
+ * must not hide a later manual reimbursement after that payment was canceled or failed.
+ * The write-time isNewDot/shouldShow flags can be stale for background jobs (Expensify/Expensify#636674).
+ */
+function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
+    if (!reportID || !reportAction?.reportActionID) {
+        return false;
+    }
+
+    const reportActions = getAllReportActions(reportID);
+    // An action absent from loaded history cannot be matched. Avoid caching the empty fallback for unknown reports.
+    if (!reportActions[reportAction.reportActionID]) {
+        return false;
+    }
+
+    const cachedSiblings = paySiblingCache.get(reportActions);
+    if (cachedSiblings) {
+        return cachedSiblings.has(reportAction.reportActionID);
+    }
+
+    const paymentActions = getSortedReportActions(
+        Object.values(reportActions).filter((action) => isPayAction(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) || isPaymentAttemptBoundary(action)),
+    );
+    const siblings = new Set<string>();
+    let hasPay = false;
+    let pendingSiblings: string[] = [];
+    for (const action of paymentActions) {
+        if (isPaymentAttemptBoundary(action)) {
+            hasPay = false;
+            pendingSiblings = [];
+        } else if (isPayAction(action)) {
+            hasPay = true;
+            for (const actionID of pendingSiblings) {
+                siblings.add(actionID);
+            }
+            pendingSiblings = [];
+        } else if (hasPay) {
+            siblings.add(action.reportActionID);
+        } else {
+            // MARKED_REIMBURSED and PAY can be created in either order.
+            pendingSiblings.push(action.reportActionID);
+        }
+    }
+
+    // Cache all siblings together, but invalidate on any history update: even a positive match can
+    // change if an intervening cancellation arrives later. Weak keys release obsolete snapshots.
+    paySiblingCache.set(reportActions, siblings);
+    return siblings.has(reportAction.reportActionID);
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -2654,6 +2768,25 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): stri
     return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
 }
 
+function getAgentPromptUpdatedMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    return originalMessage ? translate('agentPromptUpdated', originalMessage) : getReportActionMessageText(reportAction);
+}
+
+function getAgentPromptUpdatedMessageHTML(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return Str.htmlEncode(getReportActionMessageText(reportAction));
+    }
+
+    return translate('agentPromptUpdated', {
+        ...originalMessage,
+        updatedBy: `<mention-user accountID="${originalMessage.updatedByAccountID}"/>`,
+        previousPrompt: Str.htmlEncode(originalMessage.previousPrompt),
+        newPrompt: Str.htmlEncode(originalMessage.newPrompt),
+    });
+}
+
 function getDismissedViolationMessageText(translate: LocalizedTranslate, originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage']): string {
     const reason = originalMessage?.reason;
     const violationName = originalMessage?.violationName;
@@ -2670,11 +2803,15 @@ function getMentionedEmailsFromMessage(message: string) {
     return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
 }
 
-function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string) {
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string, currentUserAccountID?: number) {
     const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
     const message = getReportActionMessage(reportAction)?.html ?? '';
     const emailsFromMessage = getMentionedEmailsFromMessage(message);
-    return accountIDsFromMessage.includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(currentUserEmail) || message.includes('<mention-here>');
+    return (
+        accountIDsFromMessage.includes(currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) ||
+        emailsFromMessage.includes(currentUserEmail) ||
+        message.includes('<mention-here>')
+    );
 }
 
 /**
@@ -2687,23 +2824,65 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
 /**
  * Get IOU action for a reportID and transactionID
  */
-function getIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined): OnyxEntry<ReportAction> {
+function getIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined, shouldPreferLiveAction = false): OnyxEntry<ReportAction> {
     if (!reportID || !transactionID) {
         return undefined;
     }
     const reportActions = getAllReportActions(reportID);
 
-    return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
+    return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID, shouldPreferLiveAction);
 }
 
 /**
- * Get the IOU action for a transactionID from given reportActions
+ * Get the IOU action for a transactionID from given reportActions.
+ * With `shouldPreferLiveAction`, a live action wins over a deleted one claiming the same transaction, which happens after an undelete.
  */
-function getIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
-    return reportActions.find((reportAction) => {
-        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
-        return IOUTransactionID === transactionID;
-    });
+function getIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string, shouldPreferLiveAction = false): OnyxEntry<ReportAction> {
+    const isMatch = (reportAction: ReportAction) => (isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined) === transactionID;
+    const firstMatch = reportActions.find(isMatch);
+    if (!shouldPreferLiveAction) {
+        return firstMatch;
+    }
+    // Deleting blanks the message, so a missing message doesn't mean the action is deleted
+    const isLive = (reportAction: ReportAction) => reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (!reportAction.message || !isDeletedAction(reportAction));
+    return reportActions.find((reportAction) => isMatch(reportAction) && isLive(reportAction)) ?? firstMatch;
+}
+
+/** IOU action types that reference a transaction without being the action that created the expense. */
+const nonExpenseCreationIOUTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
+    CONST.IOU.REPORT_ACTION_TYPE.PAY,
+    CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+    CONST.IOU.REPORT_ACTION_TYPE.REJECT,
+    CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
+    CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+]);
+
+/**
+ * The transaction an action created, or undefined when the action merely references one.
+ *
+ * Several IOU actions carry the same `IOUTransactionID`. Paying, approving or rejecting an expense all reference
+ * the transaction they act on, and each has its own thread. Callers that want the expense itself (to open it, or
+ * to page to it in the prev/next carousel) must not match those, or they land the user on, say, the
+ * "marked as paid" system message thread instead of the expense.
+ *
+ * Actions with no `type` are kept: legacy IOU actions predate the field and are expense-creating.
+ */
+function getExpenseCreationTransactionID(reportAction: ReportAction): string | undefined {
+    if (!isMoneyRequestAction(reportAction)) {
+        return undefined;
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage?.IOUTransactionID) {
+        return undefined;
+    }
+    return !originalMessage.type || !nonExpenseCreationIOUTypes.has(originalMessage.type) ? originalMessage.IOUTransactionID : undefined;
+}
+
+/**
+ * Get the action that created an expense, for a transactionID, from the given reportActions.
+ */
+function getExpenseCreationIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
+    return reportActions.find((reportAction) => getExpenseCreationTransactionID(reportAction) === transactionID);
 }
 
 /**
@@ -2850,6 +3029,7 @@ function getExportIntegrationActionFragments(
                 case CONST.EXPORT_LABELS.INTACCT:
                 case CONST.EXPORT_LABELS.SAGE_INTACCT:
                 case CONST.EXPORT_LABELS.QBD:
+                case CONST.EXPORT_LABELS.BUSINESS_CENTRAL:
                     // These integrations store IDs, not URLs.
                     url = '';
                     break;
@@ -3639,6 +3819,15 @@ function getWorkspaceAttendeeTrackingUpdateMessage(translate: LocalizedTranslate
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED>) ?? {};
 
     return translate('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
+}
+
+function getAutoCategorizeNewExpensesMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES)) {
+        return getReportActionText(action);
+    }
+
+    const {enabled} = getOriginalMessage(action) ?? {};
+    return translate('workspaceActions.updatedAutoCategorizeNewExpenses', {enabled: !!enabled});
 }
 
 function getRequiresCategoryMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -4479,6 +4668,27 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
     return getReportActionText(reportAction);
 }
 
+function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
+        return getReportActionText(reportAction);
+    }
+    const {name, email, newValue, oldValue} = getOriginalMessage(reportAction) ?? {};
+
+    if (typeof newValue !== 'boolean' || typeof oldValue !== 'boolean') {
+        return getReportActionText(reportAction);
+    }
+
+    const newArrangement = getWorkArrangementLabel(translate, newValue);
+    const oldArrangement = getWorkArrangementLabel(translate, oldValue);
+
+    // Change logs without a named member describe the workspace default arrangement.
+    const displayName = name ?? (email ? formatPhoneNumber(email) : '');
+    if (!displayName) {
+        return translate('workspaceActions.updatedDefaultWorkArrangement', {newArrangement, oldArrangement});
+    }
+    return translate('workspaceActions.updatedMemberWorkArrangement', {displayName, newArrangement, oldArrangement});
+}
+
 function getUpdatedProhibitedExpensesMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
     const {newProhibitedExpenses, oldProhibitedExpenses} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES>) ?? {};
@@ -5102,13 +5312,18 @@ export {
     isReportActionUnread,
     getHtmlWithAttachmentID,
     getActionableMentionWhisperMessage,
+    getAgentPromptUpdatedMessage,
+    getAgentPromptUpdatedMessageHTML,
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
     getFirstVisibleReportActionID,
     getLatestConciergeFeedbackActionID,
+    getLatestConciergeFeedbackActionIDFromReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
+    getExpenseCreationIOUActionForTransactionID,
+    getExpenseCreationTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleActionIncludingTransactionThread,
@@ -5119,6 +5334,7 @@ export {
     getElsewherePaymentReportActionMessage,
     getMarkedReimbursedMessage,
     getReimbursedMessage,
+    getPaymentMessageWithExpectedDate,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,
@@ -5229,7 +5445,6 @@ export {
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
-    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
@@ -5264,6 +5479,7 @@ export {
     getRequiresCategoryMessage,
     getRequiresTagMessage,
     getCurrencyConversionFeeMessage,
+    getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCategoryTaxRateMessage,
@@ -5301,6 +5517,7 @@ export {
     getSendMoneyFlowAction,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedCommuterExclusionsMessage,
+    getUpdatedMemberWorkArrangementMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

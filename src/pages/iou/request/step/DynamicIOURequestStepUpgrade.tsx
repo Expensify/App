@@ -2,7 +2,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 
@@ -27,6 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
+import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -97,8 +98,9 @@ function DynamicIOURequestStepUpgrade({
     const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {currentSearchQueryJSON} = useSearchQueryContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -109,6 +111,7 @@ function DynamicIOURequestStepUpgrade({
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
@@ -153,6 +156,10 @@ function DynamicIOURequestStepUpgrade({
                 [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
             };
 
+            // Do not send all-matching query params offline because reconnecting reevaluates the query and can include newly matching expenses.
+            // Move the explicit transaction list instead
+            const allMatchingQueryParams = isOffline ? {} : getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
+
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
                 isVendorMatchingBetaEnabled,
@@ -168,6 +175,7 @@ function DynamicIOURequestStepUpgrade({
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
                 rules,
+                cardList,
                 selfDMReportActions,
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
@@ -175,6 +183,7 @@ function DynamicIOURequestStepUpgrade({
                 delegateAccountID,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                ...allMatchingQueryParams,
             });
 
             clearSelectedTransactions();
@@ -287,6 +296,11 @@ function DynamicIOURequestStepUpgrade({
         getCurrencyDecimals,
         getCurrencySymbol,
         rules,
+        cardList,
+        areAllMatchingItemsSelected,
+        currentSearchQueryJSON,
+        excludedTransactions,
+        isOffline,
     ]);
 
     const participant = transaction?.participants?.[0];

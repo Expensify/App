@@ -3,6 +3,8 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
+import type {WriteReadyBarrier} from '@libs/API';
+
 import type {CurrentUser} from '@userActions/Policy/Policy';
 
 import type {IOUAction} from '@src/CONST';
@@ -52,6 +54,8 @@ type CreateTrackExpenseParams = {
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
     isDraftChatReport: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     personalDetailsByLogins?: PersonalDetailsByLogin;
 };
