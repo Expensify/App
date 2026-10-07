@@ -439,11 +439,14 @@ function BasePopoverMenu({
             });
         }
     };
+    const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
+    const showFocusedRow = useCallback(() => setHasKeyBeenPressed(true), []);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: currentMenuItemsFocusedIndex,
         maxIndex: currentMenuItems.length - 1,
         isActive: isVisible,
         onFocusedIndexChange: scrollFocusedRowIntoView,
+        setHasKeyBeenPressed: isSearchEnabled ? showFocusedRow : undefined,
     });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
@@ -467,7 +470,6 @@ function BasePopoverMenu({
         return {currentHeaderText: currentHeader, shouldAlwaysShowHeaderText: shouldShow};
     }, [enteredSubMenuIndexes, headerText, menuItems]);
 
-    const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
     const {
         effectiveRestoreFocusType,
         handleModalHide: handleFocusManagementModalHide,
@@ -732,7 +734,12 @@ function BasePopoverMenu({
             setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
             setCurrentMenuItems(menuItems);
             if (isSearchEnabled) {
-                rowLayoutsRef.current.clear();
+                // Rows reused after filtering may not emit another onLayout event, so preserve measurements for the remaining visual positions.
+                for (const rowIndex of rowLayoutsRef.current.keys()) {
+                    if (rowIndex >= menuItems.length) {
+                        rowLayoutsRef.current.delete(rowIndex);
+                    }
+                }
                 scrollOffsetRef.current = 0;
                 scrollViewRef.current?.scrollTo({y: 0, animated: false});
                 setFocusedIndex(menuItems.length > 0 ? 0 : -1);

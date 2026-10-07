@@ -414,6 +414,7 @@ describe('InitialSettingsPage - scrolling', () => {
 
         // The account switcher's tooltip is anchored inside this list, so the page has to announce scrolls.
         const scrollView = screen.UNSAFE_getByType(ScrollView);
+        expect(scrollView.props.keyboardShouldPersistTaps).toBe('always');
         fireEvent.scroll(scrollView, {
             nativeEvent: {
                 contentOffset: {y: 120, x: 0},

@@ -175,6 +175,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="always"
             >
                 {headerContent}
                 {accountMenuItems}
