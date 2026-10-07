@@ -100,7 +100,10 @@ describe('DatePresetFilterBase allowedCustomDateModifiers', () => {
     it('offers a single-day calendar labelled Custom day when only On is allowed', () => {
         // Given the picker as Insights renders it, which only reports on closed periods
         const onSelectDateModifier = jest.fn();
-        renderDatePresetFilterBase({allowedCustomDateModifiers: [CONST.SEARCH.DATE_MODIFIERS.ON], onSelectDateModifier});
+        renderDatePresetFilterBase({
+            allowedCustomDateModifiers: [CONST.SEARCH.DATE_MODIFIERS.ON],
+            onSelectDateModifier,
+        });
         expect(screen.queryByText(CUSTOM_DATE)).not.toBeOnTheScreen();
 
         // When the Custom day option is opened
@@ -117,7 +120,10 @@ describe('DatePresetFilterBase allowedCustomDateModifiers', () => {
         // Given an unbounded Before date, which Insights does not support
         const onSelectDateModifier = jest.fn();
         renderDatePresetFilterBase({
-            defaultDateValues: {...emptyDateValues, [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: '2026-03-04'},
+            defaultDateValues: {
+                ...emptyDateValues,
+                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: '2026-03-04',
+            },
             allowedCustomDateModifiers: [CONST.SEARCH.DATE_MODIFIERS.ON],
             onSelectDateModifier,
         });
@@ -127,5 +133,42 @@ describe('DatePresetFilterBase allowedCustomDateModifiers', () => {
 
         // Then the picker switches to On rather than reviving the Before modifier the caller ruled out
         expect(onSelectDateModifier).toHaveBeenCalledWith(CONST.SEARCH.DATE_MODIFIERS.ON);
+    });
+
+    it('shows and selects After when it is the only allowed modifier', () => {
+        // Given a picker restricted to the After modifier
+        const onSelectDateModifier = jest.fn();
+        renderDatePresetFilterBase({
+            defaultDateValues: {...emptyDateValues, [CONST.SEARCH.DATE_MODIFIERS.AFTER]: '2026-03-04'},
+            allowedCustomDateModifiers: [CONST.SEARCH.DATE_MODIFIERS.AFTER],
+            onSelectDateModifier,
+        });
+
+        expect(screen.getByText(/^(After|common\.after) 2026-03-04$/)).toBeOnTheScreen();
+
+        // When the custom date option is opened
+        fireEvent.press(screen.getByText(CUSTOM_DATE), PRESS_EVENT);
+
+        // Then After is selected without offering the other modifier rows
+        expect(onSelectDateModifier).toHaveBeenCalledWith(CONST.SEARCH.DATE_MODIFIERS.AFTER);
+        for (const row of MODIFIER_ROWS) {
+            expect(screen.queryByText(row)).not.toBeOnTheScreen();
+        }
+    });
+
+    it('uses the modifier translation in the custom date description', () => {
+        // Given a saved custom Before date
+        renderDatePresetFilterBase({
+            defaultDateValues: {
+                ...emptyDateValues,
+                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: '2026-03-04',
+            },
+        });
+
+        // When the picker displays its collapsed custom date option
+        const description = screen.getByText(/^(Before|common\.before) 2026-03-04$/);
+
+        // Then its description includes the translated modifier and stored date
+        expect(description).toBeOnTheScreen();
     });
 });

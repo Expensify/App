@@ -661,6 +661,48 @@ describe('useAccountIndicatorChecks', () => {
     });
 
     describe('error takes priority over info', () => {
+        it('returns the first truthy status in each category when multiple checks match', async () => {
+            // Given simultaneous wallet and bank-account errors, plus login and subscription info
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {errors: {error: 'Wallet error'}},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            12345: {
+                                methodID: 12345,
+                                errors: {error: 'Bank account error'},
+                            },
+                        },
+                        [ONYXKEYS.LOGINS]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            '1_otheruser@expensify.com': {
+                                partnerID: 1,
+                                partnerUserID: 'different@expensify.com',
+                                validatedDate: undefined,
+                            },
+                        },
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.CARD_LIST]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the real hook evaluates both ordered check lists
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the first matching error and info status win independently
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS);
+            expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO);
+        });
+
         it('returns both accountStatus and infoStatus independently', async () => {
             await act(async () => {
                 await Onyx.multiSet(
