@@ -5,7 +5,6 @@ import type {CartesianChartData, YKey} from '@components/HTMLEngineProvider/HTML
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
-import getStaticChartCanvasProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getStaticChartCanvasProps';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
