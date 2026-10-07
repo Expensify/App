@@ -115,14 +115,17 @@ function InlineNumberEditCell({
                     shouldApplyPaddingToContainer={false}
                     shouldRefocusOnScrollViewClick
                     hideFocusedState
+                    // A left-aligned amount grows into the cell. Measuring that width after paint makes each new digit jump, so the field fills the cell instead.
+                    autoGrow={isRightAligned}
                     onInputChange={setLocalValue}
                     onBlur={save}
                     onSubmitEditing={save}
                     accessibilityLabel={accessibilityLabel}
-                    style={[styles.lh16, styles.optionDisplayName, styles.pr0, isRightAligned && styles.textAlignRight]}
+                    style={[styles.lh16, styles.optionDisplayName, styles.pr0, !isRightAligned && styles.flex1, isRightAligned && styles.textAlignRight]}
                     containerStyle={[styles.editableCellInputStyle]}
+                    outerContainerStyles={!isRightAligned ? [styles.flex1, styles.mnw0] : undefined}
                     touchableInputWrapperStyle={styles.editableCellInputStyle}
-                    scrollViewStyle={[styles.flexRow, styles.alignItemsCenter, isRightAligned && styles.justifyContentEnd]}
+                    scrollViewStyle={[styles.flexRow, styles.alignItemsCenter, !isRightAligned && styles.w100, isRightAligned && styles.justifyContentEnd]}
                     symbolTextStyle={[styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}
                 />
             }
