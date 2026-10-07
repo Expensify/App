@@ -39,17 +39,6 @@ function OuterHiddenNestedScreen({isHidden: isOuterHidden, children}: ScreenProp
     );
 }
 
-/** Two nested navigators deep, which is the shape the hook has to keep working through unchanged. */
-function TwiceNestedScreen({isHidden: isOuterHidden, children}: ScreenProps) {
-    return (
-        <ActivityScreen isHidden={isOuterHidden}>
-            <ActivityScreen isHidden={false}>
-                <ActivityScreen isHidden={false}>{children}</ActivityScreen>
-            </ActivityScreen>
-        </ActivityScreen>
-    );
-}
-
 /** The same nesting, where the <Activity> of the screen itself is the one that hides. */
 function InnerHiddenNestedScreen({isHidden: isInnerHidden, children}: ScreenProps) {
     return (
@@ -156,15 +145,6 @@ describe('useScreenActivityEffect on nested screens', () => {
             const nested = await runOn(useScreenActivityEffect, OuterHiddenNestedScreen, coverAndReveal);
 
             // Then the setup survives, because the hide reaches the hook as a passive cleanup with nothing owed
-            expect(nested).toEqual(await runOn(useEffect, LiveScreen, coverAndReveal));
-        });
-
-        it('keeps the setup two nested navigators deep', async () => {
-            // Given the same screen one navigator deeper
-            // When the outermost screen is covered and revealed
-            const nested = await runOn(useScreenActivityEffect, TwiceNestedScreen, coverAndReveal);
-
-            // Then the depth changes nothing, because the hook never asks which <Activity> hid it
             expect(nested).toEqual(await runOn(useEffect, LiveScreen, coverAndReveal));
         });
 

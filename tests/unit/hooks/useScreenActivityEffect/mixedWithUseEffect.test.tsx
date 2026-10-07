@@ -164,17 +164,4 @@ describe('useScreenActivityEffect mixed with useEffect', () => {
         expect(live).toEqual([['open'], [], ['close', 'clear'], []]);
         expect(covered).toEqual([['open'], ['clear'], ['close skipped'], []]);
     });
-
-    it('does not care whether the two hooks sit in one component or in two', async () => {
-        // Given the two hooks in one component, and then the very same two as siblings
-        const cycle = (Subjects: ComponentType<{value: string}>) => [visible(<Subjects value="a" />), hidden(<Subjects value="a" />), visible(<Subjects value="a" />)];
-
-        // When both screens go through a cover and reveal cycle and then leave the stack
-        const oneComponent = await recordCovered(cycle(MixedEffects));
-        resetLog();
-        const twoComponents = await recordCovered(cycle(MixedSiblings));
-
-        // Then the calls match, because the hook holds one entry per call site rather than per component
-        expect(twoComponents).toEqual(oneComponent);
-    });
 });

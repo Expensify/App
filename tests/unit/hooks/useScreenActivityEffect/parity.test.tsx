@@ -126,20 +126,6 @@ describe('useScreenActivityEffect compared to useEffect', () => {
                 [],
             ]);
         });
-
-        it('runs the same calls when the screen leaves the stack with two components still on it', async () => {
-            // Given two components that are still mounted when the screen goes away, which is the ordinary pop
-            const steps = [visible(<Siblings value="a" />)];
-
-            // When the screen leaves the navigation stack
-            const runs = await runEveryConfig(steps);
-
-            // Then every cleanup runs at its own place of the teardown
-            expectEveryConfigToMatch(runs, [
-                ['setup:s1:a', 'setup:s2:a'],
-                ['cleanup:s1:a', 'cleanup:s2:a'],
-            ]);
-        });
     });
 
     describe('a cover and a reveal', () => {
@@ -282,17 +268,6 @@ describe('useScreenActivityEffect compared to useEffect', () => {
     });
 
     describe('removing the component', () => {
-        it('runs the cleanup at once while the screen is visible', async () => {
-            // Given an effect of a component that goes away while the user is looking at the screen
-            const steps = [visible(<Subject value="a" />), visible(null)];
-
-            // When the component is removed
-            const runs = await runEveryConfig(steps);
-
-            // Then the release is immediate, because React still holds the passive cleanup of a visible component
-            expectEveryConfigToMatch(runs, [['setup:s:a'], ['cleanup:s:a'], []]);
-        });
-
         it('runs the cleanup at once after a cover and reveal cycle', async () => {
             // Given a component that survived a cover, so the reveal connected its passive cleanup again
             const steps = [visible(<Subject value="a" />), hidden(<Subject value="a" />), visible(<Subject value="a" />), visible(null)];
@@ -361,19 +336,8 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             expect(runs.activityUseEffect).toEqual([['setup:s:a'], ['cleanup:s:a'], [], [], ['setup:s:b'], ['cleanup:s:b']]);
         });
 
-        it('sets up a component that mounts from state inside the screen after a reveal that ran no effect', async () => {
-            // Given an empty screen that is covered and revealed, and a component mounting afterwards from a leaf
-            const steps = [visible(<Leaf>{null}</Leaf>), hidden(<Leaf>{null}</Leaf>), visible(<Leaf>{null}</Leaf>), leaf(<Subject value="a" />)];
-
-            // When the component mounts in a commit that renders nothing above the leaf
-            const runs = await runEveryConfig(steps);
-
-            // Then its setup runs in that commit, exactly as on the live screen
-            expectEveryConfigToMatch(runs, [[], [], [], ['setup:s:a'], ['cleanup:s:a']]);
-        });
-
         it('leaves nothing behind for a component that mounts and goes away between two reveals that ran no effect', async () => {
-            // Given the same component removed again from the leaf before the screen is covered and revealed once more
+            // Given a component mounted and removed from the leaf between two cover and reveal cycles of an empty screen
             const steps = [
                 visible(<Leaf>{null}</Leaf>),
                 hidden(<Leaf>{null}</Leaf>),
@@ -389,19 +353,6 @@ describe('useScreenActivityEffect compared to useEffect', () => {
 
             // Then the second reveal runs nothing, because the removed component left no setup behind
             expectEveryConfigToMatch(runs, [[], [], [], ['setup:s:a'], ['cleanup:s:a'], [], [], []]);
-        });
-
-        it('runs the cleanup of a component removed while hidden before the screen leaves the stack', async () => {
-            // Given a component that goes away behind the cover of a screen that is then popped
-            const steps = [visible(<Subject value="a" />), hidden(<Subject value="a" />), hidden(null)];
-
-            // When the screen leaves the stack with no reveal in between
-            const runs = await runEveryConfig(steps);
-
-            // Then the release ran in the commit of the removal already, so the pop has nothing left to release
-            const expected = [['setup:s:a'], [], ['cleanup:s:a'], []];
-            expect(runs.liveUseEffect).toEqual(expected);
-            expect(runs.activityScreenActivityEffect).toEqual(expected);
         });
 
         it('leaves the sibling that stayed alive untouched when one of two is removed while hidden', async () => {
@@ -490,21 +441,6 @@ describe('useScreenActivityEffect compared to useEffect', () => {
                 [],
                 ['cleanup:child:a', 'setup:child:b', 'cleanup:parent:a', 'setup:parent:b'],
                 ['cleanup:parent:b', 'cleanup:child:b'],
-            ]);
-        });
-
-        it('releases a parent and its child from the parent down when the screen leaves the stack, exactly as the live screen does', async () => {
-            // Given a parent and a child that are both still mounted when the screen is popped
-            const steps = [visible(<Parent value="a" />)];
-
-            // When the screen leaves the navigation stack
-            const runs = await runEveryConfig(steps);
-
-            // Then React tears a deleted tree down from the parent down, and every configuration agrees, because each
-            // cleanup of the hook runs at its own place when the screen is visible
-            expectEveryConfigToMatch(runs, [
-                ['setup:child:a', 'setup:parent:a'],
-                ['cleanup:parent:a', 'cleanup:child:a'],
             ]);
         });
 

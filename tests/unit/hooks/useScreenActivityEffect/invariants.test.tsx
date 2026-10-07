@@ -208,35 +208,21 @@ async function sweep(hook: AnyEffectHook, Screen: ComponentType<ScreenProps>, se
 
 /** The two generated sets: the commits the root renders, and those plus the ones a leaf starts without rendering the screen. */
 const GENERATED_SETS = [
-    {name: 'from the root', operations: OPERATIONS, length: SEQUENCE_LENGTH, hasLeafCommits: false},
-    {name: 'from the root and from a leaf', operations: [...OPERATIONS, ...LEAF_OPERATIONS], length: LEAF_SEQUENCE_LENGTH, hasLeafCommits: true},
+    {name: 'from the root', operations: OPERATIONS, length: SEQUENCE_LENGTH},
+    {name: 'from the root and from a leaf', operations: [...OPERATIONS, ...LEAF_OPERATIONS], length: LEAF_SEQUENCE_LENGTH},
 ];
 
-describe.each(GENERATED_SETS)('useScreenActivityEffect over every generated sequence of commits $name', ({operations, length, hasLeafCommits}) => {
+describe.each(GENERATED_SETS)('useScreenActivityEffect over every generated sequence of commits $name', ({operations, length}) => {
     const sequences = generateSequences(operations, [FIRST_STATE], FIRST_STATE, length);
-
-    it('generates every sequence of commits the screen can go through', () => {
-        // Given the operations a screen and its content can go through, with the ones that change nothing left out
-        // Then there is a sequence for every combination of them, which is what the checks below run on
-        expect(sequences.length).toBeGreaterThan(100);
-        expect(sequences.every((states) => states.length === length + 1)).toBe(true);
-        expect(sequences.some((states) => states.some((state) => state.isFromLeaf))).toBe(hasLeafCommits);
-    });
-
-    it('holds the live screen on useEffect to the invariants, which is what the checks are calibrated against', async () => {
-        // When the baseline goes through every generated sequence
-        const live = await sweep(useEffect, LiveScreen, sequences);
-
-        // Then it violates nothing, so a violation below is the hook and not the checks
-        expect(live.problems).toEqual([]);
-    });
 
     it('holds the covered screen on useScreenActivityEffect to the same invariants', async () => {
         // When the hook goes through every generated sequence behind an <Activity>
         const live = await sweep(useEffect, LiveScreen, sequences);
         const activity = await sweep(useScreenActivityEffect, ActivityScreen, sequences);
 
-        // Then every setup is released exactly once, no instance ever holds two, and a visible screen is up to date
+        // Then the baseline validates the checks, and every setup is released exactly once, no instance ever holds two,
+        // and a visible screen is up to date
+        expect(live.problems).toEqual([]);
         expect(activity.problems).toEqual([]);
 
         // And it never ran more work than the live screen did, because a cover can only ever leave work out

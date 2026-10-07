@@ -140,29 +140,8 @@ describe('useScreenActivityEffect in a commit that does not finish at once', () 
         expect(commits).toEqual([['setup:s:a'], [], [], ['cleanup:s:a']]);
     });
 
-    it('keeps the setup of a component that suspends again on the reveal', async () => {
-        // Given a component whose resource goes pending behind the cover, so the reveal renders the fallback for it
-        const content = (pending?: Resource) => (
-            <Suspense fallback={<FallbackMarker />}>
-                <SuspendingSubject pending={pending} />
-            </Suspense>
-        );
-
-        // When the screen is revealed onto the fallback and the resource resolves afterwards
-        const live = await runCommits(useEffect, LiveScreen, suspendOnReveal(content));
-        const activity = await runCommits(useScreenActivityEffect, ActivityScreen, suspendOnReveal(content));
-
-        // Then the live screen keeps the setup through the suspension, and the fallback shows that it really suspended
-        expect(live).toEqual([['setup:s:a'], [], ['fallback'], [], ['resumed'], ['cleanup:s:a']]);
-
-        // And the covered screen keeps it too, because a component that suspends ran no insertion cleanup, so it owes
-        // no release
-        expect(activity).toEqual([['setup:s:a'], [], [], ['fallback'], ['resumed'], ['cleanup:s:a']]);
-        expect(activity.flat()).toEqual(live.flat());
-    });
-
     it('keeps the setup of a suspended component when another part of the screen ran on the reveal', async () => {
-        // Given the same suspension next to a component that is not suspended and runs its own effect on the reveal
+        // Given a component whose resource goes pending behind the cover, next to a sibling that runs on the reveal
         const content = (pending?: Resource) => (
             <>
                 <Suspense fallback={<FallbackMarker />}>

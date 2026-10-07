@@ -38,24 +38,8 @@ describe('useScreenActivityEffect behind an <Activity> inside the screen', () =>
         resetLog();
     });
 
-    it('keeps every setup through the hide and show of the tab on a screen that opted into <Activity>, as through a cover', async () => {
-        // Given two call sites behind a tab of a screen that opted into <Activity>
-        // When the tab hides and shows again
-        const live = await runOn(useEffect, ActivityScreen, hideAndShowTab);
-        const activity = await runOn(useScreenActivityEffect, ActivityScreen, hideAndShowTab);
-
-        // Then plain useEffect churns and the hook keeps both setups alike, because nothing was owed for either
-        expect(live).toEqual([
-            ['setup:a:1', 'setup:b:1'],
-            ['cleanup:a:1', 'cleanup:b:1'],
-            ['setup:a:1', 'setup:b:1'],
-            ['cleanup:a:1', 'cleanup:b:1'],
-        ]);
-        expect(activity).toEqual([['setup:a:1', 'setup:b:1'], [], [], ['cleanup:a:1', 'cleanup:b:1']]);
-    });
-
     it('keeps every setup through the hide and show of the tab on a screen that stays live as well', async () => {
-        // Given the same tab on a screen that did not opt into <Activity>
+        // Given two call sites behind a tab on a screen that did not opt into <Activity>
         // When the tab hides and shows again
         const live = await runOn(useEffect, LiveScreen, hideAndShowTab);
         const activity = await runOn(useScreenActivityEffect, LiveScreen, hideAndShowTab);

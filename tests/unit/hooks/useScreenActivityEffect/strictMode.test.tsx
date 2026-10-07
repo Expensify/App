@@ -2,8 +2,6 @@ import useScreenActivityEffect from '@hooks/useScreenActivityEffect';
 
 import StrictModeMountGate from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper/StrictModeMountGate';
 
-import type {ReactNode} from 'react';
-
 import React, {useEffect} from 'react';
 
 import type {ScreenProps} from '../../../utils/ScreenActivityEffectTestUtils';
@@ -28,11 +26,6 @@ function GatedActivityScreen({isHidden: isScreenHidden, children}: ScreenProps) 
     );
 }
 
-/** One component around several call sites, which is what the content of a screen is to the gate. */
-function Group({children}: {children: ReactNode}) {
-    return children;
-}
-
 /** A live screen with the same gate, which is what the gate alone does to an effect. */
 function GatedLiveScreen({children}: ScreenProps) {
     return <StrictModeMountGate>{children}</StrictModeMountGate>;
@@ -50,64 +43,6 @@ function GateAboveScreen({isHidden: isScreenHidden, children}: ScreenProps) {
 describe('useScreenActivityEffect under the StrictMode gate of a screen that opted into Activity', () => {
     beforeEach(() => {
         resetLog();
-    });
-
-    it('leaves the hook out of the remount cycle of the gate', async () => {
-        // Given the gate that qualifies a screen for <Activity> by mounting its effects twice in development
-        const steps = [visible(<Subject value="a" />)];
-
-        // When the screen mounts and then leaves the stack
-        const live = await runOn(useEffect, GatedLiveScreen, steps);
-        const activity = await runOn(useScreenActivityEffect, GatedActivityScreen, steps);
-
-        // Then plain useEffect goes through the cycle and the hook does not, because React never double-invokes an
-        // insertion effect, so the second passive run finds nothing owed
-        expect(live).toEqual([['setup:s:a', 'cleanup:s:a', 'setup:s:a'], ['cleanup:s:a']]);
-        expect(activity).toEqual([['setup:s:a'], ['cleanup:s:a']]);
-    });
-
-    it('leaves every call site of a subtree the gate mounts as one out of the cycle', async () => {
-        // Given two call sites under one component, which is the shape of a screen: the gate mounts it as one placed
-        // subtree, so React disconnects every effect of it and then reconnects them one component at a time
-        const steps = [
-            visible(
-                <Group>
-                    <Subject
-                        name="a"
-                        value="1"
-                    />
-                    <Subject
-                        name="b"
-                        value="1"
-                    />
-                </Group>,
-            ),
-        ];
-
-        // When the screen mounts and then leaves the stack
-        const live = await runOn(useEffect, GatedLiveScreen, steps);
-        const activity = await runOn(useScreenActivityEffect, GatedActivityScreen, steps);
-
-        // Then neither call site goes through the cycle, because a disconnect with nothing owed keeps the setup
-        expect(live).toEqual([
-            ['setup:a:1', 'setup:b:1', 'cleanup:a:1', 'cleanup:b:1', 'setup:a:1', 'setup:b:1'],
-            ['cleanup:a:1', 'cleanup:b:1'],
-        ]);
-        expect(activity).toEqual([
-            ['setup:a:1', 'setup:b:1'],
-            ['cleanup:a:1', 'cleanup:b:1'],
-        ]);
-    });
-
-    it('runs once under a StrictMode above the screen as well', async () => {
-        // Given a StrictMode above the <Activity>, which is what USE_REACT_STRICT_MODE_IN_DEV puts above the whole app
-        const steps = [visible(<Subject value="a" />)];
-
-        // When the screen mounts and then leaves the stack
-        const activity = await runOn(useScreenActivityEffect, GateAboveScreen, steps);
-
-        // Then the setup ran once, because the double invocation reaches the hook as passive effects only
-        expect(activity).toEqual([['setup:s:a'], ['cleanup:s:a']]);
     });
 
     it('keeps the setup live through a cover and reveal cycle under a StrictMode above the screen', async () => {

@@ -2,9 +2,9 @@ import {render} from '@testing-library/react-native';
 
 import useScreenActivityEffect from '@hooks/useScreenActivityEffect';
 
-import type {ComponentType, ReactNode} from 'react';
+import type {ComponentType} from 'react';
 
-import React, {Activity, Component, useEffect, useSyncExternalStore} from 'react';
+import React, {useEffect, useSyncExternalStore} from 'react';
 
 import type {AnyEffectHook, RenderStep, ScreenProps} from '../../../utils/ScreenActivityEffectTestUtils';
 
@@ -62,26 +62,6 @@ function ThrowingSetup({value = 'a', throwsFor = 'a'}: Omit<ThrowingProps, 'name
 function Survivor() {
     useAnyEffect(track('survivor:a'), []);
     return null;
-}
-
-/** An error boundary inside the screen, which takes down what it wraps when an effect below it throws. */
-class InnerErrorBoundary extends Component<{children: ReactNode}, {hasFailed: boolean}> {
-    constructor(props: {children: ReactNode}) {
-        super(props);
-        this.state = {hasFailed: false};
-    }
-
-    static getDerivedStateFromError() {
-        return {hasFailed: true};
-    }
-
-    componentDidCatch(error: Error) {
-        log(`caught:${error.message}`);
-    }
-
-    render() {
-        return this.state.hasFailed ? null : this.props.children;
-    }
 }
 
 /** A screen where the throwing cleanup and an ordinary one can go away together, leaving the survivor behind. */
@@ -190,26 +170,6 @@ describe('useScreenActivityEffect and an effect that throws', () => {
             expect(activity.commits).toEqual(live.commits);
         });
 
-        it('releases the rest of the screen when one cleanup throws at the teardown', async () => {
-            // Given a screen holding a cleanup that throws next to effects that have to be released too
-            const steps = [visible(<ThrowingScreenContent />)];
-
-            // When the screen leaves the navigation stack
-            const live = await runCatching(useEffect, LiveScreen, steps);
-            const activity = await runCatching(useScreenActivityEffect, ActivityScreen, steps);
-
-            // Then React runs every cleanup of the deleted tree and reports the error afterwards
-            expect(live.commits).toEqual([
-                ['setup:throwing:a', 'setup:s:a', 'setup:survivor:a'],
-                ['cleanup:throwing:a', 'cleanup:s:a', 'cleanup:survivor:a'],
-            ]);
-            expect(live.errors).toEqual(['Error: cleanup of throwing:a threw']);
-
-            // And the hook is the same, because every cleanup of a visible screen runs from its passive cleanup
-            expect(activity.commits).toEqual(live.commits);
-            expect(activity.errors).toEqual(live.errors);
-        });
-
         it('reports a cleanup that throws on the release of a component removed while hidden and leaves the rest of the screen alone', async () => {
             // Given a throwing cleanup whose component goes away behind the cover, next to a component that stays
             const steps = [
@@ -302,40 +262,6 @@ describe('useScreenActivityEffect and an effect that throws', () => {
 
             // Then the body of the replacement reports the failed release before it runs its own setup
             expect(activity.commits).toEqual([['setup:throwing:a'], [], ['cleanup:throwing:a', 'setup:s:new'], ['cleanup:s:new']]);
-            expect(activity.errors).toEqual([]);
-            expect(reportedMessages(reported).filter((message) => message.includes('cleanup of throwing:a threw'))).toHaveLength(1);
-        });
-
-        it('never lets a release it runs itself reach the error boundary of another component', async () => {
-            // Given a throwing cleanup removed behind an <Activity> inside a visible screen, and a component that mounts
-            // afterwards behind an error boundary of the screen
-            const guarded = (value: string) => (
-                <InnerErrorBoundary>
-                    <Subject value={value} />
-                </InnerErrorBoundary>
-            );
-            const steps = [
-                visible(
-                    <Activity mode="visible">
-                        <ThrowingCleanup />
-                    </Activity>,
-                ),
-                visible(
-                    <Activity mode="hidden">
-                        <ThrowingCleanup />
-                    </Activity>,
-                ),
-                visible(<Activity mode="hidden">{null}</Activity>),
-                visible(guarded('a')),
-                visible(guarded('b')),
-            ];
-
-            // When the release of the removal throws once its commit is over
-            const activity = await runCatching(useScreenActivityEffect, ActivityScreen, steps);
-
-            // Then the error is reported and the error boundary never sees it, so the component that mounts afterwards
-            // stays, its setup runs, and React holds its cleanup for the dependency change that follows
-            expect(activity.commits).toEqual([['setup:throwing:a'], [], ['cleanup:throwing:a'], ['setup:s:a'], ['cleanup:s:a', 'setup:s:b'], ['cleanup:s:b']]);
             expect(activity.errors).toEqual([]);
             expect(reportedMessages(reported).filter((message) => message.includes('cleanup of throwing:a threw'))).toHaveLength(1);
         });

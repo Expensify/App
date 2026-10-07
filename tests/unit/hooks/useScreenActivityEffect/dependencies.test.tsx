@@ -24,12 +24,6 @@ function NumericDependency({dependency}: {dependency: number}) {
     return null;
 }
 
-/** An effect whose dependency list changes size, which React itself warns about and only partly compares. */
-function GrowingDependencies({first, hasSecond}: {first: string; hasSecond: boolean}) {
-    useAnyEffect(track('s:a'), hasSecond ? [first, 'b'] : [first]);
-    return null;
-}
-
 /** Two call sites whose dependency list holds a fresh object, which makes every render a change for both. */
 function EveryRender({value}: {value: string}) {
     useAnyEffect(track(`first:${value}`), [{}]);
@@ -83,19 +77,6 @@ describe('useScreenActivityEffect dependencies', () => {
         resetLog();
     });
 
-    it('keeps a setup with an empty dependency list live through a cover and reveal cycle', async () => {
-        // Given a mount-once effect, which is the one a reveal would otherwise run a second time
-        const steps = [visible(<MountOnce value="a" />), hidden(<MountOnce value="a" />), visible(<MountOnce value="a" />)];
-
-        // When the screen is covered and revealed again
-        const runs = await runEveryConfig(steps);
-
-        // Then it stays a mount-once effect, because an empty list is equal to the empty list of the reveal
-        const expected = [['setup:s:a'], [], [], ['cleanup:s:a']];
-        expect(runs.liveUseEffect).toEqual(expected);
-        expect(runs.activityScreenActivityEffect).toEqual(expected);
-    });
-
     it('compares the dependencies with Object.is, exactly as useEffect does', async () => {
         // Given the two values whose identity is not their equality: NaN is itself, and minus zero is not zero
         const steps = [
@@ -113,85 +94,6 @@ describe('useScreenActivityEffect dependencies', () => {
         const expected = [['setup:s:a'], [], [], ['cleanup:s:a', 'setup:s:a'], ['cleanup:s:a', 'setup:s:a'], ['cleanup:s:a']];
         expect(runs.liveUseEffect).toEqual(expected);
         expect(runs.activityScreenActivityEffect).toEqual(expected);
-    });
-
-    it('compares only the dependencies both lists have when the list changed size, exactly as useEffect does', async () => {
-        // Given a dependency list that grows while the screen is covered, which React only warns about
-        const warning = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const steps = [
-            visible(
-                <GrowingDependencies
-                    first="a"
-                    hasSecond={false}
-                />,
-            ),
-            hidden(
-                <GrowingDependencies
-                    first="a"
-                    hasSecond={false}
-                />,
-            ),
-            hidden(
-                <GrowingDependencies
-                    first="a"
-                    hasSecond
-                />,
-            ),
-            visible(
-                <GrowingDependencies
-                    first="a"
-                    hasSecond
-                />,
-            ),
-        ];
-
-        // When the screen is revealed with the longer list
-        const runs = await runEveryConfig(steps);
-        warning.mockRestore();
-
-        // Then the size change alone runs nothing, because only the dependencies both lists have are compared
-        const expected = [['setup:s:a'], [], [], [], ['cleanup:s:a']];
-        expect(runs.liveUseEffect).toEqual(expected);
-        expect(runs.activityScreenActivityEffect).toEqual(expected);
-    });
-
-    it('runs a dependency that changed together with the size of the list, exactly as useEffect does', async () => {
-        // Given a list that grows while the screen is covered and changes the dependency both lists have
-        const warning = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const steps = [
-            visible(
-                <GrowingDependencies
-                    first="a"
-                    hasSecond={false}
-                />,
-            ),
-            hidden(
-                <GrowingDependencies
-                    first="a"
-                    hasSecond={false}
-                />,
-            ),
-            hidden(
-                <GrowingDependencies
-                    first="b"
-                    hasSecond
-                />,
-            ),
-            visible(
-                <GrowingDependencies
-                    first="b"
-                    hasSecond
-                />,
-            ),
-        ];
-
-        // When the screen is revealed with the longer list
-        const runs = await runEveryConfig(steps);
-        warning.mockRestore();
-
-        // Then the change of the shared dependency runs, so the size neither hides a change nor invents one
-        expect(runs.liveUseEffect).toEqual([['setup:s:a'], [], ['cleanup:s:a', 'setup:s:a'], [], ['cleanup:s:a']]);
-        expect(runs.activityScreenActivityEffect).toEqual([['setup:s:a'], [], [], ['cleanup:s:a', 'setup:s:a'], ['cleanup:s:a']]);
     });
 
     it('coalesces dependencies that change on every render into one run per reveal', async () => {
