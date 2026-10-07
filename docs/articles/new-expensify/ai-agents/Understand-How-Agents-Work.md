@@ -63,13 +63,24 @@ To learn about the available templates, see [Use Agent Templates](/articles/new-
 
 ---
 
-## What are suggested rules?
+## What are suggested Agent rules
 
-Suggested rules are pre-written agent rules for common workspace workflows.
+Suggested Agent rules are pre-written Agent rules for common workspace workflows.
 
-Instead of starting with a blank agent rule, you can choose a suggested rule and edit it before saving.
+Instead of starting with a blank Agent rule, you can choose a suggested rule and edit it before saving.
 
 To learn about the available suggested rules, see [Use Suggested Agent Rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules).
+
+---
+
+## How are Agent templates different from suggested Agent rules
+
+Both give you pre-written instructions, but for different kinds of Agents:
+
+- An **Agent template** gives you instructions for a personal Agent that works on your own expenses.
+- A **suggested Agent rule** gives you instructions that RuleBot enforces across a workspace.
+
+For example, the **TipMaster** Agent template adds a comment to your own restaurant receipts when the tip is over 20%. The **Excessive tip percentage** suggested Agent rule tells RuleBot to reject meal expenses with a tip over 20% for everyone in the workspace.
 
 ---
 
