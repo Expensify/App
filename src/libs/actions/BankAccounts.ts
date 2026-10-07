@@ -553,7 +553,8 @@ function addPersonalBankAccount(
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+                    // Key 0 so a server-sent error always sorts newer than this fallback, even with device clock skew
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure', 0),
                 },
             },
         ],
@@ -1801,7 +1802,7 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
                       {
                           onyxMethod: Onyx.METHOD.MERGE,
                           key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}` as const,
-                          value: {[optimisticReportActionID]: {pendingAction: null}},
+                          value: {[optimisticReportActionID]: {pendingAction: null, isOptimisticAction: null}},
                       },
                   ]
                 : []),

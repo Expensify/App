@@ -14,81 +14,62 @@ import {
 } from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import type {MileageRate} from '@libs/DistanceRequestUtils';
-import {getCreated} from '@libs/TransactionUtils';
+import {getCreated, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Transaction} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
-import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
+import type useDistanceRequestState from './hooks/useDistanceRequestState';
+
+import {useConfirmationData} from './ConfirmationDataContext';
+
 type DistanceRequestControllerProps = {
-    transactionID: string | undefined;
-    transaction: OnyxEntry<Transaction>;
-    policy: OnyxEntry<Policy>;
-    isDistanceRequest: boolean;
-    isManualDistanceRequest: boolean;
-    isPolicyExpenseChat: boolean;
-    isMovingTransactionFromTrackExpense: boolean;
-    isReadOnly: boolean;
-    isTypeSplit: boolean;
-    customUnitRateID: string;
-    mileageRate: MileageRate;
-    rate: number | undefined;
-    unit: Unit | undefined;
-    currency: string;
-    distance: number;
-    distanceRequestAmount: number;
-    shouldCalculateDistanceAmount: boolean;
-    currentUserAccountID: number;
-    isDistanceRequestWithPendingRoute: boolean;
-    hasRoute: boolean;
-    defaultMileageRateCustomUnitRateID: string | undefined;
-    selectedParticipants: Participant[];
-    selectedParticipantsProp: Participant[];
-    setFormError: (error: TranslationPaths | '') => void;
-    clearFormErrors: (errors: string[]) => void;
+    /** The full distance state. Only a distance surface resolves one, so it stays a prop rather than joining the context. */
+    distanceState: ReturnType<typeof useDistanceRequestState>;
 };
 
 /**
  * Side-effect-only component that manages distance request effects:
  * validates distance rates on policy change, calculates distance amounts,
  * auto-selects the last saved distance rate, and updates the merchant.
+ *
+ * Mounted only by the distance variant, which is the only surface that resolves a distance state.
  */
-function DistanceRequestController({
-    transactionID,
-    transaction,
-    policy,
-    isDistanceRequest,
-    isManualDistanceRequest,
-    isPolicyExpenseChat,
-    isMovingTransactionFromTrackExpense,
-    isReadOnly,
-    isTypeSplit,
-    customUnitRateID,
-    mileageRate,
-    rate,
-    unit,
-    currency,
-    distance,
-    distanceRequestAmount,
-    shouldCalculateDistanceAmount,
-    currentUserAccountID,
-    isDistanceRequestWithPendingRoute,
-    hasRoute,
-    defaultMileageRateCustomUnitRateID,
-    selectedParticipants,
-    selectedParticipantsProp,
-    setFormError,
-    clearFormErrors,
-}: DistanceRequestControllerProps) {
+function DistanceRequestController({distanceState}: DistanceRequestControllerProps) {
+    const {
+        transactionID,
+        transaction,
+        policy,
+        isDistanceRequest,
+        isPolicyExpenseChat,
+        isMovingTransactionFromTrackExpense,
+        isReadOnly,
+        isTypeSplit,
+        customUnitRateID,
+        currentUserAccountID,
+        selectedParticipants,
+        selectedParticipantsProp,
+        setFormError,
+        clearFormErrors,
+    } = useConfirmationData();
+
+    const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
+    const {
+        mileageRate,
+        rate,
+        unit,
+        currency,
+        distance,
+        distanceRequestAmount,
+        shouldCalculateDistanceAmount,
+        isDistanceRequestWithPendingRoute,
+        hasRoute,
+        defaultRate: defaultMileageRateCustomUnitRateID,
+    } = distanceState;
+
     const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const personalPolicy = usePersonalPolicy();
@@ -144,6 +125,18 @@ function DistanceRequestController({
             return;
         }
 
+        // For the case of moving a track expense we want to auto set best eligible rate from the workspace.
+        if (isMovingTransactionFromTrackExpense) {
+            const expenseDate = getCreated(transaction);
+            const bestRate = expenseDate ? DistanceRequestUtils.getBestEligibleRate(policyRates, expenseDate) : undefined;
+            const fallbackRateID = bestRate?.customUnitRateID ?? defaultMileageRateCustomUnitRateID;
+            if (fallbackRateID) {
+                setCustomUnitRateID(transactionID, fallbackRateID, transaction, policy, false, personalPolicy?.outputCurrency);
+                clearFormErrors([errorKey]);
+                return;
+            }
+        }
+
         // If none of the above conditions are met, display the rate error
         setFormError(errorKey);
     }, [
@@ -160,6 +153,7 @@ function DistanceRequestController({
         transaction,
         prevPolicy?.id,
         personalPolicy?.outputCurrency,
+        defaultMileageRateCustomUnitRateID,
     ]);
 
     useEffect(() => {
