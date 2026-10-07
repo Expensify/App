@@ -2,11 +2,11 @@ import useScreenActivityEffect from '@hooks/useScreenActivityEffect';
 
 import type {ComponentType} from 'react';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 
-import type {RenderStep, Step} from '../../../utils/ScreenActivityEffectTestUtils';
+import type {RenderStep, ScreenProps, Step} from '../../../utils/ScreenActivityEffectTestUtils';
 
-import {ActivityScreen, hidden, isLeafStep, KeptEffect, leaf, Leaf, PlainEffect, record, resetLog, track, visible} from '../../../utils/ScreenActivityEffectTestUtils';
+import {ActivityScreen, hidden, isLeafStep, KeptEffect, leaf, Leaf, LiveScreen, log, PlainEffect, record, resetLog, track, visible} from '../../../utils/ScreenActivityEffectTestUtils';
 
 /**
  * A screen that is being migrated runs both hooks at once, either in one component or across its components, so these
@@ -31,10 +31,36 @@ function MixedSiblings({value}: {value: string}) {
     );
 }
 
-/** The steps on a screen wrapped in an <Activity>, because the components above pick their hook themselves. */
-function recordCovered(steps: readonly Step[]): Promise<string[][]> {
-    const screen = (step: RenderStep) => <ActivityScreen isHidden={step.isHidden}>{step.children}</ActivityScreen>;
+/** The trap of a migration halfway: the kept setup stores its resource in a ref that the plain cleanup clears, the way an isMountedRef is. */
+function SharedRef() {
+    const resourceRef = useRef<string | null>(null);
+    useScreenActivityEffect(() => {
+        resourceRef.current = 'resource';
+        log('open');
+        return () => {
+            log(resourceRef.current === null ? 'close skipped' : 'close');
+            resourceRef.current = null;
+        };
+    }, []);
+    useEffect(
+        () => () => {
+            resourceRef.current = null;
+            log('clear');
+        },
+        [],
+    );
+    return null;
+}
+
+/** The steps on the given screen, because the components above pick their hook themselves. */
+function recordOn(Screen: ComponentType<ScreenProps>, steps: readonly Step[]): Promise<string[][]> {
+    const screen = (step: RenderStep) => <Screen isHidden={step.isHidden}>{step.children}</Screen>;
     return record(steps.map((step) => (isLeafStep(step) ? step : screen(step))));
+}
+
+/** The steps on a screen wrapped in an <Activity>. */
+function recordCovered(steps: readonly Step[]): Promise<string[][]> {
+    return recordOn(ActivityScreen, steps);
 }
 
 describe('useScreenActivityEffect mixed with useEffect', () => {
@@ -110,6 +136,33 @@ describe('useScreenActivityEffect mixed with useEffect', () => {
 
         // Then the deletion of the hidden screen runs the one cleanup the cover skipped, right after the commit
         expect(commits).toEqual([['setup:plain:a', 'setup:kept:a'], ['cleanup:plain:a'], ['cleanup:kept:a']]);
+    });
+
+    it('skips the release of a resource the plain cleanup cleared on the cover, where a live screen closes it', async () => {
+        // Given a component whose kept cleanup reads the resource from a ref a plain cleanup clears
+        const steps = [
+            visible(
+                <Leaf>
+                    <SharedRef />
+                </Leaf>,
+            ),
+            hidden(
+                <Leaf>
+                    <SharedRef />
+                </Leaf>,
+            ),
+            hidden(<Leaf>{null}</Leaf>),
+        ];
+
+        // When the component is removed behind the cover, and the same happens on a screen that stays live
+        const covered = await recordCovered(steps);
+        resetLog();
+        const live = await recordOn(LiveScreen, steps);
+
+        // Then the live screen runs both cleanups in the removal, the kept one first, while the cover already cleared
+        // the ref, so the release of the hidden removal finds nothing to close
+        expect(live).toEqual([['open'], [], ['close', 'clear'], []]);
+        expect(covered).toEqual([['open'], ['clear'], ['close skipped'], []]);
     });
 
     it('does not care whether the two hooks sit in one component or in two', async () => {

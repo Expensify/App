@@ -66,6 +66,9 @@ function flushPendingCleanups(): void {
  * changed. Behind a cover no passive effect runs, so a component removed while hidden queues its release. A dependency
  * change cancels its own entry, because its insertion setup runs in the same commit. What stays queued is released by
  * the next passive body of the hook, on any screen, or by a microtask after the commit when no body runs first.
+ *
+ * Keep what the cleanup releases in the closure of the setup. A plain useEffect of the same component runs its cleanup
+ * on the cover, so a ref it clears is already empty when this cleanup runs for a removal behind the cover.
  */
 function useScreenActivityEffect(setup: EffectCallback, deps: DependencyList): void {
     // The effects mutate this record, which the React Compiler allows for a ref and rejects for state.
