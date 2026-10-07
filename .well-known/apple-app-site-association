@@ -115,7 +115,7 @@
                 ]
             },
             {
-                "appIDs": ["452835FXHF.com.expensify.expensifylite.adhoc"],
+                "appIDs": ["368M544MTT.com.expensify.expensifylite.adhoc"],
                 "components": [
                     {
                         "/": "/oauth/native-callback",
