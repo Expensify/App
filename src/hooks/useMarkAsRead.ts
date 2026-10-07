@@ -22,6 +22,7 @@ import {DeviceEventEmitter} from 'react-native';
 import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
+import useIsHiddenWideTabPreMount from './useIsHiddenWideTabPreMount';
 import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
 import {useDerivedIsEmptyReport} from './useReportAttributes';
@@ -122,7 +123,10 @@ function useMarkAsRead({
     const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
     // A preloaded tab mounts this screen before the user opens it. Marking read assumes the user is looking,
     // so hold every readNewestAction until the tab is focused, which drops the preloaded flag.
-    const isInPreloadedTab = useIsInPreloadedTab();
+    const isInPreloadedTabContext = useIsInPreloadedTab();
+    // A hidden wide submit pre-mount is held the same way until its reveal.
+    const isHiddenPreMount = useIsHiddenWideTabPreMount();
+    const isInPreloadedTab = isInPreloadedTabContext || isHiddenPreMount;
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -153,8 +157,15 @@ function useMarkAsRead({
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
         didMarkReportAsReadInitially.current = false;
-        claimScope(scopeKey, instanceID, reportID);
     }, [reportID, scopeKey, instanceID]);
+
+    useEffect(() => {
+        // A hidden pre-mount must not take the scope from the visible report, so it claims it on reveal.
+        if (isHiddenPreMount) {
+            return;
+        }
+        claimScope(scopeKey, instanceID, reportID);
+    }, [reportID, scopeKey, instanceID, isHiddenPreMount]);
 
     useEffect(() => () => releaseScope(scopeKey, instanceID), [scopeKey, instanceID]);
 

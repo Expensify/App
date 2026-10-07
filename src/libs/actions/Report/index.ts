@@ -384,6 +384,9 @@ type OpenReportActionParams = {
     /** Whether opening the report should update its read state. Set to false when fetching report data without the user actually viewing the conversation */
     shouldMarkAsRead?: boolean;
 
+    /** Keeps a manual unread marker and the return-trip flag untouched, for a screen loaded before the user sees it. */
+    shouldKeepManualUnreadMarker?: boolean;
+
     /** The Concierge chat report used to build the guided setup onboarding data */
     conciergeChat: OnyxEntry<Report>;
 };
@@ -1696,6 +1699,7 @@ function openReport(params: OpenReportActionParams) {
         // Defaults to true so only the report screen, the one caller that passes it, can clear a manual unread marker.
         hasOnceLoadedReportActions = true,
         shouldMarkAsRead = true,
+        shouldKeepManualUnreadMarker = false,
         conciergeChat,
     } = params;
     if (!reportID) {
@@ -1708,11 +1712,13 @@ function openReport(params: OpenReportActionParams) {
     const isCreatingNewReport = !isEmptyObject(newReportObject);
     // True only on a genuine return trip: `flagReportNavigatedAway` sets it on blur/unmount, so it is false on the
     // first open, on the repeated openReport calls of a single visit, and after a refresh (the set is RAM-only).
-    const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
-    reportsNavigatedAwayFrom.delete(reportID);
+    const didNavigateBackToReport = !shouldKeepManualUnreadMarker && reportsNavigatedAwayFrom.has(reportID);
+    if (!shouldKeepManualUnreadMarker) {
+        reportsNavigatedAwayFrom.delete(reportID);
+    }
     // A refresh resets the report screen's RAM-only `hasOnceLoadedReportActions`, which is how we detect one here.
     // A genuine first open has no marker to clear, so this only affects a marker persisted from before the refresh.
-    const isFirstLoadAfterRefresh = !hasOnceLoadedReportActions;
+    const isFirstLoadAfterRefresh = !shouldKeepManualUnreadMarker && !hasOnceLoadedReportActions;
     const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
 
     // A manual mark-as-unread keeps its marker anchored while the user stays in the report, and is cleared only on
