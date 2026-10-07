@@ -198,8 +198,6 @@ function useConfirmationListDataWithPolicy({
 
     const {selectedParticipants, sections, navigateToParticipantPage, dismissParticipantRowError} = useParticipantSection({
         transaction,
-        action,
-        reportID,
         iouType,
         isScanRequest,
         isTypeSplit,

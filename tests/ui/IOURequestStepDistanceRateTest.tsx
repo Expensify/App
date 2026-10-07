@@ -234,6 +234,65 @@ describe('IOURequestStepDistanceRate', () => {
         expect(order.indexOf(`${CONST.BASE_LIST_ITEM_TEST_ID}${CURRENT_RATE_ID}`)).toBeLessThan(order.indexOf(`${CONST.BASE_LIST_ITEM_TEST_ID}rate00`));
     });
 
+    it('lists the workspace rates from the expense report when the page URL still points at the previous report', async () => {
+        // Given a confirmation whose URL still points at the self-DM, while the expense itself was moved onto a workspace
+        const routeReportID = 'route-report';
+        const workspaceReportID = 'workspace-report';
+        const workspacePolicyID = 'workspace-policy';
+        const workspacePolicy = buildPolicy(3);
+        workspacePolicy.id = workspacePolicyID;
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${routeReportID}`, {
+                ...report,
+                reportID: routeReportID,
+                policyID: CONST.POLICY.ID_FAKE,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
+                ...report,
+                reportID: workspaceReportID,
+                policyID: workspacePolicyID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                ...transactionDraft,
+                reportID: workspaceReportID,
+                participants: [{accountID: 0, selected: true, isPolicyExpenseChat: true, reportID: workspaceReportID}],
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspacePolicyID}`, workspacePolicy);
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only route stub. The page only reads route.params
+        const props = {
+            route: {
+                key: 'DynamicIOURequestStepDistanceRate',
+                name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE,
+                params: {
+                    iouType: CONST.IOU.TYPE.CREATE,
+                    reportID: routeReportID,
+                    transactionID: TRANSACTION_ID,
+                    action: CONST.IOU.ACTION.CREATE,
+                    reportActionID: '1',
+                },
+            },
+        } as React.ComponentProps<typeof DynamicIOURequestStepDistanceRate>;
+
+        // When the rate page opens
+        render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <CurrencyListContextProvider>
+                        <DynamicIOURequestStepDistanceRate {...props} />
+                    </CurrencyListContextProvider>
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list shows the workspace's rates, not an empty list from the self-DM's fake policy
+        expect(screen.getByText('Rate 00')).toBeOnTheScreen();
+        expect(screen.getByText('Rate 02')).toBeOnTheScreen();
+    });
+
     it('does not reorder when the rate list is under the item-limit threshold', async () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT - 2));

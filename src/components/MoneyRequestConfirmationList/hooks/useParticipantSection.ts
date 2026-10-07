@@ -1,5 +1,3 @@
-import navigateToParticipantPage from '@components/MoneyRequestConfirmationList/navigateToParticipantPage';
-
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -19,8 +17,6 @@ import useSplitParticipants from './useSplitParticipants';
  */
 function useParticipantSection({
     transaction,
-    action,
-    reportID,
     iouType,
     isScanRequest,
     isTypeSplit,
@@ -94,19 +90,15 @@ function useParticipantSection({
         getSplitSectionHeader,
     });
 
-    const navigateToParticipantPageCallback = () => {
-        navigateToParticipantPage({
-            canEditParticipant,
-            isManualRequest,
-            iouType,
-            action,
-            transactionID: transaction?.transactionID,
-            reportID,
-            onOpenParticipantPicker,
-        });
+    const navigateToParticipantPage = () => {
+        if (!canEditParticipant) {
+            return;
+        }
+
+        onOpenParticipantPicker?.();
     };
 
-    return {selectedParticipants, sections, navigateToParticipantPage: navigateToParticipantPageCallback, dismissParticipantRowError};
+    return {selectedParticipants, sections, navigateToParticipantPage, dismissParticipantRowError};
 }
 
 export default useParticipantSection;
