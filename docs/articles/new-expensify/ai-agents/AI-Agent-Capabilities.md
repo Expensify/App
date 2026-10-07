@@ -1,13 +1,13 @@
 ---
 title: Agent Capability Reference
-description: Every action your Agent can take, with ready-to-copy instruction phrases and disambiguation notes to avoid common mis-routings.
+description: Every action your agent can take, with ready-to-copy instruction phrases and disambiguation notes to avoid common mis-routings.
 keywords: [Custom Agent, Agent, agent capabilities, agent actions, submit report, approve report, reject report, add comment, analyze expenses, agent instructions, workspace automation, Expensify automation, Rulebot, rule bot]
-internalScope: Audience is all members configuring Agents. Covers all supported ManageReport sub-actions, AddComment, and AnalyzeExpenses. Does not cover read-only report context or NoResponse behavior.
+internalScope: Audience is all members configuring agents. Covers all supported ManageReport sub-actions, AddComment, and AnalyzeExpenses. Does not cover read-only report context or NoResponse behavior.
 contentType: topic
 order: 8
 ---
 
-An Agent acts on expense reports using the actions described below. This reference helps you phrase your instructions so your agent reliably does what you intend — and doesn't accidentally take the wrong action.
+An agent acts on expense reports using the actions described below. This reference helps you phrase your instructions so your agent reliably does what you intend — and doesn't accidentally take the wrong action.
 
 # Agent Capability Reference
 
@@ -92,7 +92,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that take over a report as approver
 
-**Goal:** Reassigns the agent as the current approver on a report that was routed to someone else, giving the agent the authority to approve or reject it. Requires Workspace Admin role.
+**Goal:** Reassigns the agent as the current approver on a report that was routed to someone else, giving the agent the authority to approve or reject it. Requires workspace admin role.
 
 To accomplish this, include phrases like:
 - Take over reports over $10,000 regardless of who they were submitted to
@@ -104,7 +104,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that route reports to a specific approver
 
-**Goal:** Routes a submitted report to a specific approver by email, replacing the current approver in the workflow. Requires Workspace Admin role.
+**Goal:** Routes a submitted report to a specific approver by email, replacing the current approver in the workflow. Requires workspace admin role.
 
 To accomplish this, include phrases like:
 - Route reports over $5,000 to the finance manager
@@ -140,7 +140,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that export reports to accounting
 
-**Goal:** Exports a report to the workspace's connected accounting integration (QuickBooks, Xero, NetSuite, Sage Intacct, etc.), or marks it as manually exported. Works for expense reports, invoices, and bills. Requires Workspace Admin role, except that the report's current approver (its manager) can export a report submitted to them, and an invoice's owner can export their own invoice.
+**Goal:** Exports a report to the workspace's connected accounting integration (QuickBooks, Xero, NetSuite, Sage Intacct, etc.), or marks it as manually exported. Works for expense reports, invoices, and bills. Requires workspace admin role, except that the report's current approver (its manager) can export a report submitted to them, and an invoice's owner can export their own invoice.
 
 To accomplish this, include phrases like:
 - Export this report to QuickBooks
@@ -270,7 +270,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that manage workspace settings and members
 
-**Goal:** Inspects Workspace configuration, answers membership questions, and — for Workspace Admins — adds or removes members, lists and assigns company cards from a connected card feed, and modifies workspace settings such as categories and approval rules.
+**Goal:** Inspects workspace configuration, answers membership questions, and — for workspace admins — adds or removes members, lists and assigns company cards from a connected card feed, and modifies workspace settings such as categories and approval rules.
 
 To accomplish this, include phrases like:
 - Add new employees to the workspace when they join
@@ -297,4 +297,4 @@ To accomplish this, include phrases like:
 
 ---
 
-*This reference covers all 22 AI Agent capabilities.*
+*This reference covers all 22 AI agent capabilities.*

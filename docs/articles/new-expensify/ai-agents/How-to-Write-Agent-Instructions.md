@@ -1,40 +1,40 @@
 ---
 title: How to Write Agent Instructions
-description: Learn how to write clear, effective natural-language instructions for both personal Agents and workspace Agent rules.
-keywords: [agent instructions, AI prompts, Agent rules, custom agents, prompt writing, RuleBot, AI instruction examples, agent rule examples, agent rule best practices]
-internalScope: Audience is members and Workspace Admins. Covers best practices, examples, and techniques for writing effective instructions for personal Agents and Agent rules, including using RuleBot to draft Agent rules. Does not cover creating Agents, creating Agent rules, or managing AI features.
-retrievalIntent: How do I write effective instructions for an AI Agent?
+description: Learn how to write clear, effective natural-language instructions for both personal agents and workspace agent rules.
+keywords: [agent instructions, AI prompts, agent rules, custom agents, prompt writing, RuleBot, AI instruction examples, agent rule examples, agent rule best practices]
+internalScope: Audience is members and workspace admins. Covers best practices, examples, and techniques for writing effective instructions for personal agents and agent rules, including using RuleBot to draft agent rules. Does not cover creating agents, creating agent rules, or managing AI features.
+retrievalIntent: How do I write effective instructions for an AI agent?
 contentType: topic
 order: 7
 ---
 
 # How to Write Agent Instructions
 
-Agents use natural-language instructions to determine how they should behave. Well-written instructions help Agents make more consistent decisions and reduce unexpected behavior.
+Agents use natural-language instructions to determine how they should behave. Well-written instructions help agents make more consistent decisions and reduce unexpected behavior.
 
-For personal Agents, instructions describe how the Agent should help manage your work. For Agent rules, instructions tell RuleBot how to handle expenses and reports in a workspace.
+For personal agents, instructions describe how the agent should help manage your work. For agent rules, instructions tell RuleBot how to handle expenses and reports in a workspace.
 
-To learn about how agents use instructions, see [How do Agents and Agent rules use instructions](/articles/new-expensify/ai-agents/Understand-How-Agents-Work#how-do-agents-and-agent-rules-use-instructions).
+To learn about how agents use instructions, see [How do agents and agent rules use instructions](/articles/new-expensify/ai-agents/Understand-How-Agents-Work#how-do-agents-and-agent-rules-use-instructions).
 
 ---
 
-## Who can write Agent instructions
+## Who can write agent instructions
 
-Members can write and edit instructions for the personal Agents they create.
+Members can write and edit instructions for the personal agents they create.
 
-Any Workspace Admin on a workspace with an Agent rule configured can write and edit the workspace's Agent rules.
+Any workspace admin on a workspace with an agent rule configured can write and edit the workspace's agent rules.
 
-To learn how to create a personal Agent, see [Create and Use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents).
+To learn how to create a personal agent, see [Create and Use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents).
 
-To learn how to create Agent rules, see [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
+To learn how to create agent rules, see [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
 
 ---
 
 ## How to write clear agent instructions
 
-The best Agent instructions describe a specific outcome using clear, action-oriented language.
+The best agent instructions describe a specific outcome using clear, action-oriented language.
 
-When writing Agent instructions:
+When writing agent instructions:
 
  - Be specific and clear. Describe exactly what the agent should do and avoid vague instructions.
  - Provide context when necessary. Include relevant details about your workflow, approval process, or company policies.
@@ -46,7 +46,7 @@ When writing Agent instructions:
 
 ---
 
-## How to write Agent instructions for approvals
+## How to write agent instructions for approvals
 
 Approval instructions work best when they define clear approval criteria. 
 
@@ -60,7 +60,7 @@ More specific approval instructions generally produce more predictable results t
 
 ---
 
-## How to write Agent instructions for approval routing
+## How to write agent instructions for approval routing
 
 Approval routing instructions can send reports to different approvers based on report details.
 
@@ -70,7 +70,7 @@ Example:
 
 ---
 
-## How to write Agent instructions that request information
+## How to write agent instructions that request information
 
 Agent instructions can ask for additional information when specific conditions are met.
 
@@ -80,7 +80,7 @@ Example:
 
 ---
 
-## How to write Agent instructions that modify expenses
+## How to write agent instructions that modify expenses
 
 Agent instructions can automatically update expenses when specific conditions are met.
 
@@ -92,9 +92,9 @@ When writing instructions that modify expenses, be explicit about which expenses
 
 ---
 
-## How to use RuleBot to draft Agent rules
+## How to use RuleBot to draft agent rules
 
-If you're not sure how to write an Agent rule, you can chat with RuleBot and describe the outcome you want.
+If you're not sure how to write an agent rule, you can chat with RuleBot and describe the outcome you want.
 
 For example:
 
@@ -102,19 +102,18 @@ For example:
 
 RuleBot may ask follow-up questions to clarify your requirements and then suggest a rule based on your answers.
 
-You can also ask RuleBot questions about existing Agent rules to better understand how they work.
+You can also ask RuleBot questions about existing agent rules to better understand how they work.
 
 To chat with RuleBot:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**.
-2. Click **Members**.
-3. Select **RuleBot** from the list of workspace members.
-4. Click **Profile**.
-5. Click **Message**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Members**.
+2. Select **RuleBot** from the list of workspace members.
+3. Select **Profile**.
+4. Select **Message**.
 
 ---
 
-## What to do when an Agent doesn't behave as expected
+## What to do when an agent doesn't behave as expected
 
  - Rewrite the instructions using more specific language.
  - Break large instructions into multiple focused instructions.
@@ -133,13 +132,13 @@ Multiple focused instructions are generally easier to understand, maintain, and 
 
 ## Are there pre-written agent instructions I can use?
 
-Yes. [Agent templates](/articles/new-expensify/ai-agents/Use-Agent-Templates) are prebuilt personal Agents with pre-written instructions for common tasks. [Suggested Agent rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules) are pre-written workspace Agent rules that you can use as a starting point for common workflows. You can review and customize the instructions before saving.
+Yes. [Agent templates](/articles/new-expensify/ai-agents/Use-Agent-Templates) are prebuilt personal agents with pre-written instructions for common tasks. [Suggested agent rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules) are pre-written workspace agent rules that you can use as a starting point for common workflows. You can review and customize the instructions before saving.
 
-## How specific should Agent instructions be?
+## How specific should agent instructions be?
 
 As a general rule, the more specific the instructions are, the more predictable the result.
 
-## Can Agents make mistakes?
+## Can agents make mistakes?
 
 Yes. Agents use AI to interpret natural-language instructions and may occasionally behave unexpectedly. Review AI-generated actions and instructions carefully.
 
@@ -147,7 +146,7 @@ Yes. Agents use AI to interpret natural-language instructions and may occasional
 
 ## Related articles
 
-When writing Agent instructions, these references help you match your instructions to what your Agent can actually do:
+When writing agent instructions, these references help you match your instructions to what your agent can actually do:
 
- - [Agent Capability Reference](/articles/new-expensify/ai-agents/AI-Agent-Capabilities) — every action your Agent can take, with ready-to-copy instruction phrases.
- - [Agent Trigger Reference](/articles/new-expensify/ai-agents/AI-Agent-Triggers) — every event your Agent can react to, with ready-to-copy instruction phrases.
+ - [Agent Capability Reference](/articles/new-expensify/ai-agents/AI-Agent-Capabilities) — every action your agent can take, with ready-to-copy instruction phrases.
+ - [Agent Trigger Reference](/articles/new-expensify/ai-agents/AI-Agent-Triggers) — every event your agent can react to, with ready-to-copy instruction phrases.

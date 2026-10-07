@@ -2,7 +2,7 @@
 title: Learn About AI in Expensify
 description: Learn which AI features are available in Expensify, what SmartScan, Concierge, agents, agent rules, RuleBot, and MCP do, and which option to use.
 keywords: [AI in Expensify, Expensify AI, SmartScan, Concierge, agents, agent rules, RuleBot, MCP, AI assistants, AI automation, spend analysis, which AI should I use]
-internalScope: Audience is all members and Workspace Admins. Covers the AI features available in Expensify, what each feature does, where it works, how the features work together, and which feature to use for different needs. Does not cover detailed setup steps, writing agent instructions, or detailed capabilities for individual AI features.
+internalScope: Audience is all members and workspace admins. Covers the AI features available in Expensify, what each feature does, where it works, how the features work together, and which feature to use for different needs. Does not cover detailed setup steps, writing agent instructions, or detailed capabilities for individual AI features.
 retrievalIntent: What AI features does Expensify have, how are they different, and which one should I use?
 contentType: topic
 order: 1
@@ -23,14 +23,14 @@ This article explains what each AI feature does, how the features work together,
 | **SmartScan** | Reads receipts and fills in expense details | All members | Every expense you add | No setup needed |
 | **Concierge** | Answers questions, takes actions, configures workspaces, and analyzes spend | All members | Your whole account, across all your workspaces | No setup needed |
 | **Agents** | Follow your instructions to automate expense tasks | All members | Your account, plus any workspace you add the agent to | [Create an agent](/articles/new-expensify/ai-agents/Create-and-Use-Agents) |
-| **Agent rules and RuleBot** | Apply AI-powered rules across a workspace | Workspace Admins | One workspace | [Create an agent rule](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules) |
+| **Agent rules and RuleBot** | Apply AI-powered rules across a workspace | Workspace admins | One workspace | [Create an agent rule](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules) |
 | **AI assistants through MCP** | Let outside AI tools analyze your Expensify data | All members | Outside Expensify, using data you can already see | [Connect an AI assistant](/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants) |
 
 You don't need to use every AI feature. The right option depends on whether you want help with a one-time task, personal automation, workspace-wide rules, or analysis outside Expensify.
 
 ## How does SmartScan use AI?
 
-SmartScan uses AI to read receipts. When you add a receipt, SmartScan extracts details such as the merchant, date, amount, and itemized line items so you don't have to enter them manually. Workspace Admins can also use SmartScan to identify prohibited expenses on receipts, such as alcohol or gambling.
+SmartScan uses AI to read receipts. When you add a receipt, SmartScan extracts details such as the merchant, date, amount, and itemized line items so you don't have to enter them manually. Workspace admins can also use SmartScan to identify prohibited expenses on receipts, such as alcohol or gambling.
 
 [Learn how the prohibited expenses rule works](/articles/new-expensify/workspaces/Prohibited-Expense-Rule).
 
@@ -42,7 +42,7 @@ Concierge is the AI assistant built into Expensify. It's available without setup
 - Create, edit, and categorize expenses, and add them to the right report.
 - Create, submit, approve, retract, and export reports when you have permission.
 - Update many expenses at once, such as changing every expense on a report to the same category.
-- Help Workspace Admins set up and configure a workspace in chat, such as adding members, requiring receipts, or updating the approval workflow.
+- Help workspace admins set up and configure a workspace in chat, such as adding members, requiring receipts, or updating the approval workflow.
 - Analyze spending, answer questions about your expense data, and proactively share spend insights.
 - Connect you with a human when you ask or when Concierge can't help.
 
@@ -88,9 +88,9 @@ You can also add an agent to a workspace as an approver.
 
 ## How do agent rules and RuleBot automate workspace rules?
 
-Agent rules let Workspace Admins describe in plain language how expenses and reports should be handled across a workspace.
+Agent rules let workspace admins describe in plain language how expenses and reports should be handled across a workspace.
 
-RuleBot is the AI agent that enforces those rules. Expensify creates RuleBot automatically when the first agent rule is added and adds it to the workspace as a Workspace Admin.
+RuleBot is the AI agent that enforces those rules. Expensify creates RuleBot automatically when the first agent rule is added and adds it to the workspace as a workspace admin.
 
 Agent rules are useful when a workspace requirement needs interpretation or judgment instead of a fixed condition. For example, an agent rule could:
 
@@ -167,7 +167,7 @@ AI features can only work within their assigned permissions and purpose.
 | **SmartScan** | Receipts you add |
 | **Concierge** | Information and actions you already have permission to access |
 | **Agents** | The access available through their full-access Copilot relationship with your account |
-| **RuleBot** | Workspace Admin access for the workspace where it enforces agent rules |
+| **RuleBot** | Workspace admin access for the workspace where it enforces agent rules |
 | **MCP** | Read-only access to Expensify data you already have permission to see |
 
 [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
@@ -195,7 +195,7 @@ An agent is an AI assistant you create and give standing instructions to so it c
 
 ## What's the difference between an agent and RuleBot?
 
-An agent works on behalf of a member and follows that member's instructions. RuleBot works on behalf of a workspace and enforces agent rules created by Workspace Admins.
+An agent works on behalf of a member and follows that member's instructions. RuleBot works on behalf of a workspace and enforces agent rules created by workspace admins.
 
 [Learn more about agents and agent rules](/articles/new-expensify/ai-agents/Understand-How-Agents-Work).
 

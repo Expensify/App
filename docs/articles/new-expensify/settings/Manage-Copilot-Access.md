@@ -1,12 +1,12 @@
 ---
 
-title: Manage Copilot access
+title: Manage Copilot Access
 description: Add, update, or remove Copilot access so someone can help manage your Expensify account without sharing your login credentials.
 keywords: [copilot access, add a copilot, remove a copilot, change copilot access, copilot permissions, delegated access, account delegation, proxy access, manage copilot, delegate access, account assistant, manage someone else's account, shared account access, account access, executive assistant, accountant, bookkeeping, expense management, removed copilot still listed, copilot strikethrough, remove copilot offline]
 internalScope: Audience is members who want to grant a Copilot delegated account access. Covers adding, updating, and removing Copilots. Does not cover switching into a Copilot account or acting as a Copilot.
 ---
 
-# Manage Copilot access
+# Manage Copilot Access
 
 Copilot access lets you grant another member access to your Expensify account without sharing your login credentials. You can control their level of access and remove it at any time. This is helpful when you work with an executive assistant, accountant, bookkeeper, or colleague who needs to manage expenses and reports on your behalf.
 
@@ -39,17 +39,17 @@ A Copilot cannot:
 
 ## How to add a Copilot
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated access** section, click **Add a copilot**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Copilot**.
+2. In the **Copilot: Delegated access** section, select **Add a copilot**.
 3. Search for the member by name or email address.
 4. On the **Access level** screen, choose:
    * **Full** — Grants access to all available actions.
    * **Limited** — Allows a Copilot to manage expenses and reports, but prevents approval and payment-related actions, including approvals, payments, rejections, and holds.
-5. Click **Add a copilot**.
+5. Select **Add a copilot**.
 
 ## How to change a Copilot's access level
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Copilot**.
 2. In the **Copilot: Delegated access** section, locate the Copilot.
 3. Select the three dots **(⋮)**.
 4. Select **Change access level**.
@@ -58,7 +58,7 @@ A Copilot cannot:
 
 ## How to remove a Copilot
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Copilot**.
 2. In the **Copilot: Delegated access** section, locate the Copilot.
 3. Select the three dots **(⋮)**.
 4. Select **Remove copilot**.
@@ -86,9 +86,9 @@ After you remove a Copilot:
 
 # FAQ
 
-## Can a Workspace Admin add a Copilot to another member's account?
+## Can a workspace admin add a Copilot to another member's account?
 
-No. Copilot access can only be granted by the owner of the Expensify account. Workspace Admins can't add, remove, or manage Copilots for other members' personal accounts, even if they administer the Workspace.
+No. Copilot access can only be granted by the owner of the Expensify account. Workspace admins can't add, remove, or manage Copilots for other members' personal accounts, even if they administer the workspace.
 
 If another member needs a Copilot, they must sign in to their own Expensify account and add the Copilot themselves.
 

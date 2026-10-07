@@ -2,7 +2,7 @@
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
 keywords: [New Expensify, workspace rules, rules tabs, general rules, card restrictions, expense defaults, field requirements, flag for review, agent rules, expense rules, receipt requirements, category rules, prohibited expenses, disable Smartscan, automate expenses, non-reimbursable, cash expenses, billable expenses, control expenses, compliance, itemized receipt, merchant rules, spend rules, Expensify Card spend rules, block transactions, public receipt visibility]
-internalScope: Audience is Workspace Admins on the Collect and Control plans. Covers enabling Rules and configuring each tab of the Rules page, including basic rules, Expensify Card restrictions, expense defaults, field requirements, flag for review, and agent rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, report-level rules in Workflows, or troubleshooting specific rule outcomes.
+internalScope: Audience is workspace admins on the Collect and Control plans. Covers enabling Rules and configuring each tab of the Rules page, including basic rules, Expensify Card restrictions, expense defaults, field requirements, flag for review, and agent rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, report-level rules in Workflows, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules
@@ -11,13 +11,13 @@ Workspace rules let admins enforce expense policies by setting requirements for 
 
 The **Rules** page is organized into tabs: **General**, **Card restrictions**, **Expense defaults**, **Field requirements**, **Flag for review**, and **Agents**.
 
-If your requirements can't be handled with these rules alone, create an Agent Rule. Agent Rules are AI-powered rules that automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. [Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
+If your requirements can't be handled with these rules alone, create an agent rule. Agent rules are AI-powered rules that automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. [Learn how to create agent rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
 
 ---
 
 ## Who can use Rules
 
-- Only **Workspace Admins** can enable, update, or disable **Rules**.
+- Only workspace admins can enable, update, or disable **Rules**.
 - Rules are available on the **Collect** and **Control** plans.
 - On the **Collect** plan, only **Require fields for all expenses** and **Billable expenses** on the **General** tab are available. Selecting any other rule or tab prompts you to upgrade to **Control**.
 
@@ -25,7 +25,7 @@ If your requirements can't be handled with these rules alone, create an Agent Ru
 
 ## How to enable Rules on a workspace
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **More features**.
 3. Under the **Manage** section, toggle on **Rules**.
 
@@ -37,7 +37,7 @@ Once enabled, **Rules** appears in the workspace menu.
 
 The **General** tab holds **Basic rules**, which apply to every expense on the workspace.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select the **General** tab.
 4. Choose the rule you want to configure.
@@ -70,11 +70,11 @@ Every Expensify Card includes built-in protection that always declines charges f
 
 To set additional Expensify Card spend rules:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Add rule**.
 4. Choose **Restrict card spend**.
-5. Configure the rule and click **Save rule**.
+5. Configure the rule and select **Save rule**.
 
 For more details on configuring card restriction rules, see [Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
@@ -84,7 +84,7 @@ For more details on configuring card restriction rules, see [Expensify Card Spen
 
 The **Expense defaults** tab holds rules that fill in expense fields automatically, so members don't have to. Each rule matches on a merchant, a merchant type, or a category, and then updates fields such as the category, tag, description, or tax rate.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Add rule**.
 4. Choose **Apply expense defaults**.
@@ -103,7 +103,7 @@ Default categories based on the merchant's MCC (Merchant Category Code) also liv
 
 The **Field requirements** tab holds rules that require or waive specific expense fields for a category. Use **Require** to require a description, attendees, a receipt, or an itemized receipt on expenses in a given category. Use **Don't require** to waive a receipt or itemized receipt requirement that the **General** tab sets for everyone.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Field requirements**.
 4. Select **Create field requirement rule**.
@@ -115,7 +115,7 @@ The **Field requirements** tab holds rules that require or waive specific expens
 
 The **Flag for review** tab holds rules that alert approvers when specific expenses need a closer look. Each rule flags expenses in a category when the individual expense amount, or the daily category total on a report, goes above the amount you set.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Flag for review**.
 4. Select **Create flag rule**.
@@ -125,14 +125,14 @@ The **Flag for review** tab holds rules that alert approvers when specific expen
 
 ## How to automate reviews on the Agents tab
 
-The **Agents** tab holds Agent Rules, which are written in plain language and run automatically on your workspace.
+The **Agents** tab holds agent rules, which are written in plain language and run automatically on your workspace.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Agents**.
 4. Select **Add AI rule**.
 
-[Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
+[Learn how to create agent rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
 
 ---
 
@@ -154,11 +154,9 @@ Category-specific behavior is set as a rule on the **Rules** page, not on the ca
 
 A **Description hint** appears below the **Description** field on an expense once a member selects that category, both while creating and while editing the expense. [Learn how to add a Description hint to an expense category](/articles/new-expensify/workspaces/Create-expense-categories).
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
-2. Click your **workspace name**.
-3. Click **Categories**.
-4. Click a category to open it.
-5. In the **Category rules** section, click **Create new rule**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Categories**.
+2. Select a category to open it.
+3. In the **Category rules** section, select **Create new rule**.
 
 [Learn how to create expense categories](/articles/new-expensify/workspaces/Create-expense-categories).
 
@@ -204,7 +202,7 @@ This rule only appears after at least one company card feed is connected to the 
 
 ## Why don't I see any rules on the Card restrictions tab?
 
-Card restrictions apply only to the Expensify Card. If the Expensify Card isn't enabled for the workspace, the tab shows **Get the Expensify Card and control spend** instead of a rules list. Click **Get the card** to enable it, or enable it under **Workspaces > [workspace name] > More features**.
+Card restrictions apply only to the Expensify Card. If the Expensify Card isn't enabled for the workspace, the tab shows **Get the Expensify Card and control spend** instead of a rules list. Select **Get the card** to enable it, or enable it under **Workspaces > [workspace name] > More features**.
 
 ## Why does selecting a tab ask me to upgrade?
 

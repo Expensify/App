@@ -1,28 +1,28 @@
 ---
 title: Use Suggested Agent Rules
-description: Learn what each suggested Agent rule does and when to use it to automate common workspace workflows.
-keywords: [suggested Agent rules, Agent rules, RuleBot, AI rules, workspace automation, approval rules]
-internalScope: Audience is Workspace Admins. Covers the available suggested Agent rules, what each one does, and when to use it. Does not cover creating custom Agent rules, personal Agents, or writing Agent instructions.
-retrievalIntent: Which suggested Agent rule should I use?
+description: Learn what each suggested agent rule does and when to use it to automate common workspace workflows.
+keywords: [suggested agent rules, agent rules, RuleBot, AI rules, workspace automation, approval rules]
+internalScope: Audience is workspace admins. Covers the available suggested agent rules, what each one does, and when to use it. Does not cover creating custom agent rules, personal agents, or writing agent instructions.
+retrievalIntent: Which suggested agent rule should I use?
 contentType: topic
 order: 4
 ---
 
 # Use Suggested Agent Rules
 
-Suggested Agent rules are pre-written Agent rules for common workspace workflows. Instead of writing a rule from scratch, you can start with a suggested rule, review its instructions, and edit them before saving.
+Suggested agent rules are pre-written agent rules for common workspace workflows. Instead of writing a rule from scratch, you can start with a suggested rule, review its instructions, and edit them before saving.
 
-Suggested Agent rules are enforced by RuleBot like any other Agent rule.
+Suggested agent rules are enforced by RuleBot like any other agent rule.
 
-To learn how to create Agent rules, see [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
+To learn how to create agent rules, see [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
 
 ---
 
-## How Suggested Agent rules work
+## How suggested agent rules work
 
-Each suggested Agent rule includes a predefined set of natural-language instructions for a common expense review or approval workflow.
+Each suggested agent rule includes a predefined set of natural-language instructions for a common expense review or approval workflow.
 
-When you create a rule from a suggestion, you can review and edit its instructions before saving. After it's created, you can continue editing it like any other Agent rule.
+When you create a rule from a suggestion, you can review and edit its instructions before saving. After it's created, you can continue editing it like any other agent rule.
 
 For guidance on writing clear, effective instructions, see [How to Write Agent Instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions).
 
@@ -30,7 +30,7 @@ For guidance on writing clear, effective instructions, see [How to Write Agent I
 
 ## What amount and spending rules are available
 
-| Suggested Agent rule | What it does | Default instruction |
+| Suggested agent rule | What it does | Default instruction |
 | --- | --- | --- |
 | **Per-expense amount over a cap** | Rejects expenses that meet or exceed a specified amount. | Reject any single expense of $75 or more. |
 | **Per-expense amount within a flagged band** | Rejects expenses whose amount falls within a specified range. | Reject expenses with an amount between $500 and $1000 inclusive. |
@@ -40,7 +40,7 @@ For guidance on writing clear, effective instructions, see [How to Write Agent I
 
 ## What category rules are available
 
-| Suggested Agent rule | What it does | Default instruction |
+| Suggested agent rule | What it does | Default instruction |
 | --- | --- | --- |
 | **Category is a specific value** | Only approves expenses assigned to one category. | Only approve expenses categorized as "Travel". Reject expenses in any other category. |
 | **Category is in an allowed set** | Only approves expenses assigned to approved categories. | Approve expenses categorized as "Travel" or "Meals & Entertainment". Reject expenses in any other category. |
@@ -50,7 +50,7 @@ For guidance on writing clear, effective instructions, see [How to Write Agent I
 
 ## What merchant rules are available
 
-| Suggested Agent rule | What it does | Default instruction |
+| Suggested agent rule | What it does | Default instruction |
 | --- | --- | --- |
 | **Merchant is a specific vendor** | Only approves expenses from a specific merchant. | Only approve expenses from the vendor "Acme Corp". If an expense is from any other merchant, reject it with a brief one-sentence reason. |
 | **Merchant name contains a banned word** | Rejects expenses whose merchant name contains a specified word. | Reject any expense whose merchant name contains the word "casino" (in any capitalization). Approve all other expenses. |
@@ -61,7 +61,7 @@ For guidance on writing clear, effective instructions, see [How to Write Agent I
 
 ## What currency and tax rules are available
 
-| Suggested Agent rule | What it does | Default instruction |
+| Suggested agent rule | What it does | Default instruction |
 | --- | --- | --- |
 | **Currency is a specific value** | Only approves expenses submitted in one currency. | Only approve expenses submitted in US Dollars (USD). Reject expenses in any other currency. |
 | **Currency is in an allowed set** | Only approves expenses submitted in approved currencies. | Approve expenses in USD or GBP only. Reject expenses in any other currency. |
@@ -71,7 +71,7 @@ For guidance on writing clear, effective instructions, see [How to Write Agent I
 
 ## What tag and description rules are available
 
-| Suggested Agent rule | What it does | Default instruction |
+| Suggested agent rule | What it does | Default instruction |
 | --- | --- | --- |
 | **Billable status** | Approves or rejects expenses based on whether they're billable. | Only approve non-billable expenses. Reject any expense marked as billable to a client. |
 | **Description is empty** | Rejects expenses that don't include a description. | Reject expenses that have no description. Approve expenses that include a description. |
@@ -82,7 +82,7 @@ For guidance on writing clear, effective instructions, see [How to Write Agent I
 
 ## What date and time rules are available
 
-| Suggested Agent rule | What it does | Default instruction |
+| Suggested agent rule | What it does | Default instruction |
 | --- | --- | --- |
 | **Expense age over a threshold** | Rejects expenses older than a specified number of days. | Reject expenses whose transaction date is more than 14 days ago. Approve recent expenses. |
 | **Expense within the submission deadline** | Rejects expenses submitted outside your organization's submission window. | Our policy requires expenses to be submitted within 30 days of the transaction date. Reject expenses dated more than 30 days ago; approve the rest. |
@@ -93,7 +93,7 @@ For guidance on writing clear, effective instructions, see [How to Write Agent I
 
 ## What report-level rules are available
 
-| Suggested Agent rule | What it does | Default instruction |
+| Suggested agent rule | What it does | Default instruction |
 | --- | --- | --- |
 | **Unusually large report (expense count)** | Rejects reports containing more than a specified number of expenses. | Reject reports that contain more than 5 expenses; they must be split into smaller reports. Approve reports with 5 or fewer expenses. |
 | **Report mixes billable and non-billable expenses** | Rejects reports that contain both billable and non-billable expenses. | A report must be either all billable or all non-billable. Reject reports that mix billable and non-billable expenses. |
@@ -104,7 +104,7 @@ For guidance on writing clear, effective instructions, see [How to Write Agent I
 
 ## What receipt intelligence rules are available
 
-| Suggested Agent rule | What it does | Default instruction |
+| Suggested agent rule | What it does | Default instruction |
 | --- | --- | --- |
 | **Alcohol detected on receipt** | Rejects receipts containing alcohol purchases. | Reject any expense whose receipt shows alcohol (beer, wine, or liquor), with a one-sentence comment naming the alcohol. Approve receipts with no alcohol. |
 | **Excessive tip percentage** | Rejects meal receipts whose tip exceeds a specified percentage. | Reject any meal expense whose receipt tip is more than 20% of the subtotal, noting the tip percentage. Approve tips of 20% or less. |
@@ -122,30 +122,30 @@ For guidance on writing clear, effective instructions, see [How to Write Agent I
 
 ---
 
-## What happens after you create a Suggested Agent rule
+## What happens after you create a suggested agent rule
 
-After you save a Suggested Agent rule:
+After you save a suggested agent rule:
 
 - RuleBot begins enforcing it immediately.
 - You can edit the rule's instructions at any time.
-- The rule behaves like any other Agent rule.
+- The rule behaves like any other agent rule.
 
 ---
 
 # FAQ
 
-## Can I edit a Suggested Agent rule?
+## Can I edit a suggested agent rule?
 
-Yes. Suggested Agent rules are starting points. You can review and edit the instructions before saving the rule, and you can update the instructions at any time after it's created.
+Yes. Suggested agent rules are starting points. You can review and edit the instructions before saving the rule, and you can update the instructions at any time after it's created.
 
-## Do Suggested Agent rules work differently from custom Agent rules?
+## Do suggested agent rules work differently from custom agent rules?
 
-No. After you save a Suggested Agent rule, it behaves like any other Agent rule. RuleBot enforces it using the instructions you've configured.
+No. After you save a suggested agent rule, it behaves like any other agent rule. RuleBot enforces it using the instructions you've configured.
 
-## Can I create multiple Suggested Agent rules?
+## Can I create multiple suggested agent rules?
 
-Yes. You can create as many Agent rules as your workspace needs. Each rule evaluates the conditions described in its own instructions.
+Yes. You can create as many agent rules as your workspace needs. Each rule evaluates the conditions described in its own instructions.
 
-## What if none of the Suggested Agent rules matches my workflow?
+## What if none of the suggested agent rules matches my workflow?
 
-Create a custom Agent rule instead. You can write your own natural-language instructions to automate workflows that aren't covered by the suggested rules.
+Create a custom agent rule instead. You can write your own natural-language instructions to automate workflows that aren't covered by the suggested rules.
