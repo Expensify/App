@@ -10,15 +10,19 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearEarlyRenewalOfferErrors} from '@libs/actions/EarlyRenewalOffer';
+import {saveReportDraftComment} from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -27,21 +31,47 @@ const ICON_SIZE = variables.componentSizeNormal;
 
 function EarlyRenewalOfferSection() {
     const [eligibility, eligibilityMetadata] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
-    const {isNonIncentivizedPeriod} = useEarlyRenewalPeriod();
+    const {isNonIncentivizedPeriod, isIncentivizedPeriod} = useEarlyRenewalPeriod();
+    const policy = usePolicy(eligibility?.nudgePolicyID);
+    const {translate} = useLocalize();
     const showEarlyRenewalConfirmation = useEarlyRenewalConfirmation();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual']);
 
-    if (eligibilityMetadata.status !== 'loaded' || !eligibility?.canClaim || !isNonIncentivizedPeriod) {
+    const adminsRoomReportID = policy?.chatReportIDAdmins?.toString();
+    const canClaim = !!eligibility?.canClaim && (isNonIncentivizedPeriod || isIncentivizedPeriod);
+    const canNudge = eligibility?.canClaim === false && isIncentivizedPeriod && !!policy?.owner && !!adminsRoomReportID && adminsRoomReportID !== '0';
+
+    const openEarlyRenewalDraft = () => {
+        if (!adminsRoomReportID || !policy?.owner) {
+            return;
+        }
+        const message = translate('earlyRenewal.draftMessage', {
+            billingOwnerEmail: policy.owner,
+            subscriptionURL: `${CONST.NEW_EXPENSIFY_URL}${ROUTES.SETTINGS_SUBSCRIPTION.route}`,
+        });
+        saveReportDraftComment(adminsRoomReportID, message, () => {
+            Navigation.navigate(
+                shouldUseNarrowLayout
+                    ? ROUTES.REPORT_WITH_ID.getRoute(adminsRoomReportID, undefined, undefined, ROUTES.HOME)
+                    : ROUTES.SEARCH_REPORT.getRoute({reportID: adminsRoomReportID, backTo: ROUTES.HOME}),
+            );
+        });
+    };
+
+    if (eligibilityMetadata.status !== 'loaded' || (!canClaim && !canNudge)) {
         return null;
     }
 
+    const claimTitle = isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : translate('earlyRenewal.title');
+    const claimSubtitle = isIncentivizedPeriod ? translate('earlyRenewal.incentivizedSubtitle') : translate('earlyRenewal.subtitle');
+    const claimCTA = isIncentivizedPeriod ? translate('earlyRenewal.claim') : translate('earlyRenewal.renew');
+
     return (
         <WidgetContainer
-            title={translate('earlyRenewal.title')}
+            title={canClaim ? claimTitle : translate('earlyRenewal.adminTitle')}
             containerStyles={styles.trialBannerBackgroundColor}
         >
             <OfflineWithFeedback
@@ -56,17 +86,17 @@ function EarlyRenewalOfferSection() {
                         height={ICON_SIZE}
                     />
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
-                        <Text style={styles.widgetItemTitle}>{translate('earlyRenewal.subtitle')}</Text>
+                        <Text style={styles.widgetItemTitle}>{canClaim ? claimSubtitle : translate('earlyRenewal.adminSubtitle')}</Text>
                     </View>
                     <Button
-                        isDisabled={isOffline}
-                        isLoading={!!eligibility.pendingAction}
-                        onPress={showEarlyRenewalConfirmation}
+                        isDisabled={canClaim && isOffline}
+                        isLoading={canClaim && !!eligibility.pendingAction}
+                        onPress={canClaim ? showEarlyRenewalConfirmation : openEarlyRenewalDraft}
                         size={CONST.BUTTON_SIZE.SMALL}
                         style={styles.widgetItemButton}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                     >
-                        <Button.Text>{translate('earlyRenewal.renew')}</Button.Text>
+                        <Button.Text>{canClaim ? claimCTA : translate('earlyRenewal.adminCTA')}</Button.Text>
                     </Button>
                 </View>
             </OfflineWithFeedback>
