@@ -13,6 +13,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 
 import registerMiddlewares from '@libs/Middleware/register';
+import type * as SearchKeyUtils from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
@@ -36,6 +37,12 @@ jest.mock('@libs/actions/Search', () => ({
     handleActionButtonPress: jest.fn(),
 }));
 
+jest.mock('@libs/SearchKeyUtils', () => ({
+    ...jest.requireActual<typeof SearchKeyUtils>('@libs/SearchKeyUtils'),
+    isExistingSearchKey: jest.fn(() => false),
+    getSearchKeyForDataType: jest.fn(() => undefined),
+}));
+
 jest.mock('@libs/SearchUIUtils', () => ({
     getSections: jest.fn(() => []),
     isCorrectSearchUserName: jest.fn(() => true),
@@ -43,12 +50,12 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn(() => ({})),
     getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
     isTodoSearch: jest.fn(() => false),
-    isExistingSearchKey: jest.fn(() => false),
-    getSearchKeyForDataType: jest.fn(() => undefined),
+    isCreatedDateType: jest.fn(() => false),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
     getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
     getViolationsForTransaction: jest.fn(() => ''),
+    isTransactionDayGroupListItemType: jest.fn((item: Record<string, unknown>) => item.groupedBy === 'day'),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -529,9 +536,9 @@ describe('Empty Report Selection', () => {
         fireEvent.press(checkbox);
         await waitForBatchedUpdatesWithAct();
 
-        // Then onCheckboxPress should be called with the empty report and undefined (for groupBy reports)
+        // Then onCheckboxPress should be called with the empty report, undefined transactions, and no shiftKey
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
-        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockEmptyReport, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockEmptyReport, undefined, undefined);
     });
 
     it('should call onCheckboxPress multiple times when checkbox is clicked multiple times', async () => {
@@ -577,7 +584,7 @@ describe('Empty Report Selection', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
-        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockEmptyReport, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockEmptyReport, undefined, undefined);
 
         unmountEmpty();
         mockOnCheckboxPress.mockClear();
@@ -598,7 +605,7 @@ describe('Empty Report Selection', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
-        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockNonEmptyReport, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockNonEmptyReport, undefined, undefined);
 
         unmountNonEmpty();
     });
@@ -615,9 +622,9 @@ describe('Empty Report Selection', () => {
             expect(mockOnCheckboxPress).toHaveBeenCalledTimes(i);
         }
 
-        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(1, mockEmptyReport, undefined);
-        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(2, mockEmptyReport, undefined);
-        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(3, mockEmptyReport, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(1, mockEmptyReport, undefined, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(2, mockEmptyReport, undefined, undefined);
+        expect(mockOnCheckboxPress).toHaveBeenNthCalledWith(3, mockEmptyReport, undefined, undefined);
     });
 
     it('should show expandable content for non-empty reports', async () => {
@@ -742,7 +749,7 @@ describe('Lazily loaded group selection', () => {
 
         // Then the group should be selected
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
-        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockCategoryGroup, []);
+        expect(mockOnCheckboxPress).toHaveBeenCalledWith(mockCategoryGroup, [], undefined);
     });
 
     it('should expand the group instead of selecting it when tapping the expand arrow', async () => {

@@ -1,5 +1,6 @@
-import {dismissRejectExpenseError, markRejectViolationAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
+import {markRejectViolationAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {clearError} from '@libs/actions/Transaction';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getParsedComment} from '@libs/ReportUtils';
 
@@ -44,15 +45,10 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
+jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report/reportActionSubscribers'),
+    notifyNewAction: jest.fn(),
+}));
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 const RORY_EMAIL = 'rory@expensifail.com';
@@ -161,7 +157,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 policy,
                 TEST_USER_ACCOUNT_ID,
                 TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
+                true,
                 undefined,
                 getCurrencyDecimalsLocal,
                 {rules: undefined},
@@ -181,18 +177,9 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(
-                transaction.transactionID,
-                iouReport.reportID,
-                comment,
-                policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
-                getCurrencyDecimalsLocal,
-                {rules: undefined},
-            );
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                rules: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -248,18 +235,9 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(
-                transaction.transactionID,
-                iouReport.reportID,
-                comment,
-                policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
-                getCurrencyDecimalsLocal,
-                {rules: undefined},
-            );
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                rules: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then: createdIOUReportActionID shouldn't be undefined
@@ -298,45 +276,23 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 throw new Error('Required transaction or report data is missing');
             }
 
-            rejectMoneyRequest(
-                transaction.transactionID,
-                iouReport.reportID,
-                comment,
-                policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
-                getCurrencyDecimalsLocal,
-                {
-                    rules: undefined,
-                    options: {
-                        sharedRejectedToReportID,
-                        existingRejectedReport,
-                        setExistingRejectedReport,
-                    },
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                rules: undefined,
+                options: {
+                    sharedRejectedToReportID,
+                    existingRejectedReport,
+                    setExistingRejectedReport,
                 },
-            );
+            });
 
-            rejectMoneyRequest(
-                secondTransaction.transactionID,
-                iouReport.reportID,
-                comment,
-                policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
-                getCurrencyDecimalsLocal,
-                {
-                    rules: undefined,
-                    options: {
-                        sharedRejectedToReportID,
-                        existingRejectedReport,
-                        setExistingRejectedReport,
-                    },
+            rejectMoneyRequest(secondTransaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                rules: undefined,
+                options: {
+                    sharedRejectedToReportID,
+                    existingRejectedReport,
+                    setExistingRejectedReport,
                 },
-            );
+            });
             await waitForBatchedUpdates();
 
             let allReports: OnyxCollection<Report>;
@@ -402,7 +358,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     policy,
                     TEST_USER_ACCOUNT_ID,
                     TEST_USER_EMAIL,
-                    [CONST.BETAS.ALL],
+                    true,
                     undefined,
                     getCurrencyDecimalsLocal,
                     {rules: undefined},
@@ -425,18 +381,9 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
                 // When: The server rejects the request
                 mockFetch?.fail?.();
-                rejectMoneyRequest(
-                    transaction.transactionID,
-                    iouReport.reportID,
-                    comment,
-                    policy,
-                    TEST_USER_ACCOUNT_ID,
-                    TEST_USER_EMAIL,
-                    [CONST.BETAS.ALL],
-                    undefined,
-                    getCurrencyDecimalsLocal,
-                    {rules: undefined},
-                );
+                rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                    rules: undefined,
+                });
                 await waitForBatchedUpdates();
 
                 // Then: The expense returns to the report carrying a translated rejection error
@@ -455,18 +402,9 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
                 // When: The expense is rejected while offline
                 mockFetch?.pause?.();
-                rejectMoneyRequest(
-                    transaction.transactionID,
-                    iouReport.reportID,
-                    comment,
-                    policy,
-                    TEST_USER_ACCOUNT_ID,
-                    TEST_USER_EMAIL,
-                    [CONST.BETAS.ALL],
-                    undefined,
-                    getCurrencyDecimalsLocal,
-                    {rules: undefined},
-                );
+                rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                    rules: undefined,
+                });
                 await waitForBatchedUpdates();
 
                 // And: The queued request fails once the user is back online
@@ -501,18 +439,9 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
                 // When: The expense is rejected while offline and the queued request fails on reconnection
                 mockFetch?.pause?.();
-                rejectMoneyRequest(
-                    transaction.transactionID,
-                    iouReport.reportID,
-                    comment,
-                    policy,
-                    TEST_USER_ACCOUNT_ID,
-                    TEST_USER_EMAIL,
-                    [CONST.BETAS.ALL],
-                    undefined,
-                    getCurrencyDecimalsLocal,
-                    {rules: undefined},
-                );
+                rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                    rules: undefined,
+                });
                 await waitForBatchedUpdates();
                 await mockFetch?.resume?.();
                 await waitForBatchedUpdates();
@@ -543,18 +472,9 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 // When: Rejecting it again
-                rejectMoneyRequest(
-                    transaction.transactionID,
-                    iouReport.reportID,
-                    comment,
-                    policy,
-                    TEST_USER_ACCOUNT_ID,
-                    TEST_USER_EMAIL,
-                    [CONST.BETAS.ALL],
-                    undefined,
-                    getCurrencyDecimalsLocal,
-                    {rules: undefined},
-                );
+                rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                    rules: undefined,
+                });
                 await waitForBatchedUpdates();
 
                 // Then: The stale error is gone, so the retry does not show the previous failure
@@ -563,22 +483,27 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 expect(rejectedTransaction?.errorFields?.reject).toBeFalsy();
             });
 
-            it('should drop the stale local copy of the expense when its reject error is dismissed', async () => {
+            it('should clear the reject error and report pin when its reject error is dismissed', async () => {
                 if (!transaction?.transactionID) {
                     throw new Error('Required transaction data is missing');
                 }
 
-                // Given: An expense the server reported as already moved
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, {errorFields: {reject: SERVER_REJECT_ERROR}});
+                // Given: An expense the server reported as already moved, pinned to the original report
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, {
+                    errorFields: {reject: SERVER_REJECT_ERROR},
+                    rejectFailedFromReportID: iouReport?.reportID,
+                });
                 await waitForBatchedUpdates();
 
                 // When: The user dismisses the error
-                dismissRejectExpenseError(transaction.transactionID);
+                clearError(transaction.transactionID);
                 await waitForBatchedUpdates();
 
-                // Then: The expense is gone locally, so it stops showing on a report it is no longer on
+                // Then: The error and the report pin are cleared. The transaction record itself is preserved
                 const dismissedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
-                expect(dismissedTransaction).toBeFalsy();
+                expect(dismissedTransaction?.errorFields?.reject).toBeFalsy();
+                expect(dismissedTransaction?.rejectFailedFromReportID).toBeFalsy();
+                expect(dismissedTransaction).toBeTruthy();
             });
         });
 
@@ -605,18 +530,9 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(
-                transaction.transactionID,
-                iouReport.reportID,
-                comment,
-                policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
-                getCurrencyDecimalsLocal,
-                {rules: undefined},
-            );
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                rules: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then: expenseMovedReportActionID should not be present because we don't create
@@ -833,7 +749,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should call notifyNewAction after resolving the violation', async () => {
-            const {notifyNewAction} = require('@src/libs/actions/Report');
+            const {notifyNewAction} = require('@src/libs/actions/Report/reportActionSubscribers');
 
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
@@ -851,7 +767,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            const {notifyNewAction} = require('@src/libs/actions/Report');
+            const {notifyNewAction} = require('@src/libs/actions/Report/reportActionSubscribers');
 
             if (!transaction?.transactionID) {
                 throw new Error('Required transaction data is missing');

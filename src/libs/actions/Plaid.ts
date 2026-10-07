@@ -3,6 +3,7 @@ import type {AddPersonalPlaidCardParams, ImportPlaidAccountsParams, OpenPlaidBan
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCardFeedWithoutDomainID} from '@libs/CardUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 
 import CONST from '@src/CONST';
@@ -163,6 +164,7 @@ function importPlaidAccounts(
     plaidAccounts: string,
     plaidAccessToken: string | undefined,
     domainAccountID?: number,
+    isRepairingFeed = false,
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
@@ -190,7 +192,7 @@ function importPlaidAccounts(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ASSIGN_CARD,
-                value: {isRefreshing: null},
+                value: {isRefreshing: null, ...(isRepairingFeed ? {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')} : {})},
             },
         ],
     };

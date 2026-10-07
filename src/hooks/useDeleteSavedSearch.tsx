@@ -3,8 +3,8 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

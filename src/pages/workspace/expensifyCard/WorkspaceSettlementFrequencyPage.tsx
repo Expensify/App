@@ -79,7 +79,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
             return;
         }
         updateSettlementFrequencyUtil(defaultFundID, programKey, currentFrequency, settings?.monthlySettlementDate);
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID));
     };
 
     const confirmButtonOptions = {
@@ -93,7 +93,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            shouldBeBlocked={isSettlementFrequencyBlocked}
+            shouldBeBlocked={isSettlementFrequencyBlocked && !selectedFrequencyDraft}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}

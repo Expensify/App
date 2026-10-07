@@ -144,6 +144,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     JSON.stringify(metadata.accounts),
                                     '',
                                     splitCardFeedWithDomainID(feed)?.domainID,
+                                    true,
                                 );
                             }
                             setAssignCardStepAndData({

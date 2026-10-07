@@ -1,10 +1,10 @@
-import type {Ref} from 'react';
+import type {ComponentRef, Ref} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, View as RNView} from 'react-native';
 
 type SyncedHorizontalScroll = {
     /** Ref for the horizontal ScrollView that drives the sync. */
-    scrollViewRef: Ref<RNScrollView>;
+    scrollViewRef: Ref<ComponentRef<typeof RNScrollView>>;
 
     /**
      * Props to spread onto that ScrollView. Empty whenever syncing is off, so a layout that doesn't sync (native, or
@@ -31,6 +31,6 @@ type UseSyncedHorizontalScroll = (key: string | undefined, isEnabled: boolean) =
  * `scrollLeft` keeps it in step with the rows without a visible scrollbar and without ever publishing an offset of
  * its own. Same key and `isEnabled` contract as `useSyncedHorizontalScroll`.
  */
-type UseHorizontalScrollFollower = (key: string | undefined, isEnabled: boolean) => Ref<RNView>;
+type UseHorizontalScrollFollower = (key: string | undefined, isEnabled: boolean) => Ref<ComponentRef<typeof RNView>>;
 
 export type {SyncedHorizontalScroll, UseHorizontalScrollFollower, UseSyncedHorizontalScroll};

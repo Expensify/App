@@ -70,4 +70,40 @@ describe('setupSentry', () => {
         // Then it still reports
         expect(isIgnored(message)).toBe(false);
     });
+
+    it('drops the WKWebView bridge call an in-app browser injects into the page', () => {
+        // Given the message WebKit builds for the APP-8WS rejection, naming the expression whose base was undefined
+        const message = "TypeError: undefined is not an object (evaluating 'top.webkit.messageHandlers.foregroundToBackground.postMessage')";
+
+        // When the registered patterns are matched against it
+        // Then it is ignored, because no code we ship calls `webkit.messageHandlers`
+        expect(isIgnored(message)).toBe(true);
+    });
+
+    it('drops a call into any other injected handler on that same bridge', () => {
+        // Given the same signature with a different handler name, which is the same injected-bridge noise
+        const message = "TypeError: undefined is not an object (evaluating 'window.webkit.messageHandlers.contextMenuMessageHandler.postMessage')";
+
+        // When the registered patterns are matched against it
+        // Then it is ignored too, rather than needing one pattern per handler name
+        expect(isIgnored(message)).toBe(true);
+    });
+
+    it('keeps an error that only names the bridge in prose, which is not a call into it', () => {
+        // Given an error that mentions the bridge without accessing a handler on it
+        const message = 'Error: Failed to set up webkit.messageHandlers';
+
+        // When the registered patterns are matched against it
+        // Then it still reports, because the trailing dot limits the pattern to a real property access
+        expect(isIgnored(message)).toBe(false);
+    });
+
+    it('keeps the TypeErrors our own code produces, which read the same way in Safari', () => {
+        // Given the same WebKit wording for a property access in our bundle
+        const message = "TypeError: undefined is not an object (evaluating 'policy.employeeList.length')";
+
+        // When the registered patterns are matched against it
+        // Then it still reports
+        expect(isIgnored(message)).toBe(false);
+    });
 });

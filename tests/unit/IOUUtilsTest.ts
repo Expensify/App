@@ -343,6 +343,22 @@ describe('isValidMoneyRequestType', () => {
     });
 });
 
+describe('getNonDeprecatedIOUType', () => {
+    test('Resolves the deprecated OldDot aliases', () => {
+        expect(IOUUtils.getNonDeprecatedIOUType(CONST.IOU.TYPE.REQUEST)).toBe(CONST.IOU.TYPE.SUBMIT);
+        expect(IOUUtils.getNonDeprecatedIOUType(CONST.IOU.TYPE.SEND)).toBe(CONST.IOU.TYPE.PAY);
+    });
+
+    test('Leaves every other iou type untouched', () => {
+        for (const iouType of Object.values(CONST.IOU.TYPE)) {
+            if (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SEND) {
+                continue;
+            }
+            expect(IOUUtils.getNonDeprecatedIOUType(iouType)).toBe(iouType);
+        }
+    });
+});
+
 describe('hasRTERWithoutViolation', () => {
     test('Return true if there is at least one rter without violation in transactionViolations with given transactionIDs.', async () => {
         const transactionIDWithViolation = 1;
@@ -638,7 +654,7 @@ describe('Check valid amount for IOU/Expense request', () => {
             payeeAccountID: 100,
             total: 122,
             currency: 'USD',
-            betas: [CONST.BETAS.ALL],
+            isASAPSubmitBetaEnabled: true,
         });
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {

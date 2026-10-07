@@ -24,6 +24,18 @@ const buildQBOPolicy = (vendors: Array<{id: string; name: string; currency: stri
         }),
     });
 
+/** Sage Intacct policy whose Credit Card Charge export scopes vendor matching to Intacct. */
+const buildIntacctPolicy = (vendors: Array<{id: string; name: string; value: string}>): Policy =>
+    createMock<Policy>({
+        ...createRandomPolicy(0),
+        connections: createMock<Connections>({
+            [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                data: {vendors},
+            },
+        }),
+    });
+
 /** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
 const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}>): Policy =>
     createMock<Policy>({
@@ -138,14 +150,24 @@ describe('AddVendorPage', () => {
      */
     describe('vendor rule row derivation (MerchantRulePageBase)', () => {
         const qboPolicy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
+        const intacctPolicy = buildIntacctPolicy([{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]);
         const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
 
         it('shows the row on QBO with the beta off because QBO vendor matching is generally available', () => {
             expect(hasVendorFeature(qboPolicy, false)).toBe(true);
         });
 
-        it('hides the row on Xero when the beta is off because Xero vendor matching is not generally available yet', () => {
-            expect(hasVendorFeature(xeroPolicy, false)).toBe(false);
+        it('shows the row on Sage Intacct with the beta off because Intacct vendor matching is generally available', () => {
+            expect(hasVendorFeature(intacctPolicy, false)).toBe(true);
+        });
+
+        it('shows the row on Xero with the beta off because Xero vendor matching is generally available', () => {
+            // Given a configured Xero workspace with synced contacts
+            // When the vendor feature is checked without the vendorMatching beta
+            const isVendorFeatureAvailable = hasVendorFeature(xeroPolicy, false);
+
+            // Then the row is shown because Xero does not depend on the beta
+            expect(isVendorFeatureAvailable).toBe(true);
         });
 
         it('hides the row when no vendor integration is connected', () => {

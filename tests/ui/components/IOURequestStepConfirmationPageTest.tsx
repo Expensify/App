@@ -90,7 +90,9 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => {
     };
 });
 jest.mock('@libs/actions/IOU/Split', () => {
+    const actual = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
+        ...actual,
         createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
         startSplitBill: jest.fn(),
     };
@@ -1315,7 +1317,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const chatReportID = 'p2p-chat-1';
             const iouReportID = 'p2p-iou-report-1';
             const transactionID = 'tx-from-iou-report';
-            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue({reportID: chatReportID});
             jest.mocked(getIsNarrowLayout).mockReturnValue(true);
 
             try {
@@ -1342,6 +1343,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         created: '2025-01-15',
                         iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         participants: [{accountID: PARTICIPANT_ACCOUNT_ID, reportID: chatReportID, selected: true}],
+                    });
+                    // The page resolves the participant chat through the derived index, so seed the entry the
+                    // derived value would produce for this chat report.
+                    await Onyx.merge(ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS, {
+                        reportIDs: {[ReportUtils.getParticipantsChatKey([PARTICIPANT_ACCOUNT_ID, ACCOUNT_ID])]: chatReportID},
+                        accountID: ACCOUNT_ID,
                     });
                 });
 
@@ -1373,12 +1380,81 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 // Then the IOU report the flow started from is pre-inserted, not the participant chat the lookup resolved
-                expect(getChatByParticipantsSpy).toHaveBeenCalled();
                 await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(iouReportID)), {timeout: 2000});
                 expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(chatReportID));
             } finally {
-                getChatByParticipantsSpy.mockRestore();
                 jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('skips the P2P chat lookup entirely for a self-DM destination', async () => {
+            // Given a self-DM destination: the sole selected participant resolves to the current user's own self-DM and
+            // carries accountID 0, so a P2P lookup here could only ever scan the whole report collection for a chat with
+            // account 0 that can never exist. The sibling P2P tests above assert the lookup still runs for real recipients.
+            const selfDMReportID = 'self-dm-report-1';
+            const transactionID = 'tx-self-dm';
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants');
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                        reportID: selfDMReportID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                        participants: {[ACCOUNT_ID]: {}},
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: 0, isSelfDM: true, reportID: selfDMReportID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID,
+                                                reportID: selfDMReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                // When the screen renders and resolves its destination
+                await waitForBatchedUpdatesWithAct();
+
+                // Then it never runs the P2P scan. The screen's reactive selector is the only caller that hands the
+                // report collection in as an argument, so a two-argument call is that selector and nothing else.
+                expect(getChatByParticipantsSpy.mock.calls.filter((call) => call.length > 1)).toHaveLength(0);
+
+                // And it still resolved the destination as a self-DM one, so confirming tracks the expense
+                fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+                await waitFor(() => expect(TrackExpense.trackExpense).toHaveBeenCalled());
+            } finally {
+                getChatByParticipantsSpy.mockRestore();
             }
         });
 
