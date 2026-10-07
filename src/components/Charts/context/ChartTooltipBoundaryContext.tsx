@@ -13,4 +13,3 @@ function useMeasureChartTooltipBoundary(): MeasureChartTooltipBoundary | null {
 }
 
 export {ChartTooltipBoundaryContext, useMeasureChartTooltipBoundary};
-export type {MeasureChartTooltipBoundary};
