@@ -4,17 +4,14 @@ import type {ChartView, SearchGroupBy} from '@components/Search/types';
 
 import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {InsightsDashboardID, InsightsGraphKey, Policy} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 type InsightsChartSpec = {
-    /** Slot the chart finds its snapshot hash under in the stored dashboard's `graphs` */
+    /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
     titleKey: TranslationPaths;
     view: ChartView;
@@ -25,16 +22,13 @@ type InsightsChartSpec = {
     sortOrder?: string;
     limit?: number;
 
-    /** Color every bar is drawn in. Only a bar chart reads it. */
-    color?: string;
-
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 };
 
 type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
-    searchKey: ValueOf<typeof CONST.INSIGHTS.SEARCH_KEY>;
+    searchKey: InsightsSearchKey;
 
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
@@ -56,7 +50,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_SPENDERS,
                 titleKey: 'search.tabs.topSpenders',
                 view: CONST.SEARCH.VIEW.BAR,
-                color: colors.blue400,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -67,7 +60,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
                 titleKey: 'search.tabs.topMerchants',
                 view: CONST.SEARCH.VIEW.BAR,
-                color: colors.pink400,
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,

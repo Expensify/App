@@ -908,6 +908,9 @@ function getQueryHashes(query: SearchQueryJSON) {
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
     }
+    if (query.compare) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE}:${query.compare}`;
+    }
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
@@ -1001,6 +1004,11 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
             result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
         }
 
+        // Normalize compare before computing hashes so invalid values don't affect hash
+        if (result.compare !== undefined && !Object.values(CONST.SEARCH.COMPARE).includes(result.compare)) {
+            result.compare = undefined;
+        }
+
         const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
@@ -1074,6 +1082,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
 }
 
 const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
@@ -1086,8 +1095,22 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
     });
 }
 
-function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON) {
-    return getQueryHashWithoutFilters(currentQueryJSON, NON_FILTER_CHIP_KEYS) !== getQueryHashWithoutFilters(defaultQueryJSON, NON_FILTER_CHIP_KEYS);
+function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON, ignoredFilterKeys: ReadonlySet<SearchFilterKey> = NON_FILTER_CHIP_KEYS) {
+    return getQueryHashWithoutFilters(currentQueryJSON, ignoredFilterKeys) !== getQueryHashWithoutFilters(defaultQueryJSON, ignoredFilterKeys);
+}
+
+function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
+    if (!currentQueryJSON) {
+        return false;
+    }
+
+    // A query without a default query isn't bound to any suggested or saved search
+    // (e.g. a trip or chat type query), so it's savable as is, even without filters or a keyword.
+    if (!defaultQueryJSON) {
+        return true;
+    }
+
+    return hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, NON_SAVABLE_FILTER_KEYS);
 }
 
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
@@ -1378,23 +1401,42 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         }
     }
 
+    // compare is a root key with no dedicated filter UI, so it is carried through from the original form values
+    // rather than the type-stripped set to avoid dropping it when other filters change.
+    const compareValue = filterValues.compare;
+    const validCompareModes: string[] = Object.values(CONST.SEARCH.COMPARE);
+    if (compareValue && validCompareModes.includes(compareValue)) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE}:${sanitizeSearchValue(compareValue)}`);
+    }
+
     return filtersString.filter(Boolean).join(' ').trim();
+}
+
+function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is OnyxCollection<OnyxTypes.Policy> {
+    if (key !== ONYXKEYS.COLLECTION.POLICY) {
+        return false;
+    }
+    return !!data;
 }
 
 function getAllPolicyValues<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): Array<OnyxCollectionValuesMapping[T]> {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
 
+    const policiesForResolution = policies ?? (isPolicyCollection(key, policyData) ? policyData : undefined);
+    const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
+
     if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.value?.includes(id) && policyData[curr]) {
+                if (!resolvedValues.includes(id) && policyData[curr]) {
                     acc.push(policyData[curr]);
                 }
                 return acc;
@@ -1403,23 +1445,27 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.value.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
+    return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
 }
 
 function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): OnyxCollection<OnyxCollectionValuesMapping[T]> {
     if (!policyData || !policyID || !policyID.value) {
         return {};
     }
 
+    const policiesForResolution = policies ?? (isPolicyCollection(key, policyData) ? policyData : undefined);
+    const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
+
     if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.value?.includes(id) && policyData[curr]) {
+                if (!resolvedValues.includes(id) && policyData[curr]) {
                     acc[curr] = policyData[curr];
                 }
                 return acc;
@@ -1428,7 +1474,7 @@ function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.value.reduce(
+    return resolvedValues.reduce(
         (acc, curr) => {
             if (policyData?.[`${key}${curr}`]) {
                 acc[`${key}${curr}`] = policyData?.[`${key}${curr}`];
@@ -1944,6 +1990,10 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
+    }
+
+    if (queryJSON.compare) {
+        filtersForm[FILTER_KEYS.COMPARE] = queryJSON.compare;
     }
 
     return filtersForm;
@@ -2853,7 +2903,7 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
               return filter;
           })
         : queryData.rawFilterList;
-    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList, status: ''});
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
 }
 
 function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `${T}${typeof CONST.SEARCH.NOT_MODIFIER}` {
@@ -2933,6 +2983,7 @@ export {
     getQueryHashWithoutFilters,
     getQueryHashes,
     hasFiltersChangedFromDefault,
+    isSearchQuerySavable,
     withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
