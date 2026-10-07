@@ -1127,6 +1127,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether we should export to the most recent open period if the current one is closed  */
         exportToNextOpenPeriod: boolean;
 
+        /** Whether non-reimbursable exports are split into one transaction per calendar month */
+        splitExportsByPostingPeriod?: boolean;
+
         /** Whether we will include the original foreign amount of a transaction to NetSuite */
         allowForeignCurrency?: boolean;
 
@@ -1848,6 +1851,9 @@ type RilletSync = {
 
     /** Account code used for bill payment transactions. */
     billPaymentAccountCode: string;
+
+    /** Expense account code the company-paid currency conversion cost is booked to. Unset means the cost is not exported. */
+    fxExpenseAccountCode?: string;
 
     /** Whether Expensify Card settlement transactions should be synchronized. */
     syncExpensifyCardSettlements: boolean;

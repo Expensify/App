@@ -435,7 +435,17 @@ function setMoneyRequestReceipt(
     ReceiptStorage.retain(source);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
-        receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null, thumbnail, receiptTraceId},
+        // pageCount belongs to the previous file, so clear it or the new receipt inherits the old count.
+        receipt: {
+            source,
+            filename,
+            type: type ?? '',
+            isTestReceipt: isTestReceipt ? true : null,
+            isTestDriveReceipt: isTestDriveReceipt ? true : null,
+            thumbnail,
+            receiptTraceId,
+            pageCount: null,
+        },
     });
 }
 
