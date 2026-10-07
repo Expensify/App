@@ -4,12 +4,19 @@ description: Learn how to set up and manage per diem rates within a workspace in
 keywords: [New Expensify, per diem, expense settings, daily rate, import per diem, configure per diem, edit per diem rates, meal allowance, lodging allowance, travel allowance, per diem setup, business travel, per diem rates]
 ---
 
+# Configure Per Diem Expenses Within a Workspace
 
 Per Diem allows workspace admins to assign fixed daily rates for travel or other recurring allowances. Once enabled, it appears as its own menu item in the workspace settings, giving you full control over importing, editing, and categorizing daily allowances.
 
 ---
 
-# Enable Per Diem in a Workspace
+## Who Can Enable Per Diem in a Workspace
+
+To enable Per Diem you must be a workspace admin with a workspace on the Control plan. 
+
+---
+
+## Enable Per Diem in a Workspace
 
 To enable the Per Diem feature:
 
@@ -24,7 +31,7 @@ Once enabled, **Per Diem** will appear as a dedicated item in the left-hand menu
 
 ---
 
-# Upload or Export Per Diem Rates
+## Upload or Export Per Diem Rates
 
 Admins can manage rates by uploading a spreadsheet or exporting existing ones.
 
@@ -37,7 +44,7 @@ Both options are found in the **three-dot menu** at the top-right corner of the 
 
 ---
 
-# Per Diem Rate Templates
+## Per Diem Rate Templates
 
 Below are some example templates to reference:
 
@@ -48,7 +55,7 @@ Below are some example templates to reference:
 
 ---
 
-# Edit or Delete Per Diem Rates
+## Edit or Delete Per Diem Rates
 
 Each rate is listed as a line item. You can:
 
@@ -60,7 +67,7 @@ Each rate is listed as a line item. You can:
 
 ---
 
-# Set a Default Category for Per Diem
+## Set a Default Category for Per Diem
 
 You can assign a default expense category to all Per Diem entries:
 
