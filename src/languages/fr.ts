@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Veuillez choisir aujourd’hui ou une date future',
             invalidTimeShouldBeFuture: 'Veuillez choisir une heure au moins une minute plus tard',
             invalidCharacter: 'Caractère non valide',
+            invalidField: (fieldName) => `Champ invalide : ${fieldName}`,
             enterMerchant: 'Saisissez un nom de commerçant',
             enterAmount: 'Saisir un montant',
             missingMerchantName: 'Nom du commerçant manquant',
@@ -7660,6 +7661,21 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     invalidAddress: 'Veuillez saisir une adresse valide',
                     distanceTooLarge: 'La distance est trop grande.',
                 },
+                workArrangement: {
+                    title: 'Organisation de travail par défaut',
+                    officeBasedTitle: 'Au bureau',
+                    officeBasedHelp: 'Le membre se rend au bureau pour ses trajets domicile-travail. Les trajets habituels sont exclus du remboursement.',
+                    noRegularWorkplaceTitle: 'À distance ou mobile',
+                    noRegularWorkplaceHelp:
+                        "Le membre travaille à domicile ou se déplace entre différents sites sans bureau fixe, donc les règles de trajet domicile-travail ne s'appliquent pas.",
+                    startingPrompt: {
+                        title: 'Définir une organisation de travail type',
+                        prompt: 'Choisissez la disposition qui s’applique à la plupart des membres actuels. Vous pourrez mettre à jour les membres individuellement ou en masse plus tard.',
+                        officeBasedHelp: 'La plupart des membres se rendent au bureau. Les trajets domicile-travail habituels sont exclus.',
+                        noRegularWorkplaceHelp: 'La plupart des membres travaillent à distance, donc les exclusions domicile-travail ne s’appliquent généralement pas.',
+                        confirm: 'Appliquer',
+                    },
+                },
             },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
@@ -9526,6 +9542,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `définir l’organisation de travail par défaut sur ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `a modifié l’aménagement de travail par défaut en ${arrangement} (auparavant ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
                 `modification de l’exclusion des trajets domicile-travail en une distance fixe par demande (auparavant ${previousMethod})`,
@@ -10114,6 +10135,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
         },
+        periodSoFar: ({period}: {period: string}) => `${period} jusqu’à présent`,
+        weekOf: ({date}: {date: string}) => `Semaine du ${date}`,
         saveEdits: {
             title: 'Enregistrer les modifications',
             prompt: ({name}: {name: string}) => `Mettre à jour les modifications de « ${name} » ou en créer une nouvelle ?`,
@@ -10168,6 +10191,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             category: 'Catégorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Passer à la vue tableau',
+        switchToExpenseView: 'Passer à la vue dépense',
     },
     report: {
         newReport: {

@@ -57,7 +57,7 @@ Export settings determine how Expensify sends data to Xero.
 - **Export Consolidated Travel Billing expenses as** – If Consolidated Travel Billing is enabled, travel expenses export as bank transactions. Click to select the **Travel payable account** where travel expenses will post in Xero.
 - **Export company card expenses as** – All company card expenses are exported as bank transactions (not editable).
 - **Xero bank account** – Select the account to post non-reimbursable expenses.
-- **Default supplier** – Select a supplier to apply to all company card (non-reimbursable) transactions on export to Xero.
+- **Default vendor** – Select a supplier to apply to company card (non-reimbursable) expenses that don't have a supplier assigned when they export to Xero.
 
 ---
 
