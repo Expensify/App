@@ -24691,6 +24691,7 @@ var require_CONST = __commonJS({
         REPLACE_CARD: "replace_card",
         SHIP_CARD: "ship_card",
         REPORT_CARD_FRAUD: "report_card_fraud",
+        APPROVE_DIGITAL_WALLET: "approve_digital_wallet",
         ISSUE_CARD: "issue_card",
         UPDATE_CARD: "update_card",
         UPDATE_PERSONAL_DETAILS: "update_personal_details",
@@ -45420,13 +45421,17 @@ ${g2}
           },
           {
             name: "anchor",
-            regex: /<(a)[^><]*href\s*=\s*(['"])(.*?)\2(?:".*?"|'.*?'|[^'"><])*>([\s\S]*?)<\/\1>(?![^<]*(<\/pre>|<\/code>))/gi,
-            replacement: (_extras, _match, _g1, _g2, g3, g4) => {
-              const email = g3.startsWith("mailto:") ? g3.slice(7) : "";
-              if (email === g4) {
-                return email;
+            regex: /(\]\()?<(a)[^><]*href\s*=\s*(['"])(.*?)\3(?:".*?"|'.*?'|[^'"><])*>([\s\S]*?)<\/\2>(?![^<]*(<\/pre>|<\/code>))/gi,
+            replacement: (_extras, _match, g1, _g2, _g3, g4, g5) => {
+              const incompleteLinkStart = g1 !== null && g1 !== void 0 ? g1 : "";
+              const email = g4.startsWith("mailto:") ? g4.slice(7) : "";
+              if (email === g5) {
+                return `${incompleteLinkStart}${email}`;
               }
-              return `[${g4}](${email || g3})`;
+              if (incompleteLinkStart && (g4 === g5 || g4 === `https://${g5}`)) {
+                return `${incompleteLinkStart}${g5}`;
+              }
+              return `${incompleteLinkStart}[${g5}](${email || g4})`;
             }
           },
           {
