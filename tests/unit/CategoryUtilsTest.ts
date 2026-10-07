@@ -4,6 +4,7 @@ import {
     getCategoryDefaultTaxRate,
     getCategoryDescriptionHint,
     getCategoryGLCode,
+    getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
     hasAnyCategoryRules,
@@ -517,6 +518,47 @@ describe('getCategoryGLCode', () => {
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+});
+
+describe('getCategoryNameError', () => {
+    const encodedFoodAndDrink = 'Food &amp; Drink';
+    const categories: PolicyCategories = {
+        Food: {name: 'Food', enabled: true, pendingAction: null},
+        [encodedFoodAndDrink]: {name: encodedFoodAndDrink, enabled: true, pendingAction: null},
+    };
+
+    it('does not flag an HTML-encoded category as a duplicate of its decoded name', () => {
+        // Given a category stored under an HTML-encoded key
+        // When the caller passes the already-decoded display name as the name being edited
+        // Then keeping that display name is allowed, because decoding it again would change the comparison
+        expect(getCategoryNameError(categories, 'Food & Drink', 'Food & Drink')).toBeUndefined();
+    });
+
+    it('keeps a display name that still contains an entity distinct from its decoded form', () => {
+        const doubleEncodedFoodAndDrink = 'Food &amp;amp; Drink';
+        const categoriesWithEntityName: PolicyCategories = {
+            ...categories,
+            [doubleEncodedFoodAndDrink]: {name: doubleEncodedFoodAndDrink, enabled: true, pendingAction: null},
+        };
+
+        // Given a category whose once-decoded name still contains an entity, beside a different category named Food & Drink
+        // When validation receives that once-decoded name as the name being edited
+        // Then renaming it to Food & Drink is a duplicate, because decoding currentName again would treat the two as the same category
+        expect(getCategoryNameError(categoriesWithEntityName, 'Food & Drink', 'Food &amp; Drink')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+
+        // Then saving the unchanged display name is allowed, because a second decode would make it look like a different category
+        expect(getCategoryNameError(categoriesWithEntityName, 'Food &amp; Drink', 'Food &amp; Drink')).toBeUndefined();
+    });
+
+    it('flags a decoded name that already exists as an encoded category', () => {
+        expect(getCategoryNameError(categories, 'Food & Drink')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        expect(getCategoryNameError(categories, 'Food & Drink', 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+    });
+
+    it('still flags an exact-key duplicate', () => {
+        expect(getCategoryNameError(categories, 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        expect(getCategoryNameError(categories, 'Food', 'Food')).toBeUndefined();
     });
 });
 

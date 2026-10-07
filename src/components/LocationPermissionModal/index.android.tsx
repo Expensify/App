@@ -25,7 +25,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
+    const {asset: ReceiptLocationMarker, isLoading: isLoadingIllustration} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const {showConfirmModal, closeModal} = useConfirmModal();
 
     // Keep refs up to date
@@ -36,7 +36,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [onGrant, onDeny, resetPermissionFlow]);
 
     useEffect(() => {
-        if (!startPermissionFlow) {
+        if (!startPermissionFlow || isLoadingIllustration) {
             return;
         }
 
@@ -140,8 +140,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             isModalActiveRef.current = false;
             closeModal();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
-    }, [startPermissionFlow]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes, or once the prompt illustration settles
+    }, [startPermissionFlow, isLoadingIllustration]);
 
     return null;
 }

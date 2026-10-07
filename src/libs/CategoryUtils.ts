@@ -11,6 +11,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
+import StringUtils from './StringUtils';
+
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
 
@@ -145,6 +147,59 @@ function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
 
+/** The reason a proposed category name is invalid. Callers translate it via `getCategoryNameErrorMessage`. */
+type CategoryNameError =
+    | typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED
+    | typeof CONST.INPUT_VALIDATION_ERRORS.EXISTING
+    | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID
+    | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+
+/**
+ * Validates a category name against every rule (required, unique, reserved, length). This is the single
+ * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
+ * `currentName` (the decoded display name) when editing so renaming a category to its own name isn't flagged
+ * as a duplicate. Uniqueness also matches HTML-encoded stored names such as `Food &amp; Drink` vs `Food & Drink`.
+ * Returns an error code, or undefined when the name is valid.
+ */
+function getCategoryNameError(policyCategories: PolicyCategories | undefined, newName: string, currentName?: string): CategoryNameError | undefined {
+    const sanitized = StringUtils.sanitizeName(newName);
+
+    if (StringUtils.isEmptyString(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    // Category keys may be HTML-encoded, so uniqueness compares decoded names. currentName is already decoded by the caller.
+    if (sanitized !== currentName && Object.keys(policyCategories ?? {}).some((name) => getDecodedCategoryName(name) === sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.EXISTING;
+    }
+
+    if (sanitized === CONST.INVALID_CATEGORY_NAME || sanitized === CONST.SEARCH.CATEGORY_DEFAULT_VALUE) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
+    }
+
+    // Spread to count Unicode code points rather than UTF-16 code units.
+    if ([...sanitized].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+    }
+
+    return undefined;
+}
+
+/** Translates a {@link CategoryNameError} into a user-facing message for the given name. */
+function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'], error: CategoryNameError, name: string): string {
+    switch (error) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('workspace.categories.categoryRequiredError');
+        case CONST.INPUT_VALIDATION_ERRORS.EXISTING:
+            return translate('workspace.categories.existingCategoryError');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            return translate('workspace.categories.invalidCategoryName');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
+        default:
+            return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
+    }
+}
+
 /**
  * Splits a category name on the colon separator, removes empty middle segments,
  * and merges a trailing empty segment into the previous part (preserving trailing colons).
@@ -247,4 +302,6 @@ export {
     processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
     hasAnyCategoryRules,
+    getCategoryNameError,
+    getCategoryNameErrorMessage,
 };
