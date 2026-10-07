@@ -1258,6 +1258,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.DESCRIPTION ||
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
+                    filterKey === FILTER_KEYS.DECLINED ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.SUBMITTER_USER_ID ||
                     filterKey === FILTER_KEYS.SUBMITTER_PAYROLL_ID ||
@@ -1882,7 +1883,7 @@ function buildFilterFormValuesFromQuery(
                     ?.value.toString() ?? filtersForm[negatedKey];
         }
 
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
             filtersForm[addNegation(filterKey, isNegated)] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }

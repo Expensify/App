@@ -9975,6 +9975,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             posted: 'Publié',
             withdrawn: 'Retiré',
             billable: 'Facturable',
+            rejected: 'Rejeté',
             reimbursable: 'Remboursable',
             purchaseCurrency: 'Devise d’achat',
             sortOrder: {

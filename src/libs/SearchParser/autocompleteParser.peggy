@@ -105,6 +105,7 @@ autocompleteKey "key"
       / view
       / reimbursable
       / billable
+      / declined
       / policyID
       / action
       / date

@@ -9887,6 +9887,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             posted: 'Opublikowano',
             withdrawn: 'Wycofano',
             billable: 'Fakturowalne',
+            rejected: 'Odrzucone',
             reimbursable: 'Podlegające zwrotowi',
             purchaseCurrency: 'Waluta zakupu',
             sortOrder: {

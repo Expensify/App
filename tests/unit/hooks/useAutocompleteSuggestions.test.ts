@@ -442,6 +442,21 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE);
     });
 
+    it('returns yes and no suggestions for declined key', () => {
+        // Given the user has typed the declined key with no value yet
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED, value: ''},
+            ranges: [],
+        });
+
+        // When suggestions are computed
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'declined:'}));
+
+        // Then both boolean values are suggested for the declined key
+        expect(result.current.map((suggestion) => suggestion.text)).toEqual([CONST.SEARCH.BOOLEAN.NO, CONST.SEARCH.BOOLEAN.YES]);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED);
+    });
+
     it('returns in: suggestions for chat reports', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: 'gen'},

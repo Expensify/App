@@ -9504,6 +9504,7 @@ ${reportName}`,
             posted: '已发布',
             withdrawn: '已撤回',
             billable: '可计费',
+            rejected: '已拒绝',
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
             sortOrder: {

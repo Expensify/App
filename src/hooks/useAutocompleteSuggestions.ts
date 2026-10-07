@@ -546,7 +546,8 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED: {
             const filteredValues = BOOLEAN_VALUES.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(value)).sort();
 
             return filteredValues.map((value) => ({

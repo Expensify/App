@@ -5550,6 +5550,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.currency',
         icon: 'MoneyCircle',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED]: {
+        labelKey: 'search.filters.rejected',
+        icon: 'ThumbsDown',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]: {
         labelKey: 'common.description',
         icon: 'Document',
@@ -5864,7 +5868,7 @@ function getDisplayValue(
         return form[key]?.sort(localeCompare).join(', ');
     }
 
-    if (key === FILTER_KEYS.BILLABLE || key === FILTER_KEYS.REIMBURSABLE) {
+    if (key === FILTER_KEYS.BILLABLE || key === FILTER_KEYS.REIMBURSABLE || key === FILTER_KEYS.DECLINED) {
         const formValue = form[key];
         return formValue ? translate(`common.${formValue}`) : undefined;
     }
@@ -6153,7 +6157,7 @@ function mapFiltersFormToLabelValueList(
 }
 
 function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {
-    if (filterKey === FILTER_KEYS.BILLABLE || filterKey === FILTER_KEYS.REIMBURSABLE) {
+    if (filterKey === FILTER_KEYS.BILLABLE || filterKey === FILTER_KEYS.REIMBURSABLE || filterKey === FILTER_KEYS.DECLINED) {
         return Object.values(CONST.SEARCH.BOOLEAN).map((value) => ({value, text: translate(`common.${value}`)}));
     }
 

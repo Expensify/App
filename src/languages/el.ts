@@ -10157,6 +10157,7 @@ ${reportName}`,
             posted: 'Καταχωρισμένο',
             withdrawn: 'Ανακλήθηκε',
             billable: 'Χρεώσιμη',
+            rejected: 'Απορρίφθηκε',
             reimbursable: 'Επανεντάξιμο',
             purchaseCurrency: 'Νόμισμα αγοράς',
             sortOrder: {
