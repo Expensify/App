@@ -113,7 +113,6 @@ describe('AttachmentStorage', () => {
     });
     it('should decode an encoded file URI before copying a shared attachment', async () => {
         const attachmentID = 'encoded-attachment';
-        mockRNFS.exists.mockResolvedValue(true);
 
         await cacheAttachment({
             attachmentID,
@@ -125,15 +124,15 @@ describe('AttachmentStorage', () => {
     });
     it('should fall back to the raw file URI path for legacy filenames', async () => {
         const attachmentID = 'legacy-attachment';
-        mockRNFS.exists.mockResolvedValue(false);
+        mockRNFS.exists.mockResolvedValueOnce(false);
 
         await cacheAttachment({
             attachmentID,
-            uri: 'file:///mock/sharedFiles/report%2523.jpg',
+            uri: 'file:///mock/sharedFiles/report%23.jpg',
             mimeType: 'image/jpeg',
         });
 
-        expect(mockRNFS.copyFile).toHaveBeenCalledWith('/mock/sharedFiles/report%2523.jpg', `/mock/caches/attachments/${attachmentID}.jpg`);
+        expect(mockRNFS.copyFile).toHaveBeenCalledWith('/mock/sharedFiles/report%23.jpg', `/mock/caches/attachments/${attachmentID}.jpg`);
     });
     it('should fall back to the current source when the cached file was purged from disk', async () => {
         // Given a cached attachment whose file no longer exists (the OS can purge Caches)
