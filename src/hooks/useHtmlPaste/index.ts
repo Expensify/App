@@ -439,6 +439,12 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
             if (event.clipboardData?.types?.includes(TEXT_HTML)) {
                 const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
+                // Native markdown input adds this wrapper and styling when copied, so preserve its original plain text.
+                if (pastedHTML.startsWith('<p dir="ltr">')) {
+                    handlePastePlainText(event);
+                    return;
+                }
+
                 const domparser = new DOMParser();
                 const htmlDocument = domparser.parseFromString(pastedHTML, TEXT_HTML);
                 const embeddedImages = Array.from(htmlDocument.images);
@@ -456,12 +462,6 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                     emojiImageReplacements.set(image, emojiText);
                 }
 
-                // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
-                // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
-                if (pastedHTML.startsWith('<p dir="ltr">')) {
-                    handlePastePlainText(event);
-                    return;
-                }
                 handlePastedHTML(replaceEmojiImagesInHTML(pastedHTML, embeddedImages, emojiImageReplacements));
                 return;
             }
