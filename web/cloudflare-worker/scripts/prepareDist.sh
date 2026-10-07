@@ -5,9 +5,9 @@ set -eu
 WORKER_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="$WORKER_DIR/../../dist"
 
-if [[ ! -f "$DIST_DIR/index.html" ]]; then
-    echo "No web build found at $DIST_DIR. Build one first (see README.md)." >&2
-    exit 1
+# `wrangler types` also runs this build step, and needs no web build. Without one, dev and deploy fail on the missing assets directory.
+if [[ ! -d "$DIST_DIR" ]]; then
+    exit 0
 fi
 
 cp "$WORKER_DIR/.assetsignore" "$DIST_DIR/.assetsignore"
