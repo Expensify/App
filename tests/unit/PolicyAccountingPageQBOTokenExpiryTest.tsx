@@ -79,7 +79,6 @@ jest.mock('@components/ScrollView', () => ({
     default: ({children}: {children: React.ReactNode}) => children,
 }));
 
-jest.mock('@components/HeaderWithBackButton', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/MenuItemList', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/Section', () => ({__esModule: true, default: ({children}: {children: React.ReactNode}) => children}));
 jest.mock('@components/CollapsibleSection', () => ({__esModule: true, default: () => null}));
