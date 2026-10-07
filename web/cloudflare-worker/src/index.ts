@@ -19,7 +19,7 @@ function isHTMLResponse(response: Response): boolean {
     return response.headers.get('Content-Type')?.startsWith('text/html') ?? false;
 }
 
-/** The asset router 307-redirects any other encoding (`@` -> `%40`), which the S3 origin never did for deep links. */
+/** The asset router 307-redirects any other encoding (`@` -> `%40`), which would change the deep link the user opened. */
 function toAssetRouterEncoding(pathname: string): string {
     return pathname
         .split('/')

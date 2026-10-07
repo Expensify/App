@@ -1,4 +1,4 @@
-# Precompressed twins for the S3 origin. Cloudflare compresses Worker responses at the edge.
+# Precompressed twins. Cloudflare compresses Worker responses at the edge.
 *.br
 # Source maps are uploaded to Sentry at build time and must not be publicly served.
 *.map

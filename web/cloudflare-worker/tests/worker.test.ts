@@ -84,7 +84,7 @@ describe('staging worker', () => {
             // When the browser navigates to them
             const response = await server.fetch(path, {headers: NAVIGATION_HEADERS, redirect: 'manual'});
 
-            // Then the app shell is served at the URL as typed, like the S3 origin does
+            // Then the app shell is served at the URL as typed
             assert.equal(response.status, 200, path);
             assert.match(await response.text(), /New Expensify fixture/, path);
         }
@@ -95,7 +95,7 @@ describe('staging worker', () => {
         // When /index.html is requested
         const response = await server.fetch('/index.html');
 
-        // Then it is served directly, like the S3 origin does
+        // Then it is served directly, so the cached entry stays valid
         assert.equal(response.status, 200);
         assert.ok(getHTMLNonce(await response.text()));
     });

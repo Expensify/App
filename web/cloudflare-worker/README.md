@@ -1,6 +1,6 @@
 # New Expensify Cloudflare Worker
 
-This package serves the New Expensify web build (`dist/`) from Cloudflare with [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/). It will replace the current setup, where a header-only Worker sits in front of CloudFront and S3.
+This package serves the New Expensify web build (`dist/`) from Cloudflare with [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/).
 
 The build and the Worker are uploaded together as one Worker version. A deploy is therefore atomic, and a rollback restores both the code and the assets.
 
@@ -90,12 +90,7 @@ npm run compare-headers -- https://staging.new.expensify.com http://localhost:87
 npm run compare-headers -- https://new.expensify.com http://localhost:8787   # run `npm run dev:production` first
 ```
 
-The script diffs status, caching and security headers for a fixed set of paths. Nonces are masked, and CSP differences are reported per directive. Against the current CloudFront setup, these differences are expected:
-
-- **`Cache-Control`:** see the table above. CloudFront responses get the zone default of `public, max-age=86400`.
-- **Missing bundle:** `404` instead of the app shell with `200`.
-- **`font-src`:** `'self'` instead of the hard-coded host. It means the same thing on that host, and it lets the policy work on any host.
-- **`Content-Type`:** `; charset=utf-8` on text types.
+The script diffs status, caching and security headers for a fixed set of paths. Nonces are masked, and CSP differences are reported per directive.
 
 ### Manual checks in a browser
 
