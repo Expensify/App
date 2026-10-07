@@ -2,9 +2,8 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import useNumericPressSelection from '@components/NumericEditingController/hooks/useNumericPressSelection/index.web';
 import NumericInput from '@components/NumericInput';
-import {NumericInputActionsContext, NumericInputStateContext} from '@components/NumericInput/context';
-import useNumericPressSelection from '@components/NumericInput/hooks/useNumericPressSelection/index.web';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -55,8 +54,19 @@ function getContainerViewId(testID: string) {
     return container.props.id;
 }
 
-function WebPressSelectionTest({onPress}: {onPress: BaseTextInputProps['onPress']}) {
-    const handlePress = useNumericPressSelection(onPress);
+type WebPressSelectionTestProps = {
+    /** Input whose caret the hook reads on press */
+    inputRef: {current: BaseTextInputRef | null};
+
+    /** Receives the caret offsets read on press */
+    handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
+
+    /** Caller press handler */
+    onPress: BaseTextInputProps['onPress'];
+};
+
+function WebPressSelectionTest({inputRef, handleSelectionChange, onPress}: WebPressSelectionTestProps) {
+    const handlePress = useNumericPressSelection({inputRef, handleSelectionChange, onPress});
 
     return (
         <TextInput
@@ -78,33 +88,14 @@ function getCaretInputRef(selectionStart: number, selectionEnd: number): {curren
     return {current: inputElement as BaseTextInputRef};
 }
 
-/** Renders the press-selection hook against a root state whose `inputRef` holds the given element. */
+/** Renders the press-selection hook against an `inputRef` holding the given element. */
 function renderPressSelection(inputRef: {current: BaseTextInputRef | null}, onPress: jest.Mock, handleSelectionChange: jest.Mock) {
-    renderWithProviders(
-        <NumericInputStateContext.Provider
-            value={{
-                value: '12345',
-                formattedNumber: '12345',
-                selection: {start: 5, end: 5},
-                isNegative: false,
-                allowNegative: false,
-                inputRef,
-            }}
-        >
-            <NumericInputActionsContext.Provider
-                value={{
-                    setNumber: jest.fn(),
-                    clearSelection: jest.fn(),
-                    toggleSign: jest.fn(),
-                    clearSign: jest.fn(),
-                    handleSelectionChange,
-                    handleKeyPress: jest.fn(),
-                    focusInput: jest.fn(),
-                }}
-            >
-                <WebPressSelectionTest onPress={onPress} />
-            </NumericInputActionsContext.Provider>
-        </NumericInputStateContext.Provider>,
+    render(
+        <WebPressSelectionTest
+            inputRef={inputRef}
+            handleSelectionChange={handleSelectionChange}
+            onPress={onPress}
+        />,
     );
 }
 

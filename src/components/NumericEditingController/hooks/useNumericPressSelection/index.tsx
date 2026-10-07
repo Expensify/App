@@ -1,7 +1,9 @@
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
+import type UseNumericPressSelectionParams from './types';
+
 /** Native emits a selection change whenever the caret moves, including on press, so no extra handling is needed. */
-function useNumericPressSelection(onPress?: BaseTextInputProps['onPress']): BaseTextInputProps['onPress'] {
+function useNumericPressSelection({onPress}: UseNumericPressSelectionParams): BaseTextInputProps['onPress'] {
     return onPress;
 }
 
