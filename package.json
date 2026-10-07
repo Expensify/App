@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.3-4",
+  "version": "9.5.4-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -422,9 +422,6 @@
       "expo": "57.0.8"
     },
     "@react-native-firebase/app": {
-      "expo": "57.0.8"
-    },
-    "@react-native-firebase/perf": {
       "expo": "57.0.8"
     },
     "@react-native-google-signin/google-signin": {

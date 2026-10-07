@@ -9,7 +9,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import {format, formatToParts} from '@libs/NumberFormatUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
-import {getLinkedTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, isActionableCardFraudAlert, isDeletedAction} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {
     generateIsEmptyReport,
@@ -34,7 +34,7 @@ import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -45,6 +45,8 @@ let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 let previousPolicies: OnyxCollection<Policy>;
 let previousReportsTransactions: Record<string, Transaction[]> | undefined;
+let previousFraudAlertReportIDs: Set<string> | undefined;
+let previousCardList: OnyxEntry<CardList>;
 
 const RECOMPUTE_ALL = 'all' as const;
 
@@ -233,6 +235,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CURRENCY_LIST,
         ONYXKEYS.COLLECTION.RULE,
+        ONYXKEYS.CARD_LIST,
         ONYXKEYS.NETWORK,
     ],
     compute: (
@@ -252,6 +255,7 @@ export default createOnyxDerivedValueConfig({
             reportMetadata,
             currencyList,
             rules,
+            cardList,
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
@@ -407,12 +411,46 @@ export default createOnyxDerivedValueConfig({
             previousPolicies = policies;
         }
 
+        // A card's live fraud decides the fraud alert green dot on the report its fraudAlertReportID points at.
+        // Clearing possibleFraud drops that ID from the card, so the previous IDs are needed to refresh the report.
+        const cardChangedReportKeys: string[] = [];
+
+        const isFirstCompute = previousFraudAlertReportIDs === undefined;
+        if (isFirstCompute) {
+            // REPORT_ATTRIBUTES is persisted, so a stored fraud alert dot may come from older code or from before the fraud
+            // was cleared, with no card pointing at its report anymore. A fraud alert dot stores the alert as its target action.
+            previousFraudAlertReportIDs = new Set(
+                Object.entries(currentValue?.reports ?? {})
+                    .filter(
+                        ([reportID, {requiresAttention, actionTargetReportActionID}]) =>
+                            requiresAttention &&
+                            !!actionTargetReportActionID &&
+                            isActionableCardFraudAlert(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[actionTargetReportActionID]),
+                    )
+                    .map(([reportID]) => reportID),
+            );
+        }
+
+        if (isFirstCompute || previousCardList !== cardList) {
+            const fraudAlertReportIDs = new Set(
+                Object.values(cardList ?? {}).flatMap((card) => {
+                    const id = card?.nameValuePairs?.possibleFraud?.fraudAlertReportID;
+                    return id ? [String(id)] : [];
+                }),
+            );
+            for (const reportID of new Set([...(previousFraudAlertReportIDs ?? []), ...fraudAlertReportIDs])) {
+                cardChangedReportKeys.push(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            }
+            previousFraudAlertReportIDs = fraudAlertReportIDs;
+            previousCardList = cardList;
+        }
+
         // Use incremental updates when currentValue is already populated and no full recompute is required.
         // If currentValue has no reports (fresh install or cleared storage), fall back to a full scan.
         const useIncrementalUpdates = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0 && !needsFullRecompute;
 
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((useIncrementalUpdates && !sourceValues) || !reports) {
+        if ((useIncrementalUpdates && !sourceValues && cardChangedReportKeys.length === 0) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
@@ -465,13 +503,20 @@ export default createOnyxDerivedValueConfig({
             ...personalDetailsChangedReportKeys,
         ];
 
-        const updates = [...nonPolicyUpdates, ...policyChangedReportKeys];
+        const nameAndParentUpdates = [...nonPolicyUpdates, ...policyChangedReportKeys];
+        const updates = [...nameAndParentUpdates, ...cardChangedReportKeys];
 
-        // Keys that reuse their cached name. Starts as the name-irrelevant policy reports; every other change
+        // Keys that reuse their cached name. Starts as the name-irrelevant policy and card reports; every other change
         // source (report/action/nvp/personal-details updates here, transactions and policy tags below) deletes
-        // its keys, so a report skips computeReportName only when a name-irrelevant policy change is its sole
+        // its keys, so a report skips computeReportName only when a name-irrelevant change is its sole
         // reason to be here. Parent-chat enqueues don't delete: a child update never feeds the parent chat's own name.
-        const nameSkipKeys = new Set(prepareReportKeys(nameSkipPolicyReportKeys));
+        const nameRelevantPolicyReportKeys = new Set(policyChangedReportKeys);
+        for (const key of nameSkipPolicyReportKeys) {
+            nameRelevantPolicyReportKeys.delete(key);
+        }
+        const nameSkipKeys = new Set(
+            prepareReportKeys([...nameSkipPolicyReportKeys, ...(useIncrementalUpdates ? cardChangedReportKeys.filter((key) => !nameRelevantPolicyReportKeys.has(key)) : [])]),
+        );
         for (const key of prepareReportKeys(nonPolicyUpdates)) {
             nameSkipKeys.delete(key);
         }
@@ -484,8 +529,9 @@ export default createOnyxDerivedValueConfig({
                     dataToIterate = prepareReportKeys(updates);
 
                     // When an IOU report changes, we need to re-evaluate its parent chat report as well.
+                    // A card's fraud alert dot only affects the report holding the alert, so card changes don't enqueue parents.
                     const parentChatReportIDsToUpdate = new Set<string>();
-                    for (const reportKey of dataToIterate) {
+                    for (const reportKey of prepareReportKeys(nameAndParentUpdates)) {
                         const report = reports[reportKey];
                         if (report?.chatReportID && report.reportID !== report.chatReportID) {
                             parentChatReportIDsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
@@ -613,6 +659,7 @@ export default createOnyxDerivedValueConfig({
                     reports,
                     policies,
                     reportMetadata: reportReportMetadata,
+                    cardList,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
                 });
@@ -796,6 +843,8 @@ export default createOnyxDerivedValueConfig({
         previousDisplayNames = {};
         previousPersonalDetails = undefined;
         previousPolicies = undefined;
+        previousFraudAlertReportIDs = undefined;
+        previousCardList = undefined;
     },
 });
 
