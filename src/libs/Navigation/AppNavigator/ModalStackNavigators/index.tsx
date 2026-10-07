@@ -58,6 +58,7 @@ import type {
 
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {ParamListBase} from '@react-navigation/routers';
@@ -157,8 +158,9 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         const getScreenOptions = useCallback<typeof screenOptions>(
             ({route: optionRoute}) => {
                 // Extend common options if they are defined for the screen.
-                if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
-                    return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
+                const screenOverride = ObjectUtils.typedEntries(OPTIONS_PER_SCREEN).find(([name]) => name === optionRoute.name)?.[1];
+                if (screenOverride) {
+                    return {...screenOptions({route: optionRoute}), ...screenOverride};
                 }
                 return screenOptions({route: optionRoute});
             },
@@ -174,15 +176,20 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 role={isSmallScreenWidth ? 'dialog' : undefined}
             >
                 <ModalStackNavigator.Navigator>
-                    {Object.keys(screens as Required<Screens>).map((name) => (
-                        <ModalStackNavigator.Screen
-                            key={name}
-                            name={name}
-                            getComponent={(screens as Required<Screens>)[name as Screen]}
-                            // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
-                            options={getScreenOptions}
-                        />
-                    ))}
+                    {ObjectUtils.typedEntries(screens).map(([name, getComponent]) => {
+                        if (getComponent === undefined) {
+                            throw new Error(`Missing lazy component loader for modal screen ${name}`);
+                        }
+                        return (
+                            <ModalStackNavigator.Screen
+                                key={name}
+                                name={name}
+                                getComponent={getComponent}
+                                // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
+                                options={getScreenOptions}
+                            />
+                        );
+                    })}
                 </ModalStackNavigator.Navigator>
             </View>
         );

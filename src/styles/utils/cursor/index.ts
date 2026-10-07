@@ -1,60 +1,56 @@
-import type {ViewStyle} from 'react-native';
-
 import type CursorStyles from './types';
 
 /**
  * Web-only style.
- * NOTE: We are asserting "cursor" to valid react-native types, because it isn't possible to augment "cursor".
  */
 const cursor: CursorStyles = {
     cursorDefault: {
-        cursor: 'default' as ViewStyle['cursor'],
+        cursor: 'default',
     },
     cursorDisabled: {
-        cursor: 'not-allowed' as ViewStyle['cursor'],
+        cursor: 'not-allowed',
     },
     cursorPointer: {
         cursor: 'pointer',
     },
     cursorMove: {
-        cursor: 'move' as ViewStyle['cursor'],
+        cursor: 'move',
     },
     cursorUnset: {
-        cursor: 'unset' as ViewStyle['cursor'],
+        cursor: 'unset',
     },
     cursorAuto: {
         cursor: 'auto',
     },
     cursorZoomIn: {
-        cursor: 'zoom-in' as ViewStyle['cursor'],
+        cursor: 'zoom-in',
     },
     cursorGrab: {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- "grab" is a valid web cursor that react-native's CursorValue type doesn't include
-        cursor: 'grab' as ViewStyle['cursor'],
+        cursor: 'grab',
     },
     cursorGrabbing: {
-        cursor: 'grabbing' as ViewStyle['cursor'],
+        cursor: 'grabbing',
     },
     cursorZoomOut: {
-        cursor: 'zoom-out' as ViewStyle['cursor'],
+        cursor: 'zoom-out',
     },
     cursorInitial: {
-        cursor: 'initial' as ViewStyle['cursor'],
+        cursor: 'initial',
     },
     cursorText: {
-        cursor: 'text' as ViewStyle['cursor'],
+        cursor: 'text',
     },
     cursorEwResize: {
-        cursor: 'ew-resize' as ViewStyle['cursor'],
+        cursor: 'ew-resize',
     },
     cursorNsResize: {
-        cursor: 'ns-resize' as ViewStyle['cursor'],
+        cursor: 'ns-resize',
     },
     cursorNeswResize: {
-        cursor: 'nesw-resize' as ViewStyle['cursor'],
+        cursor: 'nesw-resize',
     },
     cursorNwseResize: {
-        cursor: 'nwse-resize' as ViewStyle['cursor'],
+        cursor: 'nwse-resize',
     },
 };
 
