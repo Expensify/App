@@ -110,4 +110,17 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 
 ## Deploying
 
-Not wired up yet: there is no route, account, or credential configuration in this package. Deploys will run `wrangler deploy --env staging|production` from CI, with the account ID and a scoped API token supplied as environment secrets. Never commit credentials, account IDs or `.dev.vars` files here. This is a public repository.
+| Environment | Worker | Route |
+| --- | --- | --- |
+| `staging` | `staging-new-expensify-assets` | `test-staging.new.expensify.com/*` until cutover, then `staging.new.expensify.com/*` |
+| `production` | `new-expensify-assets` | None until cutover, then `new.expensify.com/*` |
+
+Deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets. Run `npm run prepare-dist` first so `.assetsignore` is applied.
+
+To check the config without credentials or uploading anything:
+
+```bash
+npm run prepare-dist && npx wrangler deploy --dry-run --env staging
+```
+
+Never commit credentials, account IDs or `.dev.vars` files here. This is a public repository.

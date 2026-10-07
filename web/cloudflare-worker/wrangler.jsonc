@@ -24,6 +24,8 @@
     "env": {
         "staging": {
             "name": "staging-new-expensify-assets",
+            // Moves to staging.new.expensify.com at cutover; until then that host is still served by CloudFront.
+            "routes": [{"pattern": "test-staging.new.expensify.com/*", "zone_name": "expensify.com"}],
             "vars": {
                 "ENVIRONMENT": "staging",
             },
