@@ -270,7 +270,7 @@ describe('AddPersonalBankAccountPage', () => {
 
             // Then it is added straight away, because nothing in their private personal details changes
             expect(addPersonalBankAccount).toHaveBeenCalledTimes(1);
-            expect(jest.mocked(addPersonalBankAccount).mock.lastCall?.[5]).toBeUndefined();
+            expect(jest.mocked(addPersonalBankAccount).mock.lastCall?.[2]?.validateCode).toBeUndefined();
             expect(navigateSpy).not.toHaveBeenCalled();
         });
 
@@ -416,9 +416,9 @@ describe('AddPersonalBankAccountPage', () => {
 
             // Then the bank account is added with the new phone number and the magic code, so the backend can verify it
             expect(addPersonalBankAccount).toHaveBeenCalledTimes(1);
-            const [accountData, , , , , validateCode] = jest.mocked(addPersonalBankAccount).mock.lastCall ?? [];
+            const [accountData, , options] = jest.mocked(addPersonalBankAccount).mock.lastCall ?? [];
             expect(accountData).toEqual(expect.objectContaining({phoneNumber: '+14155550199'}));
-            expect(validateCode).toBe('123456');
+            expect(options?.validateCode).toBe('123456');
         });
 
         it('confirms the ownership details when the magic code step is reopened after the account ownership error', async () => {

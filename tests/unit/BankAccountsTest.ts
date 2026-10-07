@@ -77,7 +77,7 @@ describe('BankAccounts', () => {
         test('sends the magic code so the backend can verify changes to private personal details', () => {
             // Given a magic code entered because the bank account flow changes the user's private personal details
             // When the bank account is added with it
-            addPersonalBankAccount({phoneNumber: '+14155550199'}, undefined, undefined, undefined, undefined, '123456');
+            addPersonalBankAccount({phoneNumber: '+14155550199'}, undefined, {validateCode: '123456'});
 
             // Then the request carries the magic code alongside the personal details
             expect(mockWrite).toHaveBeenCalledWith(

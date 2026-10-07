@@ -165,10 +165,6 @@ function AddPersonalBankAccountPage() {
         return {accountData, hasPersonalDetailsChanges};
     };
 
-    const submitBankAccountForm = (validateCode?: string) => {
-        addPersonalBankAccount(getAccountData().accountData, personalPolicyID, undefined, undefined, undefined, validateCode);
-    };
-
     const pages = isManual ? pagesWithManualSetup : pagesWithPlaid;
     const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails)
         .map((index) => pages.at(index)?.pageName)
@@ -204,7 +200,8 @@ function AddPersonalBankAccountPage() {
         // only shown once the request succeeds (see the effect below).
         // Saving a changed name, address, or phone number to the user's private personal details requires a magic code, as it does from Profile > Private.
         if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
-            if (getAccountData().hasPersonalDetailsChanges) {
+            const {accountData, hasPersonalDetailsChanges} = getAccountData();
+            if (hasPersonalDetailsChanges) {
                 // The magic code goes to the account owner, so a copilot can't change private personal details here, matching Profile > Private
                 if (isActingAsDelegate) {
                     showDelegateNoAccessModal();
@@ -213,12 +210,12 @@ function AddPersonalBankAccountPage() {
                 nextPage();
                 return;
             }
-            submitBankAccountForm();
+            addPersonalBankAccount(accountData, personalPolicyID);
             return;
         }
         if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
             if (typeof data === 'string') {
-                submitBankAccountForm(data);
+                addPersonalBankAccount(getAccountData().accountData, personalPolicyID, {validateCode: data});
             }
             return;
         }
