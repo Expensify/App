@@ -14,7 +14,7 @@ import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {Gesture, GestureDetector, PointerType} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {Pie, PolarChart} from 'victory-native';
@@ -91,12 +91,21 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         }
     };
 
+    const toggleActiveSlice = (x: number, y: number) => {
+        const {centerX, centerY} = pieGeometry;
+        const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, innerRadius, processedSlices);
+        setActiveSliceIndex(sliceIndex === activeSliceIndex ? -1 : sliceIndex);
+    };
+
     // Hover gesture
     const hoverGesture = () =>
         Gesture.Hover()
             .onBegin((e) => {
                 'worklet';
 
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
                 isHovering.set(true);
                 cursorX.set(e.x);
                 cursorY.set(e.y);
@@ -106,23 +115,35 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
             .onUpdate((e) => {
                 'worklet';
 
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
                 cursorX.set(e.x);
                 cursorY.set(e.y);
                 tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
                 scheduleOnRN(updateActiveSlice, e.x, e.y);
             })
-            .onEnd(() => {
+            .onEnd((e) => {
                 'worklet';
 
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
                 isHovering.set(false);
                 scheduleOnRN(setActiveSliceIndex, -1);
                 scheduleOnRN(setIsHoveringOverPie, false);
             });
 
-    // Tap gesture for click/tap navigation
+    // Tap gesture: touch toggles the tooltip, other pointers navigate on click
     const tapGesture = () =>
         Gesture.Tap().onEnd((e) => {
             'worklet';
+
+            if (e.pointerType === PointerType.TOUCH) {
+                tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
+                scheduleOnRN(toggleActiveSlice, e.x, e.y);
+                return;
+            }
 
             const {centerX, centerY} = pieGeometry;
             const sliceIndex = findSliceAtPosition(e.x, e.y, centerX, centerY, radius, innerRadius, processedSlices);
