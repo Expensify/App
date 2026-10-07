@@ -8,6 +8,7 @@ import type {TextInputWithSymbolProps} from './types';
 
 import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 
+/** @deprecated Use NumericField or NumericInput instead. */
 function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
     const textInputRef = useRef<BaseTextInputRef | null>(null);
 

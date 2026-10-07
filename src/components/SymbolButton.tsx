@@ -24,6 +24,7 @@ type SymbolButtonProps = {
     textStyle?: StyleProp<TextStyle>;
 };
 
+/** @deprecated Only used by the deprecated TextInputWithSymbol. Compose `NumericInput.Symbol`, or a NumericField prefix or suffix, instead. */
 function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, textStyle}: SymbolButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const {translate} = useLocalize();

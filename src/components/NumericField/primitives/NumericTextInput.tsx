@@ -16,6 +16,7 @@ function NumericTextInput({
     onKeyPress,
     onBlur,
     accessibilityLabel,
+    autoCorrect,
     autoFocus,
     autoGrow,
     autoGrowExtraSpace,
@@ -28,11 +29,14 @@ function NumericTextInput({
     keyboardType,
     label,
     onFocus,
+    placeholder,
     prefixContainerStyle,
     prefixStyle,
     rightHandSideComponent,
     shouldApplyPaddingToContainer,
     shouldUseDefaultLineHeightForPrefix,
+    shouldUseFullInputHeight,
+    spellCheck,
     onSubmitEditing,
     submitBehavior = 'submit',
     testID,
@@ -54,6 +58,7 @@ function NumericTextInput({
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
+            autoCorrect={autoCorrect}
             autoFocus={autoFocus}
             autoGrow={autoGrow}
             autoGrowExtraSpace={autoGrowExtraSpace}
@@ -73,6 +78,7 @@ function NumericTextInput({
             onKeyPress={handleInputKeyPress}
             onSelectionChange={(event: TextInputSelectionChangeEvent) => handleSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end)}
             onSubmitEditing={onSubmitEditing}
+            placeholder={placeholder}
             prefixCharacter={prefixCharacter}
             prefixContainerStyle={prefixContainerStyle}
             prefixStyle={prefixStyle ?? styles.colorMuted}
@@ -81,6 +87,8 @@ function NumericTextInput({
             selection={selection}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
+            shouldUseFullInputHeight={shouldUseFullInputHeight}
+            spellCheck={spellCheck}
             submitBehavior={submitBehavior}
             testID={testID}
             textInputContainerStyles={containerStyle}

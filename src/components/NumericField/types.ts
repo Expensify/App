@@ -21,6 +21,7 @@ type NumericTextInputProps = {
 } & Pick<
     BaseTextInputProps,
     | 'accessibilityLabel'
+    | 'autoCorrect'
     | 'autoFocus'
     | 'autoGrow'
     | 'autoGrowExtraSpace'
@@ -34,12 +35,15 @@ type NumericTextInputProps = {
     | 'onBlur'
     | 'onFocus'
     | 'onSubmitEditing'
+    | 'placeholder'
     | 'prefixCharacter'
     | 'prefixContainerStyle'
     | 'prefixStyle'
     | 'rightHandSideComponent'
     | 'shouldApplyPaddingToContainer'
     | 'shouldUseDefaultLineHeightForPrefix'
+    | 'shouldUseFullInputHeight'
+    | 'spellCheck'
     | 'submitBehavior'
     | 'testID'
     | 'touchableInputWrapperStyle'

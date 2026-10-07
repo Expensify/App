@@ -1,24 +1,31 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import Button from '@components/Button';
 import ComposeProviders from '@components/ComposeProviders';
+import FormHelpMessage from '@components/FormHelpMessage';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {NumberWithSymbolFormProps, NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually/types';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
-import React from 'react';
+import React, {useState} from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import findAncestorWithStyle from '../utils/findAncestorWithStyle';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -69,8 +76,79 @@ function renderForm(props: Partial<NumberWithSymbolFormProps> = {}) {
     return render(wrapForm(props));
 }
 
+const PARENT_SIGN_TEST_ID = 'stateful-parent-sign';
+
+type StatefulParentWrapperProps = Omit<Partial<NumberWithSymbolFormProps>, 'value' | 'isNegative' | 'toggleNegative' | 'clearNegative' | 'onInputChange'> & {
+    /** Magnitude the parent starts with, like the absolute amount MoneyRequestAmountInput formats for the form */
+    initialValue?: string;
+
+    /** Sign the parent starts with, like `isOriginalAmountNegative` in TotalCell */
+    initialNegative?: boolean;
+
+    /** Spies notified whenever the parent's real handlers run */
+    onToggleNegative?: () => void;
+    onClearNegative?: () => void;
+    onValueChange?: (value: string) => void;
+};
+
+/**
+ * Owns the sign and the magnitude the same way MoneyRequestAmountForm and TotalCell do, so the form is exercised against
+ * a parent whose `isNegative` actually changes instead of against stateless `jest.fn()` callbacks.
+ */
+function StatefulParentWrapper({initialValue = '', initialNegative = false, onToggleNegative, onClearNegative, onValueChange, ...formProps}: StatefulParentWrapperProps) {
+    const [isNegative, setIsNegative] = useState(initialNegative);
+    const [value, setValue] = useState(initialValue);
+
+    const toggleNegative = () => {
+        onToggleNegative?.();
+        setIsNegative((prev) => !prev);
+    };
+
+    const clearNegative = () => {
+        onClearNegative?.();
+        setIsNegative(false);
+    };
+
+    const onInputChange = (newValue: string) => {
+        onValueChange?.(newValue);
+        setValue(newValue);
+    };
+
+    return (
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <NumberWithSymbolForm
+                symbol="$"
+                testID={INPUT_TEST_ID}
+                {...formProps}
+                value={value}
+                isNegative={isNegative}
+                toggleNegative={toggleNegative}
+                clearNegative={clearNegative}
+                onInputChange={onInputChange}
+            />
+            <Text testID={PARENT_SIGN_TEST_ID}>{isNegative ? 'negative' : 'positive'}</Text>
+        </ComposeProviders>
+    );
+}
+
+function getParentSign() {
+    return String(screen.getByTestId(PARENT_SIGN_TEST_ID).props.children);
+}
+
+/** Counts every minus the user can see: standalone sign nodes plus any minus inside the input's displayed text. */
+function countVisibleMinusSigns() {
+    const minusNodes = screen.queryAllByText('-').length;
+    const inputText = String(getTextInput().props.value ?? '');
+    return minusNodes + (inputText.match(/-/g)?.length ?? 0);
+}
+
+/** Minimum height the legacy amount row reserved for its floating error */
+const LEGACY_RESERVED_HEIGHT = variables.inputHeight + 2 * (variables.formErrorLineHeight + 8);
+
 function queryAllById(id: string) {
-    return screen.UNSAFE_queryAllByProps({id});
+    const byId = screen.UNSAFE_queryAllByProps({id});
+    const byTestId = screen.UNSAFE_queryAllByProps({testID: id});
+    return Array.from(new Set([...byId, ...byTestId]));
 }
 
 function getTextInput() {
@@ -94,6 +172,18 @@ function isTextSelection(value: unknown): value is TextSelection {
     }
 
     return typeof Reflect.get(value, 'start') === 'number' && typeof Reflect.get(value, 'end') === 'number';
+}
+
+/** Font size that wins in a style prop, read from the last style that sets one, as React Native applies them */
+function getLastFontSize(style: unknown): number | undefined {
+    if (Array.isArray(style)) {
+        return style.reduce<number | undefined>((fontSize, nestedStyle) => getLastFontSize(nestedStyle) ?? fontSize, undefined);
+    }
+    if (typeof style !== 'object' || style === null) {
+        return undefined;
+    }
+    const fontSize: unknown = Reflect.get(style, 'fontSize');
+    return typeof fontSize === 'number' ? fontSize : undefined;
 }
 
 function getTextInputSelection(input: ReturnType<typeof getTextInput>): TextSelection {
@@ -231,6 +321,44 @@ describe('NumberWithSymbolForm', () => {
 
             // Then the currency callback is not called
             expect(onCurrencyButtonPress).not.toHaveBeenCalled();
+        });
+
+        it('renders the display-input flip and currency buttons without their pill when shouldUseBorderlessButtons is set', async () => {
+            // Given a text input row with flip and currency buttons that should read as part of the field, like AmountField
+            renderForm({
+                displayAsTextInput: true,
+                value: '10',
+                currency: 'USD',
+                allowNegativeInput: true,
+                shouldShowFlipButton: true,
+                shouldShowCurrencyButton: true,
+                shouldUseBorderlessButtons: true,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When inspecting both trailing buttons
+            const buttons = screen.UNSAFE_getAllByType(Button);
+
+            // Then each one drops its background, also under the cursor, and keeps its press target
+            expect(buttons).toHaveLength(2);
+            for (const button of buttons) {
+                expect(StyleSheet.flatten(button.props.innerStyles)).toMatchObject({backgroundColor: 'transparent'});
+                expect(StyleSheet.flatten(button.props.hoverStyles)).toMatchObject({backgroundColor: 'transparent'});
+            }
+            expect(screen.getByLabelText('Select a currency, USD')).toBeOnTheScreen();
+        });
+
+        it('keeps the pill of the display-input trailing buttons by default', async () => {
+            // Given a text input row with a currency button, like AmountForm, which does not opt into borderless buttons
+            renderForm({displayAsTextInput: true, value: '10', currency: 'USD', shouldShowCurrencyButton: true});
+            await waitForBatchedUpdatesWithAct();
+
+            // When inspecting the currency button
+            const [currencyButton] = screen.UNSAFE_getAllByType(Button);
+
+            // Then it keeps the default button background
+            expect(currencyButton.props.innerStyles).toBeUndefined();
+            expect(currencyButton.props.hoverStyles).toBeUndefined();
         });
 
         it('calls onSubmitEditing on the display-input path', async () => {
@@ -535,9 +663,8 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.getByTestId('button_1')).toBeTruthy();
             expect(screen.getByTestId('button_<')).toBeTruthy();
             expect(screen.getByText('USD')).toBeTruthy();
-            // The landscape branch never renders the portrait `numberView` wrapper
-            expect(queryAllById('numberView')).toHaveLength(0);
-            expect(queryAllById('numPadContainerView').length).toBeGreaterThan(0);
+            // The landscape branch puts the amount in the fixed-width left column, beside the pad
+            expect(findAncestorWithStyle(screen.getByDisplayValue('10'), 'width', 400)).toBeDefined();
         });
 
         it('hides the currency button when the symbol is not pressable', async () => {
@@ -547,16 +674,6 @@ describe('NumberWithSymbolForm', () => {
 
             // Then the currency button is hidden
             expect(screen.queryByText('USD')).toBeNull();
-        });
-
-        it('hides the number pad when `shouldShowBigNumberPad` is false', async () => {
-            // Given a landscape form with the number pad disabled
-            renderForm({value: '10', shouldShowBigNumberPad: false});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then the number pad is hidden
-            expect(queryAllById('numPadContainerView')).toHaveLength(0);
-            expect(screen.queryByTestId('button_1')).toBeNull();
         });
 
         it('renders the error message and the footer', async () => {
@@ -674,10 +791,9 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '10', currency: 'USD'});
             await waitForBatchedUpdatesWithAct();
 
-            // Then the input is wrapped and the number pad is shown below it
+            // Then the input is wrapped in the amount area, which reserves the room of the floating error, and the number pad is shown below it
             expect(screen.getByDisplayValue('10')).toBeTruthy();
-            expect(queryAllById('numberView').length).toBeGreaterThan(0);
-            expect(queryAllById('numPadContainerView').length).toBeGreaterThan(0);
+            expect(findAncestorWithStyle(screen.getByDisplayValue('10'), 'minHeight', LEGACY_RESERVED_HEIGHT)).toBeDefined();
             expect(screen.getByTestId('button_1')).toBeTruthy();
         });
 
@@ -691,14 +807,44 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.getByDisplayValue('10')).toBeTruthy();
         });
 
-        // Known UX defect: the currency button renders with an empty label when currency is omitted.
-        it('renders the currency button with an empty label when currency is not provided', async () => {
-            // Given a portrait form without a currency
+        it('forwards contentWidth, containerStyle, and respects hideFocusedState when input is unwrapped', async () => {
+            const containerCustomStyle = {backgroundColor: 'rgb(255, 0, 0)'};
+            renderForm({
+                value: '10',
+                shouldWrapInputInContainer: false,
+                contentWidth: 120,
+                autoGrow: false,
+                hideFocusedState: false,
+                containerStyle: containerCustomStyle,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Verify TextInput instance received the forwarded props
+            const textInputInstance = screen.UNSAFE_getByType(TextInput);
+            expect(textInputInstance.props.hideFocusedState).toBe(false);
+            expect(textInputInstance.props.contentWidth).toBe(120);
+            expect(textInputInstance.props.autoGrow).toBe(false);
+            expect(textInputInstance.props.textInputContainerStyles).toEqual(containerCustomStyle);
+        });
+
+        it('does not render the currency button when currency is not provided', async () => {
+            // Given a portrait form without a currency, so the currency button would have nothing to show
             renderForm({value: '10'});
             await waitForBatchedUpdatesWithAct();
 
-            // Then the currency button has an empty currency label
-            expect(screen.getByLabelText('Select a currency, ')).toBeTruthy();
+            // Then no currency button is rendered, not even one with an empty label
+            expect(screen.queryByLabelText('Select a currency, ')).toBeNull();
+            expect(screen.getByDisplayValue('10')).toBeTruthy();
+        });
+
+        it('does not render the currency button without a currency when the number pad is hidden', async () => {
+            // Given a portrait form without a currency that composes the layout directly because the pad is hidden
+            renderForm({value: '10', shouldShowBigNumberPad: false});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the direct composition also skips the currency button
+            expect(screen.queryByLabelText('Select a currency, ')).toBeNull();
+            expect(screen.getByDisplayValue('10')).toBeTruthy();
         });
 
         it('renders the symbol in the suffix position', async () => {
@@ -723,17 +869,18 @@ describe('NumberWithSymbolForm', () => {
             expect(onSymbolButtonPress).not.toHaveBeenCalled();
         });
 
-        it('makes the inline symbol pressable when the input is not wrapped', async () => {
-            // Given an unwrapped input with a symbol callback
+        it('keeps the inline symbol passive when the caller makes it not pressable', async () => {
+            // Given an unwrapped input with a symbol callback whose caller turns the symbol off as a control, as TotalCell does
             const onSymbolButtonPress = jest.fn();
-            renderForm({value: '10', symbol: '$', onSymbolButtonPress, shouldWrapInputInContainer: false});
+            renderForm({value: '10', symbol: '$', onSymbolButtonPress, isSymbolPressable: false, shouldWrapInputInContainer: false});
             await waitForBatchedUpdatesWithAct();
 
             // When the inline symbol is pressed
             fireEvent.press(screen.getByText('$'));
 
-            // Then the symbol callback is called
-            expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
+            // Then the symbol is plain text: the callback is not called and no symbol selector button is rendered
+            expect(onSymbolButtonPress).not.toHaveBeenCalled();
+            expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.selectSymbolOrCurrency')})).toBeNull();
         });
 
         it('renders the currency button and delegates to onSymbolButtonPress', async () => {
@@ -818,17 +965,6 @@ describe('NumberWithSymbolForm', () => {
 
             // Then the error message is displayed
             expect(screen.getByText('Please enter an amount')).toBeTruthy();
-        });
-
-        it('renders the footer without the pad when `shouldShowBigNumberPad` is false', async () => {
-            // Given a portrait form with the number pad disabled and a footer
-            renderForm({value: '10', shouldShowBigNumberPad: false, footer: <Text>Portrait footer</Text>});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then the footer is shown and the pad buttons are hidden
-            expect(screen.getByText('Portrait footer')).toBeTruthy();
-            expect(queryAllById('numPadContainerView').length).toBeGreaterThan(0);
-            expect(screen.queryByTestId('button_1')).toBeNull();
         });
 
         it('assigns the text input instance to the separate `ref` prop', async () => {
@@ -976,7 +1112,7 @@ describe('NumberWithSymbolForm', () => {
                 expect(onInputChange).not.toHaveBeenCalled();
             });
 
-            it('keeps the caret position for a forward-delete keypress followed by pad deletion', async () => {
+            it('moves the caret position for a forward-delete keypress followed by pad deletion', async () => {
                 // Given a form displaying 1234 with the caret after 12
                 const onInputChange = jest.fn();
                 renderForm({value: '1234', decimals: 2, onInputChange});
@@ -993,9 +1129,9 @@ describe('NumberWithSymbolForm', () => {
                 fireEvent.press(screen.getByTestId('button_<'));
                 await waitForBatchedUpdatesWithAct();
 
-                // Then the expected character is removed and the caret position is preserved
+                // Then the expected character is removed and the caret moves back as expected for backspace
                 expect(screen.getByDisplayValue('14')).toBeTruthy();
-                expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
+                expect(getTextInput().props.selection).toEqual({start: 1, end: 1});
                 expect(onInputChange).toHaveBeenLastCalledWith('14');
             });
         });
@@ -1279,9 +1415,9 @@ describe('NumberWithSymbolForm', () => {
 
     describe('clearNegative on backspace', () => {
         it('calls clearNegative when backspace is pressed on an empty negative input', async () => {
-            // Given an empty negative input
+            // Given an empty negative input whose caller lets the user change the sign
             const clearNegative = jest.fn();
-            renderForm({value: '', decimals: 2, isNegative: true, clearNegative});
+            renderForm({value: '', decimals: 2, isNegative: true, allowFlippingAmount: true, toggleNegative: jest.fn(), clearNegative});
             await waitForBatchedUpdatesWithAct();
 
             // When backspace is pressed
@@ -1290,6 +1426,21 @@ describe('NumberWithSymbolForm', () => {
 
             // Then clearNegative is called
             expect(clearNegative).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not call clearNegative when the caller does not let the user change the sign', async () => {
+            // Given an empty negative input whose caller only shows the sign, as the Split Bill total does
+            const clearNegative = jest.fn();
+            renderForm({value: '', decimals: 2, isNegative: true, clearNegative});
+            await waitForBatchedUpdatesWithAct();
+
+            // When backspace is pressed
+            fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the sign stays, because the user may not change it
+            expect(clearNegative).not.toHaveBeenCalled();
+            expect(countVisibleMinusSigns()).toBe(1);
         });
 
         it('does not call clearNegative when the amount is not negative', async () => {
@@ -1318,6 +1469,706 @@ describe('NumberWithSymbolForm', () => {
 
             // Then clearNegative is not called
             expect(clearNegative).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Stateful sign synchronization', () => {
+        // Mirrors MoneyRequestAmountForm: full-screen responsive form with the number pad and a caller-owned sign
+        const amountFormProps: Partial<StatefulParentWrapperProps> = {
+            currency: 'USD',
+            decimals: 2,
+            allowFlippingAmount: true,
+        };
+
+        // Mirrors TotalCell: inline, unwrapped input edited with the hardware keyboard and a caller-owned sign
+        const totalCellProps: Partial<StatefulParentWrapperProps> = {
+            currency: 'USD',
+            decimals: 2,
+            allowFlippingAmount: true,
+            shouldWrapInputInContainer: false,
+            shouldShowBigNumberPad: false,
+            disableKeyboard: false,
+        };
+
+        describe('typing after negation', () => {
+            it('keeps a negative amount negative when a digit is typed', async () => {
+                // Given a parent that already holds a negative amount, like editing an existing -10 expense
+                const onToggleNegative = jest.fn();
+                const onValueChange = jest.fn();
+                render(
+                    <StatefulParentWrapper
+                        {...amountFormProps}
+                        initialValue="10"
+                        initialNegative
+                        onToggleNegative={onToggleNegative}
+                        onValueChange={onValueChange}
+                    />,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user appends a digit on the number pad, which must only change the magnitude
+                fireEvent.press(screen.getByTestId('button_5'));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the parent receives the unsigned magnitude and keeps its sign, because re-toggling here would silently flip the amount to positive
+                expect(onValueChange).toHaveBeenLastCalledWith('105');
+                expect(onToggleNegative).not.toHaveBeenCalled();
+                expect(getParentSign()).toBe('negative');
+                expect(countVisibleMinusSigns()).toBe(1);
+            });
+
+            it('keeps the amount negative when a digit is typed after pressing Flip', async () => {
+                // Given a positive amount that the user negates with the Flip button
+                const onToggleNegative = jest.fn();
+                const onValueChange = jest.fn();
+                render(
+                    <StatefulParentWrapper
+                        {...amountFormProps}
+                        initialValue="10"
+                        onToggleNegative={onToggleNegative}
+                        onValueChange={onValueChange}
+                    />,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByText(getFlipLabel()));
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user keeps typing, which must not undo the sign they just chose
+                fireEvent.press(screen.getByTestId('button_5'));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the only sign change is the Flip press, and both the parent and the UI still show a negative amount
+                expect(onValueChange).toHaveBeenLastCalledWith('105');
+                expect(onToggleNegative).toHaveBeenCalledTimes(1);
+                expect(getParentSign()).toBe('negative');
+                expect(countVisibleMinusSigns()).toBe(1);
+            });
+
+            it('keeps a negative inline amount negative when a digit is typed on the keyboard', async () => {
+                // Given an inline table cell editing an existing negative total, like TotalCell does for -10
+                const onToggleNegative = jest.fn();
+                const onValueChange = jest.fn();
+                render(
+                    <StatefulParentWrapper
+                        {...totalCellProps}
+                        initialValue="10"
+                        initialNegative
+                        onToggleNegative={onToggleNegative}
+                        onValueChange={onValueChange}
+                    />,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user appends a digit to the displayed amount with the hardware keyboard
+                const displayedText = String(getTextInput().props.value ?? '');
+                fireEvent.changeText(getTextInput(), `${displayedText}5`);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the parent keeps the negative sign, because a toggle here would save the total with the wrong sign on blur
+                expect(onValueChange).toHaveBeenLastCalledWith('105');
+                expect(onToggleNegative).not.toHaveBeenCalled();
+                expect(getParentSign()).toBe('negative');
+            });
+        });
+
+        describe('Flip button', () => {
+            it('shows the minus sign and notifies the parent when Flip is pressed', async () => {
+                // Given a positive amount in a form whose parent owns the sign
+                const onToggleNegative = jest.fn();
+                render(
+                    <StatefulParentWrapper
+                        {...amountFormProps}
+                        initialValue="10"
+                        onToggleNegative={onToggleNegative}
+                    />,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                expect(countVisibleMinusSigns()).toBe(0);
+
+                // When the user presses Flip to turn the amount into a credit
+                fireEvent.press(screen.getByText(getFlipLabel()));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the parent is negative and the UI shows exactly one minus, so what the user sees matches what gets submitted
+                expect(onToggleNegative).toHaveBeenCalledTimes(1);
+                expect(getParentSign()).toBe('negative');
+                expect(countVisibleMinusSigns()).toBe(1);
+                expect(screen.getByDisplayValue('10')).toBeTruthy();
+
+                // When the user presses Flip again to undo the negation
+                fireEvent.press(screen.getByText(getFlipLabel()));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the parent and the UI are both positive again
+                expect(onToggleNegative).toHaveBeenCalledTimes(2);
+                expect(getParentSign()).toBe('positive');
+                expect(countVisibleMinusSigns()).toBe(0);
+            });
+        });
+
+        describe('Backspace at caret 0', () => {
+            it('clears the sign when Backspace is pressed on an empty negative amount', async () => {
+                // Given an empty amount that the parent marks as negative, e.g. after Flip was pressed before any digit
+                const onClearNegative = jest.fn();
+                const onToggleNegative = jest.fn();
+                render(
+                    <StatefulParentWrapper
+                        {...amountFormProps}
+                        initialNegative
+                        onClearNegative={onClearNegative}
+                        onToggleNegative={onToggleNegative}
+                    />,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user presses Backspace, which is the only way to remove a lone minus
+                fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the parent clears its sign through clearNegative, not by toggling, and the minus disappears
+                expect(onClearNegative).toHaveBeenCalledTimes(1);
+                expect(onToggleNegative).not.toHaveBeenCalled();
+                expect(getParentSign()).toBe('positive');
+                expect(countVisibleMinusSigns()).toBe(0);
+            });
+
+            it('clears the sign when Backspace is pressed after all digits of a negative amount were deleted', async () => {
+                // Given a negative single-digit amount with the caret after the digit
+                const onClearNegative = jest.fn();
+                const onToggleNegative = jest.fn();
+                const onValueChange = jest.fn();
+                render(
+                    <StatefulParentWrapper
+                        {...amountFormProps}
+                        initialValue="5"
+                        initialNegative
+                        onClearNegative={onClearNegative}
+                        onToggleNegative={onToggleNegative}
+                        onValueChange={onValueChange}
+                    />,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 1}}});
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user deletes the digit on the number pad, which must leave the sign in place
+                fireEvent.press(screen.getByTestId('button_<'));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then only the magnitude is cleared and the parent is still negative
+                expect(onValueChange).toHaveBeenLastCalledWith('');
+                expect(onToggleNegative).not.toHaveBeenCalled();
+                expect(getParentSign()).toBe('negative');
+
+                // When the user presses Backspace once more on the now empty input to remove the lone minus
+                fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the parent clears its sign and no minus is left behind
+                expect(onClearNegative).toHaveBeenCalledTimes(1);
+                expect(onToggleNegative).not.toHaveBeenCalled();
+                expect(getParentSign()).toBe('positive');
+                expect(countVisibleMinusSigns()).toBe(0);
+            });
+
+            it('keeps the sign when keyboard Backspace is pressed with the caret before the digits', async () => {
+                // Given a negative amount with the caret placed before the first digit, right after the minus
+                const onClearNegative = jest.fn();
+                const onValueChange = jest.fn();
+                render(
+                    <StatefulParentWrapper
+                        {...amountFormProps}
+                        initialValue="5"
+                        initialNegative
+                        onClearNegative={onClearNegative}
+                        onValueChange={onValueChange}
+                    />,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user presses Backspace before the digits
+                fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then, as in the legacy form, only Backspace on an empty amount removes the parent's sign, so the form and the parent
+                // both still show the negative amount
+                expect(onClearNegative).not.toHaveBeenCalled();
+                expect(onValueChange).not.toHaveBeenCalled();
+                expect(getParentSign()).toBe('negative');
+                expect(countVisibleMinusSigns()).toBe(1);
+                expect(screen.getByDisplayValue('5')).toBeTruthy();
+            });
+
+            it('keeps the sign when the number pad Backspace is pressed with the caret before the digits', async () => {
+                // Given a negative amount with the caret placed before the first digit, right after the minus
+                const onClearNegative = jest.fn();
+                render(
+                    <StatefulParentWrapper
+                        {...amountFormProps}
+                        initialValue="5"
+                        initialNegative
+                        onClearNegative={onClearNegative}
+                    />,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user presses the number pad Backspace before the digits
+                fireEvent.press(screen.getByTestId('button_<'));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then, as in the legacy form, the pad deletes nothing and the form and the parent still agree the amount is negative
+                expect(onClearNegative).not.toHaveBeenCalled();
+                expect(getParentSign()).toBe('negative');
+                expect(countVisibleMinusSigns()).toBe(1);
+                expect(screen.getByDisplayValue('5')).toBeTruthy();
+            });
+        });
+    });
+
+    describe('Adapter composition', () => {
+        it('keeps a single gap between the number pad and the caller footer, which spaces itself from the keys', async () => {
+            // Given a full-screen form whose footer already carries the gap above it, like every legacy caller on touch screens
+            renderForm({value: '10', footer: <Text>Spaced footer</Text>});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the adapter takes back the gap NumericInput adds above its footer, so the two do not add up
+            const footerText = screen.getByText('Spaced footer');
+            expect(findAncestorWithStyle(footerText, 'marginTop', -20)).toBeDefined();
+            expect(findAncestorWithStyle(footerText, 'marginTop', 20)).toBeDefined();
+        });
+
+        it.each([
+            ['with the number pad', true],
+            ['without the number pad', false],
+        ])('forwards text input props on a full-screen form %s', async (_, shouldShowBigNumberPad) => {
+            // Given a full-screen form configured the way MoneyRequestAmountInput configures it
+            renderForm({
+                value: '10',
+                currency: 'USD',
+                shouldShowBigNumberPad,
+                accessibilityLabel: 'Amount (USD)',
+                keyboardType: 'number-pad',
+                disableKeyboard: false,
+                submitBehavior: 'blurAndSubmit',
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When inspecting the rendered input
+            const input = getTextInput();
+
+            // Then the caller's label, keyboard, and submit behavior reach the input instead of the primitive's defaults
+            expect(input.props.accessibilityLabel).toBe('Amount (USD)');
+            expect(input.props.keyboardType).toBe('number-pad');
+            expect(input.props.showSoftInputOnFocus).not.toBe(false);
+            expect(input.props.submitBehavior).toBe('blurAndSubmit');
+        });
+
+        it.each([['above the number pad', true, 20]])('floats the error over the bottom of the amount in portrait %s', async (_, shouldShowBigNumberPad, marginBottom) => {
+            // Given a portrait full-screen form showing an error, with or without the number pad
+            renderForm({value: '10', errorText: 'Please enter an amount', shouldShowBigNumberPad});
+            await waitForBatchedUpdatesWithAct();
+
+            // When reading the placement the adapter gives the error message
+            const [errorMessage] = screen.UNSAFE_getAllByType(FormHelpMessage);
+
+            // Then the error floats at the bottom of the amount container, so showing it never moves the amount or the pad
+            expect(screen.getByText('Please enter an amount')).toBeTruthy();
+            expect(StyleSheet.flatten(errorMessage?.props.style)).toEqual(expect.objectContaining({position: 'absolute', bottom: 0, marginBottom}));
+        });
+
+        it('keeps the error in the flow of the left column in landscape', async () => {
+            // Given a landscape full-screen form showing an error
+            mockIsInLandscapeMode.mockReturnValue(true);
+            renderForm({value: '10', errorText: 'Please enter an amount'});
+            await waitForBatchedUpdatesWithAct();
+
+            // When reading the placement the adapter gives the error message
+            const [errorMessage] = screen.UNSAFE_getAllByType(FormHelpMessage);
+
+            // Then the error is laid out under the actions of the left column instead of floating over the amount
+            expect(screen.getByText('Please enter an amount')).toBeTruthy();
+            expect(StyleSheet.flatten(errorMessage?.props.style)).not.toEqual(expect.objectContaining({position: 'absolute'}));
+        });
+
+        it('gives a split row the zero placeholder, full input height and hidden keyboard suggestions of the legacy amount input', async () => {
+            // Given an empty split row, which hides the symbol and shows the currency as the input's prefix
+            renderForm({value: '', hideSymbol: true, prefixCharacter: '$', shouldWrapInputInContainer: false, shouldShowBigNumberPad: false, isSymbolPressable: false});
+            await waitForBatchedUpdatesWithAct();
+
+            // When inspecting the underlying text input
+            const textInputInstance = screen.UNSAFE_getByType(TextInput);
+
+            // Then it keeps the legacy amount input look and behavior: a zero placeholder, no fixed native height, and no iPad suggestion bar
+            expect(textInputInstance.props.placeholder).toBe('0');
+            expect(textInputInstance.props.shouldUseFullInputHeight).toBe(true);
+            expect(textInputInstance.props.autoCorrect).toBe(false);
+            expect(textInputInstance.props.spellCheck).toBe(false);
+        });
+
+        it('keeps the legacy gap after the number of a split row, on top of the caller style', async () => {
+            // Given a split row whose caller styles the input, like useSplitParticipants does
+            const callerStyle = {lineHeight: undefined};
+            renderForm({value: '33.33', hideSymbol: true, prefixCharacter: '$', shouldWrapInputInContainer: false, shouldShowBigNumberPad: false, style: callerStyle});
+            await waitForBatchedUpdatesWithAct();
+
+            // When inspecting the underlying text input
+            const textInputInstance = screen.UNSAFE_getByType(TextInput);
+
+            // Then the input keeps the 4px right padding the legacy amount input always added, so the row is as wide as before without a scroll view
+            expect(StyleSheet.flatten(textInputInstance.props.inputStyle)).toMatchObject({paddingRight: 4});
+            expect(textInputInstance.props.inputStyle).toContain(callerStyle);
+        });
+
+        it('flips a root-owned sign on a full-screen form that allows negative input', async () => {
+            // Given a full-screen form whose value carries its own sign, so the parent does not own it
+            const onInputChange = jest.fn();
+            const toggleNegative = jest.fn();
+            renderForm({value: '10', currency: 'USD', decimals: 2, allowNegativeInput: true, allowFlippingAmount: true, onInputChange, toggleNegative});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user presses Flip
+            fireEvent.press(screen.getByText(getFlipLabel()));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the signed value is reported like any other edit and the minus renders, without a parent-owned toggle
+            expect(onInputChange).toHaveBeenLastCalledWith('-10');
+            expect(toggleNegative).not.toHaveBeenCalled();
+            expect(countVisibleMinusSigns()).toBe(1);
+        });
+
+        it('does not flip the parent-owned sign when the negative amount it already shows is re-applied', async () => {
+            // Given a full-screen form opened on a negative draft: the value arrives signed before the parent derives `isNegative`, as in MoneyRequestAmountForm
+            const numberFormRef = React.createRef<NumberWithSymbolFormRef>();
+            const toggleNegative = jest.fn();
+            renderForm({value: '-5.00', currency: 'USD', decimals: 2, allowFlippingAmount: true, toggleNegative, numberFormRef});
+            await waitForBatchedUpdatesWithAct();
+
+            // When MoneyRequestAmountInput re-applies the same formatted amount through the ref
+            act(() => {
+                numberFormRef.current?.updateNumber('-5.00');
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the amount stays negative without a sign toggle, because a toggle would mark the untouched draft as edited
+            expect(toggleNegative).not.toHaveBeenCalled();
+            expect(countVisibleMinusSigns()).toBe(1);
+            expect(screen.getByDisplayValue('5.00')).toBeTruthy();
+        });
+
+        it('shows the sign the parent sets without an edit and does not report it back', async () => {
+            // Given a full-screen form with a parent-owned sign showing a positive amount
+            const onInputChange = jest.fn();
+            const toggleNegative = jest.fn();
+            const props: Partial<NumberWithSymbolFormProps> = {value: '123', currency: 'USD', decimals: 2, allowFlippingAmount: true, onInputChange, toggleNegative};
+            const {rerender} = renderForm(props);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the parent makes the amount negative on its own, as re-initializing the sign after a tab switch does
+            rerender(wrapForm({...props, isNegative: true}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the minus appears next to the unchanged magnitude, and the parent is not told about a change it made itself
+            expect(countVisibleMinusSigns()).toBe(1);
+            expect(screen.getByDisplayValue('123')).toBeTruthy();
+            expect(onInputChange).not.toHaveBeenCalled();
+            expect(toggleNegative).not.toHaveBeenCalled();
+        });
+    });
+    describe('Caller-owned sign kept in the adapter', () => {
+        // Mirrors the Split Bill total in TotalCell: the sign is shown but the user may not change it
+        const splitBillTotalCellProps: Partial<StatefulParentWrapperProps> = {
+            currency: 'USD',
+            decimals: 2,
+            allowFlippingAmount: false,
+            shouldWrapInputInContainer: false,
+            shouldShowBigNumberPad: false,
+            disableKeyboard: false,
+        };
+
+        it('clears the digits but keeps the minus sign when the parent resets a negative amount to empty', async () => {
+            // Given a full-screen form showing a negative amount whose parent keeps the sign, e.g. a form reused after a return
+            const onInputChange = jest.fn();
+            const toggleNegative = jest.fn();
+            const props: Partial<NumberWithSymbolFormProps> = {currency: 'USD', decimals: 2, isNegative: true, allowFlippingAmount: true, onInputChange, toggleNegative};
+            const {rerender} = renderForm({...props, value: '123'});
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByDisplayValue('123')).toBeTruthy();
+
+            // When the parent resets the amount to empty while it is still negative
+            rerender(wrapForm({...props, value: ''}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the digits and the caret are reset as in the legacy form, and the minus sign the parent holds stays visible
+            expect(getTextInput().props.value).toBe('');
+            expect(getTextInput().props.selection).toEqual({start: 0, end: 0});
+            expect(countVisibleMinusSigns()).toBe(1);
+
+            // When the user types a digit on the number pad
+            fireEvent.press(screen.getByTestId('button_5'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the parent receives the new magnitude and keeps its sign, so the amount is negative
+            expect(onInputChange).toHaveBeenLastCalledWith('5');
+            expect(toggleNegative).not.toHaveBeenCalled();
+        });
+
+        it.each([['a full-screen form', {shouldWrapInputInContainer: true, shouldShowBigNumberPad: true}]])(
+            'locks the sign of a Split Bill on %s',
+            async (_, layoutProps: Partial<StatefulParentWrapperProps>) => {
+                // Given a negative Split Bill amount, whose caller shows the sign but does not let the user change it
+                const onToggleNegative = jest.fn();
+                const onClearNegative = jest.fn();
+                const onValueChange = jest.fn();
+                render(
+                    <StatefulParentWrapper
+                        {...splitBillTotalCellProps}
+                        {...layoutProps}
+                        initialValue="10"
+                        initialNegative
+                        onToggleNegative={onToggleNegative}
+                        onClearNegative={onClearNegative}
+                        onValueChange={onValueChange}
+                    />,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the sign is shown and no Flip button is offered
+                expect(countVisibleMinusSigns()).toBe(1);
+                expect(screen.queryByText(getFlipLabel())).toBeNull();
+
+                // When the user types a minus in front of the amount
+                fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: '-'}});
+                fireEvent.changeText(getTextInput(), '-10');
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the minus is rejected: the amount and the parent's sign are unchanged
+                expect(screen.getByDisplayValue('10')).toBeTruthy();
+                expect(onToggleNegative).not.toHaveBeenCalled();
+                expect(onValueChange).not.toHaveBeenCalled();
+                expect(getParentSign()).toBe('negative');
+
+                // When the user deletes the digits and presses Backspace on the empty amount
+                fireEvent.changeText(getTextInput(), '');
+                await waitForBatchedUpdatesWithAct();
+                fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then only the digits are gone and the sign stays
+                expect(onValueChange).toHaveBeenLastCalledWith('');
+                expect(onClearNegative).not.toHaveBeenCalled();
+                expect(onToggleNegative).not.toHaveBeenCalled();
+                expect(getParentSign()).toBe('negative');
+                expect(countVisibleMinusSigns()).toBe(1);
+            },
+        );
+
+        it('keeps the sign when a positive number replaces the whole negative amount', async () => {
+            // Given a negative amount with all of its digits selected, on a form that lets the user flip the sign
+            const onToggleNegative = jest.fn();
+            const onClearNegative = jest.fn();
+            const onValueChange = jest.fn();
+            render(
+                <StatefulParentWrapper
+                    currency="USD"
+                    decimals={2}
+                    allowFlippingAmount
+                    initialValue="5"
+                    initialNegative
+                    onToggleNegative={onToggleNegative}
+                    onClearNegative={onClearNegative}
+                    onValueChange={onValueChange}
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 1}}});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user types 7 over the selection
+            fireEvent.changeText(getTextInput(), '7');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then, as in the legacy form, editing the digits never changes the parent's sign, so the parent and the form both show -7
+            expect(onValueChange).toHaveBeenLastCalledWith('7');
+            expect(onClearNegative).not.toHaveBeenCalled();
+            expect(onToggleNegative).not.toHaveBeenCalled();
+            expect(getParentSign()).toBe('negative');
+            expect(countVisibleMinusSigns()).toBe(1);
+        });
+
+        it('flips the parent sign without reporting the unchanged magnitude', async () => {
+            // Given a positive amount on a form that lets the user flip the sign
+            const onToggleNegative = jest.fn();
+            const onValueChange = jest.fn();
+            render(
+                <StatefulParentWrapper
+                    currency="USD"
+                    decimals={2}
+                    allowFlippingAmount
+                    initialValue="12"
+                    onToggleNegative={onToggleNegative}
+                    onValueChange={onValueChange}
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user presses Flip
+            fireEvent.press(screen.getByText(getFlipLabel()));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the parent's sign changes, like the legacy flip button, and the form shows it
+            expect(onToggleNegative).toHaveBeenCalledTimes(1);
+            expect(onValueChange).not.toHaveBeenCalled();
+            expect(getParentSign()).toBe('negative');
+            expect(countVisibleMinusSigns()).toBe(1);
+            expect(screen.getByDisplayValue('12')).toBeTruthy();
+        });
+
+        it('reports a pasted magnitude before flipping the sign, so a parent that reports its signed amount on a flip ends on it', async () => {
+            // Given a parent that, like MoneyRequestAmountForm, reports its signed amount whenever its sign flips, by reading the
+            // magnitude back from the form, and a positive amount with all of its digits selected
+            const numberFormRef = React.createRef<NumberWithSymbolFormRef>();
+            const reportedAmounts: string[] = [];
+            function SignedAmountParent() {
+                const [isNegative, setIsNegative] = useState(false);
+                return (
+                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                        <NumberWithSymbolForm
+                            symbol="$"
+                            testID={INPUT_TEST_ID}
+                            currency="USD"
+                            decimals={2}
+                            value="5"
+                            allowFlippingAmount
+                            isNegative={isNegative}
+                            numberFormRef={numberFormRef}
+                            onInputChange={(magnitude) => reportedAmounts.push(magnitude && isNegative ? `-${magnitude}` : magnitude)}
+                            toggleNegative={() => {
+                                const currentNumber = numberFormRef.current?.getNumber() ?? '';
+                                reportedAmounts.push(currentNumber && !isNegative ? `-${currentNumber}` : currentNumber);
+                                setIsNegative(!isNegative);
+                            }}
+                        />
+                    </ComposeProviders>
+                );
+            }
+            render(<SignedAmountParent />);
+            await waitForBatchedUpdatesWithAct();
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 1}}});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user pastes -12 over the selection
+            fireEvent.changeText(getTextInput(), '-12');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the magnitude is reported first and the flip last, so the last amount the parent reports is -12
+            expect(reportedAmounts).toEqual(['12', '-12']);
+            expect(screen.getByDisplayValue('12')).toBeTruthy();
+            expect(countVisibleMinusSigns()).toBe(1);
+        });
+
+        it('flips the sign exactly once for a minus that arrives both as a key press and as a text change', async () => {
+            // Given a positive amount on a form that lets the user flip the sign, typed on a web keyboard, which emits both events
+            const onToggleNegative = jest.fn();
+            render(
+                <StatefulParentWrapper
+                    currency="USD"
+                    decimals={2}
+                    allowFlippingAmount
+                    shouldShowBigNumberPad={false}
+                    disableKeyboard={false}
+                    initialValue="5"
+                    onToggleNegative={onToggleNegative}
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user types a minus before the digits
+            fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: '-'}});
+            fireEvent.changeText(getTextInput(), '-5');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the sign flips once and the caret stays before the digits
+            expect(onToggleNegative).toHaveBeenCalledTimes(1);
+            expect(getParentSign()).toBe('negative');
+            expect(screen.getByDisplayValue('5')).toBeTruthy();
+            expect(getTextInput().props.selection).toEqual({start: 0, end: 0});
+        });
+
+        it.each([
+            ['a minus inside the digits', '5-0'],
+            ['a minus in front of too many digits', `-${'9'.repeat(CONST.IOU.AMOUNT_MAX_LENGTH + 1)}`],
+        ])('rejects %s without flipping the sign', async (_, text) => {
+            // Given a positive amount on a form that lets the user flip the sign
+            const onToggleNegative = jest.fn();
+            const onValueChange = jest.fn();
+            render(
+                <StatefulParentWrapper
+                    currency="USD"
+                    decimals={2}
+                    allowFlippingAmount
+                    initialValue="50"
+                    onToggleNegative={onToggleNegative}
+                    onValueChange={onValueChange}
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user enters text the amount cannot accept
+            fireEvent.changeText(getTextInput(), text);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the edit is rejected as a whole: neither the digits nor the sign change
+            expect(screen.getByDisplayValue('50')).toBeTruthy();
+            expect(onValueChange).not.toHaveBeenCalled();
+            expect(onToggleNegative).not.toHaveBeenCalled();
+            expect(getParentSign()).toBe('positive');
+        });
+
+        it('reserves the room of the floating portrait error whether or not an error is shown', async () => {
+            // Given a portrait full-screen form without an error
+            const props: Partial<NumberWithSymbolFormProps> = {value: '10', currency: 'USD', decimals: 2};
+            const {rerender} = renderForm(props);
+            await waitForBatchedUpdatesWithAct();
+            const getOuterContainer = () => findAncestorWithStyle(screen.getByDisplayValue('10'), 'minHeight', LEGACY_RESERVED_HEIGHT);
+            expect(getOuterContainer()).toBeDefined();
+
+            // When validation shows an error after a submit
+            rerender(wrapForm({...props, errorText: 'Invalid amount'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the container keeps the same reserved height and the error floats over it, so nothing moves
+            expect(getOuterContainer()).toBeDefined();
+            const [errorMessage] = screen.UNSAFE_getAllByType(FormHelpMessage);
+            expect(StyleSheet.flatten(errorMessage?.props.style)).toEqual(expect.objectContaining({position: 'absolute'}));
+        });
+
+        it('counts the parent minus sign in the dynamic font size, like the legacy form', async () => {
+            // Given a long amount whose font scales down, shown first as positive
+            const props: Partial<NumberWithSymbolFormProps> = {value: '1234567.89', currency: 'USD', decimals: 2, shouldUseDynamicFontSize: true};
+            const {rerender} = renderForm(props);
+            await waitForBatchedUpdatesWithAct();
+            const positiveFontSize = getLastFontSize(screen.UNSAFE_getByType(TextInput).props.inputStyle);
+
+            // When the parent makes the amount negative
+            rerender(wrapForm({...props, isNegative: true}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the extra minus shrinks the amount further, and the minus uses the same font size as the digits
+            const negativeFontSize = getLastFontSize(screen.UNSAFE_getByType(TextInput).props.inputStyle);
+            expect(positiveFontSize).toEqual(expect.any(Number));
+            expect(negativeFontSize).toBeLessThan(positiveFontSize ?? 0);
+            expect(StyleSheet.flatten(screen.getByText('-').props.style)).toMatchObject({fontSize: negativeFontSize});
         });
     });
 });

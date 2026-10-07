@@ -1,7 +1,8 @@
 {
     "ignoreIssues": {
         "src/hooks/usePersonalDetails.ts": ["exports"],
-        "src/libs/PersonalDetailsUtils.ts": ["exports"]
+        "src/libs/PersonalDetailsUtils.ts": ["exports"],
+        "src/components/TextInputWithSymbol/index.tsx": ["files"]
     },
     "workspaces": {
         ".": {
