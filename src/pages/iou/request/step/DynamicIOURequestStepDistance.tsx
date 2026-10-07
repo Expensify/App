@@ -553,7 +553,7 @@ function DynamicIOURequestStepDistance({
             if (isEditingSplit && originalSplitTransactionDraft) {
                 setDraftSplitTransaction(
                     CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    originalSplitTransactionDraft,
+                    originalSplitTransactionDraft ?? transaction,
                     {
                         waypoints: currentTransaction?.comment?.waypoints,
                         routes: currentTransaction?.routes,
@@ -703,7 +703,7 @@ function DynamicIOURequestStepDistance({
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
             setDraftSplitTransaction(
                 CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                splitDraftTransaction,
+                splitDraftTransaction ?? transaction,
                 {distance: distanceAsFloat},
                 getCurrencyDecimals,
                 getCurrencySymbol,

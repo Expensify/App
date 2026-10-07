@@ -98,7 +98,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
         }
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, splitDraftTransaction ?? transaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 

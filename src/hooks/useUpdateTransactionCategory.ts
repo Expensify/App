@@ -91,7 +91,7 @@ function useUpdateTransactionCategory({
 
     const updateCategory = (category: string) => {
         if (isSplitUpdate) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category}, getCurrencyDecimals, getCurrencySymbol, policy);
+            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction ?? transaction, {category}, getCurrencyDecimals, getCurrencySymbol, policy);
             return;
         }
 

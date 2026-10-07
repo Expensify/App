@@ -40,6 +40,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
+    const transaction = useTransactionSelector(transactionID, (t) => t);
 
     const merchantValue = merchantState?.merchant ?? '';
     const displayMerchantValue = isUntypedPlaceholderMerchant(merchantState?.isMerchantSet, merchantValue) ? '' : merchantValue;
@@ -107,10 +108,10 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
             if (newMerchant.trim() === '') {
-                setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
+                setDraftSplitTransaction(transactionID, splitDraftTransaction ?? transaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
                 return;
             }
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, splitDraftTransaction ?? transaction, {merchant: newMerchant}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 

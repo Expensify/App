@@ -202,7 +202,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                                 onToggleBillable={(billable) => {
-                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, {billable}, getCurrencyDecimals, getCurrencySymbol);
+                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction ?? transaction, {billable}, getCurrencyDecimals, getCurrencySymbol);
                                 }}
                                 isConfirmed={isConfirmed}
                             />
