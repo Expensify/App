@@ -3,7 +3,7 @@ import {waitFor} from '@testing-library/react-native';
 
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {detachReceipt, replaceReceipt} from '@libs/actions/IOU/Receipt';
+import {detachReceipt, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -955,6 +955,28 @@ describe('actions/IOU/Receipt', () => {
             const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             expect(violations).toBeDefined();
             expect(Array.isArray(violations)).toBe(true);
+        });
+    });
+
+    describe('setMoneyRequestReceipt', () => {
+        it('should clear the previous receipt page count when a new receipt is set', async () => {
+            // Given a draft transaction whose current receipt has a server-provided page count
+            const transactionID = 'setReceiptTransactionID';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                ...createRandomTransaction(1),
+                transactionID,
+                receipt: {source: 'old-receipt.pdf', filename: 'old-receipt.pdf', pageCount: 3},
+            });
+            await waitForBatchedUpdates();
+
+            // When the receipt is replaced with a different file
+            setMoneyRequestReceipt(transactionID, 'new-receipt.pdf', 'new-receipt.pdf', true, 'application/pdf');
+            await waitForBatchedUpdates();
+
+            // Then the old page count is dropped because it described the previous file, not the new one
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.receipt?.source).toBe('new-receipt.pdf');
+            expect(transaction?.receipt?.pageCount).toBeUndefined();
         });
     });
 });

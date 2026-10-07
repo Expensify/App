@@ -1,5 +1,6 @@
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
@@ -105,13 +106,17 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
     };
 
+    // Only the read-only rows render HTML, so the editable input doesn't re-parse the description on every keystroke
+    const descriptionHTML = isReadOnly && iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined;
+
     // On the bordered form the editable description is a text input, so a locked one has to read as a disabled input
     // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
     const readOnlyDescription = shouldUseDropdownRows ? (
         <ExpenseFieldRow
             name={translate('common.description')}
-            value={iouComment}
-            numberOfLinesValue={2}
+            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
+            hasValueComponent={!!descriptionHTML}
+            accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML)}` : undefined}
             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
             onPress={openDescriptionPage}
             isDisabled={didConfirm}
@@ -119,21 +124,14 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
         />
     ) : (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly}
-            shouldParseTitle
-            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-            title={iouComment}
-            description={translate('common.description')}
-            onPress={openDescriptionPage}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            disabled={didConfirm}
-            interactive={!isReadOnly}
-            numberOfLinesTitle={2}
-            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+        <MenuItemFieldHTML
+            name={translate('common.description')}
+            value={descriptionHTML}
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-        />
+        >
+            {!iouComment && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+        </MenuItemFieldHTML>
     );
 
     return (

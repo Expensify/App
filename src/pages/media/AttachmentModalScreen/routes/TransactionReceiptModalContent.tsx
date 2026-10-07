@@ -178,8 +178,15 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     // A self DM expense is unreported, so its thread cannot be found from transaction.reportID. The receipt
     // screen was opened from that thread, and the parent action names this transaction.
     const transactionThread = transactionThreadReport ?? (getLinkedTransactionID(parentReportAction) === transaction?.transactionID ? report : undefined);
-    const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules});
-    const canDeleteReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isDeleteAction: true, transaction, rules});
+    const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules, reportNameValuePairs: undefined});
+    const canDeleteReceipt = canEditFieldOfMoneyRequest({
+        reportAction: parentReportAction,
+        fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+        isDeleteAction: true,
+        transaction,
+        rules,
+        reportNameValuePairs: undefined,
+    });
 
     const receiptFilename = transaction?.receipt?.filename;
     const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
