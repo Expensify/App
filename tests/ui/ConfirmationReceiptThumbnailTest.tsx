@@ -55,7 +55,7 @@ function renderThumbnail(props: TestProps = {}) {
         receiptPageCount: 0,
         isOdometerDistanceRequest: false,
         isDistanceRequest: false,
-        isManualDistanceRequest: false,
+        isMapDistanceRequest: false,
         compactReceiptContainerStyle: undefined,
         onCompactReceiptContainerLayout: jest.fn(),
         onReceiptLoad: jest.fn(),

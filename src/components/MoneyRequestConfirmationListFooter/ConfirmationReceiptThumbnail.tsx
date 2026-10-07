@@ -75,8 +75,8 @@ type ConfirmationReceiptThumbnailProps = {
     /** Whether the active transaction is a distance request (drives object-position behaviour) */
     isDistanceRequest: boolean;
 
-    /** Manual distance receipts can be user-uploaded PDFs, so they keep the page count that generated map receipts hide */
-    isManualDistanceRequest: boolean;
+    /** Generated map receipts are drawn as an e-receipt card, so their stored PDF page count is never shown */
+    isMapDistanceRequest: boolean;
 
     /** Compact-mode container style (undefined when not in compact mode) */
     compactReceiptContainerStyle: StyleProp<ViewStyle> | undefined;
@@ -115,7 +115,7 @@ function ConfirmationReceiptThumbnail({
     receiptPageCount,
     isOdometerDistanceRequest,
     isDistanceRequest,
-    isManualDistanceRequest,
+    isMapDistanceRequest,
     compactReceiptContainerStyle,
     onPDFLoadError,
     onPDFPassword,
@@ -144,7 +144,6 @@ function ConfirmationReceiptThumbnail({
     const receiptThumbnailStyle = [styles.h100, styles.flex1];
     const isPDF = isLocalFile && Str.isPDF(receiptFilename);
     const effectiveReceiptPageCount = receiptPageCount || (detectedPDF.source === resolvedReceiptImage ? detectedPDF.pageCount : 0);
-    const isMapDistanceRequest = isDistanceRequest && !isOdometerDistanceRequest && !isManualDistanceRequest;
     const shouldShowReceiptPageCount = effectiveReceiptPageCount > 1 && Str.isPDF(receiptFilename) && !isLoadingReceipt && isReceiptLoaded && !isMapDistanceRequest;
 
     const resetDetectedPDF = () => {
