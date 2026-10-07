@@ -1551,6 +1551,11 @@ function hasAccountingConnections(policy: OnyxEntry<Policy>) {
     return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy);
 }
 
+/** Whether the user can add a category to the workspace straight from an expense's category picker */
+function canCreateCategoryInSitu(policy: OnyxEntry<Policy>, login?: string) {
+    return canEditWorkspaceSettings(policy, login) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
+}
+
 function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
     return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
 }
@@ -2792,6 +2797,7 @@ export {
     goBackFromInvalidPolicy,
     hasAccountingFeatureConnection,
     hasAccountingConnections,
+    canCreateCategoryInSitu,
     shouldShowSyncError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,

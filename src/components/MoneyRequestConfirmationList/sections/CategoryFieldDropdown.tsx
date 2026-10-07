@@ -2,13 +2,19 @@ import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal'
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {canCreateCategoryInSitu} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -35,6 +41,7 @@ type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
  */
 function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
     const {reportID, isEditingSplitBill, action} = useConfirmationFields();
+    const currentUserLogin = useCurrentUserPersonalDetails().login;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -51,6 +58,14 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose
         isEditingSplit: isEditingSplitBill,
     });
 
+    const openAddCategory = () => {
+        onClose();
+        TransitionTracker.runAfterTransitions({
+            callback: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path)),
+            waitForUpcomingTransition: true,
+        });
+    };
+
     const handleSelected = (item: ListItem) => {
         // `CategoryPickerModal` hands back an empty item when the selected category is tapped again, clearing it.
         updateCategory(item.searchText ?? '');
@@ -64,6 +79,7 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose
             policyID={policy?.id}
             selectedCategory={selectedCategory}
             onSelected={handleSelected}
+            onAddCategory={canCreateCategoryInSitu(policy, currentUserLogin) ? openAddCategory : undefined}
         />
     );
 }

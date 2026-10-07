@@ -1,16 +1,25 @@
+import Icon from '@components/Icon';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +56,9 @@ type CategoryPickerModalProps = {
     /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling. */
     shouldFitContentHeight?: boolean;
 
+    /** Shows a header with an add button, for users who can add a category to the workspace */
+    onAddCategory?: () => void;
+
     /** Whether the pop-over may flip to the other side of the anchor when it overflows. It shifts by a whole pop-over height, so a caller that already picked the side turns this off. */
     shouldSwitchPositionIfOverflow?: boolean;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
@@ -64,8 +76,12 @@ function CategoryPickerModal({
     popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
     shouldFitContentHeight = false,
     shouldSwitchPositionIfOverflow = true,
+    onAddCategory,
 }: CategoryPickerModalProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -77,7 +93,8 @@ function CategoryPickerModal({
 
     const categoriesCount = policyCategories ?? 0;
     const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
+    const headerHeight = onAddCategory ? variables.componentSizeNormal : 0;
+    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable}) + headerHeight;
 
     // A bottom sheet is sized by the screen, so the content estimate only applies to the pop-over.
     const resolvedHeight = shouldFitContentHeight && !isSmallScreenWidth ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
@@ -111,6 +128,26 @@ function CategoryPickerModal({
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
+                {!!onAddCategory && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, StyleUtils.getHeight(headerHeight)]}>
+                        <Text style={styles.textLabelSupporting}>{translate('common.category')}</Text>
+                        <Tooltip text={translate('workspace.categories.addCategory')}>
+                            <PressableWithFeedback
+                                accessibilityLabel={translate('workspace.categories.addCategory')}
+                                role={CONST.ROLE.BUTTON}
+                                onPress={onAddCategory}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ADD_CATEGORY_BUTTON}
+                            >
+                                <Icon
+                                    src={icons.Plus}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                            </PressableWithFeedback>
+                        </Tooltip>
+                    </View>
+                )}
                 <CategoryPicker
                     onRenderedRowCountChange={setRenderedRowCount}
                     selectedCategory={selectedCategory}
