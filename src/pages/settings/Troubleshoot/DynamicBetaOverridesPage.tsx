@@ -1,7 +1,7 @@
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
@@ -70,7 +70,7 @@ function DynamicBetaOverridesPage() {
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={isProduction}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('initialSettingsPage.troubleshoot.betaOverrides')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />

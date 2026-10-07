@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -74,7 +74,7 @@ function DynamicExitSurveyConfirmPage() {
             testID="DynamicExitSurveyConfirmPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate(shouldShowQuickTips ? 'exitSurvey.goToExpensifyClassic' : 'exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />

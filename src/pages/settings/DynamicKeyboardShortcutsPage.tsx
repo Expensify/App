@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -52,7 +52,7 @@ function DynamicKeyboardShortcutsPage() {
             includeSafeAreaPaddingBottom={false}
             testID="KeyboardShortcutsPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('keyboardShortcutsPage.title')}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />
