@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Bitte wähle das heutige oder ein zukünftiges Datum aus',
             invalidTimeShouldBeFuture: 'Bitte wähle eine Zeit, die mindestens eine Minute in der Zukunft liegt',
             invalidCharacter: 'Ungültiges Zeichen',
+            invalidField: (fieldName) => `Ungültiges Feld: ${fieldName}`,
             enterMerchant: 'Geben Sie einen Händlernamen ein',
             enterAmount: 'Betrag eingeben',
             missingMerchantName: 'Fehlender Händlername',
@@ -7641,6 +7642,20 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     invalidAddress: 'Bitte geben Sie eine gültige Adresse ein',
                     distanceTooLarge: 'Die Entfernung ist zu groß.',
                 },
+                workArrangement: {
+                    title: 'Standard-Arbeitsmodell',
+                    officeBasedTitle: 'Bürobasiert',
+                    officeBasedHelp: 'Mitglied pendelt in ein Büro. Gewöhnliche Pendelfahrten sind von der Erstattung ausgeschlossen.',
+                    noRegularWorkplaceTitle: 'Remote oder mobil',
+                    noRegularWorkplaceHelp: 'Mitglied arbeitet von zu Hause oder reist zwischen verschiedenen Standorten ohne festes Büro, daher gelten die Pendelregeln nicht.',
+                    startingPrompt: {
+                        title: 'Legen Sie eine typische Arbeitsregelung fest',
+                        prompt: 'Wählen Sie die Vereinbarung, die für die meisten aktuellen Mitglieder gilt. Sie können Mitglieder später einzeln oder gesammelt aktualisieren.',
+                        officeBasedHelp: 'Die meisten Mitglieder pendeln zu einem Büro. Normale Arbeitswege sind ausgeschlossen.',
+                        noRegularWorkplaceHelp: 'Die meisten Mitglieder arbeiten remote, daher gelten Ausschlüsse für den Weg zwischen Wohnung und Arbeitsstätte in der Regel nicht.',
+                        confirm: 'Anwenden',
+                    },
+                },
             },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',
@@ -9506,6 +9521,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `hat die standardmäßige Arbeitsregelung in ${arrangement} geändert (zuvor ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `Ausschluss von Arbeitswegen in eine feste Entfernung pro Abrechnung geändert (zuvor ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `Ausschluss von Pendelstrecken geändert, um nach Wohnort und Büro zu berechnen (zuvor ${previousMethod})`,
@@ -10091,6 +10111,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             title: 'Berichte zusammenführen',
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
         },
+        periodSoFar: ({period}: {period: string}) => `${period} bisher`,
+        weekOf: ({date}: {date: string}) => `Woche vom ${date}`,
         saveEdits: {
             title: 'Änderungen speichern',
             prompt: ({name}: {name: string}) => `Änderungen an „${name}“ aktualisieren oder eine neue erstellen?`,
@@ -10145,6 +10167,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
+        switchToTableView: 'Zur Tabellenansicht wechseln',
+        switchToExpenseView: 'Zur Ausgabenansicht wechseln',
     },
     report: {
         newReport: {

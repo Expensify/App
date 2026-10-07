@@ -8,13 +8,11 @@ import React from 'react';
 
 import type {ReportDetailsRequestData} from './types';
 
+import ReportDetailsMenuItems from './ReportDetailsMenuItems';
 import useReportDetailsRequestData from './useReportDetailsRequestData';
 
 type ReportDetailsRequestActionsProps = {
     reportID: string;
-
-    /** Renders the menu rows, including the track-expense rows built from the request data */
-    renderMenu: (requestData?: ReportDetailsRequestData) => React.ReactNode;
 
     /** Confirms the delete, navigates away and then runs the passed delete */
     showDeleteModal: (requestData: ReportDetailsRequestData | undefined, onDelete: () => void) => Promise<void>;
@@ -24,14 +22,17 @@ type ReportDetailsRequestActionsProps = {
 };
 
 /** Menu and Delete row of the money cases, the only place the request data subscriptions are mounted */
-function ReportDetailsRequestActions({reportID, renderMenu, showDeleteModal, deleteTransaction}: ReportDetailsRequestActionsProps) {
+function ReportDetailsRequestActions({reportID, showDeleteModal, deleteTransaction}: ReportDetailsRequestActionsProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowSplit', 'Trashcan']);
     const requestData = useReportDetailsRequestData(reportID);
     const {shouldShowDeleteButton, shouldShowEditSplitOnDeleteAction, deleteMenuItemTitle} = requestData;
 
     return (
         <>
-            {renderMenu(requestData)}
+            <ReportDetailsMenuItems
+                reportID={reportID}
+                requestData={requestData}
+            />
 
             {shouldShowDeleteButton && (
                 <MenuItemAction
