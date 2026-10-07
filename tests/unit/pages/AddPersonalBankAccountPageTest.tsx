@@ -366,6 +366,22 @@ describe('AddPersonalBankAccountPage', () => {
             expect(showDelegateNoAccessModal).not.toHaveBeenCalled();
         });
 
+        it('does not send another magic code when going back to the magic code step after the bank account is added', async () => {
+            // Given a bank account that was added from the magic code step
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldShowSuccess: true});
+            });
+
+            // When the user goes back from the success step, which lands on the magic code step again
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
+
+            // Then the code form isn't shown, so no new magic code is sent, and the page returns to the success step
+            expect(ValidateCodeActionContent).not.toHaveBeenCalled();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.SUCCESS, undefined));
+        });
+
         it('requests the magic code for updating personal details, the reason the backend verifies it against', async () => {
             // Given a user on the magic code step after changing their phone number
             await act(async () => {
