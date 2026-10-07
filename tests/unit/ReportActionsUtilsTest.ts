@@ -6791,6 +6791,23 @@ describe('ReportActionsUtils', () => {
             ).toEqual(['comment', 0]);
         });
 
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 12:00:00.000'}},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [2]}},
+        ])('keeps an older unread marker when only a filtered $actionName arrives offline', ({actionName, originalMessage}) => {
+            const filteredAction = makeAction({reportActionID: 'filtered', created: '2023-01-01 12:00:00.000', actionName, originalMessage});
+            const olderUnread = makeAction({reportActionID: 'older-unread'});
+            const readAction = makeAction({reportActionID: 'read', created: '2023-01-01 09:00:00.000'});
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [filteredAction, olderUnread, readAction],
+                    earliestReceivedOfflineMessageIndex: 0,
+                    prevUnreadMarkerReportActionID: olderUnread.reportActionID,
+                }),
+            ).toEqual(['older-unread', 1]);
+        });
+
         it('allows an explicitly marked unread export to anchor the marker', () => {
             const exportAction = makeAction({
                 actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,

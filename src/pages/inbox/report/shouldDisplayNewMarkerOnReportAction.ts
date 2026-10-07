@@ -226,7 +226,7 @@ const getUnreadMarkerReportAction = ({
             earliestEligibleReceivedOfflineMessageIndex--;
         }
         if (earliestEligibleReceivedOfflineMessageIndex < 0) {
-            return [null, -1];
+            earliestEligibleReceivedOfflineMessageIndex = earliestReceivedOfflineMessageIndex;
         }
     }
 
