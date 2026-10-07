@@ -139,6 +139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Γίνεται επεξεργασία…',
         addCardTermsOfService: 'Όροι χρήσης Expensify',
         perPerson: 'ανά άτομο',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 διανυκτέρευση • ${nightlyRate} ανά διανυκτέρευση`,
+            other: `${count} διανυκτερεύσεις • ${nightlyRate} ανά διανυκτέρευση`,
+        }),
         phone: 'Τηλέφωνο',
         phoneNumber: 'Αριθμός τηλεφώνου',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',

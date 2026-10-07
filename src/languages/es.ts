@@ -118,6 +118,10 @@ const translations: TranslationDeepObject<typeof en> = {
         privacyPolicy: 'la Política de Privacidad de Expensify',
         addCardTermsOfService: 'Términos de Servicio',
         perPerson: 'por persona',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 noche • ${nightlyRate} por noche`,
+            other: `${count} noches • ${nightlyRate} por noche`,
+        }),
         signIn: 'Conectarse',
         signInWithGoogle: 'Iniciar sesión con Google',
         signInWithApple: 'Iniciar sesión con Apple',

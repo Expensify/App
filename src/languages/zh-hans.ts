@@ -136,6 +136,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: '正在思考中…',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 晚 • 每晚 ${nightlyRate}`,
+            other: `${count} 晚 • 每晚 ${nightlyRate}`,
+        }),
         phone: '电话',
         phoneNumber: '电话号码',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',

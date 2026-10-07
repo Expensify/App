@@ -136,6 +136,10 @@ const translations: TranslationDeepObject<typeof en> = {
         agentThinking: 'Es wird nachgedacht...',
         addCardTermsOfService: 'Expensify-Nutzungsbedingungen',
         perPerson: 'pro Person',
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 Nacht • ${nightlyRate} pro Nacht`,
+            other: `${count} Nächte • ${nightlyRate} pro Nacht`,
+        }),
         phone: 'Telefon',
         phoneNumber: 'Telefonnummer',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',

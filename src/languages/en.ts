@@ -186,6 +186,11 @@ const translations = {
         agentThinking: 'Thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
+        // @context Hint under the Category field of a multi-night reservation expense, for example “3 nights • $232.42 per night”. nightlyRate is a formatted currency amount.
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 night • ${nightlyRate} per night`,
+            other: `${count} nights • ${nightlyRate} per night`,
+        }),
         phone: 'Phone',
         phoneNumber: 'Phone number',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
