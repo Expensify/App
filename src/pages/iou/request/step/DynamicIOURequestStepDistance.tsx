@@ -660,6 +660,7 @@ function DynamicIOURequestStepDistance({
         isEditing,
         isLoading,
         isCreatingNewRequest,
+        transactionID,
         navigateToNextStep,
         navigateBackAfterSave,
         suppressDiscardPrompt,
