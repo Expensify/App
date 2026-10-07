@@ -31,7 +31,7 @@ function Header({children, shouldSkipFocusAfterTransition = false, style}: Heade
             style={[styles.headerBar, contentHeaderHeightStyle, style]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.mr3]}>
                 <HeaderContext
                     value={{
                         shouldSkipFocusAfterTransition,
