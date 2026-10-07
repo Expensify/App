@@ -20,7 +20,6 @@ import Animated from 'react-native-reanimated';
 
 import FlatNavMarqueeLabel from './FlatNavMarqueeLabel';
 import FlatNavRowActionBackdrop from './FlatNavRowActionBackdrop';
-import {useFlatNavSubItemHover} from './FlatNavSubItemList';
 
 type FlatNavItemProps = {
     /** Translated row label */
@@ -62,9 +61,6 @@ type FlatNavItemProps = {
     /** Ends of a group of sub-rows, where the rule down their left stops short of the rows outside the group */
     isFirstSubItem?: boolean;
     isLastSubItem?: boolean;
-
-    /** Position within the group, so the group's shared marker knows which row the pointer is on */
-    subItemIndex?: number;
 
     /** Whether a label too long for its row shows the full text in a tooltip. For rows the user named themselves. */
     shouldShowTooltipWhenTruncated?: boolean;
@@ -108,7 +104,6 @@ function FlatNavItem({
     isCollapsed = false,
     isFirstSubItem = false,
     isLastSubItem = false,
-    subItemIndex = 0,
     shouldShowTooltipWhenTruncated = false,
     onPress,
 }: FlatNavItemProps) {
@@ -116,7 +111,6 @@ function FlatNavItem({
     const theme = useTheme();
     // The label and badge stay mounted and fade, rather than disappearing the moment the bar starts narrowing.
     const collapseFadeStyle = useSearchSidebarCollapseFadeStyle();
-    const subItemHover = useFlatNavSubItemHover();
 
     // Collapsed rows have nowhere to put a badge, so a row that has one shows the same green dot the Inbox uses.
     // The dot stays mounted either way and fades, rather than blinking in as the bar finishes narrowing.
@@ -130,8 +124,6 @@ function FlatNavItem({
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}
             sentryLabel={sentryLabel}
-            onHoverIn={isSubItem ? () => subItemHover?.onSubItemHoverIn(subItemIndex) : undefined}
-            onHoverOut={isSubItem ? () => subItemHover?.onSubItemHoverOut(subItemIndex) : undefined}
             style={({hovered}) => [
                 styles.flatNavigationBarItem,
                 isSubItem && !isCollapsed && styles.flatNavigationBarSubItem,

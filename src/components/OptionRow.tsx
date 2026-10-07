@@ -9,6 +9,8 @@ import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
@@ -268,6 +270,8 @@ function OptionRow({
                                         <Icon
                                             src={icons.DotIndicator}
                                             fill={theme.danger}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
                                         />
                                     </View>
                                 )}
@@ -276,6 +280,8 @@ function OptionRow({
                                         <Icon
                                             src={icons.DotIndicator}
                                             fill={theme.iconSuccessFill}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
                                         />
                                     </View>
                                 )}

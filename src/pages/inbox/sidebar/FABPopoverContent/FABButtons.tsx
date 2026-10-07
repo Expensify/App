@@ -7,6 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import type {RefObject} from 'react';
@@ -53,7 +55,11 @@ function FABButtons({isActive, fabRef, onPress, shouldShowReceiptButton = true, 
                 style={styles.w100}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
             >
-                <Button.Icon src={icons.Plus} />
+                <Button.Icon
+                    src={icons.Plus}
+                    width={variables.iconSizeExtraSmall}
+                    height={variables.iconSizeExtraSmall}
+                />
                 {!!label && <Button.Text>{label}</Button.Text>}
             </Button>
         );

@@ -957,16 +957,13 @@ const staticStyles = (theme: ThemeColors) =>
             bottom: 8,
         },
 
-        // A dot centred on the resting rule. Its ring is painted in the bar's own background, so it reads as
-        // punching a gap in the line rather than sitting beside it.
+        // A stub of line laid over the resting rule, centred on it so it reads as that line lighting up.
         flatNavigationBarSubItemMarker: {
             position: 'absolute',
-            left: variables.flatNavigationBarRowInset + flatNavigationBarSubItemRuleInset - 5.5,
-            width: 12,
-            height: 12,
-            borderRadius: 6,
-            borderWidth: 2,
-            borderColor: theme.appBG,
+            left: variables.flatNavigationBarRowInset + flatNavigationBarSubItemRuleInset - 1,
+            width: 3,
+            height: variables.flatNavigationBarSubItemMarkerHeight,
+            borderRadius: 1.5,
             backgroundColor: theme.success,
         },
 

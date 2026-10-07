@@ -199,7 +199,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
             isSubItem={isSubItem}
             isFirstSubItem={isSubItem && index === 0}
             isLastSubItem={isSubItem && index === total - 1}
-            subItemIndex={index}
             badgeText={getItemBadgeText(item.key, reportCounts)}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
             onPress={() => navigateToSearchItem(item)}

@@ -607,11 +607,9 @@ function MenuItem({
         contextMenuHint,
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
-    // Navigation rows shrink their icon on wide layouts, where the rows are compact. Narrow layouts keep the
-    // standard size because the rows are full-width and touch targets.
-    const shouldUseCompactNavigationIcon = shouldUseNavigationRowStyles && !shouldUseNarrowLayout;
-    const resolvedIconWidth = iconWidth ?? (shouldUseCompactNavigationIcon ? variables.iconSizeSmall : undefined);
-    const resolvedIconHeight = iconHeight ?? (shouldUseCompactNavigationIcon ? variables.iconSizeSmall : undefined);
+    // Navigation rows carry the same icon size as the rows in the navigation bar beside them, on every layout.
+    const resolvedIconWidth = iconWidth ?? (shouldUseNavigationRowStyles ? variables.iconSizeNormal : undefined);
+    const resolvedIconHeight = iconHeight ?? (shouldUseNavigationRowStyles ? variables.iconSizeNormal : undefined);
 
     const hasIcon = (!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon);
     // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
@@ -1131,6 +1129,8 @@ function MenuItem({
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
+                                                            width={variables.iconSizeSmall}
+                                                            height={variables.iconSizeSmall}
                                                         />
                                                     </View>
                                                 )}

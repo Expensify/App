@@ -111,7 +111,6 @@ function FlatNavSavedSearches({isExpanded}: FlatNavSavedSearchesProps) {
                     shouldShowTooltipWhenTruncated
                     isFirstSubItem={index === 0}
                     isLastSubItem={index === items.length - 1}
-                    subItemIndex={index}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM}
                     hoverActionComponent={
                         <SavedSearchItemThreeDotMenu
