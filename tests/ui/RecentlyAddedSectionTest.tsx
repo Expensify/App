@@ -431,7 +431,7 @@ describe('RecentlyAddedSection', () => {
             });
         });
 
-        it('leaves a pending-delete expense out of the prev/next carousel', async () => {
+        it('seeds a pending-delete expense without a descriptor so the carousel follows its live transaction', async () => {
             // Given an expense deleted offline, which stays in the list with strikethrough
             setWideLayout();
             const pendingDeleteRow = {...ROW_1, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
@@ -463,9 +463,11 @@ describe('RecentlyAddedSection', () => {
                 });
             });
 
-            // Then the deleted expense gets neither an ID nor a descriptor, so the arrows can't land on its "not here" page
-            expect(seededIDs).toEqual([ROW_2.transactionID]);
+            // Then the deleted expense keeps its ID, so the carousel can bring it back if the delete rolls back,
+            // but gets no descriptor, so nothing keeps it in the arrows once the delete syncs and its live copy is gone
+            expect(seededIDs).toEqual([ROW_1.transactionID, ROW_2.transactionID]);
             expect(seededDescriptors).not.toHaveProperty(ROW_1.transactionID);
+            expect(seededDescriptors).toHaveProperty(ROW_2.transactionID);
         });
 
         it('resolves only the tapped expense and creates no threads for siblings (lazy carousel)', async () => {
