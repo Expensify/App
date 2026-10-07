@@ -4021,6 +4021,7 @@ describe('actions/Duplicate', () => {
                 chatReportID: undefined,
             })),
             allReports: {},
+            allTransactions: {},
             searchData: undefined,
             allPolicies: createMock<BulkDuplicateReportsParams['allPolicies']>({
                 [`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`]: sourcePolicy,
@@ -4089,16 +4090,18 @@ describe('actions/Duplicate', () => {
 
             const tx1 = createCashTransaction('tx1', 'rpt1');
             const tx2 = createCashTransaction('tx2', 'rpt2');
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, tx2);
 
             const allReports = {
                 [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}rpt2`]: report2,
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: tx1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`]: tx2,
+            };
 
-            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports, allTransactions}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
@@ -4110,6 +4113,7 @@ describe('actions/Duplicate', () => {
             const allReports: Record<string, Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions: Record<string, Transaction> = {};
 
             for (const reportID of reportIDs) {
                 allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
@@ -4120,10 +4124,10 @@ describe('actions/Duplicate', () => {
                     reportName: `Report ${reportID}`,
                     chatReportID: ACTIVE_PEC_REPORT_ID,
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx-${reportID}`, createCashTransaction(`1${reportID.slice(-1)}`, reportID));
+                allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}tx-${reportID}`] = createCashTransaction(`1${reportID.slice(-1)}`, reportID);
             }
 
-            const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports}));
+            const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports, allTransactions}));
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
@@ -4143,6 +4147,7 @@ describe('actions/Duplicate', () => {
             const allReports: Record<string, Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions: Record<string, Transaction> = {};
             for (const reportID of reportIDs) {
                 allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
                     reportID,
@@ -4152,10 +4157,10 @@ describe('actions/Duplicate', () => {
                     reportName: `Report ${reportID}`,
                     chatReportID: ACTIVE_PEC_REPORT_ID,
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx-${reportID}`, createCashTransaction(`1${reportID.slice(-1)}`, reportID));
+                allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}tx-${reportID}`] = createCashTransaction(`1${reportID.slice(-1)}`, reportID);
             }
 
-            const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports}));
+            const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports, allTransactions}));
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID + 1});
@@ -4193,8 +4198,6 @@ describe('actions/Duplicate', () => {
 
             const tx1 = createCashTransaction('tx1', 'rpt1');
             const tx2 = createCashTransaction('tx2', 'rpt2');
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, tx2);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}chatSource`, chatForSource);
 
             const sourceCategories = {Travel: {name: 'Travel', enabled: true, areCommentsRequired: false, externalID: '', origin: ''}};
@@ -4206,10 +4209,15 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}chatSource`]: chatForSource,
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: tx1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`]: tx2,
+            };
 
             await bulkDuplicateReports(
                 getDefaultBulkParams(['rpt1', 'rpt2'], {
                     allReports,
+                    allTransactions,
                     allPolicyCategories: {
                         [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${SOURCE_POLICY_ID}`]: sourceCategories,
                         [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${DEFAULT_POLICY_ID}`]: defaultCategories,
@@ -4243,15 +4251,17 @@ describe('actions/Duplicate', () => {
             const deletedTx = createCashTransaction('tx2', 'rpt1', {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, normalTx);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, deletedTx);
 
             const allReports = {
                 [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: normalTx,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`]: deletedTx,
+            };
 
-            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports, allTransactions}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -4269,14 +4279,16 @@ describe('actions/Duplicate', () => {
             };
 
             const tx1 = createCashTransaction('tx1', 'rpt1');
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
 
             const allReports = {
                 [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: tx1,
+            };
 
-            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports, allTransactions}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -4304,15 +4316,17 @@ describe('actions/Duplicate', () => {
             };
 
             const tx1 = createCashTransaction('tx1', 'rpt1');
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
 
             const allReports = {
                 [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}chatOther`]: chatOther,
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: tx1,
+            };
 
-            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports, allTransactions}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -4333,14 +4347,16 @@ describe('actions/Duplicate', () => {
             };
 
             const tx1 = createCashTransaction('tx1', 'rpt1');
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
 
             const allReports = {
                 [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: tx1,
+            };
 
-            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'nonexistent1', 'nonexistent2'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'nonexistent1', 'nonexistent2'], {allReports, allTransactions}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -4390,17 +4406,19 @@ describe('actions/Duplicate', () => {
             const tx1 = createCashTransaction('tx1', 'rpt1', {merchant: 'Merchant A'});
             const tx2 = createCashTransaction('tx2', 'rpt1', {merchant: 'Merchant B'});
             const tx3 = createCashTransaction('tx3', 'rpt2', {merchant: 'Merchant C'});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, tx2);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx3`, tx3);
 
             const allReports = {
                 [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
                 [`${ONYXKEYS.COLLECTION.REPORT}rpt2`]: report2,
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: tx1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`]: tx2,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx3`]: tx3,
+            };
 
-            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports, allTransactions}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
@@ -4434,8 +4452,6 @@ describe('actions/Duplicate', () => {
 
             const tx1 = createCashTransaction('tx1', 'rpt1', {category: 'Travel'});
             const tx2 = createCashTransaction('tx2', 'rpt2', {category: 'Office'});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`, tx2);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}chatSource`, chatForSource);
 
             const sourceTags: PolicyTagLists = {
@@ -4453,10 +4469,15 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}chatSource`]: chatForSource,
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: tx1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`]: tx2,
+            };
 
             await bulkDuplicateReports(
                 getDefaultBulkParams(['rpt1', 'rpt2'], {
                     allReports,
+                    allTransactions,
                     allPolicyTags: {
                         [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${SOURCE_POLICY_ID}`]: sourceTags,
                     },
@@ -4485,7 +4506,6 @@ describe('actions/Duplicate', () => {
             };
 
             const tx1 = createCashTransaction('tx1', 'rpt1');
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`, tx1);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}parentChat`, parentChat);
 
             const allReports = {
@@ -4493,8 +4513,11 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}parentChat`]: parentChat,
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: tx1,
+            };
 
-            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports, allTransactions}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
