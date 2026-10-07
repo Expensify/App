@@ -374,6 +374,7 @@ type ContextMenuActionPayload = {
     encryptedAuthToken: string;
     iouTransaction: OnyxEntry<Transaction>;
     iouTransactionViolations: OnyxEntry<TransactionViolations>;
+    moneyRequestChatReport: OnyxEntry<ReportType>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -777,6 +778,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 moneyRequestAction,
                 iouTransaction,
                 iouTransactionViolations,
+                moneyRequestChatReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -805,11 +807,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                 );
 
             if (closePopover) {
-                hideContextMenu(false, () => handleHoldEducationalModal(performHold));
+                hideContextMenu(false, () => handleHoldEducationalModal(performHold, moneyRequestChatReport));
                 return;
             }
 
-            handleHoldEducationalModal(performHold);
+            handleHoldEducationalModal(performHold, moneyRequestChatReport);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,

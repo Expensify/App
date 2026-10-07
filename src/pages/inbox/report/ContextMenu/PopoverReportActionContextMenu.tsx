@@ -36,7 +36,7 @@ import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type {Location} from '@src/types/utils/Layout';
 
 import type {ComponentRef, ForwardedRef} from 'react';
@@ -504,13 +504,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     };
 
     const handleHoldEducationalModal = useCallback(
-        (performHold: () => void) => {
-            const isSubmitter = isCurrentUserSubmitter(chatReport);
-            const isChatDM = isDM(chatReport);
-            const isDismissed = isSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-            if (isDismissed || isChatDM) {
+        (performHold: () => void, moneyRequestChatReport: OnyxEntry<Report>) => {
+            const shouldShowHoldEducationalModal = isCurrentUserSubmitter(moneyRequestChatReport, currentUserAccountID) || isDM(moneyRequestChatReport);
+            const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+            if (isDismissed) {
                 performHold();
-            } else if (isSubmitter) {
+            } else if (shouldShowHoldEducationalModal) {
                 showHoldEducationalModal(() => {
                     setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
                     performHold();
@@ -522,7 +521,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 });
             }
         },
-        [chatReport, dismissedHoldUseExplanation, dismissedRejectUseExplanation, isOffline],
+        [currentUserAccountID, dismissedHoldUseExplanation, dismissedRejectUseExplanation, isOffline],
     );
 
     useImperativeHandle(ref, () => ({
