@@ -1,4 +1,4 @@
-import {claimForRead, finish, getUpgradeCount, isClaimedForRead, isUpgrading, recordUpgrade, start, subscribe} from '@libs/ReceiptStorage/receiptUpgrades';
+import {claimForRead, finish, getUpgradeCount, isClaimedForRead, recordUpgrade, start, subscribe} from '@libs/ReceiptStorage/receiptUpgrades';
 
 const RECEIPT = 'receipt_1234.jpg';
 
@@ -9,7 +9,6 @@ describe('receiptUpgrades', () => {
     });
 
     it('reports nothing in flight for a receipt that is not being upgraded', () => {
-        expect(isUpgrading(RECEIPT)).toBe(false);
         expect(isClaimedForRead(RECEIPT)).toBe(false);
     });
 
@@ -22,8 +21,6 @@ describe('receiptUpgrades', () => {
         claimForRead(RECEIPT);
 
         expect(isClaimedForRead(RECEIPT)).toBe(true);
-        // The upgrade is still running, it just no longer owns the file.
-        expect(isUpgrading(RECEIPT)).toBe(true);
     });
 
     it('ignores a claim on a receipt nothing is upgrading, so an ordinary upload is unaffected', () => {

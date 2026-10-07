@@ -73,10 +73,6 @@ function isClaimedForRead(durableName: string): boolean {
     return upgradesInFlight.get(durableName)?.isClaimed ?? false;
 }
 
-function isUpgrading(durableName: string): boolean {
-    return upgradesInFlight.has(durableName);
-}
-
 function subscribe(listener: () => void): () => void {
     listeners.add(listener);
     return () => {
@@ -84,4 +80,4 @@ function subscribe(listener: () => void): () => void {
     };
 }
 
-export {start, finish, recordUpgrade, claimForRead, isUpgrading, isClaimedForRead, getUpgradeCount, subscribe};
+export {start, finish, recordUpgrade, claimForRead, isClaimedForRead, getUpgradeCount, subscribe};

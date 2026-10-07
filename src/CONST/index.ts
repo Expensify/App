@@ -2546,6 +2546,7 @@ const CONST = {
             CAPTURE_FAILED: 'capture_failed',
             CAPTURE_TIMED_OUT: 'capture_timed_out',
             ROTATE_TIMED_OUT: 'rotate_timed_out',
+            ROTATE_FAILED: 'rotate_failed',
             CLAIMED_FOR_UPLOAD: 'claimed_for_upload',
             SWAP_FAILED: 'swap_failed',
             STACKED_CAPTURE_SKIPPED: 'stacked_capture_skipped',

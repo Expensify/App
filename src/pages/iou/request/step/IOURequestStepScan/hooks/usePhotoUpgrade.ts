@@ -37,12 +37,15 @@ function discardWhenItLands(pending: PendingPhoto) {
         .catch(() => {});
 }
 
-class DeadlineError extends Error {
+class UpgradeStepError extends Error {
     step: string;
 
-    constructor(step: string, capMs: number) {
-        super(`[PhotoUpgrade] ${step} did not finish within ${capMs}ms`);
+    hasTimedOut: boolean;
+
+    constructor(step: string, message: string, hasTimedOut: boolean) {
+        super(`[PhotoUpgrade] ${step} ${message}`);
         this.step = step;
+        this.hasTimedOut = hasTimedOut;
     }
 }
 
@@ -52,7 +55,7 @@ function withDeadline<T>(promise: Promise<T>, capMs: number, step: string, disca
     const deadline = new Promise<never>((_resolve, reject) => {
         cap = setTimeout(() => {
             hasTimedOut = true;
-            reject(new DeadlineError(step, capMs));
+            reject(new UpgradeStepError(step, `did not finish within ${capMs}ms`, true));
         }, capMs);
     });
 
@@ -236,7 +239,10 @@ function usePhotoUpgrade() {
                     return undefined;
                 }
 
-                return withDeadline(rotatePhotoToUpright(photo.path, photo.orientation), ROTATE_TIMEOUT_MS, 'rotate', (latePath) => {
+                const rotation = rotatePhotoToUpright(photo.path, photo.orientation).catch((error: unknown) => {
+                    throw new UpgradeStepError('rotate', `failed: ${error instanceof Error ? error.message : String(error)}`, false);
+                });
+                return withDeadline(rotation, ROTATE_TIMEOUT_MS, 'rotate', (latePath) => {
                     if (!latePath) {
                         return;
                     }
@@ -285,8 +291,8 @@ function usePhotoUpgrade() {
                 let outcome: string = CONST.TELEMETRY.UPGRADE_OUTCOME.SWAP_FAILED;
                 if (wasClaimed) {
                     outcome = CONST.TELEMETRY.UPGRADE_OUTCOME.CLAIMED_FOR_UPLOAD;
-                } else if (error instanceof DeadlineError && error.step === 'rotate') {
-                    outcome = CONST.TELEMETRY.UPGRADE_OUTCOME.ROTATE_TIMED_OUT;
+                } else if (error instanceof UpgradeStepError && error.step === 'rotate') {
+                    outcome = error.hasTimedOut ? CONST.TELEMETRY.UPGRADE_OUTCOME.ROTATE_TIMED_OUT : CONST.TELEMETRY.UPGRADE_OUTCOME.ROTATE_FAILED;
                 }
                 reportOutcome(outcome);
                 pending.discard();

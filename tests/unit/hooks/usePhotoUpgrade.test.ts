@@ -223,7 +223,7 @@ describe('usePhotoUpgrade', () => {
             jest.runOnlyPendingTimers();
         });
 
-        // Left registered, `isUpgrading` would stay true for the rest of the launch.
+        // Left registered, the receipt would count as upgrading for the rest of the launch.
         expect(mockFinishUpgrade).toHaveBeenCalledWith(DURABLE_NAME);
         expect(mockReplace).not.toHaveBeenCalled();
     });
@@ -532,6 +532,26 @@ describe('usePhotoUpgrade', () => {
             });
 
             expect(readOutcome().attributes).toEqual({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.ROTATE_TIMED_OUT});
+        });
+
+        it('reports a rotate that failed outright apart from the swap, so the outcomes stay comparable', async () => {
+            // Given a rotate that rejects before the swap starts, e.g. the photo size cannot be read
+            const {camera, landPhoto} = buildCamera();
+            const {result} = renderHook(() => usePhotoUpgrade());
+            mockRotate.mockRejectedValue(new Error('could not read the image size'));
+
+            // When the photo lands and the upgrade runs
+            act(() => {
+                result.current.startPhotoCapture(camera);
+            });
+            act(() => {
+                result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
+            });
+            await landPhoto();
+
+            // Then the outcome names the rotate rather than counting it as a failed swap
+            expect(readOutcome().attributes).toEqual({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.ROTATE_FAILED});
+            expect(mockReplace).not.toHaveBeenCalled();
         });
 
         it('marks the attempt on the capture span, so a lost outcome is still countable', () => {

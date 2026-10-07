@@ -31,6 +31,15 @@ function getUprightRotation({width, height, rotation = 0}: PhotoSize, orientatio
     return decodedWidth > decodedHeight ? quarterTurn : undefined;
 }
 
+/** The garbage collector can't see the native memory a 12 MP bitmap holds, so free it as soon as the photo is saved. */
+function releaseQuietly(releasable: {release: () => void}) {
+    try {
+        releasable.release();
+    } catch (error) {
+        Log.warn('[PhotoUpgrade] could not release a native image', {error: error instanceof Error ? error.message : String(error)});
+    }
+}
+
 function rotatePhotoToUpright(stillPath: string, orientation?: Orientation): Promise<string | undefined> {
     const sourceUri = getPhotoSource(stillPath);
     const startedAt = Date.now();
@@ -41,10 +50,10 @@ function rotatePhotoToUpright(stillPath: string, orientation?: Orientation): Pro
             return undefined;
         }
 
-        return ImageManipulator.manipulate(sourceUri)
-            .rotate(angle)
+        const context = ImageManipulator.manipulate(sourceUri).rotate(angle);
+        return context
             .renderAsync()
-            .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}))
+            .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}).finally(() => releaseQuietly(image)))
             .then((result) => {
                 Log.info('[PhotoUpgrade] rotated the full-resolution photo', false, {
                     durationMs: Date.now() - startedAt,
@@ -53,7 +62,8 @@ function rotatePhotoToUpright(stillPath: string, orientation?: Orientation): Pro
                     source: `${imageSize.width}x${imageSize.height}`,
                 });
                 return result.uri;
-            });
+            })
+            .finally(() => releaseQuietly(context));
     });
 }
 
