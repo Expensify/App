@@ -25,6 +25,7 @@ import {
     getRulesSubmitterToFirstApprover,
     hasMultiLevelApprovalWorkflow,
     getRulesSubmitterToWorkflowKey,
+    hasApprovalWorkflowRules,
     includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
     mergeWorkflowMembersWithAvailableMembers,
@@ -2282,6 +2283,50 @@ describe('WorkflowUtils', () => {
         });
     });
 
+    describe('hasApprovalWorkflowRules', () => {
+        const approvalWorkflowRule = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID,
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
+            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
+            ...extra,
+        });
+
+        it('only counts the rules that route reports', () => {
+            // Given a policy whose only rule is an expense default, which shares the rules collection with approval workflows
+            const expenseDefaultRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: 'policy1',
+                triggers: {'1': CONST.RULES.TRIGGERS.CREATE_TRANSACTION},
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, right: 'Starbucks'},
+                actions: {'1': {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}},
+            };
+
+            // When the policy has only that rule, and then also a rule that forwards its reports
+            const hasRulesWithExpenseDefaultOnly = hasApprovalWorkflowRules({rules_1: expenseDefaultRule}, 'policy1');
+            const hasRulesWithForwardingRule = hasApprovalWorkflowRules({rules_1: expenseDefaultRule, rules_2: approvalWorkflowRule('policy1')}, 'policy1');
+
+            // Then only the forwarding rule makes approval workflow rules route its reports
+            expect(hasRulesWithExpenseDefaultOnly).toBe(false);
+            expect(hasRulesWithForwardingRule).toBe(true);
+        });
+
+        it("only counts the policy's own rules that are not pending deletion", () => {
+            // Given an approval workflow rule of another policy, and one of this policy that is being deleted offline
+            const otherPolicyRule = approvalWorkflowRule('policy2');
+            const pendingDeleteRule = approvalWorkflowRule('policy1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When the deletion is still pending, and once it is undone
+            const hasRulesWhileDeleting = hasApprovalWorkflowRules({rules_1: otherPolicyRule, rules_2: pendingDeleteRule}, 'policy1');
+            const hasRulesOnceUndone = hasApprovalWorkflowRules({rules_1: otherPolicyRule, rules_2: {...pendingDeleteRule, pendingAction: null}}, 'policy1');
+
+            // Then the other policy's rule never counts, and this policy's rule stops counting while it is being deleted, since it won't route once that goes through
+            expect(hasRulesWhileDeleting).toBe(false);
+            expect(hasRulesOnceUndone).toBe(true);
+        });
+    });
+
     describe('isApprovalWorkflowRule', () => {
         // `Rule` types triggers as one kind or the other, so a rule mixing them can only arrive from the
         // server. Building the collection untyped and asserting once is the only way to model that payload.
@@ -2527,89 +2572,90 @@ describe('WorkflowUtils', () => {
         it('is false for an empty list', () => {
             expect(hasMultiLevelApprovalWorkflow([])).toBe(false);
         });
-        describe('approval workflows owned by a connected integration', () => {
-            const POLICY_ID = 'ats-policy';
+    });
 
-            function buildPolicyWithConnectedATS(approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null): Policy {
-                return createMock<Policy>({
-                    id: POLICY_ID,
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
-                            config: {
-                                integration: 'greenhouse',
-                                approvalMode,
-                                approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER,
-                                finalApprover: 'recruiter@example.com',
-                                filters: null,
-                            },
+    describe('approval workflows owned by a connected integration', () => {
+        const POLICY_ID = 'ats-policy';
+
+        function buildPolicyWithConnectedATS(approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null): Policy {
+            return createMock<Policy>({
+                id: POLICY_ID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
+                        config: {
+                            integration: 'greenhouse',
+                            approvalMode,
+                            approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER,
+                            finalApprover: 'recruiter@example.com',
+                            filters: null,
                         },
                     },
-                });
-            }
+                },
+            });
+        }
 
-            describe('isApprovalWorkflowLockedByIntegration', () => {
-                it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])('locks the workflows when the ATS is in %s mode', (approvalMode) => {
-                    expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(approvalMode))).toBe(true);
-                });
-
-                it('leaves the workflows editable when the ATS is in custom mode', () => {
-                    expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM))).toBe(false);
-                });
-
-                it('leaves the workflows editable when the ATS has no approval mode set yet', () => {
-                    expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(null))).toBe(false);
-                });
-
-                // Disconnecting the ATS drops the lock; the workflow it produced stays in place for the admin to edit.
-                it('leaves the workflows editable once the ATS is disconnected', () => {
-                    expect(isApprovalWorkflowLockedByIntegration(createMock<Policy>({id: POLICY_ID, connections: {}}))).toBe(false);
-                });
-
-                it('locks the workflows when an ATS in basic mode is connected alongside an HR provider in custom mode', () => {
-                    const policy = createMock<Policy>({
-                        id: POLICY_ID,
-                        connections: {
-                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
-                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
-                        },
-                    });
-
-                    expect(isApprovalWorkflowLockedByIntegration(policy)).toBe(true);
-                });
+        describe('isApprovalWorkflowLockedByIntegration', () => {
+            it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])('locks the workflows when the ATS is in %s mode', (approvalMode) => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(approvalMode))).toBe(true);
             });
 
-            describe('getApprovalWorkflowSource', () => {
-                it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])(
-                    'names the connected ATS provider and links to the recruiting settings in %s mode',
-                    (approvalMode) => {
-                        expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(approvalMode), POLICY_ID)).toEqual({
-                            providerName: 'Greenhouse',
-                            settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(POLICY_ID),
-                        });
+            it('leaves the workflows editable when the ATS is in custom mode', () => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM))).toBe(false);
+            });
+
+            it('leaves the workflows editable when the ATS has no approval mode set yet', () => {
+                expect(isApprovalWorkflowLockedByIntegration(buildPolicyWithConnectedATS(null))).toBe(false);
+            });
+
+            // Disconnecting the ATS drops the lock; the workflow it produced stays in place for the admin to edit.
+            it('leaves the workflows editable once the ATS is disconnected', () => {
+                expect(isApprovalWorkflowLockedByIntegration(createMock<Policy>({id: POLICY_ID, connections: {}}))).toBe(false);
+            });
+
+            it('locks the workflows when an ATS in basic mode is connected alongside an HR provider in custom mode', () => {
+                const policy = createMock<Policy>({
+                    id: POLICY_ID,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
                     },
-                );
-
-                it('has no source in custom mode, because the admin owns the workflow', () => {
-                    expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM), POLICY_ID)).toBeUndefined();
                 });
 
-                it('has no source when nothing is connected', () => {
-                    expect(getApprovalWorkflowSource(createMock<Policy>({id: POLICY_ID, connections: {}}), POLICY_ID)).toBeUndefined();
+                expect(isApprovalWorkflowLockedByIntegration(policy)).toBe(true);
+            });
+        });
+
+        describe('getApprovalWorkflowSource', () => {
+            it.each([CONST.MERGE.APPROVAL_MODE.BASIC, CONST.MERGE.APPROVAL_MODE.ADVANCED])(
+                'names the connected ATS provider and links to the recruiting settings in %s mode',
+                (approvalMode) => {
+                    expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(approvalMode), POLICY_ID)).toEqual({
+                        providerName: 'Greenhouse',
+                        settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(POLICY_ID),
+                    });
+                },
+            );
+
+            it('has no source in custom mode, because the admin owns the workflow', () => {
+                expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(CONST.MERGE.APPROVAL_MODE.CUSTOM), POLICY_ID)).toBeUndefined();
+            });
+
+            it('has no source when nothing is connected', () => {
+                expect(getApprovalWorkflowSource(createMock<Policy>({id: POLICY_ID, connections: {}}), POLICY_ID)).toBeUndefined();
+            });
+
+            it('prefers a connected HR provider over the ATS', () => {
+                const policy = createMock<Policy>({
+                    id: POLICY_ID,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
+                    },
                 });
 
-                it('prefers a connected HR provider over the ATS', () => {
-                    const policy = createMock<Policy>({
-                        id: POLICY_ID,
-                        connections: {
-                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
-                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
-                        },
-                    });
-
-                    expect(getApprovalWorkflowSource(policy, POLICY_ID)).toEqual({
-                        providerName: 'Workday',
-                        settingsRoute: ROUTES.WORKSPACE_HR.getRoute(POLICY_ID),
-                    });
+                expect(getApprovalWorkflowSource(policy, POLICY_ID)).toEqual({
+                    providerName: 'Workday',
+                    settingsRoute: ROUTES.WORKSPACE_HR.getRoute(POLICY_ID),
                 });
             });
         });

@@ -18,6 +18,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilter, RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -1569,6 +1570,13 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
 }
 
 /**
+ * Whether approval workflow rules route the reports of the given policy.
+ */
+function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
+    return !isEmptyObject(getApprovalWorkflowRulesForPolicy(rulesCollection, policyID));
+}
+
+/**
  * Map every member whose approver is mid-change to that change's pending state.
  *
  * A change lands on the policy's employee list or, under the `MULTIPLE_APPROVERS` beta, on the approval workflow
@@ -1922,6 +1930,7 @@ export {
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
+    hasApprovalWorkflowRules,
     hasMultiLevelApprovalWorkflow,
     getFirstApproverLabel,
     hasRuleBasedDefaultWorkflow,
