@@ -64,7 +64,7 @@ jobs:
 
       - name: Resolve Hermes version
         id: hermes
-        run: echo "VERSION=$(sed 's/^hermes-v\{0,1\}//' node_modules/react-native/sdks/.hermesv1version)" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"
 
       - name: Fetch prebuild files from upstream RN
         uses: ./.github/actions/composite/fetchReactNativePrebuild
@@ -219,6 +219,12 @@ jobs:
             echo "PATCHES_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
           fi
 
+      # The slices were compiled against this Hermes (see the buildSlice job). Recording it in the POM lets the
+      # resolver reject an artifact whose Hermes differs from the one the consuming app links.
+      - name: Resolve Hermes version
+        id: hermes
+        run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"
+
       - name: Determine new patched RN version
         id: getNewPatchedVersion
         run: echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> "$GITHUB_OUTPUT"
@@ -235,12 +241,13 @@ jobs:
           merge-multiple: true
 
       - name: Publish to GitHub Packages Maven
-        run: ./android/gradlew -p scripts/artifacts-utils/ios/publish publish -PartifactsDir="/tmp/ios-artifacts" -PpatchedVersion="${PATCHED_VERSION}" -PpatchesHash="${PATCHES_HASH}" -PpackageName="${PACKAGE_NAME}"
+        run: ./android/gradlew -p scripts/artifacts-utils/ios/publish publish -PartifactsDir="/tmp/ios-artifacts" -PpatchedVersion="${PATCHED_VERSION}" -PpatchesHash="${PATCHES_HASH}" -PhermesVersion="${HERMES_VERSION}" -PpackageName="${PACKAGE_NAME}"
         env:
           GH_PUBLISH_ACTOR: ${{ github.actor }}
           GH_PUBLISH_TOKEN: ${{ github.token }}
           PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
           PATCHES_HASH: ${{ steps.computePatchesHash.outputs.PATCHES_HASH }}
+          HERMES_VERSION: ${{ steps.hermes.outputs.VERSION }}
           PACKAGE_NAME: ${{ matrix.is_hybrid == 'true' && 'react-hybrid' || 'react-standalone' }}
 
       - name: Announce failed workflow in Slack

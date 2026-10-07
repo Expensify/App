@@ -128,7 +128,7 @@
 
 ### [react-native+0.86.0+017+publish-gradle.patch](react-native+0.86.0+017+publish-gradle.patch)
 
-- Reason: This patch customizes the Gradle publishing script to allow publishing our custom React Native artifacts to GitHub Packages.
+- Reason: This patch customizes the Gradle publishing script to allow publishing our custom React Native artifacts to GitHub Packages. The POM records the patches hash and the Hermes version the artifact was compiled against, which `scripts/artifacts-utils/lib/artifactsResolver.ts` matches before consuming an artifact.
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/59738

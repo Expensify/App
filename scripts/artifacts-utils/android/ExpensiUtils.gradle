@@ -26,11 +26,17 @@ ext.ExpensiUtils = new Object() {
         return [output: process.in.text?.trim(), exitCode: process.exitValue()]
     }
 
+    // The Hermes tag file react-native builds (and we publish) against for the given flag. Mirrors hermesVersionProvider
+    // in ReactAndroid/hermes-engine/build.gradle.kts, which is project-phase code the settings phase cannot reach.
+    String hermesVersionFile(String newDotRootDir, boolean hermesV1Enabled) {
+        return "${newDotRootDir}/node_modules/react-native/sdks/${hermesV1Enabled ? '.hermesv1version' : '.hermesversion'}"
+    }
+
     // Returns [buildFromSource, version, githubUsername, githubToken]; any failure -> build from source.
-    Map resolveArtifacts(String newDotRootDir, boolean isHybrid) {
+    Map resolveArtifacts(String newDotRootDir, boolean isHybrid, String hermesVersionFile) {
         def cmd = [
             "bun", "${newDotRootDir}/scripts/artifacts-utils/resolve-artifacts.ts",
-            "--platform=android", "--hybrid=${isHybrid}", "--new-dot-root=${newDotRootDir}"
+            "--platform=android", "--hybrid=${isHybrid}", "--new-dot-root=${newDotRootDir}", "--hermes-version-file=${hermesVersionFile}"
         ]
         try {
             def result = runCommand(cmd, 120, new File(newDotRootDir))

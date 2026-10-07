@@ -7,7 +7,7 @@ new file mode 100644
 index 0000000..8bfcb73
 Binary files /dev/null and b/node_modules/react-native/ReactAndroid/.DS_Store differ
 diff --git a/node_modules/react-native/ReactAndroid/publish.gradle b/node_modules/react-native/ReactAndroid/publish.gradle
-index 32287a7..5607be3 100644
+index 32287a7..77f9452 100644
 --- a/node_modules/react-native/ReactAndroid/publish.gradle
 +++ b/node_modules/react-native/ReactAndroid/publish.gradle
 @@ -13,7 +13,11 @@ def signingKey = findProperty("SIGNING_KEY")
@@ -40,12 +40,13 @@ index 32287a7..5607be3 100644
              }
  
              pom {
-@@ -39,10 +45,14 @@ publishing {
+@@ -39,10 +45,15 @@ publishing {
                  description = "A framework for building native apps with React"
                  url = "https://github.com/facebook/react-native"
  
 +                properties = [
 +                    "patchesHash": System.getenv("PATCHES_HASH"),
++                    "hermesVersion": System.getenv("HERMES_VERSION"),
 +                ]
 +
                  developers {
@@ -57,7 +58,7 @@ index 32287a7..5607be3 100644
                      }
                  }
  
-@@ -65,8 +75,11 @@ publishing {
+@@ -65,8 +76,11 @@ publishing {
  
      repositories {
          maven {

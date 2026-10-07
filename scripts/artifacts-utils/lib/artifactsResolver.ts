@@ -13,8 +13,8 @@ import {getCredentials as getCredentialsFromCLI} from './githubCLI';
 
 /**
  * Shared resolver for Expensify's patched React Native prebuilt artifacts.
- * Resolves which artifact version to use by matching the local patches hash
- * against the `patchesHash` recorded in each candidate's Maven POM. Consumed via
+ * Resolves which artifact version to use by matching the local patches hash and Hermes version
+ * against the `patchesHash` and `hermesVersion` recorded in each candidate's Maven POM. Consumed via
  * `resolve-artifacts.ts` by Gradle (Android) and `patched_ios_artifacts.rb` (iOS).
  */
 
@@ -30,7 +30,15 @@ type ResolveOptions = {
     packageName: string;
     newDotRoot: string;
     isHybrid: boolean;
+    /**
+     * React Native's Hermes tag file for the engine this build links (`sdks/.hermesv1version`, or
+     * `sdks/.hermesversion` with Hermes V1 disabled). The native caller picks it, since it owns the V1 flag.
+     */
+    hermesVersionFile: string;
 };
+
+/** What a published artifact was built from, as recorded in its POM's `<properties>`. A property the POM does not carry is null. */
+type PomProperties = {patchesHash: string | null; hermesVersion: string | null};
 
 /** No prebuilt match (or no credentials): the caller builds react-native from source. Carries no secrets. */
 type SourceBuild = {
@@ -146,6 +154,23 @@ function computePatchesHash(newDotRoot: string, isHybrid: boolean): string {
     return execFileSync('bash', args, {encoding: 'utf8'}).trim();
 }
 
+/**
+ * The Hermes version this build links, derived from its tag file the same way the publish workflows derive the
+ * version they record (`get-hermes-version.sh`), so `hermes-v250829098.0.14` becomes `250829098.0.14`. The artifacts
+ * are not bundled with a Hermes engine, but their React code is compiled against the headers of one, so an artifact
+ * is only usable when its recorded Hermes version is the one this build links.
+ */
+function getLocalHermesVersion(hermesVersionFile: string): string {
+    const version = fs
+        .readFileSync(hermesVersionFile, 'utf8')
+        .trim()
+        .replace(/^hermes-v?/, '');
+    if (!version) {
+        throw new Error(`Could not read the Hermes version from ${hermesVersionFile}`);
+    }
+    return version;
+}
+
 /** Published versions of the package that were built from the given react-native version. Requires `initGithubClient`. */
 async function getArtifactsCandidates(packageName: string, artifactId: string, rnVersion: string): Promise<string[]> {
     /* eslint-disable @typescript-eslint/naming-convention -- GitHub REST API params are snake_case */
@@ -158,22 +183,31 @@ async function getArtifactsCandidates(packageName: string, artifactId: string, r
     return versions.map((version) => version.name).filter((name) => name.startsWith(rnVersion));
 }
 
-async function getRemotePatchesHash(packageName: string, artifactId: string, version: string, githubToken: string): Promise<string | null> {
-    const pom = await fetchWithToken(`${getArtifactUrlPrefix(packageName, artifactId, version)}.pom`, githubToken);
-    return pom.match(/<patchesHash>([^<]+)<\/patchesHash>/)?.[1]?.trim() ?? null;
+function readPomProperty(pom: string, name: string): string | null {
+    return pom.match(new RegExp(`<${name}>([^<]+)</${name}>`))?.[1]?.trim() ?? null;
 }
 
-/** Returns null when no published artifact was built from the local patches — a legitimate result, not a failure. */
+async function getRemotePomProperties(packageName: string, artifactId: string, version: string, githubToken: string): Promise<PomProperties> {
+    const pom = await fetchWithToken(`${getArtifactUrlPrefix(packageName, artifactId, version)}.pom`, githubToken);
+    return {patchesHash: readPomProperty(pom, 'patchesHash'), hermesVersion: readPomProperty(pom, 'hermesVersion')};
+}
+
+/** Returns null when no published artifact was built from the local patches and Hermes. That is a legitimate result, not a failure. */
 async function findMatchingArtifactsVersion(options: ResolveOptions, artifactId: string, githubToken: string): Promise<string | null> {
-    const {packageName, newDotRoot, isHybrid} = options;
+    const {packageName, newDotRoot, isHybrid, hermesVersionFile} = options;
     const localPatchesHash = computePatchesHash(newDotRoot, isHybrid);
+    const localHermesVersion = getLocalHermesVersion(hermesVersionFile);
     const rnVersion = getReactNativeVersion(newDotRoot);
     const candidates = await getArtifactsCandidates(packageName, artifactId, rnVersion);
     for (const candidate of candidates) {
-        const remoteHash = await getRemotePatchesHash(packageName, artifactId, candidate, githubToken);
-        if (remoteHash === localPatchesHash) {
+        const remote = await getRemotePomProperties(packageName, artifactId, candidate, githubToken);
+        if (remote.patchesHash !== localPatchesHash) {
+            continue;
+        }
+        if (remote.hermesVersion === localHermesVersion) {
             return candidate;
         }
+        logWarn(`${LOG_PREFIX} Skipping ${packageName}:${candidate}: built against Hermes ${remote.hermesVersion ?? 'unknown'}, but this build links Hermes ${localHermesVersion}.`);
     }
     return null;
 }
