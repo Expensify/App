@@ -39,6 +39,13 @@ function isStaleWideTabPreMountRouteKey(key: string | undefined): boolean {
     return !!key && key.includes(ROUTE_KEY_INFIX) && key !== liveRouteKey && !revealedRouteKeys.has(key);
 }
 
+function setLiveWideTabPreMountPreloadedRouteKey(key: string | undefined) {
+    livePreloadedRouteKey = key;
+    if (key) {
+        preloadedRouteKeysAddedByPreMount.add(key);
+    }
+}
+
 /** True for a tab preload that an earlier pre-mount added and the live one does not own. */
 function isStaleWideTabPreMountPreloadedRouteKey(key: string): boolean {
     return preloadedRouteKeysAddedByPreMount.has(key) && key !== livePreloadedRouteKey;
@@ -51,5 +58,6 @@ export {
     isLiveWideTabPreMountTabRouteKey,
     markWideTabPreMountRouteKeyRevealed,
     isStaleWideTabPreMountRouteKey,
+    setLiveWideTabPreMountPreloadedRouteKey,
     isStaleWideTabPreMountPreloadedRouteKey,
 };

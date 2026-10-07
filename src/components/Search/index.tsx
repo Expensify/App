@@ -99,7 +99,7 @@ import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -1178,8 +1178,17 @@ function Search({
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
             if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
-                rearmTracking();
-                setSkeletonWasDisplayed(true);
+
+                // A revealed wide pre-mount focuses mid RHP slide. A transition keeps the slide painting.
+                if (Navigation.getIsRevealingPreMountedFullscreen()) {
+                    startTransition(() => {
+                        rearmTracking();
+                        setSkeletonWasDisplayed(true);
+                    });
+                } else {
+                    rearmTracking();
+                    setSkeletonWasDisplayed(true);
+                }
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
