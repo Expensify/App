@@ -1,9 +1,9 @@
 /**
- * Builds the payment history table rows from the raw Onyx purchase list, folding refunds, disputes,
+ * Builds the payment history table rows from the Onyx purchases collection, folding refunds, disputes,
  * balance transfers, and cleared payments onto the bill they modify.
  */
 import CONST from '@src/CONST';
-import type {Purchase} from '@src/types/onyx/PurchaseList';
+import type {Purchase, Purchases} from '@src/types/onyx/PurchaseList';
 
 import type {ValueOf} from 'type-fest';
 
@@ -38,8 +38,9 @@ const TRANSFER_BILLING_TYPES: ReadonlySet<string> = new Set([
  * Builds one table row per bill, newest first.
  * Refunds, disputes, balance transfers, and cleared payments are separate purchases that point at the bill they change, so they are folded onto that bill instead of listed on their own.
  */
-function getPaymentHistoryRows(purchaseList: Purchase[] | null | undefined): PaymentHistoryRow[] {
-    if (!purchaseList?.length) {
+function getPaymentHistoryRows(purchases: Purchases | null | undefined): PaymentHistoryRow[] {
+    const purchaseList = Object.values(purchases ?? {});
+    if (!purchaseList.length) {
         return [];
     }
 
