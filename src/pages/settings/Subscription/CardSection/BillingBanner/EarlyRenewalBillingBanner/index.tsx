@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useEarlyRenewalConfirmation from '@hooks/useEarlyRenewalConfirmation';
+import useEarlyRenewalPeriod from '@hooks/useEarlyRenewalPeriod';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,6 +21,7 @@ import React from 'react';
 
 function EarlyRenewalBillingBanner() {
     const [eligibility] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
+    const {isIncentivizedPeriod} = useEarlyRenewalPeriod();
     const showEarlyRenewalConfirmation = useEarlyRenewalConfirmation();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -34,8 +36,8 @@ function EarlyRenewalBillingBanner() {
             errorRowStyles={[styles.ph5, styles.pb4]}
         >
             <BillingBanner
-                title={translate('earlyRenewal.title')}
-                subtitle={translate('earlyRenewal.subtitle')}
+                title={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedTitle') : translate('earlyRenewal.title')}
+                subtitle={isIncentivizedPeriod ? translate('earlyRenewal.incentivizedSubtitle') : translate('earlyRenewal.subtitle')}
                 icon={illustrations.SubscriptionAnnual}
                 rightComponent={
                     <Button
@@ -45,7 +47,7 @@ function EarlyRenewalBillingBanner() {
                         size={CONST.BUTTON_SIZE.SMALL}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                     >
-                        <Button.Text>{translate('earlyRenewal.renew')}</Button.Text>
+                        <Button.Text>{isIncentivizedPeriod ? translate('earlyRenewal.claim') : translate('earlyRenewal.renew')}</Button.Text>
                     </Button>
                 }
             />
