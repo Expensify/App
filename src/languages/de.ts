@@ -1016,6 +1016,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `Abonnement endet am ${date}`,
                 cta: 'Verwalten',
             },
+            emailDeliveryFailure: {title: 'Wir können Ihnen keine E-Mail-Benachrichtigungen senden', subtitle: 'Konto'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -6032,6 +6033,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     return `${customAccountsCount} Karten mit benutzerdefinierten Konten`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Rillet-Konto für Währungsumrechnungsgebühren',
+                description:
+                    'Wenn Ihr Unternehmen die Währungumrechnungskosten für eine im Ausland getätigte Zahlung übernimmt, buchen wir diese Kosten in Rillet auf dieses Konto als Buchungssatz.',
+            },
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry-Einrichtung',
@@ -7141,6 +7147,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 `${memberName} hat ausstehende Spesenabrechnungen zur Genehmigung. Bitte bitten Sie diese Person, sie zu genehmigen, oder übernehmen Sie die Kontrolle über ihre Abrechnungen, bevor Sie sie aus dem Workspace entfernen.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Sie können ${memberName} nicht aus diesem Workspace entfernen. Bitte legen Sie unter Workflows > Zahlungen ausführen oder nachverfolgen eine*n neue*n Erstattungsverantwortliche*n fest und versuchen Sie es dann erneut.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Sie können ${memberName} nicht aus diesem Workspace entfernen, solange diese Person eine Expensify Karte hat. Bitte deaktivieren Sie die Karte unter Workspace > Expensify Karte und versuchen Sie es dann erneut.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Wenn du ${memberName} aus diesem Workspace entfernst, ersetzen wir diese Person als bevorzugte*n Exporteur*in durch ${workspaceOwner}, den/die Workspace-Inhaber*in.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -8854,6 +8862,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Möchten Sie den Genehmigungsmodus für diesen Workspace wirklich ändern? Erfahren Sie mehr über die verschiedenen ${providerName}-aktivierten Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Wenn Sie den Genehmigungsmodus ändern, werden alle vorhandenen Genehmigungs-Workflows gelöscht. Erfahren Sie mehr über die verschiedenen von ${providerName} unterstützten Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
             approvalModeWarningConfirm: 'Genehmigungsmodus ändern',
             syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
             syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
@@ -10017,7 +10027,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noCategory: 'Keine Kategorie',
         noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',
-        noVendor: 'Kein Lieferant',
         expenseType: 'Ausgabenart',
         receiptType: 'Belegart',
         receiptTypeValues: {
@@ -11729,6 +11738,19 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
         },
     },
+    emailIssuePage: {
+        title: 'E-Mail-Problem',
+        intro: (login: string) => `Unser E-Mail-Anbieter hat das Senden an <strong>${login}</strong> aufgrund von Zustellproblemen pausiert. Um dieses Problem zu beheben:`,
+        confirmEmailTitle: 'Bestätigen Sie Ihre E-Mail-Adresse',
+        confirmEmailDescription: (login: string) =>
+            `Stellen Sie sicher, dass <strong>${login}</strong> richtig geschrieben ist und ein echtes Postfach ist. Aliasse wie „expenses@domain.com“ benötigen ein eigenes funktionierendes Postfach, um sich bei Expensify anzumelden.`,
+        allowlistTitle: 'expensify.com auf die Allowlist setzen',
+        allowlistDescription: `Fügen Sie <strong>expensify.com</strong> zur Allowlist Ihres E-Mail-Clients hinzu. Möglicherweise muss Ihre IT-Abteilung die Servereinstellungen gemäß <a href="${CONST.SET_NOTIFICATION_LINK}">dieser Anleitung</a> anpassen.`,
+        getHelpFromConcierge: 'Hilfe von Concierge erhalten',
+        completedSteps: 'Ich habe die obigen Schritte abgeschlossen',
+        errorTitle: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut',
+        errorPrompt: 'Anscheinend hat etwas nicht funktioniert. Bitte versuchen Sie es erneut. Wenn das Problem weiterhin besteht, wenden Sie sich bitte an Concierge.',
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) =>
             `Verlängern Sie Ihr Abonnement für einen Zeitraum von 12 Monaten, von ${startDate} bis ${endDate}.`,
@@ -11736,6 +11758,26 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         subtitle: 'Eine Sache weniger zu erledigen vor dem neuen Jahr.',
         confirmTitle: 'Verlängerung bestätigen',
         renew: 'Erneuern',
+        incentivizedTitle: 'Früher verlängern, bis zu 2 Monate gratis erhalten',
+        incentivizedSubtitle: 'Sichern Sie sich einen Rabatt auf Ihr Jahresabonnement.',
+        claim: 'Forderung',
+        offer: {
+            heading: 'Wählen Sie Ihren Rabatt',
+            subtitle: 'Zwei attraktive Angebote zur Auswahl für Sie:',
+            oneYear: 'Für 1 Jahr verlängern, 1 Monat gratis erhalten',
+            twoYears: 'Für 2 Jahre verlängern, 2 Monate gratis erhalten',
+            bestDeal: 'Bestes Angebot',
+            disclaimer: 'Das obige Angebot wird als 9 % Rabatt auf Ihr Jahresabonnement angewendet. Überziehungsgebühren sind nicht enthalten.',
+            renewAndClaim: 'Verlängern und Rabatt sichern',
+            chooseOptionError: 'Bitte wählen Sie eine Option aus.',
+        },
+        adminTitle: 'Bitten Sie Ihre abrechnungsverantwortliche Person, frühzeitig zu verlängern',
+        adminSubtitle: 'Sie können bei einem Jahresabonnement bis zu 2 Monate kostenlos erhalten.',
+        adminCTA: 'Anstoß',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}, könnten Sie unser Expensify-Abo vorzeitig verlängern? Wir würden bis zu 2 Monate kostenlos erhalten. Fordern Sie es hier an: [Aboseite](${subscriptionURL})`,
+        mobileRenewPrompt: 'Besuchen Sie Expensify in Ihrem Webbrowser, um vorzeitig zu verlängern.',
+        mobileClaimPrompt: 'Besuchen Sie Expensify in Ihrem Webbrowser, um Ihren Verlängerungsrabatt zu erhalten.',
     },
 };
 export default translations;

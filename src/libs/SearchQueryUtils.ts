@@ -1348,7 +1348,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
-                    filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
@@ -1413,20 +1412,31 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     return filtersString.filter(Boolean).join(' ').trim();
 }
 
+function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is OnyxCollection<OnyxTypes.Policy> {
+    if (key !== ONYXKEYS.COLLECTION.POLICY) {
+        return false;
+    }
+    return !!data;
+}
+
 function getAllPolicyValues<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): Array<OnyxCollectionValuesMapping[T]> {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
 
+    const policiesForResolution = policies ?? (isPolicyCollection(key, policyData) ? policyData : undefined);
+    const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
+
     if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.value?.includes(id) && policyData[curr]) {
+                if (!resolvedValues.includes(id) && policyData[curr]) {
                     acc.push(policyData[curr]);
                 }
                 return acc;
@@ -1435,23 +1445,27 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.value.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
+    return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
 }
 
 function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): OnyxCollection<OnyxCollectionValuesMapping[T]> {
     if (!policyData || !policyID || !policyID.value) {
         return {};
     }
 
+    const policiesForResolution = policies ?? (isPolicyCollection(key, policyData) ? policyData : undefined);
+    const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
+
     if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.value?.includes(id) && policyData[curr]) {
+                if (!resolvedValues.includes(id) && policyData[curr]) {
                     acc[curr] = policyData[curr];
                 }
                 return acc;
@@ -1460,7 +1474,7 @@ function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.value.reduce(
+    return resolvedValues.reduce(
         (acc, curr) => {
             if (policyData?.[`${key}${curr}`]) {
                 acc[`${key}${curr}`] = policyData?.[`${key}${curr}`];
@@ -1794,10 +1808,6 @@ function buildFilterFormValuesFromQuery(
             filtersForm[addNegation(filterKey, isNegated)] = filterValues
                 .filter((name) => uniqueCategories.has(name))
                 .concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
-            // Vendor names are matched by text on the server and the synced vendor lists load lazily, so the typed values are kept as-is.
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues
@@ -2893,7 +2903,7 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
               return filter;
           })
         : queryData.rawFilterList;
-    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList, status: ''});
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
 }
 
 function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `${T}${typeof CONST.SEARCH.NOT_MODIFIER}` {

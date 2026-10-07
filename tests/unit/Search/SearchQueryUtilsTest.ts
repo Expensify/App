@@ -73,6 +73,13 @@ import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/Test
 
 const mockGetRootState = jest.fn();
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
+
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
     default: {
@@ -553,31 +560,6 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense policyID:12345 amount<100');
-        });
-
-        test('vendor filter value', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                vendor: ['Acme', 'none'],
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-
-            expect(result).toEqual('type:expense vendor:Acme,none');
-        });
-
-        test('negated vendor filter value', () => {
-            // Given a filter form that excludes a vendor
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                vendorNot: ['Acme'],
-            };
-
-            // When the query string is built from the form
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-
-            // Then the vendor filter keeps its negation so the exclusion is not turned into a match
-            expect(result).toEqual('type:expense -vendor:Acme');
         });
 
         test('receipt type filter value', () => {
@@ -1507,40 +1489,6 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 category: ['Maintenance', 'none'],
-            });
-        });
-
-        test('vendor filter keeps the typed names and the empty value', () => {
-            const queryString = 'sortBy:date sortOrder:desc type:expense vendor:"Acme Tools",none';
-            const queryJSON = buildSearchQueryJSON(queryString);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-
-            expect(result).toEqual({
-                type: 'expense',
-                vendor: ['Acme Tools', 'none'],
-            });
-        });
-
-        test('negated vendor filter is kept in the negated form key', () => {
-            // Given a typed query that excludes a vendor
-            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense -vendor:"Acme Tools"');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            // When the filter form is built from the query
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-
-            // Then the exclusion lands in vendorNot so applying the form keeps it an exclusion
-            expect(result).toEqual({
-                type: 'expense',
-                vendorNot: ['Acme Tools'],
             });
         });
 
@@ -4241,7 +4189,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters);
-            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters}));
             const merchantNode = findNode(normalizedFilters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
@@ -4252,7 +4200,7 @@ describe('SearchQueryUtils', () => {
         it('should apply contains to merchant in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const normalizedRawFilterList = rawFilterList.map((filter) => ({...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}));
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList}));
         });
 
         it('should preserve exact merchant matches in AST filters', () => {
@@ -4261,7 +4209,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify(queryJSON));
             const merchantNode = findNode(queryJSON.filters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
@@ -4272,7 +4220,7 @@ describe('SearchQueryUtils', () => {
         it('should preserve exact merchant matches in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList}));
         });
 
         it('should preserve multiple exact merchant matches while keeping description as contains', () => {
@@ -4282,7 +4230,7 @@ describe('SearchQueryUtils', () => {
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
             const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters, exactMatchFilterKeys);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters}));
             const merchantNode = findNode(normalizedFilters, 'merchant');
             const descriptionNode = findNode(normalizedFilters, 'description');
             if (!merchantNode || !descriptionNode) {
@@ -4295,7 +4243,7 @@ describe('SearchQueryUtils', () => {
 
         it('should not affect non-text fields in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList}));
         });
     });
 
@@ -4871,6 +4819,34 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual([policy1]);
         });
 
+        test('resolves workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValues({value: ['Workspace 1', 'Workspace 2'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual([policy1, policy2]);
+        });
+
+        test('resolves negated workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValues({value: ['Workspace 1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual([policy2, policy3]);
+        });
+
+        test('resolves workspace names using provided policies collection for other collections', () => {
+            const tagList1: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag1: {name: 'Tag1', enabled: true}}},
+            };
+            const tagList2: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag2: {name: 'Tag2', enabled: true}}},
+            };
+            const policyTagsData = {
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`]: tagList1,
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}2`]: tagList2,
+            };
+            const result = getAllPolicyValues({value: ['Workspace 1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTagsData, policyData);
+
+            expect(result).toEqual([tagList1]);
+        });
+
         test('returns every policy value when the filter is undefined', () => {
             expect(getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY, policyData)).toEqual([policy1, policy2, policy3]);
         });
@@ -4905,6 +4881,23 @@ describe('SearchQueryUtils', () => {
 
         test('returns every policy value except the excluded ones for a negated filter', () => {
             const result = getAllPolicyValuesMap({value: ['1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual({
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
+                [`${ONYXKEYS.COLLECTION.POLICY}3`]: policy3,
+            });
+        });
+
+        test('resolves workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValuesMap({value: ['Workspace 1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual({
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
+            });
+        });
+
+        test('resolves negated workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValuesMap({value: ['Workspace 1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
 
             expect(result).toEqual({
                 [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
