@@ -156,6 +156,9 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
         // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
         // response that replaces the routes carries the matching decision with it.
         commuterExclusionPreview: null,
+
+        // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
+        isReusedRoute: null,
     });
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
@@ -212,6 +215,8 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
         ...currentTransaction,
+        // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
+        isReusedRoute: null,
         comment: {
             ...currentTransaction?.comment,
             waypoints: reIndexedWaypoints,
@@ -244,6 +249,8 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
             errorFields: {
                 route: null,
             },
+            // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
+            isReusedRoute: undefined,
         };
     }
     if (shouldUseSplitDraft) {
@@ -405,13 +412,25 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
  * @param transactionID - The ID of the transaction to be updated
  * @param waypoints - An object containing all the waypoints which will replace the existing ones.
  * @param transactionState - The state of the transaction that should be updated
+ * @param existingWaypoints - The existing waypoints before update, used to clear extra waypoints when new waypoints are fewer
  */
-function updateWaypoints(transactionID: string, waypoints: WaypointCollection, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): Promise<void | void[]> {
+function updateWaypoints(
+    transactionID: string,
+    waypoints: WaypointCollection,
+    transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
+    existingWaypoints?: WaypointCollection,
+): Promise<void | void[]> {
+    const allWaypointKeys = [...new Set([...Object.keys(existingWaypoints ?? {}), ...Object.keys(waypoints)])];
+
     // Updating waypoints should completely overwrite the existing ones.
     // Onyx merge performs noop on undefined fields. Thus we should fallback to null so the existing fields are cleared.
-    const waypointsOnyxUpdate = Object.keys(waypoints).reduce(
+    const waypointsOnyxUpdate = allWaypointKeys.reduce(
         (acc, key) => {
             const waypoint = waypoints[key];
+            if (!waypoint) {
+                acc[key] = null;
+                return acc;
+            }
             acc[key] = {
                 name: waypoint.name ?? null,
                 address: waypoint.address ?? null,
@@ -428,7 +447,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
             };
             return acc;
         },
-        {} as Record<string, Required<NullishDeep<RecentWaypoint & Waypoint>>>,
+        {} as Record<string, Required<NullishDeep<RecentWaypoint & Waypoint>> | null>,
     );
 
     let keyPrefix;
@@ -471,6 +490,9 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
         // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
         // response that replaces the routes carries the matching decision with it.
         commuterExclusionPreview: null,
+
+        // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
+        isReusedRoute: null,
     });
 }
 
