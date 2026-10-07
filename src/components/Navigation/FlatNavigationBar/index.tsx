@@ -38,9 +38,7 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {formatBadgeText, getItemBadgeText, getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import {ACCOUNTING_KEYS, EXPENSES_KEYS, getGroupedSearchTranslationPath, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
@@ -67,6 +65,7 @@ import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
 import FlatNavSavedSearches from './FlatNavSavedSearches';
 import FlatNavSubItemList from './FlatNavSubItemList';
+import useFlatNavSavedSearchItems from './useFlatNavSavedSearchItems';
 import useFlatNavSpendItems from './useFlatNavSpendItems';
 
 // TODO: placeholder destinations shown for design review only. They render as rows but go nowhere.
@@ -111,6 +110,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {counts: reportCounts} = useTodoCounts();
     const {expenses, reports, accounting} = useFlatNavSpendItems();
+    const savedSearchItems = useFlatNavSavedSearchItems();
 
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -241,19 +241,17 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         });
     };
 
-    // Opening the group navigates to a saved search so its children can render; the first one by key order is
-    // the cheapest choice here, since ordering the list by title needs the Onyx data FlatNavSavedSearches loads.
+    // Opening the group navigates to a saved search so its children can render, and it lands on the row the list
+    // shows first rather than on whichever one Onyx happens to hold first.
     const navigateToFirstSavedSearch = () => {
-        const [savedSearchID, savedSearch] = Object.entries(savedSearches ?? {}).at(0) ?? [];
-        if (!savedSearchID || !savedSearch) {
+        const firstSavedSearch = savedSearchItems.at(0);
+        if (!firstSavedSearch) {
             return;
         }
-        const searchKey = savedSearchIDToSearchKey(savedSearchID);
-        const query = getValidLastQuery(getLastSearchQuery(searchFilters, searchKey), savedSearch.query);
         clearSelectedText();
         interceptAnonymousUser(() => {
             setSearchContext(false);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name: savedSearch.name, searchKey}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: firstSavedSearch.query, name: firstSavedSearch.name, searchKey: firstSavedSearch.searchKey}));
         });
     };
 
@@ -443,17 +441,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                         />
                                     ))}
 
-                                {isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (
-                                    <FlatNavItem
-                                        isCollapsed={isVisuallyCollapsed}
-                                        label={translate('common.insights')}
-                                        icon={navIcons.PieChart}
-                                        isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
-                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
-                                        onPress={navigateToInsights}
-                                    />
-                                )}
-
                                 {hasSavedSearches && (
                                     <>
                                         <FlatNavItem
@@ -465,6 +452,17 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                         />
                                         {isSavedGroupSelected && <FlatNavSavedSearches isExpanded={isSavedGroupExpanded} />}
                                     </>
+                                )}
+
+                                {isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (
+                                    <FlatNavItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label={translate('common.insights')}
+                                        icon={navIcons.PieChart}
+                                        isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
+                                        onPress={navigateToInsights}
+                                    />
                                 )}
 
                                 <FlatNavDivider />
