@@ -1617,6 +1617,9 @@ const CONST = {
         PDF_PAGE_BORDER: 9,
 
         FIRST_PDF_PAGE: 1,
+
+        // Elements with this data attribute pause the hover zoom while the pointer is over them
+        HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
