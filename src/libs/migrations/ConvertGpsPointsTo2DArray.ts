@@ -20,7 +20,7 @@ export default function (): Promise<void> {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.GPS_DRAFT_DETAILS,
             callback: (gpsDraftDetails: OnyxEntry<OldGpsDraftDetails>) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
 
                 // gpsPoints may still be in the old 1D format from before the schema change
                 const gpsPoints = gpsDraftDetails?.gpsPoints;

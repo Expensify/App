@@ -387,7 +387,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -398,7 +398,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -410,7 +410,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     callback: (data) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(data);
                     },
                 });
@@ -482,7 +482,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -494,7 +494,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     callback: (data) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(data);
                     },
                 });
@@ -562,7 +562,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     callback: (data) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(data);
                     },
                 });
@@ -631,7 +631,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     callback: (data) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(data);
                     },
                 });
@@ -700,7 +700,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     callback: (data) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(data);
                     },
                 });
@@ -756,7 +756,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     callback: (data) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(data);
                     },
                 });
@@ -813,7 +813,7 @@ describe('Middleware', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     callback: (data) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(data);
                     },
                 });

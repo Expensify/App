@@ -66,7 +66,7 @@ function updateAttachmentRecordPaths(): Promise<void> {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED,
             callback: (hasMigrated) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(hasMigrated);
             },
         });
@@ -79,7 +79,7 @@ function updateAttachmentRecordPaths(): Promise<void> {
             const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
                 callback: (attachments: OnyxCollection<Attachment>) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
 
                     const updates: Record<string, Attachment> = {};
                     for (const [key, attachment] of Object.entries(attachments ?? {})) {

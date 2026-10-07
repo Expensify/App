@@ -26,7 +26,7 @@ Onyx.connectWithoutView({
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
             callback: (lastFullReconnectTimeOnyxValue) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 lastFullReconnectTime = lastFullReconnectTimeOnyxValue ?? '';
                 doFullReconnectIfNecessary();
             },

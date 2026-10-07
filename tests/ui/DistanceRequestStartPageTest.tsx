@@ -144,7 +144,7 @@ function getDraftTransaction() {
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
             callback: (value) => {
                 resolve(value);
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
             },
         });
     });

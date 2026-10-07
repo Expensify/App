@@ -122,7 +122,7 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
         const connectionID = Onyx.connect({
             ...options,
             callback: (...params: ConnectionCallbackParams<TKey>) => {
-                Onyx.disconnect(connectionID);
+                connectionID.unsubscribe();
                 options.callback?.(...params);
                 resolve();
             },

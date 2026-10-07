@@ -208,7 +208,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     callback: (transaction) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(transaction?.taxCode).toBe(ruleTaxCode);
                         expect(transaction?.taxAmount).toBe(5);
                         resolve();
@@ -221,7 +221,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const reportAction = Object.values(reportActions ?? {}).at(0);
                         if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE)) {
                             const originalMessage = getOriginalMessage(reportAction);
@@ -297,7 +297,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                         callback: (transaction) => {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             expect(transaction?.taxCode).toBe(taxCode);
                             expect(transaction?.taxAmount).toBe(taxAmount);
                             resolve();
@@ -352,7 +352,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                         callback: (transaction) => {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             expect(transaction?.taxCode).toBeUndefined();
                             expect(transaction?.taxAmount).toBeUndefined();
                             resolve();
@@ -418,7 +418,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
                     callback: (transactionViolations) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(transactionViolations).toHaveLength(1);
                         expect(transactionViolations?.at(0)?.name).toEqual(CONST.VIOLATIONS.MISSING_CATEGORY);
                         resolve();
@@ -567,7 +567,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`];
                         resolve(newTransaction);
                     },
@@ -642,7 +642,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`];
                         resolve(newTransaction);
                     },
@@ -856,7 +856,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 const connection = Onyx.connectWithoutView({
                     key: ONYXKEYS.NVP_RECENT_ATTENDEES,
                     callback: (attendees) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(attendees);
                     },
                 });
@@ -896,7 +896,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 const connection = Onyx.connectWithoutView({
                     key: ONYXKEYS.NVP_RECENT_ATTENDEES,
                     callback: (attendees) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(attendees);
                     },
                 });
@@ -968,7 +968,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policy.id}`,
                     callback: (recentlyUsedTags) => {
                         resolve(recentlyUsedTags ?? {});
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -1034,7 +1034,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
                     callback: (transactionViolations) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY)).toBe(false);
                         resolve();
                     },

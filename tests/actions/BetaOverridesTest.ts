@@ -13,7 +13,7 @@ function getBetaOverrides(): Promise<BetaOverrides | undefined> {
         const connection = Onyx.connect({
             key: ONYXKEYS.BETA_OVERRIDES,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

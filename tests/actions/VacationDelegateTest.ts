@@ -143,7 +143,7 @@ describe('actions/VacationDelegate', () => {
             // When a delegate is picked
             await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
             await waitForBatchedUpdates();
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
 
             // Then the policyDiff is stored, pendingDelegate points at the pick, and the saved delegate is left unchanged
             const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);

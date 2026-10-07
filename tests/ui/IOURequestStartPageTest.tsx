@@ -88,7 +88,7 @@ describe('IOURequestStartPage', () => {
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
                 callback: (val) => {
                     resolve(val?.iouRequestType);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });

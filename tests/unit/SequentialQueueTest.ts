@@ -351,7 +351,7 @@ describe('SequentialQueue', () => {
                     return;
                 }
 
-                Onyx.disconnect(connectionId);
+                connectionId.unsubscribe();
                 expect(ongoingRequest).toEqual(persistedRequest);
                 expect(ongoingRequest).toEqual(getOngoingRequest());
                 expect(getAll().length).toBe(0);
@@ -598,7 +598,7 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             // The in-flight cycle owns the shared flag; its finallyData clears the spinner even under the drop.
             expect(isLoadingReportData).toBe(false);
         } finally {
-            Onyx.disconnect(connectionID);
+            connectionID.unsubscribe();
         }
     });
 
@@ -737,7 +737,7 @@ describe('SequentialQueue - offline read reconciliation', () => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connectionID);
+                        connectionID.unsubscribe();
                         resolve(value);
                     },
                 });

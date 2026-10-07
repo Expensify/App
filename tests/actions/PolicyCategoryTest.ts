@@ -70,7 +70,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         // Check if policy requiresCategory was updated with correct values
                         expect(policy?.requiresCategory).toBeTruthy();
                         expect(policy?.pendingFields?.requiresCategory).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -85,7 +85,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         // Check if the policy pendingFields was cleared
                         expect(policy?.pendingFields?.requiresCategory).toBeFalsy();
                         resolve();
@@ -117,7 +117,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const newCategory = policyCategories?.[newCategoryName];
 
                         expect(newCategory?.name).toBe(newCategoryName);
@@ -133,7 +133,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         const newCategory = policyCategories?.[newCategoryName];
                         expect(newCategory?.errors).toBeFalsy();
@@ -169,7 +169,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[oldCategoryName ?? '']).toBeFalsy();
                         expect(policyCategories?.[newCategoryName]?.name).toBe(newCategoryName);
@@ -186,7 +186,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[newCategoryName]?.pendingAction).toBeFalsy();
                         expect(policyCategories?.[newCategoryName]?.pendingFields?.name).toBeFalsy();
@@ -229,7 +229,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[categoryNameToUpdate]?.enabled).toBeTruthy();
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -245,7 +245,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingAction).toBeFalsy();
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingFields?.enabled).toBeFalsy();
@@ -274,7 +274,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[categoryNameToDelete]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
                         resolve();
@@ -287,7 +287,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policyCategories?.[categoryNameToDelete]).toBeFalsy();
 
                         resolve();
@@ -326,7 +326,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
                     },
@@ -336,7 +336,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(Object.values(policyCategories ?? {}).every((category) => category.enabled === false)).toBeTruthy();
                         resolve();
                     },
@@ -349,7 +349,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.areCategoriesEnabled).toBe(false);
                         expect(policy?.requiresCategory).toBe(false);
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBeFalsy();
@@ -387,7 +387,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
                     },
@@ -397,7 +397,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(Object.values(policyCategories ?? {}).every((category) => category.enabled === true)).toBeTruthy();
                         resolve();
                     },
@@ -410,7 +410,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.areCategoriesEnabled).toBe(true);
                         expect(policy?.requiresCategory).toBe(true);
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBeFalsy();
@@ -819,7 +819,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const category = policyCategories?.[categoryName];
 
                         expect(category?.maxAmountNoReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
@@ -840,7 +840,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const category = policyCategories?.[categoryName];
 
                         expect(category?.maxAmountNoReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
@@ -892,7 +892,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const category = policyCategories?.[categoryName];
 
                         expect(category?.maxAmountNoReceipt).toBe(0);
@@ -913,7 +913,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const category = policyCategories?.[categoryName];
 
                         expect(category?.maxAmountNoReceipt).toBe(0);

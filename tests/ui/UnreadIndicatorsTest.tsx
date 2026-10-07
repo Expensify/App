@@ -500,7 +500,7 @@ describe('Unread Indicators', () => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         callback: (val) => {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(val);
                         },
                     });
@@ -638,7 +638,7 @@ describe('Unread Indicators', () => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         callback: (val) => {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(val);
                         },
                     });
@@ -779,7 +779,7 @@ describe('Unread Indicators', () => {
             }),
         );
 
-        Onyx.disconnect(connection);
+        connection.unsubscribe();
     });
 
     it('Do not display the new line indicator when receiving a new message from another user', async () => {
@@ -919,7 +919,7 @@ describe('Unread Indicators', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (val) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(val);
                 },
             });
@@ -973,7 +973,7 @@ describe('Unread Indicators', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (val) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(val);
                 },
             });

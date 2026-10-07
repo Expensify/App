@@ -464,7 +464,7 @@ describe('actions/Report', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`,
                             callback: (report) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 resolve();
 
                                 // The report should exist but the create chat error field should be cleared.
@@ -497,7 +497,7 @@ describe('actions/Report', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`,
                             callback: (report) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 resolve();
 
                                 // The optimistic report should be deleted (null) since it had createChat error
@@ -571,7 +571,7 @@ describe('actions/Report', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`,
                             callback: (report) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 resolve();
 
                                 // The report should exist but the create chat error field should be cleared.
@@ -1668,7 +1668,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
 
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
                     expect(persistedRequests?.at(1)?.command).toBeUndefined();
@@ -1683,7 +1683,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (reportActions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
 
                     const reportAction = reportActionID ? reportActions?.[reportActionID] : null;
                     expect(reportAction).not.toBeNull();
@@ -1703,7 +1703,7 @@ describe('actions/Report', () => {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (reportActions) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 const reportAction = reportActionID ? reportActions?.[reportActionID] : undefined;
                 expect(reportAction).toBeUndefined();
             },
@@ -1813,7 +1813,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
                     resolve();
                 },
@@ -1935,7 +1935,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
                     resolve();
                 },
@@ -1947,7 +1947,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (reportActions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     const reportAction = reportActionID ? reportActions?.[reportActionID] : null;
                     expect(reportAction).not.toBeNull();
                     expect(reportAction?.reportActionID).toBe(reportActionID);
@@ -1965,7 +1965,7 @@ describe('actions/Report', () => {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (reportActions) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 const reportAction = reportActionID ? reportActions?.[reportActionID] : undefined;
                 expect(reportAction).toBeUndefined();
             },
@@ -2019,7 +2019,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
                     resolve();
                 },
@@ -2031,7 +2031,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (reportActions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     const reportAction = reportActionID ? reportActions?.[reportActionID] : null;
                     expect(reportAction).not.toBeNull();
                     expect(reportAction?.reportActionID).toBe(reportActionID);
@@ -2049,7 +2049,7 @@ describe('actions/Report', () => {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (reportActions) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 const reportAction = reportActionID ? reportActions?.[reportActionID] : undefined;
                 expect(reportAction).toBeUndefined();
             },
@@ -2080,7 +2080,7 @@ describe('actions/Report', () => {
                 callback: (persisted) => {
                     const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
                     if (relevant.length >= 3) {
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve(relevant);
                     }
                 },
@@ -2131,7 +2131,7 @@ describe('actions/Report', () => {
                 callback: (persisted) => {
                     const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT || r?.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
                     if (relevant.length >= 2) {
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve(relevant);
                     }
                 },
@@ -2181,7 +2181,7 @@ describe('actions/Report', () => {
                 callback: (persisted) => {
                     const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT);
                     if (relevant.length >= 1) {
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve(relevant);
                     }
                 },
@@ -2419,7 +2419,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
                     expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
                     expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
@@ -2433,7 +2433,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (reportActions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     const reportAction = reportActionID ? reportActions?.[reportActionID] : null;
                     expect(reportAction).not.toBeNull();
                     expect(reportAction?.reportActionID).toBe(reportActionID);
@@ -2451,7 +2451,7 @@ describe('actions/Report', () => {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (reportActions) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 const reportAction = reportActionID ? reportActions?.[reportActionID] : undefined;
                 expect(reportAction).toBeUndefined();
             },
@@ -2536,7 +2536,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.PERSISTED_REQUESTS,
                 callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
                     expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
                     resolve();
@@ -2767,7 +2767,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (reportActions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
 
                     const reportAction = reportActionID ? reportActions?.[reportActionID] : null;
                     const message = reportAction?.message;
@@ -3010,7 +3010,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
                 callback: (reportActions) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     const action = Object.values(reportActions ?? {}).at(0);
                     if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
                         throw new Error('Expected the optimistic report preview action');
@@ -3028,7 +3028,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
                 callback: (reports) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     // assert correctness of crucial onyx data
@@ -3052,7 +3052,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
                 callback: (reports) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
 
@@ -3101,7 +3101,7 @@ describe('actions/Report', () => {
                     if (!loadingState?.hasOnceLoadedReportActions) {
                         return;
                     }
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     expect(loadingState.hasOnceLoadedReportActions).toBe(true);
                     resolve();
                 },
@@ -3135,7 +3135,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
                 callback: (reports) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(parentReport?.hasOutstandingChildRequest);
 
@@ -3170,7 +3170,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportData.reportID}`,
                 callback: (report) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     expect(report?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
                     expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -3212,7 +3212,7 @@ describe('actions/Report', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`,
                 callback: (snapshot) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`]).toBeTruthy();
                     expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`]).toBeTruthy();
                     expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).toBeTruthy();
@@ -3256,7 +3256,7 @@ describe('actions/Report', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
                     callback: (id) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(id);
                     },
                 });
@@ -3731,7 +3731,7 @@ describe('actions/Report', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
                             callback: (reportVal) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 resolve(ReportUtils.isUnread(reportVal, undefined, undefined, undefined));
                             },
                         });
@@ -3932,7 +3932,7 @@ describe('actions/Report', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -4043,7 +4043,7 @@ describe('actions/Report', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -4116,7 +4116,7 @@ describe('actions/Report', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -4212,7 +4212,7 @@ describe('actions/Report', () => {
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`,
                     callback: (val) => {
                         resolve(!!val?.private_isArchived);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -4223,7 +4223,7 @@ describe('actions/Report', () => {
                     key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -4275,7 +4275,7 @@ describe('actions/Report', () => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -4348,7 +4348,7 @@ describe('actions/Report', () => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -4364,7 +4364,7 @@ describe('actions/Report', () => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                     callback: (txn) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(txn);
                     },
                 });
@@ -4449,7 +4449,7 @@ describe('actions/Report', () => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -4537,7 +4537,7 @@ describe('actions/Report', () => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report);
                     },
                 });
@@ -4598,7 +4598,7 @@ describe('actions/Report', () => {
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`,
                     callback: (val) => {
                         resolve(!!val?.private_isArchived);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -4971,7 +4971,7 @@ describe('actions/Report', () => {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -5302,7 +5302,7 @@ describe('actions/Report', () => {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -5371,7 +5371,7 @@ describe('actions/Report', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -5427,7 +5427,7 @@ describe('actions/Report', () => {
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -5475,7 +5475,7 @@ describe('actions/Report', () => {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });

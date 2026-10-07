@@ -24,7 +24,7 @@ function getGpsDraftDetails(): Promise<OnyxEntry<GpsDraftDetails>> {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.GPS_DRAFT_DETAILS,
             callback: (gpsDraftDetails: OnyxEntry<GpsDraftDetails>) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(gpsDraftDetails);
             },
         });

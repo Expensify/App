@@ -560,7 +560,7 @@ function openReportFromDeepLink(
                     const handleDeeplinkNavigation = () => {
                         // We want to disconnect the connection so it won't trigger the deeplink again
                         // every time the data is changed, for example, when re-login.
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
@@ -623,7 +623,7 @@ function openReportFromDeepLink(
                                 // eslint-disable-next-line rulesdir/prefer-early-return
                                 callback: (report) => {
                                     if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
-                                        Onyx.disconnect(reportConnection);
+                                        reportConnection.unsubscribe();
                                         navigateHandler(report);
                                     }
                                 },

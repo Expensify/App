@@ -764,7 +764,7 @@ const isChannelMuted = (reportId: string, currentUserAccountID: number) =>
         const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
 
                 resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenForCurrentUser(notificationPreference));

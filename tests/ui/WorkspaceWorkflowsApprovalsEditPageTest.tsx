@@ -168,7 +168,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
                 key: ONYXKEYS.APPROVAL_WORKFLOW,
                 callback: (state) => {
                     resolve(state?.members ?? []);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });
@@ -185,7 +185,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
                 key: ONYXKEYS.APPROVAL_WORKFLOW,
                 callback: (state) => {
                     resolve(state?.availableMembers ?? []);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                 },
             });
         });

@@ -118,7 +118,7 @@ function waitForImportFinalModal(importFinalModalID: string): ImportFinalModalRe
                 }
 
                 isPending = false;
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(spreadsheet.importFinalModal);
             },
         });
@@ -132,7 +132,7 @@ function waitForImportFinalModal(importFinalModalID: string): ImportFinalModalRe
             }
 
             isPending = false;
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
         },
     };
 }

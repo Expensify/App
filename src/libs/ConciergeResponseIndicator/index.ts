@@ -311,10 +311,10 @@ function subscribeToReport(responseReportActionID: string, reportID: string) {
         },
     });
     if (reportSubscriptions.get(reportID) !== reportSubscription) {
-        Onyx.disconnect(reportConnection);
+        reportConnection.unsubscribe();
         return;
     }
-    reportSubscription.cleanups.push(() => Onyx.disconnect(reportConnection));
+    reportSubscription.cleanups.push(() => reportConnection.unsubscribe());
 
     // Watch only the question/response reports while a request is tracked. This non-render
     // subscription detects failed sends and reconciles durable replies after missed events.
@@ -329,10 +329,10 @@ function subscribeToReport(responseReportActionID: string, reportID: string) {
     });
     // The initial callback can finish the last request before connectWithoutView returns.
     if (reportSubscriptions.get(reportID) !== reportSubscription) {
-        Onyx.disconnect(connection);
+        connection.unsubscribe();
         return;
     }
-    reportSubscription.cleanups.push(() => Onyx.disconnect(connection));
+    reportSubscription.cleanups.push(() => connection.unsubscribe());
 }
 
 /** Register a local or peer request without broadcasting it back to other tabs. */

@@ -479,7 +479,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
                 await clearOnyxAndSeedFullReconnect([ONYXKEYS.IS_LOADING_APP, ONYXKEYS.NVP_TRY_NEW_DOT]);
                 await waitForBatchedUpdates();
             } finally {
-                Onyx.disconnect(loadingAppConnection);
+                loadingAppConnection.unsubscribe();
             }
 
             // Then the guard must not navigate using the transient post-clear state.

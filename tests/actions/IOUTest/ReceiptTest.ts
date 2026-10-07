@@ -114,7 +114,7 @@ describe('actions/IOU/Receipt', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
                     },
                 });

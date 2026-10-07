@@ -212,7 +212,7 @@ describe('ProductTrainingContextProvider', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
                     callback: (dismissedTooltips) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(dismissedTooltips);
                     },
                 });

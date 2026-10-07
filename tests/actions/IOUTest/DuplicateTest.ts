@@ -724,7 +724,7 @@ describe('actions/Duplicate', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -734,7 +734,7 @@ describe('actions/Duplicate', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -835,7 +835,7 @@ describe('actions/Duplicate', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.reportID).toBeFalsy();
                         resolve();
                     },
@@ -846,7 +846,7 @@ describe('actions/Duplicate', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.reportID).toBeFalsy();
                         resolve();
                     },
@@ -3043,7 +3043,7 @@ describe('actions/Duplicate', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`,
                             callback: (transaction) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 // Then the duplicate transaction should correctly be set on hold.
                                 expect(transaction?.comment?.hold).toBeDefined();
                                 resolve();
