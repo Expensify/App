@@ -23,7 +23,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberWrite, isPolicyAdmin, isPolicyGuest} from '@libs/PolicyUtils';
+import {canMemberWrite, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -56,7 +56,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const isAdmin = isPolicyAdmin(policy);
-    const isGuest = isPolicyGuest(policy);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
@@ -140,12 +139,12 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     // request, the same way Search drives its own pagination from `offset`. Refocusing and coming back online refetch
     // the page that is currently displayed.
     useEffect(() => {
-        if (!isFocused || isOffline || isGuest) {
+        if (!isFocused || isOffline) {
             return;
         }
 
         openPolicyRoomsPage(policyID, pageNumber, sortBy, roomSort.order, searchValue);
-    }, [isFocused, isOffline, isGuest, pageNumber, policyID, roomSort.order, searchValue, sortBy]);
+    }, [isFocused, isOffline, pageNumber, policyID, roomSort.order, searchValue, sortBy]);
 
     const loadMoreRooms = () => {
         // The requested page is only bumped once the previous one has landed, so repeated end-reached events while
@@ -204,7 +203,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 <WorkspaceRoomsTable
                     rooms={rooms}
                     policyID={policyID}
-                    isContentLoaded={isGuest ? true : undefined}
                     highlightedReportID={highlightedReportID}
                     onSearchStringChange={setSearchTerm}
                     onEndReached={loadMoreRooms}
