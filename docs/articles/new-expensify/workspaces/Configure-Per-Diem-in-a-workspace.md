@@ -16,7 +16,7 @@ To enable per diem you must be a workspace admin with a workspace on the Control
 
 ---
 
-## Enable Per Diem in a Workspace
+## How to Enable Per Diem in a Workspace
 
 To enable the per diem feature:
 
@@ -31,7 +31,7 @@ Once enabled, **Per Diem** will appear as a dedicated item in the left-hand menu
 
 ---
 
-## Upload or Export Per Diem Rates
+## How to Upload or Export Per Diem Rates
 
 Admins can manage rates by uploading a spreadsheet or exporting existing ones.
 
@@ -55,7 +55,7 @@ Below are some example templates to reference:
 
 ---
 
-## Edit or Delete Per Diem Rates
+## How to Edit or Delete Per Diem Rates
 
 Each rate is listed as a line item. You can:
 
@@ -67,7 +67,7 @@ Each rate is listed as a line item. You can:
 
 ---
 
-## Set a Default Category for Per Diem
+## How to Set a Default Category for Per Diem
 
 You can assign a default expense category to all per diem entries:
 
