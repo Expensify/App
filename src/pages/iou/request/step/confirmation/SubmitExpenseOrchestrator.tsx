@@ -4,7 +4,6 @@ import useOnyx from '@hooks/useOnyx';
 import type {AfterTransition} from '@hooks/usePreMountDestination';
 
 import {armTransitionBarrier} from '@libs/API';
-import type {WriteReadyBarrier} from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
@@ -36,6 +35,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
+import type {CreateTransactionParams} from './submission/types';
 
 import getSubmitExpenseSearchType from './getSubmitExpenseSearchType';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
@@ -53,7 +53,7 @@ type SubmitExpenseOrchestratorProps = {
      * optimistic data - so the re-render wave lands after the dismiss animation instead of during it.
      * Returns true when the write is still coming after the call returns (e.g. handed off to a GPS lookup).
      */
-    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean, writeBarrier?: WriteReadyBarrier) => boolean;
+    createTransaction: (params: CreateTransactionParams) => boolean;
 
     /** Report that the expense will land on (undefined when destination is unknown, e.g. global create to Search). */
     destinationReportID: string | undefined;
@@ -242,7 +242,7 @@ function SubmitExpenseOrchestrator({
             // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
             // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
             // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
-            createTransaction(locationPermissionGranted);
+            createTransaction({locationPermissionGranted});
             setIsConfirming(false);
         });
     };
@@ -256,7 +256,7 @@ function SubmitExpenseOrchestrator({
         const pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armedBarrier.barrier, armedBarrier.cancel);
 
         const afterTransition = () => {
-            const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite.barrier);
+            const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite.barrier});
             pendingWrite.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
@@ -288,7 +288,7 @@ function SubmitExpenseOrchestrator({
         }
 
         const runAfterDismiss = () => {
-            const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite?.barrier);
+            const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite?.barrier});
             pendingWrite?.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
@@ -323,7 +323,7 @@ function SubmitExpenseOrchestrator({
         markPendingSearchWrite();
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: false});
             setIsConfirming(false);
         };
 
@@ -375,7 +375,7 @@ function SubmitExpenseOrchestrator({
             // is intentionally the same approach used in handleDefaultSubmit so
             // this fallback behaves identically to the standard submit path.
             requestAnimationFrame(() => {
-                createTransaction(locationPermissionGranted);
+                createTransaction({locationPermissionGranted});
                 requestAnimationFrame(() => {
                     setIsConfirming(false);
                 });
@@ -397,7 +397,7 @@ function SubmitExpenseOrchestrator({
 
         Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
             afterTransition: () => {
-                const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite?.barrier);
+                const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite?.barrier});
                 pendingWrite?.settleAfterSubmit(isWriteStillComing);
                 setIsConfirming(false);
             },
@@ -408,7 +408,7 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
         markPendingWriteForSearchPage(isFromGlobalCreateForNavigation);
         requestAnimationFrame(() => {
-            createTransaction(locationPermissionGranted);
+            createTransaction({locationPermissionGranted});
             requestAnimationFrame(() => {
                 setIsConfirming(false);
             });
@@ -436,7 +436,7 @@ function SubmitExpenseOrchestrator({
         }
 
         const runAfterDismiss = () => {
-            const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite?.barrier);
+            const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite?.barrier});
             pendingWrite?.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
