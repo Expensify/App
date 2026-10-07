@@ -29,6 +29,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardHintText,
+    getCardNameError,
     getCardsByCardholderName,
     getCardSettings,
     getCommercialFeedCardDescription,
@@ -43,6 +44,11 @@ import {
     getCustomOrFormattedFeedName,
     getDefaultCommercialFeedDisplayName,
     getDefaultExpensifyCardLimitType,
+    getDisplayedExpensifyCardLimitType,
+    getExpensifyCardLimitChangeWarningKey,
+    getExpensifyCardLimitError,
+    getExpensifyCardLimitTypeChangeWarningKey,
+    getExpensifyCardNewAvailableSpend,
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     getDomainByFundID,
@@ -59,15 +65,20 @@ import {
     getPlaidInstitutionId,
     getSelectedFeed,
     getTranslationKeyForCardStatus,
+    getVisibleExpensifyCardLimitTypes,
     getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasActiveExpensifyCard,
     hasAssignedCardMatching,
+    hasCardConnectionIssue,
     hasCardPendingDigitalWalletApproval,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    shouldConfirmExpensifyCardLimitTypeChange,
+    shouldShowExpensifyCardFixedLimitType,
     isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
+    isCardConnectionBroken,
     isCardFrozen,
     isLastScrapePastDismissThreshold,
     isCSVFeedOrExpensifyCard,
@@ -83,7 +94,6 @@ import {
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
-    isPersonalCardBrokenConnection,
     isTravelCardTransaction,
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
@@ -2256,6 +2266,243 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('getDisplayedExpensifyCardLimitType', () => {
+        it('keeps a stored limit type', () => {
+            // Given a card that already has a limit type, on a workspace whose default is a different type
+            // When the displayed type is resolved
+            const displayedLimitType = getDisplayedExpensifyCardLimitType(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+
+            // Then the stored type is shown, because the default only fills in a missing type
+            expect(displayedLimitType).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED);
+        });
+
+        it('uses the workspace default when the card has no stored limit type', () => {
+            // Given a card issued before a limit type was stored, on a workspace that defaults to Monthly
+            // When the displayed type is resolved
+            const displayedLimitType = getDisplayedExpensifyCardLimitType(undefined, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+
+            // Then Monthly is shown, rather than the Smart limit that getTranslationKeyForLimitType falls back to for a missing type
+            expect(displayedLimitType).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+        });
+    });
+
+    describe('shouldShowExpensifyCardFixedLimitType', () => {
+        it('hides Fixed when a monthly card has already spent its full unapproved limit', () => {
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(false);
+        });
+
+        it('shows Fixed when spend is under the unapproved limit', () => {
+            const card = createMock<Card>({
+                totalSpend: -2000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
+        });
+
+        it('shows Fixed when the current type is already Fixed', () => {
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
+        });
+
+        it('uses the fallback limit type when the card has no limitType', () => {
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
+            expect(shouldShowExpensifyCardFixedLimitType(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe(false);
+        });
+    });
+
+    describe('getVisibleExpensifyCardLimitTypes', () => {
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+        });
+
+        it('offers Smart, Monthly, and Fixed on a physical card that has not spent its limit', () => {
+            // Given a physical card whose unapproved spend is still under the limit
+            const card = createMock<Card>({
+                totalSpend: -1000,
+                nameValuePairs: {
+                    isVirtual: false,
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            // When the limit types this card can show are resolved
+            const limitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
+
+            // Then Single Use is omitted, because it only exists on virtual cards
+            expect(limitTypes).toEqual([CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED]);
+        });
+
+        it('hides Fixed when a monthly card has already spent its full unapproved limit', () => {
+            // Given a monthly card that has already spent its full unapproved limit
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    isVirtual: false,
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            // When the limit types this card can show are resolved
+            const limitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
+
+            // Then Fixed is hidden, so the card cannot be switched onto a type that would decline new spend
+            expect(limitTypes).toEqual([CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY]);
+        });
+
+        it('offers Single Use on a virtual card', () => {
+            // Given a virtual card that has already spent its full unapproved limit
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    isVirtual: true,
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            // When the limit types this card can show are resolved
+            const limitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
+
+            // Then Single Use is offered and Fixed stays hidden
+            expect(limitTypes).toEqual([CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE]);
+        });
+    });
+
+    describe('shouldConfirmExpensifyCardLimitTypeChange', () => {
+        const overLimitCard = createMock<Card>({
+            unapprovedSpend: -5000,
+            nameValuePairs: {
+                limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                unapprovedExpenseLimit: 4000,
+            },
+        });
+
+        it('confirms switching from Monthly to Smart when unapproved spend is over the limit', () => {
+            expect(shouldConfirmExpensifyCardLimitTypeChange(overLimitCard, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(true);
+        });
+
+        it('does not confirm switching from Monthly to Fixed', () => {
+            expect(shouldConfirmExpensifyCardLimitTypeChange(overLimitCard, CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe(false);
+        });
+
+        it('does not confirm when unapproved spend is under the limit', () => {
+            const card = createMock<Card>({
+                unapprovedSpend: -2000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(false);
+        });
+
+        it('uses the fallback limit type when the card has no limitType', () => {
+            const card = createMock<Card>({
+                unapprovedSpend: -5000,
+                nameValuePairs: {
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(false);
+            expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe(true);
+        });
+    });
+
+    describe('getExpensifyCardLimitTypeChangeWarningKey', () => {
+        it('warns about Smart Limit when the current type is Monthly or Fixed', () => {
+            expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe('workspace.expensifyCard.changeCardSmartLimitTypeWarning');
+            expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe('workspace.expensifyCard.changeCardSmartLimitTypeWarning');
+        });
+
+        it('warns about Monthly when the current type is Smart', () => {
+            expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe('workspace.expensifyCard.changeCardMonthlyLimitTypeWarning');
+        });
+    });
+
+    describe('getExpensifyCardNewAvailableSpend', () => {
+        it('subtracts current spend from the new limit', () => {
+            const card = createMock<Card>({
+                availableSpend: 4000,
+                nameValuePairs: {
+                    unapprovedExpenseLimit: 10000,
+                },
+            });
+
+            expect(getExpensifyCardNewAvailableSpend(card, 5000)).toBe(-1000);
+            expect(getExpensifyCardNewAvailableSpend(card, 20000)).toBe(14000);
+        });
+    });
+
+    describe('getExpensifyCardLimitChangeWarningKey', () => {
+        it('returns the warning for the current limit type', () => {
+            expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe('workspace.expensifyCard.smartLimitWarning');
+            expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe('workspace.expensifyCard.monthlyLimitWarning');
+            expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe('workspace.expensifyCard.fixedLimitWarning');
+            expect(getExpensifyCardLimitChangeWarningKey(undefined)).toBe('workspace.expensifyCard.fixedLimitWarning');
+        });
+    });
+
+    describe('getCardNameError', () => {
+        it('rejects empty, whitespace-only, and invisible-only names', () => {
+            expect(getCardNameError('')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getCardNameError('   ')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getCardNameError('\u200B')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+        });
+
+        it('measures length after sanitizing so padding does not count', () => {
+            const paddedName = `${'a'.repeat(CONST.STANDARD_LENGTH_LIMIT)}   `;
+
+            expect(getCardNameError(paddedName)).toBeUndefined();
+            expect(getCardNameError('a'.repeat(CONST.STANDARD_LENGTH_LIMIT + 1))).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LONG);
+        });
+    });
+
+    describe('getExpensifyCardLimitError', () => {
+        it('rejects empty, non-numeric, fractional, and oversized limits', () => {
+            expect(getExpensifyCardLimitError('')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getExpensifyCardLimitError('abc')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+            expect(getExpensifyCardLimitError('10.5')).toBe(CONST.INPUT_VALIDATION_ERRORS.NOT_INTEGER);
+            expect(getExpensifyCardLimitError(String(CONST.EXPENSIFY_CARD.LIMIT_VALUE + 1))).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_HIGH);
+        });
+
+        it('accepts integer amounts at or below the max', () => {
+            expect(getExpensifyCardLimitError('0')).toBeUndefined();
+            expect(getExpensifyCardLimitError('1000')).toBeUndefined();
+            expect(getExpensifyCardLimitError(String(CONST.EXPENSIFY_CARD.LIMIT_VALUE))).toBeUndefined();
+        });
+    });
+
     describe('filterInactiveCards', () => {
         it('should filter out closed, deactivated and suspended cards', () => {
             const activeCards = {card1: {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}};
@@ -3223,6 +3470,14 @@ describe('CardUtils', () => {
         it('excludes a card for which isCardConnectionBroken(card) === true', () => {
             const cardList = createMock<CardList>({
                 50: makeCompanyCard({cardID: 50, lastScrapeResult: 403}),
+            });
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        // The wallet reports a 434 card as Inactive, so counting it as spendable here would contradict that.
+        it('excludes a card reporting an actionable scrape status the broken check ignores', () => {
+            const cardList = createMock<CardList>({
+                51: makeCompanyCard({cardID: 51, lastScrapeResult: 434}),
             });
             expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
         });
@@ -4483,21 +4738,39 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('isPersonalCardBrokenConnection', () => {
-        it('returns true for account-not-found, which is actionable for personal cards but ignored for company feed health', () => {
-            const card: Card = {...createRandomCard(1), lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS};
-
-            expect(isPersonalCardBrokenConnection(card)).toBe(true);
+    describe('hasCardConnectionIssue', () => {
+        it('returns true for a scrape status that is not ignored', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
         });
 
-        it('returns false while a personal-card sync is pending', () => {
-            const card: Card = {
-                ...createRandomCard(1),
-                lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS,
-                pendingFields: {lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-            };
+        // 434 is an ignored status, so isCardConnectionBroken is false for it even though the bank changed the account
+        // number and the user has to act.
+        it('returns true for an actionable ignored scrape status', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: {connectionError: 'The account number appears to have changed at the bank.'}};
+            expect(isCardConnectionBroken(card)).toBe(false);
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
 
-            expect(isPersonalCardBrokenConnection(card)).toBe(false);
+        // Dismissing the row error clears card.errors, so keying off it would flip a still-broken card to Active.
+        it('stays true for an actionable ignored scrape status after its errors are dismissed', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        it('returns false for an ignored scrape status that needs no action', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 530, errors: {someError: 'Transient server error'}};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false for a successful scrape', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 200, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false while a scrape is pending', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, pendingFields: {lastScrape: 'update'}, errors: {connectionError: 'Broken'}};
+            expect(hasCardConnectionIssue(card)).toBe(false);
         });
     });
 
