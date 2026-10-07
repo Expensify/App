@@ -44,6 +44,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils';
 
 import type {CurrentUser} from '@userActions/Policy/Policy';
 import {createNewReport} from '@userActions/Report';
@@ -177,7 +178,7 @@ function buildFailureTransactionData(transactionID: string | undefined, original
     };
 }
 
-type MergeDuplicatesFuncParams = Omit<MergeDuplicatesParams, 'transactionID' | 'transactionIDList'> & {
+type MergeDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
     currentUserLogin: string;
     currentUserAccountID: number;
     taxAmount?: number;
@@ -185,8 +186,15 @@ type MergeDuplicatesFuncParams = Omit<MergeDuplicatesParams, 'transactionID' | '
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-    transactionList: OnyxTypes.Transaction[];
+};
+
+type ResolveDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
+    taxAmount?: number;
+    taxValue?: string;
+    transactionThreadReportIDMap: Record<string, string | undefined>;
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    delegateAccountID: number | undefined;
 };
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
@@ -453,24 +461,7 @@ function mergeDuplicates({
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates({
-    taxAmount,
-    taxValue,
-    transactionThreadReportIDMap,
-    allTransactionViolations,
-    allReportActionsList,
-    delegateAccountID,
-    ...params
-}: Omit<MergeDuplicatesParams, 'transactionID' | 'transactionIDList'> & {
-    taxAmount?: number;
-    taxValue?: string;
-    transactionThreadReportIDMap: Record<string, string | undefined>;
-    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
-    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
-    delegateAccountID: number | undefined;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-    transactionList: OnyxTypes.Transaction[];
-}) {
+function resolveDuplicates({taxAmount, taxValue, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList, delegateAccountID, ...params}: ResolveDuplicatesFuncParams) {
     const {transaction: originalSelectedTransaction, transactionList} = params;
     if (!originalSelectedTransaction?.transactionID) {
         return;

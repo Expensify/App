@@ -7,7 +7,6 @@ import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilde
 import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
-import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,6 +14,7 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
+import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -92,6 +92,20 @@ function applyOptimisticUpdates(updates: OptimisticUpdates) {
             Onyx.set(update.key, update.value);
         }
     }
+}
+
+/**
+ * The merge/resolve actions receive the reviewed fields together with the kept and discarded transaction objects, but
+ * only `transactionID`/`transactionIDList` are sent to the API. This derives the expected API payload from the local
+ * params so assertions don't expect the full transaction objects on the wire.
+ */
+function toExpectedDuplicateApiParams(params: MergeDuplicatesTransactionParams) {
+    const {transaction, transactionList, ...apiParams} = params;
+    return {
+        ...apiParams,
+        transactionID: transaction?.transactionID,
+        transactionIDList: transactionList.map((txn) => txn.transactionID),
+    };
 }
 
 /**
@@ -231,7 +245,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams: MergeDuplicatesParams = {
+            const mergeParams: MergeDuplicatesTransactionParams = {
                 transaction: mainTransaction,
                 transactionList: [duplicateTransaction1, duplicateTransaction2],
                 created: '2024-01-01 12:00:00',
@@ -308,7 +322,7 @@ describe('actions/Duplicate', () => {
             // Then: Verify API was called with correct parameters
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.MERGE_DUPLICATES,
-                expect.objectContaining(mergeParams),
+                expect.objectContaining(toExpectedDuplicateApiParams(mergeParams)),
                 expect.objectContaining({
                     optimisticData: expect.arrayContaining([]),
                     failureData: expect.arrayContaining([]),
@@ -502,7 +516,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams: MergeDuplicatesParams = {
+            const mergeParams: MergeDuplicatesTransactionParams = {
                 transaction: mainTransaction,
                 transactionList: [],
                 created: '2024-01-01 12:00:00',
@@ -561,7 +575,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams: MergeDuplicatesParams = {
+            const mergeParams: MergeDuplicatesTransactionParams = {
                 transaction: mainTransaction,
                 transactionList: [duplicateTransaction],
                 created: '2024-01-01 12:00:00',
@@ -780,7 +794,7 @@ describe('actions/Duplicate', () => {
 
             await waitForBatchedUpdates();
 
-            const mergeParams: MergeDuplicatesParams = {
+            const mergeParams: MergeDuplicatesTransactionParams = {
                 transaction: mainTransaction,
                 transactionList: [duplicateTransaction1, duplicateTransaction2],
                 created: '2024-01-01 12:00:00',
@@ -853,7 +867,7 @@ describe('actions/Duplicate', () => {
             // Then the transaction thread report should be deleted in the success onyx data
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.MERGE_DUPLICATES,
-                expect.objectContaining(mergeParams),
+                expect.objectContaining(toExpectedDuplicateApiParams(mergeParams)),
                 expect.objectContaining({
                     successData: expect.arrayContaining([
                         expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`, value: null}),
@@ -897,7 +911,7 @@ describe('actions/Duplicate', () => {
             });
             await waitForBatchedUpdates();
 
-            const mergeParams: MergeDuplicatesParams = {
+            const mergeParams: MergeDuplicatesTransactionParams = {
                 transaction: mainTransaction,
                 transactionList: [duplicateTransaction1],
                 transactionThreadReportID: optimisticTransactionThreadReportID,
@@ -989,7 +1003,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDCross}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams: MergeDuplicatesParams = {
+            const mergeParams: MergeDuplicatesTransactionParams = {
                 transaction: mainTransaction,
                 transactionList: [crossDuplicateTransaction],
                 created: '2024-01-01 12:00:00',
@@ -1045,8 +1059,8 @@ describe('actions/Duplicate', () => {
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.MERGE_DUPLICATES,
                 expect.objectContaining({
-                    transaction: mainTransaction,
-                    transactionList: [crossDuplicateTransaction],
+                    transactionID: mainTransactionID,
+                    transactionIDList: [crossReportDuplicateID],
                 }),
                 expect.objectContaining({
                     optimisticData: expect.arrayContaining([]),
