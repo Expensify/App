@@ -748,9 +748,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     <Section
                         isCentralPane
                         title={translate('workspace.officeLocations.title')}
-                        titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
+                        titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.textLarge, styles.mb0]}
                         subtitle={translate('workspace.officeLocations.subtitle')}
-                        subtitleStyles={[styles.mb2]}
+                        subtitleStyles={[styles.mb5]}
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
                         containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                     >
