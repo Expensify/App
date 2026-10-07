@@ -52,10 +52,9 @@ import {
     getRateID,
     getRequestType,
     getSelectedRouteKey,
-    getValidWaypoints,
     hasManualDistanceOverride,
     haveWaypointAddressesChanged,
-    removeEmptyWaypoints,
+    validateCompactedWaypoints,
 } from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -550,12 +549,7 @@ function DynamicIOURequestStepDistance({
             return;
         }
         // Gaps could otherwise satisfy the two-waypoint checks and resurface as wrong waypoints on edit.
-        const compactedWaypoints = removeEmptyWaypoints(waypoints);
-        const hasEmptyWaypoints = Object.keys(compactedWaypoints).length !== Object.keys(waypoints).length;
-        const compactedNonEmptyCount = Object.keys(compactedWaypoints).length;
-        const compactedValidatedCount = Object.keys(getValidWaypoints(compactedWaypoints)).length;
-        const hasDuplicateWaypointsError = compactedNonEmptyCount >= 2 && compactedValidatedCount !== compactedNonEmptyCount;
-        const hasAtLeastTwoDifferentWaypointsError = compactedValidatedCount < 2;
+        const {compactedWaypoints, hasEmptyWaypoints, hasDuplicateWaypointsError, hasAtLeastTwoDifferentWaypointsError} = validateCompactedWaypoints(waypoints);
 
         // If there is any error or loading state, don't let user go to next page.
         if (hasDuplicateWaypointsError || hasAtLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
