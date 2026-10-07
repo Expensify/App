@@ -52,13 +52,7 @@ const infoPages = [
     {pageName: SUB_PAGE_NAMES.SUCCESS, component: Success},
 ];
 const pagesWithPlaid = [{pageName: SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT, component: PlaidBankAccount}, ...infoPages];
-const pagesWithManualSetup = [
-    {
-        pageName: SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS,
-        component: ManualBankAccountDetails,
-    },
-    ...infoPages,
-];
+const pagesWithManualSetup = [{pageName: SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS, component: ManualBankAccountDetails}, ...infoPages];
 
 const DEFAULT_OBJECT = {};
 const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
@@ -261,11 +255,7 @@ function AddPersonalBankAccountPage() {
             return;
         }
         hasRefreshedExitReport.current = true;
-        openReport({
-            reportID: exitReportID,
-            hasReportActions: hasExitReportActions,
-            shouldMarkAsRead: false,
-        });
+        openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
     }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions]);
 
     // Once the backend reports an account ownership mismatch, the next submission confirms the details as entered. Each substep is a separate screen, and the magic code step clears
