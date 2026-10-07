@@ -464,7 +464,6 @@ function IOURequestStepConfirmationContent({
             if (isConfirmed) {
                 return;
             }
-
             if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && paymentMethod !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 sendMoney(paymentMethod);
                 return;
@@ -480,7 +479,9 @@ function IOURequestStepConfirmationContent({
                 ? {optimisticChatReportID: optimisticP2PDestinationReportID, chatReportID: optimisticP2PDestinationReportID}
                 : resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
             const payDestinationReportID = optimisticP2PDestinationReportID ?? destinationReportID ?? resolvedReportIDs.chatReportID;
-            if (!payDestinationReportID || Navigation.getTopmostReportId() === payDestinationReportID) {
+
+            // getTopmostReportId also returns a pre-mounted report that is still hidden, so it is trusted only when nothing is pre-mounted.
+            if (!payDestinationReportID || (!Navigation.getIsFullscreenPreInsertedUnderRHP() && Navigation.getTopmostReportId() === payDestinationReportID)) {
                 sendMoney(paymentMethod, {resolvedReportIDs});
                 return;
             }
