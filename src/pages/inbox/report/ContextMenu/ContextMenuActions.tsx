@@ -27,6 +27,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {
     getActionableCard3DSTransactionApprovalMessage,
+    getAgentPromptUpdatedMessage,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
@@ -230,6 +231,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
+    CardList,
     Card,
     Download as DownloadOnyx,
     IntroSelected,
@@ -321,6 +323,7 @@ type ShouldShow = (args: {
     rules: OnyxCollection<Rule>;
     /** The full list is needed because the report being deleted is resolved inside shouldShow, after reportID is narrowed to the action's own report. */
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    cardList: OnyxEntry<CardList>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -1240,6 +1243,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     );
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+                    Clipboard.setString(getAgentPromptUpdatedMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
                     Clipboard.setString(
                         getReimbursedMessage(
@@ -1319,6 +1324,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(translate('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(translate('iou.unheldExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION) {
+                    Clipboard.setString(translate('iou.undeletedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
                     Clipboard.setString(translate('iou.reject.reportActions.rejectedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
@@ -1708,6 +1715,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             currentUserAccountID,
             rules,
             personalDetails,
+            cardList,
         }) => {
             // A single-expense report preview also exposes its embedded money request action.
             // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
@@ -1745,6 +1753,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     currentUserAccountID,
                     rules,
                     getLoginByAccountID(getReportOrDraftReport(reportID)?.ownerAccountID, personalDetails),
+                    cardList,
                 ) &&
                 !isArchivedRoom &&
                 !isChronosReport &&

@@ -92,7 +92,6 @@ import type {
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import arraysEqual from '@src/utils/arraysEqual';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
@@ -657,6 +656,7 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
     FILTER_KEYS.KEYWORD,
+    FILTER_KEYS.EXPORTER,
 ]);
 
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
@@ -4679,6 +4679,8 @@ const SPEND_INSIGHT_KEYS = [
     CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
 ] as const satisfies SearchKey[];
 
+const insightsPageMenuKeys = new Set<SearchKey>([...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]);
+
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
@@ -4889,6 +4891,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     }
 
     return typeMenuSections;
+}
+
+function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+    return sections.flatMap((section) => {
+        const menuItems = section.menuItems.filter((item) => !insightsPageMenuKeys.has(item.key));
+        if (menuItems.length === section.menuItems.length) {
+            return section;
+        }
+        return menuItems.length > 0 ? {...section, menuItems} : [];
+    });
 }
 
 /**
@@ -6565,8 +6577,11 @@ function getColumnsToShow({
     const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
     // The saved list outlives the vendor feature, so Vendor is dropped once no workspace has the feature anymore.
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR));
-    const isDefaultExpenseColumnSelection = arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns);
-    const shouldUseCustomResult = !isDefaultExpenseColumnSelection && filteredVisibleColumns.length > 0;
+
+    // An explicit selection always wins, even when it happens to match the default set. Treating a
+    // default-looking selection as "no selection" would hand control back to the data-driven fallback
+    // below, which re-adds columns the user just turned off (e.g. Description on any expense that has one).
+    const shouldUseCustomResult = filteredVisibleColumns.length > 0;
 
     let customResult: SearchColumnType[] | undefined;
 
@@ -7111,6 +7126,7 @@ function shouldShowDeleteOption(
     rules: OnyxCollection<OnyxTypes.Rule>,
     // The full list is needed because each pass below resolves a different report owner.
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
+    cardList: OnyxEntry<OnyxTypes.CardList>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7144,6 +7160,7 @@ function shouldShowDeleteOption(
                   rules,
                   getLoginByAccountID(fullReport.ownerAccountID, personalDetails),
                   reportPolicy,
+                  cardList,
                   true,
               );
           })
@@ -7168,6 +7185,7 @@ function shouldShowDeleteOption(
                   rules,
                   getLoginByAccountID(parentReport?.ownerAccountID, personalDetails),
                   parentReportPolicy,
+                  cardList,
               );
           });
 }
@@ -7300,6 +7318,7 @@ export {
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
+    omitInsightsPageMenuItems,
     SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,

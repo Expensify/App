@@ -336,12 +336,14 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                 ],
                 {},
             );
             const reportAttributesComputedValue = reportAttributes.compute(
                 [
                     reports,
+                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -488,6 +490,7 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                 ],
                 {},
             );
@@ -510,6 +513,7 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                 ],
                 personalDetailsSource,
             );
@@ -523,6 +527,7 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     changedPersonalDetails,
+                    undefined,
                     undefined,
                     undefined,
                     undefined,
