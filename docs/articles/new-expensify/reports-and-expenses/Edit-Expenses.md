@@ -108,11 +108,11 @@ On Draft and Outstanding reports, you can edit:
 
 On Approved and Paid reports, a Workspace Admin can edit only:
 
- - Category
- - Tag
- - Description
- - Tax
- - Attendees
+ - **Category**
+ - **Tag**
+ - **Description**
+ - **Tax**
+ - **Attendees**
 
 **Note:** Amount, Currency, Merchant, Date, Billable, and Reimbursable stay locked on Approved and Paid reports. To change one of those, the report has to be unapproved first. Expenses on Done reports cannot be edited. [Learn how to unapprove a report](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
 
