@@ -2,7 +2,7 @@ import type {AmountEditingKeyPressEvent, AmountEditingRef} from '@components/Amo
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 type AmountFormFieldRef = AmountEditingRef;
 
@@ -15,22 +15,37 @@ type AmountFormFieldInputProps = {
 
     /** Callback for keyboard events received by the amount input. */
     onKeyPress?: (event: AmountEditingKeyPressEvent) => void;
+
+    /** Style applied to the text input container. */
+    containerStyle?: StyleProp<ViewStyle>;
 } & Pick<
     BaseTextInputProps,
     | 'accessibilityLabel'
+    | 'autoCorrect'
     | 'autoFocus'
+    | 'autoGrow'
+    | 'autoGrowExtraSpace'
+    | 'autoGrowMarginSide'
+    | 'containerStyles'
     | 'contentWidth'
     | 'disabled'
     | 'disableKeyboard'
+    | 'hideFocusedState'
     | 'keyboardType'
     | 'label'
     | 'onBlur'
     | 'onFocus'
     | 'onSubmitEditing'
+    | 'placeholder'
     | 'prefixCharacter'
     | 'prefixContainerStyle'
+    | 'prefixStyle'
+    | 'rightHandSideComponent'
     | 'shouldApplyPaddingToContainer'
     | 'shouldUseDefaultLineHeightForPrefix'
+    | 'shouldUseFullInputHeight'
+    | 'spellCheck'
+    | 'submitBehavior'
     | 'testID'
     | 'touchableInputWrapperStyle'
 >;

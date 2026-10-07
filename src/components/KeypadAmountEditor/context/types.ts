@@ -19,6 +19,9 @@ type KeypadAmountEditorStateContextValue = {
     /** Whether negative values are allowed. */
     allowNegative: boolean;
 
+    /** Whether the amount is read-only, which makes the number pad inert. */
+    isDisabled: boolean;
+
     /** Error supplied by FormProvider, placed by the layout. */
     errorText?: string;
 

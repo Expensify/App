@@ -628,4 +628,34 @@ describe('AmountFormField.Input', () => {
         // Then the caret follows the inserted digit instead of jumping to the end
         expect(input.props.selection).toEqual({start: 3, end: 3});
     });
+
+    it('renders rightHandSideComponent and handles press', async () => {
+        const onCurrencyPress = jest.fn();
+
+        // Given an AmountFormField.Input with a rightHandSideComponent
+        renderAmountFormFieldInput(
+            {
+                testID: INPUT_TEST_ID,
+                rightHandSideComponent: (
+                    <AmountFormField.CurrencyPickerButton
+                        currency="USD"
+                        onPress={onCurrencyPress}
+                        testID="currency-button"
+                    />
+                ),
+            },
+            {value: '10'},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the right hand side component and its text are displayed
+        expect(screen.getByTestId('currency-button')).toBeOnTheScreen();
+        expect(screen.getByText('USD')).toBeOnTheScreen();
+
+        // When the user presses the right hand side component
+        fireEvent.press(screen.getByTestId('currency-button'));
+
+        // Then the press handler is called
+        expect(onCurrencyPress).toHaveBeenCalledTimes(1);
+    });
 });

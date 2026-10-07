@@ -21,6 +21,9 @@ type KeypadAmountEditorProps = {
     /** Maximum number of integer digits accepted by the composer. */
     maxLength?: number;
 
+    /** Whether the amount is read-only. The number pad ignores presses, and the input is disabled unless it sets `disabled` itself. */
+    disabled?: boolean;
+
     /** Error message placed by the layout under the amount. */
     errorText?: string;
 
@@ -68,6 +71,8 @@ type KeypadAmountInputProps = {
     | 'autoGrow'
     | 'autoGrowExtraSpace'
     | 'autoGrowMarginSide'
+    | 'contentWidth'
+    | 'disabled'
     | 'disableKeyboard'
     | 'hideFocusedState'
     | 'keyboardType'
@@ -81,6 +86,7 @@ type KeypadAmountInputProps = {
     | 'shouldAllowFocusInLandscapeMode'
     | 'shouldApplyPaddingToContainer'
     | 'shouldUseDefaultLineHeightForPrefix'
+    | 'submitBehavior'
     | 'testID'
     | 'touchableInputWrapperStyle'
 >;

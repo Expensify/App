@@ -1,5 +1,5 @@
 import BigNumberPad from '@components/BigNumberPad';
-import {useKeypadAmountEditorActions} from '@components/KeypadAmountEditor/context';
+import {useKeypadAmountEditorActions, useKeypadAmountEditorState} from '@components/KeypadAmountEditor/context';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +11,7 @@ import type KeypadAmountLayoutPartProps from './types';
 /** Number pad connected to the root value and selection. The layout renders it only on touch screens. */
 function KeypadAmountPad({isTwoColumn, testID}: KeypadAmountLayoutPartProps) {
     const styles = useThemeStyles();
+    const {isDisabled} = useKeypadAmountEditorState();
     const {deleteBackward, focusInput, insertAtSelection, setShouldUpdateSelection} = useKeypadAmountEditorActions();
     const isLongPressingRef = useRef(false);
 
@@ -24,6 +25,10 @@ function KeypadAmountPad({isTwoColumn, testID}: KeypadAmountLayoutPartProps) {
     }, [setShouldUpdateSelection]);
 
     const handleNumberPressed = (key: string) => {
+        if (isDisabled) {
+            return;
+        }
+
         if (!isLongPressingRef.current) {
             focusInput();
         }
@@ -37,6 +42,10 @@ function KeypadAmountPad({isTwoColumn, testID}: KeypadAmountLayoutPartProps) {
     };
 
     const handleLongPressHandlerStateChanged = (isUserLongPressingBackspace: boolean) => {
+        if (isDisabled) {
+            return;
+        }
+
         isLongPressingRef.current = isUserLongPressingBackspace;
         setShouldUpdateSelection(!isUserLongPressingBackspace);
         if (!isUserLongPressingBackspace) {

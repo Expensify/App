@@ -604,6 +604,22 @@ describe('KeypadAmountPad', () => {
         }
     });
 
+    it('ignores pad presses and disables the input when the root is disabled', async () => {
+        // Given a disabled editor displaying "12"
+        renderInputWithPad({value: '12', disabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses a digit and backspace on the pad
+        fireEvent.press(screen.getByTestId('button_3'));
+        fireEvent.press(screen.getByTestId('button_<'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the pad is inert, so the value is unchanged and nothing is reported to the parent, and the input is not editable
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('12');
+        expect(onInputChange).not.toHaveBeenCalled();
+        expect(screen.getByTestId(INPUT_TEST_ID).props.readOnly).toBe(true);
+    });
+
     it('fills the width of its column', async () => {
         // Given the number pad rendered in the layout's pad column, which centers its content
         renderInputWithPad();

@@ -33,6 +33,8 @@ function KeypadAmountInput({
     autoGrowExtraSpace = variables.w80,
     autoGrowMarginSide,
     containerStyle,
+    contentWidth,
+    disabled,
     disableKeyboard = true,
     hideFocusedState = true,
     keyboardType,
@@ -45,6 +47,7 @@ function KeypadAmountInput({
     shouldAllowFocusInLandscapeMode = true,
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix,
+    submitBehavior = 'submit',
     testID,
     touchableInputWrapperStyle,
 }: KeypadAmountInputProps) {
@@ -52,7 +55,7 @@ function KeypadAmountInput({
     const {setMouseDown, setMouseUp} = useMouseActions();
     const styles = useThemeStyles();
     const navigation = useNavigation();
-    const {formattedNumber, inputRef, selection} = useKeypadAmountEditorState();
+    const {formattedNumber, inputRef, isDisabled, selection} = useKeypadAmountEditorState();
     const {dynamicAmountStyle} = useKeypadAmountFontSize();
     const {handleKeyPress, handleSelectionChange, setNumber} = useKeypadAmountEditorActions();
 
@@ -86,6 +89,9 @@ function KeypadAmountInput({
             autoGrow={autoGrow}
             autoGrowExtraSpace={autoGrowExtraSpace}
             autoGrowMarginSide={autoGrowMarginSide}
+            contentWidth={contentWidth}
+            // The root's `disabled` applies to the input unless the caller sets its own
+            disabled={disabled ?? isDisabled}
             disableKeyboard={disableKeyboard}
             disableKeyboardShortcuts
             hideFocusedState={hideFocusedState}
@@ -116,7 +122,7 @@ function KeypadAmountInput({
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
             shouldUseFullInputHeight
             spellCheck={false}
-            submitBehavior="submit"
+            submitBehavior={submitBehavior}
             testID={testID}
             textInputContainerStyles={[styles.iouAmountTextInputContainer, containerStyle]}
             touchableInputWrapperStyle={[styles.heightUndefined, touchableInputWrapperStyle]}

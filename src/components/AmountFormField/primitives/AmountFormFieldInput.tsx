@@ -16,17 +16,30 @@ function AmountFormFieldInput({
     onKeyPress,
     onBlur,
     accessibilityLabel,
+    autoCorrect,
     autoFocus,
+    autoGrow,
+    autoGrowExtraSpace,
+    autoGrowMarginSide,
+    containerStyle,
+    containerStyles,
     contentWidth,
     disabled,
     disableKeyboard,
+    hideFocusedState,
     keyboardType,
     label,
     onFocus,
+    placeholder,
     prefixContainerStyle,
+    prefixStyle,
+    rightHandSideComponent,
     shouldApplyPaddingToContainer,
     shouldUseDefaultLineHeightForPrefix,
+    shouldUseFullInputHeight,
+    spellCheck,
     onSubmitEditing,
+    submitBehavior = 'submit',
     testID,
     touchableInputWrapperStyle,
     style,
@@ -46,11 +59,17 @@ function AmountFormFieldInput({
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
+            autoCorrect={autoCorrect}
             autoFocus={autoFocus}
+            autoGrow={autoGrow}
+            autoGrowExtraSpace={autoGrowExtraSpace}
+            autoGrowMarginSide={autoGrowMarginSide}
+            containerStyles={containerStyles}
             contentWidth={contentWidth}
             disabled={disabled}
             disableKeyboard={disableKeyboard}
             errorText={errorText}
+            hideFocusedState={hideFocusedState}
             inputMode={!keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
             inputStyle={style}
             keyboardType={keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -61,15 +80,20 @@ function AmountFormFieldInput({
             onKeyPress={handleInputKeyPress}
             onSelectionChange={(event: TextInputSelectionChangeEvent) => handleSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end)}
             onSubmitEditing={onSubmitEditing}
+            placeholder={placeholder}
             prefixCharacter={prefixCharacter}
             prefixContainerStyle={prefixContainerStyle}
-            prefixStyle={styles.colorMuted}
+            prefixStyle={prefixStyle ?? styles.colorMuted}
             ref={ref}
+            rightHandSideComponent={rightHandSideComponent}
             selection={selection}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
-            submitBehavior="submit"
+            shouldUseFullInputHeight={shouldUseFullInputHeight}
+            spellCheck={spellCheck}
+            submitBehavior={submitBehavior}
             testID={testID}
+            textInputContainerStyles={containerStyle}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             value={formattedNumber}
         />
