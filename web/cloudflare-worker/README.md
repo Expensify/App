@@ -112,6 +112,8 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 
 Deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets.
 
+Workers Logs are sampled per environment (`head_sampling_rate`), because the Worker runs for every asset request.
+
 To check the config without credentials or uploading anything:
 
 ```bash

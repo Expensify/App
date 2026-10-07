@@ -30,12 +30,21 @@
         "staging": {
             "name": "staging-new-expensify-assets",
             "routes": [{"pattern": "test-staging.new.expensify.com/*", "zone_name": "expensify.com"}],
+            // The Worker runs for every asset, so logging every request would exceed the included Workers Logs volume.
+            "observability": {
+                "enabled": true,
+                "head_sampling_rate": 0.1,
+            },
             "vars": {
                 "ENVIRONMENT": "staging",
             },
         },
         "production": {
             "name": "new-expensify-assets",
+            "observability": {
+                "enabled": true,
+                "head_sampling_rate": 0.01,
+            },
             "vars": {
                 "ENVIRONMENT": "production",
             },
