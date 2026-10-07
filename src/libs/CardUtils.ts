@@ -2296,11 +2296,12 @@ function isTravelCardTransaction(feedCountry: string | undefined, card: Card | u
 }
 
 /**
- * Gets displayable Expensify cards, filtering out inactive cards and grouping combo cards
- * (physical + virtual pairs) so only the physical card is shown per domain.
+ * Gets displayable Expensify cards, filtering out inactive cards. Both halves of a combo card
+ * (a physical + virtual pair on one domain) are kept, because each half has its own cardID and
+ * its own spend.
  *
  * @param cardList - The card list to filter
- * @returns Array of displayable Expensify cards with combo cards deduplicated by domain
+ * @returns Array of displayable Expensify cards, with physical cards before virtual ones
  */
 function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     if (!hasDisplayableAssignedCards(cardList)) {
@@ -2319,26 +2320,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
             !isCardPendingActivate(card),
     );
 
-    const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
-    const seenDomains = new Set<string>();
-
-    return sortedCards.filter((card) => {
-        const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy && !!card.nameValuePairs?.isVirtual;
-        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard;
-
-        // Always show non-combo cards (admin-issued virtual or cards without domain)
-        if (!isComboCard) {
-            return true;
-        }
-
-        // For combo cards, only show the first one per domain (physical card comes first due to sorting)
-        if (seenDomains.has(card.domainName)) {
-            return false;
-        }
-
-        seenDomains.add(card.domainName);
-        return true;
-    });
+    return lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
 }
 
 /**

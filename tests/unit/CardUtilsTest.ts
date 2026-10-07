@@ -3034,7 +3034,8 @@ describe('CardUtils', () => {
             expect(result).toEqual([]);
         });
 
-        it('should show only physical card for combo cards (physical + virtual pair)', () => {
+        it('should show both halves of a combo card (physical + virtual pair)', () => {
+            // Given a combo card, where the physical and virtual halves share one domain but each has its own cardID
             const cardList = createMock<CardList>({
                 1: {
                     accountID: 10160771,
@@ -3069,10 +3070,11 @@ describe('CardUtils', () => {
                     },
                 },
             });
+            // When the displayable cards are computed
             const result = getDisplayableExpensifyCards(cardList);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.cardID).toBe(18468850); // Physical card comes first
-            expect(result.at(0)?.nameValuePairs?.isVirtual).toBeFalsy();
+
+            // Then both halves are kept, so spend on either half can get its own row, with the physical card first
+            expect(result.map((card) => card.cardID)).toEqual([18468850, 18468851]);
         });
 
         it('should show admin-issued virtual cards separately', () => {
@@ -3196,6 +3198,7 @@ describe('CardUtils', () => {
         });
 
         it('should sort cards with physical cards first', () => {
+            // Given a combo card whose virtual half comes first in the card list
             const cardList = createMock<CardList>({
                 1: {
                     accountID: 10160771,
@@ -3230,9 +3233,11 @@ describe('CardUtils', () => {
                     },
                 },
             });
+            // When the displayable cards are computed
             const result = getDisplayableExpensifyCards(cardList);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.cardID).toBe(18468850); // Physical card comes first even if virtual was added first
+
+            // Then the physical card comes first, so its row stays above the virtual card's row
+            expect(result.map((card) => card.cardID)).toEqual([18468850, 18468851]);
         });
 
         it('should filter out expired Expensify cards based on validThru', () => {

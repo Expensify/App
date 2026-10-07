@@ -32,7 +32,7 @@ import {useYourSpendData} from '@pages/home/YourSpendSection/useYourSpendData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy, Report} from '@src/types/onyx';
+import type {Card, CardList, Policy, Report} from '@src/types/onyx';
 import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -498,6 +498,101 @@ describe('useYourSpendData — cardRows', () => {
             expect.objectContaining({cardID: CARD_ID_1, total: 1500, currency: 'USD', query: CARD_QUERY_1}),
             expect.objectContaining({cardID: CARD_ID_2, total: 700, currency: 'USD', query: CARD_QUERY_2}),
         ]);
+    });
+});
+
+// combo card rows
+
+describe('useYourSpendData — combo card rows', () => {
+    // A combo card is a physical card and a virtual card on one domain. Each half has its own cardID,
+    // and the grouped search reports spend per cardID, so each half gets a row only when it has spend.
+    const comboCardList = createMock<CardList>({
+        [CARD_ID_1]: {
+            accountID: ACCOUNT_ID,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: CARD_ID_1,
+            cardName: 'Expensify Card',
+            domainName: 'expensify.com',
+            fraud: 'none',
+            fundID: '767578',
+            lastFourPAN: CARD_LAST_FOUR_1,
+            lastScrape: '',
+            lastUpdated: '',
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            nameValuePairs: {isVirtual: false},
+        },
+        [CARD_ID_2]: {
+            accountID: ACCOUNT_ID,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: CARD_ID_2,
+            cardName: 'Expensify Card',
+            domainName: 'expensify.com',
+            fraud: 'none',
+            fundID: '767578',
+            lastFourPAN: CARD_LAST_FOUR_2,
+            lastScrape: '',
+            lastUpdated: '',
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            nameValuePairs: {isVirtual: true},
+        },
+    });
+
+    beforeEach(() => {
+        // Run the real card selection, so these tests cover how combo cards reach the rows
+        onyxData[ONYXKEYS.CARD_LIST] = comboCardList;
+        mockedGetDisplayableExpensifyCards.mockImplementation(
+            jest.requireActual<{getDisplayableExpensifyCards: typeof getDisplayableExpensifyCards}>('@libs/CardUtils').getDisplayableExpensifyCards,
+        );
+    });
+
+    it('shows only the virtual card row when only the virtual half has spend', () => {
+        // Given a combo card where only the virtual half has spend in the last 30 days
+        setupCardGroups([{cardID: CARD_ID_2, count: 3, total: 4200, currency: 'USD'}]);
+
+        // When the hook renders
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then the virtual card gets its own row, and the physical card without spend stays hidden
+        expect(result.current.cardRows).toEqual([expect.objectContaining({cardID: CARD_ID_2, lastFour: CARD_LAST_FOUR_2, total: 4200, query: CARD_QUERY_2})]);
+    });
+
+    it('shows only the physical card row when only the physical half has spend', () => {
+        // Given a combo card where only the physical half has spend in the last 30 days
+        setupCardGroups([{cardID: CARD_ID_1, count: 2, total: 1500, currency: 'USD'}]);
+
+        // When the hook renders
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then only the physical card gets a row, because the virtual card has no spend to show
+        expect(result.current.cardRows).toEqual([expect.objectContaining({cardID: CARD_ID_1, lastFour: CARD_LAST_FOUR_1, total: 1500, query: CARD_QUERY_1})]);
+    });
+
+    it('shows a row for each half when both halves have spend', () => {
+        // Given a combo card where both halves have spend in the last 30 days
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 2, total: 1500, currency: 'USD'},
+            {cardID: CARD_ID_2, count: 3, total: 4200, currency: 'USD'},
+        ]);
+
+        // When the hook renders
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then each half gets its own row with its own total, and the physical card comes first
+        expect(result.current.cardRows).toEqual([
+            expect.objectContaining({cardID: CARD_ID_1, lastFour: CARD_LAST_FOUR_1, total: 1500, query: CARD_QUERY_1}),
+            expect.objectContaining({cardID: CARD_ID_2, lastFour: CARD_LAST_FOUR_2, total: 4200, query: CARD_QUERY_2}),
+        ]);
+    });
+
+    it('shows no card row when neither half has spend', () => {
+        // Given a combo card where neither half has spend in the last 30 days
+        setupCardGroups([]);
+
+        // When the hook renders
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then no card row appears
+        expect(result.current.cardRows).toEqual([]);
     });
 });
 
