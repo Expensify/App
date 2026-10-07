@@ -137,19 +137,6 @@ function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorM
 }
 
 /**
- * IDs of the workspaces that have the vendor feature, so the Search vendor filter only offers their vendor lists.
- */
-function getVendorFeaturePolicyIDs(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): string[] {
-    const policyIDs: string[] = [];
-    for (const policy of Object.values(policies ?? {})) {
-        if (policy?.id && hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
-            policyIDs.push(policy.id);
-        }
-    }
-    return policyIDs;
-}
-
-/**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
  * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, or Certinia) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
@@ -593,6 +580,5 @@ export {
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,
-    getVendorFeaturePolicyIDs,
     isMatchingVendorListLoaded,
 };
