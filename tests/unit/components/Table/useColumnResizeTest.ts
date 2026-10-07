@@ -4,7 +4,7 @@ import {RESIZE_INDICATOR_OPACITY_VARIABLE, getColumnWidthVariableName} from '@co
 import type UseColumnResize from '@components/Table/columnResize/useColumnResize';
 import type {UseColumnResizeParams} from '@components/Table/columnResize/useColumnResize/types';
 
-import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
+import {clearTableColumnWidth, setTableColumnWidth} from '@libs/actions/TableColumnWidths';
 
 import CONST from '@src/CONST';
 
@@ -15,6 +15,7 @@ const {default: useColumnResize} = jest.requireActual<{default: typeof UseColumn
 
 jest.mock('@libs/actions/TableColumnWidths', () => ({
     setTableColumnWidth: jest.fn(),
+    clearTableColumnWidth: jest.fn(),
 }));
 
 const COLUMN_RESIZING_ID = 'testTable';
@@ -22,6 +23,8 @@ const COLUMN_RESIZING_ID = 'testTable';
 const NAME_COLUMN_KEY = 'name';
 
 const resolvedColumnWidths = {name: 200, email: 200, role: 200};
+
+const fitColumnWidths = {name: 120, email: 300, role: 80};
 
 type PointerEventInit = {clientX: number; button?: number};
 
@@ -50,6 +53,7 @@ function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
         columnResizingID: COLUMN_RESIZING_ID,
         resizableColumnKeys: [NAME_COLUMN_KEY],
         resolvedColumnWidths,
+        fitColumnWidths,
         columnGap: 12,
         ...params,
     };
@@ -175,7 +179,7 @@ describe('useColumnResize', () => {
         expect(document.body.style.cursor).toBe('');
     });
 
-    it('shows the edge line only while dragging, not on hover', () => {
+    it('shows the edge line only while dragging, not on hover or click', () => {
         // Given a resizable column
         const {handleElement, getHandleProps} = renderColumnResize();
         const readLineOpacity = () => handleElement.style.getPropertyValue(RESIZE_INDICATOR_OPACITY_VARIABLE);
@@ -185,12 +189,20 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
         });
 
+        // Then no line appears yet, since the press may still be a click that fits the column
+        expect(readLineOpacity()).toBe('');
+
+        // When the pointer moves past the click slop
+        act(() => {
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 110}));
+        });
+
         // Then the tall line appears, so the user sees which edge is moving
         expect(readLineOpacity()).toBe('1');
 
         // When the pointer is released
         act(() => {
-            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 110}));
         });
 
         // Then the line goes away, even with the pointer still over the edge
@@ -280,5 +292,99 @@ describe('useColumnResize', () => {
 
         // Then the painted width steps aside, so the column paints the fallback React rendered and later resolved widths aren't masked
         expect(readWidth('name')).toBe('');
+    });
+
+    it('fits the column to its content when its edge is clicked', () => {
+        // Given a 200px column whose content fits in 120px
+        const {handleElement, getHandleProps, readWidth} = renderColumnResize();
+
+        // When its edge is clicked, with the pointer wobbling less than the click slop
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 100 + CONST.TABLES.COLUMN_RESIZE.DRAG_SLOP}));
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100 + CONST.TABLES.COLUMN_RESIZE.DRAG_SLOP}));
+        });
+
+        // Then the column is painted at its content width right away and stored, rather than moved by the wobble
+        expect(readWidth(NAME_COLUMN_KEY)).toBe('120px');
+        expect(setTableColumnWidth).toHaveBeenCalledTimes(1);
+        expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, NAME_COLUMN_KEY, 120);
+        expect(document.body.style.cursor).toBe('');
+    });
+
+    it('stores nothing when a clicked column already fits its content', () => {
+        // Given a column already painted at its content width, e.g. after the first click of a double-click
+        const {handleElement, getHandleProps} = renderColumnResize({resolvedColumnWidths: {...resolvedColumnWidths, name: 120}});
+
+        // When its edge is clicked
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100}));
+        });
+
+        // Then nothing is stored, so the second click of a double-click doesn't race the reset with another write
+        expect(setTableColumnWidth).not.toHaveBeenCalled();
+    });
+
+    it('stores nothing when the fitted width is already stored for a column painted wider', () => {
+        // Given the last column, stored at its 120px content width but painted 300px wide by the leftover room it grows into
+        const {handleElement, getHandleProps, readWidth} = renderColumnResize({
+            resolvedColumnWidths: {...resolvedColumnWidths, name: 300},
+            columnWidthOverrides: {[NAME_COLUMN_KEY]: 120},
+        });
+
+        // When its edge is clicked
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100}));
+        });
+
+        // Then nothing is painted or stored, since storing the same width renders nothing to clear the painted one,
+        // which would leave the next drag starting from 120px instead of where the edge is
+        expect(readWidth(NAME_COLUMN_KEY)).toBe('');
+        expect(setTableColumnWidth).not.toHaveBeenCalled();
+    });
+
+    it('keeps a fitted width within the drag bounds', () => {
+        // Given a column whose content is narrower than the narrowest width a drag allows
+        const {handleElement, getHandleProps} = renderColumnResize({fitColumnWidths: {[NAME_COLUMN_KEY]: 10}});
+
+        // When its edge is clicked
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100}));
+        });
+
+        // Then it stops at the lower bound, so its edge stays reachable
+        expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, NAME_COLUMN_KEY, CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH);
+    });
+
+    it('does nothing on click when the content width is unknown', () => {
+        // Given a column whose content couldn't be measured
+        const {handleElement, getHandleProps, readWidth} = renderColumnResize({fitColumnWidths: {}});
+
+        // When its edge is clicked
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100}));
+        });
+
+        // Then the column keeps its width, rather than guessing one
+        expect(readWidth(NAME_COLUMN_KEY)).toBe('');
+        expect(setTableColumnWidth).not.toHaveBeenCalled();
+    });
+
+    it('resets the column to its content-sized width on double-click', () => {
+        // Given a resizable column
+        const {handleElement, getHandleProps} = renderColumnResize();
+
+        // When its edge is double-clicked
+        act(() => {
+            getHandleProps().onDoubleClick?.(createPointerEvent(handleElement, {clientX: 100}));
+        });
+
+        // Then its stored width is cleared, so the table sizes it from its content again
+        expect(clearTableColumnWidth).toHaveBeenCalledTimes(1);
+        expect(clearTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, NAME_COLUMN_KEY);
     });
 });

@@ -1,10 +1,10 @@
 /**
- * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
- * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
+ * Web column resizing: dragging a column's right edge sets its width, clicking it fits the content, double-clicking it
+ * resets it. Widths live in CSS custom properties so React doesn't render mid-drag. Only the column's final width is stored in Onyx.
  */
-import getDraggedColumnWidth from '@components/Table/columnResize/columnResizeGestures';
+import getDraggedColumnWidth, {clampColumnWidth, hasPointerPassedDragSlop} from '@components/Table/columnResize/columnResizeGestures';
 
-import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
+import {clearTableColumnWidth, setTableColumnWidth} from '@libs/actions/TableColumnWidths';
 
 import CONST from '@src/CONST';
 
@@ -39,9 +39,20 @@ type Drag = {
 
     /** The column's width when the drag started. */
     startWidth: number;
+
+    /** Whether the pointer passed the drag slop. Until then, releasing it is a click. */
+    hasMovedPointer: boolean;
 };
 
-function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, dragMinWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
+function useColumnResize({
+    columnResizingID,
+    resizableColumnKeys,
+    resolvedColumnWidths,
+    dragMinWidths,
+    fitColumnWidths,
+    columnWidthOverrides,
+    columnGap,
+}: UseColumnResizeParams): ColumnResizeController | undefined {
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
@@ -67,6 +78,34 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         setTableColumnWidth(columnResizingID, drag.columnKey, width);
     };
 
+    // Idempotent, because a double-click fires two clicks before the reset.
+    const fitColumnToContent = (columnKey: string) => {
+        const contentWidth = fitColumnWidths?.[columnKey];
+
+        if (!columnResizingID || contentWidth === undefined) {
+            return;
+        }
+
+        const width = clampColumnWidth(contentWidth);
+
+        // Storing a width Onyx already holds renders nothing, so the painted width would never be cleared. The last
+        // column paints wider than its stored width, so the painted width alone can't tell it is already fitted.
+        if (columnWidthOverrides?.[columnKey] === width || readColumnWidth(columnKey) === width) {
+            return;
+        }
+
+        writeColumnWidth(columnKey, width);
+        setTableColumnWidth(columnResizingID, columnKey, width);
+    };
+
+    const resetColumnWidth = (columnKey: string) => {
+        if (!columnResizingID) {
+            return;
+        }
+
+        clearTableColumnWidth(columnResizingID, columnKey);
+    };
+
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
         // Secondary buttons open context menus rather than dragging.
         if (event.button !== 0) {
@@ -80,12 +119,11 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         // Keeps the drag on this handle once the pointer moves off it.
         event.currentTarget.setPointerCapture(event.pointerId);
 
-        revealIndicator(event.currentTarget);
-
         dragRef.current = {
             columnKey,
             startClientX: event.clientX,
             startWidth: readColumnWidth(columnKey) ?? 0,
+            hasMovedPointer: false,
         };
         document.body.style.cursor = CONST.TABLES.COLUMN_RESIZE.CURSOR;
     };
@@ -95,6 +133,17 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
 
         if (!drag) {
             return;
+        }
+
+        // Nothing is painted inside the slop, so a click fits from the width the column already had.
+        if (!drag.hasMovedPointer) {
+            if (!hasPointerPassedDragSlop(drag.startClientX, event.clientX)) {
+                return;
+            }
+
+            // Kept once set, so a drag that comes back to where it started isn't a click. Clicks never show the line.
+            drag.hasMovedPointer = true;
+            revealIndicator(event.currentTarget);
         }
 
         // The line rides the handle, so it follows the clamped width, not the pointer.
@@ -112,7 +161,13 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
             event.currentTarget.releasePointerCapture(event.pointerId);
         }
 
-        endDrag(drag);
+        if (drag.hasMovedPointer) {
+            endDrag(drag);
+            return;
+        }
+
+        resetDrag();
+        fitColumnToContent(drag.columnKey);
     };
 
     /** Ends a drag whose pointer capture the browser reclaimed. Also fires after a normal pointerup, when it's a no-op. */
@@ -154,6 +209,7 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
             onPointerUp: handlePointerUp,
             onPointerCancel: handleLostPointerCapture,
             onLostPointerCapture: handleLostPointerCapture,
+            onDoubleClick: () => resetColumnWidth(columnKey),
         };
     };
 
