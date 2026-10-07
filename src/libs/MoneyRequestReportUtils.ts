@@ -176,6 +176,22 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return shouldUseTableViewForSingleExpense || !isSingleTransactionReport(report, transactions);
 }
 
+/**
+ * Returns whether the report shows its expenses in a table and so gets the multi-expense layout (super-wide RHP).
+ * A single-expense report counts too when the user chose the table view for single-expense reports.
+ */
+function shouldUseMultiExpenseReportLayout(transactionCount: number, shouldUseTableViewForSingleExpense: boolean) {
+    return transactionCount > 1 || (shouldUseTableViewForSingleExpense && transactionCount === 1);
+}
+
+/**
+ * Returns the transaction thread that report comments go to, or undefined when they go to the report itself.
+ * In the table view the thread's actions aren't shown in the report, so comments go to the report itself.
+ */
+function getEffectiveTransactionThreadReportID(transactionThreadReportID: string | undefined, isSentMoneyReport: boolean, shouldUseTableViewForSingleExpense: boolean) {
+    return isSentMoneyReport || shouldUseTableViewForSingleExpense ? undefined : transactionThreadReportID;
+}
+
 function shouldWaitForTransactions(
     report: OnyxEntry<Report>,
     transactions: Transaction[] | undefined,
@@ -257,6 +273,8 @@ export {
     getAllNonDeletedTransactions,
     isSingleTransactionReport,
     shouldDisplayReportTableView,
+    shouldUseMultiExpenseReportLayout,
+    getEffectiveTransactionThreadReportID,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
     getTransactionRejectErrorKey,

@@ -1,5 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, getEffectiveTransactionThreadReportID} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,8 +30,7 @@ function useTransactionThreadReportID(reportID: string | undefined) {
 
     const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
-    // In the table view the thread's actions aren't shown in the report, so comments go to the report itself
-    const effectiveTransactionThreadReportID = isSentMoneyReport || shouldUseTableViewForSingleExpense ? undefined : transactionThreadReportID;
+    const effectiveTransactionThreadReportID = getEffectiveTransactionThreadReportID(transactionThreadReportID, isSentMoneyReport, shouldUseTableViewForSingleExpense);
 
     return {
         transactionThreadReportID,

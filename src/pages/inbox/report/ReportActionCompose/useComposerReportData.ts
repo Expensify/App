@@ -4,7 +4,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, getEffectiveTransactionThreadReportID} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -32,8 +32,7 @@ function useComposerReportData(reportID: string): ComposerReportData {
     const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
     const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
-    // In the table view the thread's actions aren't shown in the report, so comments go to the report itself
-    const effectiveTransactionThreadReportID = isSentMoneyReport || shouldUseTableViewForSingleExpense ? undefined : transactionThreadReportID;
+    const effectiveTransactionThreadReportID = getEffectiveTransactionThreadReportID(transactionThreadReportID, isSentMoneyReport, shouldUseTableViewForSingleExpense);
 
     return {report, filteredReportActions, effectiveTransactionThreadReportID};
 }

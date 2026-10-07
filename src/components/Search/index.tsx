@@ -34,6 +34,7 @@ import {
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
 import Log from '@libs/Log';
+import {shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -753,7 +754,7 @@ function Search({
                 }
 
                 // A single-expense report in the table view opens at the same width as a multi-expense report
-                if (item.transactions.length > 1 || (shouldUseTableViewForSingleExpense && item.transactions.length === 1)) {
+                if (shouldUseMultiExpenseReportLayout(item.transactions.length, shouldUseTableViewForSingleExpense)) {
                     markReportRHPWidth(reportID, 'super-wide');
                 } else {
                     unmarkReportRHPWidth(reportID, 'super-wide');

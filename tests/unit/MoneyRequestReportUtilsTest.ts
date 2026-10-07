@@ -1,11 +1,13 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 import {
+    getEffectiveTransactionThreadReportID,
     getReportIDForTransaction,
     isBillableEnabledOnPolicy,
     isEveryReportTransactionSelected,
     isSelectableReportTransaction,
     shouldDisplayReportTableView,
+    shouldUseMultiExpenseReportLayout,
     shouldWaitForTransactions,
 } from '@libs/MoneyRequestReportUtils';
 
@@ -297,6 +299,46 @@ describe('MoneyRequestReportUtils', () => {
             // Given a report with two expenses, the preference doesn't apply
             expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction, secondTransaction])).toBe(true);
             expect(shouldDisplayReportTableView(reportBaseMock, [singleTransaction, secondTransaction], true)).toBe(true);
+        });
+    });
+
+    describe('shouldUseMultiExpenseReportLayout', () => {
+        test('uses the multi-expense layout for a report with more than one expense', () => {
+            // Given a report with two expenses, the preference doesn't apply
+            expect(shouldUseMultiExpenseReportLayout(2, false)).toBe(true);
+            expect(shouldUseMultiExpenseReportLayout(2, true)).toBe(true);
+        });
+
+        test('uses the multi-expense layout for a single-expense report only when the user picked the table view', () => {
+            // Given a report with one expense
+            // Then only the table view preference gives it the multi-expense layout
+            expect(shouldUseMultiExpenseReportLayout(1, false)).toBe(false);
+            expect(shouldUseMultiExpenseReportLayout(1, true)).toBe(true);
+        });
+
+        test('keeps the default layout for an empty report', () => {
+            // Given a report with no expenses, the table view preference doesn't apply
+            expect(shouldUseMultiExpenseReportLayout(0, true)).toBe(false);
+        });
+    });
+
+    describe('getEffectiveTransactionThreadReportID', () => {
+        test('sends comments to the transaction thread in the single-expense view', () => {
+            // Given a single-expense report in the single-expense view
+            // Then comments go to the transaction thread
+            expect(getEffectiveTransactionThreadReportID('123', false, false)).toBe('123');
+        });
+
+        test('sends comments to the report itself in the table view', () => {
+            // Given a single-expense report in the table view, where the thread's actions aren't shown
+            // Then comments go to the report itself
+            expect(getEffectiveTransactionThreadReportID('123', false, true)).toBeUndefined();
+        });
+
+        test('sends comments to the report itself for a sent money report', () => {
+            // Given a sent money report
+            // Then comments go to the report itself
+            expect(getEffectiveTransactionThreadReportID('123', true, false)).toBeUndefined();
         });
     });
 });

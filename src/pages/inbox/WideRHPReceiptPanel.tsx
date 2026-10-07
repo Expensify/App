@@ -13,7 +13,7 @@ import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 
@@ -67,7 +67,7 @@ function WideRHPReceiptPanelGate() {
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const visibleTransactionsCount = visibleTransactions?.length ?? 0;
     // A single-expense report in the table view gets the same layout as a multi-expense report. Empty reports keep the wide layout.
-    const hasTransactionsInTable = visibleTransactionsCount > 1 || (shouldUseTableViewForSingleExpense && visibleTransactionsCount === 1);
+    const hasTransactionsInTable = shouldUseMultiExpenseReportLayout(visibleTransactionsCount, shouldUseTableViewForSingleExpense);
     const isConfirmedMultiTransactionReport =
         isMoneyRequestOrInvoiceReport && hasTransactionsInTable && shouldDisplayReportTableView(report, visibleTransactions ?? [], shouldUseTableViewForSingleExpense);
 
