@@ -77,7 +77,13 @@ function useOptimisticNextStep(reportID: string | undefined) {
                 optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
             }
         } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, currentUserLogin ?? '', accountID, allTransactionViolations, undefined, isArchivedReport);
+            const gbrResult = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: moneyRequestReport,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
+                transactionViolations: allTransactionViolations,
+                isReportArchived: isArchivedReport,
+            });
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {
                 optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);

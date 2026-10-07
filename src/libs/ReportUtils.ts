@@ -4930,19 +4930,33 @@ function getOldestUnreadMentionReportAction(
     return oldestUnreadMentionAction;
 }
 
-function getReasonAndReportActionThatRequiresAttention(
-    optionOrReport: OnyxEntry<Report> | OptionData,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
-    parentReportAction?: OnyxEntry<ReportAction>,
+type GetReasonAndReportActionThatRequiresAttentionParams = {
+    optionOrReport: OnyxEntry<Report> | OptionData;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined;
+    parentReportAction?: OnyxEntry<ReportAction>;
+    isReportArchived?: boolean;
+    allReportActions?: OnyxCollection<ReportActions>;
+    reports?: OnyxCollection<Report>;
+    policies?: OnyxCollection<Policy>;
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+    cardList?: OnyxEntry<CardList>;
+};
+
+function getReasonAndReportActionThatRequiresAttention({
+    optionOrReport,
+    currentUserLogin,
+    currentUserAccountID,
+    transactionViolations,
+    parentReportAction,
     isReportArchived = false,
-    allReportActionsParam?: OnyxCollection<ReportActions>,
-    reports?: OnyxCollection<Report>,
-    policiesParam?: OnyxCollection<Policy>,
-    reportMetadataParam?: OnyxEntry<ReportMetadata>,
-    cardList?: OnyxEntry<CardList>,
-): ReasonAndReportActionThatRequiresAttention | null {
+    allReportActions: allReportActionsParam,
+    reports,
+    policies: policiesParam,
+    reportMetadata: reportMetadataParam,
+    cardList,
+}: GetReasonAndReportActionThatRequiresAttentionParams): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
     }
@@ -5142,7 +5156,7 @@ function requiresAttentionFromCurrentUser(
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
 ) {
-    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, currentUserLogin, currentUserAccountID, transactionViolations, parentReportAction, isReportArchived);
+    return !!getReasonAndReportActionThatRequiresAttention({optionOrReport, currentUserLogin, currentUserAccountID, transactionViolations, parentReportAction, isReportArchived});
 }
 
 /**
@@ -14109,19 +14123,19 @@ function generateReportAttributes({
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
     const {reason, actionBadge, reportAction} =
-        getReasonAndReportActionThatRequiresAttention(
-            report,
+        getReasonAndReportActionThatRequiresAttention({
+            optionOrReport: report,
             currentUserLogin,
             currentUserAccountID,
             transactionViolations,
             parentReportAction,
             isReportArchived,
-            reportActions,
+            allReportActions: reportActions,
             reports,
             policies,
             reportMetadata,
             cardList,
-        ) ?? {};
+        }) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
