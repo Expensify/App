@@ -21,6 +21,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
 import useHasOwnedPaidPolicy from './useHasOwnedPaidPolicy';
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnboardingMessages from './useOnboardingMessages';
@@ -59,6 +60,7 @@ function useCompleteOnboarding() {
     const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
     const [isLoading, setIsLoading] = useState(false);
 
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.email));
@@ -143,6 +145,7 @@ function useCompleteOnboarding() {
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeReportID,
                 reportNameValuePairs,
+                isAnonymousUser,
                 policyID,
                 adminsChatReportID,
                 (currentUserPersonalDetails.email ?? '').includes('+'),

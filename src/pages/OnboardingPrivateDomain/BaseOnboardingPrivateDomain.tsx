@@ -6,6 +6,7 @@ import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeFo
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -73,6 +74,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
     const {joinWorkspaceMessages} = useOnboardingMessages();
     const {isBetaEnabled} = usePermissions();
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -166,6 +168,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeReportID,
                 reportNameValuePairs,
+                isAnonymousUser,
                 onboardingPolicyID,
                 onboardingAdminsChatReportID,
                 false,
@@ -183,6 +186,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         email,
         introSelected,
         isBetaEnabled,
+        isAnonymousUser,
         firstName,
         isCompletingOnboarding,
         isSelfTourViewed,
