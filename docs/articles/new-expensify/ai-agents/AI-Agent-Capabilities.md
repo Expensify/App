@@ -3,6 +3,7 @@ title: Agent Capability Reference
 description: Every action your Agent can take, with ready-to-copy instruction phrases and disambiguation notes to avoid common mis-routings.
 keywords: [Custom Agent, Agent, agent capabilities, agent actions, submit report, approve report, reject report, add comment, analyze expenses, agent instructions, workspace automation, Expensify automation, Rulebot, rule bot]
 internalScope: Audience is all members configuring Agents. Covers all supported ManageReport sub-actions, AddComment, and AnalyzeExpenses. Does not cover read-only report context or NoResponse behavior.
+contentType: topic
 order: 8
 ---
 
