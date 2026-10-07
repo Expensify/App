@@ -75,8 +75,10 @@ function CampfireCardProgramAccountSelectorPage({
                 keyForList: accountItem.id,
                 isSelected: cardProgramAccountID === accountItem.id,
             })) ?? [];
-    const {filteredData: filteredUnprocessedData, textInputOptions} = useSelectionListSearch(data);
-    const filteredData = sortDefaultToTop(filteredUnprocessedData, (accountItem) => creditCardAccountID === accountItem.keyForList, styles);
+    // Sort the default account to the top first, then let useSelectionListSearch pin the selected account above it,
+    // so the currently selected account stays at the very top.
+    const sortedData = sortDefaultToTop(data, (accountItem) => creditCardAccountID === accountItem.keyForList, styles);
+    const {filteredData, textInputOptions} = useSelectionListSearch(sortedData);
 
     const headerContent = (
         <View>
