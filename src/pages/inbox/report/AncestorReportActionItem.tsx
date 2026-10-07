@@ -9,7 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getLatestConciergeFeedbackActionIDFromReportActions, isTripPreview} from '@libs/ReportActionsUtils';
+import {isTripPreview} from '@libs/ReportActionsUtils';
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -23,6 +23,7 @@ import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
+import {getLatestConciergeFeedbackActionIDByAuthorSelector} from '@src/selectors/ReportAction';
 import type {IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -93,9 +94,13 @@ function AncestorReportActionItem({
 
     const {isBetaEnabled} = usePermissions();
 
-    // The message shown above a thread belongs to the parent report, so its own actions decide whether it is the newest Concierge answer
+    const authorAccountID = reportAction.actorAccountID;
+    const [isAuthorCustomAgent = false] = usePersonalDetail(authorAccountID, (personalDetail) => !!personalDetail?.isCustomAgent);
+    const canAuthorCollectFeedback = authorAccountID === CONST.ACCOUNT_ID.CONCIERGE || isAuthorCustomAgent;
+
+    // The message shown above a thread belongs to the parent report, so its own actions decide whether it is the author's newest answer
     const [latestConciergeFeedbackActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {
-        selector: getLatestConciergeFeedbackActionIDFromReportActions,
+        selector: getLatestConciergeFeedbackActionIDByAuthorSelector(authorAccountID),
     });
 
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
@@ -165,7 +170,9 @@ function AncestorReportActionItem({
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 isThreadReportParentAction
-                isLatestConciergeFeedbackAction={shouldAllowConciergeFeedback && !!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                isLatestConciergeFeedbackAction={
+                    shouldAllowConciergeFeedback && canAuthorCollectFeedback && !!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID
+                }
                 linkedTransactionRouteError={linkedTransactionRouteError}
             />
         </OfflineWithFeedback>

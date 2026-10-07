@@ -6,6 +6,7 @@ import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getLatestConciergeFeedbackActionID, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
+import {getLatestConciergeFeedbackActionIDs, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
 import {
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
@@ -40,10 +41,12 @@ import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {LayoutChangeEvent} from 'react-native';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -149,9 +152,14 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const conciergeFeedbackForReportActionID = reportNameValuePairs?.conciergeFeedbackForReportActionID;
 
+    const actorAccountIDs = [...new Set(visibleReportActionsNewestFirst.map((action) => action.actorAccountID))];
+    const [customAgentAccountIDs = getEmptyArray<number>()] = usePersonalDetailsByIDs(actorAccountIDs, getCustomAgentAccountIDs);
+
     // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
-    const latestConciergeFeedbackActionID =
-        conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(visibleReportActionsNewestFirst, reportActionIDs);
+    const latestConciergeFeedbackActionIDs =
+        conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
+            ? getEmptyArray<string>()
+            : getLatestConciergeFeedbackActionIDs(visibleReportActionsNewestFirst, reportActionIDs, customAgentAccountIDs);
 
     const {onStartReached, onEndReached} = useMoneyRequestReportPagination({
         reportID,
@@ -252,14 +260,14 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         linkedReportActionID={linkedReportActionID}
                         isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                         shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                        isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                        isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
                     />
                 </ReportActionPositionContextProvider>
             </ReportActionScrollToNewestContext.Provider>
         );
     };
 
-    const reportActionsExtraData = [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID];
+    const reportActionsExtraData = [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionIDs];
 
     /**
      * Runs when the FlatList finishes laying out

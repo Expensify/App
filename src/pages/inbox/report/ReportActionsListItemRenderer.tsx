@@ -39,7 +39,7 @@ type ReportActionsListItemRendererProps = {
     shouldDisplayReplyDivider: boolean;
     isFirstVisibleReportAction: boolean;
 
-    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    /** Whether this is the newest comment of Concierge or of a custom agent that is eligible for the inline feedback prompt */
     isLatestConciergeFeedbackAction?: boolean;
 
     shouldUseThreadDividerLine?: boolean;

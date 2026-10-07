@@ -1,4 +1,12 @@
-import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {
+    filterOutDeprecatedReportActions,
+    getIOUActionForTransactionID,
+    getLatestConciergeFeedbackActionIDFromReportActions,
+    getLinkedTransactionID,
+    getOriginalMessage,
+    getSortedReportActions,
+    isActionOfType,
+} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -142,7 +150,12 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+/** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
+const getLatestConciergeFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
+    authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
+
 export {
+    getLatestConciergeFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,
     getNewestReportActionSelector,

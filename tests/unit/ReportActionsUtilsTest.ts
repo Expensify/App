@@ -7492,5 +7492,59 @@ describe('ReportActionsUtils', () => {
         it('returns undefined for an empty report', () => {
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([], persisted([]))).toBeUndefined();
         });
+
+        it('returns the newest comment of Concierge and of each custom agent', () => {
+            // Given a report where Concierge and two custom agents each wrote twice, and a human wrote last
+            const firstAgentAccountID = 1001;
+            const secondAgentAccountID = 1002;
+            const sorted = [
+                conciergeComment('700', '2026-09-07 00:00:00.000', {actorAccountID: 12345}),
+                conciergeComment('600', '2026-09-06 00:00:00.000', {actorAccountID: firstAgentAccountID}),
+                conciergeComment('500', '2026-09-05 00:00:00.000'),
+                conciergeComment('400', '2026-09-04 00:00:00.000', {actorAccountID: secondAgentAccountID}),
+                conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: firstAgentAccountID}),
+                conciergeComment('200', '2026-09-02 00:00:00.000', {actorAccountID: secondAgentAccountID}),
+                conciergeComment('100', '2026-09-01 00:00:00.000'),
+            ];
+
+            // When the comments that show the prompt are picked
+            const actionIDs = ReportActionsUtils.getLatestConciergeFeedbackActionIDs(sorted, persisted(sorted), [firstAgentAccountID, secondAgentAccountID]);
+
+            // Then each AI author gets one prompt on its newest comment, so an agent reply does not take the prompt away from Concierge, and the human gets none
+            expect([...actionIDs].sort()).toEqual(['400', '500', '600']);
+        });
+
+        it('hides the prompt of an agent whose newest comment is not in Onyx yet, and keeps the prompt of Concierge', () => {
+            // Given an agent comment that exists only on the client, above saved comments of Concierge and of the same agent
+            const agentAccountID = 1001;
+            const unsavedAgentComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: agentAccountID});
+            const concierge = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const olderAgentComment = conciergeComment('100', '2026-09-01 00:00:00.000', {actorAccountID: agentAccountID});
+            const sorted = [unsavedAgentComment, concierge, olderAgentComment];
+
+            // When the comments that show the prompt are picked
+            const actionIDs = ReportActionsUtils.getLatestConciergeFeedbackActionIDs(sorted, persisted([concierge, olderAgentComment]), [agentAccountID]);
+
+            // Then the older agent comment does not stand in for the unsaved one, which would ask the user to rate an older reply
+            expect(actionIDs).toEqual(['200']);
+        });
+
+        it('picks the newest comment of the given author out of a report actions collection', () => {
+            // Given a parent report where an agent wrote twice after Concierge
+            const agentAccountID = 1001;
+            const concierge = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const olderAgentComment = conciergeComment('200', '2026-09-02 00:00:00.000', {actorAccountID: agentAccountID});
+            const newerAgentComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: agentAccountID});
+            const collection = {
+                [concierge.reportActionID]: concierge,
+                [olderAgentComment.reportActionID]: olderAgentComment,
+                [newerAgentComment.reportActionID]: newerAgentComment,
+            };
+
+            // When a thread checks the message it hangs off against the newest comment of that message's author
+            // Then each author gets its own newest comment, so the agent's comments do not hide Concierge's
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, agentAccountID)).toBe('300');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, CONST.ACCOUNT_ID.CONCIERGE)).toBe('100');
+        });
     });
 });
