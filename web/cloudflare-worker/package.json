@@ -6,8 +6,8 @@
     "type": "module",
     "scripts": {
         "prepare-dist": "./scripts/prepareDist.sh",
-        "dev": "npm run prepare-dist && wrangler dev",
-        "dev:production": "npm run prepare-dist && wrangler dev --env production",
+        "dev": "wrangler dev",
+        "dev:production": "wrangler dev --env production",
         "types": "wrangler types",
         "typecheck": "npm run types > /dev/null && tsc -p . && tsc -p tests",
         "test": "node --test 'tests/**/*.test.ts'",

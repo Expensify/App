@@ -13,7 +13,8 @@ type WorkerHarness = {
 
 /**
  * Runs the real wrangler.jsonc against a copy of the fixture build. The harness has no option to override the
- * assets directory, so this writes a temporary config that only changes `main` and `assets.directory`.
+ * assets directory, so this writes a temporary config that changes `main` and `assets.directory`, and copies
+ * .assetsignore itself in place of the `build` command.
  */
 function createWorkerHarness(env?: 'staging' | 'production'): WorkerHarness {
     const tempDir = mkdtempSync(path.join(tmpdir(), 'new-expensify-worker-'));
@@ -22,7 +23,7 @@ function createWorkerHarness(env?: 'staging' | 'production'): WorkerHarness {
     cpSync(path.join(WORKER_DIR, '.assetsignore'), path.join(assetsDir, '.assetsignore'));
 
     const {rawConfig} = experimental_readRawConfig({config: path.join(WORKER_DIR, 'wrangler.jsonc')});
-    const {$schema: _schema, ...config} = rawConfig;
+    const {$schema: _schema, build: _build, ...config} = rawConfig;
     const configPath = path.join(tempDir, 'wrangler.json');
     writeFileSync(
         configPath,

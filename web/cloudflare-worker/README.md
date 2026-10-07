@@ -18,7 +18,7 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 | Any other path that does not exist (`/r/123`) | The app shell (`index.html`) with `200` |
 | `/.well-known/apple-app-site-association` and `/apple-app-site-association` | The same file with `Content-Type: application/json` |
 
-[`.assetsignore`](.assetsignore) keeps the Brotli twins (`*.br`) and source maps (`*.map`) out of the upload. `npm run prepare-dist` copies it into `dist/` before every `dev` run.
+[`.assetsignore`](.assetsignore) keeps the Brotli twins (`*.br`) and source maps (`*.map`) out of the upload. Wrangler's `build` command (`scripts/prepareDist.sh`) copies it into `dist/` before every `wrangler dev` and `wrangler deploy`, so always run wrangler from this directory.
 
 The CSP lives in [`src/csp.ts`](src/csp.ts). The `ENVIRONMENT` variable in [`wrangler.jsonc`](wrangler.jsonc) selects the staging or production policy.
 
@@ -110,12 +110,12 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 | `staging` | `staging-new-expensify-assets` | `test-staging.new.expensify.com/*` until switchover, then `staging.new.expensify.com/*` |
 | `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` |
 
-Deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets. Run `npm run prepare-dist` first so `.assetsignore` is applied.
+Deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets.
 
 To check the config without credentials or uploading anything:
 
 ```bash
-npm run prepare-dist && npx wrangler deploy --dry-run --env staging
+npx wrangler deploy --dry-run --env staging
 ```
 
 Never commit credentials, account IDs or `.dev.vars` files here. This is a public repository.

@@ -6,6 +6,11 @@
     "compatibility_date": "2026-09-26",
     "workers_dev": false,
     "preview_urls": false,
+    // Runs before `wrangler dev` and `wrangler deploy` (from this directory), so .assetsignore is always applied to the upload.
+    "build": {
+        "command": "./scripts/prepareDist.sh",
+        "watch_dir": "src",
+    },
     "observability": {
         "enabled": true,
     },
