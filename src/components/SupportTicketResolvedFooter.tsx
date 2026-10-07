@@ -21,9 +21,10 @@ import Text from './Text';
 type SupportTicketResolvedFooterProps = {
     reportID: string;
     isOffline: boolean;
+    shouldShowReopenButton: boolean;
 };
 
-function SupportTicketResolvedFooter({reportID, isOffline}: SupportTicketResolvedFooterProps) {
+function SupportTicketResolvedFooter({reportID, isOffline, shouldShowReopenButton}: SupportTicketResolvedFooterProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -64,15 +65,17 @@ function SupportTicketResolvedFooter({reportID, isOffline}: SupportTicketResolve
                 </>
             }
         >
-            <Button
-                size={CONST.BUTTON_SIZE.MEDIUM}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                isDisabled={isOffline}
-                isLoading={isReopening}
-                onPress={reopenTicket}
-            >
-                <Button.Text style={styles.textNormal}>{translate('supportTicket.reopenTicket')}</Button.Text>
-            </Button>
+            {shouldShowReopenButton && (
+                <Button
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    isDisabled={isOffline}
+                    isLoading={isReopening}
+                    onPress={reopenTicket}
+                >
+                    <Button.Text style={styles.textNormal}>{translate('supportTicket.reopenTicket')}</Button.Text>
+                </Button>
+            )}
         </Banner>
     );
 }

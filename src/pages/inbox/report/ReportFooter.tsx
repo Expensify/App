@@ -99,7 +99,7 @@ function ReportFooter() {
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
-    const shouldShowResolvedSupportTicketFooter = isResolvedSupportTicket(report) && report?.ownerAccountID === currentUserAccountID && !reportNameValuePairs?.reopenedAsReportID;
+    const shouldShowResolvedSupportTicketFooter = isResolvedSupportTicket(report) && report?.ownerAccountID === currentUserAccountID;
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
@@ -113,6 +113,7 @@ function ReportFooter() {
                 <SupportTicketResolvedFooter
                     reportID={reportIDFromRoute}
                     isOffline={isOffline}
+                    shouldShowReopenButton={!reportNameValuePairs?.reopenedAsReportID}
                 />
             </View>
         );
