@@ -46,7 +46,9 @@
                 "web/cloudflare-worker/**",
                 "src/libs/actions/connections/FinancialForce.ts",
                 "src/libs/actions/connections/ZohoBooks.ts",
-                "src/libs/actions/connections/Digits.ts"
+                "src/libs/actions/connections/Digits.ts",
+                "src/setup/telemetry/noopExpoUpdates.ts",
+                "src/stories/mocks/**"
             ],
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
