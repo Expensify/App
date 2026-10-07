@@ -185,7 +185,9 @@ function useDistanceSubmission({
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                 distanceRequestType: getDistanceRequestType(transaction),
-                selectedRouteDistance: getSelectedRouteDistance(transaction),
+                // A draft seeded from a reused route has no routes when it is created offline, so the source expense's
+                // route distance is what tells the backend which route alternative to take.
+                selectedRouteDistance: getSelectedRouteDistance(transaction) ?? transaction.comment?.customUnit?.routeDistanceMeters ?? undefined,
             },
             isASAPSubmitBetaEnabled,
             transactionViolations: transactionViolationsRef.current,

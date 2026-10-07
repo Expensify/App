@@ -5,7 +5,6 @@ import {filterRoutes, getOrderedWaypoints, getRouteEndpoints} from '../../src/li
 
 const createRoute = (transactionID: string, addresses: string[]): ReusableDistanceRoute => ({
     transactionID,
-    distance: 3.5,
     inserted: '2026-09-01 12:00:00',
     waypoints: addresses.reduce<WaypointCollection>((acc, address, index) => {
         acc[`waypoint${index}`] = {address, lat: 37.7 + index, lng: -122.4 - index};

@@ -8,8 +8,8 @@ type ReusableDistanceRoute = {
     /** Ordered waypoints of the route */
     waypoints: WaypointCollection;
 
-    /** Distance of the route in the policy distance unit */
-    distance: number;
+    /** Distance in meters of the map route the source expense was created with, which selects the same route alternative when the waypoints are routed again */
+    routeDistanceMeters?: number;
 
     /** URL of the map receipt image */
     receiptSource?: string;

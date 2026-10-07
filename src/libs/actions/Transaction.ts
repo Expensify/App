@@ -156,9 +156,6 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
         // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
         // response that replaces the routes carries the matching decision with it.
         commuterExclusionPreview: null,
-
-        // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
-        isReusedRoute: null,
     });
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
@@ -215,8 +212,6 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
         ...currentTransaction,
-        // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
-        isReusedRoute: null,
         comment: {
             ...currentTransaction?.comment,
             waypoints: reIndexedWaypoints,
@@ -249,8 +244,6 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
             errorFields: {
                 route: null,
             },
-            // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
-            isReusedRoute: undefined,
         };
     }
     if (shouldUseSplitDraft) {
@@ -490,9 +483,6 @@ function updateWaypoints(
         // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
         // response that replaces the routes carries the matching decision with it.
         commuterExclusionPreview: null,
-
-        // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
-        isReusedRoute: null,
     });
 }
 

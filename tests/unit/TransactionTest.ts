@@ -2,6 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 
+import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import {
     changeTransactionsReport as changeTransactionsReportAction,
     dismissDuplicateTransactionViolation,
@@ -38,7 +39,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {createCashCard} from 'tests/utils/collections/card';
 
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
-import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, ReusableDistanceRoute, Transaction} from '../../src/types/onyx';
 import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -2774,25 +2775,6 @@ describe('Transaction', () => {
                 }),
             ).toBe(CONST.TRANSACTION.DEFAULT_ROUTE_KEY);
         });
-
-        it('should clear isReusedRoute so route fetching can run again', async () => {
-            const transactionID = 'txn-reuse-save';
-            const index = '2';
-            const waypoint: RecentWaypoint = {
-                address: 'New Waypoint',
-                lat: 10,
-                lng: 20,
-            };
-            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
-            existingTransaction.isReusedRoute = true;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
-
-            saveWaypoint({transactionID, index, waypoint, isDraft: true, recentWaypointsList: []});
-            await waitForBatchedUpdates();
-
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(transaction?.isReusedRoute ?? null).toBeNull();
-        });
     });
 
     describe('removeWaypoint', () => {
@@ -2822,27 +2804,6 @@ describe('Transaction', () => {
             expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
             expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
         });
-
-        it('should clear isReusedRoute so route fetching can run again', async () => {
-            const transactionID = 'txn-reuse-remove';
-            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
-            existingTransaction.isReusedRoute = true;
-            existingTransaction.comment = {
-                ...existingTransaction.comment,
-                waypoints: {
-                    waypoint0: {address: 'A', lat: 1, lng: 1},
-                    waypoint1: {address: 'B', lat: 2, lng: 2},
-                    waypoint2: {address: 'C', lat: 3, lng: 3},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
-
-            await removeWaypoint(existingTransaction, '1', true);
-            await waitForBatchedUpdates();
-
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(transaction?.isReusedRoute ?? null).toBeNull();
-        });
     });
 
     describe('updateWaypoints', () => {
@@ -2871,23 +2832,42 @@ describe('Transaction', () => {
             expect(Object.keys(transaction?.comment?.waypoints ?? {})).toEqual(['waypoint0', 'waypoint1']);
             expect(transaction?.comment?.waypoints?.waypoint2).toBeUndefined();
         });
+    });
 
-        it('should clear isReusedRoute so route fetching can run again', async () => {
-            const transactionID = 'txn-update-waypoints-reused';
+    describe('selectReusableRoute', () => {
+        it('seeds the waypoints and the route distance that selects the alternative the source expense took', async () => {
+            // Given a draft with a typed distance, and a prior trip that took the longer of two route alternatives
+            const transactionID = 'txn-select-reusable-route';
             const existingTransaction = generateTransaction({transactionID, reportID: '1'});
-            existingTransaction.isReusedRoute = true;
+            existingTransaction.comment = {...existingTransaction.comment, customUnit: {...existingTransaction.comment?.customUnit, quantity: 12}};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, existingTransaction);
-
-            const newWaypoints: WaypointCollection = {
-                waypoint0: {address: 'X', lat: 10, lng: 20},
-                waypoint1: {address: 'Y', lat: 30, lng: 40},
+            const route: ReusableDistanceRoute = {
+                transactionID: 'source-transaction',
+                inserted: '2026-10-01 12:00:00',
+                routeDistanceMeters: 200,
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                },
             };
 
-            await updateWaypoints(transactionID, newWaypoints, CONST.TRANSACTION.STATE.DRAFT);
+            // When the trip is reused
+            await selectReusableRoute(transactionID, route);
             await waitForBatchedUpdates();
 
+            // Then the draft has the trip's waypoints and no typed distance, so the route is fetched like any other draft
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(transaction?.isReusedRoute ?? null).toBeNull();
+            expect(Object.values(transaction?.comment?.waypoints ?? {}).map((waypoint) => waypoint?.address)).toEqual(['A', 'B']);
+            expect(transaction?.comment?.customUnit?.quantity ?? null).toBeNull();
+
+            // And once the fetched routes arrive, the trip's route distance selects the longer alternative again
+            expect(
+                TransactionUtils.getSelectedRouteKey({
+                    ...existingTransaction,
+                    comment: transaction?.comment,
+                    routes: {route0: {distance: 100, geometry: {coordinates: [[0, 0]]}}, route1: {distance: 200, geometry: {coordinates: [[1, 1]]}}},
+                }),
+            ).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
         });
     });
 

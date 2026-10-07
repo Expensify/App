@@ -233,7 +233,9 @@ function handleMoneyRequestStepDistanceNavigation({
     // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
     // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
-    const selectedRouteDistance = getSelectedRouteDistance(transaction);
+    // A draft seeded from a reused route has no routes until they are fetched again, so the source expense's route
+    // distance is what tells the backend which route alternative to take.
+    const selectedRouteDistance = getSelectedRouteDistance(transaction) ?? transaction?.comment?.customUnit?.routeDistanceMeters ?? undefined;
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID, getCurrencyDecimals);

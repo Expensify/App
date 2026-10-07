@@ -42,17 +42,18 @@ function fetchReusableDistanceRoutes() {
 }
 
 /**
- * Seeds the draft transaction from a reused route.
+ * Seeds the draft transaction from a reused route. The waypoints are routed again like any other draft, which
+ * returns every route alternative, and the source expense's route distance selects the alternative it took.
  */
 function selectReusableRoute(transactionID: string, route: ReusableDistanceRoute, existingWaypoints?: WaypointCollection) {
-    const waypoints = normalizeRouteWaypoints(route);
-    return updateWaypoints(transactionID, waypoints, CONST.TRANSACTION.STATE.DRAFT, existingWaypoints).then(() =>
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
-            isReusedRoute: true,
-            comment: {customUnit: {quantity: route.distance}},
-        }),
-    );
+    const waypointsUpdate = updateWaypoints(transactionID, normalizeRouteWaypoints(route), CONST.TRANSACTION.STATE.DRAFT, existingWaypoints);
+
+    // Merges to the same key in one tick are applied together, so the route distance lands with the waypoints instead
+    // of being cleared by them.
+    const routeDistanceUpdate = Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {customUnit: {routeDistanceMeters: route.routeDistanceMeters ?? null}},
+    });
+    return Promise.all([waypointsUpdate, routeDistanceUpdate]);
 }
 
 export {fetchReusableDistanceRoutes, selectReusableRoute};
