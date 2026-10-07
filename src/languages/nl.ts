@@ -10065,6 +10065,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             category: 'Categorie',
             tag: 'Label',
         },
+        viewAsTable: 'Weergeven als tabel',
+        viewAsSingleExpense: 'Weergeven als enkele uitgave',
     },
     report: {
         newReport: {
