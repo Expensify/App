@@ -28,6 +28,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {StackActions} from '@react-navigation/native';
 
+/** Delete confirmation shared by the task and money Delete rows, navigates back and then deletes once the RHP close transition ends */
 function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentReportAction?: OnyxEntry<ReportAction>) {
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();

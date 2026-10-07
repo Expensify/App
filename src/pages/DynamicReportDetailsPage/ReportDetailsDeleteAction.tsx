@@ -26,6 +26,7 @@ type ReportDetailsDeleteActionProps = {
     requestData: ReportDetailsRequestData;
 };
 
+/** The Delete row of the money cases, deleting a track expense or a regular expense, or opening the split edit flow */
 function ReportDetailsDeleteAction({reportID, caseID, requestData}: ReportDetailsDeleteActionProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowSplit', 'Trashcan']);
     const {removeTransaction} = useSearchSelectionActions();
