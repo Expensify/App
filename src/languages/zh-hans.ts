@@ -6620,6 +6620,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             tagRules: '标签规则',
             approverDescription: '审批人',
             importTags: '导入标签',
+            appendCustomTagList: '追加自定义标签列表',
             importTagsSupportingText: '为报销编码时可使用一种标签，也可使用多种标签。',
             configureMultiLevelTags: '为多级标签配置您的标签列表。',
             importMultiLevelTagsSupportingText: `这是您的标签预览。如果一切看起来都没问题，请点击下方以导入它们。`,

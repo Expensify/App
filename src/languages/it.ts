@@ -6876,6 +6876,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             tagRules: 'Regole dei tag',
             approverDescription: 'Approvante',
             importTags: 'Importa tag',
+            appendCustomTagList: 'Aggiungi elenco di tag personalizzato',
             importTagsSupportingText: 'Codifica le tue spese con un solo tipo di tag o con molti.',
             configureMultiLevelTags: 'Configura il tuo elenco di tag per la codifica multilivello.',
             importMultiLevelTagsSupportingText: `Ecco un’anteprima dei tuoi tag. Se ti sembra tutto corretto, fai clic qui sotto per importarli.`,

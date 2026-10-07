@@ -6789,6 +6789,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             tagRules: 'タグルール',
             approverDescription: '承認者',
             importTags: 'タグをインポート',
+            appendCustomTagList: 'カスタムタグリストを追加',
             importTagsSupportingText: '経費に 1 種類または複数のタグを付けて分類しましょう。',
             configureMultiLevelTags: '複数レベルのタグ付けのために、タグの一覧を設定します。',
             importMultiLevelTagsSupportingText: `こちらがタグのプレビューです。問題なければ、下をクリックしてインポートしてください。`,

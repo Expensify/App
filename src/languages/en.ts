@@ -7255,6 +7255,7 @@ const translations = {
             tagRules: 'Tag rules',
             approverDescription: 'Approver',
             importTags: 'Import tags',
+            appendCustomTagList: 'Append custom tag list',
             importTagsSupportingText: 'Code your expenses with one type of tag or many.',
             configureMultiLevelTags: 'Configure your list of tags for multi-level tagging.',
             importMultiLevelTagsSupportingText: `Here's a preview of your tags. If everything looks good, click below to import them.`,

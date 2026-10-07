@@ -47,6 +47,9 @@ type ImportSpreadsheetProps = {
 
     isImportingMultiLevelTags?: boolean;
 
+    /** Whether the imported tag lists are appended to the existing (accounting connection) tag lists */
+    isAppendingToExistingLists?: boolean;
+
     /** Whether an OFX/QFX bank statement can be picked alongside a spreadsheet */
     shouldAllowBankStatements?: boolean;
 
@@ -54,7 +57,15 @@ type ImportSpreadsheetProps = {
     onStatementPicked?: (file: FileObject) => Promise<void>;
 };
 
-function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags, shouldAllowBankStatements, onStatementPicked}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({
+    backTo,
+    goTo,
+    shouldForceReplaceNavigation = false,
+    isImportingMultiLevelTags,
+    isAppendingToExistingLists,
+    shouldAllowBankStatements,
+    onStatementPicked,
+}: ImportSpreadsheetProps) {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
@@ -188,6 +199,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             file.name,
                             isImportingMultiLevelTags ?? false,
                             importedSpreadsheet?.importTransactionSettings,
+                            isAppendingToExistingLists,
                         );
                     })
                     .then(() => {

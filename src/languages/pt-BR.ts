@@ -6863,6 +6863,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             tagRules: 'Regras de tag',
             approverDescription: 'Aprovador',
             importTags: 'Importar tags',
+            appendCustomTagList: 'Anexar lista de tags personalizada',
             importTagsSupportingText: 'Classifique suas despesas com um tipo de etiqueta ou várias.',
             configureMultiLevelTags: 'Configure sua lista de tags para marcação em vários níveis.',
             importMultiLevelTagsSupportingText: `Aqui está uma prévia de suas tags. Se tudo estiver certo, clique abaixo para importá-las.`,

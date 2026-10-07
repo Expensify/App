@@ -6885,6 +6885,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             tagRules: 'Zasady tagów',
             approverDescription: 'Osoba zatwierdzająca',
             importTags: 'Importuj tagi',
+            appendCustomTagList: 'Dołącz niestandardową listę tagów',
             importTagsSupportingText: 'Oznaczaj wydatki jednym typem taga lub wieloma.',
             configureMultiLevelTags: 'Skonfiguruj swoją listę tagów do tagowania wielopoziomowego.',
             importMultiLevelTagsSupportingText: `Oto podgląd Twoich tagów. Jeśli wszystko wygląda dobrze, kliknij poniżej, aby je zaimportować.`,
