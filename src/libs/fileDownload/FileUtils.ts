@@ -178,7 +178,7 @@ function getFileNameWithFallback(fileName: string | null | undefined, uri: strin
 }
 
 /**
- * Returns the most common file extension registered for a MIME type, e.g. `video/mp4` -> `mp4`.
+ * Returns the most common file extension registered for a MIME type, e.g. `video/mp4` resolves to `mp4`.
  * Returns undefined for an empty or unrecognized MIME type so callers can pick their own fallback.
  */
 function getExtensionFromMimeType(mimeType: string | undefined): string | undefined {
