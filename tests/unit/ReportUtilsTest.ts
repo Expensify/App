@@ -241,6 +241,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
+    CardList,
     Onboarding,
     OnyxInputOrEntry,
     PersonalDetailsList,
@@ -276,6 +277,7 @@ import Onyx from 'react-native-onyx';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
+import {createRandomExpensifyCard} from '../utils/collections/card';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
@@ -5884,6 +5886,8 @@ describe('ReportUtils', () => {
                 transaction: expenseTransaction,
                 comment: 'hold',
                 initialReportID: transactionThreadReport.reportID,
+                initialReport: transactionThreadReport,
+                transactionReport: expenseReport,
                 isOffline: false,
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
@@ -6138,18 +6142,19 @@ describe('ReportUtils', () => {
             changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(
+            expect(unholdRequestSpy).toHaveBeenCalledWith({
                 transactionID,
-                childReportID,
-                expect.objectContaining({id: policyID}),
-                false,
-                currentUserEmail,
+                transaction: iouTransaction,
+                reportID: childReportID,
+                policy: expect.objectContaining({id: policyID}),
+                isOffline: false,
+                currentUserLogin: currentUserEmail,
                 currentUserAccountID,
-                undefined,
-                false,
-                undefined,
-                undefined,
-            );
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -7068,7 +7073,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('it should return false for a money request action with a failed transaction', () => {
@@ -7102,7 +7107,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return true for a money request action with a valid linkedTransaction', async () => {
@@ -7137,7 +7142,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('it should return false for a report action by another user', () => {
@@ -7156,7 +7161,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return false for a deleted report action', () => {
@@ -7177,7 +7182,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return false for a report action with pending DELETE', () => {
@@ -7197,7 +7202,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return false for a CREATED action type', () => {
@@ -7216,7 +7221,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for a money request action on a settled expense report', async () => {
@@ -7252,7 +7257,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for a money request action on an approved expense report', async () => {
@@ -7289,7 +7294,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for a money request action on a closed expense report', async () => {
@@ -7325,7 +7330,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for an optimistic attachment-only action (still uploading)', () => {
@@ -7346,7 +7351,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return true for an optimistic attachment+text action (text is editable while uploading)', () => {
@@ -7367,7 +7372,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('should return true for a synced attachment-only action (optimistic flags cleared)', () => {
@@ -7389,7 +7394,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('should return true for a synced attachment+text action', () => {
@@ -7410,7 +7415,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('should return true for an optimistic plain-text comment (no attachment)', () => {
@@ -7430,7 +7435,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
     });
 
@@ -8416,17 +8421,19 @@ describe('ReportUtils', () => {
             expect(icons.at(0)?.name).toEqual('One, Three, Two');
         });
 
-        // TODO: Remove this test once https://github.com/Expensify/App/issues/66421 is done and the fallback is gone
-        it('should fall back to the report metadata in Onyx when the caller does not pass the pending delete members', async () => {
+        it('should not read the report metadata from Onyx when the caller does not pass the pending delete members', async () => {
+            // Given a group chat whose metadata in Onyx marks one member as pending removal
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${groupChatReport.reportID}`, {
                 pendingChatMembers: [{accountID: '4', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
             });
 
+            // When the caller builds the icons without passing the pending delete members
             const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails);
 
-            expect(icons.at(0)?.name).toEqual('One, Three, Two');
+            // Then the pending member is still listed: getGroupChatName no longer falls back to reading Onyx itself
+            expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
         });
 
         it('should use the default group avatar when the report has no avatar URL', async () => {
@@ -12143,27 +12150,116 @@ describe('ReportUtils', () => {
             expect(result).toHaveProperty('reason');
         });
 
-        it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT when report has unresolved fraud alert', async () => {
-            const report: OptionData = {
+        describe('card fraud alert', () => {
+            const fraudReport: OptionData = {
                 ...createRandomReport(40000, undefined),
                 keyForList: 'someStringKey',
-                type: CONST.REPORT.TYPE.EXPENSE,
-                isUnreadWithMention: true,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(40000),
+            const CARD_ID = 1;
+            const OTHER_CARD_ID = 2;
+            const createFraudAlertAction = (index: number, cardID: number): ReportAction => ({
+                ...createRandomReportAction(index),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
-                [reportAction.reportActionID]: reportAction,
+                originalMessage: {cardID, maskedCardNumber: '1234', triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366'},
+            });
+            const otherCardFraudAlertAction = createFraudAlertAction(40001, OTHER_CARD_ID);
+            const fraudAlertAction = createFraudAlertAction(40000, CARD_ID);
+            const fraudReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudReport.reportID}`]: {[fraudAlertAction.reportActionID]: fraudAlertAction}};
+            const cardWithFraud = createRandomExpensifyCard(CARD_ID, {
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: Number(fraudReport.reportID)},
             });
 
-            // When the reason is retrieved
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const getReason = (cardList: CardList | undefined, isReportArchived = false, reportActions = fraudReportActions) =>
+                getReasonAndReportActionThatRequiresAttention(
+                    fraudReport,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    undefined,
+                    isReportArchived,
+                    reportActions,
+                    undefined,
+                    undefined,
+                    undefined,
+                    cardList,
+                );
 
-            expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
+            it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT for the cardholder while the fraud is live', () => {
+                // Given the current user's card has live fraud pointing at a report with an unresolved alert
+                const cardList: CardList = {[CARD_ID]: cardWithFraud};
+
+                // When the reason is retrieved
+                const result = getReason(cardList);
+
+                // Then the cardholder gets the fraud alert green dot on that report
+                expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
+                expect(result?.reportAction?.reportActionID).toBe(fraudAlertAction.reportActionID);
+            });
+
+            it("should point at the alert for the cardholder's card when the report has alerts for other cards", () => {
+                // Given the report has an unresolved alert for another card listed before the cardholder's own alert
+                const cardList: CardList = {[CARD_ID]: cardWithFraud};
+                const reportActions = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudReport.reportID}`]: {
+                        [otherCardFraudAlertAction.reportActionID]: otherCardFraudAlertAction,
+                        [fraudAlertAction.reportActionID]: fraudAlertAction,
+                    },
+                };
+
+                // When the reason is retrieved
+                const result = getReason(cardList, false, reportActions);
+
+                // Then the green dot leads to the alert the cardholder can resolve, not the first alert in the report
+                expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
+                expect(result?.reportAction?.reportActionID).toBe(fraudAlertAction.reportActionID);
+            });
+
+            it('should not return a reason when the report only has unresolved alerts for other cards', () => {
+                // Given the cardholder's card has live fraud on this report, but the only unresolved alert belongs to another card
+                const cardList: CardList = {[CARD_ID]: cardWithFraud};
+                const reportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudReport.reportID}`]: {[otherCardFraudAlertAction.reportActionID]: otherCardFraudAlertAction}};
+
+                // When the reason is retrieved
+                const result = getReason(cardList, false, reportActions);
+
+                // Then no green dot shows, since that alert has no buttons for this user to clear it
+                expect(result).toBeNull();
+            });
+
+            it('should not return a reason once the fraud is cleared on the card', () => {
+                // Given the backend cleared possibleFraud but nobody resolved the alert action
+                const cardList: CardList = {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE})};
+
+                // When the reason is retrieved
+                const result = getReason(cardList);
+
+                // Then the green dot clears without a button press
+                expect(result).toBeNull();
+            });
+
+            it('should not return a reason for a user who is not the cardholder', () => {
+                // Given a workspace admin whose card list does not contain the flagged card
+                const cardList: CardList = {};
+
+                // When the reason is retrieved
+                const result = getReason(cardList);
+
+                // Then the admin gets no green dot for someone else's fraud alert
+                expect(result).toBeNull();
+            });
+
+            it('should not return a reason on an archived report', () => {
+                // Given the cardholder's live fraud alert sits on an archived report
+                const cardList: CardList = {[CARD_ID]: cardWithFraud};
+
+                // When the reason is retrieved
+                const result = getReason(cardList, true);
+
+                // Then the archived report shows no green dot
+                expect(result).toBeNull();
+            });
         });
 
         it('should return null for an archived report', async () => {
@@ -16326,6 +16422,36 @@ describe('ReportUtils', () => {
             const encodedBackTo = 'search%3Fq%3Dtype%3Areport';
             mockGetActiveRoute.mockReturnValue(`search/r/999?backTo=${encodedBackTo}`);
             expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
+        });
+
+        it('decodes the backTo parameter only once so a nested backTo stays encoded', () => {
+            // Given an expense RHP opened from search and then paged through twice with the carousel arrows, so each press nested the previous route in backTo
+            const reportID = '333';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const firstExpenseRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: '1', anchorTransactionID: '10', backTo: 'search?q=type:expense'});
+            const secondExpenseRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: '2', anchorTransactionID: '20', backTo: firstExpenseRoute});
+            mockGetActiveRoute.mockReturnValue(ROUTES.SEARCH_REPORT.getRoute({reportID: '1', anchorTransactionID: '10', backTo: secondExpenseRoute}));
+            const getQuery = (route: string) => new URLSearchParams(route.slice(route.indexOf('?') + 1));
+
+            // When building the report link from that RHP
+            const url = getReportURLForCurrentContext(reportID);
+
+            // Then the link's backTo is the previous expense route as-is, so its own backTo stays a single query key; a duplicate key would be parsed as an array and crash the RHP on back
+            expect(url).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: secondExpenseRoute})}`);
+            expect(getQuery(getQuery(url).get('backTo') ?? '').getAll('backTo')).toHaveLength(1);
+        });
+
+        it('decodes a backTo parameter that is still encoded after reading it', () => {
+            // Given a route whose backTo was encoded twice, so reading it once still leaves an encoded search route
+            const reportID = '444';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('search/r/999?backTo=search%253Fq%253Dtype%253Areport');
+
+            // When building the report link from that route
+            const url = getReportURLForCurrentContext(reportID);
+
+            // Then the backTo is fully decoded so the link still returns to the search we left
+            expect(url).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
         });
 
         it('uses current search route when no backTo parameter is present', () => {
@@ -22294,6 +22420,7 @@ describe('ReportUtils', () => {
                             iouType: CONST.IOU.TYPE.SUBMIT,
                             transactionID: transaction.transactionID,
                             reportID: '1',
+                            shouldExcludeWorkspaces: true,
                         }),
                         ROUTES.REPORT_WITH_ID.getRoute('1'),
                     ),
@@ -22334,6 +22461,7 @@ describe('ReportUtils', () => {
                             iouType: CONST.IOU.TYPE.SUBMIT,
                             transactionID: transaction.transactionID,
                             reportID: '1',
+                            shouldExcludeWorkspaces: true,
                         }),
                         ROUTES.REPORT_WITH_ID.getRoute('1'),
                     ),
