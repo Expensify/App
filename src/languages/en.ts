@@ -1581,9 +1581,10 @@ const translations = {
             other: 'Delete reports',
         }),
         deleteReportConfirmation: () => ({
-            one: 'Are you sure that you want to delete this report? All expenses in this report will become unreported.',
+            one: 'Are you sure that you want to delete this report?',
             other: 'Are you sure that you want to delete these reports?',
         }),
+        deleteExpenseReportConfirmation: 'Are you sure that you want to delete this report? All expenses in this report will become unreported.',
         settledExpensify: 'Paid',
         paidStatusMarkedAsPaid: 'Marked as paid',
         paidStatusWithdrawing: 'Withdrawing',

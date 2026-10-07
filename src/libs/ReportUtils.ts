@@ -276,6 +276,7 @@ import {
     hasViolation,
     hasWarningTypeViolation,
     isManagedCardTransaction as isCardTransactionTransactionUtils,
+    isCorporateCardTransaction,
     isDeletedTransaction,
     isDemoTransaction,
     isDistanceRequest,
@@ -3311,12 +3312,13 @@ function canDeleteMoneyRequestReport(
     }
 
     const hasExpensifyCardTransaction = reportTransactions.some(isExpensifyCardTransaction);
-    const hasRestrictedCorporateCardTransaction = reportTransactions.some((reportTransaction) => reportTransaction.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+    const hasRestrictedCorporateCardTransaction = reportTransactions.some(isCorporateCardTransaction);
     // Expensify Card transactions cannot be deleted or unreported, including by workspace admins.
     if (isReportLevelDelete && hasExpensifyCardTransaction) {
         return false;
     }
 
+    // Admins can delete reports containing third-party card expenses because those expenses become unreported.
     if (isReportLevelDelete && !isReportPolicyAdmin && hasRestrictedCorporateCardTransaction) {
         return false;
     }
@@ -3328,7 +3330,6 @@ function canDeleteMoneyRequestReport(
     }
 
     // Admins can delete a draft report even when they are not its submitter, but not its individual expenses.
-    // Admins can delete reports containing third-party card expenses because those expenses become unreported.
     const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
     if (isDraft && isReportPolicyAdmin && isReportLevelDelete) {
         return true;

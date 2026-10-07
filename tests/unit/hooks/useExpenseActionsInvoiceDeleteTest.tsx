@@ -8,6 +8,7 @@ import useExpenseActions from '@hooks/useExpenseActions';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import Navigation from '@libs/Navigation/Navigation';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +33,7 @@ jest.mock('@libs/showConfirmModalAfterMoreMenuDismiss', () => ({__esModule: true
 jest.mock('@hooks/useConfirmModal', () => ({__esModule: true, default: () => ({showConfirmModal: jest.fn(), closeModal: jest.fn()})}));
 
 const mockDeleteAppReport = jest.fn();
+const mockShowConfirmModalAfterMoreMenuDismiss = jest.mocked(showConfirmModalAfterMoreMenuDismiss);
 
 jest.mock('@libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -276,6 +278,10 @@ describe('useExpenseActions delete', () => {
         goBackSpy.mockRestore();
 
         // Then the report-level delete path is used so the card expense becomes unreported
+        expect(mockShowConfirmModalAfterMoreMenuDismiss).toHaveBeenCalledWith(
+            expect.any(Function),
+            expect.objectContaining({prompt: 'Are you sure that you want to delete this report? All expenses in this report will become unreported.'}),
+        );
         expect(mockDeleteTransactions).not.toHaveBeenCalled();
         expect(mockDeleteAppReport).toHaveBeenCalledWith(expect.objectContaining({report}));
     });

@@ -135,4 +135,17 @@ describe('localize', () => {
         expect(expenseConfirmation).not.toContain('All expenses in this report will become unreported.');
         expect(commentConfirmation).not.toContain('All expenses in this report will become unreported.');
     });
+
+    it('keeps the unreported-expenses warning separate from the generic report confirmation', async () => {
+        // Given the generic and expense-report deletion confirmation translations
+        await IntlStore.load(CONST.LOCALES.EN);
+
+        // When translating both confirmations
+        const genericReportConfirmation = Localize.translate(CONST.LOCALES.EN, 'iou.deleteReportConfirmation', {count: 1});
+        const expenseReportConfirmation = Localize.translate(CONST.LOCALES.EN, 'iou.deleteExpenseReportConfirmation');
+
+        // Then only the expense-report confirmation explains that its expenses become unreported
+        expect(genericReportConfirmation).not.toContain('All expenses in this report will become unreported.');
+        expect(expenseReportConfirmation).toContain('All expenses in this report will become unreported.');
+    });
 });

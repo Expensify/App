@@ -1466,9 +1466,10 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Eliminar informes',
         }),
         deleteReportConfirmation: () => ({
-            one: '¿Estás seguro de que quieres eliminar este informe? Todos los gastos de este informe quedarán sin reportar.',
+            one: '¿Estás seguro de que quieres eliminar este informe?',
             other: '¿Estás seguro de que quieres eliminar estos informes?',
         }),
+        deleteExpenseReportConfirmation: '¿Estás seguro de que quieres eliminar este informe? Todos los gastos de este informe quedarán sin reportar.',
         settledExpensify: 'Pagado',
         paidStatusMarkedAsPaid: 'Marcado como pagado',
         paidStatusWithdrawing: 'Retirada',
