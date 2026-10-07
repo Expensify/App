@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -31,11 +31,7 @@ function RequireQuickBooksDesktopModal() {
             testID="RequireQuickBooksDesktopModal"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButton
-                title={translate('workspace.qbd.qbdSetup')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.qbd.qbdSetup')} />
             <View style={[styles.flex1, styles.gap2]}>
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.ph5]}>
                     <View style={[styles.alignSelfCenter, styles.pendingStateCardIllustration]}>
