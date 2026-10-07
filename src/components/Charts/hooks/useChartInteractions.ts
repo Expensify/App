@@ -1,7 +1,7 @@
 import type {SharedValue} from 'react-native-reanimated';
 
 import {useCallback} from 'react';
-import {Gesture} from 'react-native-gesture-handler';
+import {Gesture, PointerType} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 
@@ -184,6 +184,9 @@ function useChartInteractions({
     const isCursorOverClickable = useSharedValue(false);
     const isTooltipActive = useSharedValue(false);
 
+    /** True while a tooltip opened by a touch tap stays visible until the next tap */
+    const isTouchPinned = useSharedValue(false);
+
     /**
      * Called by chart content from handleScaleChange to populate canvas positions.
      * Must be called with the positions derived from the current d3 scale.
@@ -339,11 +342,26 @@ function useChartInteractions({
      * customGestures prop, because Victory's internal GestureHandler view only covers
      * the plot area and would drop events from the label area.
      */
+    const hideTooltip = () => {
+        'worklet';
+
+        chartInteractionState.isActive.set(false);
+        isTouchPinned.set(false);
+        isCursorOverTarget.set(false);
+        isCursorOverClickable.set(false);
+        isTooltipActive.set(false);
+    };
+
     const hoverGesture = () =>
         Gesture.Hover()
             .onBegin((e) => {
                 'worklet';
 
+                // Touch on web can start a hover through pointerenter, which would fight the tap-to-show tooltip
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
+                isTouchPinned.set(false);
                 const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
                 const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
                 chartInteractionState.isActive.set(true);
@@ -358,20 +376,50 @@ function useChartInteractions({
             .onUpdate((e) => {
                 'worklet';
 
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
                 updateHoverAt(normalizeChartCoordinate(e.x, coordinateScale), normalizeChartCoordinate(e.y, coordinateScale));
             })
-            .onEnd(() => {
+            .onEnd((e) => {
                 'worklet';
 
-                chartInteractionState.isActive.set(false);
-                isCursorOverTarget.set(false);
-                isCursorOverClickable.set(false);
-                isTooltipActive.set(false);
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
+                hideTooltip();
             });
 
     /**
-     * Tap gesture. Resolves the nearest data point entirely on the UI thread,
-     * then schedules handlePress on the JS thread if the cursor is over the target.
+     * Touch taps toggle the tooltip instead of drilling in, since touch devices have no hover.
+     * Tapping a new target shows its tooltip; tapping the same target again or empty space hides it.
+     */
+    const handleTouchTap = (cursorX: number, cursorY: number) => {
+        'worklet';
+
+        const previousIndex = chartInteractionState.matchedIndex.get();
+        const wasPinned = isTouchPinned.get();
+        const bottom = chartBottom?.get() ?? cursorY;
+        const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
+        const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
+        if (targetIndex < 0 || (wasPinned && targetIndex === previousIndex)) {
+            hideTooltip();
+            return;
+        }
+
+        chartInteractionState.isActive.set(true);
+        applyTargetIndex(targetIndex);
+        const isOverTarget = updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+        if (!isOverTarget) {
+            hideTooltip();
+            return;
+        }
+        isTouchPinned.set(true);
+    };
+
+    /**
+     * Tap gesture. Resolves the nearest data point entirely on the UI thread.
+     * Touch taps toggle the tooltip; other pointers schedule handlePress on the JS thread if the cursor is over the target.
      */
     const tapGesture = () =>
         Gesture.Tap().onEnd((e) => {
@@ -381,6 +429,10 @@ function useChartInteractions({
             const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
             chartInteractionState.cursor.x.set(cursorX);
             chartInteractionState.cursor.y.set(cursorY);
+            if (e.pointerType === PointerType.TOUCH) {
+                handleTouchTap(cursorX, cursorY);
+                return;
+            }
             const ox = pointOX.get();
             const oy = pointOY.get();
             const idx = getResolvedTargetIndex(cursorX, cursorY, cursorX);
