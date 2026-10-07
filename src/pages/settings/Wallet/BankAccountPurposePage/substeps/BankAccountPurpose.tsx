@@ -49,7 +49,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
                     title={translate('bankAccount.getReimbursed')}
                     description={translate('bankAccount.getReimbursedDescription')}
                     shouldShowRightIcon
-                    onPress={getReimbursedPressed}
+                    onPress={onGetReimbursedPressed}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
