@@ -117,6 +117,35 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - Technical: Autocomplete list finalized ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/Search/SearchAutocompleteList.tsx#L126))
 **Attributes**: `trigger: 'keyboard'` when opened via keyboard shortcut
 
+### Search Router Keystroke
+
+**Constant**: `CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY`
+**Sentry Name**: `ManualSearchRouterQuery`
+**Threshold**: None yet. P90 is set after about 2 weeks of baseline data, per `SIZE_TIER`.
+**What's Measured**: Time from the debounced query being applied to the autocomplete list committing that query, for one keystroke while the Search Router is open. At most `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN` queries are measured per open.
+**Start**: Debounce timer fires with a new value, before React renders it ([`src/hooks/useDebouncedState.ts`](https://github.com/Expensify/App/blob/main/src/hooks/useDebouncedState.ts), [`src/components/Search/SearchRouter/SearchRouter.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchRouter/SearchRouter.tsx))
+**End**:
+- User sees: Autocomplete list updated for the typed query
+- Technical: Layout effect after the commit for that query ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchAutocompleteList.tsx))
+**Attributes**: `query_length_bucket` (free-text length, never the text), `has_filter`, `autocomplete_key`, `query_ordinal`, `option_list_rebuilt`, `result_count`, `search_path`, `cancel_reason` (`superseded`, `cleared`, `closed`, `unmounted`, `list_mount`, `timed_out`) when cancelled. A span running longer than `CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS` is cancelled as `timed_out`.
+
+### Search Router Keystroke (Option List)
+
+**Constant**: `CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY_PHASE.OPTION_LIST`
+**Sentry Name**: `SearchRouter.QueryOptionList`
+**Threshold**: None yet
+**What's Measured**: Time spent in `createFilteredOptionList` during a measured keystroke. Absent when the option list was not rebuilt. Only recorded while a `ManualSearchRouterQuery` span is active.
+**Start/End**: Wraps the `createFilteredOptionList` call ([`src/hooks/useFilteredOptions.ts`](https://github.com/Expensify/App/blob/main/src/hooks/useFilteredOptions.ts))
+
+### Search Router Keystroke (Filter)
+
+**Constant**: `CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY_PHASE.FILTER`
+**Sentry Name**: `SearchRouter.QueryFilter`
+**Threshold**: None yet
+**What's Measured**: Time spent in `getSearchOptions` during a measured keystroke. One span per call.
+**Start/End**: Wraps each `getSearchOptions` call ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchAutocompleteList.tsx), [`src/hooks/useAutocompleteSuggestions.ts`](https://github.com/Expensify/App/blob/main/src/hooks/useAutocompleteSuggestions.ts))
+**Attributes**: `filter_source` (`local`, `server`, `autocomplete`)
+
 ### Open Create Expense
 
 **Constant**: `CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE`

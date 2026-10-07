@@ -35,6 +35,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
+import {cancelSearchRouterQuerySpan, markSearchRouterQueryCommitted, measureSearchRouterQueryPhase} from '@libs/telemetry/searchRouterQuerySpans';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -47,7 +48,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 
 import type {SearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
@@ -262,6 +263,7 @@ function SearchAutocompleteList({
     useEffect(() => {
         return () => {
             cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.UNMOUNTED);
         };
     }, []);
 
@@ -281,43 +283,45 @@ function SearchAutocompleteList({
         if (listOptions === null) {
             return defaultListOptions;
         }
-        return getSearchOptions({
-            dateFnsLocale,
-            convertToDisplayString,
-            convertToDisplayStringWithoutCurrency,
-            options: listOptions,
-            draftComments,
-            isDefaultRoomsBetaEnabled,
-            isUsedInChatFinder: true,
-            includeReadOnly: true,
-            searchQuery: autocompleteQueryValue,
-            maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
-            includeUserToInvite: true,
-            includeRecentReports: true,
-            includeCurrentUser: true,
-            countryCode,
-            shouldShowGBR: false,
-            shouldUnreadBeBold: true,
-            loginList,
-            visibleReportActionsData,
-            currentUserAccountID,
-            currentUserEmail,
-            policyCollection: policies,
-            personalDetails,
-            reportAttributesDerived: reportAttributes,
-            sortedActions,
-            transactionThreadIDs,
-            lastActions,
-            currentUserLogin: currentUserEmail,
-            localeCompare,
-            formatPhoneNumber,
-            conciergeReportID,
-            allPolicyTags,
-            isTrackIntentUser,
-            translate,
-            getReportByID,
-            rules,
-        }).options;
+        return measureSearchRouterQueryPhase(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY_PHASE.FILTER, {filterSource: CONST.TELEMETRY.SEARCH_ROUTER_QUERY_FILTER_SOURCE.LOCAL}, () =>
+            getSearchOptions({
+                dateFnsLocale,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                options: listOptions,
+                draftComments,
+                isDefaultRoomsBetaEnabled,
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: autocompleteQueryValue,
+                maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
+                includeUserToInvite: true,
+                includeRecentReports: true,
+                includeCurrentUser: true,
+                countryCode,
+                shouldShowGBR: false,
+                shouldUnreadBeBold: true,
+                loginList,
+                visibleReportActionsData,
+                currentUserAccountID,
+                currentUserEmail,
+                policyCollection: policies,
+                personalDetails,
+                reportAttributesDerived: reportAttributes,
+                sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                currentUserLogin: currentUserEmail,
+                localeCompare,
+                formatPhoneNumber,
+                conciergeReportID,
+                allPolicyTags,
+                isTrackIntentUser,
+                translate,
+                getReportByID,
+                rules,
+            }),
+        ).options;
     }, [
         listOptions,
         draftComments,
@@ -357,37 +361,39 @@ function SearchAutocompleteList({
 
         const orderedReportIDs = orderedSearchResultReportIDs.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         const reportIDs = new Set(orderedReportIDs);
-        const options = getSearchOptions({
-            dateFnsLocale,
-            convertToDisplayString,
-            options: {reports: listOptions.reports.filter((option) => reportIDs.has(option.reportID)), personalDetails: []},
-            draftComments,
-            isDefaultRoomsBetaEnabled,
-            isUsedInChatFinder: true,
-            includeReadOnly: true,
-            // Auth's ID list is the filter here. Re-running the client matcher would drop the reports Auth matched on
-            // criteria the client doesn't check (e.g. you own it) — the rows this pass exists to surface.
-            searchQuery: '',
-            maxResults: orderedReportIDs.length,
-            includeUserToInvite: false,
-            includeRecentReports: true,
-            includeCurrentUser: false,
-            countryCode,
-            shouldShowGBR: false,
-            shouldUnreadBeBold: true,
-            loginList,
-            visibleReportActionsData,
-            currentUserAccountID,
-            currentUserEmail,
-            policyCollection: policies,
-            personalDetails,
-            sortedActions,
-            conciergeReportID,
-            isTrackIntentUser,
-            translate,
-            getReportByID,
-            rules,
-        }).options;
+        const options = measureSearchRouterQueryPhase(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY_PHASE.FILTER, {filterSource: CONST.TELEMETRY.SEARCH_ROUTER_QUERY_FILTER_SOURCE.SERVER}, () =>
+            getSearchOptions({
+                dateFnsLocale,
+                convertToDisplayString,
+                options: {reports: listOptions.reports.filter((option) => reportIDs.has(option.reportID)), personalDetails: []},
+                draftComments,
+                isDefaultRoomsBetaEnabled,
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                // Auth's ID list is the filter here. Re-running the client matcher would drop the reports Auth matched on
+                // criteria the client doesn't check (e.g. you own it) — the rows this pass exists to surface.
+                searchQuery: '',
+                maxResults: orderedReportIDs.length,
+                includeUserToInvite: false,
+                includeRecentReports: true,
+                includeCurrentUser: false,
+                countryCode,
+                shouldShowGBR: false,
+                shouldUnreadBeBold: true,
+                loginList,
+                visibleReportActionsData,
+                currentUserAccountID,
+                currentUserEmail,
+                policyCollection: policies,
+                personalDetails,
+                sortedActions,
+                conciergeReportID,
+                isTrackIntentUser,
+                translate,
+                getReportByID,
+                rules,
+            }),
+        ).options;
         const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
         return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option && !option.isSelfDM);
     }, [
@@ -414,6 +420,11 @@ function SearchAutocompleteList({
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
+
+    const searchResultCount = searchOptions.recentReports.length + searchOptions.personalDetails.length;
+    useLayoutEffect(() => {
+        markSearchRouterQueryCommitted(autocompleteQueryValue, {resultCount: searchResultCount}, isInitialRender);
+    }, [autocompleteQueryValue, searchResultCount, isInitialRender]);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
