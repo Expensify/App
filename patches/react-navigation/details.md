@@ -30,7 +30,7 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12751 (`route.history` + `pushParams`, added upstream for this use case); originating issue https://github.com/react-navigation/react-navigation/issues/12460. On the v8 upgrade, evaluate adopting `pushParams` to shrink this patch.
 - E/App issue: [#21356](https://github.com/Expensify/App/issues/21356)
 - PR Introducing Patch: [#24165](https://github.com/Expensify/App/pull/24165)
-- PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155)
+- PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155) [#103346](https://github.com/Expensify/App/pull/103346)
 
 ### [@react-navigation+stack+7.8.5+001+edge-drag-gesture.patch](@react-navigation+stack+7.8.5+001+edge-drag-gesture.patch)
 
@@ -67,6 +67,8 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/11145
 - E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
 - PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)
+- PR Updating Patch: [#103346](https://github.com/Expensify/App/pull/103346)
+- Note: Upstream raised the timeout to 1000ms in `@react-navigation/native` 7.5.0, so this patch can be dropped on the bump to 7.5.0 or newer.
 
 ### [@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch](@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch)
 
