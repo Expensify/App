@@ -75,6 +75,7 @@ type ViolationTranslationParams = {
     routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
     policyVendors?: PolicyVendors;
+    transactionCurrency?: string;
 };
 
 /**
@@ -1183,6 +1184,7 @@ const ViolationsUtils = {
             routeDistanceMeters,
             distanceUnit,
             policyVendors,
+            transactionCurrency,
         } = params;
         const {
             brokenBankConnection = false,
@@ -1290,7 +1292,7 @@ const ViolationsUtils = {
             case 'customRules':
                 return translate('violations.customRules', message);
             case 'ruleViolation':
-                return buildRuleViolationMessage(violation.data?.filters, currency, convertToDisplayString, translate, policyVendors);
+                return buildRuleViolationMessage(violation.data?.filters, transactionCurrency ?? currency, convertToDisplayString, translate, policyVendors);
             case 'rter': {
                 let isPersonalCardViolation = false;
                 if (cardID !== undefined && cardID !== null && card) {
@@ -1399,6 +1401,7 @@ const ViolationsUtils = {
                     routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
                     distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
                     policyVendors,
+                    transactionCurrency: transaction.currency,
                 });
                 if (!message) {
                     return;

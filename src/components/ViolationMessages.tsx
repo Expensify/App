@@ -28,6 +28,7 @@ type ViolationMessagesProps = {
     routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
     policyVendors?: PolicyVendors;
+    transactionCurrency?: string;
 };
 
 export default function ViolationMessages({
@@ -42,6 +43,7 @@ export default function ViolationMessages({
     routeDistanceMeters,
     distanceUnit,
     policyVendors,
+    transactionCurrency,
 }: ViolationMessagesProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
@@ -70,6 +72,7 @@ export default function ViolationMessages({
                         routeDistanceMeters,
                         distanceUnit,
                         policyVendors,
+                        transactionCurrency,
                     }),
                 ];
             }),
@@ -85,6 +88,7 @@ export default function ViolationMessages({
             routeDistanceMeters,
             distanceUnit,
             policyVendors,
+            transactionCurrency,
             dateFnsLocale,
         ],
     );

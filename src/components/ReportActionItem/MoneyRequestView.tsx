@@ -878,6 +878,7 @@ function MoneyRequestView({
                         routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
                         distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
                         policyVendors,
+                        transactionCurrency: transaction?.currency,
                     });
                 })
                 .join('. ')}.`;
@@ -1719,6 +1720,7 @@ function MoneyRequestView({
                                     routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
                                     distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
                                     policyVendors={policyVendors}
+                                    transactionCurrency={transaction?.currency}
                                 />
                             )}
                         </View>

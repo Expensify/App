@@ -358,6 +358,7 @@ function MoneyRequestReceiptView({
                     routeDistanceMeters,
                     distanceUnit,
                     policyVendors,
+                    transactionCurrency: transaction?.currency,
                 });
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
@@ -379,6 +380,7 @@ function MoneyRequestReceiptView({
         routeDistanceMeters,
         distanceUnit,
         policyVendors,
+        transaction?.currency,
         dateFnsLocale,
     ]);
 

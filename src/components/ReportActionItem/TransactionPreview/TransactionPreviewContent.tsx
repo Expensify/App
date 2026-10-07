@@ -159,6 +159,7 @@ function TransactionPreviewContent({
               routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
               distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
               policyVendors,
+              transactionCurrency: transaction?.currency,
           })
         : undefined;
 

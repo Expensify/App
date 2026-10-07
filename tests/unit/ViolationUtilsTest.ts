@@ -4265,6 +4265,27 @@ describe('getViolationTranslation', () => {
         expect(message).toBe('Expense from Office Depot');
     });
 
+    it('should use the transaction currency for amount filters', () => {
+        // Given a rule violation whose data omits the transaction currency
+        const violation: TransactionViolation = {
+            name: CONST.VIOLATIONS.RULE_VIOLATION,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 10000)},
+        };
+
+        // When the client formats the violation for a EUR transaction
+        const message = ViolationsUtils.getViolationTranslation({
+            dateFnsLocale: undefined,
+            violation,
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionCurrency: CONST.CURRENCY.EUR,
+        });
+
+        // Then it should format the amount in the transaction currency rather than the USD fallback
+        expect(message).toBe('Expense over €100.00');
+    });
+
     it('should return the correct message for broken card connection violation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
