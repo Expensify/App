@@ -62,14 +62,16 @@ function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProp
         <View style={[styles.chatItemMessage, styles.flexRow, styles.alignItemsCenter]}>
             <Text style={styles.textSupporting}>{translate('supportTicket.surveyPrompt')}</Text>
             {canRateSurvey && (
-                <ConciergeFeedbackPrompt
-                    action={action}
-                    reportID={reportID}
-                    shouldShowPrompt={false}
-                    shouldPersistAfterRating
-                    shouldShowTooltips={false}
-                    shouldRenderInline
-                />
+                <View style={styles.ml1}>
+                    <ConciergeFeedbackPrompt
+                        action={action}
+                        reportID={reportID}
+                        shouldShowPrompt={false}
+                        shouldPersistAfterRating
+                        shouldShowTooltips={false}
+                        shouldRenderInline
+                    />
+                </View>
             )}
         </View>
     );
