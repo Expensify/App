@@ -177,7 +177,7 @@ function buildFailureTransactionData(transactionID: string | undefined, original
     };
 }
 
-type MergeDuplicatesFuncParams = MergeDuplicatesParams & {
+type MergeDuplicatesFuncParams = Omit<MergeDuplicatesParams, 'transactionID' | 'transactionIDList'> & {
     currentUserLogin: string;
     currentUserAccountID: number;
     taxAmount?: number;
@@ -185,6 +185,8 @@ type MergeDuplicatesFuncParams = MergeDuplicatesParams & {
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionList: OnyxTypes.Transaction[];
 };
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
@@ -199,8 +201,10 @@ function mergeDuplicates({
     allReportsList,
     ...params
 }: MergeDuplicatesFuncParams) {
-    const allParams: MergeDuplicatesParams = {...params};
-    const {transaction: originalSelectedTransaction, transactionList} = params;
+    const {transaction: originalSelectedTransaction, transactionList, ...restParams} = params;
+    const transactionIDList = transactionList.map((txn) => txn.transactionID);
+    const allParams: MergeDuplicatesParams = {...restParams, transactionID: originalSelectedTransaction?.transactionID, transactionIDList};
+
     if (!originalSelectedTransaction?.transactionID) {
         return;
     }
@@ -235,7 +239,6 @@ function mergeDuplicates({
         value: txn,
     }));
 
-    const transactionIDList = transactionList.map((txn) => txn.transactionID);
     const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...transactionIDList, originalSelectedTransaction.transactionID].map(
         (id) => {
             const violations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
@@ -458,13 +461,15 @@ function resolveDuplicates({
     allReportActionsList,
     delegateAccountID,
     ...params
-}: MergeDuplicatesParams & {
+}: Omit<MergeDuplicatesParams, 'transactionID' | 'transactionIDList'> & {
     taxAmount?: number;
     taxValue?: string;
     transactionThreadReportIDMap: Record<string, string | undefined>;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionList: OnyxTypes.Transaction[];
 }) {
     const {transaction: originalSelectedTransaction, transactionList} = params;
     if (!originalSelectedTransaction?.transactionID) {

@@ -1,10 +1,6 @@
-import type {Transaction} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
-
 type MergeDuplicatesParams = {
-    transaction: OnyxEntry<Transaction>;
-    transactionList: Transaction[];
+    transactionID: string | undefined;
+    transactionIDList: string[];
     created: string;
     merchant: string;
     amount: number;
