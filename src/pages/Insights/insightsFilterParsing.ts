@@ -42,6 +42,10 @@ function parseGroupBy(queryJSON: SearchQueryJSON): Pick<InsightsFilters, 'groupB
     return groupBy ? {groupBy} : undefined;
 }
 
+function parseCompare(queryJSON: SearchQueryJSON): Pick<InsightsFilters, 'compare'> | undefined {
+    return queryJSON.compare ? {compare: queryJSON.compare} : undefined;
+}
+
 /** Reads a dashboard's stored selections. Anything the query doesn't carry is left out, so the caller's defaults show through. */
 function parseInsightsFilters(query: string | undefined): Partial<InsightsFilters> {
     const queryJSON = query ? buildSearchQueryJSON(query) : undefined;
@@ -54,6 +58,7 @@ function parseInsightsFilters(query: string | undefined): Partial<InsightsFilter
         ...parsePolicyIDs(queryJSON),
         ...parseGroupCurrency(queryJSON),
         ...parseGroupBy(queryJSON),
+        ...parseCompare(queryJSON),
     };
 }
 

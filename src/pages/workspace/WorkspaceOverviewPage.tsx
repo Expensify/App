@@ -25,10 +25,12 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useIsApproverOfOutstandingPolicyReports from '@hooks/useIsApproverOfOutstandingPolicyReports';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
@@ -80,6 +82,7 @@ import {View} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
 
+import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -93,11 +96,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding, pageGutter} = useLayoutSpacing();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Box', 'Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
     const buildDynamicRoute = useScreenBoundDynamicRoute();
+    const {isBetaEnabled} = usePermissions();
+    const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -106,6 +112,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const {showConfirmModal} = useConfirmModal();
     const [isDeleteWorkspaceFlowVisible, setIsDeleteWorkspaceFlowVisible] = useState(false);
+    const [isArchiveWorkspaceFlowVisible, setIsArchiveWorkspaceFlowVisible] = useState(false);
 
     // Primitive-valued subscriptions configuring the Delete menu item (popover behavior and the loading spinner)
     // before a deletion starts. The deletion itself is handled by DeleteWorkspaceFlow, mounted on demand below.
@@ -113,7 +120,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
     const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
-    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    // Archiving doesn't change the subscription or bill the user, so the final bill is only calculated when deleting.
+    const shouldCalculateBillNewDot = !canArchivePolicies && !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    const isLoadingDeleteBill = !canArchivePolicies && !!isLoadingBill;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
@@ -379,10 +388,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         });
         if (isOwner) {
             secondaryActions.push({
-                value: 'delete',
-                text: translate('common.delete'),
-                icon: expensifyIcons.Trashcan,
+                value: canArchivePolicies ? 'archive' : 'delete',
+                text: translate(canArchivePolicies ? 'workspace.common.archive' : 'common.delete'),
+                icon: canArchivePolicies ? expensifyIcons.Box : expensifyIcons.Trashcan,
                 onSelected: () => {
+                    // The confirmation modal is handled by ArchiveWorkspaceFlow, which mounts when this is set.
+                    if (canArchivePolicies) {
+                        setIsArchiveWorkspaceFlowVisible(true);
+                        return;
+                    }
+
                     if (isLoadingBill) {
                         return;
                     }
@@ -390,8 +405,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, which mounts when this is set.
                     setIsDeleteWorkspaceFlowVisible(true);
                 },
-                disabled: isLoadingBill,
-                shouldShowLoadingSpinnerIcon: isLoadingBill,
+                disabled: isLoadingDeleteBill,
+                shouldShowLoadingSpinnerIcon: isLoadingDeleteBill,
                 shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
             });
         }
@@ -459,6 +474,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     onDeleteComplete={goBackFromInvalidPolicy}
                 />
             )}
+            {isArchiveWorkspaceFlowVisible && !!policyID && (
+                <ArchiveWorkspaceFlow
+                    key={`archive-${policyID}`}
+                    policyID={policyID}
+                    onDismiss={() => setIsArchiveWorkspaceFlowVisible(false)}
+                    onArchiveComplete={goBackFromInvalidPolicy}
+                />
+            )}
             {!!pendingRulesDocumentFile && (
                 <PDFThumbnail
                     style={styles.invisiblePDF}
@@ -508,7 +531,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             modals={modals}
         >
             <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[pageGutter, styles.pb5]}>{headerButtons}</View>}
                 <Section
                     isCentralPane
                     title=""
@@ -695,7 +718,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         subtitle={translate('workspace.rules.customRules.cardSubtitle')}
                         subtitleStyles={[shouldShowRulesDocumentSubSection ? styles.mb6 : styles.mb2]}
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
-                        containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                        containerStyles={cardPadding}
                     >
                         {shouldShowRulesDocumentSubSection && (
                             <OfflineWithFeedback
