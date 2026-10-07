@@ -18,20 +18,24 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
     nextStep: ReportNextStep | undefined;
+
+    /** Opens the report history. When provided, the status bar becomes pressable and shows a chevron */
+    onPress?: () => void;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
 
-function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
+function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch']);
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'DownArrow']);
     const iconMap: IconMap = useMemo(
         () => ({
             [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
@@ -51,7 +55,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         return buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
     }, [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber]);
 
-    return (
+    const content = (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
                 <Icon
@@ -64,7 +68,32 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
                 <RenderHTML html={messageContent} />
             </View>
+            {!!onPress && (
+                <View style={[styles.ml1]}>
+                    <Icon
+                        src={icons.DownArrow}
+                        height={variables.iconSizeExtraSmall}
+                        width={variables.iconSizeExtraSmall}
+                        fill={theme.icon}
+                    />
+                </View>
+            )}
         </View>
+    );
+
+    if (!onPress) {
+        return content;
+    }
+
+    return (
+        <PressableWithFeedback
+            onPress={onPress}
+            accessibilityLabel={translate('reportHistoryPage.title')}
+            role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_NEXT_STEP}
+        >
+            {content}
+        </PressableWithFeedback>
     );
 }
 

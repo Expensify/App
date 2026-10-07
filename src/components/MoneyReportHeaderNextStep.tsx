@@ -1,6 +1,13 @@
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
+import usePermissions from '@hooks/usePermissions';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -18,12 +25,18 @@ function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const {isOffline} = useNetwork();
     const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const optimisticNextStep = useOptimisticNextStep(reportID);
+    const {isBetaEnabled} = usePermissions();
 
     const showNextStepBar = !!optimisticNextStep && 'messageKey' in optimisticNextStep;
     const showNextStepSkeleton = !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
 
     if (showNextStepBar) {
-        return <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />;
+        return (
+            <MoneyReportHeaderStatusBar
+                nextStep={optimisticNextStep}
+                onPress={isBetaEnabled(CONST.BETAS.REPORT_HISTORY) ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_HISTORY.path)) : undefined}
+            />
+        );
     }
 
     if (showNextStepSkeleton) {

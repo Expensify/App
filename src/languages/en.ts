@@ -3433,6 +3433,18 @@ const translations = {
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom description for the room.',
     },
+    reportHistoryPage: {
+        title: 'Report history',
+        created: 'created expense',
+        submitted: 'submitted',
+        approved: 'approved',
+        rerouted: 'rerouted approval',
+        held: 'held',
+        paid: 'paid',
+        toSubmit: 'to submit',
+        toApprove: 'to approve',
+        toPay: 'to pay',
+    },
     groupChat: {
         lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all members. Are you sure you want to leave?",
