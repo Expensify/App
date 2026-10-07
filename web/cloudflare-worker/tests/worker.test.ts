@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {after, before, describe, test} from 'node:test';
 
 import createWorkerHarness from './createWorkerHarness.ts';
@@ -6,6 +9,19 @@ import createWorkerHarness from './createWorkerHarness.ts';
 const HASHED_BUNDLE_PATH = '/main-0123456789abcdef.bundle.js';
 // Node's fetch overwrites Sec-Fetch-Mode with the request mode. Miniflare restores this header as Sec-Fetch-Mode.
 const NAVIGATION_HEADERS = {'MF-Sec-Fetch-Mode': 'navigate'};
+const WEB_TEMPLATE_PATH = path.resolve(import.meta.dirname, '../../index.html');
+
+/** The template's conditionals only wrap whole script tags, so its inline script bodies are byte-for-byte what the build emits. */
+function assertTemplateInlineScriptsAllowed(csp: string) {
+    const html = readFileSync(WEB_TEMPLATE_PATH, 'utf8');
+    const inlineScripts = [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)].filter(([, attributes, body]) => !/\b(?:src|nonce)=/.test(attributes) && body.trim());
+
+    assert.ok(inlineScripts.length > 0, `Expected ${WEB_TEMPLATE_PATH} to contain an inline script without a nonce`);
+    for (const [, , body] of inlineScripts) {
+        const hash = `sha256-${createHash('sha256').update(body).digest('base64')}`;
+        assert.ok(csp.includes(`'${hash}'`), `The CSP does not allow this inline script from web/index.html (add '${hash}' to src/csp.ts):\n${body.trim().slice(0, 120)}`);
+    }
+}
 
 function getHTMLNonce(html: string): string | undefined {
     return /<script nonce="([^"]+)"/.exec(html)?.[1];
@@ -101,22 +117,22 @@ describe('staging worker', () => {
         assert.ok(getHTMLNonce(await response.text()));
     });
 
-    test('caches content-hashed bundles as immutable', async () => {
-        // Given a bundle whose file name contains its content hash
-        // When the browser loads it
-        const response = await server.fetch(HASHED_BUNDLE_PATH);
+    test('caches content-hashed files as immutable', async () => {
+        // Given the two hashed naming schemes the web build emits: `-<16 hex>.bundle.js` for JS and `.<10 hex>.<ext>` for other assets
+        for (const path of [HASHED_BUNDLE_PATH, '/main.0123456789.css']) {
+            // When the browser loads them
+            const response = await server.fetch(path);
 
-        // Then it can be cached forever, because a new build always produces a new file name
-        assert.equal(response.status, 200);
-        assert.match(response.headers.get('Content-Type') ?? '', /javascript/);
-        assert.equal(response.headers.get('Cache-Control'), 'public, max-age=31536000, immutable');
-        assert.match(await response.text(), /fixtureBundle/);
-        assertSecurityHeaders(response);
+            // Then they can be cached forever, because a new build always produces a new file name
+            assert.equal(response.status, 200, path);
+            assert.equal(response.headers.get('Cache-Control'), 'public, max-age=31536000, immutable', path);
+            assertSecurityHeaders(response);
+        }
     });
 
-    test('makes files with fixed names revalidate', async () => {
-        // Given files that keep the same name across builds
-        for (const path of ['/version.json', '/service-worker.js']) {
+    test('makes files without a build content hash revalidate', async () => {
+        // Given files that keep their name across builds, or whose hash is not in a scheme the Worker recognizes
+        for (const path of ['/version.json', '/service-worker.js', '/workbox-01234567.js']) {
             // When they are requested
             const response = await server.fetch(path);
 
@@ -136,6 +152,24 @@ describe('staging worker', () => {
         assert.equal(response.status, 404);
         assert.doesNotMatch(response.headers.get('Content-Type') ?? '', /text\/html/);
         assertSecurityHeaders(response);
+    });
+
+    test('serves the app shell when navigating to a route that looks like a file', async () => {
+        // Given a missing path ending in a static file extension
+        const path = '/r/123/receipt.pdf';
+
+        // When the browser navigates to it, as when a user opens a link
+        const navigation = await server.fetch(path, {headers: NAVIGATION_HEADERS});
+
+        // Then the app shell is served so the client-side router can handle it
+        assert.equal(navigation.status, 200);
+        assert.match(await navigation.text(), /New Expensify fixture/);
+
+        // When the same path is fetched by a script or image tag
+        const fileRequest = await server.fetch(path);
+
+        // Then it is a 404, because a script or image request must never receive HTML
+        assert.equal(fileRequest.status, 404);
     });
 
     test('serves the apple-app-site-association file as JSON at both paths', async () => {
@@ -167,8 +201,9 @@ describe('staging worker', () => {
         // When any page is requested
         const csp = (await server.fetch('/', {headers: NAVIGATION_HEADERS})).headers.get('Content-Security-Policy') ?? '';
 
-        // Then the CSP allows deep links back into the staging app
+        // Then the CSP allows deep links back into the staging app, and every inline script the template can render
         assert.match(csp, /new-expensify:\/\/staging\.new\.expensify\.com/);
+        assertTemplateInlineScriptsAllowed(csp);
     });
 });
 
@@ -188,9 +223,10 @@ describe('production worker', () => {
         // When any page is requested
         const csp = (await server.fetch('/', {headers: NAVIGATION_HEADERS})).headers.get('Content-Security-Policy') ?? '';
 
-        // Then the CSP allows production deep links and fonts from www.expensify.com, and nothing from staging deep links
+        // Then the CSP allows production deep links, fonts from www.expensify.com, and every inline script the template can render
         assert.match(csp, /new-expensify:\/\/new\.expensify\.com/);
         assert.match(csp, /font-src data: 'self' https:\/\/www\.expensify\.com/);
         assert.doesNotMatch(csp, /new-expensify:\/\/staging/);
+        assertTemplateInlineScriptsAllowed(csp);
     });
 });

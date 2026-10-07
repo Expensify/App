@@ -7,7 +7,7 @@ type CSPOptions = {
     scriptSrcHashes?: string[];
 };
 
-/** Hashes of the inline scripts in `web/index.html` that have no nonce. */
+/** Inline scripts allowed without a nonce. Tests check that every such script in `web/index.html` is listed. */
 const INLINE_SCRIPT_HASHES = [
     'sha256-hK550RmP3t+9myNCpVty39wCs9CDUTXjWUP30rrXvD0=',
     'sha256-JgQ1FoMqsUqLfloUqis32MBUkR9nCO7v7MjXWfmS6eY=',
