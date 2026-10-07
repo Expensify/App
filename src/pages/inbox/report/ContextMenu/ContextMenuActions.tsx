@@ -181,7 +181,6 @@ import {
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
-    canDeleteCardTransactionByLiabilityType,
     canDeleteReportAction,
     canEditReportAction,
     canFlagReportAction,
@@ -232,6 +231,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
+    CardList,
     Card,
     Download as DownloadOnyx,
     IntroSelected,
@@ -268,18 +268,6 @@ import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? (reportAction?.message?.at(-1) ?? null) : (reportAction?.message ?? null);
     return message?.html ?? '';
-}
-
-function getDeleteAction(
-    reportAction: OnyxEntry<ReportAction>,
-    moneyRequestAction: ReportAction | undefined,
-    currentUserAccountID: number,
-    iouTransaction: OnyxEntry<Transaction>,
-): OnyxEntry<ReportAction> {
-    const isOwnExpense = moneyRequestAction?.actorAccountID === currentUserAccountID;
-    const shouldDeleteExpense = isOwnExpense && (!isReportPreviewActionReportActionsUtils(reportAction) || canDeleteCardTransactionByLiabilityType(iouTransaction));
-
-    return shouldDeleteExpense ? (moneyRequestAction ?? reportAction) : reportAction;
 }
 
 /** Sets the HTML string to Clipboard */
@@ -333,6 +321,7 @@ type ShouldShow = (args: {
     isHarvestReport?: boolean;
     currentUserAccountID: number;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -1103,7 +1092,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID, convertToDisplayString);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy, transaction, bankAccountList);
+                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy?.achAccount?.accountNumber, transaction, bankAccountList);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
@@ -1333,6 +1322,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(translate('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(translate('iou.unheldExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION) {
+                    Clipboard.setString(translate('iou.undeletedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
                     Clipboard.setString(translate('iou.reject.reportActions.rejectedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
@@ -1721,10 +1712,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             childReportActions,
             currentUserAccountID,
             rules,
+            cardList,
         }) => {
-            // A single-expense report preview also exposes its embedded money request action. Use the preview when
-            // card liability prevents deleting the expense so deleting the report leaves it unreported instead.
-            const actionToDelete = getDeleteAction(reportAction, moneyRequestAction, currentUserAccountID, iouTransaction);
+            // A single-expense report preview also exposes its embedded money request action.
+            // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
+            // can delete a member's report and leave its expenses unreported.
+            const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
 
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
@@ -1748,15 +1741,15 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules) &&
+                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules, cardList) &&
                 !isArchivedRoom &&
                 !isChronosReport &&
                 !isMessageDeleted(reportAction)
             );
         },
-        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction, currentUserAccountID, iouTransaction}) => {
+        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction, currentUserAccountID}) => {
             // Must resolve to the same action shouldShow authorised, so the delete matches what was permitted.
-            const actionToDelete = getDeleteAction(reportAction, moneyRequestAction, currentUserAccountID, iouTransaction);
+            const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
             const actionReportID = isMoneyRequestAction(actionToDelete) ? actionToDelete?.reportID : undefined;
 
             const reportID = actionReportID && Number(actionReportID) !== 0 ? actionReportID : reportIDParam;

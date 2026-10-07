@@ -18,7 +18,6 @@ import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
-    canDeleteCardTransactionByLiabilityType,
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
@@ -535,7 +534,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             onSelected: async () => {
                 const transactionCount = Object.keys(transactions).length;
 
-                if (transactionCount === 1 && isDeletingOwnExpense && canDeleteCardTransactionByLiabilityType(transaction)) {
+                if (transactionCount === 1 && isDeletingOwnExpense) {
                     if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
                         deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                         return;

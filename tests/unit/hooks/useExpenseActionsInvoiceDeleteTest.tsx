@@ -213,9 +213,10 @@ describe('useExpenseActions delete', () => {
         });
     });
 
-    it('deletes the report instead of its only restricted card expense', async () => {
-        // Given a draft report whose only restricted card expense was created by the current user
+    it('shows the unreported-expenses warning when deleting a multi-expense report', async () => {
+        // Given a draft report containing multiple expenses
         const currentUserAccountID = 0;
+        const secondTransactionID = '36';
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const iouAction = {
             ...createRandomReportAction(Number(iouActionID)),
@@ -242,8 +243,15 @@ describe('useExpenseActions delete', () => {
             ...createRandomTransaction(Number(transactionID)),
             transactionID,
             reportID: invoiceReportID,
-            managedCard: true,
-            comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+            managedCard: false,
+            comment: {},
+        };
+        const secondTransaction = {
+            ...createRandomTransaction(Number(secondTransactionID)),
+            transactionID: secondTransactionID,
+            reportID: invoiceReportID,
+            managedCard: false,
+            comment: {},
         };
 
         jest.mocked(useMoneyReportTransactionThread).mockReturnValue({
@@ -260,6 +268,7 @@ describe('useExpenseActions delete', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceReportID}`, {[iouActionID]: iouAction});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`, secondTransaction);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -277,7 +286,7 @@ describe('useExpenseActions delete', () => {
         jest.useRealTimers();
         goBackSpy.mockRestore();
 
-        // Then the report-level delete path is used so the card expense becomes unreported
+        // Then the report-level delete path explains that the expenses become unreported
         expect(mockShowConfirmModalAfterMoreMenuDismiss).toHaveBeenCalledWith(
             expect.any(Function),
             expect.objectContaining({prompt: 'Are you sure that you want to delete this report? All expenses in this report will become unreported.'}),

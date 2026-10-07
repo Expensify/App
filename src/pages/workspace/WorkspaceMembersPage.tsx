@@ -32,6 +32,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {updateMemberRoleInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearAddMemberError,
     clearDeleteMemberError,
@@ -54,14 +55,17 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
 import {
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
+    canRolePay,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    hasActiveExpensifyCard,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
@@ -69,6 +73,7 @@ import {
     isPaidGroupPolicy,
     isPolicyApprover,
     isSubmitPolicy,
+    PAYER_ROLES,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
@@ -280,6 +285,21 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return;
         }
 
+        const cardholderEmail = selectedEmployees.find((email) => hasActiveExpensifyCard(policy, email));
+        if (cardholderEmail) {
+            showConfirmModal({
+                shouldShowCancelButton: false,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
+                prompt: translate('workspace.people.removeMemberPromptExpensifyCard', {
+                    memberName: getDisplayNameForParticipant({accountID: policyMemberEmailsToAccountIDs[cardholderEmail], formatPhoneNumber, hiddenTranslation: translate('common.hidden')}),
+                }),
+                confirmText: translate('common.buttonConfirm'),
+                cancelText: translate('common.cancel'),
+            });
+            return;
+        }
+
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
@@ -293,7 +313,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             removeUsers();
         });
-    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, policyID, showConfirmModal, showRuleBotGuardModal, translate]);
+    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, policyID, showConfirmModal, showRuleBotGuardModal, translate, formatPhoneNumber]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -328,6 +348,24 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         },
         [route.params.policyID],
     );
+
+    const changeMemberRole = (login: string, accountID: number, currentRole: string | undefined, newRole: ValueOf<typeof CONST.POLICY.ROLE>) => {
+        if (newRole === currentRole || !canMemberAssignRole(policy, currentUserLogin ?? '', newRole)) {
+            return;
+        }
+
+        // A reimburser must stay a valid payer, so reject any role that cannot pay.
+        if (getReimburserEmail(policy) === login && !canRolePay(newRole)) {
+            return;
+        }
+
+        if (newRole !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
+            showRuleBotGuardModal('changeRole', policyID);
+            return;
+        }
+
+        updateMemberRoleInline(policy, login, accountID, currentRole, newRole);
+    };
 
     const policyOwner = policy?.owner;
     const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
@@ -382,15 +420,36 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
 
+    const isSelectionModeActive = selectedEmployees.length > 0 || isMobileSelectionModeEnabled;
+    // Role assignment is a Collect/Control capability. Submit locks every member to Editor.
+    const canAssignMemberRole = isGroupPolicy(policy) && !isSubmitWorkspace;
+
     const data: WorkspaceMemberRowData[] = useMemo(() => {
         const ownerDisplayRole = isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.OWNER;
+        const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
+        const policyRoles = Object.values(CONST.POLICY.ROLE);
+
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
-            const role = policy?.owner === details.login ? ownerDisplayRole : policyEmployee.role;
+            const employeeRole = policyRoles.find((policyRole) => policyRole === policyEmployee.role);
+            const role = policy?.owner === details.login ? ownerDisplayRole : employeeRole;
 
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
+            const isOwner = policy?.owner === login;
+            const isCurrentUser = accountID === session?.accountID;
+            const isReimburser = isPolicyReimburser(policy, login);
+            const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== policyEmployee.role);
+            const canEditRole =
+                canAssignMemberRole &&
+                !isSelectionModeActive &&
+                !isPendingDeleteOrError &&
+                !isOwner &&
+                !isCurrentUser &&
+                !details.isOptimisticPersonalDetail &&
+                canMemberAssignRole(policy, currentUserLogin ?? '', policyEmployee.role) &&
+                (!isReimburser || canReimburserChangeRole);
 
             return {
                 keyForList: login,
@@ -412,6 +471,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 errors: getLatestErrorMessageField(policyEmployee),
                 pendingAction: policyEmployee.pendingAction,
                 disabled: isPendingDeleteOrError,
+                canEditRole,
+                onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
                 action: () => openMemberDetails(accountID, login),
@@ -422,9 +483,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         filteredMembers,
         canEditWorkspaceSettings,
         canWriteMembers,
+        canAssignMemberRole,
         currentUserLogin,
         policy,
         isSubmitWorkspace,
+        isSelectionModeActive,
         formatPhoneNumber,
         translate,
         session?.accountID,
@@ -433,6 +496,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
         dismissError,
+        changeMemberRole,
     ]);
 
     useEffect(() => {
