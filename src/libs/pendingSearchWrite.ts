@@ -147,7 +147,8 @@ function restartPendingSearchWriteSafetyTimeoutForGeneration(generation: number)
 
 /** Set while a revealed wide pre-mount slides the RHP out, so the write does not re-render the visible list mid-slide. */
 let flushHoldTimeoutID: ReturnType<typeof setTimeout> | undefined;
-let isFlushRequestedWhileHeld = false;
+// Generation of the write whose flush was requested during the hold, so the release cannot flush a newer write.
+let flushRequestedGenerationWhileHeld: number | undefined;
 
 /** Holds flushes until `releasePendingSearchWriteFlush`, or the safety timeout if the release never comes. */
 function holdPendingSearchWriteFlush() {
@@ -162,10 +163,11 @@ function releasePendingSearchWriteFlush() {
     }
     clearTimeout(flushHoldTimeoutID);
     flushHoldTimeoutID = undefined;
-    if (!isFlushRequestedWhileHeld) {
+    const requestedGeneration = flushRequestedGenerationWhileHeld;
+    flushRequestedGenerationWhileHeld = undefined;
+    if (requestedGeneration === undefined || pending?.generation !== requestedGeneration) {
         return;
     }
-    isFlushRequestedWhileHeld = false;
     flushPendingSearchWrite();
 }
 
@@ -175,7 +177,7 @@ function flushPendingSearchWrite() {
         return;
     }
     if (flushHoldTimeoutID !== undefined) {
-        isFlushRequestedWhileHeld = true;
+        flushRequestedGenerationWhileHeld = pending.generation;
         return;
     }
 
@@ -215,7 +217,7 @@ function resetForTesting() {
     watchKey = undefined;
     clearTimeout(flushHoldTimeoutID);
     flushHoldTimeoutID = undefined;
-    isFlushRequestedWhileHeld = false;
+    flushRequestedGenerationWhileHeld = undefined;
 }
 
 export {

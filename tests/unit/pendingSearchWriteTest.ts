@@ -223,6 +223,29 @@ describe('pendingSearchWrite', () => {
             expect(hasPendingSearchWrite()).toBe(true);
         });
 
+        it('does not flush a newer write on release when the held flush was for a write that timed out', () => {
+            jest.useFakeTimers();
+            try {
+                // Given write A flushed during a hold that started just before A's safety timeout
+                markPendingSearchWrite();
+                acquireSearchWriteBarrier();
+                jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 100);
+                holdPendingSearchWriteFlush();
+                flushPendingSearchWrite();
+
+                // When A times out and write B starts before the hold is released
+                jest.advanceTimersByTime(100);
+                markPendingSearchWrite();
+                acquireSearchWriteBarrier();
+                releasePendingSearchWriteFlush();
+
+                // Then B stays gated until Search's own release point, because the held flush belonged to A
+                expect(hasPendingSearchWrite()).toBe(true);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
         it('stops holding after the safety timeout when the release never comes', () => {
             jest.useFakeTimers();
             try {

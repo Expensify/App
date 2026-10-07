@@ -245,6 +245,7 @@ function ReportFetchHandler() {
             // Falsy means a page refresh / cold start, which is when openReport clears a manual unread marker.
             // This screen opens the report the user is looking at, so it is the only caller that passes it.
             hasOnceLoadedReportActions: reportLoadingState.hasOnceLoadedReportActions,
+            // Not re-fetched on reveal: the submit destination shows its newest page, where the new expense lands.
             shouldMarkAsRead: !isHiddenPreMount,
             shouldKeepManualUnreadMarker: isHiddenPreMount,
             currentUserAccountID,
