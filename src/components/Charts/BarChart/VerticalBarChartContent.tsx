@@ -202,7 +202,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, seriesIndex: number) => {
         const dataIndex = Number(point.xValue);
         const dataPoint = data.at(dataIndex);
-        const color = seriesIndex === 0 ? VictoryTheme.colors.getColor(dataIndex) : VictoryTheme.colors.getComparisonColor(dataIndex);
+        const color = seriesIndex === 0 ? VictoryTheme.colors.getColor(dataIndex) : VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.getColor(dataIndex), theme.colorScheme);
 
         if (series.length === 1) {
             return (

@@ -27,9 +27,6 @@ type InsightsChartSpec = {
     /** Current period's color when comparing */
     color?: string;
 
-    /** Previous period's color when comparing */
-    comparisonColor?: string;
-
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 };
@@ -53,7 +50,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             titleKey: 'search.spendOverTime',
             view: CONST.SEARCH.VIEW.LINE,
             color: colors.green400,
-            comparisonColor: colors.green200,
         },
         supportingCharts: [
             {
@@ -61,7 +57,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 titleKey: 'search.tabs.topSpenders',
                 view: CONST.SEARCH.VIEW.BAR,
                 color: colors.blue400,
-                comparisonColor: colors.blue200,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -73,7 +68,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 titleKey: 'search.tabs.topMerchants',
                 view: CONST.SEARCH.VIEW.BAR,
                 color: colors.pink400,
-                comparisonColor: colors.pink200,
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -84,7 +78,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 titleKey: 'search.tabs.topCategories',
                 view: CONST.SEARCH.VIEW.PIE,
                 color: colors.tangerine400,
-                comparisonColor: colors.tangerine200,
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,

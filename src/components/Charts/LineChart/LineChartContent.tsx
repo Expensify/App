@@ -218,41 +218,47 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     const renderOutside = (args: CartesianChartRenderArg<LineChartDatum, string>) => {
         const chartBoundsBottom = args.chartBounds.bottom;
         chartBottom.set(chartBoundsBottom);
-        const primaryPoints = args.points[primarySeriesKey] ?? [];
         const primaryColor = series.at(0)?.color ?? VictoryTheme.colors.default;
 
-        // Only the primary series can still be collecting expenses, since the period it is compared against has ended.
-        const completePrimaryPoints = shouldDashLastSegment ? primaryPoints.slice(0, -1) : primaryPoints;
+        // The last bucket is still in progress on the x-axis, so every series is dashed into it.
+        const getCompletePoints = (seriesKey: string) => {
+            const seriesPoints = args.points[seriesKey] ?? [];
+            return shouldDashLastSegment ? seriesPoints.slice(0, -1) : seriesPoints;
+        };
 
         return (
             <>
                 <AreaGradient
-                    points={completePrimaryPoints}
+                    points={getCompletePoints(primarySeriesKey)}
                     baselineY={chartBoundsBottom}
                     color={primaryColor}
                 />
-                {seriesBackToFront.map((seriesItem) => (
-                    <Line
-                        key={seriesItem.key}
-                        points={seriesItem.key === primarySeriesKey ? completePrimaryPoints : (args.points[seriesItem.key] ?? [])}
-                        color={seriesItem.color ?? VictoryTheme.colors.default}
-                        strokeWidth={VictoryTheme.line.strokeWidth}
-                        strokeCap="round"
-                        strokeJoin="round"
-                        curveType="linear"
-                    />
-                ))}
-                {shouldDashLastSegment && (
-                    <Line
-                        points={primaryPoints.slice(-2)}
-                        color={primaryColor}
-                        strokeWidth={VictoryTheme.line.strokeWidth}
-                        strokeCap="round"
-                        curveType="linear"
-                    >
-                        <DashPathEffect intervals={DASH_INTERVALS} />
-                    </Line>
-                )}
+                {seriesBackToFront.map((seriesItem) => {
+                    const color = seriesItem.color ?? VictoryTheme.colors.default;
+                    return (
+                        <React.Fragment key={seriesItem.key}>
+                            <Line
+                                points={getCompletePoints(seriesItem.key)}
+                                color={color}
+                                strokeWidth={VictoryTheme.line.strokeWidth}
+                                strokeCap="round"
+                                strokeJoin="round"
+                                curveType="linear"
+                            />
+                            {shouldDashLastSegment && (
+                                <Line
+                                    points={(args.points[seriesItem.key] ?? []).slice(-2)}
+                                    color={color}
+                                    strokeWidth={VictoryTheme.line.strokeWidth}
+                                    strokeCap="round"
+                                    curveType="linear"
+                                >
+                                    <DashPathEffect intervals={DASH_INTERVALS} />
+                                </Line>
+                            )}
+                        </React.Fragment>
+                    );
+                })}
                 {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
                         labels={originalLabels}
