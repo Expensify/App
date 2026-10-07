@@ -4194,7 +4194,7 @@ const staticStyles = (theme: ThemeColors) =>
         // Keeps the buttons from shifting sideways as the page number's digit count changes: only the label grows
         // or shrinks, centered within this floor, and only past it if a locale's text genuinely needs more room.
         receiptPageNavigatorLabel: {
-            minWidth: 60,
+            minWidth: 72,
             textAlign: 'center',
         },
 
