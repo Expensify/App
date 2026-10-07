@@ -110,6 +110,51 @@ function getMerchantOperator(operator: MerchantMatchType | undefined): MerchantM
     return operator ?? DEFAULT_MERCHANT_OPERATOR;
 }
 
+/**
+ * Builds the Merchant part of the query. The form has one Merchant field, so a changed condition updates every Merchant clause from flatFilters.
+ */
+function buildMerchantFilterQuery(
+    value: string,
+    prefix: string,
+    isNegated: boolean,
+    isMerchantNegated: boolean,
+    merchantOperator: MerchantMatchType | undefined,
+    flatFilters: QueryFilters | undefined,
+): string {
+    const merchantFilters = flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT) ?? [];
+    const positiveMerchantFilters = merchantFilters.filter((filter) => !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+    const negativeMerchantFilters = merchantFilters.filter((filter) => filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+    const wasMerchantNegated = negativeMerchantFilters.length > 0;
+    const hasMerchantNegationChanged = wasMerchantNegated !== isMerchantNegated;
+    const lastVisibleMerchantFilter = (wasMerchantNegated ? negativeMerchantFilters : positiveMerchantFilters).at(-1);
+    const selectedMerchantOperator = getMerchantOperator(merchantOperator);
+    const originalMerchantFilters = isNegated ? negativeMerchantFilters : positiveMerchantFilters;
+    const lastMerchantFilter = hasMerchantNegationChanged ? lastVisibleMerchantFilter : originalMerchantFilters.at(-1);
+    const isMerchantValueUnchanged = value === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',');
+    if (lastMerchantFilter && isMerchantValueUnchanged) {
+        const currentMerchantOperator = positiveMerchantFilters.at(-1)?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
+            ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+            : DEFAULT_MERCHANT_OPERATOR;
+        const hasMerchantOperatorChanged = !isMerchantNegated && selectedMerchantOperator !== currentMerchantOperator;
+        const hasMerchantConditionChanged = hasMerchantNegationChanged || hasMerchantOperatorChanged;
+        const filtersToUpdate = hasMerchantConditionChanged ? merchantFilters : originalMerchantFilters;
+        const updatedOperator = isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : selectedMerchantOperator;
+        // The single field cannot represent every clause or distinguish lists from names containing commas.
+        const merchantClauses = filtersToUpdate.map((filter) => {
+            const clauseFilters = hasMerchantConditionChanged ? filter.filters.map((item) => ({...item, operator: updatedOperator})) : filter.filters;
+            return buildFilterValuesString(FILTER_KEYS.MERCHANT, clauseFilters).trim();
+        });
+        // Different operators can become identical clauses after the change.
+        return [...new Set(merchantClauses)].join(' ');
+    }
+
+    let operator: ValueOf<typeof operatorToCharMap> | typeof EXPLICIT_EQUAL_TO_OPERATOR = operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO];
+    if (!isNegated) {
+        operator = selectedMerchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? EXPLICIT_EQUAL_TO_OPERATOR : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS];
+    }
+    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${operator}${sanitizeSearchValue(value)}`;
+}
+
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
@@ -1269,42 +1314,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
-                    let operator: ValueOf<typeof operatorToCharMap> | typeof EXPLICIT_EQUAL_TO_OPERATOR = operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO];
+                    const value = filterValue as string;
                     if (filterKey === FILTER_KEYS.MERCHANT) {
-                        const merchantFilters = options?.flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT) ?? [];
-                        const positiveMerchantFilters = merchantFilters.filter((filter) => !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
-                        const negativeMerchantFilters = merchantFilters.filter((filter) => filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
-                        const wasMerchantNegated = negativeMerchantFilters.length > 0;
-                        const isMerchantNegated = !!supportedFilterValues.merchantNot;
-                        const hasMerchantNegationChanged = wasMerchantNegated !== isMerchantNegated;
-                        const lastVisibleMerchantFilter = (wasMerchantNegated ? negativeMerchantFilters : positiveMerchantFilters).at(-1);
-                        const selectedMerchantOperator = getMerchantOperator(merchantOperator);
-                        const originalMerchantFilters = isNegated ? negativeMerchantFilters : positiveMerchantFilters;
-                        const lastMerchantFilter = hasMerchantNegationChanged ? lastVisibleMerchantFilter : originalMerchantFilters.at(-1);
-                        const isMerchantValueUnchanged = filterValue === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',');
-                        if (lastMerchantFilter && isMerchantValueUnchanged) {
-                            const currentMerchantOperator = positiveMerchantFilters.at(-1)?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
-                                ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
-                                : DEFAULT_MERCHANT_OPERATOR;
-                            const hasMerchantOperatorChanged = !isMerchantNegated && selectedMerchantOperator !== currentMerchantOperator;
-                            const hasMerchantConditionChanged = hasMerchantNegationChanged || hasMerchantOperatorChanged;
-                            const filtersToUpdate = hasMerchantConditionChanged ? merchantFilters : originalMerchantFilters;
-                            const updatedOperator = isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : selectedMerchantOperator;
-                            // The single field cannot represent every clause or distinguish lists from names containing commas.
-                            const merchantClauses = filtersToUpdate.map((filter) => {
-                                const clauseFilters = hasMerchantConditionChanged ? filter.filters.map((item) => ({...item, operator: updatedOperator})) : filter.filters;
-                                return buildFilterValuesString(FILTER_KEYS.MERCHANT, clauseFilters).trim();
-                            });
-                            // Different operators can become identical clauses after the change.
-                            return [...new Set(merchantClauses)].join(' ');
-                        }
-
-                        if (!isNegated) {
-                            operator =
-                                selectedMerchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? EXPLICIT_EQUAL_TO_OPERATOR : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS];
-                        }
+                        return buildMerchantFilterQuery(value, prefix, isNegated, !!supportedFilterValues.merchantNot, merchantOperator, options?.flatFilters);
                     }
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operator}${sanitizeSearchValue(filterValue as string)}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]}${sanitizeSearchValue(value)}`;
                 }
             }
             if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
