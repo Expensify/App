@@ -6669,6 +6669,11 @@ describe('ReportActionsUtils', () => {
             expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [reimbursement]})).toEqual(['reimbursement', 0]);
         });
 
+        it('keeps older reimbursements without recipient metadata eligible for a marker', () => {
+            const reimbursement = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, reportActionID: 'legacy-reimbursement'});
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [reimbursement]})).toEqual(['legacy-reimbursement', 0]);
+        });
+
         it('skips an export when finding the oldest eligible unread action', () => {
             const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
             const exportAction = makeAction({

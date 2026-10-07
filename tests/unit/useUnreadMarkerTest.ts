@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -18,6 +20,7 @@ const LAST_READ_TIME = '2023-01-01 10:00:00.000';
 let mockIsAnonymousUser = false;
 let mockLastReadTime: string = LAST_READ_TIME;
 let mockLastReadTimeByReportID: Record<string, string> = {};
+let mockManuallyMarkedUnreadReportActionID: string | null = null;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -69,9 +72,11 @@ describe('useUnreadMarker', () => {
         mockIsAnonymousUser = false;
         mockLastReadTime = LAST_READ_TIME;
         mockLastReadTimeByReportID = {};
+        mockManuallyMarkedUnreadReportActionID = null;
+        jest.restoreAllMocks();
         mockUseOnyx.mockImplementation((key, options) => {
             const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
-            const report: FakeReport = {lastReadTime: mockLastReadTimeByReportID[reportID] ?? mockLastReadTime};
+            const report: FakeReport = {lastReadTime: mockLastReadTimeByReportID[reportID] ?? mockLastReadTime, manuallyMarkedUnreadReportActionID: mockManuallyMarkedUnreadReportActionID};
             return [options?.selector ? options.selector(report) : report];
         });
     });
@@ -142,7 +147,7 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
-    it('shows the marker when a message is manually marked unread', () => {
+    it('moves the marker when an unreadAction event moves the read watermark backwards', () => {
         mockLastReadTime = '2023-01-01 12:00:00.000';
         const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
         expect(result.current.unreadMarkerReportActionID).toBeNull();
@@ -152,6 +157,41 @@ describe('useUnreadMarker', () => {
         });
 
         expect(result.current.unreadMarkerReportActionID).toBe('m1');
+    });
+
+    it('anchors an explicit manual unread mark on a filtered action', () => {
+        mockLastReadTime = '2023-01-01 12:00:00.000';
+        mockManuallyMarkedUnreadReportActionID = 'export';
+        const exportAction = makeAction('export', {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION});
+        const {result} = renderUnreadMarker({sortedVisibleReportActions: [exportAction]});
+
+        expect(result.current.unreadMarkerReportActionID).toBe('export');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('keeps an existing divider across repeated renders after a filtered offline action arrives', () => {
+        jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID === 'export');
+        const olderUnread = makeAction('older-unread');
+        const {result, rerender} = renderHook(
+            (actions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: true,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [olderUnread]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBe('older-unread');
+        const exportAction = makeAction('export', {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2023-01-01 12:00:00.000'});
+
+        rerender([exportAction, olderUnread]);
+        rerender([exportAction, olderUnread]);
+
+        expect(result.current.unreadMarkerReportActionID).toBe('older-unread');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(1);
     });
 
     it('shows the marker for a new message received while scrolled up', () => {
