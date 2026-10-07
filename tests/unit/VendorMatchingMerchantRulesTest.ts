@@ -207,8 +207,15 @@ describe('Vendor matching on merchant rules', () => {
             expect(hasVendorFeature(buildIntacctPolicy([{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]), false)).toBe(true);
         });
 
-        it('is hidden on Xero when the beta is off because Xero (R3) is still pre-GA', () => {
-            expect(hasVendorFeature(buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}}), false)).toBe(false);
+        it('is visible on Xero when the beta is off because Xero (R3) is generally available', () => {
+            // Given a configured Xero workspace with synced contacts
+            const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+
+            // When the vendor feature is checked without the vendorMatching beta
+            const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+            // Then the row is visible because Xero does not depend on the beta
+            expect(isVendorFeatureAvailable).toBe(true);
         });
 
         it('is hidden when no vendor integration is connected', () => {

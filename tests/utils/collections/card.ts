@@ -117,4 +117,17 @@ function createRandomCompanyCard(
     });
 }
 
-export {createRandomExpensifyCard, createRandomCompanyCard};
+function createCashCard(accountID: number, cardID?: number): Card {
+    return {
+        cardID: cardID ?? randNumber(),
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        bank: CONST.EXPENSIFY_CARD.BANK,
+        domainName: '',
+        lastUpdated: '',
+        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+        accountID,
+        cardName: CONST.CASH_CARD_NAME,
+    };
+}
+
+export {createRandomExpensifyCard, createRandomCompanyCard, createCashCard};
