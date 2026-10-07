@@ -6904,14 +6904,6 @@ const staticStyles = (theme: ThemeColors) =>
         chartTooltipRows: {
             rowGap: 8,
         },
-        chartLegendContainer: {
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            columnGap: 16,
-            rowGap: 4,
-            marginTop: 12,
-        },
         chartTooltipPointer: {
             width: 0,
             height: 0,

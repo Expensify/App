@@ -2,7 +2,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ActivePointIndicator from '@components/Charts/components/ActivePointIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
-import ChartLegend from '@components/Charts/components/ChartLegend';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -205,8 +204,8 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         seriesPointY.set(seriesKeys.map((key) => data.map((point) => yScale(getSeriesValue(point, key)))));
         setPointPositions(
             chartData.map((point, index) => xScale(point.x ?? index)),
-            // The tooltip hangs above the topmost point, so it never covers the series below it.
-            data.map((point) => Math.min(...seriesKeys.map((key) => yScale(getSeriesValue(point, key))))),
+            // The hover dot and the tooltip follow the primary series.
+            data.map((point) => yScale(getSeriesValue(point, primarySeriesKey))),
         );
     };
 
@@ -318,66 +317,63 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     }
 
     return (
-        <>
-            <GestureDetector
-                gesture={customGestures}
-                touchAction="pan-y"
+        <GestureDetector
+            gesture={customGestures}
+            touchAction="pan-y"
+        >
+            <Animated.View
+                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
+                onLayout={handleLayout}
             >
-                <Animated.View
-                    style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
-                    onLayout={handleLayout}
-                >
-                    {chartWidth > 0 && (
-                        <CartesianChart
-                            xKey="x"
-                            padding={chartPadding}
-                            yKeys={seriesKeys}
-                            domainPadding={domainPadding}
-                            onChartBoundsChange={handleChartBoundsChange}
-                            onScaleChange={handleScaleChange}
-                            renderOutside={renderOutside}
-                            xAxis={{
-                                tickCount: data.length,
-                                lineWidth: VictoryTheme.axis.xLineWidth,
-                                // "outset" makes victory-native reserve 2 * yAxis.labelOffset below the plot for labels it
-                                // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
-                                labelPosition: 'inset',
-                            }}
-                            yAxis={[
-                                {
-                                    tickCount: VictoryTheme.axis.tickCount,
-                                    axisSide: 'right',
-                                    lineWidth: 0,
-                                    labelOffset: VictoryTheme.axis.labelGap,
-                                    domain: yAxisDomain,
-                                },
-                            ]}
-                            frame={{lineWidth: 0}}
-                            data={chartData}
-                        >
-                            {({yScale, yTicks, chartBounds}) => (
-                                <ChartGridLines
-                                    yTicks={yTicks}
-                                    yScale={yScale}
-                                    chartBounds={chartBounds}
-                                    color={theme.border}
-                                />
-                            )}
-                        </CartesianChart>
-                    )}
-                    <ChartTooltipLayer
-                        matchedIndex={matchedIndex}
-                        isTooltipActive={isTooltipActive}
-                        data={data}
-                        series={series}
-                        formatValue={formatValue}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                    />
-                </Animated.View>
-            </GestureDetector>
-            <ChartLegend series={series} />
-        </>
+                {chartWidth > 0 && (
+                    <CartesianChart
+                        xKey="x"
+                        padding={chartPadding}
+                        yKeys={seriesKeys}
+                        domainPadding={domainPadding}
+                        onChartBoundsChange={handleChartBoundsChange}
+                        onScaleChange={handleScaleChange}
+                        renderOutside={renderOutside}
+                        xAxis={{
+                            tickCount: data.length,
+                            lineWidth: VictoryTheme.axis.xLineWidth,
+                            // "outset" makes victory-native reserve 2 * yAxis.labelOffset below the plot for labels it
+                            // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
+                            labelPosition: 'inset',
+                        }}
+                        yAxis={[
+                            {
+                                tickCount: VictoryTheme.axis.tickCount,
+                                axisSide: 'right',
+                                lineWidth: 0,
+                                labelOffset: VictoryTheme.axis.labelGap,
+                                domain: yAxisDomain,
+                            },
+                        ]}
+                        frame={{lineWidth: 0}}
+                        data={chartData}
+                    >
+                        {({yScale, yTicks, chartBounds}) => (
+                            <ChartGridLines
+                                yTicks={yTicks}
+                                yScale={yScale}
+                                chartBounds={chartBounds}
+                                color={theme.border}
+                            />
+                        )}
+                    </CartesianChart>
+                )}
+                <ChartTooltipLayer
+                    matchedIndex={matchedIndex}
+                    isTooltipActive={isTooltipActive}
+                    data={data}
+                    series={series}
+                    formatValue={formatValue}
+                    chartWidth={chartWidth}
+                    initialTooltipPosition={initialTooltipPosition}
+                />
+            </Animated.View>
+        </GestureDetector>
     );
 }
 

@@ -261,12 +261,9 @@ function buildChartSeries({
             percentOfTotal: item.percentOfTotal,
         };
         if (inProgressLabel !== undefined) {
+            point.label = inProgressLabel;
+            point.shortLabel = shortLabel ?? label;
             point.isInProgress = true;
-            // Compared buckets keep the name both periods share, like "January", so only a lone series is relabeled.
-            if (!comparison) {
-                point.label = inProgressLabel;
-                point.shortLabel = shortLabel ?? label;
-            }
         }
 
         return {point, item, comparisonItem};
