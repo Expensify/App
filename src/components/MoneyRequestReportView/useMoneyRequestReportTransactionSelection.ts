@@ -3,8 +3,9 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 
+import {isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -13,6 +14,8 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {useEffect} from 'react';
+
+import useReportTransactionShiftRange from './useReportTransactionShiftRange';
 
 type GroupSelectionState = {
     isSelected: boolean;
@@ -27,14 +30,17 @@ type UseMoneyRequestReportTransactionSelectionParams = {
 
     /** Transactions bucketed by the current group-by attribute. Empty when grouping is off. */
     groupedTransactions: OnyxTypes.GroupedTransactions[];
+
+    /** Every transaction in the order the list renders it, grouped or not, which is the order a shift+click range spans */
+    visualOrderTransactions: OnyxTypes.Transaction[];
 };
 
 type UseMoneyRequestReportTransactionSelectionResult = {
     /** Whether mobile selection mode is enabled */
     isMobileSelectionModeEnabled: boolean;
 
-    /** Adds or removes a single transaction from the selection */
-    toggleTransaction: (transactionID: string) => void;
+    /** Adds or removes a single transaction from the selection, or extends a range when the click carried Shift */
+    toggleTransaction: (transactionID: string, shiftKey?: boolean) => void;
 
     /** Whether a transaction is currently selected */
     isTransactionSelected: (transactionID: string) => boolean;
@@ -44,13 +50,23 @@ type UseMoneyRequestReportTransactionSelectionResult = {
 
     /** Selects or deselects all selectable transactions of a group */
     toggleGroupSelection: (groupKey: string) => void;
+
+    /** The transactions Select All writes, in list order */
+    selectableTransactionIDs: string[];
+
+    /** Selects every selectable transaction, or clears the selection when anything is already selected */
+    toggleAll: () => void;
 };
 
 /**
- * Owns the transaction-selection concern of the money-request report view: single/group toggles, the
+ * Owns the transaction-selection concern of the money-request report view: single/group/all toggles, the
  * per-group checkbox state, and clearing the selection when the user leaves the screen or switches reports.
  */
-function useMoneyRequestReportTransactionSelection({reportID, groupedTransactions}: UseMoneyRequestReportTransactionSelectionParams): UseMoneyRequestReportTransactionSelectionResult {
+function useMoneyRequestReportTransactionSelection({
+    reportID,
+    groupedTransactions,
+    visualOrderTransactions,
+}: UseMoneyRequestReportTransactionSelectionParams): UseMoneyRequestReportTransactionSelectionResult {
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const {setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionActions();
     useHandleSelectionMode(selectedTransactionIDs);
@@ -67,25 +83,24 @@ function useMoneyRequestReportTransactionSelection({reportID, groupedTransaction
 
     useEffect(() => {
         clearSelectedTransactions(true);
-        // We don't want to run the effect on change of clearSelectedTransactions since it can cause an infinite loop.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportID]);
+    }, [reportID, clearSelectedTransactions]);
 
-    const toggleTransaction = (transactionID: string) => {
-        let newSelectedTransactionIDs = selectedTransactionIDs;
-        if (selectedTransactionIDs.includes(transactionID)) {
-            newSelectedTransactionIDs = selectedTransactionIDs.filter((t) => t !== transactionID);
-        } else {
-            newSelectedTransactionIDs = [...selectedTransactionIDs, transactionID];
-        }
-        setSelectedTransactions(newSelectedTransactionIDs);
-    };
+    const {toggleTransaction, toggleGroup, toggleAll} = useReportTransactionShiftRange({
+        reportID,
+        transactions: visualOrderTransactions,
+        selectedTransactionIDs,
+        setSelectedTransactions,
+        clearSelectedTransactions,
+    });
 
     const isTransactionSelected = (transactionID: string) => selectedTransactionIDs.includes(transactionID);
 
+    // Narrower than the rows the list renders: a rejected expense still renders and opens, but no checkbox can hold it.
+    const selectableTransactionIDs = visualOrderTransactions.filter(isSelectableReportTransaction).map((transaction) => transaction.transactionID);
+
     const groupSelectionState = new Map<string, GroupSelectionState>();
     for (const group of groupedTransactions) {
-        const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+        const groupTransactionIDs = group.transactions.filter(isSelectableReportTransaction).map((t) => t.transactionID);
         const groupPendingAction = group.transactions.some((t) => getTransactionPendingAction(t)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 
         if (groupTransactionIDs.length === 0) {
@@ -107,16 +122,7 @@ function useMoneyRequestReportTransactionSelection({reportID, groupedTransaction
         if (!group) {
             return;
         }
-        const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
-        const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
-
-        let newSelectedTransactionIDs = selectedTransactionIDs;
-        if (anySelected) {
-            newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
-        } else {
-            newSelectedTransactionIDs = [...selectedTransactionIDs, ...groupTransactionIDs];
-        }
-        setSelectedTransactions(newSelectedTransactionIDs);
+        toggleGroup(group.transactions.filter(isSelectableReportTransaction).map((t) => t.transactionID));
     };
 
     return {
@@ -125,6 +131,8 @@ function useMoneyRequestReportTransactionSelection({reportID, groupedTransaction
         isTransactionSelected,
         groupSelectionState,
         toggleGroupSelection,
+        selectableTransactionIDs,
+        toggleAll: () => toggleAll(selectableTransactionIDs),
     };
 }
 

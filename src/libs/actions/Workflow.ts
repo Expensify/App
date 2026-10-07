@@ -15,6 +15,7 @@ import {
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
+    includesEveryWorkspaceMember,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -308,13 +309,10 @@ type SetApprovalWorkflowRulesParams = {
 };
 
 /**
- * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
+ * Build the Onyx updates for a request that applies a diff of approval-workflow rules: the diff shows while the request
+ * is pending, and is kept when it succeeds or rolled back when it fails.
  */
-function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
-    if (!policyID || isEmptyObject(rulesDiff)) {
-        return;
-    }
-
+function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
     const genericError = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
@@ -350,12 +348,32 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
         failureData.push(restore);
     }
 
+    return {optimisticData, successData, failureData};
+}
+
+/**
+ * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
+ */
+function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
+    if (!policyID || isEmptyObject(rulesDiff)) {
+        return;
+    }
+
     const parameters: SetApprovalWorkflowParams = {
         policyID,
         rules: JSON.stringify(rulesDiff),
     };
 
-    write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}));
+}
+
+/**
+ * Build the Onyx updates for a request whose backend deletes the policy's approval workflow rules, the way
+ * setApprovalWorkflowRules deletes rules: they stop routing while the request is pending, and come back if it fails.
+ */
+function buildDeleteApprovalWorkflowRulesOnyxData(policyID: string, rules: OnyxCollection<Rule>) {
+    const rulesDiff: ApprovalWorkflowRulesDiff = Object.fromEntries(Object.keys(getApprovalWorkflowRulesForPolicy(rules, policyID)).map((ruleID) => [ruleID, null]));
+    return buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules: rules});
 }
 
 type CreateApprovalWorkflowRulesParams = CreateApprovalWorkflowParams & {
@@ -663,10 +681,22 @@ type SelectApprovalWorkflowForEditParams = {
     approvers?: Approver[];
     /** Identity anchor of the member whose workflow is being edited, preserved across sub-page back routes. */
     memberEmail?: string;
+    /** The policy's default workflow, where members taken out of this workflow go back to. */
+    defaultApprovalWorkflow?: ApprovalWorkflow;
+    /** Set by the "+N more" shortcut, which skips the Edit RHP, so the members page knows to save the workflow itself. */
+    isFastEdit?: boolean;
 };
 
 /** Commits a workflow to onyx in EDIT mode so any sub-page can be entered directly, skipping the Edit RHP. */
-function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedApproverEmails, approvers, memberEmail}: SelectApprovalWorkflowForEditParams) {
+function selectApprovalWorkflowForEdit({
+    workflow,
+    defaultWorkflowMembers,
+    usedApproverEmails,
+    approvers,
+    memberEmail,
+    defaultApprovalWorkflow,
+    isFastEdit,
+}: SelectApprovalWorkflowForEditParams) {
     setApprovalWorkflow({
         ...workflow,
         approvers: approvers ?? workflow.approvers,
@@ -675,12 +705,45 @@ function selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers, usedAp
         action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
         errors: null,
         originalApprovers: workflow.approvers,
+        originalMembers: workflow.members,
+        defaultApprovalWorkflow,
         memberEmail,
+        isFastEdit,
     });
 }
 
 function clearApprovalWorkflow() {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, null);
+}
+
+type SaveFastEditApprovalWorkflowParams = {
+    approvalWorkflow: ApprovalWorkflowOnyx;
+    policy: OnyxEntry<Policy>;
+    rules: OnyxCollection<Rule>;
+    isMultipleApproversBetaEnabled: boolean;
+};
+
+/** Saves the member changes made through the "+N more" shortcut and discards the draft, since no edit page will. */
+function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, isMultipleApproversBetaEnabled}: SaveFastEditApprovalWorkflowParams) {
+    // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
+    const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
+    const workflow: ApprovalWorkflow = {...approvalWorkflow, isDefault, approvers: approvalWorkflow.approvers.filter((approver): approver is Approver => !!approver)};
+    const originalMembers = approvalWorkflow.originalMembers ?? [];
+
+    if (isMultipleApproversBetaEnabled) {
+        updateApprovalWorkflowRules({
+            approvalWorkflow: workflow,
+            initialApprovalWorkflow: {...workflow, members: originalMembers},
+            policy,
+            rules,
+            defaultApprovalWorkflow: approvalWorkflow.defaultApprovalWorkflow,
+        });
+    } else {
+        const membersToRemove = originalMembers.filter((originalMember) => !workflow.members.some((member) => member.email === originalMember.email));
+        updateApprovalWorkflow(workflow, membersToRemove, [], policy);
+    }
+
+    clearApprovalWorkflow();
 }
 
 type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {approvers: Approver[]};
@@ -726,6 +789,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
 }
 
 export {
+    buildDeleteApprovalWorkflowRulesOnyxData,
     createApprovalWorkflow,
     createApprovalWorkflowRules,
     removeApprovalWorkflowRules,
@@ -739,6 +803,7 @@ export {
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
+    saveFastEditApprovalWorkflow,
     validateApprovalWorkflow,
     setApprovalWorkflowIsInitialFlow,
 };
