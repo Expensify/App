@@ -1154,7 +1154,6 @@ const CONST = {
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
-        REUSABLE_DISTANCE_ROUTES: 'reusableDistanceRoutes',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

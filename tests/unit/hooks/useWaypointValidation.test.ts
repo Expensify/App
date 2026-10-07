@@ -5,8 +5,6 @@ import useWaypointValidation from '@pages/iou/request/step/IOURequestStepDistanc
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
 jest.mock('@libs/TransactionUtils', () => ({
-    // The real module pulls in a large import graph that circularly depends on itself, so the test stubs
-    // both waypoint helpers the hook uses instead of loading it through jest.requireActual.
     isWaypointNullIsland: (waypoint: Waypoint | undefined) => waypoint?.lat === 0 && waypoint?.lng === 0,
     isWaypointEmpty: (waypoint: Waypoint | undefined) => !waypoint || Object.keys(waypoint).every((key) => key === 'keyForList'),
 }));
