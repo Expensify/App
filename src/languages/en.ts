@@ -42,6 +42,26 @@ const translations = {
         confirmTitle: 'Confirm renewal',
         renew: 'Renew',
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renew your subscription for a 12-month term, from ${startDate} to ${endDate}.`,
+        incentivizedTitle: 'Renew early, get up to 2 months free',
+        incentivizedSubtitle: 'Claim a discount on your annual subscription.',
+        claim: 'Claim',
+        mobileRenewPrompt: 'Visit Expensify in your web browser to renew early.',
+        mobileClaimPrompt: 'Visit Expensify in your web browser to claim your renewal discount.',
+        offer: {
+            heading: 'Choose your discount',
+            subtitle: 'Two sweet deals for you to choose from:',
+            oneYear: 'Renew for 1 year,\nget 1 month free',
+            twoYears: 'Renew for 2 years,\nget 2 months free',
+            bestDeal: 'Best deal',
+            disclaimer: 'The offer above will be applied as a 9% discount to your annual subscription. Overage charges are not included.',
+            renewAndClaim: 'Renew and claim discount',
+            chooseOptionError: 'Please choose an option.',
+        },
+        adminTitle: 'Ask your billing owner to renew early',
+        adminSubtitle: 'They can get up to 2 months free with your annual subscription.',
+        adminCTA: 'Nudge',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}, could you renew our Expensify subscription early? We'd get up to 2 months free. Claim it here: [subscription page](${subscriptionURL})`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({
@@ -1096,6 +1116,10 @@ const translations = {
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
+            },
+            emailDeliveryFailure: {
+                title: "We can't send you email notifications",
+                subtitle: 'Account',
             },
             payOverdueInvoice: {
                 dueSoonTitle: ({date}: {date: string}) => `Pay your invoice by ${date} to avoid service interruption`,
@@ -3131,8 +3155,7 @@ const translations = {
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} is already in an approval workflow that submits to ${approverName}. Adding them here will move them to this workflow.`,
         moveEveryoneToThisWorkflowTitle: 'Move everyone to this workflow',
-        moveEveryoneToThisWorkflowPrompt:
-            'You’re about to move everyone to this approval workflow. This will delete all other approval workflows and move everyone to this one. This action can’t be undone.',
+        moveEveryoneToThisWorkflowPrompt: 'You’re about to move everyone to this new approval workflow. Saving it will delete all other approval workflows. This action can’t be undone.',
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
@@ -3543,9 +3566,9 @@ const translations = {
             otherAccountingSoftware: 'Name of software',
         },
         interestedFeatures: {
-            title: 'What features are you interested in?',
-            featuresAlreadyEnabled: 'Here are our most popular features:',
-            featureYouMayBeInterestedIn: 'Enable additional features:',
+            title: 'Select the features you want',
+            featuresAlreadyEnabled: 'Your workspace already has the following enabled:',
+            featureYouMayBeInterestedIn: 'Enable additional features you may be interested in:',
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
@@ -3919,6 +3942,19 @@ const translations = {
             `<strong>Confirm that ${login} is spelled correctly and is a real, deliverable email address.</strong> Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.`,
         ensureYourEmailClient: `<strong>Ensure your email client allows expensify.com emails.</strong> You can find directions on how to complete this step <a href="${CONST.SET_NOTIFICATION_LINK}">here</a> but you may need your IT department to help configure your email settings.`,
         onceTheAbove: `Once the above steps are completed, please reach out to <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> to unblock your login.`,
+    },
+    emailIssuePage: {
+        title: 'Email issue',
+        intro: (login: string) => `Our email provider paused sending to <strong>${login}</strong> due to delivery issues. To fix this issue:`,
+        confirmEmailTitle: 'Confirm your email address',
+        confirmEmailDescription: (login: string) =>
+            `Make sure <strong>${login}</strong> is spelled correctly and is a real inbox. Aliases like "expenses@domain.com" need their own working inbox to log into Expensify.`,
+        allowlistTitle: 'Allowlist expensify.com',
+        allowlistDescription: `Add <strong>expensify.com</strong> to your email client's allowlist. You may need IT to adjust server settings via <a href="${CONST.SET_NOTIFICATION_LINK}">these directions</a>.`,
+        getHelpFromConcierge: 'Get help from Concierge',
+        completedSteps: "I've completed the above steps",
+        errorTitle: 'Something went wrong. Please try again',
+        errorPrompt: "Looks like something didn't work. Please try again. If the issue persists, please reach out to Concierge.",
     },
     openAppFailureModal: {
         title: 'Something went wrong...',
@@ -4920,6 +4956,12 @@ const translations = {
             settlementFrequency: 'Settlement frequency',
             setAsDefault: 'Set as default workspace',
             defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
+            archive: 'Archive workspace',
+            archiveConfirmation: 'Are you sure you want to archive this workspace?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Are you sure you want to archive this workspace? This will unassign all credit cards from users and permanently delete any unsubmitted card expenses.',
+            archiveWithExpensifyCardsConfirmation:
+                'Are you sure you want to archive this workspace? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
             deleteWorkspaceTitle: (workspaceName: string) => `Delete ${workspaceName}?`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
@@ -6136,6 +6178,10 @@ const translations = {
             billPaymentAccount: {
                 label: 'Bill payment account',
                 description: "Choose where to pay bills from and we'll create the payment in Rillet.",
+            },
+            fxExpenseAccount: {
+                label: 'Rillet currency conversion fee account',
+                description: "When your company covers the currency conversion cost on a payment made abroad, we'll post that cost to this account in Rillet as a journal entry.",
             },
             syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
             settlementAccount: {
@@ -7463,6 +7509,8 @@ const translations = {
                 `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `You can't remove ${memberName} from this workspace while they have an Expensify Card. Please deactivate their card in Workspace > Expensify Card, then try again.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -8005,6 +8053,8 @@ const translations = {
             approvalModeWarningTitle: 'Change approval mode?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Changing the approval mode will erase all existing approval workflows. Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
             approvalModeWarningConfirm: 'Change approval mode',
             syncingModalTitle: 'Your connection is syncing',
             syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
@@ -10041,6 +10091,12 @@ const translations = {
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
         saveView: 'Save view',
+        saveEdits: {
+            title: 'Save edits',
+            prompt: ({name}: {name: string}) => `Update changes to "${name}" or create a new one?`,
+            createNew: 'Create new',
+            updateExisting: 'Update existing',
+        },
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -10219,8 +10275,6 @@ const translations = {
             line: 'Line',
             pie: 'Pie',
         },
-        // @context Chart label showing a segment's share of total spending. "percent" already includes the percent sign (e.g. "42%").
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} of spend`,
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',
@@ -10241,7 +10295,6 @@ const translations = {
         noCategory: 'No category',
         noMerchant: 'No merchant',
         noTag: 'No tag',
-        noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
         receiptTypeValues: {
@@ -10642,6 +10695,12 @@ const translations = {
     distance: {
         addStop: 'Add stop',
         address: 'Address',
+        reuseRoute: 'Reuse route',
+        reusePriorRoute: 'Reuse prior route',
+        choosePreviousRoute: 'Choose a previous route below:',
+        findARoute: 'Find a route',
+        lastUsed: ({date}: {date: string}) => `Last used ${date}`,
+        end: 'End',
         waypointDescription: {
             start: 'Start',
             stop: 'Stop',
