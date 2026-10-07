@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# Prints the Hermes version our prebuilt artifacts are compiled against, without the `hermes-v` tag prefix
-# (e.g. `250829098.0.14`). Both platforms read `sdks/.hermesv1version` when building: `ios-prebuild.js` through
-# HERMES_VERSION, and `hermes-engine/build.gradle.kts` through its hermesVersionProvider.
+# Prints the Hermes version our prebuilt artifacts are compiled against (e.g. `250829098.0.14`), read from
+# `sdks/hermes-engine/version.properties` exactly as upstream's own prebuild workflow does (see
+# `.github/workflows/prebuild-ios-core.yml` in facebook/react-native). It is the version `ios-prebuild.js` receives
+# through HERMES_VERSION, and the one the consuming app links through hermes-engine.podspec and the Gradle plugin.
 #
 # The published POM records this value so that the artifacts resolver can compare it with the Hermes the consuming
 # app links. The artifacts do not bundle a Hermes engine, but their React code is compiled against the ABI of one, so
@@ -17,11 +18,11 @@ source "$SCRIPT_DIR/../shellUtils.sh"
 
 NEW_DOT_ROOT="${1:-$SCRIPT_DIR/../..}"
 readonly NEW_DOT_ROOT
-readonly HERMES_VERSION_FILE="$NEW_DOT_ROOT/node_modules/react-native/sdks/.hermesv1version"
+readonly HERMES_VERSION_FILE="$NEW_DOT_ROOT/node_modules/react-native/sdks/hermes-engine/version.properties"
 
 if [[ ! -f "$HERMES_VERSION_FILE" ]]; then
     error "Hermes version file not found: $HERMES_VERSION_FILE"
     exit 1
 fi
 
-sed 's/^hermes-v\{0,1\}//' "$HERMES_VERSION_FILE"
+sed -n 's/^HERMES_V1_VERSION_NAME=//p' "$HERMES_VERSION_FILE"

@@ -69,9 +69,9 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
 
-      # react-android is compiled against the Hermes headers that hermes-engine builds from this version (its
-      # hermesVersionProvider reads the same file). Recording it in the POM lets the resolver reject an artifact
-      # whose Hermes differs from the one the consuming app links.
+      # react-android is compiled against the headers of the Hermes that hermes-engine builds for this release.
+      # Recording its version in the POM lets the resolver reject an artifact whose Hermes differs from the one the
+      # consuming app links.
       - name: Resolve Hermes version
         id: hermes
         run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"

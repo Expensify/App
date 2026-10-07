@@ -155,10 +155,11 @@ function computePatchesHash(newDotRoot: string, isHybrid: boolean): string {
 }
 
 /**
- * The Hermes version this build links, derived from its tag file the same way the publish workflows derive the
- * version they record (`get-hermes-version.sh`), so `hermes-v250829098.0.14` becomes `250829098.0.14`. The artifacts
- * are not bundled with a Hermes engine, but their React code is compiled against the headers of one, so an artifact
- * is only usable when its recorded Hermes version is the one this build links.
+ * The Hermes version this build links, read from its tag file without the tag prefix, so `hermes-v250829098.0.14`
+ * becomes `250829098.0.14`. That is the form the publish workflows record (`get-hermes-version.sh`, which reads
+ * HERMES_V1_VERSION_NAME from `version.properties` like upstream does). The artifacts are not bundled with a Hermes
+ * engine, but their React code is compiled against the headers of one, so an artifact is only usable when its
+ * recorded Hermes version is the one this build links.
  */
 function getLocalHermesVersion(hermesVersionFile: string): string {
     const version = fs
