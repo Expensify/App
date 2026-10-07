@@ -38,11 +38,11 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLo
                 onLoad={() => {
                     setFailedToLoad(false);
                 }}
-                onLoadSuccess={() => {
+                onLoadSuccess={(pdf: PDFDocumentProxy) => {
                     if (!onLoadSuccess) {
                         return;
                     }
-                    onLoadSuccess();
+                    onLoadSuccess(pdf.numPages);
                 }}
                 onLoadError={() => {
                     if (onLoadError) {

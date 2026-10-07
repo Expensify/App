@@ -111,6 +111,7 @@ function DynamicIOURequestStepUpgrade({
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
@@ -174,6 +175,7 @@ function DynamicIOURequestStepUpgrade({
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
                 rules,
+                cardList,
                 selfDMReportActions,
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
@@ -294,6 +296,7 @@ function DynamicIOURequestStepUpgrade({
         getCurrencyDecimals,
         getCurrencySymbol,
         rules,
+        cardList,
         areAllMatchingItemsSelected,
         currentSearchQueryJSON,
         excludedTransactions,

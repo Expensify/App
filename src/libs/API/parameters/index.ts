@@ -55,6 +55,7 @@ export type {default as UpdateRilletAutoSyncParams} from './UpdateRilletAutoSync
 export type {default as UpdateRilletAccountingMethodParams} from './UpdateRilletAccountingMethodParams';
 export type {default as UpdateRilletSyncReimbursedReportsParams} from './UpdateRilletSyncReimbursedReportsParams';
 export type {default as UpdateRilletBillPaymentAccountParams} from './UpdateRilletBillPaymentAccountParams';
+export type {default as UpdateRilletFxExpenseAccountParams} from './UpdateRilletFxExpenseAccountParams';
 export type {default as UpdateRilletSyncExpensifyCardSettlementsParams} from './UpdateRilletSyncExpensifyCardSettlementsParams';
 export type {default as UpdateRilletSettlementsAccountParams} from './UpdateRilletSettlementsAccountParams';
 export type {default as UpdateRilletSyncTravelBillingSettlementsParams} from './UpdateRilletSyncTravelBillingSettlementsParams';
@@ -246,6 +247,7 @@ export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams
 export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';
 export type {default as TransferWalletBalanceParams} from './TransferWalletBalanceParams';
 export type {default as DeleteWorkspaceParams} from './DeleteWorkspaceParams';
+export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
