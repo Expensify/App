@@ -33,8 +33,10 @@ import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
+    hasDynamicExternalWorkflow,
     isControlPolicy,
     isSubmitPolicy,
+    shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
@@ -128,7 +130,10 @@ function WorkspaceInviteMessageComponent({
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const isControl = isControlPolicy(policy);
-    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    const isAdvancedApproval = policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    // Dynamic External Workflow also routes by each member's approver, unless its "Hide People Table Columns" setting blocks manual edits.
+    const isDynamicExternalApproval = hasDynamicExternalWorkflow(policy) && !shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldShowApproverRow = isControl && (isAdvancedApproval || isDynamicExternalApproval) && policy?.areWorkflowsEnabled;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
