@@ -9705,6 +9705,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noSupportRepAvailable: 'Obecnie nie ma dostępnych pracowników pomocy technicznej. Nadal możesz wysłać wiadomość do Concierge, aby uzyskać pomoc.',
         fallbackTitle: 'Zgłoszenie do pomocy technicznej',
         resolved: 'To zgłoszenie do pomocy technicznej zostało rozwiązane.',
+        surveyPrompt: 'Jak oceniasz swoje doświadczenie ze wsparciem?',
         reopenTicket: 'Otwórz zgłoszenie ponownie',
     },
     statementPage: {

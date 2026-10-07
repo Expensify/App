@@ -9696,6 +9696,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noSupportRepAvailable: 'Er zijn momenteel geen supportmedewerkers beschikbaar. Je kunt Concierge nog steeds een bericht sturen voor hulp.',
         fallbackTitle: 'Supportticket',
         resolved: 'Dit supportticket is opgelost.',
+        surveyPrompt: 'Hoe was je ervaring met de ondersteuning?',
         reopenTicket: 'Ticket opnieuw openen',
     },
     statementPage: {

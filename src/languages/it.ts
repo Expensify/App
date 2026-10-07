@@ -9729,6 +9729,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         noSupportRepAvailable: 'Al momento non sono disponibili rappresentanti dell’assistenza. Puoi comunque inviare un messaggio a Concierge per ricevere aiuto.',
         fallbackTitle: 'Ticket di supporto',
         resolved: 'Questo ticket di assistenza è risolto.',
+        surveyPrompt: 'Com’è stata la tua esperienza con l’assistenza?',
         reopenTicket: 'Riapri ticket',
     },
     statementPage: {

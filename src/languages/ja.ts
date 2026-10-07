@@ -9590,6 +9590,7 @@ ${reportName}`,
         noSupportRepAvailable: '現在対応可能なサポート担当者はいません。Concierge にメッセージを送ってサポートを受けることはできます。',
         fallbackTitle: 'サポートチケット',
         resolved: 'このサポートチケットは解決済みです。',
+        surveyPrompt: 'サポートの対応はいかがでしたか？',
         reopenTicket: 'チケットを再開',
     },
     statementPage: {

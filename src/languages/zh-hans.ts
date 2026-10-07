@@ -9338,6 +9338,7 @@ ${reportName}`,
         noSupportRepAvailable: '目前没有可用的支持代表。您仍可向 Concierge 发送消息以获取帮助。',
         fallbackTitle: '支持工单',
         resolved: '此支持工单已解决。',
+        surveyPrompt: '您对支持服务的体验如何？',
         reopenTicket: '重新打开工单',
     },
     statementPage: {

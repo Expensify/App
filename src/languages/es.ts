@@ -9601,6 +9601,7 @@ ${reportName}`,
         noSupportRepAvailable: 'No hay representantes de soporte disponibles en este momento. Aún puedes enviar un mensaje a Concierge para obtener ayuda.',
         fallbackTitle: 'Ticket de soporte',
         resolved: 'Este ticket de soporte está resuelto.',
+        surveyPrompt: '¿Cómo fue tu experiencia con el soporte?',
         reopenTicket: 'Reabrir ticket',
     },
     statementPage: {

@@ -9799,6 +9799,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noSupportRepAvailable: 'Aucun représentant de l’assistance n’est disponible pour le moment. Vous pouvez toujours envoyer un message à Concierge pour obtenir de l’aide.',
         fallbackTitle: 'Ticket d’assistance',
         resolved: 'Ce ticket d’assistance est résolu.',
+        surveyPrompt: 'Comment s’est passée votre expérience avec l’assistance ?',
         reopenTicket: 'Rouvrir le ticket',
     },
     statementPage: {

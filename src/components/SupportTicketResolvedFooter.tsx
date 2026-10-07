@@ -1,4 +1,5 @@
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,6 +21,7 @@ type SupportTicketResolvedFooterProps = {
 
 function SupportTicketResolvedFooter({reportID, isOffline}: SupportTicketResolvedFooterProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const [isReopening, setIsReopening] = useState(false);
@@ -43,7 +45,7 @@ function SupportTicketResolvedFooter({reportID, isOffline}: SupportTicketResolve
                         accessible={false}
                         tabIndex={-1}
                         style={[styles.mr3, styles.cursorDisabled]}
-                        containerStyle={{backgroundColor: theme.placeholderText, borderColor: theme.placeholderText}}
+                        containerStyle={StyleUtils.getBackgroundAndBorderStyle(theme.placeholderText)}
                     />
                     <Text style={[styles.textNormal, styles.flex1]}>{translate('supportTicket.resolved')}</Text>
                 </>

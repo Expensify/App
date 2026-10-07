@@ -13,7 +13,7 @@ import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type SupportTicketSurveyProps = {
@@ -41,11 +41,11 @@ function getLatestSurveyAfterResolution(reportActions: OnyxEntry<ReportActions>,
 
 function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProps) {
     const styles = useThemeStyles();
-    const {localeCompare} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
-    const latestSurvey = useMemo(() => getLatestSurveyAfterResolution(reportActions, localeCompare), [reportActions, localeCompare]);
+    const latestSurvey = getLatestSurveyAfterResolution(reportActions, localeCompare);
     const canRateSurvey = report?.ownerAccountID === currentUserAccountID;
 
     if (
@@ -60,7 +60,7 @@ function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProp
 
     return (
         <View style={[styles.chatItemMessage, styles.flexRow, styles.alignItemsCenter]}>
-            <Text style={styles.textSupporting}>How was your support experience?</Text>
+            <Text style={styles.textSupporting}>{translate('supportTicket.surveyPrompt')}</Text>
             {canRateSurvey && (
                 <ConciergeFeedbackPrompt
                     action={action}

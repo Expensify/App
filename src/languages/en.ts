@@ -9984,6 +9984,7 @@ const translations = {
         noSupportRepAvailable: 'No support reps are available right now. You can still message Concierge for help.',
         fallbackTitle: 'Support ticket',
         resolved: 'This support ticket is resolved.',
+        surveyPrompt: 'How was your support experience?',
         reopenTicket: 'Reopen ticket',
     },
     statementPage: {

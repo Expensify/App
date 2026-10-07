@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedValue from '@hooks/useDebouncedValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -93,11 +94,12 @@ type ConciergeFeedbackThumbProps = {
 
 function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress, shouldShowTooltip, isSelected}: ConciergeFeedbackThumbProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
     const thumb = (
         <PressableWithFeedback
-            style={[styles.conciergeFeedbackThumb, isSelected && {backgroundColor: theme.reactionActiveBackground}, styles.userSelectNone]}
+            style={[styles.conciergeFeedbackThumb, isSelected && StyleUtils.getBackgroundColorStyle(theme.reactionActiveBackground), styles.userSelectNone]}
             hoverStyle={styles.conciergeFeedbackThumbHovered}
             pressStyle={styles.conciergeFeedbackThumbHovered}
             onPress={onPress}
