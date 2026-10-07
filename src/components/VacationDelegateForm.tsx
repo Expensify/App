@@ -11,6 +11,7 @@ import {
     getVacationDelegateClearDate,
     getVacationDelegateClearDateTime,
     getVacationDelegateLocalClearDateTime,
+    isVacationDelegateClearAfterTooSoon,
     isVacationDelegateExpired,
 } from '@libs/VacationDelegateUtils';
 import {getDatePassedError} from '@libs/ValidationUtils';
@@ -90,7 +91,7 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
         const dateError = getDatePassedError(translate, values[INPUT_IDS.CLEAR_AFTER_DATE]);
         if (dateError) {
             formErrors[INPUT_IDS.CLEAR_AFTER_DATE] = dateError;
-        } else if (isVacationDelegateExpired(getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], values[INPUT_IDS.CLEAR_AFTER_TIME], timezone?.selected))) {
+        } else if (isVacationDelegateClearAfterTooSoon(getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], values[INPUT_IDS.CLEAR_AFTER_TIME], timezone?.selected))) {
             formErrors[INPUT_IDS.CLEAR_AFTER_TIME] = translate('common.error.invalidTimeShouldBeFuture');
         }
         return formErrors;

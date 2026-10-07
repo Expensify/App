@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {vacationDelegateSelector} from '@selectors/Domain';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type DomainMemberVacationDelegateFormPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VACATION_DELEGATE>;
 
@@ -32,9 +32,8 @@ function DomainMemberVacationDelegateFormPage({route}: DomainMemberVacationDeleg
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const memberVacationDelegateSelector = useMemo(() => vacationDelegateSelector(accountID), [accountID]);
     const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        selector: memberVacationDelegateSelector,
+        selector: vacationDelegateSelector(accountID),
     });
 
     const [personalDetails] = usePersonalDetail(accountID);

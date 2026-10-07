@@ -19,8 +19,9 @@ All delegate actions are tracked in the report history for full visibility.
 
 1. Go to **Account > Profile > Vacation delegate**.
 2. Select the member who should approve on your behalf.
-3. Optional (recommended): Under **Clear after**, pick the last day the delegate should cover. Then, under **Time**, pick when the delegate should clear on that day. If you don't change the time, the delegate clears at the end of the day.
-4. Click **Save**.
+3. Under **Clear after (recommended)**, pick the last day the delegate should cover (optional).
+4. Under **Time**, pick when the delegate clears on that day (defaults to the end of the day).
+5. Click **Save**.
 
 Once set, any reports or chats that would normally come to you will be redirected to your delegate. You can view every action they take in the report's history and comments. The delegate and the date and time it clears are shown under **Vacation delegate** on your profile.
 

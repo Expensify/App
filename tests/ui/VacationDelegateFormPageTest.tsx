@@ -223,6 +223,22 @@ describe('VacationDelegateFormPage', () => {
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.route);
     });
 
+    it('shows the delegator list instead of the form while the user is someone else’s delegate', async () => {
+        // Given a saved delegate, while the user is also the vacation delegate for another member
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: CREATOR_EMAIL, delegate: ORIGINAL_DELEGATE_EMAIL, delegatorFor: [DELEGATE_A_EMAIL]});
+        });
+
+        // When the form page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form is replaced by the explanation, so the user can't change or remove their own delegate, same as on the member picker
+        expect(screen.getByText(TestHelper.translateLocal('statusPage.cannotSetVacationDelegate'))).toBeOnTheScreen();
+        expect(screen.queryByTestId('select-delegate-a')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('remove-delegate')).not.toBeOnTheScreen();
+    });
+
     it('pops only the form and drops the unsaved pick when the header back button is pressed', async () => {
         // Given a member picked on the picker but not saved yet
         jest.mocked(Navigation.goBack).mockClear();

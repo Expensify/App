@@ -3,7 +3,7 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 
-import {format, isValid, parse} from 'date-fns';
+import {addMinutes, format, isValid, parse} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 
 import DateUtils from './DateUtils';
@@ -79,6 +79,15 @@ function isVacationDelegateExpired(clearAfter: string | undefined): boolean {
     return !!clearAfter && clearAfter <= DateUtils.getDBTime();
 }
 
+/**
+ * Whether the picked clearAfter datetime is less than one minute from now. Such a delegate could clear while the request is still in
+ * flight, so the form asks for a time at least one minute ahead.
+ */
+function isVacationDelegateClearAfterTooSoon(clearAfter: string | undefined): boolean {
+    // Both values are UTC in the database format, so they compare as strings.
+    return !!clearAfter && clearAfter < DateUtils.formatDBTimeWithoutMilliseconds(addMinutes(new Date(), 1).valueOf());
+}
+
 export {
     getVacationDelegateClearAfter,
     getVacationDelegateClearDate,
@@ -86,4 +95,5 @@ export {
     getVacationDelegateLocalClearDateTime,
     formatVacationDelegateClearDateTime,
     isVacationDelegateExpired,
+    isVacationDelegateClearAfterTooSoon,
 };

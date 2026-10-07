@@ -1,3 +1,4 @@
+import DelegatorList from '@components/DelegatorList';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import VacationDelegateForm from '@components/VacationDelegateForm';
@@ -6,6 +7,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
@@ -19,6 +21,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useNavigation} from '@react-navigation/native';
 import React, {useRef} from 'react';
+import {View} from 'react-native';
 
 function goBackToProfile() {
     clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
@@ -33,11 +36,13 @@ function goBack() {
 
 function VacationDelegateFormPage() {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const navigation = useNavigation();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
 
     const isSubmittingRef = useRef(false);
 
@@ -112,16 +117,26 @@ function VacationDelegateFormPage() {
                 title={translate('common.vacationDelegate')}
                 onBackButtonPress={goBack}
             />
-            <VacationDelegateForm
-                vacationDelegate={vacationDelegate}
-                description={translate('statusPage.setVacationDelegate')}
-                onChangeDelegate={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_SELECT)}
-                onSubmit={onSubmit}
-                onRemove={onRemove}
-                errors={getVacationDelegateErrors(vacationDelegate)}
-                pendingAction={vacationDelegate?.pendingAction}
-                onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate, vacationDelegate?.previousClearAfter)}
-            />
+            {/* While the user is someone else's delegate, they can't change their own, same as on the member picker */}
+            {hasActiveDelegations ? (
+                <View style={styles.mt6}>
+                    <DelegatorList
+                        delegators={vacationDelegate?.delegatorFor}
+                        message={translate('statusPage.cannotSetVacationDelegate')}
+                    />
+                </View>
+            ) : (
+                <VacationDelegateForm
+                    vacationDelegate={vacationDelegate}
+                    description={translate('statusPage.setVacationDelegate')}
+                    onChangeDelegate={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_SELECT)}
+                    onSubmit={onSubmit}
+                    onRemove={onRemove}
+                    errors={getVacationDelegateErrors(vacationDelegate)}
+                    pendingAction={vacationDelegate?.pendingAction}
+                    onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate, vacationDelegate?.previousClearAfter)}
+                />
+            )}
         </ScreenWrapper>
     );
 }

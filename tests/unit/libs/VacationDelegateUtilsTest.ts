@@ -4,6 +4,7 @@ import {
     getVacationDelegateClearDate,
     getVacationDelegateClearDateTime,
     getVacationDelegateLocalClearDateTime,
+    isVacationDelegateClearAfterTooSoon,
     isVacationDelegateExpired,
 } from '@libs/VacationDelegateUtils';
 
@@ -94,6 +95,17 @@ describe('VacationDelegateUtils', () => {
             expect(isVacationDelegateExpired('2026-09-28 11:59:59')).toBe(true);
             expect(isVacationDelegateExpired('2026-09-28 12:00:01')).toBe(false);
             expect(isVacationDelegateExpired(undefined)).toBe(false);
+        });
+    });
+
+    describe('isVacationDelegateClearAfterTooSoon', () => {
+        it('is true when the clear after datetime is less than one minute from now', () => {
+            // Given the current time is 2026-09-28 12:00 UTC
+            // When a time 30 seconds ahead, exactly one minute ahead, and no time are checked
+            // Then only the one under a minute ahead is too soon, since it could clear while the save request is in flight
+            expect(isVacationDelegateClearAfterTooSoon('2026-09-28 12:00:30')).toBe(true);
+            expect(isVacationDelegateClearAfterTooSoon('2026-09-28 12:01:00')).toBe(false);
+            expect(isVacationDelegateClearAfterTooSoon(undefined)).toBe(false);
         });
     });
 });
