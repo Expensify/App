@@ -1765,6 +1765,19 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
 }
 
 /**
+ * Distance in meters of the selected map route of an expense being created. A draft seeded from a reused route has no
+ * routes until they are fetched again, so it falls back to the route distance of the expense the route was reused from,
+ * which tells the backend to take the same route alternative.
+ */
+function getSelectedRouteDistanceForNewExpense(transaction: OnyxEntry<Transaction>): number | undefined {
+    if (!isMapDistanceRequest(transaction) && !isDistanceTypeRequest(transaction)) {
+        return undefined;
+    }
+
+    return getSelectedRouteDistance(transaction) ?? transaction?.comment?.customUnit?.routeDistanceMeters ?? undefined;
+}
+
+/**
  * Whether the transaction's displayed distance is a manually typed override rather than the distance of the map route
  * it points at. `comment.customUnit.quantity` holds both cases — a value the user typed on the Manual tab and, after
  * picking an alternate route, that route's distance — so the comparison has to be against the *selected* route and not
@@ -1821,6 +1834,7 @@ export {
     shouldClearConvertedAmount,
     getDistanceInMeters,
     getSelectedRouteDistance,
+    getSelectedRouteDistanceForNewExpense,
     getSelectedRouteKey,
     hasManualDistanceOverride,
     getCardID,

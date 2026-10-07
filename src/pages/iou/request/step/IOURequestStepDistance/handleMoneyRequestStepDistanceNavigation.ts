@@ -24,7 +24,14 @@ import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getSelectedRouteDistance, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
+import {
+    getDefaultTaxCode,
+    getDistanceRequestType,
+    getIsFromGlobalCreate,
+    getSelectedRouteDistanceForNewExpense,
+    getValidWaypoints,
+    hasAppliedCommuterExclusion,
+} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -233,9 +240,7 @@ function handleMoneyRequestStepDistanceNavigation({
     // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
     // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
-    // A draft seeded from a reused route has no routes until they are fetched again, so the source expense's route
-    // distance is what tells the backend which route alternative to take.
-    const selectedRouteDistance = getSelectedRouteDistance(transaction) ?? transaction?.comment?.customUnit?.routeDistanceMeters ?? undefined;
+    const selectedRouteDistance = getSelectedRouteDistanceForNewExpense(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID, getCurrencyDecimals);

@@ -6407,6 +6407,40 @@ describe('getSelectedRouteDistance', () => {
     });
 });
 
+describe('getSelectedRouteDistanceForNewExpense', () => {
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+    };
+
+    it('returns the selected route distance once the routes are fetched', () => {
+        // Given a draft whose routes were fetched, with the alternate route selected
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route1'}, routes});
+
+        // When getting the route distance to send for the new expense
+        // Then it is the selected route's, like getSelectedRouteDistance
+        expect(TransactionUtils.getSelectedRouteDistanceForNewExpense(transaction)).toBe(1500);
+    });
+
+    it('falls back to the route distance of a reused route before the routes are fetched', () => {
+        // Given a draft seeded from a reused route, which only carries the route distance of the expense it was reused from
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {customUnit: {routeDistanceMeters: 1500}}});
+
+        // When getting the route distance to send for the new expense, e.g. when it is created offline
+        // Then it is the reused route's, so the backend takes the same route alternative
+        expect(TransactionUtils.getSelectedRouteDistanceForNewExpense(transaction)).toBe(1500);
+    });
+
+    it('returns undefined for distance requests that are not map based', () => {
+        // Given a manual distance draft that carries a route distance
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {customUnit: {routeDistanceMeters: 1500}}});
+
+        // When getting the route distance to send for the new expense
+        // Then there is none, since a manual distance has no route
+        expect(TransactionUtils.getSelectedRouteDistanceForNewExpense(transaction)).toBeUndefined();
+    });
+});
+
 describe('getSelectedRouteKey', () => {
     const routes: Routes = {
         route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},

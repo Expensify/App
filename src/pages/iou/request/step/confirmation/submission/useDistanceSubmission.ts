@@ -7,7 +7,7 @@ import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getReusableP2PReportID} from '@libs/IOUUtils';
 import {getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
-import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistance, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
+import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistanceForNewExpense, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
 
 import {createDistanceRequest as createDistanceRequestIOUActions} from '@userActions/IOU/Split';
 
@@ -185,9 +185,7 @@ function useDistanceSubmission({
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                 distanceRequestType: getDistanceRequestType(transaction),
-                // A draft seeded from a reused route has no routes when it is created offline, so the source expense's
-                // route distance is what tells the backend which route alternative to take.
-                selectedRouteDistance: getSelectedRouteDistance(transaction) ?? transaction.comment?.customUnit?.routeDistanceMeters ?? undefined,
+                selectedRouteDistance: getSelectedRouteDistanceForNewExpense(transaction),
             },
             isASAPSubmitBetaEnabled,
             transactionViolations: transactionViolationsRef.current,

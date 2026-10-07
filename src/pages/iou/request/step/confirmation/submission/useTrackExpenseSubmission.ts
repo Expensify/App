@@ -14,7 +14,7 @@ import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
 import {generateReportID, getAllPolicyExpenseChatReportActions, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
-import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistance, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistance, getSelectedRouteDistanceForNewExpense, getValidWaypoints} from '@libs/TransactionUtils';
 
 import {trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
@@ -247,7 +247,8 @@ function useTrackExpenseSubmission({
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                     distanceRequestType: getDistanceRequestType(transaction),
-                    selectedRouteDistance: getSelectedRouteDistance(item),
+                    // Moving an existing tracked expense doesn't reuse a route, so only a new expense falls back to the distance of a reused route
+                    selectedRouteDistance: item.linkedTrackedExpenseReportAction ? getSelectedRouteDistance(item) : getSelectedRouteDistanceForNewExpense(item),
                 },
                 accountantParams: {
                     accountant: item.accountant,
