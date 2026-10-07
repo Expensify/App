@@ -138,6 +138,7 @@ jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: () => ({
         isBetaEnabled: () => true,
+        isBetaEnabledOrUnknown: () => true,
     }),
 }));
 
@@ -409,7 +410,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransactionByLiabilityType').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransaction').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
@@ -491,7 +492,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransactionByLiabilityType').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransaction').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);

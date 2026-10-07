@@ -9,27 +9,36 @@ import {
     getFooterConvertedAmounts,
     getPayOption,
     openSearch,
+    openSearchTagFiltersPage,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
+    rejectMoneyRequestsOnSearch,
     saveSearch,
     search,
 } from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
+import type {OpenSearchTagFiltersPageResponse} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import fileDownload from '@libs/fileDownload';
 import {translate} from '@libs/Localize';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy, Report} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {ExportTemplate, Policy, Report, SearchTagFilterItem} from '@src/types/onyx';
+import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -37,9 +46,19 @@ const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(
 
 jest.mock('@libs/API');
 jest.mock('@libs/fileDownload');
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
 jest.mock('@libs/Network/enhanceParameters', () => ({
     __esModule: true,
     default: (_: string, params: Record<string, unknown>) => params,
+}));
+jest.mock('@libs/actions/IOU/RejectMoneyRequest', () => ({
+    rejectMoneyRequest: jest.fn(),
+    prepareRejectMoneyRequestData: jest.fn(),
 }));
 
 const mockWrite = jest.mocked(write);
@@ -233,6 +252,136 @@ describe('SearchActions', () => {
         });
     });
 
+    describe('exportSearchItemsToCSV', () => {
+        beforeEach(() => jest.clearAllMocks());
+
+        it('includes excluded transaction IDs in the direct CSV form payload', () => {
+            const appendSpy = jest.spyOn(FormData.prototype, 'append');
+
+            exportSearchItemsToCSV(
+                {
+                    jsonQuery: '{}',
+                    reportIDList: [],
+                    transactionIDList: ['tx1'],
+                    excludedTransactionIDList: ['tx2'],
+                    isBasicExport: true,
+                    exportColumnLabels: '{}',
+                    exportName: 'Basic export',
+                },
+                jest.fn(),
+                translateForTest,
+                undefined,
+            );
+
+            expect(appendSpy).toHaveBeenCalledWith('excludedTransactionIDList', 'tx2');
+            expect(mockFileDownload).toHaveBeenCalled();
+            appendSpy.mockRestore();
+        });
+
+        it('includes the report in reportIDList when all of its transactions are selected', () => {
+            const appendSpy = jest.spyOn(FormData.prototype, 'append');
+            const transaction = {...createRandomTransaction(1), transactionID: 'tx1', reportID: 'report1'};
+            const allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue = {
+                report1: {transactions: {[transaction.transactionID]: transaction}, violations: {}},
+            };
+
+            exportSearchItemsToCSV(
+                {
+                    jsonQuery: '{}',
+                    reportIDList: ['report1'],
+                    transactionIDList: ['tx1'],
+                    isBasicExport: true,
+                    exportColumnLabels: '{}',
+                    exportName: 'Basic export',
+                },
+                jest.fn(),
+                translateForTest,
+                allReportsTransactionsAndViolations,
+            );
+
+            expect(appendSpy).toHaveBeenCalledWith('reportIDList', 'report1');
+            appendSpy.mockRestore();
+        });
+
+        it('excludes the report from reportIDList when one of its transactions is not selected', () => {
+            const appendSpy = jest.spyOn(FormData.prototype, 'append');
+            const includedTransaction = {...createRandomTransaction(1), transactionID: 'tx1', reportID: 'report1'};
+            const excludedTransaction = {...createRandomTransaction(2), transactionID: 'tx2', reportID: 'report1'};
+            const allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue = {
+                report1: {
+                    transactions: {[includedTransaction.transactionID]: includedTransaction, [excludedTransaction.transactionID]: excludedTransaction},
+                    violations: {},
+                },
+            };
+
+            exportSearchItemsToCSV(
+                {
+                    jsonQuery: '{}',
+                    reportIDList: ['report1'],
+                    transactionIDList: ['tx1'],
+                    isBasicExport: true,
+                    exportColumnLabels: '{}',
+                    exportName: 'Basic export',
+                },
+                jest.fn(),
+                translateForTest,
+                allReportsTransactionsAndViolations,
+            );
+
+            expect(appendSpy).toHaveBeenCalledWith('reportIDList', '');
+            appendSpy.mockRestore();
+        });
+    });
+
+    describe('rejectMoneyRequestsOnSearch', () => {
+        beforeEach(() => jest.clearAllMocks());
+
+        const reportID = 'report1';
+        const chatReportID = 'chat1';
+        const baseReport: Report = {...createRandomReport(1), reportID, chatReportID, transactionCount: 2};
+
+        function reject(allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined) {
+            return rejectMoneyRequestsOnSearch({
+                hash: 123,
+                selectedTransactions: {tx1: {reportID}},
+                comment: 'rejecting',
+                allPolicies: {},
+                allReports: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: baseReport},
+                currentUserAccountIDParam: 1,
+                currentUserLogin: 'test@example.com',
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: jest.fn(() => 2),
+                allReportsTransactionsAndViolations,
+                rules: undefined,
+            });
+        }
+
+        it('treats a pending-delete transaction as already gone when checking if all expenses are selected', () => {
+            // The report's transactionCount (2) still counts the pending-delete transaction, so without subtracting it
+            // the single selected transaction would look like a partial selection instead of the full report.
+            const pendingDeleteTransaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'tx2',
+                reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue = {
+                [reportID]: {transactions: {[pendingDeleteTransaction.transactionID]: pendingDeleteTransaction}, violations: {}},
+            };
+
+            const urlToNavigateBack = reject(allReportsTransactionsAndViolations);
+
+            expect(urlToNavigateBack).toBe(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
+        });
+
+        it('does not treat the selection as complete when the pending-delete transaction is unknown', () => {
+            const urlToNavigateBack = reject(undefined);
+
+            expect(urlToNavigateBack).toBeUndefined();
+        });
+    });
+
     describe('queueExportSearchWithTemplate', () => {
         it('sets optimistic Onyx data with state preparing and returns exportID when tracking progress', () => {
             const exportID = queueExportSearchWithTemplate(
@@ -284,32 +433,6 @@ describe('SearchActions', () => {
 
             const options = mockWrite.mock.calls.at(-1)?.at(2);
             expect(options).toEqual({});
-        });
-    });
-
-    describe('exportSearchItemsToCSV', () => {
-        beforeEach(() => jest.clearAllMocks());
-
-        it('includes excluded transaction IDs in the direct CSV form payload', () => {
-            const appendSpy = jest.spyOn(FormData.prototype, 'append');
-
-            exportSearchItemsToCSV(
-                {
-                    jsonQuery: '{}',
-                    reportIDList: [],
-                    transactionIDList: ['tx1'],
-                    excludedTransactionIDList: ['tx2'],
-                    isBasicExport: true,
-                    exportColumnLabels: '{}',
-                    exportName: 'Basic export',
-                },
-                jest.fn(),
-                translateForTest,
-            );
-
-            expect(appendSpy).toHaveBeenCalledWith('excludedTransactionIDList', 'tx2');
-            expect(mockFileDownload).toHaveBeenCalled();
-            appendSpy.mockRestore();
         });
     });
 
@@ -649,5 +772,88 @@ describe('getPayOption', () => {
 
         // Then bulk pay stays disabled — scoping the type lookup to the snapshot must not drop the check itself
         expect(getShouldEnableBulkPayOption(selectedReports)).toBe(false);
+    });
+
+    describe('openSearchTagFiltersPage', () => {
+        beforeEach(async () => {
+            Onyx.init({keys: ONYXKEYS});
+            await Onyx.clear();
+        });
+
+        it('writes first-page tag results to scoped resultsKey for a non-empty search query', async () => {
+            const policyIDs = 'policy-1';
+            const tags: SearchTagFilterItem[] = [{tagName: 'Marketing', tagListName: 'Department'}];
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
+                createMock<Response<never> & OpenSearchTagFiltersPageResponse>({
+                    hasMore: false,
+                    nextCursor: '',
+                    tags,
+                }),
+            );
+
+            await openSearchTagFiltersPage(
+                {
+                    searchQuery: 'Market',
+                    limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE,
+                    cursor: '',
+                    policyIDs,
+                },
+                true,
+            );
+
+            await waitForBatchedUpdates();
+
+            const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
+            let storedResults: SearchTagFilterItem[] | null = null;
+            const connection = Onyx.connect({
+                key: resultsKey,
+                callback: (val) => {
+                    storedResults = val ?? null;
+                },
+            });
+            await waitForBatchedUpdates();
+            Onyx.disconnect(connection);
+
+            expect(storedResults).toEqual(tags);
+        });
+
+        it('appends next-page tag results to existing results when cursor is provided', async () => {
+            const policyIDs = 'policy-1';
+            const existingTags: SearchTagFilterItem[] = [{tagName: 'Tag1', tagListName: 'Department'}];
+            const nextTags: SearchTagFilterItem[] = [{tagName: 'Tag2', tagListName: 'Department'}];
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
+                createMock<Response<never> & OpenSearchTagFiltersPageResponse>({
+                    hasMore: false,
+                    nextCursor: '',
+                    tags: nextTags,
+                }),
+            );
+
+            await openSearchTagFiltersPage(
+                {
+                    searchQuery: 'Tag',
+                    limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE,
+                    cursor: 'cursor-1',
+                    policyIDs,
+                },
+                false,
+                existingTags,
+            );
+
+            await waitForBatchedUpdates();
+
+            const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs}`;
+            let storedResults: SearchTagFilterItem[] | null = null;
+            const connection = Onyx.connect({
+                key: resultsKey,
+                callback: (val) => {
+                    storedResults = val ?? null;
+                },
+            });
+            await waitForBatchedUpdates();
+            Onyx.disconnect(connection);
+
+            expect(storedResults).toEqual([...existingTags, ...nextTags]);
+        });
     });
 });

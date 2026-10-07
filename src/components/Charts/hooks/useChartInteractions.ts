@@ -385,16 +385,23 @@ function useChartInteractions({
      * compose them into their own useAnimatedStyle.
      */
     const initialTooltipPosition = useDerivedValue(() => {
+        const targetX = chartInteractionState.x.position.get();
         const targetY = chartInteractionState.y.y.position.get();
         const currentYZero = yZero?.get() ?? targetY;
         // Position tooltip at the top of the bar (min of targetY and yZero)
         const barTopY = Math.min(targetY, currentYZero);
 
         return {
-            x: chartInteractionState.x.position.get(),
+            x: targetX,
             y: barTopY - TOOLTIP_BAR_GAP,
         };
     });
+
+    /** Canvas position of the matched data point, for drawing hover indicators inside the chart canvas */
+    const activePointPosition = useDerivedValue(() => ({
+        x: chartInteractionState.x.position.get(),
+        y: chartInteractionState.y.y.position.get(),
+    }));
 
     const customGestures = Gesture.Race(hoverGesture(), tapGesture());
 
@@ -414,6 +421,8 @@ function useChartInteractions({
         isCursorOverClickable,
         /** Raw tooltip positioning data */
         initialTooltipPosition,
+        /** Canvas position of the matched data point */
+        activePointPosition,
     };
 }
 

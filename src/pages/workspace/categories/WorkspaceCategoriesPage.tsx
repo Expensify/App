@@ -23,6 +23,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -35,6 +36,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -68,6 +70,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const {environmentURL} = useEnvironment();
@@ -181,6 +185,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 return;
             }
             setWorkspaceCategoryEnabled({
+                isVendorMatchingBetaEnabled,
                 policyData,
                 categoriesToUpdate: {[categoryName]: {name: categoryName, enabled: value}},
                 isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
@@ -198,6 +203,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             });
         },
         [
+            isVendorMatchingBetaEnabled,
             policyData,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
@@ -262,6 +268,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
 
+    const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
+
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -287,8 +295,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
                 isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
+                canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
+                onRenameName: (newName: string) => renameCategoryInline(policyData, value.name, newName, isVendorMatchingBetaEnabled),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
             });
 
@@ -300,6 +310,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         shouldShowApproverColumn,
         categoryApproverEmails,
         canWriteCategories,
+        isSelectionModeActive,
+        policyData,
         policy,
         policyCategories,
         navigateToCategory,
@@ -307,6 +319,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         policyId,
         employeePersonalDetails,
         formatPhoneNumber,
+        isVendorMatchingBetaEnabled,
     ]);
 
     const navigateToCategoriesSettings = useCallback(() => {
@@ -328,6 +341,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
                 parentReportAction,
+                isVendorMatchingBetaEnabled,
             );
         }
 
@@ -364,7 +378,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const secondaryActions = useMemo(() => {
         const menuItems = [];
         // The other settings moved to Rules, so this is only worth showing for the GL codes toggle.
-        if (canWriteCategories && !!policy?.glCodes) {
+        if (canWriteCategories) {
             menuItems.push({
                 icon: icons.Gear,
                 text: translate('common.settings'),
@@ -412,7 +426,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         translate,
         canWriteCategories,
         navigateToCategoriesSettings,
-        policy?.glCodes,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,
@@ -481,6 +494,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         }
                         clearTableSelection();
                         setWorkspaceCategoryEnabled({
+                            isVendorMatchingBetaEnabled,
                             policyData,
                             categoriesToUpdate: categoriesToDisable,
                             isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
@@ -518,6 +532,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onSelected: () => {
                         clearTableSelection();
                         setWorkspaceCategoryEnabled({
+                            isVendorMatchingBetaEnabled,
                             policyData,
                             categoriesToUpdate: categoriesToEnable,
                             isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,

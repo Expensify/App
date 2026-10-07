@@ -20,6 +20,7 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
 type UseBulkDuplicateReportActionParams = {
     selectedReports: SelectedReports[];
@@ -32,7 +33,8 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -40,8 +42,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -56,6 +57,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
         bulkDuplicateReports({
+            isVendorMatchingBetaEnabled,
             dateFnsLocale,
             selectedReports,
             allReports: allReports ?? {},
@@ -67,7 +69,6 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             activePolicyExpenseChat,
             ownerPersonalDetails: currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
-            betas,
             personalDetails,
             quickAction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],

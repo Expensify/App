@@ -5,6 +5,7 @@ import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
+import canvaskitPackageJson from 'canvaskit-wasm/package.json' with {type: 'json'};
 import {execSync} from 'child_process';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -19,6 +20,9 @@ import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKe
 // Relative on purpose: module aliases are not resolved when this config is evaluated.
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import getAppVersion from '../../src/libs/VersionUtils.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
+import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import BrotliCompressionPlugin from './BrotliCompressionPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -43,6 +47,17 @@ function getCurrentBranchName(): string {
 const localBranchName = getCurrentBranchName();
 
 /**
+ * CanvasKit ships as a matched pair: the JS glue (`canvaskit.js`, bundled into a content-hashed chunk) and
+ * the `canvaskit.wasm` binary it instantiates. The pair is only compatible within a single `canvaskit-wasm`
+ * release, so the binary must be served from a URL that changes with the release too. Otherwise a client can
+ * pair one deploy's glue with another deploy's binary (stale HTTP cache, or a tab that outlived a deploy and
+ * got claimed by the new service worker) and CanvasKit either fails to link (`LinkError: Import #N "a" "wd"`)
+ * or links against the wrong exports and resolves without its bindings (`PictureRecorder is not a constructor`).
+ * See https://github.com/Expensify/App/issues/102042.
+ */
+const CANVASKIT_WASM_FILENAME = `canvaskit-${canvaskitPackageJson.version}.wasm`;
+
+/**
  * React Compiler + react-native-worklets loaders.
  */
 function getOxcAndWorkletsLoaders(isDevServer: boolean) {
@@ -51,20 +66,11 @@ function getOxcAndWorkletsLoaders(isDevServer: boolean) {
         {
             loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
             options: {
-                reactCompiler: {
-                    target: '19',
-                    panicThreshold: 'none',
-                    // `sources` is a filename allowlist: the compiler only runs on files whose path
-                    // contains one of these strings. Every path contains the empty string, so this
-                    // replaces the default filter (which skips `node_modules`) and keeps the compiler
-                    // running over INCLUDED_NODE_MODULES the same way it does over app source.
+                reactCompiler: oxcReactCompilerConfig({
+                    // The empty string matches every path, replacing the default filter that skips
+                    // node_modules. Web only: native must not compile dependencies.
                     sources: [''],
-                    // The compiler treats `react-hooks/exhaustive-deps` and `react-hooks/rules-of-hooks`
-                    // suppressions as an opt-out by default. babel-plugin-react-compiler disables that
-                    // default whenever exhaustive-memo and hooks-usage validation are both on, which is
-                    // its own default, so an empty list keeps web and Metro/Jest compiling the same files.
-                    eslintSuppressionRules: [],
-                },
+                }),
                 jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
             },
         },
@@ -145,6 +151,9 @@ function getDefineValues(file: string): DefinePluginOptions {
         // Expose the current git branch so the debug menu can display it in the browser tab title.
         // Empty string in non-development builds.
         __GIT_BRANCH__: JSON.stringify(isDevelopmentFile ? localBranchName : ''),
+        // Where `SkiaWebChart` tells CanvasKit to fetch its wasm binary from. Versioned so the glue in this
+        // bundle can never be paired with another release's binary (see `CANVASKIT_WASM_FILENAME`).
+        __CANVASKIT_WASM_URL__: JSON.stringify(`/${CANVASKIT_WASM_FILENAME}`),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
 }
@@ -335,6 +344,7 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
  */
 const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevServer = false}: Environment): Promise<RsbuildConfig> => {
     const isDevelopment = file === '.env' || file === '.env.development';
+    const shouldCompressWithBrotli = !isDevelopment && file !== '.env.adhoc';
     const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
     const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
@@ -394,6 +404,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             copy: [
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
+                {from: 'web/favicon-concierge-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'web/robots.txt'},
@@ -411,8 +422,10 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
                 // Group‑IB web SDK injection file
                 {from: 'web/snippets/gib.js', to: 'gib.js'},
-                // CanvasKit WASM files for @shopify/react-native-skia web support (uses full version)
-                {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm'},
+                // CanvasKit WASM binary for @shopify/react-native-skia web support (uses the full build). Emitted
+                // under a versioned name so it can't be served stale against newer glue. The URL is passed to
+                // the app through the `__CANVASKIT_WASM_URL__` define above.
+                {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm', to: CANVASKIT_WASM_FILENAME},
             ],
         },
         html: {
@@ -426,6 +439,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             },
         },
         performance: {
+            // Rsbuild's default exclusion, plus the `.br` twins BrotliCompressionPlugin emits below: listing them would
+            // double the report with a meaningless "gzipped size" of already-Brotli-compressed bytes.
+            printFileSize: {exclude: (asset) => /\.(?:map|LICENSE\.txt|d\.(?:ts|mts|cts)|br)$/.test(asset.name)},
             // We have to load the whole lottie player to get the player to work in offline mode
             // heic-to library is used sparsely so we load it as a separate chunk to reduce initial bundle size
             // ExpensifyIcons/illustrations chunks are loaded eagerly for offline support
@@ -505,10 +521,16 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   clientsClaim: true,
                                   skipWaiting: true,
                                   // Cap is generous on purpose: the vendor (~6.5 MiB), main (~5.5 MiB),
-                                  // authScreens.prefetch (~6.3 MiB) chunks and canvaskit.wasm (~7.6 MiB) are
-                                  // all critical for offline boot, so we precache the lot. Everything in the
-                                  // App build is content-hashed, so growth here only costs first-install bytes.
-                                  maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+                                  // authScreens.prefetch (~10.1 MiB) chunks and the canvaskit wasm (~7.7 MiB) are
+                                  // all critical for offline boot, so we precache the lot. JS chunks are
+                                  // content-hashed and the wasm is versioned (see `CANVASKIT_WASM_FILENAME`),
+                                  // so growth here only costs first-install bytes. Copied assets that keep a
+                                  // fixed name (e.g. `cmaps/`) are keyed by Workbox revision instead.
+                                  maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+                                  // Workbox's defaults, plus the `.br` twins BrotliCompressionPlugin emits: the service
+                                  // worker requests the original URLs and the CDN transparently serves the Brotli copy,
+                                  // so adding the twins to the precache as well would download every chunk twice.
+                                  exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/],
                                   // Single-page app: any unmatched navigation should serve the cached app shell.
                                   navigateFallback: '/index.html',
                                   // Don't fall back for asset-like or .well-known requests.
@@ -598,6 +620,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                         : []),
                     // This allows us to interactively inspect JS bundle contents, loader/plugin timings, and duplicate packages
                     ...(process.env.ANALYZE_BUNDLE === 'true' ? [new RsdoctorRspackPlugin()] : []),
+                    // Writes a Brotli 11 twin (`foo.js` -> `foo.js.br`) beside every deployable text/bytecode asset, so the CDN
+                    // can serve it instead of compressing with gzip on the fly: 25-30% fewer bytes over the wire.
+                    ...(shouldCompressWithBrotli ? [new BrotliCompressionPlugin({test: /\.(?:js|css|html|svg|wasm|ttf)$/})] : []),
                 );
 
                 return afterShared;
