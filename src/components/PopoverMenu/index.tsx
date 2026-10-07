@@ -42,7 +42,7 @@ import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import usePopoverMenuFocusManagement from './usePopoverMenuFocusManagement';
@@ -697,21 +697,17 @@ function BasePopoverMenu({
         {isActive: isVisible},
     );
 
-    const keyboardShortcutSpaceCallback = useCallback(
-        (e?: GestureResponderEvent | KeyboardEvent) => {
-            if (!shouldUseScrollView) {
-                e?.preventDefault();
-            }
+    const keyboardShortcutSpaceCallback = (e?: GestureResponderEvent | KeyboardEvent) => {
+        if (!shouldUseScrollView) {
+            e?.preventDefault();
+        }
 
-            if (focusedIndex === -1 || currentMenuItems.at(focusedIndex)?.role !== CONST.ROLE.SWITCH) {
-                return;
-            }
-            selectItem(focusedIndex);
-            setFocusedIndex(focusedIndex);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [shouldUseScrollView, focusedIndex, currentMenuItems],
-    );
+        if (focusedIndex === -1 || currentMenuItems.at(focusedIndex)?.role !== CONST.ROLE.SWITCH) {
+            return;
+        }
+        selectItem(focusedIndex);
+        setFocusedIndex(focusedIndex);
+    };
 
     // On web, pressing the space bar after interacting with the parent view
     // can cause the parent view to scroll when the space bar is pressed.
