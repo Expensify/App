@@ -23,6 +23,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
@@ -58,19 +59,26 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     });
 
     const showApproveOnlyBlockedModal = (blockedReasons: string[]) => {
-        const reasonLines = blockedReasons.map((reason) => {
-            if (reason === 'hasCardOnPolicy') {
-                return `• ${translate('workspace.people.approveOnlyRoleBlockedReasons.hasCardOnPolicy')}`;
-            }
-            if (reason === 'isRestrictedByDomainGroup') {
-                return `• ${translate('workspace.people.approveOnlyRoleBlockedReasons.isRestrictedByDomainGroup')}`;
-            }
-            return `• ${translate('workspace.people.approveOnlyRoleBlockedReasons.isDefaultPolicy')}`;
-        });
+        const reasonTranslationKeys: Record<string, TranslationPaths> = {
+            [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.HAS_CARD_ON_POLICY]: 'workspace.people.approveOnlyRoleBlockedReasons.hasCardOnPolicy',
+            [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.IS_RESTRICTED_BY_DOMAIN_GROUP]: 'workspace.people.approveOnlyRoleBlockedReasons.isRestrictedByDomainGroup',
+            [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.IS_DEFAULT_POLICY]: 'workspace.people.approveOnlyRoleBlockedReasons.isDefaultPolicy',
+        };
+        // Skip reasons outside the known set instead of showing wrong copy for a value the backend added later.
+        const reasonLines = blockedReasons.filter((reason) => reason in reasonTranslationKeys).map((reason) => `• ${translate(reasonTranslationKeys[reason])}`);
         showConfirmModal({
             title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
             prompt: [translate('workspace.people.approveOnlyRoleBlockedDescription'), '', ...reasonLines].join('\n'),
             confirmText: translate('workspace.people.approveOnlyRoleBlockedConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
+    const showRoleUpdateErrorModal = () => {
+        showConfirmModal({
+            title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
+            prompt: translate('common.genericErrorMessage'),
+            confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
     };
@@ -93,14 +101,23 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
             return;
         }
         if (value === CONST.POLICY.ROLE.APPROVE_ONLY) {
-            updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value).then((response) => {
-                const blockedReasons = response?.data?.blockedReasons ?? [];
-                if (blockedReasons.length > 0) {
-                    showApproveOnlyBlockedModal(blockedReasons);
-                    return;
-                }
-                Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-            });
+            updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value)
+                .then((response) => {
+                    const blockedReasons = response?.data?.blockedReasons ?? [];
+                    if (blockedReasons.length > 0) {
+                        showApproveOnlyBlockedModal(blockedReasons);
+                        return;
+                    }
+                    // The action already set the failure on the member row, so only keep the user here to see the error modal.
+                    if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                        showRoleUpdateErrorModal();
+                        return;
+                    }
+                    Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+                })
+                .catch(() => {
+                    showRoleUpdateErrorModal();
+                });
             return;
         }
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);
