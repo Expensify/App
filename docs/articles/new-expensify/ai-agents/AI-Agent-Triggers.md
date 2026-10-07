@@ -3,6 +3,7 @@ title: Agent Trigger Reference
 description: Every event your Agent can react to, with ready-to-copy instruction phrases for your agent's prompt.
 keywords: [Custom Agent, Agent, agent triggers, report_activity, agent instructions, expense report events, workspace automation, when to trigger agent, report submitted, report approved, Expensify automation]
 internalScope: Audience is workspace admins configuring Agents. Covers all expose-level report_activity events. Does not cover chat message triggers or report-received triggers.
+contentType: topic
 order: 9
 ---
 
