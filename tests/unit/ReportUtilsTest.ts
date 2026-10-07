@@ -5890,6 +5890,8 @@ describe('ReportUtils', () => {
                 transaction: expenseTransaction,
                 comment: 'hold',
                 initialReportID: transactionThreadReport.reportID,
+                initialReport: transactionThreadReport,
+                transactionReport: expenseReport,
                 isOffline: false,
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
