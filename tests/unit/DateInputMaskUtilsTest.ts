@@ -58,44 +58,37 @@ describe('DateInputMaskUtils', () => {
             expect(typeDigitIntoSegments(segments('2026', '0', ''), 'month', '0')).toEqual({segments: segments('2026', '0', ''), nextSegmentName: undefined});
         });
 
-        it('caps the day at the month that was typed', () => {
-            // Given January, which has a 31st
-            expect(typeDigitIntoSegments(segments('2026', '01', '3'), 'day', '1')).toEqual({segments: segments('2026', '01', '31'), nextSegmentName: undefined});
+        it('keeps a day the month that was typed does not have, rather than reading it as another day', () => {
+            // Given February, which has no 31st, so the entry is left to be reported instead of answered with the 3rd
+            expect(typeDigitIntoSegments(segments('2026', '02', '3'), 'day', '1')).toEqual({segments: segments('2026', '02', '31'), nextSegmentName: undefined});
 
-            // Given February, which has no 31st, so the 3 can only have meant the 3rd
-            expect(typeDigitIntoSegments(segments('2026', '02', '3'), 'day', '1')).toEqual({segments: segments('2026', '02', '03'), nextSegmentName: undefined});
+            // Given January, where the same keystrokes read the same way
+            expect(typeDigitIntoSegments(segments('2026', '01', '3'), 'day', '1')).toEqual({segments: segments('2026', '01', '31'), nextSegmentName: undefined});
         });
 
-        it('finishes the day early in a month too short to start it with a 3', () => {
-            // Given February, where no day starts with a 3, so a 3 completes the segment instead of waiting
-            expect(typeDigitIntoSegments(segments('2026', '02', ''), 'day', '3')).toEqual({segments: segments('2026', '02', '03'), nextSegmentName: undefined});
-
-            // Given March, which has a 31st, so the 3 waits for a digit that might complete it
+        it('waits for a second digit after a 3 whichever month was typed', () => {
+            // Given February, where a 3 could still be meant to become the 31st the user is about to be told about
+            expect(typeDigitIntoSegments(segments('2026', '02', ''), 'day', '3')).toEqual({segments: segments('2026', '02', '3'), nextSegmentName: undefined});
             expect(typeDigitIntoSegments(segments('2026', '03', ''), 'day', '3')).toEqual({segments: segments('2026', '03', '3'), nextSegmentName: undefined});
         });
 
-        it('allows February 29 in a leap year and not otherwise', () => {
+        it('keeps February 29 whether or not the year is a leap year', () => {
             expect(typeDigitIntoSegments(segments('2024', '02', '2'), 'day', '9')).toEqual({segments: segments('2024', '02', '29'), nextSegmentName: undefined});
-            expect(typeDigitIntoSegments(segments('2026', '02', '2'), 'day', '9')).toEqual({segments: segments('2026', '02', '02'), nextSegmentName: undefined});
+            expect(typeDigitIntoSegments(segments('2026', '02', '2'), 'day', '9')).toEqual({segments: segments('2026', '02', '29'), nextSegmentName: undefined});
         });
 
-        it('caps the day at the longest month while no month has been typed', () => {
-            // Given a day entered before a month, which cannot be held to a limit the user has not set yet
+        it('caps the day at the longest month there is', () => {
             expect(typeDigitIntoSegments(segments('2026', '', '3'), 'day', '1')).toEqual({segments: segments('2026', '', '31'), nextSegmentName: undefined});
+            expect(typeDigitIntoSegments(segments('2026', '', '3'), 'day', '2')).toEqual({segments: segments('2026', '', '03'), nextSegmentName: undefined});
         });
 
-        it('moves the day back when the month typed after it is too short', () => {
-            // Given the 31st typed before November, which ends on the 30th
-            expect(typeDigitIntoSegments(segments('2026', '1', '31'), 'month', '1').segments).toEqual(segments('2026', '11', '30'));
-
-            // Given the 31st typed before February, which the day's own limits never saw
-            expect(typeDigitIntoSegments(segments('2026', '0', '31'), 'month', '2').segments).toEqual(segments('2026', '02', '28'));
+        it('leaves the day alone when the month typed after it does not have that day', () => {
+            // Given the 31st typed before February, which the user is told about rather than moved off
+            expect(typeDigitIntoSegments(segments('2026', '0', '31'), 'month', '2').segments).toEqual(segments('2026', '02', '31'));
         });
 
-        it('moves the day back when the year typed after it takes the leap day away', () => {
-            // Given February 29 typed before the year, which decides whether that day exists
-            expect(typeDigitIntoSegments(segments('202', '02', '29'), 'year', '6').segments).toEqual(segments('2026', '02', '28'));
-            expect(typeDigitIntoSegments(segments('202', '02', '29'), 'year', '4').segments).toEqual(segments('2024', '02', '29'));
+        it('leaves the day alone when the year typed after it takes the leap day away', () => {
+            expect(typeDigitIntoSegments(segments('202', '02', '29'), 'year', '6').segments).toEqual(segments('2026', '02', '29'));
         });
 
         it('has nothing to carry into past the day, so a rejected pair restarts it', () => {
@@ -373,12 +366,26 @@ describe('DateInputMaskUtils', () => {
             expect(getClipboardTextFromSegments(segments('1990', '02', '03'))).toBe('1990-02-03');
         });
 
-        it('copies the digits typed so far while the date is unfinished', () => {
+        it('copies a date that does not exist in the shape it was written in', () => {
+            // Given digits the field is holding back because they do not read as a date
+            // When they are cut or copied
+            // Then they arrive elsewhere looking the way they looked here rather than as a run of digits
+            expect(getClipboardTextFromSegments(segments('2003', '02', '31'))).toBe('2003-02-31');
+        });
+
+        it('copies the segments filled in so far while the date is unfinished', () => {
             // Given a date the user has only started
             // When it is cut or copied
-            // Then the digits go on their own, so pasting them back into a date field fills the same segments again
+            // Then what was filled in is carried over, so pasting it back fills the same segments again
             expect(getClipboardTextFromSegments(segments('1990', '', ''))).toBe('1990');
-            expect(getClipboardTextFromSegments(segments('1990', '2', ''))).toBe('199002');
+            expect(getClipboardTextFromSegments(segments('1990', '2', ''))).toBe('1990-02');
+        });
+
+        it('copies digits with a segment skipped over on their own', () => {
+            // Given a month filled in with no year before it, so no separator says which segment the digits came from
+            // When it is cut or copied
+            // Then they are handed over to be read back by position
+            expect(getClipboardTextFromSegments(segments('', '09', ''))).toBe('09');
         });
 
         it('has nothing to offer when no digit has been typed', () => {

@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {getDaysInMonth, isValid, parse} from 'date-fns';
+import {isValid, parse} from 'date-fns';
 
 const DATE_SEGMENT_NAMES = ['year', 'month', 'day'] as const;
 
@@ -18,15 +18,13 @@ const FIRST_MONTH = 1;
 
 /**
  * The highest a segment may read, and the highest its leading digit may be while still allowing a second one. The day
- * entry here is the longest month, which stands in until a month has been typed to say how long its own month is.
+ * is held to the longest month rather than to the month that was typed, since narrowing it would answer the 31st of
+ * February with a different day instead of leaving a date that does not exist to be reported.
  */
 const SEGMENT_LIMITS = {
     month: {max: 12, maxLeadingDigit: 1},
     day: {max: 31, maxLeadingDigit: 3},
 } as const;
-
-/** Stands in for a year that is not finished, so February keeps its 29th until the year rules it out */
-const FALLBACK_LEAP_YEAR = 2024;
 
 /** Mask characters standing in for a digit are letters, so anything else is a separator to copy through verbatim */
 const MASK_LETTER_REGEX = /\p{L}/u;
@@ -138,30 +136,11 @@ type SegmentDigitResult = {
 };
 
 /**
- * How high the day may go, and how high its leading digit may be, in the month that has been typed. Falling back to
- * the longest month while no month has been typed is what keeps a day entered before a month from being held to a
- * limit the user has not set yet.
- */
-function getDayLimits(segments: DateSegments): {max: number; maxLeadingDigit: number} {
-    const monthNumber = Number(segments.month);
-
-    if (!segments.month || monthNumber < FIRST_MONTH || monthNumber > SEGMENT_LIMITS.month.max) {
-        return SEGMENT_LIMITS.day;
-    }
-
-    const year = segments.year.length === YEAR_LENGTH ? Number(segments.year) : FALLBACK_LEAP_YEAR;
-    const max = getDaysInMonth(new Date(year, monthNumber - 1, 1));
-
-    // A month of 28 or 29 days cannot start a day with a 3, since there is no 30th to complete it
-    return {max, maxLeadingDigit: Math.floor(max / 10)};
-}
-
-/**
  * Adds one typed digit to a single segment, without knowing about the others. A digit that cannot extend what is
  * already there is handed on rather than dropped, so typing 1 then 3 into the month reads as January and starts the
  * day off with the 3.
  */
-function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digit: string, segments: DateSegments): SegmentDigitResult {
+function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digit: string): SegmentDigitResult {
     const current = typedSoFar.length >= getSegmentLength(name) ? '' : typedSoFar;
 
     if (name === 'year') {
@@ -170,7 +149,7 @@ function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digi
         return {value: year, shouldAdvance: year.length === YEAR_LENGTH};
     }
 
-    const limits = name === 'day' ? getDayLimits(segments) : SEGMENT_LIMITS[name];
+    const limits = SEGMENT_LIMITS[name];
 
     if (current.length === 1) {
         const combined = `${current}${digit}`;
@@ -198,24 +177,6 @@ function typeDigitIntoOneSegment(name: DateSegmentName, typedSoFar: string, digi
 }
 
 /**
- * Moves the day back to the last of its month when the month or year typed after it has made it impossible. The day
- * the user was closest to is kept rather than cleared, so a date that cannot exist never reaches the field.
- */
-function clampDayToMonth(segments: DateSegments): DateSegments {
-    if (!segments.day) {
-        return segments;
-    }
-
-    const {max} = getDayLimits(segments);
-
-    if (Number(segments.day) <= max) {
-        return segments;
-    }
-
-    return {...segments, day: String(max)};
-}
-
-/**
  * Adds one typed digit, following a carried digit into the following segments for as long as they keep handing one on.
  * `nextSegmentName` is where the caret belongs afterwards, and is undefined while the segment is unfinished.
  */
@@ -232,7 +193,7 @@ function typeDigitIntoSegments(
     let nextSegmentName: DateSegmentName | undefined;
 
     for (;;) {
-        const result = typeDigitIntoOneSegment(currentName, typedSoFar, currentDigit, filled);
+        const result = typeDigitIntoOneSegment(currentName, typedSoFar, currentDigit);
         filled[currentName] = result.value;
 
         const followingName = getFollowingSegmentName(currentName);
@@ -250,7 +211,7 @@ function typeDigitIntoSegments(
         currentDigit = result.carry;
     }
 
-    return {segments: clampDayToMonth(filled), nextSegmentName};
+    return {segments: filled, nextSegmentName};
 }
 
 /**
@@ -337,10 +298,10 @@ function splitDigitsBySegmentLength(digits: string, names: DateSegmentName[]): s
  * already there alone. A segment keeps what it held until the digits actually reach it, and is then replaced rather
  * than extended. Text holding no digits at all returns `baseSegments` itself, so a caller can tell nothing was pasted.
  *
- * What was pasted is taken at its word rather than read a digit at a time the way typing is. Typing offers to finish a
- * segment early when the digit is too big to start a longer number, which would quietly turn a pasted 31st of February
- * into the 3rd instead of reporting a date that does not exist. Separators say where each segment ends, and text
- * without them is divided by how much each segment holds.
+ * What was pasted is taken at its word rather than read a digit at a time the way typing is. Typing hands a digit
+ * that cannot extend a segment on to the next one, which would quietly turn a pasted 13 into January the 3rd instead
+ * of reporting a month that does not exist. Separators say where each segment ends, and text without them is divided
+ * by how much each segment holds.
  */
 function getSegmentsFromText(text: string, startName: DateSegmentName, baseSegments: DateSegments): DateSegments {
     const digitGroups = text.match(DIGIT_GROUP_REGEX);
@@ -384,11 +345,18 @@ function getISODateFromSegments(segments: DateSegments): string | undefined {
 }
 
 /**
- * What a cut or copy puts on the clipboard. A date that is not finished has only the digits that were typed to offer,
- * which is enough to put a date back together when they were entered from the start of the field.
+ * What a cut or copy puts on the clipboard, which is the date the field is showing rather than only one it could hand
+ * over. An entry that does not read as a date keeps its separators, so it arrives somewhere else looking the way it
+ * looked here.
+ *
+ * A segment left empty before a filled one has no separator that would say which segment it was, so those digits go on
+ * their own and are read back by position.
  */
 function getClipboardTextFromSegments(segments: DateSegments): string {
-    return getISODateFromSegments(segments) ?? DATE_SEGMENT_NAMES.map((name) => getSegmentDisplay(segments, name)).join('');
+    const displays = DATE_SEGMENT_NAMES.map((name) => getSegmentDisplay(segments, name));
+    const hasGap = displays.some((display, index) => !display && displays.slice(index + 1).some(Boolean));
+
+    return hasGap ? displays.join('') : displays.filter(Boolean).join('-');
 }
 
 function hasAnySegment(segments: DateSegments): boolean {
