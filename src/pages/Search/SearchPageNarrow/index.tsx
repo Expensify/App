@@ -19,6 +19,7 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -101,6 +102,7 @@ function SearchPageNarrow({
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData} = useSearchResultsContext();
@@ -293,7 +295,7 @@ function SearchPageNarrow({
                                                         queryJSON={queryJSON}
                                                     />
                                                 </CollapsibleHeaderOnKeyboardGroupMember>
-                                                <View style={[styles.flex1, styles.flexRow, styles.pt2, styles.mh5, styles.mb3, styles.gap3]}>
+                                                <View style={[styles.flex1, styles.flexRow, styles.pt2, pageGutterMargin, styles.mb3, styles.gap3]}>
                                                     <SearchPageInputSwitch
                                                         showStatic={!isHeaderInteractive}
                                                         queryJSON={queryJSON}

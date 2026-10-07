@@ -7,9 +7,10 @@ import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -197,7 +198,7 @@ function ApproverSelectionList({
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     disableMaintainingScrollPosition
                     showScrollIndicator
-                    isRowMultilineSupported
+                    titleNumberOfLines={2}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
