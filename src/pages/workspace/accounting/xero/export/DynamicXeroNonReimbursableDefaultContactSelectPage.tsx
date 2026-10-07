@@ -3,6 +3,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useInitialValue from '@hooks/useInitialValue';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,8 +82,10 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     // doesn't need the extra search row.
     const shouldShowTextInput = supplierOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
-    // Pin the selected supplier to the top of the full list before filtering, so it stays pinned while searching.
-    const orderedSupplierOptions = moveInitialSelectionToTop(supplierOptions, currentContactID ? [currentContactID] : []);
+    // Pin the supplier selected when the page opened to the top, before filtering. Freeze it so the optimistic update
+    // on select doesn't reorder the list for a frame before the page navigates back.
+    const initialContactID = useInitialValue(() => currentContactID);
+    const orderedSupplierOptions = moveInitialSelectionToTop(supplierOptions, initialContactID ? [initialContactID] : []);
 
     const filteredSupplierOptions = useMemo(
         () => (shouldShowTextInput ? tokenizedSearch(orderedSupplierOptions, searchText, (option) => [option.text ?? '']) : orderedSupplierOptions),
