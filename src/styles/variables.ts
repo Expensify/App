@@ -29,16 +29,13 @@ const avatarSizes = {
     avatarBorderWidthLarge: 4,
 } as const;
 
-const floatingTabBarHeight = 60;
-const floatingTabBarBottomInset = 8;
-
 export default {
     bottomTabHeight: 72,
-    floatingTabBarHeight,
+    floatingTabBarHeight: 60,
     floatingTabBarHorizontalInset: 16,
     // How far the selected pill reaches past its tab on each side, whatever the label's length.
     floatingTabBarSelectedOverhang: 4,
-    floatingTabBarBottomInset,
+    floatingTabBarBottomInset: 8,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),

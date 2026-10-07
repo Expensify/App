@@ -265,9 +265,9 @@ function SearchPageNarrow({
                 <ScreenWrapper
                     testID="SearchPageNarrow"
                     shouldEnableMaxHeight
-                    offlineIndicatorStyle={styles.mtAuto}
                     shouldShowOfflineIndicator={!!searchResults}
                     {...tabRootScreenWrapperProps}
+                    offlineIndicatorStyle={[styles.mtAuto, tabRootScreenWrapperProps.offlineIndicatorStyle]}
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         {!isMobileSelectionModeEnabled ? (

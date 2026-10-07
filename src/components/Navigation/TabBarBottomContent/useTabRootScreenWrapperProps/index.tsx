@@ -11,7 +11,7 @@ import TabBarBottomContent from '..';
 
 /**
  * On narrow layouts the floating tab bar is laid over the bottom of a tab root screen, so the content runs under it
- * down to the bottom edge of the screen. Each tab root's list ends with room for the bar.
+ * down to the bottom edge of the screen. Each tab root's list and the offline indicator end with room for the bar.
  */
 function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['selectedTab']): TabRootScreenWrapperProps {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -20,6 +20,7 @@ function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['sel
     return {
         bottomContent: <TabBarBottomContent selectedTab={selectedTab} />,
         bottomContentStyle: shouldUseNarrowLayout ? styles.floatingTabBarOverlay : styles.overflowVisible,
+        offlineIndicatorStyle: shouldUseNarrowLayout ? styles.floatingTabBarOfflineIndicator : undefined,
     };
 }
 

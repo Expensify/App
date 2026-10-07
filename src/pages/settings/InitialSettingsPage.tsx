@@ -61,6 +61,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const navigation = useNavigation();
     const isDrawnOverTabs = useIsSettingsDrawnOverTabs();
+
     // The tab navigator keeps the full tab history, so going back returns to the tab the user opened Account from.
     // With nothing behind it, as after a deep link, Home replaces Account so that going back does not reopen it.
     const goBackFromAccount = () => {
@@ -68,15 +69,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             navigation.goBack();
             return;
         }
+
         Navigation.navigate(ROUTES.HOME, {forceReplace: true});
     };
+
     useAndroidBackButtonHandler(() => {
         if (!isDrawnOverTabs) {
             return false;
         }
+
         goBackFromAccount();
         return true;
     });
+
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const {accountMenuItemsData, generalMenuItemsData} = useInitialSettingsPageMenuData(currentUserPersonalDetails);
@@ -92,10 +97,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [hasAccountBeenSwitched]);
 
     const hasAccountBeenShown = useHasTabBeenShown(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+
     useEffect(() => {
         if (!hasAccountBeenShown) {
             return;
         }
+
         openInitialSettingsPage();
     }, [hasAccountBeenShown]);
 

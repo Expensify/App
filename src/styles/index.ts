@@ -790,6 +790,11 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
+        // The floating bar is laid over the bottom of a tab root screen, so the offline indicator sits above it.
+        floatingTabBarOfflineIndicator: {
+            marginBottom: variables.floatingTabBarHeight + variables.floatingTabBarBottomInset,
+        },
+
         // The gap between the floating bar and the bottom edge of the screen.
         floatingTabBarBottomInset: {
             paddingBottom: variables.floatingTabBarBottomInset,
