@@ -83,6 +83,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Lets the header render column edge handles. `undefined` when resizing is off, which includes native and narrow layouts. */
     columnResize: ColumnResizeController | undefined;
 
+    /** Key the dragged widths are stored under. `undefined` whenever resizing is off. */
+    columnResizingID: string | undefined;
+
     /** Measured width of the area the table lays out into. Content-sized columns only. `0` until the first layout. */
     tableWidth: number;
 
@@ -148,6 +151,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     scrollWidth: undefined,
     rowWidth: undefined,
     columnResize: undefined,
+    columnResizingID: undefined,
     tableWidth: 0,
     activeFilters: {},
     activeSorting: {

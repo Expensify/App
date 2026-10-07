@@ -389,6 +389,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
     const {isBetaEnabled} = usePermissions();
     const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
+    const activeColumnResizingID = isColumnResizingEnabled ? columnResizingID : undefined;
     const [columnWidthOverrides] = useOnyx(ONYXKEYS.TABLE_COLUMN_WIDTHS, {selector: tableColumnWidthsSelector(columnResizingID)});
 
     // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
@@ -412,7 +413,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     });
 
     const columnResize = useColumnResize({
-        columnResizingID: isColumnResizingEnabled ? columnResizingID : undefined,
+        columnResizingID: activeColumnResizingID,
         resizableColumnKeys,
         resolvedColumnWidths,
         dragMinWidths,
@@ -543,6 +544,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         scrollWidth: dynamicScrollWidth,
         rowWidth: dynamicRowWidth,
         columnResize,
+        columnResizingID: activeColumnResizingID,
         tableWidth,
         filterConfig: filters,
         activeFilters: currentFilters,

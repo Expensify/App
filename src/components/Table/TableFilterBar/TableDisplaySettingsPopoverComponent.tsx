@@ -1,3 +1,5 @@
+import CompactMenuContext from '@components/CompactMenuContext';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
@@ -6,9 +8,11 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useColumnWidthsReset from '@components/Table/columnResize/useColumnWidthsReset';
 import type {ActiveSorting} from '@components/Table/middlewares/sorting';
 import {useTableContext} from '@components/Table/TableContext';
 
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -89,6 +93,7 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
 export default function TableDisplaySettingsPopoverComponent({closeOverlay}: TableDisplaySettingsPopoverComponentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['RotateLeft']);
     const {
         columns,
         activeSorting,
@@ -96,6 +101,7 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
         initialSortOrder,
         tableMethods: {updateSorting},
     } = useTableContext();
+    const resetColumnWidths = useColumnWidthsReset();
     const [selectedSetting, setSelectedSetting] = useState<'sortBy' | 'sortOrder' | null>(null);
 
     const defaultSorting: ActiveSorting<string> = {
@@ -184,12 +190,27 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
 
     return (
         <ScrollView contentContainerStyle={[styles.pv4]}>
-            <MenuItemField
-                name={translate('search.display.sortBy')}
-                onPress={openSortBy}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
-                value={sortByTitle}
-            />
+            {sortableColumns.length > 0 && (
+                <MenuItemField
+                    name={translate('search.display.sortBy')}
+                    onPress={openSortBy}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
+                    value={sortByTitle}
+                />
+            )}
+            {!!resetColumnWidths && (
+                <CompactMenuContext.Provider value>
+                    <MenuItemAction
+                        icon={expensifyIcons.RotateLeft}
+                        title={translate('search.resetColumns')}
+                        onPress={() => {
+                            closeOverlay();
+                            resetColumnWidths();
+                        }}
+                        sentryLabel={CONST.SENTRY_LABEL.TABLE.RESET_COLUMNS}
+                    />
+                </CompactMenuContext.Provider>
+            )}
         </ScrollView>
     );
 }
