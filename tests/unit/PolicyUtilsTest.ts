@@ -15,7 +15,6 @@ import {
     canSendInvoiceFromWorkspace,
     evaluateApprovalWorkflowRule,
     findVendorByID,
-    getVendorFeaturePolicyIDs,
     getVendorDisplayName,
     hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
@@ -44,8 +43,10 @@ import {
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getPolicyApproverLogins,
+    hasActiveExpensifyCard,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
+    getPolicyForAssignedCard,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
     getOwnerChangePayerSuccessData,
@@ -4516,53 +4517,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('sortVendors', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b);
-
-        it('sorts vendors alphabetically by name using localeCompare', () => {
-            const vendors = [
-                {id: '1', name: 'Zebra'},
-                {id: '2', name: 'Apple'},
-                {id: '3', name: 'Banana'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
-        });
-
-        it('breaks name ties using vendor id', () => {
-            const vendors = [
-                {id: 'vendor_b', name: 'Acme'},
-                {id: 'vendor_a', name: 'Acme'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
-        });
-
-        it('does not sort the input array in place', () => {
-            const vendors = [
-                {id: '2', name: 'Zebra'},
-                {id: '1', name: 'Alpha'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result).not.toBe(vendors);
-            expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
-        });
-
-        it('returns empty array for empty input', () => {
-            expect(sortVendors([], localeCompare)).toEqual([]);
-        });
-
-        it('returns single-element array as-is', () => {
-            const vendors = [{id: '1', name: 'Only'}];
-            const result = sortVendors(vendors, localeCompare);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.name).toBe('Only');
-        });
-    });
-
     describe('getSageIntacctVendors', () => {
         const localeCompare = (a: string, b: string) => a.localeCompare(b);
 
@@ -4958,7 +4912,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('Vendor matching helpers', () => {
+    describe('vendor', () => {
         const buildQBOPolicy = (
             exportDestination: QBONonReimbursableExportAccountType | undefined,
             vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
@@ -5612,7 +5566,7 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
+        describe('hasVendorFeatureOnAnyPolicy', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
             const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
@@ -5661,19 +5615,6 @@ describe('PolicyUtils', () => {
 
                 // Then the feature is not available on any workspace because Business Central still depends on the beta
                 expect(isVendorFeatureAvailable).toBe(false);
-            });
-
-            it('lists the workspaces that have the vendor feature', () => {
-                // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
-                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
-
-                // When the workspace IDs are listed with and without the vendorMatching beta
-                const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
-                const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
-
-                // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
-                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
-                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
             });
         });
 
@@ -5902,36 +5843,6 @@ describe('PolicyUtils', () => {
 
             it('returns undefined when Xero contacts have not synced yet', () => {
                 expect(getXeroSupplierByID(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), 'xc1')).toBeUndefined();
-            });
-        });
-
-        describe('getXeroExpenseAccounts', () => {
-            const XERO_EXPENSE_ACCOUNTS = [
-                {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
-                {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
-            ];
-
-            it('maps the expense accounts to selector options', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
-                    {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
-                    {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
-                ]);
-            });
-
-            it('marks only the selected account as selected', () => {
-                const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
-                expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
-                    {keyForList: 'acc1', isSelected: false},
-                    {keyForList: 'acc2', isSelected: true},
-                ]);
-            });
-
-            it('selects nothing when the stored account is no longer in the synced list', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
-            });
-
-            it('returns an empty array when Xero expense accounts have not synced yet', () => {
-                expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
             });
         });
 
@@ -6191,6 +6102,83 @@ describe('PolicyUtils', () => {
                     subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
                 });
             });
+        });
+
+        describe('sortVendors', () => {
+            const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+            it('sorts vendors alphabetically by name using localeCompare', () => {
+                const vendors = [
+                    {id: '1', name: 'Zebra'},
+                    {id: '2', name: 'Apple'},
+                    {id: '3', name: 'Banana'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
+            });
+
+            it('breaks name ties using vendor id', () => {
+                const vendors = [
+                    {id: 'vendor_b', name: 'Acme'},
+                    {id: 'vendor_a', name: 'Acme'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
+            });
+
+            it('does not sort the input array in place', () => {
+                const vendors = [
+                    {id: '2', name: 'Zebra'},
+                    {id: '1', name: 'Alpha'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).not.toBe(vendors);
+                expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
+            });
+
+            it('returns empty array for empty input', () => {
+                expect(sortVendors([], localeCompare)).toEqual([]);
+            });
+
+            it('returns single-element array as-is', () => {
+                const vendors = [{id: '1', name: 'Only'}];
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.name).toBe('Only');
+            });
+        });
+    });
+
+    describe('getXeroExpenseAccounts', () => {
+        const XERO_EXPENSE_ACCOUNTS = [
+            {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
+            {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
+        ];
+
+        it('maps the expense accounts to selector options', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
+                {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
+                {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
+            ]);
+        });
+
+        it('marks only the selected account as selected', () => {
+            const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
+            expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
+                {keyForList: 'acc1', isSelected: false},
+                {keyForList: 'acc2', isSelected: true},
+            ]);
+        });
+
+        it('selects nothing when the stored account is no longer in the synced list', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
+        });
+
+        it('returns an empty array when Xero expense accounts have not synced yet', () => {
+            expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
         });
     });
 
@@ -6498,6 +6486,43 @@ describe('getPolicyIDFromDomainName', () => {
     });
 });
 
+describe('getPolicyForAssignedCard', () => {
+    const policy: Policy = {...createRandomPolicy(0), id: 'A1B2C3', policyAccountID: 88801};
+    const policies = {[`${ONYXKEYS.COLLECTION.POLICY}A1B2C3`]: policy};
+
+    // The workspace is what decides whether the cardholder is shown the fix link or told to ask an admin, so a card
+    // has to find it whatever the company named their domain.
+    it('finds the workspace for a card on a domain that is not a workspace feed', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('finds the workspace for a card on a workspace-feed domain', () => {
+        const card = {domainName: 'expensify-policyA1B2C3.exfy', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('falls back to the domain name for a card that has no fundID', () => {
+        const card = {domainName: 'expensify-policyA1B2C3.exfy'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('returns undefined when no workspace matches the card', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '99999'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toBeUndefined();
+    });
+
+    it('returns undefined when there are no policies', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, {})).toBeUndefined();
+    });
+});
+
 describe('getDefaultWorkspacePlanType', () => {
     const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
     const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
@@ -6585,6 +6610,56 @@ describe('getPolicyApproverLogins', () => {
             },
         };
         expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+    });
+});
+
+describe('hasActiveExpensifyCard', () => {
+    it('returns false when policy is undefined', () => {
+        expect(hasActiveExpensifyCard(undefined, 'cardholder@test.com')).toBe(false);
+    });
+
+    it('returns true when the backend flags the member as holding an active Expensify Card', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'cardholder@test.com')).toBe(true);
+    });
+
+    it('returns false when the flag is false or missing', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'former-cardholder@test.com': {email: 'former-cardholder@test.com', hasActiveExpensifyCard: false},
+                'employee@test.com': {email: 'employee@test.com'},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'former-cardholder@test.com')).toBe(false);
+        expect(hasActiveExpensifyCard(policy, 'employee@test.com')).toBe(false);
+    });
+
+    it('returns false when the member is not in the employeeList', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'someone-else@test.com')).toBe(false);
+    });
+
+    it('returns true when the secondary login is checked and the backend flags its paired primary login', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            primaryLoginsInvited: {'secondary@test.com': 'primary@test.com'},
+            employeeList: {
+                'secondary@test.com': {email: 'secondary@test.com'},
+                'primary@test.com': {email: 'primary@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'secondary@test.com')).toBe(true);
     });
 });
 
