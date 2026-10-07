@@ -34,7 +34,7 @@ import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
-import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
+import {compactTransactionWaypoints, openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
 import {removeBackupTransaction} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -47,7 +47,16 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
-import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {
+    getDistanceInMeters,
+    getRateID,
+    getRequestType,
+    getSelectedRouteKey,
+    getValidWaypoints,
+    hasManualDistanceOverride,
+    haveWaypointAddressesChanged,
+    removeEmptyWaypoints,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -540,8 +549,16 @@ function DynamicIOURequestStepDistance({
         if (blockDistanceRequestIfNeeded()) {
             return;
         }
+        // Gaps could otherwise satisfy the two-waypoint checks and resurface as wrong waypoints on edit.
+        const compactedWaypoints = removeEmptyWaypoints(waypoints);
+        const hasEmptyWaypoints = Object.keys(compactedWaypoints).length !== Object.keys(waypoints).length;
+        const compactedNonEmptyCount = Object.keys(compactedWaypoints).length;
+        const compactedValidatedCount = Object.keys(getValidWaypoints(compactedWaypoints)).length;
+        const hasDuplicateWaypointsError = compactedNonEmptyCount >= 2 && compactedValidatedCount !== compactedNonEmptyCount;
+        const hasAtLeastTwoDifferentWaypointsError = compactedValidatedCount < 2;
+
         // If there is any error or loading state, don't let user go to next page.
-        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
+        if (hasDuplicateWaypointsError || hasAtLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
@@ -596,7 +613,7 @@ function DynamicIOURequestStepDistance({
                     transactionThreadReport: report,
                     parentReport,
                     iouReportOwnerLogin,
-                    waypoints,
+                    waypoints: compactedWaypoints,
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     // Sent when dropping an override too: it is what carries `selectedRouteDistance` to the BE, which is
@@ -628,14 +645,16 @@ function DynamicIOURequestStepDistance({
             return;
         }
 
+        if (hasEmptyWaypoints) {
+            // Only rewrites comment.waypoints, so the fetched route survives.
+            compactTransactionWaypoints(transactionID, waypoints, transactionState);
+        }
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
         isVendorMatchingBetaEnabled,
         allTransactionViolations,
         blockDistanceRequestIfNeeded,
-        duplicateWaypointsError,
-        atLeastTwoDifferentWaypointsError,
         hasRouteError,
         isLoadingRoute,
         isEditing,
@@ -649,6 +668,7 @@ function DynamicIOURequestStepDistance({
         transactionBackup,
         getHasSelectedRouteChanged,
         waypoints,
+        transactionState,
         transaction,
         report,
         currentTransaction,

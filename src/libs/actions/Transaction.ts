@@ -60,6 +60,7 @@ import {
     isOdometerDistanceRequest,
     isOnHold,
     isTransactionOwner,
+    removeEmptyWaypoints,
     shouldClearConvertedAmount,
     waypointHasValidAddress,
 } from '@libs/TransactionUtils';
@@ -407,24 +408,15 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
     API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType));
 }
 /**
- * Updates all waypoints stored in the transaction specified by the provided transactionID.
- *
- * @param transactionID - The ID of the transaction to be updated
- * @param waypoints - An object containing all the waypoints which will replace the existing ones.
- * @param transactionState - The state of the transaction that should be updated
- * @param existingWaypoints - The existing waypoints before update, used to clear extra waypoints when new waypoints are fewer
+ * Builds the Onyx merge value for a full waypoint overwrite, mapping every field to null so
+ * removed entries are cleared.
  */
-function updateWaypoints(
-    transactionID: string,
-    waypoints: WaypointCollection,
-    transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
-    existingWaypoints?: WaypointCollection,
-): Promise<void | void[]> {
+function buildWaypointsOnyxUpdate(waypoints: WaypointCollection, existingWaypoints?: WaypointCollection) {
     const allWaypointKeys = [...new Set([...Object.keys(existingWaypoints ?? {}), ...Object.keys(waypoints)])];
 
     // Updating waypoints should completely overwrite the existing ones.
     // Onyx merge performs noop on undefined fields. Thus we should fallback to null so the existing fields are cleared.
-    const waypointsOnyxUpdate = allWaypointKeys.reduce(
+    return allWaypointKeys.reduce(
         (acc, key) => {
             const waypoint = waypoints[key];
             if (!waypoint) {
@@ -449,20 +441,37 @@ function updateWaypoints(
         },
         {} as Record<string, Required<NullishDeep<RecentWaypoint & Waypoint>> | null>,
     );
+}
 
-    let keyPrefix;
+function getTransactionWaypointsKeyPrefix(transactionState: TransactionState) {
     switch (transactionState) {
         case CONST.TRANSACTION.STATE.DRAFT:
-            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
-            break;
+            return ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
         case CONST.TRANSACTION.STATE.SPLIT_DRAFT:
-            keyPrefix = ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT;
-            break;
+            return ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT;
         case CONST.TRANSACTION.STATE.CURRENT:
         default:
-            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION;
-            break;
+            return ONYXKEYS.COLLECTION.TRANSACTION;
     }
+}
+
+/**
+ * Updates all waypoints stored in the transaction specified by the provided transactionID.
+ *
+ * @param transactionID - The ID of the transaction to be updated
+ * @param waypoints - An object containing all the waypoints which will replace the existing ones.
+ * @param transactionState - The state of the transaction that should be updated
+ * @param existingWaypoints - The existing waypoints before update, used to clear extra waypoints when new waypoints are fewer
+ */
+function updateWaypoints(
+    transactionID: string,
+    waypoints: WaypointCollection,
+    transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
+    existingWaypoints?: WaypointCollection,
+): Promise<void | void[]> {
+    const waypointsOnyxUpdate = buildWaypointsOnyxUpdate(waypoints, existingWaypoints);
+
+    const keyPrefix = getTransactionWaypointsKeyPrefix(transactionState);
 
     return Onyx.merge(`${keyPrefix}${transactionID}`, {
         comment: {
@@ -493,6 +502,21 @@ function updateWaypoints(
 
         // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
         isReusedRoute: null,
+    });
+}
+
+/**
+ * Drops empty waypoint slots without touching routes, quantity, or the selected route.
+ */
+function compactTransactionWaypoints(transactionID: string, waypoints: WaypointCollection, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): Promise<void> {
+    const compactedWaypoints = removeEmptyWaypoints(waypoints);
+    const waypointsOnyxUpdate = buildWaypointsOnyxUpdate(compactedWaypoints, waypoints);
+    const keyPrefix = getTransactionWaypointsKeyPrefix(transactionState);
+
+    return Onyx.merge(`${keyPrefix}${transactionID}`, {
+        comment: {
+            waypoints: waypointsOnyxUpdate,
+        },
     });
 }
 
@@ -2308,6 +2332,7 @@ export {
     removeWaypoint,
     getRoute,
     updateWaypoints,
+    compactTransactionWaypoints,
     clearError,
     clearErrorWithOriginalTransactionError,
     markAsCash,

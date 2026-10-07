@@ -40,6 +40,7 @@ import type {ValueOf} from 'type-fest';
 import {differenceInCalendarDays, format, isValid, parse, parseISO} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
+import isEmpty from 'lodash/isEmpty';
 
 import {hasValidModifiedAmount, isAmountMissing, isFailedScanAmountPlaceholder} from './amountUtils';
 // These cycle imports are safe because buildOptimisticTransaction, getUpdatedTransaction, and the duplicates and tax helpers were extracted from this file to keep it under the max-lines limit.
@@ -1272,6 +1273,38 @@ function isWaypointNullIsland(waypoint: RecentWaypoint | Waypoint): boolean {
 }
 
 /**
+ * A waypoint is empty when it carries nothing but its `keyForList`.
+ */
+function isWaypointEmpty(waypoint?: Waypoint): boolean {
+    if (!waypoint) {
+        return true;
+    }
+    const {keyForList, ...waypointWithoutKey} = waypoint;
+    return isEmpty(waypointWithoutKey);
+}
+
+/**
+ * Removes empty waypoints and renumbers the remaining keys.
+ */
+function removeEmptyWaypoints(waypoints: WaypointCollection | undefined): WaypointCollection {
+    if (!waypoints) {
+        return {};
+    }
+
+    return Object.keys(waypoints)
+        .map(getWaypointIndex)
+        .sort((a, b) => a - b)
+        .reduce<WaypointCollection>((acc, index) => {
+            const waypoint = waypoints[`waypoint${index}`];
+            if (isWaypointEmpty(waypoint)) {
+                return acc;
+            }
+            acc[`waypoint${Object.keys(acc).length}`] = waypoint;
+            return acc;
+        }, {});
+}
+
+/**
  * Converts the key of a waypoint to its index
  */
 function getWaypointIndex(key: string): number {
@@ -1891,7 +1924,9 @@ export {
     hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,
+    isWaypointEmpty,
     isWaypointNullIsland,
+    removeEmptyWaypoints,
     getRecentTransactions,
     hasReservationList,
     hasViolation,

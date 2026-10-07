@@ -23,14 +23,14 @@ import useWaypointItems from '@hooks/useWaypointItems';
 
 import {init, stop} from '@libs/actions/MapboxToken';
 import {fetchReusableDistanceRoutes} from '@libs/actions/ReusableDistanceRoutes';
-import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
+import {compactTransactionWaypoints, openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType} from '@libs/TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType, getValidWaypoints, removeEmptyWaypoints} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -193,11 +193,11 @@ function IOURequestStepDistanceMap({
 
     // Load the reusable routes on mount so the Reuse route button visibility is known before the user opens the picker
     useEffect(() => {
-        if (action !== CONST.IOU.ACTION.CREATE) {
+        if (action !== CONST.IOU.ACTION.CREATE || !isBetaEnabled(CONST.BETAS.REUSABLE_DISTANCE_ROUTES)) {
             return;
         }
         fetchReusableDistanceRoutes();
-    }, [action]);
+    }, [action, isBetaEnabled]);
 
     const navigateToReuseRoutePage = () => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID));
@@ -319,14 +319,25 @@ function IOURequestStepDistanceMap({
         if (blockDistanceRequestIfNeeded()) {
             return;
         }
+        // Gaps could otherwise satisfy the two-waypoint checks and resurface as wrong waypoints on edit.
+        const compactedWaypoints = removeEmptyWaypoints(waypoints);
+        const hasEmptyWaypoints = Object.keys(compactedWaypoints).length !== Object.keys(waypoints).length;
+        const compactedNonEmptyCount = Object.keys(compactedWaypoints).length;
+        const compactedValidatedCount = Object.keys(getValidWaypoints(compactedWaypoints)).length;
+        const hasDuplicateWaypointsError = compactedNonEmptyCount >= 2 && compactedValidatedCount !== compactedNonEmptyCount;
+        const hasAtLeastTwoDifferentWaypointsError = compactedValidatedCount < 2;
+
         // If there is any error or loading state, don't let user go to next page.
-        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
+        if (hasDuplicateWaypointsError || hasAtLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
+        if (hasEmptyWaypoints) {
+            compactTransactionWaypoints(transactionID, waypoints, transactionState);
+        }
         suppressDiscardPrompt();
         navigateToNextStep();
-    }, [blockDistanceRequestIfNeeded, duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, suppressDiscardPrompt, navigateToNextStep]);
+    }, [blockDistanceRequestIfNeeded, hasRouteError, isLoadingRoute, isLoading, suppressDiscardPrompt, navigateToNextStep, transactionID, transactionState, waypoints]);
 
     const renderItem = useCallback(
         ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {
