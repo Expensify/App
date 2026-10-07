@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
@@ -12,6 +12,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,6 +41,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
 import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 
@@ -57,12 +60,14 @@ function WorkspacesListPage() {
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const {isBetaEnabled} = usePermissions();
+    const canUseArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
 
     // Light, flat projection of the policy collection. Deep, frequently mutated policy fields (isLoading*
     // flags, employeeList, connections, etc.) are excluded, so background writes to them no longer commit
     // this page. Per-row error indicators subscribe to those fields themselves in WorkspaceRowBrickRoadIndicator.
-    const [workspaceListPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createWorkspaceListPoliciesSelector(session?.email)});
+    const [workspaceListPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createWorkspaceListPoliciesSelector(session?.email, canUseArchivePolicies)});
 
     // IDs of every workspace eligible as a copy-settings target. Derived once per policy write (not per row) so each row can cheaply decide whether to offer "Copy settings".
     const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)});
@@ -72,6 +77,7 @@ function WorkspacesListPage() {
         !!copySettingsEligibleTargets && (copySettingsEligibleTargets.length > 1 || (copySettingsEligibleTargets.length === 1 && copySettingsEligibleTargets.at(0) !== policyID));
 
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
+    const [policyIDToArchive, setPolicyIDToArchive] = useState<string>();
 
     // Narrow subscription keeping the owner name/avatar columns reactive without re-rendering the page
     // when anything else in the personal details list changes.
@@ -82,7 +88,7 @@ function WorkspacesListPage() {
                 .filter((id): id is number => id !== undefined),
         ),
     ];
-    const [ownerDisplayDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: createDisplayDetailsByAccountIDsSelector(ownerAccountIDs)});
+    const [ownerDisplayDetails] = useAllPersonalDetails(createDisplayDetailsByAccountIDsSelector(ownerAccountIDs));
 
     const navigateToWorkspace = (policyID: string, event?: ModifiedMouseEvent) => {
         const workspaceRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
@@ -122,6 +128,7 @@ function WorkspacesListPage() {
                 title: policy.nonMemberDetails.name,
                 role: CONST.POLICY.ROLE.USER,
                 isDeleted: false,
+                isArchived: false,
                 isJoinRequestPending: true,
                 isEligibleToCopy: false,
                 isDefault: activePolicyID === policyID,
@@ -152,6 +159,7 @@ function WorkspacesListPage() {
                 role: policy.role,
                 ownerAccountID: policy.ownerAccountID,
                 isJoinRequestPending: false,
+                isArchived: policy.isArchived,
                 isEligibleToCopy,
                 shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                 isDefault: activePolicyID === policyID,
@@ -258,6 +266,7 @@ function WorkspacesListPage() {
                         workspaces={workspaceRows}
                         headerComponent={headerComponent}
                         onDeleteWorkspace={setPolicyIDToDelete}
+                        onArchiveWorkspace={setPolicyIDToArchive}
                         pendingDeletePolicyID={policyIDToDelete}
                     />
                 )}
@@ -266,6 +275,13 @@ function WorkspacesListPage() {
                         key={policyIDToDelete}
                         policyID={policyIDToDelete}
                         onDismiss={() => setPolicyIDToDelete(undefined)}
+                    />
+                )}
+                {!!policyIDToArchive && (
+                    <ArchiveWorkspaceFlow
+                        key={policyIDToArchive}
+                        policyID={policyIDToArchive}
+                        onDismiss={() => setPolicyIDToArchive(undefined)}
                     />
                 )}
                 <CopyPolicySettingsProgressModal />

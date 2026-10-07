@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -38,7 +39,7 @@ import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import type {Location} from '@src/types/utils/Layout';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -60,12 +61,12 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 }
 
 type PopoverReportActionContextMenuProps = {
-    /** Reference to the outer element */
     ref?: ForwardedRef<ReportActionContextMenu>;
 };
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -74,8 +75,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const selectionRef = useRef('');
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
-    const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
-    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
+    const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions, isOffline)}`);
+    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions, isOffline));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {isOffline} = useNetwork();
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -109,8 +110,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
-    const contentRef = useRef<View>(null);
-    const anchorRef = useRef<View | HTMLDivElement | null>(null);
+    const contentRef = useRef<ComponentRef<typeof View>>(null);
+    const anchorRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
     const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
     const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);
@@ -363,6 +364,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const childParentReportAction = useParentReportAction(childReport);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
+    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -372,7 +375,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         policy,
     });
 
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions, isOffline)}`);
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
@@ -393,9 +396,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     chatReportID: reportIDRef.current,
                     chatReport: report,
                     chatReportActions: reportActions,
+                    transactionThreadReportActions: childReportActions,
                     transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
+                    iouReportTransactions,
                     chatIOUReport: chatReport,
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
@@ -441,6 +446,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isReportArchived,
                     isOriginalReportArchived,
                     email ?? '',
+                    isOffline,
                     visibleReportActionsData ?? undefined,
                 );
             };
@@ -457,6 +463,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         childReport,
         selfDMReport,
         iouReport,
+        iouReportTransactions,
         chatReport,
         duplicateTransactions,
         duplicateTransactionViolations,
@@ -471,6 +478,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         reportTransactions,
         bankAccountList,
         isOriginalReportArchived,
+        isOffline,
         visibleReportActionsData,
         iouTransaction,
         iouOriginalTransaction,
@@ -581,7 +589,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 prompt={translate('reportActionContextMenu.deleteConfirmation', reportAction)}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
         </>
     );

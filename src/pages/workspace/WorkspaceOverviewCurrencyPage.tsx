@@ -5,8 +5,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
+import {getExpensifyCardEnrollmentRoute, isCurrencySupportedForECards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -41,16 +43,37 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CURRENCY>>();
     const {translate} = useLocalize();
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
+    const shouldStartExpensifyCardEnrollment = !!route.params?.shouldStartExpensifyCardEnrollment;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
             return;
         }
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode);
+        updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode, getReviewWorkspaceSettingsTaskCompletion());
         clearCorpayBankAccountFields();
+
+        const isUkEuCurrencySupported = isCurrencySupportedForECards(item.currencyCode);
+        const canEnrollNewCardProgram = item.currencyCode === CONST.CURRENCY.USD || isUkEuCurrencySupported;
+        if (shouldStartExpensifyCardEnrollment && canEnrollNewCardProgram) {
+            Navigation.navigate(
+                getExpensifyCardEnrollmentRoute({
+                    policyID: policy.id,
+                    currencyCode: item.currencyCode,
+                    isUkEuCurrencySupported,
+                    bankAccountsList: bankAccountList,
+                    supportedCountriesByCurrency,
+                    achData: reimbursementAccount?.achData,
+                }),
+                {forceReplace: true},
+            );
+            return;
+        }
 
         if (isForcedToChangeCurrency) {
             if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType)) {
@@ -101,4 +124,6 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     );
 }
 
+export {WorkspaceOverviewCurrencyPage};
+export type {WorkspaceOverviewCurrencyPageProps};
 export default withPolicyAndFullscreenLoading(WorkspaceOverviewCurrencyPage);

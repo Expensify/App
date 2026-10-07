@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +21,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {clearDeleteTransactionNavigateBackUrl, openReport} from '@libs/actions/Report';
 import {dismissDuplicateTransactionViolation, getDuplicateTransactionDetails} from '@libs/actions/Transaction';
-import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -29,6 +30,7 @@ import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils'
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
+import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +40,7 @@ import type {Transaction} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -49,6 +52,7 @@ function DynamicReviewPage() {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
@@ -63,12 +67,28 @@ function DynamicReviewPage() {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    // Read alongside the IDs so the fallback below can hand a snapshot-backed carousel back intact. The module
+    // mirror is empty after a reload (it only ever lives for one JS session), and rebuilding from the IDs alone
+    // dropped the hash and the descriptors, which is exactly the data the siblings are resolved from.
+    const [activeSnapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
+    const [activeSiblingDescriptors] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const originalTransactionIDsListRef = useRef<string[] | null>(null);
+    // The whole carousel this screen is about to displace, so the restore effect below can hand it back exactly as
+    // it was. The owner has to be the screen the carousel came from (Search, or a report's list): re-seeding the
+    // previous screen's list under duplicate review's own source would leave that screen unable to refresh or
+    // release its own carousel. The snapshot hash and descriptors have to come back too, or a snapshot-backed
+    // carousel loses the data its siblings are resolved from.
+    const displacedCarouselRef = useRef<{
+        ids: string[];
+        source: string | undefined;
+        snapshotHash: number | undefined;
+        descriptors: Record<string, TransactionThreadNavigationDescriptor> | undefined;
+    } | null>(null);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
@@ -120,8 +140,25 @@ function DynamicReviewPage() {
         if (!route.params.reportID || report?.reportID) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID: currentPersonalDetails.accountID});
-    }, [report?.reportID, route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentPersonalDetails.accountID]);
+        openReport({
+            reportID: route.params.reportID,
+            introSelected,
+            conciergeChat,
+            hasReportActions,
+            currentUserAccountID: currentPersonalDetails.accountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
+    }, [
+        report?.reportID,
+        route.params.reportID,
+        introSelected,
+        conciergeChat,
+        hasReportActions,
+        currentPersonalDetails.accountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
 
     useEffect(() => {
         if (!transactionID) {
@@ -150,23 +187,32 @@ function DynamicReviewPage() {
 
     useFocusEffect(
         useCallback(() => {
-            if (!originalTransactionIDsListRef.current) {
+            const displaced = displacedCarouselRef.current;
+            if (!displaced) {
                 return;
             }
-            setActiveTransactionIDs(originalTransactionIDsListRef.current);
+            setActiveTransactionIDs(displaced.ids, {source: displaced.source, snapshotHash: displaced.snapshotHash, descriptors: displaced.descriptors});
         }, []),
     );
 
-    const onPreviewPressed = (reportID: string) => {
-        const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
-        setActiveTransactionIDs(siblingTransactionIDsList).then(() => {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
-        });
-        // Store the initial value of transactionIDsList and only save it when the item is clicked for the first time
-        // to ensure that transactionIDsList reflects its original value when this component is mounted
-        if (!originalTransactionIDsListRef.current) {
-            originalTransactionIDsListRef.current = transactionIDsList;
+    const onPreviewPressed = (reportID: string, pressedTransactionID: string | undefined) => {
+        // Capture the carousel we are about to displace before overwriting it, on the first press only, so the
+        // restore effect re-seeds what was active when this screen mounted. setActiveTransactionIDs updates the
+        // module mirror synchronously, so reading it afterwards would only ever return our own write back.
+        if (!displacedCarouselRef.current) {
+            const active = getActiveTransactionIDs();
+            displacedCarouselRef.current = {
+                ids: active.ids ?? transactionIDsList,
+                source: active.source ?? undefined,
+                snapshotHash: active.snapshotHash ?? activeSnapshotHash,
+                descriptors: active.descriptors ?? activeSiblingDescriptors,
+            };
         }
+
+        const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
+        setActiveTransactionIDs(siblingTransactionIDsList, {source: CAROUSEL_SOURCE.duplicateReview(transactionID)}).then(() => {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute(), anchorTransactionID: pressedTransactionID}));
+        });
     };
 
     const currentTransactionViolations = transactionIDs.map((id) => ({
@@ -182,6 +228,7 @@ function DynamicReviewPage() {
             policy,
             isASAPSubmitBetaEnabled,
             allTransactions,
+            rules,
             currentTransactionViolations,
             isTrackIntentUser,
         });
@@ -211,7 +258,7 @@ function DynamicReviewPage() {
         return (
             <ScreenWrapper testID="DynamicReviewPage">
                 <View style={[styles.flex1]}>
-                    <View style={[styles.appContentHeader, styles.borderBottom]}>
+                    <View style={[styles.appContentHeader, contentHeaderHeightStyle, styles.borderBottom]}>
                         <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
                     </View>
                     <ReportActionsSkeletonView />

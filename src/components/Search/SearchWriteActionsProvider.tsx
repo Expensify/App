@@ -3,10 +3,20 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canRejectReportAction} from '@libs/ReportUtils';
-import {isGroupedItemArray, isReportActionListItemType, isTaskListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import {
+    isGroupedItemArray,
+    isReportActionListItemType,
+    isReportEntry,
+    isTaskListItemType,
+    isTransactionEntry,
+    isTransactionGroupListItemType,
+    isTransactionListItemType,
+} from '@libs/SearchUIUtils';
+import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -19,18 +29,35 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 
+import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
-import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
-import {SearchRowSelectionActionsContext} from './SearchContextDefinitions';
+import useOpenGroupsRegistry from './hooks/useOpenGroupsRegistry';
+import {useSearchSelectionActions, useSearchSelectionContext, useSelectionClearGeneration} from './SearchContext';
+import {SearchRowSelectionActionsContext, SearchShiftRangeGroupsContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
-import {mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
+import {
+    applyShiftRangeBatchToSelection,
+    buildShiftRangeSource,
+    getSearchGroupCount,
+    getSearchGroupCountByKey,
+    isGroupSelected,
+    isRowChecked,
+    mapEmptyReportToSelectedEntry,
+    mapTransactionItemToSelectedEntry,
+    prepareTransactionsList,
+    spellOutGroupSelection,
+    stampGroupCoverageFlags,
+} from './selectionBuilders';
 
 type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
     filteredData: SearchData;
+
+    /** In on-screen order, which `filteredData` is not. The grouped view additionally drops rows being deleted while online, which `isDisabledItem` keeps out of a range anyway */
+    renderedData: SearchListItem[];
 
     /** Keeps "select all matching" in lock-step: select-all unchecks once the selection no longer covers every item. */
     totalSelectableItemsCount: number;
@@ -38,13 +65,13 @@ type SearchWriteActionsProviderProps = {
     /** The raw search snapshot, read for denormalized transaction/report lookups. */
     searchResults: SearchResults | undefined;
 
+    /** Everything scoped to one search is keyed on it */
+    searchHash: number;
+
     /** The live TRANSACTION collection, subscribed by `<Search>` and passed down. */
     transactions: OnyxCollection<Transaction>;
 
-    /** Whether mobile selection mode is on. */
     isMobileSelectionModeEnabled: boolean;
-
-    /** The search data type. */
     type: SearchDataTypes;
 
     /** Grouped meaning either a group-by view or the expense-report view. */
@@ -85,7 +112,6 @@ type ReconcileSelectionParams = {
     /** Login (email or phone) of the current user */
     currentUserLogin: string;
 
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
@@ -125,9 +151,24 @@ function useReconcileSelectionWithData({
 }: ReconcileSelectionParams) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
-        if (!isFocused) {
+        const shouldReconcileMovedExcludedTransaction =
+            isExpenseReportType &&
+            areAllMatchingItemsSelected &&
+            shouldReconcileExcludedTransactions &&
+            filteredData.some((item) => {
+                if (!('transactions' in item) || !item.keyForList) {
+                    return false;
+                }
+                return item.transactions.some((transaction) => {
+                    const listKey = transaction.keyForList ?? transaction.transactionID;
+                    const exclusion = excludedTransactions[listKey] ?? excludedTransactions[transaction.transactionID];
+                    return !!exclusion?.reportID && exclusion.reportID !== item.keyForList;
+                });
+            });
+        if (!isFocused && shouldReconcileMovedExcludedTransaction === false) {
             return;
         }
 
@@ -135,7 +176,17 @@ function useReconcileSelectionWithData({
             return;
         }
         const newTransactionList: SelectedTransactions = {};
+        const inferredExcludedTransactions: SelectedTransactions = {};
         const liveSelectionEntries = new Map<string, SelectedTransactionInfo>();
+        const presentGroupKeys = new Set<string>();
+        const nonEmptyReportKeys = new Set<string>();
+        const excludedReportKeys = new Set(
+            isExpenseReportType
+                ? Object.values(excludedTransactions)
+                      .map((transaction) => transaction.reportID)
+                      .filter((reportID): reportID is string => !!reportID)
+                : [],
+        );
         if (areItemsGrouped) {
             for (const transactionGroup of filteredData) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
@@ -143,6 +194,10 @@ function useReconcileSelectionWithData({
                 }
 
                 const reportKey = transactionGroup.keyForList;
+                // Only groups carrying no rows: a row missing from a group that has them is gone for real.
+                if (reportKey && !isExpenseReportType && transactionGroup.transactions.length === 0 && transactionGroup.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    presentGroupKeys.add(reportKey);
+                }
                 if (shouldReconcileExcludedTransactions && reportKey && transactionGroup.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     const [, groupSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
                     liveSelectionEntries.set(reportKey, groupSelection);
@@ -152,7 +207,10 @@ function useReconcileSelectionWithData({
                     if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         continue;
                     }
-                    if (reportKey && !Object.hasOwn(excludedTransactions, reportKey) && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
+                    const isEmptyReportExcluded = !!reportKey && isExpenseReportType && (Object.hasOwn(excludedTransactions, reportKey) || excludedReportKeys.has(reportKey));
+                    if (isEmptyReportExcluded) {
+                        inferredExcludedTransactions[reportKey] = liveSelectionEntries.get(reportKey) ?? mapEmptyReportToSelectedEntry(transactionGroup)[1];
+                    } else if (reportKey && !Object.hasOwn(excludedTransactions, reportKey) && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
                         const emptyReportSelection = liveSelectionEntries.get(reportKey) ?? mapEmptyReportToSelectedEntry(transactionGroup)[1];
                         newTransactionList[reportKey] = {
                             ...emptyReportSelection,
@@ -160,6 +218,10 @@ function useReconcileSelectionWithData({
                         };
                     }
                     continue;
+                }
+
+                if (isExpenseReportType && reportKey) {
+                    nonEmptyReportKeys.add(reportKey);
                 }
 
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
@@ -170,17 +232,28 @@ function useReconcileSelectionWithData({
                     (transaction) => (!!transaction.keyForList && transaction.keyForList in selectedTransactions) || transaction.transactionID in selectedTransactions,
                 );
                 const propagateSelectionToAllRows = (isExpenseReportType && (wasReportSelected || hasIndividualSelectedInGroup)) || (wasReportSelected && !isExpenseReportType);
-                const isParentGroupExcluded = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!reportKey && Object.hasOwn(excludedTransactions, reportKey);
+                const isParentGroupExcluded =
+                    !!reportKey &&
+                    ((type === CONST.SEARCH.DATA_TYPES.EXPENSE && Object.hasOwn(excludedTransactions, reportKey)) ||
+                        (isExpenseReportType && (Object.hasOwn(excludedTransactions, reportKey) || excludedReportKeys.has(reportKey))));
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
-                    const isDirectlyExcluded = Object.hasOwn(excludedTransactions, listKey) || Object.hasOwn(excludedTransactions, transactionItem.transactionID);
-                    const isExcluded = isParentGroupExcluded || isDirectlyExcluded;
+                    const directExclusion = excludedTransactions[listKey] ?? excludedTransactions[transactionItem.transactionID];
+                    // A report exclusion belongs to the report where it was created. If the transaction moves to a
+                    // selected report, it must inherit that destination report's selection instead of carrying the
+                    // source report's exclusion with it.
+                    const directExclusionBelongsToCurrentReport = !isExpenseReportType || !reportKey || !directExclusion?.reportID || directExclusion.reportID === reportKey;
+                    const isDirectlyExcluded = !!directExclusion && directExclusionBelongsToCurrentReport;
                     const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
+                    // A row picked on its own outranks an exclusion covering the group it sits in, so re-checking one child
+                    // of an excluded group holds. A report is not a group in that sense: an expense moving into an excluded
+                    // report takes its destination's state, which is the same rule the source-report check above states.
+                    const isExcluded = (isExpenseReportType || !isSelected) && (isParentGroupExcluded || isDirectlyExcluded);
 
                     // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
                     const shouldInclude = !isExcluded && (isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows);
-                    if (!shouldInclude && !isDirectlyExcluded) {
+                    if (!shouldInclude && !isDirectlyExcluded && !(isExpenseReportType && isParentGroupExcluded)) {
                         continue;
                     }
 
@@ -192,7 +265,6 @@ function useReconcileSelectionWithData({
                     const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
                     const previousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
 
-                    // The overrides below are what reconcile computes differently from a toggle — keep them.
                     const [, baseEntry] = mapTransactionItemToSelectedEntry({
                         item: transactionItem,
                         itemTransaction,
@@ -204,20 +276,61 @@ function useReconcileSelectionWithData({
                         selfDMReport,
                         allowNegativeAmount: true,
                         parentReport: itemParentReport,
+                        rules,
                     });
 
                     const liveSelectionEntry: SelectedTransactionInfo = {
                         ...baseEntry,
                         isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows),
-                        canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
+                        canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
                         policyID: transactionItem.report?.policyID,
-                        groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
+                        groupKey:
+                            previousSelection?.groupKey ?? ((propagateSelectionToAllRows && !isExpenseReportType) || (isExpenseReportType && isParentGroupExcluded) ? reportKey : undefined),
                         isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
                     };
                     liveSelectionEntries.set(listKey, liveSelectionEntry);
                     liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
+                    if (isExpenseReportType && isParentGroupExcluded && !isDirectlyExcluded) {
+                        inferredExcludedTransactions[listKey] = liveSelectionEntry;
+                    }
                     if (shouldInclude) {
                         newTransactionList[listKey] = liveSelectionEntry;
+                    }
+                }
+
+                // Copying `isEntireGroupSelected` would leave delete thinking the group is still fully covered
+                // after a new child lands in it (the create path bumps `count` without touching the selection).
+                if (reportKey) {
+                    for (const transactionItem of transactionGroup.transactions) {
+                        const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                        const selectedEntry = newTransactionList[listKey];
+                        if (!selectedEntry) {
+                            continue;
+                        }
+                        newTransactionList[listKey] = {...selectedEntry, groupKey: selectedEntry.groupKey ?? reportKey};
+                    }
+
+                    const stampedSelection = stampGroupCoverageFlags({
+                        selectedTransactions: newTransactionList,
+                        groupKey: reportKey,
+                        groupCount: getSearchGroupCount(transactionGroup) ?? getSearchGroupCountByKey(searchResultsData, reportKey),
+                        loadedChildrenCount: transactionGroup.transactions.length,
+                        loadedSelectableCount: transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
+                    });
+                    for (const [key, entry] of Object.entries(stampedSelection)) {
+                        newTransactionList[key] = entry;
+                    }
+
+                    const isEntireGroupSelected = Object.values(stampedSelection).some((entry) => entry.groupKey === reportKey && entry.isEntireGroupSelected);
+                    for (const transactionItem of transactionGroup.transactions) {
+                        const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                        const liveEntry = liveSelectionEntries.get(listKey) ?? liveSelectionEntries.get(transactionItem.transactionID);
+                        if (!liveEntry) {
+                            continue;
+                        }
+                        const nextEntry = stampedSelection[listKey] ?? {...liveEntry, groupKey: liveEntry.groupKey ?? reportKey, isEntireGroupSelected};
+                        liveSelectionEntries.set(listKey, nextEntry);
+                        liveSelectionEntries.set(transactionItem.transactionID, nextEntry);
                     }
                 }
             }
@@ -248,12 +361,13 @@ function useReconcileSelectionWithData({
                     selfDMReport,
                     allowNegativeAmount: true,
                     parentReport: itemParentReport,
+                    rules,
                 });
 
                 const liveSelectionEntry: SelectedTransactionInfo = {
                     ...baseEntry,
                     isSelected: areAllMatchingItemsSelected || !!flatPreviousSelection?.isSelected,
-                    canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
+                    canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
                     policyID: transactionItem.report?.policyID,
                 };
                 liveSelectionEntries.set(listKey, liveSelectionEntry);
@@ -264,24 +378,50 @@ function useReconcileSelectionWithData({
             }
         }
 
+        // A lazy group's children never reach `filteredData`, so the group's presence is what keeps them.
+        if (areItemsGrouped) {
+            for (const [key, selectedTransaction] of Object.entries(selectedTransactions)) {
+                const parentGroupKey = selectedTransaction.groupKey;
+                if (
+                    !parentGroupKey ||
+                    Object.hasOwn(newTransactionList, key) ||
+                    Object.hasOwn(excludedTransactions, key) ||
+                    Object.hasOwn(excludedTransactions, parentGroupKey) ||
+                    !presentGroupKeys.has(parentGroupKey)
+                ) {
+                    continue;
+                }
+                newTransactionList[key] = liveSelectionEntries.get(key) ?? selectedTransaction;
+            }
+        }
+
         let reconciledExcludedTransactions = excludedTransactions;
         if (shouldReconcileExcludedTransactions && areAllMatchingItemsSelected && !isEmptyObject(excludedTransactions)) {
-            const nextExcludedTransactions: SelectedTransactions = {};
+            const nextExcludedTransactions: SelectedTransactions = {...inferredExcludedTransactions};
             for (const [key, excludedTransaction] of Object.entries(excludedTransactions)) {
+                // Once an empty excluded report gains children, replace its report-level marker with the current
+                // child exclusions seeded above so the footer counts the report only once.
+                if (isExpenseReportType && key === excludedTransaction.reportID && nonEmptyReportKeys.has(key)) {
+                    continue;
+                }
                 const transactionID = excludedTransaction.transaction?.transactionID;
                 const liveEntry = liveSelectionEntries.get(key) ?? (transactionID ? liveSelectionEntries.get(transactionID) : undefined);
                 if (liveEntry) {
+                    if (isExpenseReportType && excludedTransaction.reportID && liveEntry.reportID && excludedTransaction.reportID !== liveEntry.reportID) {
+                        continue;
+                    }
                     nextExcludedTransactions[key] = {
                         ...liveEntry,
                         groupKey: excludedTransaction.groupKey,
                         isSelectedViaGroup: excludedTransaction.isSelectedViaGroup,
+                        isEntireGroupSelected: liveEntry.isEntireGroupSelected,
                     };
                     continue;
                 }
 
-                // Lazy group children are held in a separate snapshot. Keep their exclusions while the parent
-                // group is still present; if the parent disappears, the child no longer matches this search.
-                if (excludedTransaction.groupKey && liveSelectionEntries.has(excludedTransaction.groupKey)) {
+                // Lazy expense-group children are held in a separate snapshot. Keep their exclusions while the parent
+                // group is still present; report rows contain their current children, so a missing child was removed.
+                if (!isExpenseReportType && excludedTransaction.groupKey && liveSelectionEntries.has(excludedTransaction.groupKey)) {
                     nextExcludedTransactions[key] = excludedTransaction;
                 }
             }
@@ -378,8 +518,10 @@ function useSyncMobileSelectionModeWithScreenSize({
 // `selectedTransactions`, so dispatching one re-renders neither this provider's stable children nor the rows.
 function SearchWriteActionsProvider({
     filteredData,
+    renderedData,
     totalSelectableItemsCount,
     searchResults,
+    searchHash,
     transactions,
     isMobileSelectionModeEnabled,
     type,
@@ -394,72 +536,256 @@ function SearchWriteActionsProvider({
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const {applySelection} = useSearchSelectionActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const {applySelection, getSelectedTransactions, getExcludedTransactions, getAreAllMatchingItemsSelected} = useSearchSelectionActions();
+
+    const {openGroupKeys, shiftRangeGroupsActions} = useOpenGroupsRegistry(searchHash);
+
+    // Read at the gesture: closing over it would give every row a new `toggle` each time a group opens.
+    const groupKeyByChildKeyRef = useRef<ReadonlyMap<string, string>>(new Map());
+    const childrenByGroupKeyRef = useRef<ReadonlyMap<string, TransactionListItemType[]>>(new Map());
 
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
+    const shouldPreserveAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType;
 
-    const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions) => {
+    // Live Onyx first: the hold and split flags read the optimistic row, and the snapshot only refreshes when the search returns.
+    const readTransaction = (transactionID: string | undefined): OnyxEntry<Transaction> => {
+        if (!transactionID) {
+            return undefined;
+        }
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+        return isTransactionEntry(key) ? (transactions?.[key] ?? searchResultsData?.[key]) : undefined;
+    };
+
+    const resolveTransactionRefs = (item: TransactionListItemType) => {
+        const itemTransaction = readTransaction(item.transactionID);
+        const parentReportID = item.report?.parentReportID;
+        const parentReportKey = `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`;
+        return {
+            itemTransaction,
+            originalItemTransaction: readTransaction(itemTransaction?.comment?.originalTransactionID),
+            parentReport: parentReportID && isReportEntry(parentReportKey) ? searchResultsData?.[parentReportKey] : undefined,
+        };
+    };
+
+    const buildSelectedEntry = (item: TransactionListItemType) => {
+        const {itemTransaction, originalItemTransaction, parentReport} = resolveTransactionRefs(item);
+        return mapTransactionItemToSelectedEntry({
+            item,
+            itemTransaction,
+            originalItemTransaction,
+            currentUserLogin: currentUserEmail,
+            currentUserAccountID: accountID,
+            reportNameValuePairs,
+            outstandingReportsByPolicyID,
+            selfDMReport,
+            allowNegativeAmount: true,
+            parentReport,
+            rules,
+        });
+    };
+
+    const commitOptions = {
+        totalSelectableItemsCount,
+        shouldPreserveAllMatchingSelection,
+        shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
+    };
+
+    // Expense-report rows are the selectable unit, so only group-by rows are headers whose children flatten in.
+    const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
+    const {items: flattenedShiftRangeItems, childrenByGroupKey, groupKeyByChildKey} = buildShiftRangeSource(renderedData, openGroupKeys, hasValidGroupBy);
+    useLayoutEffect(() => {
+        groupKeyByChildKeyRef.current = groupKeyByChildKey;
+        childrenByGroupKeyRef.current = childrenByGroupKey;
+    }, [groupKeyByChildKey, childrenByGroupKey]);
+
+    const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
+
+    const getGroupCount = (groupKey: string) =>
+        getSearchGroupCount(isGroupedItemArray(filteredData) ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ??
+        getSearchGroupCountByKey(searchResultsData, groupKey);
+
+    // Read when the click happens, like the refs they come from, and passed to the writers, which cannot read Onyx or the rows themselves.
+    const readGroupLookups = () => ({
+        groupKeyByChildKey: groupKeyByChildKeyRef.current,
+        childrenByGroupKey: childrenByGroupKeyRef.current,
+        buildSelectedEntry,
+        getGroupCount,
+    });
+
+    // Called from a click, the defaults read the current selection. A state updater passes the values from its own update instead.
+    const groupSelectionParams = (
+        groupKey: string | undefined,
+        groupChildren: TransactionListItemType[],
+        selectedTransactions = getSelectedTransactions(),
+        excludedTransactions = getExcludedTransactions(),
+        areAllMatchingItemsSelected = getAreAllMatchingItemsSelected(),
+    ) => ({
+        groupKey,
+        children: groupChildren,
+        selectedTransactions,
+        excludedTransactions,
+        areAllMatchingItemsSelected,
+    });
+
+    const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
+        // Read at the gesture, not in the updater: the batch has to land on the rows the range was computed from.
+        const lookups = readGroupLookups();
+        applySelection((selectedTransactions, {areAllMatchingItemsSelected}) => applyShiftRangeBatchToSelection(batch, selectedTransactions, areAllMatchingItemsSelected, lookups), {
+            ...commitOptions,
+            data: filteredData,
+        });
+    };
+
+    // The same predicate the checkbox renders from, so a range reaches exactly the rows the user sees checked.
+    const isRowVisiblyChecked = (item: SearchData[number]) => {
+        const selectedTransactions = getSelectedTransactions();
+        const excludedTransactions = getExcludedTransactions();
+        const areAllMatchingItemsSelected = getAreAllMatchingItemsSelected();
+        if (isTransactionGroupListItemType(item)) {
+            return isGroupSelected(groupSelectionParams(item.keyForList, item.transactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected));
+        }
+        if (!item.keyForList) {
+            return false;
+        }
+        return isRowChecked({
+            rowKey: item.keyForList,
+            parentGroupKey: groupKeyByChildKeyRef.current.get(item.keyForList),
+            selectedTransactions,
+            excludedTransactions,
+            areAllMatchingItemsSelected,
+        });
+    };
+
+    // A row checked through a group header belongs to that block, so a range may take it back.
+    const isRowHandPicked = (item: SearchData[number]) => {
+        const selectedTransactions = getSelectedTransactions();
+        const entry = item.keyForList ? selectedTransactions[item.keyForList] : undefined;
+        // A report row is the row the user clicked, so any selected child makes it hand-picked. So does its own entry, which is where the click lands until its rows arrive to carry one.
+        if (isTransactionGroupListItemType(item)) {
+            return !!entry?.isSelected || item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
+        }
+        return !!entry?.isSelected && !entry.isSelectedViaGroup;
+    };
+
+    const rangeApi = useShiftRangeSelection<SearchData[number]>({
+        items: flattenedShiftRangeItems,
+        getItemKey: (item) => item.keyForList,
+        isItemSelected: isRowVisiblyChecked,
+        isItemProtected: isRowHandPicked,
+        isDisabledItem: (item) => (isTransactionListItemType(item) ? isTransactionPendingDelete(item) : item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        onApplyRange: applyShiftRangeBatch,
+        isHeaderItem: isShiftRangeHeaderItem,
+    });
+
+    // The session belongs to one search and one selection, so a new query or a clear from outside the list ends it.
+    const selectionClearGeneration = useSelectionClearGeneration();
+    useEffect(() => {
+        rangeApi.clearAnchor();
+    }, [searchHash, selectionClearGeneration, rangeApi]);
+
+    const seedGroup = (groupKey: string) => rangeApi.seedRangeFromSelection((childKey) => groupKeyByChildKeyRef.current.get(childKey) === groupKey);
+
+    const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
             return;
+        }
+
+        // The hook rejects headers as range targets, so shift+click on one falls through to the group toggle.
+        if (rangeApi.applyShiftClick(item, shiftKey)) {
+            return;
+        }
+
+        // One children source for the seed and the selection, so a group can't seed a different block than it selects.
+        const groupTransactions = isTransactionGroupListItemType(item) ? (itemTransactions ?? item.transactions ?? []) : [];
+
+        if (isShiftRangeHeaderItem(item)) {
+            // What the press below writes: an unloaded group unless it is being deleted, a loaded one only for the rows it can still select.
+            const willSelectRows =
+                groupTransactions.length === 0
+                    ? item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+                    : groupTransactions.some((transactionItem) => !isTransactionPendingDelete(transactionItem));
+            if (isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions))) {
+                // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
+                rangeApi.clearAnchor();
+            } else if (willSelectRows) {
+                // Just this block: seeding the whole selection would span unrelated rows and deselect them.
+                seedGroup(item.keyForList);
+            }
+        } else {
+            // Seed the anchor so a later shift+click continues from here. The hook ignores rows a range can't reach.
+            rangeApi.notifyAnchor(item);
         }
 
         if (isTransactionListItemType(item)) {
             if (!item.keyForList || isTransactionPendingDelete(item)) {
                 return;
             }
-            applySelection(
-                (selectedTransactions) => {
-                    const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
-                    const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                    const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
-                    const updatedTransactions = prepareTransactionsList({
-                        item,
-                        itemTransaction,
-                        originalItemTransaction,
-                        selectedTransactions,
-                        currentUserLogin: currentUserEmail,
-                        currentUserAccountID: accountID,
-                        reportNameValuePairs,
-                        outstandingReportsByPolicyID,
-                        selfDMReport,
-                        parentReport: itemParentReport,
-                    });
+            const lookups = readGroupLookups();
+            applySelection((selectedTransactions, {areAllMatchingItemsSelected}) => {
+                const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);
+                const baseSelection = spellOutGroupSelection(selectedTransactions, item.keyForList, areAllMatchingItemsSelected, lookups);
+                const updatedTransactions = prepareTransactionsList({
+                    item,
+                    itemTransaction,
+                    originalItemTransaction,
+                    selectedTransactions: baseSelection,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID: accountID,
+                    reportNameValuePairs,
+                    outstandingReportsByPolicyID,
+                    selfDMReport,
+                    parentReport: itemParentReport,
+                    rules,
+                });
 
-                    if (areItemsGrouped && isGroupedItemArray(filteredData)) {
-                        const parentGroup = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
-                        const groupKey = selectedTransactions[item.keyForList]?.groupKey ?? parentGroup?.keyForList;
+                if (areItemsGrouped && isGroupedItemArray(filteredData)) {
+                    const findGroupCarryingItem = () => filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
+                    const groupKey =
+                        baseSelection[item.keyForList]?.groupKey ?? lookups.groupKeyByChildKey.get(item.keyForList) ?? item.selectionGroupKey ?? findGroupCarryingItem()?.keyForList;
+                    const parentGroup = (groupKey ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ?? findGroupCarryingItem();
+                    const loadedChildren = itemTransactions ?? parentGroup?.transactions ?? [];
+
+                    if (groupKey) {
                         // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
-                        if (groupKey) {
-                            for (const [key, transaction] of Object.entries(updatedTransactions)) {
-                                if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
-                                    updatedTransactions[key] = {...transaction, isSelectedViaGroup: false};
-                                }
+                        for (const [key, transaction] of Object.entries(updatedTransactions)) {
+                            if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
+                                updatedTransactions[key] = {...transaction, isSelectedViaGroup: false};
                             }
                         }
-                        // If the clicked expense is still selected, keep its parent group key.
-                        if (groupKey && updatedTransactions[item.keyForList]) {
+
+                        // Selecting every child individually is still a whole-group selection for delete, so stamp
+                        // the parent key on siblings that were picked one by one and had no group key yet.
+                        for (const child of loadedChildren) {
+                            if (!child.keyForList || !updatedTransactions[child.keyForList]) {
+                                continue;
+                            }
+                            updatedTransactions[child.keyForList] = {...updatedTransactions[child.keyForList], groupKey};
+                        }
+                        if (updatedTransactions[item.keyForList]) {
                             updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
                         }
                     }
 
-                    return updatedTransactions;
-                },
-                {
-                    totalSelectableItemsCount,
-                    shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
-                },
-            );
+                    return stampGroupCoverageFlags({
+                        selectedTransactions: updatedTransactions,
+                        groupKey,
+                        groupCount: getSearchGroupCount(parentGroup) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
+                        loadedChildrenCount: loadedChildren.length,
+                        loadedSelectableCount: loadedChildren.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
+                    });
+                }
+
+                return updatedTransactions;
+            }, commitOptions);
             return;
         }
 
-        const currentTransactions = itemTransactions ?? item.transactions;
-
         applySelection(
-            (selectedTransactions) => {
-                if (currentTransactions.length === 0 && item.keyForList) {
+            (selectedTransactions, {excludedTransactions, areAllMatchingItemsSelected}) => {
+                if (groupTransactions.length === 0 && item.keyForList) {
                     const reportKey = item.keyForList;
 
                     if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -479,60 +805,69 @@ function SearchWriteActionsProvider({
                 // A group selected before its children were fetched is stored under the group key. Once the children load,
                 // deselecting has to clear that entry too, otherwise the group stays selected with no way to deselect it.
                 const groupKey = item.keyForList;
-                const isGroupKeySelected = !!(groupKey && selectedTransactions[groupKey]?.isSelected);
 
-                if (isGroupKeySelected || currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+                if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected))) {
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     if (groupKey) {
                         delete reducedSelectedTransactions[groupKey];
                     }
-                    for (const transaction of currentTransactions) {
+                    for (const transaction of groupTransactions) {
                         delete reducedSelectedTransactions[transaction.keyForList];
                     }
                     return reducedSelectedTransactions;
                 }
 
-                return {
-                    ...selectedTransactions,
-                    ...Object.fromEntries(
-                        currentTransactions
-                            .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => {
-                                const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
-                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
-                                const originalItemTransaction =
-                                    searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
-                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                                const [key, entry] = mapTransactionItemToSelectedEntry({
-                                    item: transactionItem,
-                                    itemTransaction,
-                                    originalItemTransaction,
-                                    currentUserLogin: currentUserEmail,
-                                    currentUserAccountID: accountID,
-                                    reportNameValuePairs,
-                                    outstandingReportsByPolicyID,
-                                    selfDMReport,
-                                    allowNegativeAmount: true,
-                                    parentReport: itemParentReport,
-                                });
+                const selectableTransactions = groupTransactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
+                if (selectableTransactions.length === 0) {
+                    // Nothing under it can be checked, so the press clears whatever it still holds. Leaving any of it counts rows the checkbox does not show, and no checkbox is left to uncheck them.
+                    const staleKeys: string[] = [];
+                    for (const key of [groupKey, ...groupTransactions.map((transactionItem) => transactionItem.keyForList)]) {
+                        if (key && selectedTransactions[key]) {
+                            staleKeys.push(key);
+                        }
+                    }
+                    if (staleKeys.length === 0) {
+                        // Same map, not an equal one: the commit bails on identity, so this must not re-render every row.
+                        return selectedTransactions;
+                    }
+                    const withoutStaleKeys = {...selectedTransactions};
+                    for (const key of staleKeys) {
+                        delete withoutStaleKeys[key];
+                    }
+                    return withoutStaleKeys;
+                }
+                return stampGroupCoverageFlags({
+                    selectedTransactions: {
+                        ...selectedTransactions,
+                        ...Object.fromEntries(
+                            selectableTransactions.map((transactionItem) => {
+                                const [key, entry] = buildSelectedEntry(transactionItem);
                                 return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
                             }),
-                    ),
-                };
+                        ),
+                    },
+                    groupKey,
+                    groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
+                    loadedChildrenCount: groupTransactions.length,
+                    loadedSelectableCount: selectableTransactions.length,
+                });
+                // A report row's own selection is derived from `selectedReports`, so this one commit has to re-derive it.
             },
-            {
-                totalSelectableItemsCount,
-                shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
-                shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
-            },
+            {...commitOptions, ...(isExpenseReportType ? {data: filteredData} : {})},
         );
     };
 
     const toggleAll: SearchRowSelectionActionsValue['toggleAll'] = () => {
+        // Read once, so the session and the selection cannot act on two different answers.
+        const isClearing = Object.keys(getSelectedTransactions()).length > 0;
+        if (isClearing) {
+            rangeApi.clearAnchor();
+        } else {
+            rangeApi.seedFullRange();
+        }
         applySelection(
-            (selectedTransactions) => {
-                if (Object.keys(selectedTransactions).length > 0) {
+            () => {
+                if (isClearing) {
                     return {};
                 }
 
@@ -545,28 +880,20 @@ function SearchWriteActionsProvider({
                             return [mapEmptyReportToSelectedEntry(item)];
                         }
                         const entries: Array<[string, SelectedTransactionInfo]> = [];
-                        for (const transactionItem of item.transactions) {
-                            if (isTransactionPendingDelete(transactionItem)) {
-                                continue;
-                            }
-                            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                            const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                            const [key, entry] = mapTransactionItemToSelectedEntry({
-                                item: transactionItem,
-                                itemTransaction,
-                                originalItemTransaction,
-                                currentUserLogin: currentUserEmail,
-                                currentUserAccountID: accountID,
-                                reportNameValuePairs,
-                                outstandingReportsByPolicyID,
-                                selfDMReport,
-                                allowNegativeAmount: true,
-                                parentReport: itemParentReport,
-                            });
+                        const selectableTransactions = item.transactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
+                        for (const transactionItem of selectableTransactions) {
+                            const [key, entry] = buildSelectedEntry(transactionItem);
                             entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
                         }
-                        return entries;
+                        return Object.entries(
+                            stampGroupCoverageFlags({
+                                selectedTransactions: Object.fromEntries(entries),
+                                groupKey: item.keyForList,
+                                groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList),
+                                loadedChildrenCount: item.transactions.length,
+                                loadedSelectableCount: selectableTransactions.length,
+                            }),
+                        );
                     });
                     return Object.fromEntries(allSelections);
                 }
@@ -580,23 +907,7 @@ function SearchWriteActionsProvider({
                     if (isTransactionPendingDelete(transactionItem)) {
                         continue;
                     }
-                    const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                    const originalItemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                    const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                    entries.push(
-                        mapTransactionItemToSelectedEntry({
-                            item: transactionItem,
-                            itemTransaction,
-                            originalItemTransaction,
-                            currentUserLogin: currentUserEmail,
-                            currentUserAccountID: accountID,
-                            reportNameValuePairs,
-                            outstandingReportsByPolicyID,
-                            selfDMReport,
-                            allowNegativeAmount: true,
-                            parentReport: itemParentReport,
-                        }),
-                    );
+                    entries.push(buildSelectedEntry(transactionItem));
                 }
                 return Object.fromEntries(entries);
             },
@@ -617,7 +928,8 @@ function SearchWriteActionsProvider({
         selfDMReport,
         reportNameValuePairs,
         outstandingReportsByPolicyID,
-        shouldReconcileExcludedTransactions: type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!searchResultsData && searchResults?.search?.isLoading === false && !searchResults?.errors,
+        shouldReconcileExcludedTransactions:
+            (type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType) && !!searchResultsData && searchResults?.search?.isLoading === false && !searchResults?.errors,
     });
     useTurnOffSelectionModeWhenEmpty({isFocused, isMobileSelectionModeEnabled});
     useSyncMobileSelectionModeWithScreenSize({isFocused, isMobileSelectionModeEnabled, isSearchResultsEmpty});
@@ -625,7 +937,11 @@ function SearchWriteActionsProvider({
 
     const rowSelectionActionsValue: SearchRowSelectionActionsValue = {toggle, toggleAll};
 
-    return <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>{children}</SearchRowSelectionActionsContext>;
+    return (
+        <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>
+            <SearchShiftRangeGroupsContext value={shiftRangeGroupsActions}>{children}</SearchShiftRangeGroupsContext>
+        </SearchRowSelectionActionsContext>
+    );
 }
 
 export default SearchWriteActionsProvider;

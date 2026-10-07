@@ -6,14 +6,24 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {filterCardsByPersonalDetails, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {
+    filterCardsByPersonalDetails,
+    getDefaultExpensifyCardLimitType,
+    getDisplayedExpensifyCardLimitType,
+    getTranslationKeyForCardStatus,
+    getTranslationKeyForLimitType,
+} from '@libs/CardUtils';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
+import {getExportAccountColumn} from '@pages/workspace/companyCards/utils';
 import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCardListLabels';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import type {Card, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {Card, PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
@@ -22,13 +32,14 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
 
-type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'limit' | 'remainingLimit' | 'actions';
+type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'exportAccount' | 'limit' | 'remainingLimit' | 'actions';
 
 type WorkspaceExpensifyCardTableRowData = TableData & {
     cardID: number;
@@ -41,23 +52,29 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     currency?: string;
     isVirtual: boolean;
     limitType: CardLimitType | undefined;
+    exportAccountTitle?: string;
     frozenByDisplayName?: string;
     frozenByAccountID?: number;
     frozenDate?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    canEditName?: boolean;
+    canEditLimitType?: boolean;
+    canEditLimit?: boolean;
     action: () => void;
+    onRenameName?: (newName: string) => void;
+    onChangeLimitType?: (limitType: CardLimitType) => void;
+    onChangeLimit?: (newLimit: string) => void;
     onClose: () => void;
 };
 
 type WorkspaceExpensifyCardsTableProps = {
-    /** Policy ID */
     policyID: string;
+    policy: OnyxEntry<Policy>;
 
     /** Optional page-level content rendered above the card labels that scrolls with the rows */
     headerComponent?: ReactElement;
 
-    /** List of Expensify cards to display in the table */
     cards: WorkspaceExpensifyCardTableRowData[];
 
     /** Whether multi selection is enabled */
@@ -66,7 +83,6 @@ type WorkspaceExpensifyCardsTableProps = {
     /** The list of selected keys for the table */
     selectedKeys: string[];
 
-    /** Callback when row selection changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
     /** Card settings used to display labels and top-level errors */
@@ -75,21 +91,22 @@ type WorkspaceExpensifyCardsTableProps = {
     /** Base card settings used to display labels */
     cardSettingsBase?: ExpensifyCardSettingsBase;
 
+    /** Whether the Export account column is shown, mirroring the eligibility check on the card details page */
+    shouldShowExportAccountColumn: boolean;
+
     /** Personal details used for search filtering */
     personalDetails?: PersonalDetailsList;
 
     /** Optional footer component rendered at the bottom of the scrollable list */
     listFooterComponent?: ReactElement;
 
-    /** Optional styles for the list footer component */
     listFooterComponentStyle?: StyleProp<ViewStyle>;
-
-    /** Optional styles for the list content container */
     listContentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 export default function WorkspaceExpensifyCardsTable({
     policyID,
+    policy,
     headerComponent,
     cards,
     selectionEnabled,
@@ -97,37 +114,52 @@ export default function WorkspaceExpensifyCardsTable({
     onRowSelectionChange,
     cardSettings,
     cardSettingsBase,
+    shouldShowExportAccountColumn,
     personalDetails,
     listFooterComponent,
     listFooterComponentStyle,
     listContentContainerStyle,
 }: WorkspaceExpensifyCardsTableProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const errorMessage = getLatestErrorMessage(cardSettings) ?? '';
+    const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
+    const getLimitTypeLabel = (limitType: CardLimitType | undefined) => translate(getTranslationKeyForLimitType(getDisplayedExpensifyCardLimitType(limitType, defaultLimitType)));
 
-    const columns: Array<TableColumn<WorkspaceExpensifyCardTableColumnKey>> = [
+    const columns: Array<TableColumn<WorkspaceExpensifyCardTableColumnKey, WorkspaceExpensifyCardTableRowData>> = [
         {
             key: 'name',
             label: translate('workspace.expensifyCard.name'),
             sortable: true,
             styling: {
-                // Cardholder names and card titles are the longest values in the table, so this column takes the
-                // space freed up by giving Type, Last 4 and Status fixed widths. Limit type still needs a full share
-                // to fit its longest value, so this stops at double rather than taking everything.
-                flex: 2,
+                // Cell text never wraps, so without minWidth: 0 the grid track sizes from the full string instead of
+                // its share and the row overflows the table.
+                containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                // Whichever of the cardholder's name or the card's title renders wider decides the column's width.
+                getContentToMeasure: (item) => [
+                    {text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate, formatPhoneNumber}), fontSize: fontScale.text},
+                    {text: item.name, fontSize: fontScale.label},
+                ],
+                extraWidth: variables.tableMemberCellAvatarWidth,
             },
         },
         {
             key: 'type',
             label: translate('common.type'),
             sortable: true,
-            width: variables.tableTypeColumnWidth,
             styling: {
                 containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [
+                    {text: item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical'), fontSize: fontScale.text},
+                ],
+                shouldFitContent: true,
             },
         },
         {
@@ -137,30 +169,50 @@ export default function WorkspaceExpensifyCardsTable({
             styling: {
                 // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
                 // so a long limit type value truncates instead of widening the column.
-                containerStyles: [styles.mnw0],
+                // editableCellHeader matches the padded Limit type cell so the label and value share an edge.
+                containerStyles: [styles.mnw0, styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: getLimitTypeLabel(item.limitType), fontSize: fontScale.text}],
+                shouldFitContent: true,
             },
         },
         {
             key: 'lastFour',
             label: translate('workspace.expensifyCard.lastFour'),
             sortable: true,
-            width: variables.tableLastFourColumnWidth,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.lastFourPAN, fontSize: fontScale.text}],
+                shouldFitContent: true,
+            },
         },
         {
             key: 'status',
             label: translate('common.status'),
             sortable: true,
-            width: variables.tableCardStatusColumnWidth,
             styling: {
                 containerStyles: [styles.mnw0],
             },
+            dynamicSizing: {
+                getContentToMeasure: (item) => {
+                    const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
+                    return statusTranslationKey ? [{text: translate(statusTranslationKey), fontSize: fontScale.text}] : [];
+                },
+                shouldFitContent: true,
+            },
         },
+        ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceExpensifyCardTableRowData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
         {
             key: 'limit',
             label: translate('workspace.expensifyCard.limit'),
             sortable: true,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                // editableCellHeader insets the right-aligned label to match the padded Limit cell.
+                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.limit, item.currency), fontSize: fontScale.text}],
+                shouldFitContent: true,
             },
         },
         {
@@ -168,7 +220,12 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.expensifyCard.remaining'),
             sortable: true,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                // Same chrome as Limit so the two amount columns share a right edge even though Remaining is not editable.
+                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.remainingLimit, item.currency), fontSize: fontScale.text}],
+                shouldFitContent: true,
             },
         },
         {
@@ -189,8 +246,8 @@ export default function WorkspaceExpensifyCardsTable({
         }
 
         if (activeSorting.columnKey === 'limitType') {
-            const limitType1 = translate(getTranslationKeyForLimitType(item1.limitType));
-            const limitType2 = translate(getTranslationKeyForLimitType(item2.limitType));
+            const limitType1 = getLimitTypeLabel(item1.limitType);
+            const limitType2 = getLimitTypeLabel(item2.limitType);
             return localeCompare(limitType1, limitType2) * orderMultiplier;
         }
 
@@ -214,6 +271,14 @@ export default function WorkspaceExpensifyCardsTable({
             return (item1.remainingLimit - item2.remainingLimit) * orderMultiplier;
         }
 
+        if (activeSorting.columnKey === 'exportAccount') {
+            const exportAccountComparison = localeCompare(item1.exportAccountTitle ?? '', item2.exportAccountTitle ?? '');
+
+            if (exportAccountComparison !== 0) {
+                return exportAccountComparison * orderMultiplier;
+            }
+        }
+
         const cardholderName1 = item1.cardholder?.displayName ?? item1.cardholder?.login ?? '';
         const cardholderName2 = item2.cardholder?.displayName ?? item2.cardholder?.login ?? '';
         return localeCompare(cardholderName1, cardholderName2) * orderMultiplier;
@@ -226,6 +291,8 @@ export default function WorkspaceExpensifyCardsTable({
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            policy={policy}
+            shouldShowExportAccountColumn={shouldShowExportAccountColumn}
         />
     );
 
@@ -254,6 +321,7 @@ export default function WorkspaceExpensifyCardsTable({
             renderItem={renderCardItem}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
+            shouldUseDynamicColumns
             initialSortColumn="name"
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.expensifyCard')}

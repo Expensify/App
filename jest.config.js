@@ -7,9 +7,18 @@ const testFileExtension = 'ts?(x)';
 // every React Profiler render duration — and thus every Reassure `[render]` measurement.
 const isPerfTestRun = process.argv.some((arg) => arg.includes('perf-test') || arg.includes('__perf__'));
 
+// With `--coverage`, Jest also instruments every file matched by `collectCoverageFrom` that no test loaded, so
+// untested files show up at 0%. Under `--shard=N/M` each shard would repeat that pass over all of `src/**`
+// (~7k files, 10-60s per shard). Only the first shard emits the untested files, the others report just what
+// their tests load. Codecov unions the per-shard reports, so the merged totals are unchanged.
+const shardMatch = process.argv.map((arg) => /^--shard=(\d+)\/\d+$/.exec(arg)).find(Boolean);
+const emitsUntestedFiles = !shardMatch || shardMatch[1] === '1';
+
 module.exports = {
     preset: 'jest-expo',
-    collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'],
+    collectCoverageFrom: emitsUntestedFiles ? ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'] : undefined,
+    // Keeps the instrumented set identical to `collectCoverageFrom` above on the shards that skip it.
+    coveragePathIgnorePatterns: ['/node_modules/', '<rootDir>/(?!src/)', '/__mocks__/', '<rootDir>/src/.*/tests/', '\\.d\\.ts$'],
     testMatch: [
         `<rootDir>/tests/ui/**/*.${testFileExtension}`,
         `<rootDir>/tests/unit/**/*.${testFileExtension}`,
@@ -18,7 +27,10 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        '^.+\\.[jt]sx?$': 'babel-jest',
+        // OXC + esbuild is native and stays fast without TurboFan, where Babel was measured as
+        // roughly half of each Reassure measure job. The transformer sends test files, mocks and
+        // node_modules to babel-jest itself, so `jest.mock` is still hoisted there.
+        '^.+\\.[jt]sx?$': '<rootDir>/config/babel/oxcJestTransformer.js',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: [
@@ -37,6 +49,8 @@ module.exports = {
     globals: {
         __DEV__: true,
         WebSocket: {},
+        // Build-time define from config/rsbuild/rsbuild.common.ts. SkiaWebChart reads it when mounting CanvasKit.
+        __CANVASKIT_WASM_URL__: '/canvaskit-test.wasm',
     },
     fakeTimers: {
         enableGlobally: true,

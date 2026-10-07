@@ -1,4 +1,3 @@
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getAmount, getCurrency, getDescription, getMerchant} from '@libs/TransactionUtils';
 
@@ -8,10 +7,9 @@ import type Transaction from '@src/types/onyx/Transaction';
 import createMock from '../utils/createMock';
 
 // Mock the dependencies
-jest.mock('@libs/CurrencyUtils');
 jest.mock('@libs/TransactionUtils');
 
-const mockConvertToDisplayString = jest.mocked(convertToDisplayString);
+const mockConvertToDisplayString = jest.fn<string, [number | undefined, string | undefined]>();
 const mockGetMerchant = jest.mocked(getMerchant);
 const mockGetDescription = jest.mocked(getDescription);
 const mockGetAmount = jest.mocked(getAmount);
@@ -123,7 +121,7 @@ describe('AddExistingExpense Search Functionality', () => {
         // Add formatted amount to searchable fields
         const amount = getAmount(transaction);
         const currency = getCurrency(transaction);
-        const formattedAmount = convertToDisplayString(amount, currency);
+        const formattedAmount = mockConvertToDisplayString(amount, currency);
         searchableFields.push(formattedAmount);
 
         // This allows users to search "2000" and find "$2,000.00" for example

@@ -27,7 +27,6 @@ type SearchTypeMenuItemProps = {
     /** Translated title */
     title: string;
 
-    /** Icon component or asset */
     icon: IconAsset | undefined;
 
     /** Optional badge text (e.g. count) */
@@ -36,7 +35,6 @@ type SearchTypeMenuItemProps = {
     /** Whether the item is focused (keyboard nav) */
     focused?: boolean;
 
-    /** Press handler */
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
@@ -84,7 +82,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: focused || hovered, isPressed: pressed}), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
             ]}
         >
@@ -96,7 +94,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                                 src={icon}
                                 width={variables.iconSizeNormal}
                                 height={variables.iconSizeNormal}
-                                fill={StyleUtils.getIconFillColor(getButtonState(focused || hovered, pressed, false, false, true), true, true)}
+                                fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: focused || hovered, isPressed: pressed}), isMenuIcon: true, isPane: true})}
                             />
                             {!!badgeText && (
                                 <Animated.View

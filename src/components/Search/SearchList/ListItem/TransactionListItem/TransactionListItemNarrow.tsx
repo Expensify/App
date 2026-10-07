@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -7,19 +6,17 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
-
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef} from 'react';
 
 import type {TransactionListItemNarrowProps} from './types';
 
@@ -44,14 +41,14 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     handleActionButtonPress,
     shouldDisableActionPointerEvents,
     transactionPreviewData,
-    exportedReportActions,
+    reportActions,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
@@ -68,44 +65,17 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         onSelectRow(item, transactionPreviewData, event);
     };
 
-    const pressableStyle = [styles.transactionListItemStyle, styles.p4, styles.noBorderRadius, isSelected && styles.activeComponentBG, {...styles.flexColumn, ...styles.alignItemsStretch}];
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: true,
-    });
-
-    // The highlight animation is applied to the row wrapper, which sits behind this pressable. A focused
-    // row paints an opaque background on the pressable itself, which would cover the highlight - so after
-    // splitting an expense the newly-created row that receives focus never appears highlighted. Suppress
-    // the opaque focus background for the full highlight animation so the highlight shows. shouldAnimateInHighlight
-    // only stays true for the brief queue window, so latch it for durationHighlightItem.
-    const shouldAnimateInHighlight = !!item?.shouldAnimateInHighlight;
-
-    // Initialize from the prop so a row that mounts already flagged (the split/search highlight case this
-    // fixes) latches immediately - otherwise the render-time guard below never fires on first mount.
-    const [isHighlighting, setIsHighlighting] = useState(shouldAnimateInHighlight);
-    const [wasAnimatingHighlight, setWasAnimatingHighlight] = useState(shouldAnimateInHighlight);
-
-    // Start the latch during render (React's "storing information from previous renders" pattern) to avoid
-    // calling setState synchronously inside an effect. The effect below only clears it via an async timer.
-    if (shouldAnimateInHighlight !== wasAnimatingHighlight) {
-        setWasAnimatingHighlight(shouldAnimateInHighlight);
-        if (shouldAnimateInHighlight) {
-            setIsHighlighting(true);
-        }
-    }
-    useEffect(() => {
-        if (!isHighlighting) {
-            return;
-        }
-        const timer = setTimeout(() => setIsHighlighting(false), durationHighlightItem);
-        return () => clearTimeout(timer);
-    }, [isHighlighting]);
-    const shouldShowFocusBackground = !!isFocused && !isHighlighting;
+    const pressableStyle = [
+        styles.transactionListItemStyle,
+        styles.p4,
+        styles.noBorderRadius,
+        isSelected && styles.activeComponentBG,
+        // A selected row paints an opaque background here, on top of the rounded wrapper below, so the outer
+        // corners have to be rounded on this element too or the list's top/bottom corners look square.
+        isFirstItem && styles.tableTopRadius,
+        isLastItem && styles.tableBottomRadius,
+        {...styles.flexColumn, ...styles.alignItemsStretch},
+    ];
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
@@ -115,22 +85,22 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 onPress={handleOnPress}
                 disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
-                role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
+                role={!isDeletedTransaction ? CONST.ROLE.BUTTON : 'none'}
                 isNested
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
                     pressableStyle,
-                    shouldShowFocusBackground && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
                     styles.mh5,
                     styles.flex1,
-                    animatedHighlightStyle,
+                    StyleUtils.getSearchRowBackgroundStyle(isSelected),
                     styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,
@@ -152,7 +122,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             policy={transactionItem.policy}
                             shouldShowTooltip={showTooltip}
                             onButtonPress={handleActionButtonPress}
-                            onCheckboxPress={() => onCheckboxPress?.(item)}
+                            onCheckboxPress={(_transactionID, shiftKey) => onCheckboxPress?.(item, undefined, shiftKey)}
                             shouldUseNarrowLayout
                             isLargeScreenWidth={false}
                             columns={columns}
@@ -170,7 +140,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                             isHover={false}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                            reportActions={exportedReportActions}
+                            reportActions={reportActions}
                             isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         />
                     </>

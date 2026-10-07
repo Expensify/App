@@ -16,6 +16,10 @@ type InitialFocusSection = {
 };
 
 type InitialFocusTarget = {
+    /** Key of the first recent report row, or undefined when none is rendered. Distinct from defaultFocusedKey,
+     *  which may point at the "Search in <chat>" suggestion instead -- callers that auto-highlight the first
+     *  recent report match need this key specifically, not whatever the initial-open focus target is. */
+    firstRecentReportKey: string | undefined;
     /** Text of the first recent report row, used to decide whether a typed query highlights it. */
     firstRecentReportText: string;
     /** Header-aware flat index of the first recent report row, or -1 when none is rendered. */
@@ -65,6 +69,7 @@ function getAutocompleteInitialFocus(sections: InitialFocusSection[], recentRepo
     }
 
     return {
+        firstRecentReportKey,
         firstRecentReportText,
         firstRecentReportFlatIndex,
         // Prefer the "Search in <chat>" suggestion so Enter searches the current chat rather than opening a recent one.

@@ -1,12 +1,34 @@
-import checkFileExists from '@libs/fileDownload/checkFileExists';
+import {checkFileExistsWithReason} from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
 import type {Receipt} from '@src/types/onyx/Transaction';
 
+import RNFS from 'react-native-fs';
+
 import type PrepareRequestPayload from './types';
+
+async function getReceiptsFolderState(): Promise<{exists: boolean; entryCount?: number}> {
+    let folderPath: string;
+    try {
+        folderPath = getReceiptsUploadFolderPath();
+        if (!(await RNFS.exists(folderPath))) {
+            return {exists: false};
+        }
+    } catch {
+        return {exists: false};
+    }
+
+    try {
+        const entries = await RNFS.readDir(folderPath);
+        return {exists: true, entryCount: entries.length};
+    } catch {
+        return {exists: true};
+    }
+}
 
 /**
  * Prepares the request payload (body) for a given command and data.
@@ -35,11 +57,12 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
 
                     const localUri = ReceiptStorage.resolve(source) ?? source;
 
-                    return checkFileExists(localUri).then((exists) => {
+                    return checkFileExistsWithReason(localUri).then(({exists, error}) => {
                         if (!exists) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
-                            logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name});
-                            return;
+                            return getReceiptsFolderState().then((receiptsFolder) => {
+                                logReceiptDropped({receiptTraceId, transactionID, command, source, localUri, fileName: name, statError: error, receiptsFolder});
+                            });
                         }
                         const receiptFormData = {
                             uri: localUri,

@@ -1,3 +1,4 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -10,6 +11,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useCanEnrollNewExpensifyCardProgram from '@hooks/useCanEnrollNewExpensifyCardProgram';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
@@ -29,7 +31,7 @@ import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canMemberWrite} from '@libs/PolicyUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -62,7 +64,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage', 'Telescope']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -83,6 +85,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const policy = usePolicy(policyID);
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const {canEnrollNewCardProgram} = useCanEnrollNewExpensifyCardProgram(policyID);
+    const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
 
     const getIssueCardFundID = () => {
         if (primaryFeeds.length === 0) {
@@ -99,6 +103,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const issueCardFundID = getIssueCardFundID();
+    const hasIssueCardFundID = issueCardFundID !== undefined;
 
     const handleAddCardPress = () => {
         if (issueCardFundID === undefined) {
@@ -200,14 +205,21 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
 
-    const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
+    // Suppress the new-program branch on workspaces with unsupported currencies, and for members who cannot
+    // reach the bank account setup page. These workspaces may only issue cards on existing feeds
+    const shouldShowIssueCardButton = hasIssueCardFundID || (canEnrollNewCardProgram && canStartBankAccountSetup);
+    const shouldShowFooter = canWriteExpensifyCard && (shouldShowIssueCardButton || otherFeeds.length > 0);
+
+    const issueNewCardAndOtherFeedsFooter = shouldShowFooter ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            <MenuItemAction
-                title={translate(issueCardFundID !== undefined ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
-                icon={expensifyIcons.Plus}
-                onPress={issueCardFundID !== undefined ? handleAddCardPress : handleSetUpNewProgramPress}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
-            />
+            {shouldShowIssueCardButton && (
+                <MenuItemAction
+                    title={translate(hasIssueCardFundID ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
+                    icon={expensifyIcons.Plus}
+                    onPress={hasIssueCardFundID ? handleAddCardPress : handleSetUpNewProgramPress}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+                />
+            )}
             {otherFeeds.length > 0 && (
                 <>
                     <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
@@ -218,12 +230,9 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
                                 key={item.keyForList}
-                                keyForList={item.keyForList}
                                 showTooltip={false}
                                 item={item}
                                 onSelectRow={selectOtherFeed}
-                                isMultilineSupported
-                                isAlternateTextMultilineSupported
                                 alternateTextNumberOfLines={2}
                                 titleNumberOfLines={2}
                                 wrapperStyle={[styles.flexReset, styles.w100]}
@@ -234,6 +243,44 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
             )}
         </View>
     ) : undefined;
+
+    const renderFeedListContent = () => {
+        if (primaryFeeds.length > 0) {
+            return (
+                <SelectionList
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={selectFeed}
+                    data={primaryListData}
+                    alternateNumberOfSupportedLines={2}
+                    initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
+                    addBottomSafeAreaPadding
+                    listFooterContent={issueNewCardAndOtherFeedsFooter}
+                    onDismissError={onDismissError}
+                />
+            );
+        }
+        if (issueNewCardAndOtherFeedsFooter) {
+            return (
+                <ScrollView
+                    addBottomSafeAreaPadding
+                    style={styles.flex1}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {issueNewCardAndOtherFeedsFooter}
+                </ScrollView>
+            );
+        }
+        return (
+            <BlockingView
+                addBottomSafeAreaPadding
+                icon={illustrations.Telescope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.expensifyCard.noCardFeedsAvailable')}
+                subtitle={translate('workspace.expensifyCard.noCardFeedsAvailableDescription')}
+            />
+        );
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -251,26 +298,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                     title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
-                {primaryFeeds.length > 0 ? (
-                    <SelectionList
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={selectFeed}
-                        data={primaryListData}
-                        alternateNumberOfSupportedLines={2}
-                        initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
-                        addBottomSafeAreaPadding
-                        listFooterContent={issueNewCardAndOtherFeedsFooter}
-                        onDismissError={onDismissError}
-                    />
-                ) : (
-                    <ScrollView
-                        addBottomSafeAreaPadding
-                        style={styles.flex1}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        {issueNewCardAndOtherFeedsFooter}
-                    </ScrollView>
-                )}
+                {renderFeedListContent()}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

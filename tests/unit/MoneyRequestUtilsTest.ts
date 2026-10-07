@@ -4,6 +4,8 @@ import {
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,
     handleNegativeAmountFlipping,
+    isConfirmationAmountMissing,
+    isConfirmationDateMissing,
     isValidMerchant,
     isValidMoneyRequestAmount,
     validateAmount,
@@ -297,12 +299,15 @@ describe('ReportActionsUtils', () => {
                 expect(isValidMerchant(undefined, reportedTransaction, iouReport)).toBe(true);
             });
 
-            it('should return false for empty/undefined merchant when transaction is reported or missing', () => {
-                expect(isValidMerchant('', reportedTransaction)).toBe(false);
+            it('should return true for empty/undefined merchant when the report is missing, matching the normal edit flow', () => {
+                expect(isValidMerchant('', reportedTransaction)).toBe(true);
+                expect(isValidMerchant('')).toBe(true);
+            });
+
+            it('should return false for empty/undefined merchant on an expense report', () => {
                 expect(isValidMerchant('', reportedTransaction, expenseReport)).toBe(false);
                 expect(isValidMerchant('   ', reportedTransaction, expenseReport)).toBe(false);
                 expect(isValidMerchant(undefined, reportedTransaction, expenseReport)).toBe(false);
-                expect(isValidMerchant('')).toBe(false);
             });
         });
 
@@ -330,6 +335,30 @@ describe('ReportActionsUtils', () => {
 
 describe('getAmountHasUnsavedChanges', () => {
     const sameCurrency = {selectedCurrency: 'USD', originalCurrency: 'USD'};
+
+    it('flags a changed sign when the amount is empty', () => {
+        expect(
+            getAmountHasUnsavedChanges({
+                ...sameCurrency,
+                typedAmount: '',
+                committedAmount: 0,
+                isCreateEntry: true,
+                isSignChanged: true,
+            }),
+        ).toBe(true);
+    });
+
+    it('does not flag an empty amount when the sign matches its initial value', () => {
+        expect(
+            getAmountHasUnsavedChanges({
+                ...sameCurrency,
+                typedAmount: '',
+                committedAmount: 0,
+                isCreateEntry: true,
+                isSignChanged: false,
+            }),
+        ).toBe(false);
+    });
 
     describe('create entry (any input counts)', () => {
         it('flags a typed value', () => {
@@ -494,5 +523,51 @@ describe('getWaypointsHasUnsavedChanges (distance map)', () => {
         it('does not flag when the committed baseline is missing', () => {
             expect(getWaypointsHasUnsavedChanges(undefined, undefined, waypointsA, false)).toBe(false);
         });
+    });
+});
+
+describe('isConfirmationAmountMissing', () => {
+    it('flags a manual expense whose amount the user has not entered yet', () => {
+        expect(isConfirmationAmountMissing({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, isAmountSet: false})).toBe(true);
+    });
+
+    it('does not flag a manual expense once the amount is set', () => {
+        expect(isConfirmationAmountMissing({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, isAmountSet: true})).toBe(false);
+    });
+
+    // `isAmountSet` is only ever set by the manual flow, so without the manual gate every scan expense would look
+    // like it is missing its amount and show a phantom required error under a perfectly good value.
+    it('does not flag a scan expense, whose amount is populated programmatically and never sets isAmountSet', () => {
+        expect(isConfirmationAmountMissing({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, isAmountSet: undefined})).toBe(false);
+    });
+
+    it('does not flag a distance expense', () => {
+        expect(isConfirmationAmountMissing({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, isAmountSet: undefined})).toBe(false);
+    });
+
+    it('does not flag a missing transaction', () => {
+        expect(isConfirmationAmountMissing(undefined)).toBe(false);
+    });
+});
+
+describe('isConfirmationDateMissing', () => {
+    const transactionWithoutDate = createMock<Transaction>({transactionID: '1', created: '', comment: {}});
+    const transactionWithDate = createMock<Transaction>({transactionID: '1', created: '2026-07-29', comment: {}});
+
+    it('flags an editable confirmation that renders the date field with the date cleared', () => {
+        expect(isConfirmationDateMissing(transactionWithoutDate, true, false)).toBe(true);
+    });
+
+    it('does not flag it once the date is filled', () => {
+        expect(isConfirmationDateMissing(transactionWithDate, true, false)).toBe(false);
+    });
+
+    // A date the user can't see can't be fixed inline, so it must never keep the shared required error alive.
+    it('does not flag a confirmation that hides the date field', () => {
+        expect(isConfirmationDateMissing(transactionWithoutDate, false, false)).toBe(false);
+    });
+
+    it('does not flag a read-only confirmation, where the date is populated server-side', () => {
+        expect(isConfirmationDateMissing(transactionWithoutDate, true, true)).toBe(false);
     });
 });
