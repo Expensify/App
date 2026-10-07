@@ -9906,6 +9906,8 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
         mergeReports: {title: 'Combinar informes', description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.'},
+        periodSoFar: ({period}: {period: string}) => `${period} hasta ahora`,
+        weekOf: ({date}: {date: string}) => `Semana del ${date}`,
         saveEdits: {
             title: 'Guardar cambios',
             prompt: ({name}: {name: string}) => `¿Actualizar los cambios en «${name}» o crear uno nuevo?`,
