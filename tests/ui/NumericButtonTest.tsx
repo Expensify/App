@@ -200,9 +200,8 @@ describe('Numeric buttons', () => {
                     value="12"
                     onInputChange={onInputChange}
                     allowNegative
+                    actions={<NumericInput.FlipButton testID={FLIP_TEST_ID} />}
                 >
-                    <NumericInput.FlipButton testID={FLIP_TEST_ID} />
-                    <NumericInput.MinusSign />
                     <NumericInput.TextInput testID={INPUT_TEST_ID} />
                 </NumericInput>,
             );

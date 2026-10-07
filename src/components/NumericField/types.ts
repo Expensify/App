@@ -2,7 +2,7 @@ import type {NumericEditingKeyPressEvent, NumericEditingRef} from '@components/N
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 type NumericFieldRef = NumericEditingRef;
 
@@ -15,13 +15,20 @@ type NumericTextInputProps = {
 
     /** Callback for keyboard events received by the numeric input. */
     onKeyPress?: (event: NumericEditingKeyPressEvent) => void;
+
+    /** Style applied to the text input container. */
+    containerStyle?: StyleProp<ViewStyle>;
 } & Pick<
     BaseTextInputProps,
     | 'accessibilityLabel'
     | 'autoFocus'
+    | 'autoGrow'
+    | 'autoGrowExtraSpace'
+    | 'autoGrowMarginSide'
     | 'contentWidth'
     | 'disabled'
     | 'disableKeyboard'
+    | 'hideFocusedState'
     | 'keyboardType'
     | 'label'
     | 'onBlur'
@@ -29,8 +36,11 @@ type NumericTextInputProps = {
     | 'onSubmitEditing'
     | 'prefixCharacter'
     | 'prefixContainerStyle'
+    | 'prefixStyle'
+    | 'rightHandSideComponent'
     | 'shouldApplyPaddingToContainer'
     | 'shouldUseDefaultLineHeightForPrefix'
+    | 'submitBehavior'
     | 'testID'
     | 'touchableInputWrapperStyle'
 >;
