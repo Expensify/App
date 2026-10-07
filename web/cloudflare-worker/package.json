@@ -13,10 +13,6 @@
         "test": "node --test 'tests/**/*.test.ts'",
         "compare-headers": "node scripts/compareHeaders.ts"
     },
-    "engines": {
-        "node": "26.5.0",
-        "npm": "11.17.0"
-    },
     "devDependencies": {
         "@types/node": "24.19.0",
         "typescript": "7.0.2",
