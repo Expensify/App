@@ -27,7 +27,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getLinkedTransactionID, getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getReportAction, getTransactionThreadReport, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
 import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import {
@@ -175,9 +175,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    // A self DM expense is unreported, so its thread cannot be found from transaction.reportID. The receipt
-    // screen was opened from that thread, and the parent action names this transaction.
-    const transactionThread = transactionThreadReport ?? (getLinkedTransactionID(parentReportAction) === transaction?.transactionID ? report : undefined);
+    const transactionThread = getTransactionThreadReport(transaction, transactionThreadReport, report);
     const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules, reportNameValuePairs: undefined});
     const canDeleteReceipt = canEditFieldOfMoneyRequest({
         reportAction: parentReportAction,

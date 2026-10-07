@@ -655,7 +655,7 @@ describe('actions/IOU/Receipt', () => {
                 ...createRandomTransaction(1),
                 transactionID,
                 reportID: expenseReportID,
-                receipt: OLD_RECEIPT,
+                receipt: {},
             };
 
             const threadReport = {
@@ -705,7 +705,7 @@ describe('actions/IOU/Receipt', () => {
                     }),
                 );
 
-                // The old receipt was never uploaded, so there is nothing to audit as removed
+                // The expense held no receipt, so there is nothing to audit as removed
                 expect(Object.values(threadActionsUpdate.value)).toHaveLength(1);
 
                 // And a failed upload restores the timestamps the thread had before
@@ -772,6 +772,64 @@ describe('actions/IOU/Receipt', () => {
                 expect(removedAction?.created.localeCompare(addedAction?.created ?? '')).toBeLessThan(0);
 
                 // And both IDs reach the server so the actions it writes reconcile with these
+                expect(parameters).toEqual(
+                    expect.objectContaining({
+                        reportActionID: addedAction?.reportActionID,
+                        receiptRemovedReportActionID: removedAction?.reportActionID,
+                    }),
+                );
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should audit a swap of a receipt that was added offline and has no receiptID yet', async () => {
+            // Given a receipt that exists only on this device, with a file but no receipt ID yet
+            const expenseReportID = 'replaceReceiptOfflineExpenseReportID';
+            const threadReportID = 'replaceReceiptOfflineThreadReportID';
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: expenseReportID,
+                receipt: OLD_RECEIPT,
+            };
+
+            const threadReport = {
+                ...createRandomReport(2, undefined),
+                reportID: threadReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
+            await waitForBatchedUpdates();
+
+            const writeSpy = mockApiWrite();
+            try {
+                // When that receipt is replaced before it has been stored server-side
+                replaceReceipt({
+                    isVendorMatchingBetaEnabled: false,
+                    transaction,
+                    file: createFile(),
+                    source,
+                    transactionPolicy: undefined,
+                    transactionPolicyTagList: undefined,
+                    transactionReport: undefined,
+                    delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: threadReport,
+                });
+                await waitForBatchedUpdates();
+
+                // Then "removed a receipt" shows right away, and its ID is sent so the server message matches it
+                const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                const auditActions = Object.values(threadActionsUpdate.value).filter(isReceiptAuditAction);
+                expect(auditActions).toHaveLength(2);
+
+                const removedAction = auditActions.find((action) => !!action.originalMessage.receiptRemoved);
+                const addedAction = auditActions.find((action) => !!action.originalMessage.receiptAdded);
+                expect(removedAction).toBeDefined();
+                expect(addedAction).toBeDefined();
                 expect(parameters).toEqual(
                     expect.objectContaining({
                         reportActionID: addedAction?.reportActionID,

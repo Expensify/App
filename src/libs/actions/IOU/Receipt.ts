@@ -13,7 +13,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {buildOptimisticReceiptAddedAction, buildOptimisticReceiptRemovedAction, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
-import {hasUploadedReceipt} from '@libs/TransactionUtils';
+import {hasReceiptSource, hasUploadedReceipt} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -213,9 +213,8 @@ function detachReceipt({
         );
     }
 
-    // The expense report's own MANAGER_DETACH_RECEIPT action is only written by the backend when someone other
-    // than the report owner detaches, or the report has been submitted, so it cannot be shown optimistically.
-    // We still name it, so the action the backend may create reconciles with this ID.
+    // The expense report only records a detach in some cases, so that message is not shown up front.
+    // The ID is still sent so the server message matches it when one is written.
     const parameters: DetachReceiptParams = {
         transactionID,
         reportActionID: rand64(),
@@ -377,12 +376,12 @@ function replaceReceipt({
         });
     }
 
-    // Show the audit messages right away, but not for a crop or rotate (isSameReceipt) and only if the
-    // thread already exists. Otherwise the backend creates the thread and messages and they sync in.
-    // `transaction` is the expense as it was before this replacement, because the caller may merge the new
-    // receipt into Onyx just before calling this, so an uploaded receipt on it is the one being replaced.
+    // Show the audit messages now when the thread already exists. A crop or rotate is not a receipt change.
+    // A receipt added offline has a file but no receipt ID yet, and that still counts as one being replaced.
     const transactionThreadReportID = transactionThreadReport?.reportID;
     const shouldAuditReceiptChange = !isSameReceipt && !!transactionThreadReportID;
+    const isReplacingReceipt = !!transaction && (hasReceiptSource(transaction) || hasUploadedReceipt(transaction));
+    const created = DateUtils.getDBTime();
     const optimisticReceiptAddedAction = shouldAuditReceiptChange
         ? buildOptimisticReceiptAddedAction(
               transactionThreadReportID,
@@ -391,11 +390,12 @@ function replaceReceipt({
               currentUserPersonalDetails.displayName,
               currentUserPersonalDetails.avatar,
               delegateAccountID,
+              created,
           )
         : undefined;
 
     const optimisticReceiptRemovedAction =
-        shouldAuditReceiptChange && hasUploadedReceipt(transaction)
+        shouldAuditReceiptChange && isReplacingReceipt
             ? buildOptimisticReceiptRemovedAction(
                   transactionThreadReportID,
                   transactionID,
@@ -403,7 +403,7 @@ function replaceReceipt({
                   currentUserPersonalDetails.displayName,
                   currentUserPersonalDetails.avatar,
                   delegateAccountID,
-                  DateUtils.subtractMillisecondsFromDateTime(DateUtils.getDBTime(), 1),
+                  DateUtils.subtractMillisecondsFromDateTime(created, 1),
               )
             : undefined;
 

@@ -984,7 +984,7 @@ type OriginalMessageModifiedExpense = {
     /** Whether a receipt was added to the expense */
     receiptAdded?: boolean;
 
-    /** Whether this action records a receipt being removed from the expense. A replacement writes one of these followed by a `receiptAdded` action. */
+    /** Whether a receipt was removed. A replacement writes this, then an added-receipt action. */
     receiptRemoved?: boolean;
 };
 

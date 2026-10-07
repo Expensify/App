@@ -8605,8 +8605,9 @@ function buildOptimisticModifiedExpenseReportAction(
 }
 
 /**
- * Builds an optimistic "added a receipt" action for the transaction thread.
- * It shares a reportActionID with the server action so the two reconcile.
+ * Builds an optimistic "added a receipt" action that shares its ID with the server action.
+ *
+ * @param created Shared clock sample so a replacement can order the removal first.
  */
 function buildOptimisticReceiptAddedAction(
     reportID: string | undefined,
@@ -8615,15 +8616,15 @@ function buildOptimisticReceiptAddedAction(
     currentUserDisplayName: string | undefined,
     currentUserAvatar: AvatarSource | undefined,
     delegateAccountID: number | undefined,
+    created?: string,
 ): OptimisticModifiedExpenseReportAction {
-    return buildOptimisticReceiptAuditAction(reportID, transactionID, currentUserAccountID, currentUserDisplayName, currentUserAvatar, delegateAccountID, 'receiptAdded');
+    return buildOptimisticReceiptAuditAction(reportID, transactionID, currentUserAccountID, currentUserDisplayName, currentUserAvatar, delegateAccountID, 'receiptAdded', created);
 }
 
 /**
- * Builds an optimistic "removed a receipt" action for the transaction thread.
- * It shares a reportActionID with the server action so the two reconcile.
+ * Builds an optimistic "removed a receipt" action that shares its ID with the server action.
  *
- * @param created Timestamp for the action, so a replacement can order its removal before its addition.
+ * @param created Set slightly earlier so a replacement shows the removal first.
  */
 function buildOptimisticReceiptRemovedAction(
     reportID: string | undefined,
