@@ -25,9 +25,6 @@ type BuildChartSeriesParams = {
     /** Returns how many decimals a currency is displayed with */
     getCurrencyDecimals: (currency: string) => number;
 
-    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette. */
-    color?: string;
-
     /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
     getInProgressLabel?: (item: GroupedItem) => string | undefined;
 };
@@ -49,7 +46,7 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undef
 }
 
 /** This is the single place group totals are turned into plotted values. */
-function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, color: barColor, getInProgressLabel}: BuildChartSeriesParams): SearchChartDataRow[] {
+function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, getInProgressLabel}: BuildChartSeriesParams): SearchChartDataRow[] {
     const rows = data.map((item) => {
         const decimals = getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD);
         const label = StringUtils.normalize(getLabel(item));
@@ -77,7 +74,7 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
         if (pieColors) {
             color = pieColors.at(index);
         } else if (view === CONST.SEARCH.VIEW.BAR) {
-            color = barColor ?? VictoryTheme.colors.getColor(index);
+            color = VictoryTheme.colors.getColor(index);
         }
 
         return {...row, color};
