@@ -60,10 +60,11 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 policy?.taxRates?.foreignTaxDefault,
                 policy?.taxRates?.defaultExternalID,
                 distanceRateCustomUnit,
+                policy?.rules?.expenseRules,
             );
             Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
         },
-        [currentTaxCode, policyID, policy?.taxRates, distanceRateCustomUnit, isTaxCodeCustomized],
+        [currentTaxCode, policyID, policy?.taxRates, policy?.rules?.expenseRules, distanceRateCustomUnit, isTaxCodeCustomized],
     );
 
     const validate = useCallback(
