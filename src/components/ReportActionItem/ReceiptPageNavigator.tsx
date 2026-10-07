@@ -95,8 +95,13 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
             dataSet={{[CONST.RECEIPT.HOVER_ZOOM_EXCLUDED_ELEMENT]: true}}
         >
             {/* First in reading order, so a screen reader hits "Page X of Y" before the buttons either side of it.
-                Absolutely positioned (see receiptPageNavigator's comment), so this has no effect on visual order. */}
-            <View style={[styles.receiptPageNavigatorLabelContainer, styles.pointerEventsNone]}>
+                Absolutely positioned (see receiptPageNavigator's comment), so this has no effect on visual order.
+                accessibilityLiveRegion announces the new page after a button press, since focus stays on the button. */}
+            <View
+                style={[styles.receiptPageNavigatorLabelContainer, styles.pointerEventsNone]}
+                accessibilityLiveRegion="polite"
+                role={CONST.ROLE.STATUS}
+            >
                 <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
             </View>
             <PageButton
