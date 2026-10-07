@@ -1,5 +1,6 @@
-import {useNumericInputActions, useNumericInputState} from '@components/NumericInput/context';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import type {UseNumericPressSelectionParams} from './types';
 
 /** Only the rendered form element exposes the caret offsets. */
 function getSelectableElement(input: BaseTextInputRef | null): HTMLInputElement | null {
@@ -8,12 +9,9 @@ function getSelectableElement(input: BaseTextInputRef | null): HTMLInputElement 
 
 /**
  * The browser moves the caret on click without emitting a selection change, so the controlled selection would snap it
- * back. Reading the caret from the input element on press keeps the root selection in sync.
+ * back. Reading the caret from the input element on press keeps the controller selection in sync.
  */
-function useNumericPressSelection(onPress?: BaseTextInputProps['onPress']): BaseTextInputProps['onPress'] {
-    const {handleSelectionChange} = useNumericInputActions();
-    const {inputRef} = useNumericInputState();
-
+function useNumericPressSelection({inputRef, handleSelectionChange, onPress}: UseNumericPressSelectionParams): BaseTextInputProps['onPress'] {
     return (event) => {
         const inputElement = getSelectableElement(inputRef.current);
         if (inputElement) {

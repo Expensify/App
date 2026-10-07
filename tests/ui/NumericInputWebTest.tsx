@@ -2,9 +2,8 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import useNumericPressSelection from '@components/NumericEditingController/hooks/useNumericPressSelection/index.web';
 import NumericInput from '@components/NumericInput';
-import {NumericInputActionsContext, NumericInputStateContext} from '@components/NumericInput/context';
-import useNumericPressSelection from '@components/NumericInput/hooks/useNumericPressSelection/index.web';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -32,31 +31,24 @@ jest.mock('@react-navigation/native', () => ({
 
 const INPUT_TEST_ID = 'numeric-input-web-test-input';
 const PRESSABLE_TEST_ID = 'numeric-input-web-test-pressable';
-const CONTAINER_TEST_ID = 'numeric-input-web-test-container';
 
 function renderWithProviders(children: React.ReactNode) {
     return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>);
 }
 
-/** Builds the mouse event the web container handler expects, with `target.id` set to the pressed view's id. */
-function getMouseDownEvent(targetId: string) {
-    const target = document.createElement('div');
-    target.id = targetId;
+type WebPressSelectionTestProps = {
+    /** Input whose caret the hook reads on press */
+    inputRef: {current: BaseTextInputRef | null};
 
-    return {nativeEvent: {target}, preventDefault: jest.fn()};
-}
+    /** Receives the caret offsets read on press */
+    handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
 
-function getContainerViewId(testID: string) {
-    const container = screen.getByTestId(testID);
-    if (typeof container.props.id !== 'string') {
-        throw new Error(`Numeric input container id was not assigned for ${testID}`);
-    }
+    /** Caller press handler */
+    onPress: BaseTextInputProps['onPress'];
+};
 
-    return container.props.id;
-}
-
-function WebPressSelectionTest({onPress}: {onPress: BaseTextInputProps['onPress']}) {
-    const handlePress = useNumericPressSelection(onPress);
+function WebPressSelectionTest({inputRef, handleSelectionChange, onPress}: WebPressSelectionTestProps) {
+    const handlePress = useNumericPressSelection({inputRef, handleSelectionChange, onPress});
 
     return (
         <TextInput
@@ -78,33 +70,14 @@ function getCaretInputRef(selectionStart: number, selectionEnd: number): {curren
     return {current: inputElement as BaseTextInputRef};
 }
 
-/** Renders the press-selection hook against a root state whose `inputRef` holds the given element. */
+/** Renders the press-selection hook against an `inputRef` holding the given element. */
 function renderPressSelection(inputRef: {current: BaseTextInputRef | null}, onPress: jest.Mock, handleSelectionChange: jest.Mock) {
     renderWithProviders(
-        <NumericInputStateContext.Provider
-            value={{
-                value: '12345',
-                formattedNumber: '12345',
-                selection: {start: 5, end: 5},
-                isNegative: false,
-                allowNegative: false,
-                inputRef,
-            }}
-        >
-            <NumericInputActionsContext.Provider
-                value={{
-                    setNumber: jest.fn(),
-                    clearSelection: jest.fn(),
-                    toggleSign: jest.fn(),
-                    clearSign: jest.fn(),
-                    handleSelectionChange,
-                    handleKeyPress: jest.fn(),
-                    focusInput: jest.fn(),
-                }}
-            >
-                <WebPressSelectionTest onPress={onPress} />
-            </NumericInputActionsContext.Provider>
-        </NumericInputStateContext.Provider>,
+        <WebPressSelectionTest
+            inputRef={inputRef}
+            handleSelectionChange={handleSelectionChange}
+            onPress={onPress}
+        />,
     );
 }
 
@@ -144,94 +117,5 @@ describe('NumericInput web behavior', () => {
         fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
 
         expect(input.props.selection).toEqual({start: 0, end: 0});
-    });
-
-    describe('container primitive', () => {
-        const renderContainerComposition = (inputRef?: React.Ref<BaseTextInputRef>) =>
-            renderWithProviders(
-                <NumericInput value="12">
-                    <NumericInput.Container testID={CONTAINER_TEST_ID}>
-                        <NumericInput.TextInput
-                            testID={INPUT_TEST_ID}
-                            ref={inputRef}
-                        />
-                        <NumericInput.Symbol>%</NumericInput.Symbol>
-                    </NumericInput.Container>
-                </NumericInput>,
-            );
-
-        it('focuses the input and collapses the selection when its own empty area is pressed', () => {
-            // Given a container composition with a range selection on the input
-            const inputRef = React.createRef<BaseTextInputRef>();
-            renderContainerComposition(inputRef);
-
-            const input = screen.getByTestId(INPUT_TEST_ID);
-            fireEvent(input, 'selectionChange', {
-                nativeEvent: {selection: {start: 0, end: 2}},
-            });
-            expect(input.props.selection).toEqual({start: 0, end: 2});
-
-            const inputElement = inputRef.current;
-            if (!inputElement) {
-                throw new Error('Numeric input ref was not assigned');
-            }
-            const focus = jest.spyOn(inputElement, 'focus');
-
-            // When the container's own empty area is pressed
-            const event = getMouseDownEvent(getContainerViewId(CONTAINER_TEST_ID));
-            fireEvent(screen.getByTestId(CONTAINER_TEST_ID), 'mouseDown', event);
-
-            // Then the browser blur is prevented, the input is focused, and the selection collapses onto its end
-            expect(event.preventDefault).toHaveBeenCalledTimes(1);
-            expect(focus).toHaveBeenCalledTimes(1);
-            expect(input.props.selection).toEqual({start: 2, end: 2});
-            focus.mockRestore();
-        });
-
-        it('ignores a press that originates from a nested view instead of its own empty area', () => {
-            // Given a container composition with a range selection on the input
-            const inputRef = React.createRef<BaseTextInputRef>();
-            renderContainerComposition(inputRef);
-
-            const input = screen.getByTestId(INPUT_TEST_ID);
-            fireEvent(input, 'selectionChange', {
-                nativeEvent: {selection: {start: 0, end: 2}},
-            });
-
-            const inputElement = inputRef.current;
-            if (!inputElement) {
-                throw new Error('Numeric input ref was not assigned');
-            }
-            const focus = jest.spyOn(inputElement, 'focus');
-
-            // When the press bubbles up from a nested view, which owns the caret placement itself
-            const event = getMouseDownEvent('some-nested-view-id');
-            fireEvent(screen.getByTestId(CONTAINER_TEST_ID), 'mouseDown', event);
-
-            // Then the container leaves the press and the selection alone
-            expect(event.preventDefault).not.toHaveBeenCalled();
-            expect(focus).not.toHaveBeenCalled();
-            expect(input.props.selection).toEqual({start: 0, end: 2});
-            focus.mockRestore();
-        });
-
-        it('assigns a distinct target id to each mounted container, so a press only refocuses its own input', () => {
-            renderWithProviders(
-                <>
-                    <NumericInput value="12">
-                        <NumericInput.Container testID={`${CONTAINER_TEST_ID}-one`}>
-                            <NumericInput.TextInput />
-                        </NumericInput.Container>
-                    </NumericInput>
-                    <NumericInput value="34">
-                        <NumericInput.Container testID={`${CONTAINER_TEST_ID}-two`}>
-                            <NumericInput.TextInput />
-                        </NumericInput.Container>
-                    </NumericInput>
-                </>,
-            );
-
-            expect(getContainerViewId(`${CONTAINER_TEST_ID}-one`)).not.toBe(getContainerViewId(`${CONTAINER_TEST_ID}-two`));
-        });
     });
 });

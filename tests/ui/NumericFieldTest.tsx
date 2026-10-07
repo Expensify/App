@@ -24,6 +24,8 @@ jest.mock('@react-navigation/native', () => ({
 
 type NumericFieldProps = React.ComponentProps<typeof NumericField>;
 
+const INPUT_TEST_ID = 'numeric-field-input';
+
 function ContextReadout() {
     const {value, allowNegative, errorText} = useNumericFieldState();
     const {setNumber, toggleSign} = useNumericFieldActions();
@@ -77,6 +79,20 @@ describe('NumericField', () => {
                 {children}
             </NumericField>,
         );
+
+    /** Composes the root with its text input, so edits, the caret and the displayed text can be exercised like a user would. */
+    const wrapFieldWithInput = (props: Partial<NumericFieldProps> = {}) => (
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <NumericField
+                onInputChange={onInputChange}
+                {...props}
+            >
+                <NumericField.TextInput testID={INPUT_TEST_ID} />
+                <ContextReadout />
+            </NumericField>
+        </ComposeProviders>
+    );
+    const renderFieldWithInput = (props: Partial<NumericFieldProps> = {}) => render(wrapFieldWithInput(props));
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -258,6 +274,254 @@ describe('NumericField', () => {
             // Then the value becomes positive again
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
             expect(onInputChange).toHaveBeenCalledWith('10');
+        });
+    });
+
+    describe('normalization and leading zero', () => {
+        it('preserves a negative decimal that already has a leading zero', () => {
+            // Given an empty field that accepts negative decimals
+            renderFieldWithInput({decimals: 2, allowNegative: true});
+
+            // When the user types a negative decimal with its leading zero
+            fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '-0.5');
+
+            // Then the value is kept as typed, because it is already canonical
+            expect(onInputChange).toHaveBeenLastCalledWith('-0.5');
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('-0.5');
+        });
+
+        // Quirk locked in on purpose: `addLeadingZero('-.', true)` prepends `-0` to the whole string (`-0-.`) instead of
+        // inserting the zero after the sign, so a negative value starting with the separator fails validation.
+        it.each([
+            ['-.', true],
+            ['-.', false],
+            ['-.5', true],
+        ])('rejects %s when allowNegative is %s', (typedText, allowNegative) => {
+            // Given an empty field that accepts two decimal places
+            renderFieldWithInput({decimals: 2, allowNegative});
+
+            // When the user types a negative value that starts with the decimal separator
+            fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), typedText);
+
+            // Then the edit is rejected and the field stays empty
+            expect(onInputChange).not.toHaveBeenCalled();
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('');
+        });
+    });
+
+    describe('validation', () => {
+        it('rejects more decimals than accepted and accepts the accepted precision', () => {
+            // Given a field that accepts one decimal place
+            renderFieldWithInput({value: '1', decimals: 1});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+
+            // When the user types two decimal places
+            fireEvent.changeText(input, '1.55');
+
+            // Then the edit is rejected
+            expect(onInputChange).not.toHaveBeenCalled();
+
+            // When the user types a single decimal place
+            fireEvent.changeText(input, '1.5');
+
+            // Then the edit is committed
+            expect(onInputChange).toHaveBeenLastCalledWith('1.5');
+            expect(input).toHaveDisplayValue('1.5');
+        });
+    });
+
+    describe('maxLength', () => {
+        it('rejects a pasted value that replaces the whole number and exceeds maxLength', () => {
+            // Given a field limited to two integer digits with "12" fully selected
+            renderFieldWithInput({value: '12', decimals: 2, maxLength: 2});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 2}}});
+
+            // When the user pastes a longer number over the selection
+            fireEvent.changeText(input, '345');
+
+            // Then the paste is rejected like typing, because the limit applies to the resulting value
+            expect(onInputChange).not.toHaveBeenCalled();
+            expect(input).toHaveDisplayValue('12');
+        });
+
+        it('does not count decimal digits toward maxLength', () => {
+            // Given a field limited to two integer digits and displaying "12"
+            renderFieldWithInput({value: '12', decimals: 2, maxLength: 2});
+
+            // When the user appends two decimal places
+            fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '12.34');
+
+            // Then the edit is committed, because maxLength only limits the integer part
+            expect(onInputChange).toHaveBeenLastCalledWith('12.34');
+        });
+
+        it('does not count the minus sign toward maxLength', () => {
+            // Given a negative-capable field limited to two integer digits and displaying "12"
+            renderFieldWithInput({value: '12', decimals: 2, maxLength: 2, allowNegative: true});
+
+            // When the user makes the value negative
+            fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '-12');
+
+            // Then the edit is committed, because the sign is not a digit
+            expect(onInputChange).toHaveBeenLastCalledWith('-12');
+        });
+    });
+
+    describe('decimals change', () => {
+        it('keeps the sign when stripping decimals from a negative value', () => {
+            // Given a negative-capable field displaying "-1.5"
+            const {rerender} = renderFieldWithInput({value: '-1.5', decimals: 2, allowNegative: true});
+
+            // When the accepted number of decimals drops to zero
+            rerender(wrapFieldWithInput({value: '-1.5', decimals: 0, allowNegative: true}));
+
+            // Then only the decimals are removed and the amount stays negative
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('-1');
+            expect(onInputChange).toHaveBeenLastCalledWith('-1');
+        });
+
+        it('leaves a value that is already valid at the new precision untouched', () => {
+            // Given a field displaying "1.5" with two accepted decimal places
+            const {rerender} = renderFieldWithInput({value: '1.5', decimals: 2});
+
+            // When the accepted number of decimals drops to one
+            rerender(wrapFieldWithInput({value: '1.5', decimals: 1}));
+
+            // Then the value still fits, so it is neither changed nor reported
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('1.5');
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+
+        // Quirk locked in on purpose: `stripDecimalsFromAmount` drops every decimal instead of truncating to the new precision.
+        it('strips every decimal when the accepted decimals drop to a non-zero precision', () => {
+            // Given a field displaying "1.55" with two accepted decimal places
+            const {rerender} = renderFieldWithInput({value: '1.55', decimals: 2});
+
+            // When the accepted number of decimals drops to one
+            rerender(wrapFieldWithInput({value: '1.55', decimals: 1}));
+
+            // Then the whole fraction is removed rather than only the extra digit
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('1');
+            expect(onInputChange).toHaveBeenLastCalledWith('1');
+        });
+    });
+
+    describe('selection', () => {
+        it('places the caret after the sign when toggling an empty value, so the next digit becomes a negative amount', () => {
+            // Given an empty negative-capable field
+            renderFieldWithInput({decimals: 2, allowNegative: true});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+
+            // When the sign is toggled
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then a lone minus is reported and the caret sits after it
+            expect(onInputChange).toHaveBeenLastCalledWith('-');
+            expect(input.props.selection).toEqual({start: 1, end: 1});
+
+            // When a digit is typed at the caret
+            fireEvent.changeText(input, '-5');
+
+            // Then the digit joins the negative value
+            expect(onInputChange).toHaveBeenLastCalledWith('-5');
+            expect(input).toHaveDisplayValue('-5');
+        });
+
+        it('keeps the caret after the digits when toggling a non-empty value, so further typing appends', () => {
+            // Given a negative-capable field displaying "5" with the caret at the end
+            renderFieldWithInput({value: '5', decimals: 2, allowNegative: true});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+
+            // When the sign is toggled
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then the caret shifts by the added sign and stays after the digits
+            expect(onInputChange).toHaveBeenLastCalledWith('-5');
+            expect(input.props.selection).toEqual({start: 2, end: 2});
+
+            // When another digit is typed at the caret
+            fireEvent.changeText(input, '-50');
+
+            // Then it is appended to the negative value
+            expect(onInputChange).toHaveBeenLastCalledWith('-50');
+            expect(input).toHaveDisplayValue('-50');
+        });
+
+        it('moves the caret back by one when the sign is removed', () => {
+            // Given a negative-capable field displaying "-5" with the caret at the end
+            renderFieldWithInput({value: '-5', decimals: 2, allowNegative: true});
+
+            // When the sign is toggled off
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then the caret follows the shorter text and stays after the digit
+            expect(onInputChange).toHaveBeenLastCalledWith('5');
+            expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 1, end: 1});
+        });
+
+        it('ignores the stale selection event native echoes once after a toggle', () => {
+            // Given a negative-capable field displaying "12" with the caret at the end
+            renderFieldWithInput({value: '12', decimals: 2, allowNegative: true});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+
+            // When the sign is toggled
+            fireEvent.press(screen.getByTestId('ctx-toggleSign'));
+
+            // Then the added sign shifts the caret by one
+            expect(input.props.selection).toEqual({start: 3, end: 3});
+
+            // When native echoes the pre-toggle caret position
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+
+            // Then the echo is dropped and the caret stays where the toggle put it
+            expect(input.props.selection).toEqual({start: 3, end: 3});
+
+            // When the user moves the caret afterwards
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+
+            // Then the selection is applied, because only one echo is expected
+            expect(input.props.selection).toEqual({start: 0, end: 0});
+        });
+
+        it('moves the caret after a digit inserted in the middle of the value', () => {
+            // Given a field displaying "1234" with the caret after "12"
+            renderFieldWithInput({value: '1234', decimals: 2});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 2, end: 2}}});
+
+            // When a digit is typed at the caret
+            fireEvent.changeText(input, '12934');
+
+            // Then the caret follows the inserted digit instead of jumping to the end
+            expect(input.props.selection).toEqual({start: 3, end: 3});
+        });
+
+        it('keeps the caret in place after a forward delete', () => {
+            // Given a field displaying "1234" with the caret after "12"
+            renderFieldWithInput({value: '1234', decimals: 2});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 2, end: 2}}});
+
+            // When the character after the caret is forward-deleted
+            fireEvent(input, 'keyPress', {nativeEvent: {key: 'Delete', ctrlKey: false}});
+            fireEvent.changeText(input, '124');
+
+            // Then the caret stays put, because forward delete removes the character after it
+            expect(input).toHaveDisplayValue('124');
+            expect(input.props.selection).toEqual({start: 2, end: 2});
+        });
+
+        it('clamps a native selection beyond the value length', () => {
+            // Given a field displaying "12"
+            renderFieldWithInput({value: '12', decimals: 2});
+            const input = screen.getByTestId(INPUT_TEST_ID);
+
+            // When native reports a selection past the end of the value
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 10, end: 10}}});
+
+            // Then the selection is clamped to the value length
+            expect(input.props.selection).toEqual({start: 2, end: 2});
         });
     });
 });

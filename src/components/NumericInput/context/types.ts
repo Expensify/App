@@ -2,6 +2,7 @@ import type {NumericEditingKeyPressEvent, NumericEditingSelection} from '@compon
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {RefObject} from 'react';
+import type {TextStyle} from 'react-native';
 
 type NumericInputStateContextValue = {
     /** The canonical signed value owned by the root. */
@@ -19,11 +20,14 @@ type NumericInputStateContextValue = {
     /** Whether negative values are allowed. */
     allowNegative: boolean;
 
-    /** Error supplied by FormProvider. Rendered by the `NumericInput.Error` primitive wherever the composition places it. */
+    /** Error supplied by FormProvider, placed by the layout. */
     errorText?: string;
 
     /** Underlying text input, filled in by the text input primitive and read by focus handling and the web caret sync. */
     inputRef: RefObject<BaseTextInputRef | null>;
+
+    /** Dynamic font-size style calculated for the amount, symbol, and minus sign when scaling is enabled. */
+    dynamicAmountStyle?: TextStyle;
 };
 
 type NumericInputActionsContextValue = {
@@ -42,11 +46,14 @@ type NumericInputActionsContextValue = {
     /** Applies a native selection change, dropping stale events from manual updates. */
     handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
 
-    /** Tracks forward-delete key presses for caret positioning. */
+    /** Tracks forward-delete key presses for caret positioning, and removes the sign on backspace at the start of the magnitude. */
     handleKeyPress: (event: NumericEditingKeyPressEvent) => void;
 
     /** Focuses the underlying text input. */
     focusInput: () => void;
+
+    /** Controls whether native selection change events are applied. Used by BigNumberPad backspace long press. */
+    setShouldUpdateSelection: (shouldUpdate: boolean) => void;
 };
 
 export type {NumericInputActionsContextValue, NumericInputStateContextValue};

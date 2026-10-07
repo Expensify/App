@@ -1,9 +1,7 @@
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import NumericInput from '@components/NumericInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -11,13 +9,10 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
-import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,11 +22,8 @@ import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 
 type WorkspaceCreateTaxValuePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE_VALUE>;
-
-const shouldUseLegacyInput = canUseTouchScreenUtil();
 
 function WorkspaceCreateTaxValuePage({
     route: {
@@ -71,58 +63,30 @@ function WorkspaceCreateTaxValuePage({
                 title={translate('workspace.taxes.value')}
                 onBackButtonPress={goBack}
             />
-            <ScrollView
-                contentContainerStyle={[styles.flexGrow1, styles.mb5]}
-                addBottomSafeAreaPadding
-            >
-                <View style={styles.flex1}>
-                    {shouldUseLegacyInput ? (
-                        <NumberWithSymbolForm
-                            value={currentValue}
-                            onInputChange={setCurrentValue}
-                            ref={inputRef}
-                            decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                            maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                            isSymbolPressable={false}
-                            symbol="%"
-                            symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
-                            autoGrowExtraSpace={variables.w80}
-                            autoGrowMarginSide="left"
-                            style={[styles.iouAmountTextInput, styles.textAlignRight]}
-                            containerStyle={styles.iouAmountTextInputContainer}
-                            touchableInputWrapperStyle={styles.heightUndefined}
-                        />
-                    ) : (
-                        <NumericInput
-                            value={currentValue}
-                            onInputChange={setCurrentValue}
-                            decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                            maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                        >
-                            <NumericInput.Container>
-                                <NumericInput.TextInput
-                                    autoGrowExtraSpace={variables.w80}
-                                    autoGrowMarginSide="left"
-                                    style={[styles.iouAmountTextInput, styles.textAlignRight]}
-                                    containerStyle={styles.iouAmountTextInputContainer}
-                                    touchableInputWrapperStyle={styles.heightUndefined}
-                                    ref={inputRef}
-                                />
-                                <NumericInput.Symbol>%</NumericInput.Symbol>
-                            </NumericInput.Container>
-                        </NumericInput>
-                    )}
+            <NumericInput
+                value={currentValue}
+                onInputChange={setCurrentValue}
+                decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                footer={
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={save}
-                        style={styles.mh5}
+                        style={styles.w100}
                     >
                         <Button.KeyboardShortcut />
                         <Button.Text>{translate('common.save')}</Button.Text>
                     </Button>
-                </View>
-            </ScrollView>
+                }
+            >
+                <NumericInput.TextInput
+                    autoGrowMarginSide="left"
+                    style={styles.textAlignRight}
+                    ref={inputRef}
+                />
+                <NumericInput.Symbol>%</NumericInput.Symbol>
+            </NumericInput>
         </ScreenWrapper>
     );
 }

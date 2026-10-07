@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import NumericField from '@components/NumericField';
 import type {NumericFieldRef, NumericTextInputProps} from '@components/NumericField';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import * as NativeNavigation from '@react-navigation/native';
@@ -425,5 +426,41 @@ describe('NumericField.TextInput', () => {
 
         // Then the selection collapses onto its end
         expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 3, end: 3});
+    });
+
+    it('renders rightHandSideComponent and respects autoGrowExtraSpace and autoGrowMarginSide', async () => {
+        const onCurrencyPress = jest.fn();
+
+        // Given a NumericField.TextInput with rightHandSideComponent and autoGrow props
+        renderTextInput(
+            {
+                testID: INPUT_TEST_ID,
+                autoGrowExtraSpace: 80,
+                autoGrowMarginSide: 'left',
+                rightHandSideComponent: (
+                    <NumericField.CurrencyButton
+                        currency="USD"
+                        onPress={onCurrencyPress}
+                        testID="currency-button"
+                    />
+                ),
+            },
+            {value: '10'},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the right hand side component is rendered
+        expect(screen.getByTestId('currency-button')).toBeOnTheScreen();
+        expect(screen.getByText('USD')).toBeOnTheScreen();
+
+        // And pressing the button calls the callback
+        fireEvent.press(screen.getByTestId('currency-button'));
+        expect(onCurrencyPress).toHaveBeenCalledTimes(1);
+
+        // And autoGrow props are forwarded to the underlying TextInput
+        const textInputInstance = screen.UNSAFE_getByType(TextInput);
+        expect(textInputInstance.props.autoGrowExtraSpace).toBe(80);
+        expect(textInputInstance.props.autoGrowMarginSide).toBe('left');
+        expect(textInputInstance.props.rightHandSideComponent).toBeDefined();
     });
 });
