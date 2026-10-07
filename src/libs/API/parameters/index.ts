@@ -10,6 +10,7 @@ export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
 export type {default as VerifySetupIntentParams} from './VerifySetupIntentParams';
 export type {default as VerifySetupIntentAndRequestPolicyOwnerChangeParams} from './VerifySetupIntentAndRequestPolicyOwnerChangeParams';
 export type {default as AddPersonalBankAccountParams} from './AddPersonalBankAccountParams';
+export type {default as CreateCollectOnlyDepositAccountParams} from './CreateCollectOnlyDepositAccountParams';
 export type {default as RestartBankAccountSetupParams} from './RestartBankAccountSetupParams';
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
@@ -55,6 +56,7 @@ export type {default as UpdateRilletAutoSyncParams} from './UpdateRilletAutoSync
 export type {default as UpdateRilletAccountingMethodParams} from './UpdateRilletAccountingMethodParams';
 export type {default as UpdateRilletSyncReimbursedReportsParams} from './UpdateRilletSyncReimbursedReportsParams';
 export type {default as UpdateRilletBillPaymentAccountParams} from './UpdateRilletBillPaymentAccountParams';
+export type {default as UpdateRilletFxExpenseAccountParams} from './UpdateRilletFxExpenseAccountParams';
 export type {default as UpdateRilletSyncExpensifyCardSettlementsParams} from './UpdateRilletSyncExpensifyCardSettlementsParams';
 export type {default as UpdateRilletSettlementsAccountParams} from './UpdateRilletSettlementsAccountParams';
 export type {default as UpdateRilletSyncTravelBillingSettlementsParams} from './UpdateRilletSyncTravelBillingSettlementsParams';
@@ -592,6 +594,7 @@ export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './Chan
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
+export type {default as SetPolicyWorkArrangementParams} from './SetPolicyWorkArrangementParams';
 export type {default as SetEmployeeWorkArrangementParams} from './SetEmployeeWorkArrangementParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';

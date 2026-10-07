@@ -123,6 +123,7 @@ const WRITE_COMMANDS = {
     ADD_TEXT_AND_ATTACHMENT: 'AddTextAndAttachment',
     CONNECT_BANK_ACCOUNT_WITH_PLAID: 'ConnectBankAccountWithPlaid',
     ADD_PERSONAL_BANK_ACCOUNT: 'AddPersonalBankAccount',
+    CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT: 'CreateCollectOnlyDepositAccount',
     UPDATE_PERSONAL_BANK_ACCOUNT_INFO: 'UpdatePersonalBankAccountInfo',
     RESTART_BANK_ACCOUNT_SETUP: 'RestartBankAccountSetup',
     RESEND_VALIDATE_CODE: 'ResendValidateCode',
@@ -296,6 +297,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_EXPENSE_MAX_AMOUNT: 'SetPolicyExpenseMaxAmount',
     SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
     SET_POLICY_COMMUTER_EXCLUSIONS: 'SetPolicyCommuterExclusions',
+    SET_POLICY_WORK_ARRANGEMENT: 'SetPolicyWorkArrangement',
     SET_EMPLOYEE_WORK_ARRANGEMENT: 'SetEmployeeWorkArrangement',
     DISABLE_POLICY_COMMUTER_EXCLUSIONS: 'DisablePolicyCommuterExclusions',
     SET_POLICY_REQUIRE_MAP_OR_GPS: 'SetPolicyRequireMapOrGPS',
@@ -552,6 +554,7 @@ const WRITE_COMMANDS = {
     UPDATE_RILLET_ACCOUNTING_METHOD: 'UpdateRilletAccountingMethod',
     UPDATE_RILLET_SYNC_REIMBURSED_REPORTS: 'UpdateRilletSyncReimbursedReports',
     UPDATE_RILLET_BILL_PAYMENT_ACCOUNT: 'UpdateRilletBillPaymentAccount',
+    UPDATE_RILLET_FX_EXPENSE_ACCOUNT: 'UpdateRilletFxExpenseAccount',
     UPDATE_RILLET_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateRilletSyncExpensifyCardSettlements',
     UPDATE_RILLET_SETTLEMENTS_ACCOUNT: 'UpdateRilletSettlementsAccount',
     UPDATE_RILLET_SYNC_TRAVEL_BILLING_SETTLEMENTS: 'UpdateRilletSyncTravelBillingSettlements',
@@ -693,6 +696,7 @@ const WRITE_COMMANDS = {
     GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE: 'GetValidateCodeForAccountMerge',
     MERGE_WITH_VALIDATE_CODE: 'MergeWithValidateCode',
     RESET_SMS_DELIVERY_FAILURE_STATUS: 'ResetSMSDeliveryFailureStatus',
+    USER_UNBLOCK_EMAIL: 'User_UnblockEmail',
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
     DELETE_APP_REPORT: 'DeleteAppReport',
@@ -861,6 +865,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: Parameters.ConnectBankAccountParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
+    [WRITE_COMMANDS.CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT]: Parameters.CreateCollectOnlyDepositAccountParams;
     [WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO]: Parameters.UpdatePersonalBankAccountInfoParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
     [WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK]: Parameters.InitiateBankAccountUnlockParams;
@@ -1194,9 +1199,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION]: Parameters.SendReminderForCorpaySignerInformationParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT]: Parameters.UpdateWorkspaceCustomUnitParams;
     [WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS]: Parameters.ResetSMSDeliveryFailureStatusParams;
+    [WRITE_COMMANDS.USER_UNBLOCK_EMAIL]: null;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
     [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
     [WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS]: Parameters.SetPolicyCommuterExclusionsParams;
+    [WRITE_COMMANDS.SET_POLICY_WORK_ARRANGEMENT]: Parameters.SetPolicyWorkArrangementParams;
     [WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT]: Parameters.SetEmployeeWorkArrangementParams;
     [WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS]: Parameters.DisablePolicyCommuterExclusionsParams;
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS]: Parameters.SetPolicyRequireMapOrGPSParams;
@@ -1269,6 +1276,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_RILLET_ACCOUNTING_METHOD]: Parameters.UpdateRilletAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateRilletSyncReimbursedReportsParams;
     [WRITE_COMMANDS.UPDATE_RILLET_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateRilletBillPaymentAccountParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_FX_EXPENSE_ACCOUNT]: Parameters.UpdateRilletFxExpenseAccountParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateRilletSyncExpensifyCardSettlementsParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SETTLEMENTS_ACCOUNT]: Parameters.UpdateRilletSettlementsAccountParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateRilletSyncTravelBillingSettlementsParams;
@@ -1553,6 +1561,7 @@ const READ_COMMANDS = {
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
+    OPEN_DEPOSIT_ACCOUNT_SETUP: 'OpenDepositAccountSetup',
     OPEN_PAYMENTS_PAGE: 'OpenPaymentsPage',
     GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL: 'GetExpensifyCardPendingWalletApproval',
     OPEN_BANK_ACCOUNT_SHARE_PAGE: 'OpenBankAccountSharePage',
@@ -1563,7 +1572,6 @@ const READ_COMMANDS = {
     OPEN_SEARCH_PAGE: 'OpenSearchPage',
     OPEN_SEARCH_CARD_FILTERS_PAGE: 'OpenSearchCardFiltersPage',
     OPEN_SEARCH_CATEGORY_FILTERS_PAGE: 'OpenSearchCategoryFiltersPage',
-    OPEN_SEARCH_VENDOR_FILTERS_PAGE: 'OpenSearchVendorFiltersPage',
     SEARCH: 'Search',
     GET_INSIGHTS: 'GetInsights',
     GET_TRANSACTIONS_CONVERTED_AMOUNT: 'GetTransactionsConvertedAmount',
@@ -1674,6 +1682,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
+    [READ_COMMANDS.OPEN_DEPOSIT_ACCOUNT_SETUP]: null;
     [READ_COMMANDS.OPEN_PAYMENTS_PAGE]: Parameters.OpenPaymentsPageParams | null;
     [READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL]: null;
     [READ_COMMANDS.OPEN_BANK_ACCOUNT_SHARE_PAGE]: null;
@@ -1746,7 +1755,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE]: null;
     [READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE]: null;
     [READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE]: null;
-    [READ_COMMANDS.OPEN_SEARCH_VENDOR_FILTERS_PAGE]: null;
     [READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW]: Parameters.StartIssueNewCardFlowParams;
     [READ_COMMANDS.OPEN_CARD_DETAILS_PAGE]: Parameters.OpenCardDetailsPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;

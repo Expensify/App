@@ -1852,6 +1852,9 @@ type RilletSync = {
     /** Account code used for bill payment transactions. */
     billPaymentAccountCode: string;
 
+    /** Expense account code the company-paid currency conversion cost is booked to. Unset means the cost is not exported. */
+    fxExpenseAccountCode?: string;
+
     /** Whether Expensify Card settlement transactions should be synchronized. */
     syncExpensifyCardSettlements: boolean;
 
@@ -3439,6 +3442,18 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | ValueOf<typeof CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES>;
+
+        /** Whether the workspace collects employee deposit account details to reimburse them outside of Expensify */
+        isCollectDepositAccountsEnabled?: boolean;
+
+        /** Configuration for collecting employee deposit account details for reimbursement outside of Expensify */
+        reimbursement?: {
+            /** Whether reimbursement is enabled for the policy */
+            enabled?: boolean;
+
+            /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
+            countries?: Record<string, unknown>;
+        };
 
         /** The set reimburser for the policy */
         reimburser?: string;

@@ -42,6 +42,26 @@ const translations = {
         confirmTitle: 'Confirm renewal',
         renew: 'Renew',
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renew your subscription for a 12-month term, from ${startDate} to ${endDate}.`,
+        incentivizedTitle: 'Renew early, get up to 2 months free',
+        incentivizedSubtitle: 'Claim a discount on your annual subscription.',
+        claim: 'Claim',
+        mobileRenewPrompt: 'Visit Expensify in your web browser to renew early.',
+        mobileClaimPrompt: 'Visit Expensify in your web browser to claim your renewal discount.',
+        offer: {
+            heading: 'Choose your discount',
+            subtitle: 'Two sweet deals for you to choose from:',
+            oneYear: 'Renew for 1 year,\nget 1 month free',
+            twoYears: 'Renew for 2 years,\nget 2 months free',
+            bestDeal: 'Best deal',
+            disclaimer: 'The offer above will be applied as a 9% discount to your annual subscription. Overage charges are not included.',
+            renewAndClaim: 'Renew and claim discount',
+            chooseOptionError: 'Please choose an option.',
+        },
+        adminTitle: 'Ask your billing owner to renew early',
+        adminSubtitle: 'They can get up to 2 months free with your annual subscription.',
+        adminCTA: 'Nudge',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}, could you renew our Expensify subscription early? We'd get up to 2 months free. Claim it here: [subscription page](${subscriptionURL})`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({
@@ -262,6 +282,7 @@ const translations = {
             invalidDateShouldBeFuture: 'Please choose today or a future date',
             invalidTimeShouldBeFuture: 'Please choose a time at least one minute ahead',
             invalidCharacter: 'Invalid character',
+            invalidField: (fieldName: string) => `Invalid ${fieldName}`,
             enterMerchant: 'Enter a merchant name',
             enterAmount: 'Enter an amount',
             missingMerchantName: 'Missing merchant name',
@@ -1096,6 +1117,10 @@ const translations = {
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
+            },
+            emailDeliveryFailure: {
+                title: "We can't send you email notifications",
+                subtitle: 'Account',
             },
             payOverdueInvoice: {
                 dueSoonTitle: ({date}: {date: string}) => `Pay your invoice by ${date} to avoid service interruption`,
@@ -3919,6 +3944,19 @@ const translations = {
         ensureYourEmailClient: `<strong>Ensure your email client allows expensify.com emails.</strong> You can find directions on how to complete this step <a href="${CONST.SET_NOTIFICATION_LINK}">here</a> but you may need your IT department to help configure your email settings.`,
         onceTheAbove: `Once the above steps are completed, please reach out to <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> to unblock your login.`,
     },
+    emailIssuePage: {
+        title: 'Email issue',
+        intro: (login: string) => `Our email provider paused sending to <strong>${login}</strong> due to delivery issues. To fix this issue:`,
+        confirmEmailTitle: 'Confirm your email address',
+        confirmEmailDescription: (login: string) =>
+            `Make sure <strong>${login}</strong> is spelled correctly and is a real inbox. Aliases like "expenses@domain.com" need their own working inbox to log into Expensify.`,
+        allowlistTitle: 'Allowlist expensify.com',
+        allowlistDescription: `Add <strong>expensify.com</strong> to your email client's allowlist. You may need IT to adjust server settings via <a href="${CONST.SET_NOTIFICATION_LINK}">these directions</a>.`,
+        getHelpFromConcierge: 'Get help from Concierge',
+        completedSteps: "I've completed the above steps",
+        errorTitle: 'Something went wrong. Please try again',
+        errorPrompt: "Looks like something didn't work. Please try again. If the issue persists, please reach out to Concierge.",
+    },
     openAppFailureModal: {
         title: 'Something went wrong...',
         subtitle: `We have not been able to load all of your data. We have been notified and are looking into the problem. If this persists, please reach out to`,
@@ -6142,6 +6180,10 @@ const translations = {
                 label: 'Bill payment account',
                 description: "Choose where to pay bills from and we'll create the payment in Rillet.",
             },
+            fxExpenseAccount: {
+                label: 'Rillet currency conversion fee account',
+                description: "When your company covers the currency conversion cost on a payment made abroad, we'll post that cost to this account in Rillet as a journal entry.",
+            },
             syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
             settlementAccount: {
                 label: 'Expensify Card settlement account',
@@ -7468,6 +7510,8 @@ const translations = {
                 `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `You can't remove ${memberName} from this workspace while they have an Expensify Card. Please deactivate their card in Workspace > Expensify Card, then try again.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -8008,6 +8052,8 @@ const translations = {
             approvalModeWarningTitle: 'Change approval mode?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Changing the approval mode will erase all existing approval workflows. Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
             approvalModeWarningConfirm: 'Change approval mode',
             syncingModalTitle: 'Your connection is syncing',
             syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
@@ -8095,6 +8141,20 @@ const translations = {
                     distanceMustBePositive: 'Distance must be a positive whole number.',
                     invalidAddress: 'Please enter a valid address',
                     distanceTooLarge: 'Distance is too large.',
+                },
+                workArrangement: {
+                    title: 'Default work arrangement',
+                    officeBasedTitle: 'Office-based',
+                    officeBasedHelp: 'Member commutes to an office. Ordinary commutes are excluded from reimbursement.',
+                    noRegularWorkplaceTitle: 'Remote or mobile',
+                    noRegularWorkplaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
+                    startingPrompt: {
+                        title: 'Set a typical work arrangement',
+                        prompt: 'Choose the arrangement that applies to most current members. You can update members individually or in bulk later.',
+                        officeBasedHelp: 'Most members commute to an office. Ordinary commutes are excluded.',
+                        noRegularWorkplaceHelp: "Most members work remotely, so home-to-work exclusions usually don't apply.",
+                        confirm: 'Apply',
+                    },
                 },
             },
             distance: 'Distance',
@@ -9612,6 +9672,11 @@ const translations = {
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `changed the default work arrangement to ${arrangement} (previously ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `changed exclude commutes to a fixed distance per claim (previously ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `changed exclude commutes to calculate by home and office (previously ${previousMethod})`,
@@ -10057,6 +10122,8 @@ const translations = {
         mySavedSearch: 'My expenses',
         urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
+        periodSoFar: ({period}: {period: string}) => `${period} so far`,
+        weekOf: ({date}: {date: string}) => `Week of ${date}`,
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             editMultiple: 'Edit multiple',
@@ -10248,7 +10315,6 @@ const translations = {
         noCategory: 'No category',
         noMerchant: 'No merchant',
         noTag: 'No tag',
-        noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
         receiptTypeValues: {
@@ -10337,6 +10403,8 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
+        switchToTableView: 'Switch to table view',
+        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {

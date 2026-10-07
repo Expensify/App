@@ -140,6 +140,10 @@ const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
 const reauthScrapeStatuses: number[] = [438];
 
+// Statuses we do not prompt about, but which still mean the user has to do something. 434 is the bank changing the
+// account number, so the card's status has to show it even though the broken-connection check ignores it.
+const actionableIgnoredScrapeStatuses: number[] = [434];
+
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
@@ -556,6 +560,9 @@ const CONST = {
 
         // 15 seconds, don't wait too long because the server can always fall back to using the IP address
         TIMEOUT: 15000,
+
+        // 3 seconds, the longest a submit waits for a position before going out without one
+        SUBMIT_WAIT_TIMEOUT: 3000,
     },
 
     LEGAL_NAME: {
@@ -786,6 +793,10 @@ const CONST = {
                 OPEN: 'OPEN',
                 EXIT: 'EXIT',
             },
+        },
+        FIELDS_TYPE: {
+            LOCAL: 'local',
+            INTERNATIONAL: 'international',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -1651,6 +1662,7 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1951,6 +1963,7 @@ const CONST = {
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
+                    UPDATE_POLICY_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_POLICY_WORK_ARRANGEMENT',
                     UPDATE_MEMBER_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_MEMBER_WORK_ARRANGEMENT',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
@@ -2200,6 +2213,10 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
+        },
+        SINGLE_EXPENSE_REPORT_VIEW: {
+            EXPENSE: 'expense',
+            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -2499,6 +2516,7 @@ const CONST = {
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
+        ATTRIBUTE_LOCATION_SOURCE: 'location_source',
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
@@ -2567,6 +2585,12 @@ const CONST = {
         SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
             FOCUS: 'focus',
             LAYOUT: 'layout',
+        },
+        SUBMIT_EXPENSE_LOCATION_SOURCE: {
+            CACHED: 'cached',
+            WAITED: 'waited',
+            TIMED_OUT: 'timed_out',
+            NONE: 'none',
         },
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
@@ -3833,6 +3857,7 @@ const CONST = {
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',
+        FX_EXPENSE_ACCOUNT_CODE: 'fxExpenseAccountCode',
         SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
         SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
@@ -4790,6 +4815,10 @@ const CONST = {
             FIXED_DISTANCE: 'fixedDistance',
             DISABLED: 'disabled',
         },
+        WORK_ARRANGEMENT: {
+            OFFICE_BASED: 'officeBased',
+            NO_REGULAR_WORKPLACE: 'noRegularWorkplace',
+        },
         RECEIPT_PARTNERS: {
             NAME: {UBER: 'uber'},
             NAME_USER_FRIENDLY: {
@@ -5345,8 +5374,6 @@ const CONST = {
         },
     },
     PERSONAL_CARDS: {
-        // Account-not-found is ignored for company feed health, but a personal cardholder can reconnect this card.
-        ACCOUNT_NOT_FOUND_SCRAPE_STATUS: 434,
         STEP: {
             SELECT_BANK: 'SelectBank',
             BANK_CONNECTION: 'BankConnection',
@@ -5389,6 +5416,9 @@ const CONST = {
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
+
+        // Ignored scrape result codes that still need the user to act, so they belong in the card's status
+        ACTIONABLE_IGNORED_SCRAPE_STATUSES: actionableIgnoredScrapeStatuses,
 
         // Scrape result codes where the connection is broken because the user needs to re-authenticate with their bank
         REAUTH_SCRAPE_STATUSES: reauthScrapeStatuses,
@@ -5615,6 +5645,8 @@ const CONST = {
             CAMPAIGN_END: '2027-01-01T00:00:00Z',
             OFFER_ID: {
                 NON_INCENTIVIZED_ONE_YEAR: 'nonIncentivizedOneYear',
+                INCENTIVIZED_ONE_YEAR: 'incentivizedOneYear',
+                INCENTIVIZED_TWO_YEARS: 'incentivizedTwoYears',
             },
         },
         TYPE: {
@@ -8080,7 +8112,6 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
-            VENDOR: 'vendor',
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             FEED: 'feed',
@@ -8132,7 +8163,6 @@ const CONST = {
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
-        VENDOR_EMPTY_VALUE: 'none',
         MERCHANT_EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
@@ -8169,7 +8199,6 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
-            VENDOR: 'vendor',
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
@@ -9050,6 +9079,23 @@ const CONST = {
         },
     },
 
+    COLLECT_DEPOSIT_ACCOUNT: {
+        PAGE_NAME: {
+            COUNTRY: 'country',
+            BANK_ACCOUNT_DETAILS: 'bank-account-details',
+            CONFIRM: 'confirm',
+            SUCCESS: 'success',
+        },
+        INDEXES: {
+            MAPPING: {
+                COUNTRY_SELECTOR: 0,
+                BANK_ACCOUNT_DETAILS: 1,
+                CONFIRMATION: 2,
+                SUCCESS: 3,
+            },
+        },
+    },
+
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
     // Backend NVP name for the Submit migration modal. The Onyx key is prefixed with `nvp_`
@@ -9339,6 +9385,9 @@ const CONST = {
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
         },
+        EARLY_RENEWAL_OFFER: {
+            OPTION: 'EarlyRenewalOffer-Option',
+        },
         ATTACHMENT_CAMERA: {
             CLOSE: 'AttachmentCamera-Close',
             FLASH: 'AttachmentCamera-Flash',
@@ -9586,6 +9635,7 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
+            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',

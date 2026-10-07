@@ -199,7 +199,7 @@ describe('LocationPermissionModal', () => {
             expect(mockRequestLocationPermission).toHaveBeenCalledTimes(1);
         });
 
-        it('Prompt -> Confirm -> still Blocked -> denies without last prompt update', async () => {
+        it('Prompt -> Confirm -> still Blocked -> denies and starts the prompt window', async () => {
             const props = createDefaultProps();
             mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
             setOpenSettings(undefined);
@@ -216,7 +216,7 @@ describe('LocationPermissionModal', () => {
             });
 
             await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
-            expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
+            expect(mockUpdateLastLocationPermissionPrompt).toHaveBeenCalledTimes(1);
             expect(mockRequestLocationPermission).not.toHaveBeenCalled();
         });
     });
