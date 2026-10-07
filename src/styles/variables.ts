@@ -121,6 +121,8 @@ export default {
     nativeTabIconDotCutout: 2,
     /** Gap between the glyph and the label drawn under it in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
+    /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
+    iosNativeTabBarHorizontalInset: 25,
     /** Material's BottomNavigationView row, without the gesture inset under it. */
     androidNativeTabBarHeight: 80,
     /** Material's bar row (androidNativeTabBarHeight) plus the 16 dp Material keeps between a FAB and the bar. */

@@ -1,9 +1,9 @@
 import FontUtils from '@styles/utils/FontUtils';
 
 import type {NativeBottomTabIcon} from '@react-navigation/bottom-tabs/unstable';
-import type {SkCanvas, SkFont, SkImage, SkPath} from '@shopify/react-native-skia';
+import type {SkCanvas, SkImage, SkParagraph, SkPath} from '@shopify/react-native-skia';
 
-import {BlendMode, ClipOp, FillType, FilterMode, FontWeight, ImageFormat, MipmapMode, Skia} from '@shopify/react-native-skia';
+import {BlendMode, ClipOp, FillType, FilterMode, FontWeight, ImageFormat, MipmapMode, Skia, TextAlign} from '@shopify/react-native-skia';
 import {PixelRatio} from 'react-native';
 
 import type {NativeTabGlyph, NativeTabName} from './NATIVE_TAB_GLYPHS';
@@ -29,6 +29,8 @@ type TabIconLabel = {
     text: string;
     color: string;
     isBold: boolean;
+    /** Width of the tab's slot in the bar, past which the label is truncated with an ellipsis. */
+    maxWidth: number;
 };
 
 type TabIconParams = {
@@ -45,7 +47,6 @@ const MAX_CACHED_ICONS = 64;
 
 const iconCache = new Map<string, NativeBottomTabIcon | undefined>();
 const glyphPathCache = new Map<NativeTabName, SkPath[]>();
-const labelFontCache = new Map<string, SkFont>();
 
 function getGlyphPaths(name: NativeTabName): SkPath[] {
     const cachedPaths = glyphPathCache.get(name);
@@ -68,18 +69,19 @@ function getGlyphPaths(name: NativeTabName): SkPath[] {
     return paths;
 }
 
-function getLabelFont(isBold: boolean, size: number): SkFont {
-    const key = `${isBold}|${size}`;
-    const cachedFont = labelFontCache.get(key);
-    if (cachedFont) {
-        return cachedFont;
-    }
-    const typeface = Skia.FontMgr.System().matchFamilyStyle(FontUtils.fontFamily.single.EXP_NEUE.fontFamily, {
-        weight: isBold ? FontWeight.Bold : FontWeight.Normal,
-    });
-    const font = Skia.Font(typeface, size);
-    labelFontCache.set(key, font);
-    return font;
+/** A paragraph rather than a single font, because only a paragraph falls back to a system font for scripts Expensify Neue lacks. */
+function makeLabelParagraph({text, color, isBold, maxWidth}: TabIconLabel, fontSize: number, scale: number): SkParagraph {
+    const paragraph = Skia.ParagraphBuilder.Make({maxLines: 1, ellipsis: '…', textAlign: TextAlign.Left})
+        .pushStyle({
+            color: Skia.Color(color),
+            fontFamilies: [FontUtils.fontFamily.single.EXP_NEUE.fontFamily],
+            fontSize: fontSize * scale,
+            fontStyle: {weight: isBold ? FontWeight.Bold : FontWeight.Normal},
+        })
+        .addText(text)
+        .build();
+    paragraph.layout(maxWidth * scale);
+    return paragraph;
 }
 
 function drawGlyph(canvas: SkCanvas, name: NativeTabName, left: number, top: number, size: number, color: string) {
@@ -141,15 +143,15 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
     // every label lands at the same height.
     const rowSize = label ? Math.max(layout.glyphSize, layout.avatarSize) * scale : contentSize;
     const labelTop = (rowSize + layout.glyphSize * scale) / 2 + layout.labelGap * scale;
-    const font = label ? getLabelFont(label.isBold, layout.labelFontSize * scale) : undefined;
-    const labelWidth = label && font ? font.measureText(label.text).width : 0;
-    const labelMetrics = font?.getMetrics();
-    const labelHeight = labelMetrics ? labelMetrics.descent - labelMetrics.ascent : 0;
+    const paragraph = label ? makeLabelParagraph(label, layout.labelFontSize, scale) : undefined;
+    const labelWidth = paragraph?.getLongestLine() ?? 0;
+    const labelHeight = paragraph?.getHeight() ?? 0;
     const canvasWidth = Math.ceil(Math.max(contentSize, labelWidth));
     const canvasHeight = Math.ceil(label ? labelTop + labelHeight : rowSize);
 
     const surface = Skia.Surface.Make(canvasWidth, canvasHeight);
     if (!surface) {
+        paragraph?.dispose();
         return undefined;
     }
 
@@ -164,12 +166,9 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
     if (dotColor) {
         drawStatusDot(canvas, contentLeft + contentSize, contentTop, layout.dotRadius * scale, layout.dotCutout * scale, dotColor);
     }
-    if (label && font && labelMetrics) {
-        const paint = Skia.Paint();
-        paint.setColor(Skia.Color(label.color));
-        paint.setAntiAlias(true);
-        canvas.drawText(label.text, (canvasWidth - labelWidth) / 2, labelTop - labelMetrics.ascent, paint, font);
-        paint.dispose();
+    if (paragraph) {
+        paragraph.paint(canvas, (canvasWidth - labelWidth) / 2, labelTop);
+        paragraph.dispose();
     }
 
     surface.flush();
@@ -191,7 +190,19 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
  */
 function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomTabIcon | undefined {
     const {name, color, avatar, dotColor, label} = params;
-    const key = [name, avatar?.uri ?? color, dotColor, label?.text, label?.color, label?.isBold, layout.glyphSize, layout.avatarSize, layout.dotRadius, layout.dotCutout].join('|');
+    const key = [
+        name,
+        avatar?.uri ?? color,
+        dotColor,
+        label?.text,
+        label?.color,
+        label?.isBold,
+        label?.maxWidth,
+        layout.glyphSize,
+        layout.avatarSize,
+        layout.dotRadius,
+        layout.dotCutout,
+    ].join('|');
     if (iconCache.has(key)) {
         return iconCache.get(key);
     }

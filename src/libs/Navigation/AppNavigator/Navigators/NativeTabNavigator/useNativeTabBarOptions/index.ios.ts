@@ -1,4 +1,5 @@
 import useTheme from '@hooks/useTheme';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import getTabIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
@@ -35,6 +36,10 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
 function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
+    const {windowWidth} = useWindowDimensions();
+    // One of the tabs never has a bar item, so the bar splits its width between the others.
+    const barItemCount = Object.keys(tabLabels).length - 1;
+    const labelMaxWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount;
 
     const screenOptions: NativeBottomTabNavigationOptions = {
         headerShown: false,
@@ -57,7 +62,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
                 color: isSelected ? theme.iconMenu : theme.icon,
                 avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
                 dotColor: dotColors[name],
-                label: {text: tabLabels[name], color: isSelected ? theme.text : theme.textSupporting, isBold: isSelected},
+                label: {text: tabLabels[name], color: isSelected ? theme.text : theme.textSupporting, isBold: isSelected, maxWidth: labelMaxWidth},
             });
         const inactiveIcon = getIcon(false);
         const activeIcon = getIcon(true);

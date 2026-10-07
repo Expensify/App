@@ -39,18 +39,11 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
     // The buttons follow whatever the navigator decided for the bar itself.
     const shouldShowNativeTabBar = shouldUseNarrowLayout && !!activeRoute && descriptors[activeRoute.key]?.options.tabBarStyle?.display !== 'none';
 
-    if (!shouldUseNarrowLayout) {
-        return (
-            <View style={[styles.flex1, styles.flexRow]}>
-                <TabNavigatorBar state={state} />
-                <View style={styles.flex1}>{children}</View>
-            </View>
-        );
-    }
-
+    // The tabs stay at the same place in the tree in both layouts, so crossing the breakpoint does not remount them.
     return (
-        <View style={styles.flex1}>
-            {children}
+        <View style={[styles.flex1, !shouldUseNarrowLayout && styles.flexRow]}>
+            {!shouldUseNarrowLayout && <TabNavigatorBar state={state} />}
+            <View style={styles.flex1}>{children}</View>
             <TabPressListeners
                 state={state}
                 descriptors={descriptors}

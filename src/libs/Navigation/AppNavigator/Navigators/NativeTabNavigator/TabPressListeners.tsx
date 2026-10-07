@@ -18,8 +18,8 @@ import type {NativeTabLayoutProps} from './NativeTabLayout';
 /**
  * The native bar's Spend and Workspaces handling that needs Onyx data, so the data re-renders only this component.
  * Spend's first visit opens the latest search kept in Onyx, so the tab mounted at startup with the default search gets
- * it before it is first shown and the native bar can switch to it. Workspaces restores the last workspace, or the list
- * for one that is gone, whenever the tab does not already show it.
+ * it before it is first shown, both for the native bar and for the side bar of a wide layout. Workspaces restores the
+ * last workspace, or the list for one that is gone, whenever the tab does not already show it.
  */
 function TabPressListeners({state, descriptors}: Pick<NativeTabLayoutProps, 'state' | 'descriptors'>) {
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
