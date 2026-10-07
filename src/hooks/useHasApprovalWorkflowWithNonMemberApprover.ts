@@ -3,9 +3,8 @@ import {getApprovalWorkflowRulesForPolicy, hasApprovalWorkflowWithNonMemberAppro
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type Rule from '@src/types/onyx/Rule';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {emailSelector} from '@selectors/Session';
 
@@ -14,16 +13,17 @@ import usePermissions from './usePermissions';
 
 /**
  * Whether the current user should see a red dot for a workflow on this workspace whose approver is no longer a member.
- * Both reads go through selectors, so a consumer only re-renders when the answer changes.
+ * The policy read goes through a selector that reduces it to the answer, so a consumer only re-renders when it changes.
  */
 function useHasApprovalWorkflowWithNonMemberApprover(policyID: string | undefined): boolean {
     const {isBetaEnabled} = usePermissions();
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
-    // Rules only route the workflows under the beta, so they aren't read otherwise
-    const rulesSelector = (rules: OnyxCollection<Rule>) => (isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(rules, policyID) : undefined);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: rulesSelector});
+    // Read without a selector, so a rule write costs a cheap reference check instead of a deep compare of the
+    // policy's rules. Rules only route the workflows under the beta, so they aren't used otherwise.
+    const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const rules = isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(allRules, policyID) : undefined;
 
     const policySelector = (policy: OnyxEntry<Policy>) => hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rules, isMultipleApproversBetaEnabled});
     const [hasNonMemberApprover] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policySelector});

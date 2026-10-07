@@ -10,6 +10,7 @@ import {getApprovalLimitDescription, getNonMemberApproverError} from '@libs/Work
 
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -113,8 +114,11 @@ function ApprovalWorkflowSection({
     const pressAction = isDisabled ? undefined : onPress;
 
     // Only shown to someone who can fix it, since the copy asks them to pick a new approver
-    const nonMemberApproverError =
-        !isDisabled && approvalWorkflow.approvers.some((approver) => approver.isNotWorkspaceMember) ? translate(getNonMemberApproverError(approvalWorkflow.isDefault)) : undefined;
+    const getApproverError = (approver: Approver) => {
+        const error = isDisabled ? undefined : getNonMemberApproverError(approver, approvalWorkflow.isDefault);
+        return error ? translate(error) : undefined;
+    };
+    const nonMemberApproverError = approvalWorkflow.approvers.map(getApproverError).find(Boolean);
     const editWorkflowText = translate('workflowsPage.editWorkflowAction');
 
     // The approver rows aren't exposed to screen readers, so the Edit button reads the error out instead
@@ -218,8 +222,8 @@ function ApprovalWorkflowSection({
                                 }
                                 helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
                                 helperTextStyle={styles.workflowApprovalLimitText}
-                                brickRoadIndicator={approver.isNotWorkspaceMember && nonMemberApproverError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={approver.isNotWorkspaceMember ? nonMemberApproverError : undefined}
+                                brickRoadIndicator={getApproverError(approver) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={getApproverError(approver)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                             />
                         </View>

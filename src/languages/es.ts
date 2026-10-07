@@ -2892,6 +2892,7 @@ ${amount} para ${merchant} - ${date}`,
         approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
         approverNotWorkspaceMember: 'Este aprobador ya no es miembro del espacio de trabajo. Elige un nuevo aprobador o elimina este flujo de trabajo.',
         defaultWorkflowApproverNotWorkspaceMember: 'Este aprobador ya no es miembro del espacio de trabajo. Elige un nuevo aprobador.',
+        overLimitApproverNotWorkspaceMember: 'El aprobador adicional para los informes que superan el límite ya no es miembro del espacio de trabajo. Elige un nuevo aprobador adicional.',
         approverCircularReference: (name1, name2) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
         emptyContent: {

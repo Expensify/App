@@ -137,6 +137,7 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail, poli
             approvalLimit: employee.approvalLimit,
             overLimitForwardsTo: employee.overLimitForwardsTo,
             overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(employee.overLimitForwardsTo, personalDetailsByEmail),
+            ...(policy && isNonMemberApprover(policy, employee.overLimitForwardsTo) ? {isOverLimitForwardsToNotWorkspaceMember: true} : {}),
             pendingAction: employee.pendingAction,
             errors: employee.errors,
         });
@@ -1681,9 +1682,11 @@ function convertApprovalWorkflowRulesToWorkflows({
             continue;
         }
 
-        let chain = buildApproverChainFromRules({submitter: email, rules, employees, personalDetailsByEmail}).map((approver) =>
-            isNonMemberApprover(policy, approver.email) ? {...approver, isNotWorkspaceMember: true} : approver,
-        );
+        let chain = buildApproverChainFromRules({submitter: email, rules, employees, personalDetailsByEmail}).map((approver) => ({
+            ...approver,
+            ...(isNonMemberApprover(policy, approver.email) ? {isNotWorkspaceMember: true} : {}),
+            ...(isNonMemberApprover(policy, approver.overLimitForwardsTo) ? {isOverLimitForwardsToNotWorkspaceMember: true} : {}),
+        }));
         if (chain.length === 0) {
             continue;
         }
@@ -1836,12 +1839,15 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
         return false;
     }
 
-    // Without the beta, an approver is only flagged when the default approver or some employee's `submitsTo` or
-    // `forwardsTo` points at a non-member, so skip building the workflows when none does
+    // Without the beta, an approver is only flagged when the default approver or some employee's `submitsTo`,
+    // `forwardsTo` or `overLimitForwardsTo` points at a non-member, so skip building the workflows when none does
     if (!isMultipleApproversBetaEnabled) {
         const hasNonMemberRoute =
             isNonMemberApprover(policy, getHRFinalApprover(policy) ?? getDefaultApprover(policy)) ||
-            Object.values(policy?.employeeList ?? {}).some((employee) => isNonMemberApprover(policy, employee.submitsTo) || isNonMemberApprover(policy, employee.forwardsTo));
+            Object.values(policy?.employeeList ?? {}).some(
+                (employee) =>
+                    isNonMemberApprover(policy, employee.submitsTo) || isNonMemberApprover(policy, employee.forwardsTo) || isNonMemberApprover(policy, employee.overLimitForwardsTo),
+            );
         if (!hasNonMemberRoute) {
             return false;
         }
@@ -1859,12 +1865,21 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
         isHRAdvancedMode(policy);
     const shownApprovalWorkflows = showsAllWorkflows ? approvalWorkflows : approvalWorkflows.filter((workflow) => workflow.isDefault);
 
-    return shownApprovalWorkflows.some((workflow) => workflow.approvers.some((approver) => !!approver.isNotWorkspaceMember));
+    return shownApprovalWorkflows.some((workflow) => workflow.approvers.some((approver) => !!getNonMemberApproverError(approver, workflow.isDefault)));
 }
 
-/** The error for an approver who is no longer on the workspace. The default workflow can't be deleted, so its copy only asks for a new approver. */
-function getNonMemberApproverError(isDefaultWorkflow: boolean | undefined): TranslationPaths {
-    return isDefaultWorkflow ? 'workflowsPage.defaultWorkflowApproverNotWorkspaceMember' : 'workflowsPage.approverNotWorkspaceMember';
+/**
+ * The error for an approver who is no longer on the workspace, or whose additional approver for reports over the limit
+ * isn't, or undefined when neither is. The default workflow can't be deleted, so its copy only asks for a new approver.
+ */
+function getNonMemberApproverError(approver: Approver | undefined, isDefaultWorkflow: boolean | undefined): TranslationPaths | undefined {
+    if (approver?.isNotWorkspaceMember) {
+        return isDefaultWorkflow ? 'workflowsPage.defaultWorkflowApproverNotWorkspaceMember' : 'workflowsPage.approverNotWorkspaceMember';
+    }
+    if (approver?.isOverLimitForwardsToNotWorkspaceMember) {
+        return 'workflowsPage.overLimitApproverNotWorkspaceMember';
+    }
+    return undefined;
 }
 
 export {

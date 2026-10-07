@@ -70,6 +70,12 @@ type Approver = {
     isNotWorkspaceMember?: boolean;
 
     /**
+     * Is this approver's `overLimitForwardsTo` no longer a workspace member. Reports over the approval limit still go
+     * to them, so the workflow is shown with an error until an admin picks a new additional approver.
+     */
+    isOverLimitForwardsToNotWorkspaceMember?: boolean;
+
+    /**
      * If report total is above this limit, the report will be forwarded to 'overLimitForwardsTo' instead of 'forwardsTo'
      */
     approvalLimit?: number | null;

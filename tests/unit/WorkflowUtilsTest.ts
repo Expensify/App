@@ -3268,6 +3268,25 @@ describe('WorkflowUtils', () => {
             expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
         });
 
+        it('flags a non-member that reports over an approval limit forward to', () => {
+            // Given every submitsTo and forwardsTo points at a member, but reports over the owner's approval limit go
+            // to someone no longer on the workspace
+            const policy = buildPolicy({
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail, approvalLimit: 1000, overLimitForwardsTo: removedEmail},
+                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+
+            // When the owner checks whether a workflow needs fixing
+            // Then it does, since reports over the limit still route to the non-member
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
+
+            // And the workflow flags that approver so the page shows the error on them
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
+            expect(approvalWorkflows.at(0)?.approvers.at(0)).toMatchObject({email: ownerEmail, isOverLimitForwardsToNotWorkspaceMember: true});
+        });
+
         it('does not flag a workspace where every route points at a member', () => {
             // Given the owner isn't on employeeList but is still the default approver, and every submitsTo and
             // forwardsTo points at someone on the workspace. The same workspace with one forwardsTo pointing at a
@@ -3342,6 +3361,28 @@ describe('WorkflowUtils', () => {
             );
         });
 
+        it('flags a rule that sends reports over the limit to a non-member under the multiple approvers beta', () => {
+            // Given member 2 is routed by a rule to the owner, whose reports over the limit go to someone no longer on
+            // the workspace
+            const policy = buildPolicy({
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    '2@example.com': {email: '2@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+            const rules = keyRules(
+                buildApprovalWorkflowRules({
+                    members: [buildMember(2)],
+                    approvers: [buildApprover(1, {email: ownerEmail, approvalLimit: 1000, overLimitForwardsTo: removedEmail})],
+                    isDefault: false,
+                }),
+            );
+
+            // When the owner checks whether a workflow needs fixing
+            // Then it does, since reports over the limit still route to the non-member
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, rules, isMultipleApproversBetaEnabled: true})).toBe(true);
+        });
+
         it('does not flag a workspace the user cannot fix', () => {
             // Given the same broken workflow, seen by a member without write access to approvals, with approvals off,
             // and with the workflows owned by a connected recruiting integration
@@ -3382,8 +3423,25 @@ describe('WorkflowUtils', () => {
             // Given a flagged approver on a custom workflow and on the default workflow
             // When the error copy is picked
             // Then the default workflow, which can't be deleted, only asks for a new approver
-            expect(getNonMemberApproverError(false)).toBe('workflowsPage.approverNotWorkspaceMember');
-            expect(getNonMemberApproverError(true)).toBe('workflowsPage.defaultWorkflowApproverNotWorkspaceMember');
+            const removedApprover = buildApprover(9, {isNotWorkspaceMember: true});
+            expect(getNonMemberApproverError(removedApprover, false)).toBe('workflowsPage.approverNotWorkspaceMember');
+            expect(getNonMemberApproverError(removedApprover, true)).toBe('workflowsPage.defaultWorkflowApproverNotWorkspaceMember');
+        });
+
+        it('asks for a new additional approver when only the over-limit one left the workspace', () => {
+            // Given an approver who is a member, but whose additional approver for reports over the limit is not
+            const approver = buildApprover(1, {approvalLimit: 1000, overLimitForwardsTo: '9@example.com', isOverLimitForwardsToNotWorkspaceMember: true});
+
+            // When the error copy is picked
+            // Then it points at the additional approver rather than at the first approver
+            expect(getNonMemberApproverError(approver, false)).toBe('workflowsPage.overLimitApproverNotWorkspaceMember');
+        });
+
+        it('returns no error when every route points at a member', () => {
+            // Given an approver with no flags
+            // When the error copy is picked
+            // Then there is nothing to fix
+            expect(getNonMemberApproverError(buildApprover(1), false)).toBeUndefined();
         });
     });
 

@@ -2945,6 +2945,7 @@ ${date} の ${merchant} への ${amount}`,
         approverInMultipleWorkflows: 'このメンバーはすでに別の承認ワークフローに属しています。ここでの更新内容はそちらにも反映されます。',
         approverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択するか、このワークフローを削除してください。',
         defaultWorkflowApproverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択してください。',
+        overLimitApproverNotWorkspaceMember: '上限を超えるレポートの追加承認者は、ワークスペースのメンバーではなくなりました。新しい追加承認者を選択してください。',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> はすでに <strong>${name2}</strong> にレポートを承認しています。ワークフローが循環しないよう、別の承認者を選択してください。`,
         emptyContent: {
