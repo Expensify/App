@@ -130,12 +130,12 @@ function useGPSTripStateChecker() {
         async function handleGpsTripInProgressOnAppRestart() {
             await checkAndCleanGpsNotification();
 
-            if (isGpsDraftDetailsInOldFormat(gpsDraftDetails)) {
+            const isGPSTripOldFormat = isGpsDraftDetailsInOldFormat(gpsDraftDetails);
+            if (isGPSTripOldFormat) {
                 resetGPSDraftDetails();
-                return;
             }
 
-            if (!gpsDraftDetails?.isTracking) {
+            if (isGPSTripOldFormat || !gpsDraftDetails?.isTracking) {
                 const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
                 if (isBackgroundTaskRunning) {
                     stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
