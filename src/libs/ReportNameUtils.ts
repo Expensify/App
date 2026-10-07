@@ -37,11 +37,11 @@ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDy
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
+    getAgentPromptUpdatedMessage,
     getAddedCardFeedMessage,
     getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
@@ -162,8 +162,6 @@ import {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getPendingDeleteMemberAccountIDs,
-    getReportMetadata,
     getReportOrDraftReport,
     getTransactionReportName,
     getUnreportedTransactionMessage,
@@ -281,6 +279,9 @@ const customCollator = getCollator(CONST.LOCALES.EN);
 
 /**
  * Returns the report name if the report is a group chat
+ *
+ * Callers that pass a `report` must pass `pendingDeleteMemberAccountIDs` too (see pendingDeleteMemberAccountIDsSelector),
+ * otherwise members pending removal are still listed. Callers that pass `participants` instead don't need it.
  */
 function getGroupChatName(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -296,10 +297,7 @@ function getGroupChatName(
         return report.reportName;
     }
 
-    // TODO: Remove the getReportMetadata fallback once https://github.com/Expensify/App/issues/66421 is done
-    const resolvedPendingDeleteMemberAccountIDs = pendingDeleteMemberAccountIDs ?? getPendingDeleteMemberAccountIDs(getReportMetadata(report?.reportID)?.pendingChatMembers);
-
-    const pendingMemberAccountIDs = new Set(resolvedPendingDeleteMemberAccountIDs);
+    const pendingMemberAccountIDs = new Set(pendingDeleteMemberAccountIDs);
     let participantAccountIDs =
         participants?.map((participant) => participant.accountID) ??
         Object.keys(report?.participants ?? {})
@@ -807,6 +805,10 @@ function computeReportNameBasedOnReportAction({
         return getMarkedReimbursedMessage(translate, parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        return getAgentPromptUpdatedMessage(translate, parentReportAction);
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         return getPolicyChangeMessage(translate, parentReportAction);
     }
@@ -848,12 +850,7 @@ function computeReportNameBasedOnReportAction({
 
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
-
-        // Prefer the account stored on the action: the payer is not always the workspace payer, so the policy's
-        // ACH account can belong to a different bank account than the one the report was actually paid with, and
-        // attributing it to a non-payer admin's payment shows a different account to every other viewer.
-        const policyAccountNumber = wasPaidWithPolicyBankAccount(reportPolicy, parentReportAction?.actorAccountID) ? reportPolicy?.achAccount?.accountNumber : undefined;
-        const last4Digits = (originalMessage?.accountNumber ?? policyAccountNumber)?.slice(-4) ?? '';
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -1233,7 +1230,7 @@ function computeReportName({
             convertToDisplayString,
             convertToDisplayStringWithoutCurrency,
             getCurrencySymbol,
-            // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
+            // Not forwarded: these belong to `report`, and `originalReport` is an expense report, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
             rules,
         });
