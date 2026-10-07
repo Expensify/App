@@ -13,16 +13,16 @@ With Expensify Travel your team can book flights, hotels, cars, and more — all
 
 Only **Workspace Admins** can enable Expensify Travel for a workspace.
 
-## How to enable Expensify Travel
+## How to enable Expensify Travel 
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your workspace name to access the settings for that workspace.
-3. In the left menu, click **More Features**.
+3. In the left menu, click **More Features**. 
 4. Toggle on **Travel**.
 
 Toggling on **Travel** adds a **Travel** item to the workspace left menu, but it does not finish setting up Expensify Travel. Complete the setup steps below before your members can book travel.
 
-## How to set up Expensify Travel
+## How to set up Expensify Travel 
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your workspace name to access the settings for that workspace.
@@ -35,7 +35,7 @@ Only **Workspace Admins** can complete these steps. Members are not asked for th
 
 ## What happens after setting up Expensify Travel
 
-Once Expensify Travel setup is complete:
+Once Expensify Travel setup is complete: 
 
 - **Book travel** appears under the **➕ Create** button for members whose default workspace is this workspace
 - Team members can book flights, hotels, cars, and trains
@@ -48,7 +48,7 @@ Expensify Travel is available globally on the Collect and Control plans.
 
 ## Learn more about setting up your travel policy
 
-To customize your company’s travel rules — like flight class, hotel limits, or approval routing — visit the
+To customize your company’s travel rules — like flight class, hotel limits, or approval routing — visit the  
 [Expensify Travel policy setup hub](https://help.expensify.com/travel/hubs/company-setup/).
 
 # FAQ
