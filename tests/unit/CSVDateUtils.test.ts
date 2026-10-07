@@ -36,7 +36,7 @@ describe('CSVDateUtils', () => {
             const parsedDates = twoDigitYearDates.map((date) => parseCSVDate(date));
             const parsedShortDate = parseCSVDate('1/2/25');
 
-            // Then every value resolves to the same date in the current century, including unpadded day and month values
+            // Then every value resolves to the same date in the current century, including day and month values without leading zeros
             for (const parsedDate of parsedDates) {
                 expect(parsedDate).toBe('2026-09-22');
             }
