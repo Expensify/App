@@ -21,15 +21,12 @@ import VictoryChartLegend from './VictoryChartLegend';
 type VictoryChartPolarProps = {
     explicitSize?: {width: number; height: number};
     headless?: boolean;
-
-    /** Render into a static bitmap canvas instead of a live WebGL canvas (web) */
-    shouldUseStaticCanvas?: boolean;
 };
 
 /**
  * Renders the PolarChart with data drawn from context.
  */
-function VictoryChartPolar({explicitSize, headless, shouldUseStaticCanvas}: VictoryChartPolarProps) {
+function VictoryChartPolar({explicitSize, headless}: VictoryChartPolarProps) {
     const {tnode, data, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
@@ -67,7 +64,6 @@ function VictoryChartPolar({explicitSize, headless, shouldUseStaticCanvas}: Vict
             valueKey={VALUE_KEY}
             colorKey={COLOR_KEY}
             {...getChartLayoutModeProps(explicitSize, headless)}
-            canvasProps={shouldUseStaticCanvas ? getStaticChartCanvasProps() : undefined}
         >
             {headless ? (
                 <ThemeContext.Provider value={theme}>{chartContent}</ThemeContext.Provider>
