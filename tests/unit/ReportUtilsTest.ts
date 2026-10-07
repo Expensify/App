@@ -7005,7 +7005,7 @@ describe('ReportUtils', () => {
             };
 
             // When edit permission is checked for menus or the keyboard shortcut
-            const canEdit = canEditReportAction(reportAction, undefined, undefined);
+            const canEdit = canEditReportAction(reportAction, undefined, undefined, undefined);
 
             // Then support-ticket previews are read-only, while ordinary comments remain editable
             expect(canEdit).toBe(expected);
