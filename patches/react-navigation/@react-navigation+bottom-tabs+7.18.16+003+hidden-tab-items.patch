@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-index 09ec68f..6645270 100644
+index e6ea55b..4d577fe 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 @@ -4,11 +4,11 @@ import { getLabel, SafeAreaProviderCompat, Screen as ScreenContent } from '@reac
@@ -59,9 +59,9 @@ index 09ec68f..6645270 100644
 -      tabBarHidden: shouldHideTabBar,
 +      tabBarHidden: shouldHideTabBar || isFocusedRouteHidden,
        colorScheme: dark ? 'dark' : 'light',
-       ios: {
-         bottomAccessory: bottomAccessory ? environment => bottomAccessory({
-@@ -210,6 +222,9 @@ export function NativeBottomTabView({
+       nativeContainerStyle: {
+         backgroundColor: colors.background
+@@ -213,6 +225,9 @@ export function NativeBottomTabView({
          tabBarTintColor: activeTintColor
        },
        children: state.routes.map((route, index) => {
@@ -71,7 +71,7 @@ index 09ec68f..6645270 100644
          const {
            options,
            render,
-@@ -221,6 +236,7 @@ export function NativeBottomTabView({
+@@ -224,6 +239,7 @@ export function NativeBottomTabView({
            title,
            lazy = false,
            tabBarLabel,
@@ -79,15 +79,15 @@ index 09ec68f..6645270 100644
            tabBarSelectionEnabled,
            tabBarBadgeStyle,
            tabBarIcon,
-@@ -287,6 +303,7 @@ export function NativeBottomTabView({
+@@ -290,6 +306,7 @@ export function NativeBottomTabView({
            preventNativeSelection: tabBarSelectionEnabled === false,
            badgeValue: tabBarBadge?.toString(),
            title: tabTitle,
 +          tabBarItemAccessibilityLabel: tabBarAccessibilityLabel,
-           specialEffects: {
-             repeatedTabSelection: {
-               popToRoot: true,
-@@ -363,9 +380,40 @@ export function NativeBottomTabView({
+           nativeContainerStyle: {
+             backgroundColor: colors.background
+           },
+@@ -369,9 +386,40 @@ export function NativeBottomTabView({
            })
          }, route.key);
        })
@@ -130,7 +130,7 @@ index 09ec68f..6645270 100644
    isFocused,
    route,
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
-index 5a502c2..a2f2e85 100644
+index ac25ed1..c05b04b 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
 @@ -78,6 +78,15 @@ type IconIOSSfSymbol = {

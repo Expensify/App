@@ -1,8 +1,8 @@
 diff --git a/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js b/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
-index 07d02ef..3f7bc78 100644
+index c475462..f8e7d1c 100644
 --- a/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
 +++ b/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
-@@ -178,10 +178,14 @@ export function createMemoryHistory() {
+@@ -188,10 +188,14 @@ export function createMemoryHistory() {
            cb: done
          });
  
@@ -18,8 +18,8 @@ index 07d02ef..3f7bc78 100644
 +        // back/forward navigation and reset the app to a stale route
          // We're using a hacky timeout since there doesn't seem to be way to know for sure
          const timer = setTimeout(() => {
-           const foundIndex = pending.findIndex(it => it.ref === done);
-@@ -190,7 +194,7 @@ export function createMemoryHistory() {
+           window.removeEventListener('popstate', onPopState);
+@@ -201,7 +205,7 @@ export function createMemoryHistory() {
              pending.splice(foundIndex, 1);
            }
            index = this.index;

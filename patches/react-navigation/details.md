@@ -1,12 +1,12 @@
 # `@react-navigation` patches
 
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
-#### [@react-navigation+bottom-tabs+7.16.2+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.16.2+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+bottom-tabs+7.18.16+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.18.16+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+elements+2.9.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.19+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+elements+2.9.38+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.38+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+native+7.2.6+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.2.6+002+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+native+7.3.16+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.3.16+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch)
 
@@ -24,7 +24,7 @@
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#98097](https://github.com/Expensify/App/pull/98097)
 
-### [@react-navigation+native+7.2.6+001+initial.patch](@react-navigation+native+7.2.6+001+initial.patch)
+### [@react-navigation+native+7.3.16+001+initial.patch](@react-navigation+native+7.3.16+001+initial.patch)
 
 - Reason: Allows us to use some more advanced navigation actions without messing up the browser history
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12751 (`route.history` + `pushParams`, added upstream for this use case); originating issue https://github.com/react-navigation/react-navigation/issues/12460. On the v8 upgrade, evaluate adopting `pushParams` to shrink this patch.
@@ -49,7 +49,7 @@
 - PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119)
 - Note: Not fully covered by the public `detachPreviousScreen` option (this also forces `activityState`). v8 replaces `detachInactiveScreens`/`detachPreviousScreen`/`freezeOnBlur` with a single `inactiveBehavior` option — re-evaluate this patch then.
 
-### [@react-navigation+native+7.2.6+003+increase-history-go-popstate-fallback-timeout.patch](@react-navigation+native+7.2.6+003+increase-history-go-popstate-fallback-timeout.patch)
+### [@react-navigation+native+7.3.16+003+increase-history-go-popstate-fallback-timeout.patch](@react-navigation+native+7.3.16+003+increase-history-go-popstate-fallback-timeout.patch)
 
 - Reason:
 
@@ -68,8 +68,9 @@
 - E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
 - PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)
 - PR Updating Patch: [#101339](https://github.com/Expensify/App/pull/101339)
+- Note: Upstream raised the timeout to 1000ms in `@react-navigation/native` 7.5.0, so this patch can be dropped on the bump to 7.5.0 or newer.
 
-### [@react-navigation+bottom-tabs+7.16.2+002+active-indicator-color-precedence.patch](@react-navigation+bottom-tabs+7.16.2+002+active-indicator-color-precedence.patch)
+### [@react-navigation+bottom-tabs+7.18.16+002+active-indicator-color-precedence.patch](@react-navigation+bottom-tabs+7.18.16+002+active-indicator-color-precedence.patch)
 
 - Reason: `tabBarActiveIndicatorColor` was never applied on the native Android tab bar: a missing pair of parentheses made `??` bind to the `typeof` check, so the indicator always got `tabBarActiveTintColor` at 10% alpha. The patch restores the intended precedence, so the active indicator pill takes the color from the design. **This patch can be removed on the upgrade to React Navigation v8**, whose rewritten native tab view no longer has the bug.
 - Upstream PR/issue: not reported, because the v8 branch already fixes it and the fix only matters until the App moves to v8. Still present on the `7.x` branch as of 7.20.0.
@@ -77,7 +78,7 @@
 - PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)
 - PR Updating Patch: N/A
 
-### [@react-navigation+bottom-tabs+7.16.2+003+hidden-tab-items.patch](@react-navigation+bottom-tabs+7.16.2+003+hidden-tab-items.patch)
+### [@react-navigation+bottom-tabs+7.18.16+003+hidden-tab-items.patch](@react-navigation+bottom-tabs+7.18.16+003+hidden-tab-items.patch)
 
 - Reason: Adds a `tabBarItemHidden` option to the native bottom tabs. The App registers six tabs but the native bar can show at most five (Material's `BottomNavigationView` throws past five, and `UITabBar` folds the rest into a "More" tab), and which five depends on the Insights beta: Insights with it, Account without it. A native tab bar cannot hide one of its items, so a route with `tabBarItemHidden` gets no `Tabs.Screen` at all. When such a route is focused, it is drawn in JS over the native host with the tab bar hidden, while the host keeps the last focused visible tab selected underneath. A hidden route stays mounted once visited. Nothing native changes. The host's selection is derived from the tab history, skipping routes that are hidden by then, so a beta change that hides the selected route cannot leave the host pointing at a removed tab. A route that moves between hidden and visible is remounted, and a hidden route ignores preloading and emits no transition events. The patch also forwards a `tabBarAccessibilityLabel` option to RNScreens' `tabBarItemAccessibilityLabel`. The iOS tab labels are drawn into the icon images, so without it VoiceOver announces the tabs with no name. **This part can be removed on the upgrade to React Navigation v8**, which forwards the same option. The `tabBarItemHidden` part has no upstream counterpart and stays.
 - Upstream PR/issue: not reported, because hiding an item from a native tab bar has no native counterpart and this works around it in JS for the App's tab set; the accessibility label part is already in v8.
