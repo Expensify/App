@@ -1,4 +1,3 @@
-import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
@@ -9,7 +8,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToBackendAmount, convertToFrontendAmountAsString, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDisplayAmount, isInvoiceReport, isSettled, shouldEnableNegative} from '@libs/ReportUtils';
@@ -18,9 +17,11 @@ import {getCurrency as getTransactionCurrency, isExpenseUnreported, isFailedScan
 import CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
 
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 
 import type TransactionDataCellProps from './TransactionDataCellProps';
+
+import EditableTotalAmountInput from './EditableTotalAmountInput';
 
 type TotalCellProps = TransactionDataCellProps &
     EditableProps<number> & {
@@ -65,29 +66,29 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
 
     const absoluteAmount = Math.abs(amount ?? 0);
     const isOriginalAmountNegative = (amount ?? 0) < 0;
-    const [isNegative, setIsNegative] = useState(isOriginalAmountNegative);
+    const decimals = getCurrencyDecimals(currency);
+    // The signed amount in the frontend format (e.g. "-12.34"), which the inline edit owns while editing
+    const originalValue = `${isOriginalAmountNegative ? '-' : ''}${convertToFrontendAmountAsString(absoluteAmount, decimals)}`;
     // Tracks whether the user actually typed in this edit session, so that merely opening and
     // closing the cell without input isn't mistaken for an explicit confirmation of the amount.
     const hasUserTypedRef = useRef(false);
 
-    const getNormalizedValue = (amountString: string, isAmountNegative: boolean) => {
+    const getNormalizedValue = (amountString: string) => {
         const parsedValue = parseFloatAnyLocale(amountString);
-        if (Number.isNaN(parsedValue) || parsedValue < 0) {
+        if (Number.isNaN(parsedValue)) {
             return undefined;
         }
 
-        const normalizedValue = roundToTwoDecimalPlaces(parsedValue);
-        const finalAmount = isAmountNegative ? -normalizedValue : normalizedValue;
-        return convertToBackendAmount(finalAmount);
+        const normalizedValue = roundToTwoDecimalPlaces(Math.abs(parsedValue));
+        return convertToBackendAmount(parsedValue < 0 ? -normalizedValue : normalizedValue);
     };
 
-    // localValue tracks the frontend-format amount string (e.g. "12.34") while editing
     const {isEditing, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(
         canEdit,
-        convertToFrontendAmountAsString(absoluteAmount, getCurrencyDecimals(currency)),
+        originalValue,
         onSave
             ? (value) => {
-                  const normalizedValue = getNormalizedValue(value, isNegative);
+                  const normalizedValue = getNormalizedValue(value);
                   if (normalizedValue === undefined) {
                       return;
                   }
@@ -97,8 +98,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
         // A failed-scan placeholder amount that the user actually typed into is treated as changed so that
         // explicitly re-entering 0 still submits and clears the scan-failure error, mirroring submitEditAmount in
         // IOUAmountSubmission.ts. Merely opening and blurring the cell without typing is left as a no-op.
-        (value, originalValue) =>
-            !(hasFailedScanAmountPlaceholder && hasUserTypedRef.current) && getNormalizedValue(value, isNegative) === getNormalizedValue(originalValue, isOriginalAmountNegative),
+        (value, initialValue) => !(hasFailedScanAmountPlaceholder && hasUserTypedRef.current) && getNormalizedValue(value) === getNormalizedValue(initialValue),
     );
 
     // Ref used to programmatically focus the input when edit mode starts
@@ -110,7 +110,6 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     };
 
     const handleStartEditing = () => {
-        setIsNegative(isOriginalAmountNegative);
         hasUserTypedRef.current = false;
         startEditing();
     };
@@ -119,20 +118,6 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
         hasUserTypedRef.current = true;
         setLocalValue(amountString);
     };
-
-    const onFormatAmount = (amountAsInt: number, currencyParam?: string) => {
-        // Seed the edit input as empty for a failed-scan placeholder, matching the blanked display above and the
-        // same falsy-amount-is-blank convention MoneyRequestAmountForm already uses for an unset amount.
-        if (hasFailedScanAmountPlaceholder) {
-            return '';
-        }
-        const decimals = getCurrencyDecimals(currencyParam);
-        return convertToFrontendAmountAsString(amountAsInt, decimals);
-    };
-
-    const toggleNegative = () => setIsNegative((prev) => !prev);
-
-    const clearNegative = () => setIsNegative(false);
 
     const handleEscape = () => {
         cancelEditing();
@@ -167,32 +152,17 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
             onStartEditing={handleStartEditing}
             editIconPosition="left"
             editContent={
-                <MoneyRequestAmountInput
+                <EditableTotalAmountInput
                     ref={focusOnMount}
-                    amount={absoluteAmount}
-                    currency={currency}
-                    disableKeyboard={false}
-                    isCurrencyPressable={false}
-                    hideFocusedState
-                    shouldShowBigNumberPad={false}
-                    shouldWrapInputInContainer={false}
-                    shouldApplyPaddingToContainer={false}
-                    shouldRefocusOnScrollViewClick
-                    onAmountChange={handleAmountChange}
-                    onFormatAmount={onFormatAmount}
+                    // Seed the edit input as empty for a failed-scan placeholder, matching the blanked display above
+                    initialValue={hasFailedScanAmountPlaceholder ? '' : originalValue}
+                    onChange={handleAmountChange}
+                    allowNegative={!isSplitBill && allowNegative}
+                    decimals={decimals}
+                    currencySymbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+                    hasSymbolSpaceInPreview={hasSymbolSpaceInPreview}
+                    accessibilityLabel={`${translate('iou.amount')} (${currency})`}
                     onBlur={save}
-                    allowFlippingAmount={!isSplitBill && allowNegative}
-                    isNegative={isNegative}
-                    toggleNegative={toggleNegative}
-                    clearNegative={clearNegative}
-                    // EditableCell is responsible for the cell's hover and focus styles (border, background).
-                    // Suppress MoneyRequestAmountInput's own border and background to avoid visual conflicts.
-                    containerStyle={[styles.editableCellInputStyle]}
-                    inputStyle={[styles.textAlignRight, styles.pr0]}
-                    touchableInputWrapperStyle={styles.editableCellInputStyle}
-                    scrollViewStyle={[styles.flexRow, styles.justifyContentEnd]}
-                    symbolTextStyle={[styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}
-                    negativeSymbolStyle={styles.editableCellSymbolStyle}
                 />
             }
         >

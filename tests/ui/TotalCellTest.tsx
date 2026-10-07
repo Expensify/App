@@ -20,8 +20,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
 
-// The amount edit input (NumberWithSymbolForm) calls useIsFocused/useNavigation, which need a NavigationContainer
-// ancestor we don't render here. Matches the mock pattern in NumberWithSymbolFormTest.tsx.
+// The amount edit input calls useIsFocused/useNavigation, which need a NavigationContainer ancestor we don't render here.
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useNavigation: jest.fn(() => ({
@@ -215,5 +214,113 @@ describe('TotalCell', () => {
         fireEvent(input, 'blur');
 
         expect(onSave).not.toHaveBeenCalled();
+    });
+
+    describe('signed amount editing', () => {
+        // A tracked (unreported) expense allows negative amounts and stores its amount with the opposite sign
+        const createTrackedTransaction = (displayAmount: number) =>
+            createBaseTransaction({
+                amount: -displayAmount,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            });
+
+        const renderEditingTotalCell = async (transactionItem: Transaction, onSave: jest.Mock) => {
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <TotalCell
+                        transactionItem={transactionItem}
+                        shouldShowTooltip={false}
+                        canEdit
+                        onSave={onSave}
+                    />
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdates();
+
+            fireEvent.press(await screen.findByTestId('mock-edit-button'));
+            return screen.findByLabelText('Amount (USD)');
+        };
+
+        it('edits the magnitude of a negative amount and shows its sign beside the input', async () => {
+            // Given a tracked expense of -$10.00
+            const input = await renderEditingTotalCell(createTrackedTransaction(-1000), jest.fn());
+
+            // Then the input holds only the magnitude and the sign is rendered on its own, so the cell reads -$10.00
+            expect(input.props.value).toBe('10.00');
+            expect(screen.getByText('-')).toBeOnTheScreen();
+            expect(screen.getByText('$')).toBeOnTheScreen();
+        });
+
+        it('saves a negative amount when the user enters a negative number', async () => {
+            // Given a tracked expense of $10.00 being edited
+            const onSave = jest.fn();
+            const input = await renderEditingTotalCell(createTrackedTransaction(1000), onSave);
+
+            // When the user enters a negative amount and leaves the cell
+            fireEvent.changeText(input, '-12.50');
+            fireEvent(input, 'blur');
+
+            // Then the signed amount is saved in the backend format
+            expect(onSave).toHaveBeenCalledWith(-1250);
+        });
+
+        it('saves a positive amount when the user removes the sign with backspace at the start', async () => {
+            // Given a tracked expense of -$10.00 with the caret at the start of its magnitude
+            const onSave = jest.fn();
+            const input = await renderEditingTotalCell(createTrackedTransaction(-1000), onSave);
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+
+            // When the user presses backspace and leaves the cell
+            fireEvent(input, 'keyPress', {nativeEvent: {key: 'Backspace'}});
+            fireEvent(input, 'blur');
+
+            // Then the sign is gone and the positive amount is saved
+            expect(screen.queryByText('-')).not.toBeOnTheScreen();
+            expect(onSave).toHaveBeenCalledWith(1000);
+        });
+
+        it('does not save when a negative amount is opened and blurred without changes', async () => {
+            // Given a tracked expense of -$10.00 being edited
+            const onSave = jest.fn();
+            const input = await renderEditingTotalCell(createTrackedTransaction(-1000), onSave);
+
+            // When the user leaves the cell without editing
+            fireEvent(input, 'blur');
+
+            // Then nothing is saved, because the signed amount is unchanged
+            expect(onSave).not.toHaveBeenCalled();
+        });
+
+        it('keeps the sign of a negative Split Bill amount, which the user may not flip', async () => {
+            // Given a negative Split Bill amount being edited, whose sign the cell shows but does not let the user change
+            const onSave = jest.fn();
+            const input = await renderEditingTotalCell({...createTrackedTransaction(-1000), comment: {source: CONST.IOU.TYPE.SPLIT}}, onSave);
+            expect(screen.getByText('-')).toBeOnTheScreen();
+
+            // When the user types a minus before the magnitude, which would flip a sign the user may change, then changes the magnitude and leaves the cell
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+            fireEvent.changeText(input, '-10.00');
+            fireEvent.changeText(input, '15.00');
+            fireEvent(input, 'blur');
+
+            // Then the minus is rejected and the new magnitude is saved with the original negative sign
+            expect(onSave).toHaveBeenCalledWith(-1500);
+        });
+
+        it('seeds the edit input empty for a failed-scan amount placeholder', async () => {
+            // Given a failed-scan placeholder amount
+            const input = await renderEditingTotalCell(
+                createBaseTransaction({
+                    amount: 0,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                }),
+                jest.fn(),
+            );
+
+            // Then the input starts empty instead of showing the placeholder amount
+            expect(input.props.value).toBe('');
+        });
     });
 });
