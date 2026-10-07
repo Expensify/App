@@ -56,7 +56,15 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, getRulesDocumentSourceURL, getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyOwner} from '@libs/PolicyUtils';
+import {
+    canEditWorkspaceSettings,
+    getRulesDocumentSourceURL,
+    getUserFriendlyWorkspaceType,
+    goBackFromInvalidPolicy,
+    isArchivedPolicy,
+    isPendingDeletePolicy,
+    isPolicyOwner,
+} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -82,6 +90,7 @@ import {View} from 'react-native';
 import type {WithPolicyProps} from './withPolicy';
 
 import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
+import UnarchiveWorkspaceFlow from './archiveWorkspace/UnarchiveWorkspaceFlow';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -98,7 +107,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Box', 'Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Box', 'Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {isBetaEnabled} = usePermissions();
     const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
@@ -111,6 +120,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {showConfirmModal} = useConfirmModal();
     const [isDeleteWorkspaceFlowVisible, setIsDeleteWorkspaceFlowVisible] = useState(false);
     const [isArchiveWorkspaceFlowVisible, setIsArchiveWorkspaceFlowVisible] = useState(false);
+    const [isUnarchiveWorkspaceFlowVisible, setIsUnarchiveWorkspaceFlowVisible] = useState(false);
 
     // Primitive-valued subscriptions configuring the Delete menu item (popover behavior and the loading spinner)
     // before a deletion starts. The deletion itself is handled by DeleteWorkspaceFlow, mounted on demand below.
@@ -368,6 +378,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const secondaryActions: Array<DropdownOption<string>> = [];
 
     if (readOnly) {
+        if (canArchivePolicies && isOwner && isArchivedPolicy(policy)) {
+            secondaryActions.push({
+                value: 'unarchive',
+                text: translate('workspace.common.unarchive'),
+                icon: expensifyIcons.ArrowCircleClockwise,
+                // The confirmation modal is handled by UnarchiveWorkspaceFlow, which mounts when this is set.
+                onSelected: () => setIsUnarchiveWorkspaceFlowVisible(true),
+            });
+        }
         if (canLeave) {
             secondaryActions.push({
                 value: 'leave',
@@ -478,6 +497,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     policyID={policyID}
                     onDismiss={() => setIsArchiveWorkspaceFlowVisible(false)}
                     onArchiveComplete={goBackFromInvalidPolicy}
+                />
+            )}
+            {isUnarchiveWorkspaceFlowVisible && !!policyID && (
+                <UnarchiveWorkspaceFlow
+                    key={`unarchive-${policyID}`}
+                    policyID={policyID}
+                    onDismiss={() => setIsUnarchiveWorkspaceFlowVisible(false)}
                 />
             )}
             {!!pendingRulesDocumentFile && (

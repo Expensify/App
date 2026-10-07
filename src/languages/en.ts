@@ -4962,6 +4962,9 @@ const translations = {
                 'Are you sure you want to archive this workspace? This will unassign all credit cards from users and permanently delete any unsubmitted card expenses.',
             archiveWithExpensifyCardsConfirmation:
                 'Are you sure you want to archive this workspace? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
+            unarchive: 'Unarchive',
+            unarchiveWorkspace: 'Unarchive workspace',
+            unarchiveConfirmation: 'Are you sure you want to unarchive this workspace?',
             deleteWorkspaceTitle: (workspaceName: string) => `Delete ${workspaceName}?`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
