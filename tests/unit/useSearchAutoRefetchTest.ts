@@ -6,18 +6,22 @@ import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
 
 import {search} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, PolicyEmployee, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 
+const mockUseIsFocused = jest.fn((): boolean => true);
+
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({
-    useIsFocused: jest.fn(() => true),
+    useIsFocused: () => mockUseIsFocused(),
     createNavigationContainerRef: () => ({}),
 }));
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
 jest.mock('@rnmapbox/maps', () => ({
     __esModule: true,
     default: {},
@@ -28,11 +32,10 @@ jest.mock('@rnmapbox/maps', () => ({
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 
-const mockUseIsFocused = jest.fn().mockReturnValue(true);
-
 afterEach(() => {
     jest.clearAllMocks();
     mockIsOffline = false;
+    mockUseIsFocused.mockReturnValue(true);
 });
 
 describe('useSearchAutoRefetch', () => {
@@ -62,6 +65,8 @@ describe('useSearchAutoRefetch', () => {
         previousTransactions: {},
         reportActions: {},
         previousReportActions: {},
+        policies: {},
+        previousPolicies: {},
         queryJSON: {
             type: 'expense',
             sortBy: 'date',
@@ -528,5 +533,76 @@ describe('useSearchAutoRefetch', () => {
 
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
+    });
+
+    describe('member custom field changes', () => {
+        const transaction = createMock<Transaction>({transactionID: '1'});
+        const policyWithMember = (employee: Partial<PolicyEmployee>) => createMock<Policy>({id: '1', employeeList: {'a@b.com': employee}});
+
+        const buildProps = (policy: Policy, previousPolicy: Policy, policyKey = 'policy_1') =>
+            createMock<UseSearchAutoRefetch>({
+                ...baseProps,
+                searchResults: {
+                    ...baseProps.searchResults,
+                    data: {
+                        transactions_1: {transactionID: '1'},
+                        policy_1: {id: '1'},
+                    },
+                },
+                transactions: {transactions_1: transaction},
+                previousTransactions: {transactions_1: transaction},
+                policies: {[policyKey]: policy},
+                previousPolicies: {[policyKey]: previousPolicy},
+            });
+
+        it('should trigger search when a member custom field changes on a policy the results display', () => {
+            const oldPolicy = policyWithMember({employeeUserID: 'OLD'});
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(oldPolicy, oldPolicy),
+            });
+
+            rerender(buildProps(policyWithMember({employeeUserID: 'NEW'}), oldPolicy));
+            expect(search).toHaveBeenCalledTimes(1);
+            expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        });
+
+        it('should defer the search for a member custom field change until Search is focused again', () => {
+            const oldPolicy = policyWithMember({employeeUserID: 'OLD'});
+            const newPolicy = policyWithMember({employeeUserID: 'NEW'});
+            mockUseIsFocused.mockReturnValue(false);
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(oldPolicy, oldPolicy),
+            });
+
+            rerender(buildProps(newPolicy, oldPolicy));
+            expect(search).not.toHaveBeenCalled();
+
+            rerender(buildProps(newPolicy, newPolicy));
+            expect(search).not.toHaveBeenCalled();
+
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(newPolicy, newPolicy));
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not trigger search when only a member pendingFields entry changes', () => {
+            const oldPolicy = policyWithMember({employeeUserID: 'OLD', pendingFields: {employeeUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}});
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(oldPolicy, oldPolicy),
+            });
+
+            rerender(buildProps(policyWithMember({employeeUserID: 'OLD'}), oldPolicy));
+            expect(search).not.toHaveBeenCalled();
+        });
+
+        it('should not trigger search when a member custom field changes on a policy absent from the results', () => {
+            const oldPolicy = policyWithMember({employeeUserID: 'OLD'});
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(oldPolicy, oldPolicy, 'policy_2'),
+            });
+
+            rerender(buildProps(policyWithMember({employeeUserID: 'NEW'}), oldPolicy, 'policy_2'));
+            expect(search).not.toHaveBeenCalled();
+        });
     });
 });
