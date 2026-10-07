@@ -31,18 +31,47 @@ type PrivatePersonalDetailsConfirmValidateCodePageProps = PlatformStackScreenPro
 >;
 
 /**
- * The lost/damaged card flow opens the private personal details form to update the shipping address,
+ * Finds the screen that opened the private personal details form. The domain card detail page lives in its own RHP
+ * navigator, so when the form is the first screen of the settings stack, look at the previous RHP navigator instead.
+ */
+function getOpenerRoute(navigation: PrivatePersonalDetailsConfirmValidateCodePageProps['navigation']) {
+    const settingsNavigatorState: PlatformStackNavigationState<SettingsNavigatorParamList> = navigation.getState();
+    const privatePersonalDetailsIndex = settingsNavigatorState.routes.findLastIndex((route) => route.name === SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS);
+    if (privatePersonalDetailsIndex > 0) {
+        return settingsNavigatorState.routes.at(privatePersonalDetailsIndex - 1);
+    }
+    if (privatePersonalDetailsIndex < 0) {
+        return undefined;
+    }
+    const rightModalNavigatorState = navigation.getParent()?.getState();
+    if (!rightModalNavigatorState || rightModalNavigatorState.index < 1) {
+        return undefined;
+    }
+    return rightModalNavigatorState.routes.at(rightModalNavigatorState.index - 1)?.state?.routes.at(-1);
+}
+
+/**
+ * The card detail and lost/damaged card flows open the private personal details form to update the shipping address,
  * so return there after a successful save instead of to the Profile page.
  */
-function getBackRouteAfterSave(settingsNavigatorState: PlatformStackNavigationState<SettingsNavigatorParamList>): Route {
-    const privatePersonalDetailsIndex = settingsNavigatorState.routes.findLastIndex((route) => route.name === SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS);
-    const openerRoute = privatePersonalDetailsIndex > 0 ? settingsNavigatorState.routes.at(privatePersonalDetailsIndex - 1) : undefined;
+function getBackRouteAfterSave(navigation: PrivatePersonalDetailsConfirmValidateCodePageProps['navigation']): Route {
+    const openerRoute = getOpenerRoute(navigation);
     const openerParams = openerRoute?.params;
-    if (openerRoute?.name !== SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED || !openerParams || !('cardID' in openerParams) || typeof openerParams.cardID !== 'string') {
+    if (!openerParams || !('cardID' in openerParams) || typeof openerParams.cardID !== 'string') {
         return ROUTES.SETTINGS_PROFILE.route;
     }
-    const isFromDomainCardDetail = 'isFromDomainCardDetail' in openerParams && !!openerParams.isFromDomainCardDetail;
-    return ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(openerParams.cardID, isFromDomainCardDetail);
+    switch (openerRoute.name) {
+        case SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED: {
+            const isFromDomainCardDetail = 'isFromDomainCardDetail' in openerParams && !!openerParams.isFromDomainCardDetail;
+            return ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(openerParams.cardID, isFromDomainCardDetail);
+        }
+        case SCREENS.SETTINGS.WALLET.DOMAIN_CARD:
+            return ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(openerParams.cardID);
+        case SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL:
+            return ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(openerParams.cardID);
+        default:
+            return ROUTES.SETTINGS_PROFILE.route;
+    }
 }
 
 function PrivatePersonalDetailsConfirmValidateCodePage({navigation}: PrivatePersonalDetailsConfirmValidateCodePageProps) {
@@ -77,7 +106,7 @@ function PrivatePersonalDetailsConfirmValidateCodePage({navigation}: PrivatePers
         if (wasLoading.current && !hasErrors) {
             wasLoading.current = false;
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.goBack(getBackRouteAfterSave(navigation.getState()));
+            Navigation.goBack(getBackRouteAfterSave(navigation));
         }
         wasLoading.current = false;
     }, [privatePersonalDetails?.isLoading, hasErrors, navigation]);

@@ -191,7 +191,6 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE: 'Settings_Wallet_ReportVirtualCardFraud_ConfirmValidateCode',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
-            CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
             UNSHARE_BANK_ACCOUNT: 'Settings_Wallet_Unshare_Bank_Account',
             ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: 'Settings_Wallet_Enable_Global_Reimbursements_Business',
             ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements_Agreements',
@@ -439,7 +438,6 @@ const SCREENS = {
     DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
         DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud',
-        DOMAIN_CARD_UPDATE_ADDRESS: 'Domain_Card_Update_Address',
         DOMAIN_CARD_CONFIRM_VALIDATE_CODE: 'Domain_Card_Confirm_Validate_Code',
     },
 
