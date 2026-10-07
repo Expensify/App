@@ -650,18 +650,19 @@ describe('actions/IOU/Hold', () => {
                 })
                 .then(() => {
                     // When an expense is unhold
-                    unholdRequest(
-                        transaction.transactionID,
-                        transactionThread.reportID,
+                    unholdRequest({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        reportID: transactionThread.reportID,
                         policy,
-                        false,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
-                        false,
-                        undefined,
-                        undefined,
-                    );
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -745,39 +746,32 @@ describe('actions/IOU/Hold', () => {
                     });
                     return waitForBatchedUpdates();
                 })
-                .then(() => {
+                .then(async () => {
                     mockFetch.fail();
                     mockFetch.resume();
-                    unholdRequest(
-                        transaction.transactionID,
-                        transactionThread.reportID,
+                    const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                    unholdRequest({
+                        transactionID: transaction.transactionID,
+                        transaction: updatedTransaction,
+                        reportID: transactionThread.reportID,
                         policy,
-                        false,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
-                        false,
-                        undefined,
-                        undefined,
-                    );
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
-                .then(() => {
-                    return new Promise<void>((resolve) => {
-                        const connection = Onyx.connect({
-                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                            callback: (updatedTransaction) => {
-                                Onyx.disconnect(connection);
-                                expect(updatedTransaction?.pendingAction).toBeFalsy();
-                                expect(updatedTransaction?.comment?.hold).toBeTruthy();
-                                expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
-                                    Object.values(getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage') ?? {}),
-                                );
-
-                                resolve();
-                            },
-                        });
-                    });
+                .then(async () => {
+                    const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                    expect(updatedTransaction?.pendingAction).toBeFalsy();
+                    expect(updatedTransaction?.comment?.hold).toBeTruthy();
+                    expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
+                        Object.values(getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage') ?? {}),
+                    );
                 });
         });
     });
