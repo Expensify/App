@@ -1,14 +1,13 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -17,14 +16,13 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useRef} from 'react';
 
 import type {ExpenseFieldDropdownHandle} from './ExpenseFieldDropdown';
 
@@ -33,8 +31,6 @@ import ExpenseFieldDropdown from './ExpenseFieldDropdown';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {categoryStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
-
-const hasEnabledCategoriesSelector = (policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>) => hasEnabledOptions(Object.values(policyCategories ?? {}));
 
 type CategoryFieldProps = {
     isCategoryRequired: boolean;
@@ -71,12 +67,13 @@ function CategoryField({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
-    const isFocused = useIsFocused();
     const dropdownRef = useRef<ExpenseFieldDropdownHandle>(null);
-    const isAwaitingUpgradeRef = useRef(false);
+    // Set when the row sends the user to pick or create a workspace, so the list opens once they are back.
+    const isAwaitingWorkspaceRef = useRef(false);
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
-    const [hasEnabledCategories = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policy?.id)}`, {selector: hasEnabledCategoriesSelector});
+    const policyCategories = usePolicyCategoriesForConfirmation(policy?.id);
+    const hasEnabledCategories = hasEnabledOptions(Object.values(policyCategories ?? {}));
 
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';
@@ -103,31 +100,47 @@ function CategoryField({
 
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
     const canUseAnchoredFieldDropdowns = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS);
+    const isCreatingExpense = action === CONST.IOU.ACTION.CREATE;
+    // While creating, the list loads the categories itself and shows its own empty state, so it never needs the full page.
+    const canShowCategories = isCreatingExpense || hasEnabledCategories;
     const shouldOpenInDropdown =
-        canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && hasEnabledCategories && canSaveFromThisForm;
-    const canOpenInDropdownAfterUpgrade = canUseAnchoredFieldDropdowns && shouldUseDropdownRows && canSaveFromThisForm;
+        canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && canShowCategories && canSaveFromThisForm;
+    const canOpenInDropdownAfterWorkspaceStep = canUseAnchoredFieldDropdowns && shouldUseDropdownRows && isCreatingExpense;
 
-    useEffect(() => {
-        if (!isFocused || !isAwaitingUpgradeRef.current) {
-            return;
-        }
-        isAwaitingUpgradeRef.current = false;
-
-        if (shouldNavigateToUpgradePath) {
+    // The row sent the user to create or pick a workspace, and the upgrade step was told to only go back (`shouldReturnToConfirmation`).
+    // Once the form is focused again with a workspace, wait for the RHP to finish closing, then open the list in place.
+    useFocusEffect(() => {
+        if (!isAwaitingWorkspaceRef.current) {
             return;
         }
 
-        const handle = TransitionTracker.runAfterTransitions({callback: () => dropdownRef.current?.open(), waitForUpcomingTransition: 'navigation'});
+        // The user backed out without a workspace, so there is still nothing to list.
+        if (shouldNavigateToUpgradePath || shouldSelectPolicy) {
+            isAwaitingWorkspaceRef.current = false;
+            return;
+        }
+
+        if (!shouldOpenInDropdown) {
+            return;
+        }
+
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                isAwaitingWorkspaceRef.current = false;
+                dropdownRef.current?.open();
+            },
+            waitForUpcomingTransition: 'navigation',
+        });
         return () => handle.cancel();
-    }, [isFocused, shouldNavigateToUpgradePath]);
+    });
 
     const openCategoryPage = () => {
         if (!transactionID) {
             return;
         }
 
+        isAwaitingWorkspaceRef.current = (shouldNavigateToUpgradePath || (!policy && shouldSelectPolicy)) && canOpenInDropdownAfterWorkspaceStep;
         if (shouldNavigateToUpgradePath) {
-            isAwaitingUpgradeRef.current = canOpenInDropdownAfterUpgrade;
             Navigation.navigate(
                 createDynamicRoute(
                     DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
@@ -145,24 +158,16 @@ function CategoryField({
                             }),
                         ),
                         upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        shouldReturnToConfirmation: canOpenInDropdownAfterUpgrade,
+                        shouldReturnToConfirmation: canOpenInDropdownAfterWorkspaceStep,
                     }),
                 ),
             );
         } else if (!policy && shouldSelectPolicy) {
-            Navigation.navigate(
-                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                            action,
-                            iouType,
-                            transactionID,
-                            reportID,
-                            reportActionID,
-                        }),
-                    ),
-                ),
-            );
+            // Without `navigateTo`, the page goes back to this form once a workspace is picked, and the list opens here.
+            const categoryStepRoute = canOpenInDropdownAfterWorkspaceStep
+                ? undefined
+                : createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID}));
+            Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryStepRoute));
         } else {
             Navigation.navigate(
                 createDynamicRoute(

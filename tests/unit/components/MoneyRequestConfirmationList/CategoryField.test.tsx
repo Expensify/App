@@ -2,12 +2,15 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react-native'
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import CategoryField from '@components/MoneyRequestConfirmationList/sections/CategoryField';
+import type {ExpenseFieldDropdownHandle} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 
 import Navigation from '@libs/Navigation/Navigation';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import React from 'react';
@@ -29,29 +32,41 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
-jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => true}));
+// Only the anchored dropdowns beta, so the tests that render the plain menu row keep every other beta off.
+jest.mock('@hooks/usePermissions', () => () => ({
+    isBetaEnabled: (beta: string) => beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_FIELD_DROPDOWNS,
+}));
 
 let mockIsFocused = true;
-jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
-    useIsFocused: () => mockIsFocused,
-}));
+// Mirrors `useFocusEffect`: runs the effect while the screen is focused, and again whenever the effect changes.
+jest.mock('@react-navigation/native', () => {
+    const {useEffect} = jest.requireActual<typeof React>('react');
+    return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+        useFocusEffect: (effect: () => void | (() => void)) => {
+            const isFocused = mockIsFocused;
+            useEffect(() => (isFocused ? effect() : undefined), [effect, isFocused]);
+        },
+    };
+});
 
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 // Run the post-transition work right away, since no screen actually closes in a unit test.
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
-    runAfterTransitions: ({callback}: {callback: () => void}) => {
+    runAfterTransitions: ({callback}: {callback: () => void}): CancelHandle => {
         callback();
         return {cancel: () => {}};
     },
 }));
 
 const mockOpenDropdown = jest.fn();
+let mockShouldOpenInDropdown: boolean | undefined;
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
     const {useImperativeHandle} = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; role?: string}>>>('react-native');
-    return ({name, onPress, ref}: {name: string; onPress: () => void; ref?: React.Ref<{open: () => void}>}) => {
+    return ({name, onPress, shouldOpenInDropdown, ref}: {name: string; onPress: () => void; shouldOpenInDropdown: boolean; ref?: React.Ref<ExpenseFieldDropdownHandle>}) => {
+        mockShouldOpenInDropdown = shouldOpenInDropdown;
         useImperativeHandle(ref, () => ({open: mockOpenDropdown}));
         return (
             <Pressable
@@ -251,6 +266,110 @@ describe('CategoryField', () => {
 
             // Then nothing opens, because there is still no workspace to pick a category from
             expect(mockOpenDropdown).not.toHaveBeenCalled();
+        });
+    });
+
+    it('opens the list in place for a draft workspace, whose categories only exist as drafts', async () => {
+        // Given an expense on the draft workspace "Submit to my employer" creates, which stores its categories only as drafts
+        await givenManualExpense();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${enabledPolicy.id}`, {Travel: {name: 'Travel', enabled: true}});
+        await waitForBatchedUpdates();
+
+        // When the confirmation form renders the category row
+        render(
+            <ConfirmationFieldsProvider
+                transactionID={TRANSACTION_ID}
+                reportID={REPORT_ID}
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
+                    <CategoryField
+                        isCategoryRequired={false}
+                        didConfirm={false}
+                        isReadOnly={false}
+                        transactionID={TRANSACTION_ID}
+                        action={CONST.IOU.ACTION.CREATE}
+                        iouType={CONST.IOU.TYPE.SUBMIT}
+                        reportID={REPORT_ID}
+                        reportActionID={undefined}
+                        policy={enabledPolicy}
+                        formError=""
+                        shouldNavigateToUpgradePath={false}
+                        shouldSelectPolicy={false}
+                    />
+                </ExpenseFormLayoutContext.Provider>
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the row opens its list in place, because the draft categories count as categories to pick from
+        await waitFor(() => {
+            expect(mockShouldOpenInDropdown).toBe(true);
+        });
+    });
+
+    describe('while creating an expense', () => {
+        const renderCreateCategoryField = ({policy, shouldSelectPolicy}: {policy: Policy | undefined; shouldSelectPolicy: boolean}) => (
+            <ConfirmationFieldsProvider
+                transactionID={TRANSACTION_ID}
+                reportID={REPORT_ID}
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
+                    <CategoryField
+                        isCategoryRequired={false}
+                        didConfirm={false}
+                        isReadOnly={false}
+                        transactionID={TRANSACTION_ID}
+                        action={CONST.IOU.ACTION.CREATE}
+                        iouType={CONST.IOU.TYPE.SUBMIT}
+                        reportID={REPORT_ID}
+                        reportActionID={undefined}
+                        policy={policy}
+                        formError=""
+                        shouldNavigateToUpgradePath={false}
+                        shouldSelectPolicy={shouldSelectPolicy}
+                    />
+                </ExpenseFormLayoutContext.Provider>
+            </ConfirmationFieldsProvider>
+        );
+
+        beforeEach(() => {
+            mockIsFocused = true;
+            jest.clearAllMocks();
+        });
+
+        it('opens the list in place even before the workspace categories are loaded', async () => {
+            // Given a workspace whose categories have not reached Onyx yet, which the list loads on its own
+            await givenManualExpense();
+
+            // When the confirmation form renders the category row
+            render(renderCreateCategoryField({policy: enabledPolicy, shouldSelectPolicy: false}));
+
+            // Then the row still opens its list in place rather than the full-page Category step
+            await waitFor(() => {
+                expect(mockShouldOpenInDropdown).toBe(true);
+            });
+        });
+
+        it('opens the list in place once the user is back from picking a default workspace', async () => {
+            // Given a member of several workspaces who has not picked a default one yet
+            await givenManualExpense();
+            const {rerender} = render(renderCreateCategoryField({policy: undefined, shouldSelectPolicy: true}));
+
+            // When the user presses the row, picks a workspace, and comes back to the form
+            fireEvent.press(screen.getByText('common.category'));
+            mockIsFocused = false;
+            rerender(renderCreateCategoryField({policy: enabledPolicy, shouldSelectPolicy: false}));
+            mockIsFocused = true;
+            rerender(renderCreateCategoryField({policy: enabledPolicy, shouldSelectPolicy: false}));
+
+            // Then the workspace picker is opened without a destination, so it returns here, and the list opens in place
+            expect(jest.mocked(Navigation.navigate)).toHaveBeenCalledWith(ROUTES.SET_DEFAULT_WORKSPACE.getRoute());
+            await waitFor(() => {
+                expect(mockOpenDropdown).toHaveBeenCalledTimes(1);
+            });
         });
     });
 
