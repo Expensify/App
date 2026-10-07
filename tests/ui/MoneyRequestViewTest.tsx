@@ -1126,4 +1126,54 @@ describe('MoneyRequestView edit fields', () => {
             expect(screen.queryByLabelText(fieldLabel(commuterDistanceDescription))).not.toBeOnTheScreen();
         });
     });
+
+    describe('reservation nights hint under the Category field', () => {
+        // `translate` is mocked to return the key, so the hint renders as its translation key
+        const reservationNightsHint = 'common.reservationNightsWithNightlyRate';
+
+        const renderWithReservationDates = async (hotelReservationStartDate: string, hotelReservationEndDate: string) => {
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: expenseReportID,
+                parentReportActionID,
+            };
+
+            await setupTestData();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                    Travel: {name: 'Travel', enabled: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    category: 'Travel',
+                    receipt: {hotelReservationStartDate, hotelReservationEndDate},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderMoneyRequestView(threadReport, {areCategoriesEnabled: true});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
+            });
+        };
+
+        it('shows the nights and nightly rate for a multi-night reservation', async () => {
+            // Given an expense whose SmartScanned reservation spans three nights
+            // When the expense is rendered
+            await renderWithReservationDates('2026-10-01', '2026-10-04');
+
+            // Then the hint explains the per-night evaluation used by the category limit check
+            expect(screen.getByText(reservationNightsHint)).toBeOnTheScreen();
+        });
+
+        it('does not show the hint for a single-night reservation', async () => {
+            // Given an expense whose reservation is a single night, which the design says should show nothing
+            // When the expense is rendered
+            await renderWithReservationDates('2026-10-01', '2026-10-02');
+
+            // Then no nightly hint is shown
+            expect(screen.queryByText(reservationNightsHint)).not.toBeOnTheScreen();
+        });
+    });
 });
