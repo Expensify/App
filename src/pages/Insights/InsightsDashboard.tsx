@@ -18,11 +18,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
+import {clearLastVisitedMoreDestination, setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
+import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -56,9 +59,12 @@ type InsightsDashboardContentProps = {
 
     /** Changes the time bucket the headline chart aggregates into */
     onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
+
+    /** The filter pills. They scroll with the charts rather than staying pinned above them. */
+    controls: React.ReactNode;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange, controls}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -84,24 +90,30 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             },
         } as const;
         return (
-            <FullPageErrorView
-                shouldShow
-                onButtonPress={onRetry}
-                {...failureViewByState[state]}
-            />
+            <>
+                {controls}
+                <FullPageErrorView
+                    shouldShow
+                    onButtonPress={onRetry}
+                    {...failureViewByState[state]}
+                />
+            </>
         );
     }
 
     if (state === INSIGHTS_DASHBOARD_STATE.OFFLINE) {
         return (
-            <BlockingView
-                icon={icons.OfflineCloud}
-                iconColor={theme.offline}
-                title={translate('common.youAppearToBeOffline')}
-                subtitle={translate('common.thisFeatureRequiresInternet')}
-                addBottomSafeAreaPadding
-                addOfflineIndicatorBottomSafeAreaPadding
-            />
+            <>
+                {controls}
+                <BlockingView
+                    icon={icons.OfflineCloud}
+                    iconColor={theme.offline}
+                    title={translate('common.youAppearToBeOffline')}
+                    subtitle={translate('common.thisFeatureRequiresInternet')}
+                    addBottomSafeAreaPadding
+                    addOfflineIndicatorBottomSafeAreaPadding
+                />
+            </>
         );
     }
 
@@ -111,6 +123,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
                 addBottomSafeAreaPadding
             >
+                {/* A user with no expenses has nothing to filter, so the pills stay out of their way. */}
+                {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && controls}
                 {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
             </ScrollView>
         );
@@ -122,37 +136,42 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     return (
         <ScrollView
             style={styles.insightsDashboardScrollView}
-            contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
+            contentContainerStyle={[styles.flexGrow1, styles.pb5]}
             addBottomSafeAreaPadding
         >
-            <View style={styles.insightsDashboardLayout}>
-                <InsightsChartWidget
-                    chart={headlineChart.chart}
-                    queryJSON={headlineChart.queryJSON}
-                    snapshot={headlineChart.snapshot}
-                    filters={filters}
-                    onRetry={onRetry}
-                    onGroupByChange={onGroupByChange}
-                />
-                <View style={styles.insightsChartGrid}>
-                    {columns.map((columnCharts, columnIndex) => (
-                        <View
-                            // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                            key={columnIndex}
-                            style={[styles.flex1, styles.insightsChartColumn]}
-                        >
-                            {columnCharts.map(({chart, queryJSON, snapshot}) => (
-                                <InsightsChartWidget
-                                    key={chart.graphKey}
-                                    chart={chart}
-                                    queryJSON={queryJSON}
-                                    snapshot={snapshot}
-                                    filters={filters}
-                                    onRetry={onRetry}
-                                />
-                            ))}
-                        </View>
-                    ))}
+            {controls}
+            {/* The gutter sits outside the cards' own width limit, so the limit measures the cards rather than the
+                page, and so the filter pills above them can run edge to edge. */}
+            <View style={shouldUseNarrowLayout ? styles.ph3 : styles.ph5}>
+                <View style={[styles.insightsDashboardLayout, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}>
+                    <InsightsChartWidget
+                        chart={headlineChart.chart}
+                        queryJSON={headlineChart.queryJSON}
+                        snapshot={headlineChart.snapshot}
+                        filters={filters}
+                        onRetry={onRetry}
+                        onGroupByChange={onGroupByChange}
+                    />
+                    <View style={[styles.insightsChartGrid, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}>
+                        {columns.map((columnCharts, columnIndex) => (
+                            <View
+                                // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                                key={columnIndex}
+                                style={[styles.flex1, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}
+                            >
+                                {columnCharts.map(({chart, queryJSON, snapshot}) => (
+                                    <InsightsChartWidget
+                                        key={chart.graphKey}
+                                        chart={chart}
+                                        queryJSON={queryJSON}
+                                        snapshot={snapshot}
+                                        filters={filters}
+                                        onRetry={onRetry}
+                                    />
+                                ))}
+                            </View>
+                        ))}
+                    </View>
                 </View>
             </View>
         </ScrollView>
@@ -162,6 +181,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -190,6 +210,11 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         onRequestConditionsChanged();
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
+    // Remember the dashboard so the More menu can return the user to it.
+    useEffect(() => {
+        setLastVisitedInsightsDashboard(dashboardID);
+    }, [dashboardID]);
+
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
@@ -214,16 +239,25 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         >
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
+                // Insights has no tab of its own on narrow layouts - it is reached through More.
+                onBackButtonPress={
+                    shouldUseNarrowLayout
+                        ? () => {
+                              clearLastVisitedMoreDestination();
+                              Navigation.navigate(ROUTES.MORE);
+                          }
+                        : undefined
+                }
                 shouldDisplayHelpButton
             />
-            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
-                <InsightsPageControls
-                    filters={filters}
-                    defaultFilters={defaultFilters}
-                    onChange={setFilters}
-                />
-            )}
             <InsightsDashboardContent
+                controls={
+                    <InsightsPageControls
+                        filters={filters}
+                        defaultFilters={defaultFilters}
+                        onChange={setFilters}
+                    />
+                }
                 state={state}
                 headlineChart={headlineChart}
                 supportingCharts={supportingCharts}

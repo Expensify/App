@@ -17,6 +17,7 @@ const TOGGLE_BUTTON_COLLAPSED_TRANSLATE_X = -10;
 
 const layoutTransitionStyle: ViewStyle =
     Platform.OS === 'web' ? {transition: `width ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease, margin-left ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
+const heightTransitionStyle: ViewStyle = Platform.OS === 'web' ? {transition: `height ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
 const fadeTransitionStyle: ViewStyle =
     Platform.OS === 'web' ? {transition: `opacity ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease, transform ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
 
@@ -43,6 +44,14 @@ function getPeekSnapshot() {
 
 function getSearchSidebarWidth(progress: number) {
     return variables.searchSidebarExpandedWidth + (variables.searchSidebarCollapsedWidth - variables.searchSidebarExpandedWidth) * progress;
+}
+
+/**
+ * The flat navigation bar shares this collapsed state, because it replaced the Spend sidebar that owned it.
+ * Keeping one store means one peek state and one persisted flag, rather than two that can disagree.
+ */
+function getFlatNavigationBarWidth(progress: number) {
+    return variables.flatNavigationBarWidth + (variables.flatNavigationBarCollapsedWidth - variables.flatNavigationBarWidth) * progress;
 }
 
 function setSearchSidebarCollapsed(collapsed: boolean) {
@@ -129,8 +138,47 @@ function useSearchSidebarToggleButtonStyle() {
     );
 }
 
+// The account avatar's box is wider than a row's icon, so collapsed it would sit right of the rail's centre.
+// Sliding it by half that difference lines it up, and the transform animates where a padding change would jump.
+const ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X = -(variables.avatarSizeSmall - variables.iconSizeNormal) / 2;
+
+/** The shadow only reads while a collapsed bar is peeking over the content; expanded, it has nothing to sit above. */
+function useFlatNavigationBarPeekShadowStyle() {
+    const {isPeeking: peeking} = useSearchSidebarCollapse();
+
+    return useMemo<ViewStyle>(() => ({...fadeTransitionStyle, opacity: peeking ? 1 : 0}), [peeking]);
+}
+
+function useFlatNavigationBarAccountAvatarStyle() {
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
+
+    return useMemo<ViewStyle>(() => ({...fadeTransitionStyle, transform: [{translateX: isVisuallyCollapsed ? ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X : 0}]}), [isVisuallyCollapsed]);
+}
+
+/** Layout space the bar reserves. Peeking overlays the content rather than pushing it, so this ignores the peek. */
+function useFlatNavigationBarLayoutWidthStyle() {
+    const {isCollapsed: collapsed} = useSearchSidebarCollapse();
+
+    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, height: '100%', width: getFlatNavigationBarWidth(collapsed ? 1 : 0)}), [collapsed]);
+}
+
+/** What the bar actually draws, which widens back out while the pointer peeks at it. */
+function useFlatNavigationBarVisualWidthStyle() {
+    const {isCollapsed: collapsed, isPeeking: peeking} = useSearchSidebarCollapse();
+
+    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, width: getFlatNavigationBarWidth(collapsed && !peeking ? 1 : 0)}), [collapsed, peeking]);
+}
+
 export {
     SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
+    fadeTransitionStyle,
+    getFlatNavigationBarWidth,
+    heightTransitionStyle,
+    layoutTransitionStyle,
+    useFlatNavigationBarAccountAvatarStyle,
+    useFlatNavigationBarLayoutWidthStyle,
+    useFlatNavigationBarPeekShadowStyle,
+    useFlatNavigationBarVisualWidthStyle,
     useSearchSidebarCollapse,
     useSearchSidebarLayoutWidthStyle,
     useSearchSidebarVisualWidthStyle,

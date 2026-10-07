@@ -146,6 +146,18 @@ type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+
+/**
+ * Horizontal padding inside a navigation row, shared by the global navigation bar and the Account, Workspace and
+ * Domain editor menus so their labels line up. Also used to indent the global bar's nested rows to their parent's label.
+ */
+const navigationRowPaddingHorizontal = 12;
+
+/** How far a sub-row's left rule sits in from the row's own left edge. */
+const flatNavigationBarSubItemRuleInset = 20;
+
+/** Width of a row's hover control, counting the fade that ramps up to the left of the icon. */
+const flatNavigationBarRowActionWidth = 40;
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
@@ -646,6 +658,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...fontFamilyScale.strong,
         },
 
+        textRegular: {
+            ...fontFamilyScale.regular,
+        },
+
         fontWeightNormal: {
             fontWeight: FontUtils.fontWeight.normal,
         },
@@ -657,6 +673,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         textHeadlineH2: {
             ...textVariants.h2,
+            color: theme.heading,
+        },
+
+        // A header title too long to sit on one line drops to the page-header size and wraps, rather than truncating.
+        headerTitleWrapped: {
+            ...textVariants.h2,
+            fontSize: fontScale.text,
+            lineHeight: lineHeightScale.text,
             color: theme.heading,
         },
 
@@ -751,7 +775,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
         },
@@ -759,9 +782,16 @@ const staticStyles = (theme: ThemeColors) =>
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
+            borderTopWidth: 0.5,
+            borderTopColor: theme.hoverComponentBG,
             backgroundColor: theme.appBG,
+        },
+
+        // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
+        // spot, so applying it to all of them would stack one shadow per bar. The token's upward offset plus its
+        // negative spread keep the shadow clear of the bar's bottom edge, and so out of the safe area below it.
+        navigationTabBarTopShadow: {
+            boxShadow: theme.shadowTop,
         },
 
         navigationTabBarItem: {
@@ -809,6 +839,205 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        flatNavigationBarContainer: {
+            height: '100%',
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
+        },
+
+        // The wordmark's glyphs sit high in its viewBox, so a couple of pixels down optically centers it against the create button.
+        // Nudges the wordmark down to sit optically centred against the collapse icon, without the offset
+        // adding to the header's height.
+        // Absolute so the wordmark can stay mounted and fade, without pushing the toggle off the rail's centre.
+        flatNavigationBarLogoContainer: {
+            position: 'absolute',
+            left: 20,
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+        },
+
+        flatNavigationBarLogo: {
+            marginTop: 2,
+            marginBottom: -2,
+        },
+
+        // Drawn as its own layer so the shadow can fade on its own. The box matches the bar, and the view is
+        // otherwise transparent, so only the shadow around it shows.
+        flatNavigationBarPeekShadow: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            boxShadow: theme.shadow,
+        },
+
+        flatNavigationBarHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            overflow: 'hidden',
+            height: variables.flatNavigationBarHeaderHeight,
+            marginBottom: variables.flatNavigationBarHeaderMarginBottom,
+            paddingLeft: 20,
+            paddingRight: variables.flatNavigationBarHeaderPaddingRight,
+        },
+
+        // Collapsed, the toggle is the header's only child: 20 + the 20px icon + 20 fills the 60px rail exactly.
+        flatNavigationBarHeaderCollapsed: {
+            paddingLeft: 20,
+            paddingRight: 20,
+        },
+
+        flatNavigationBarCollapseButton: {
+            width: variables.iconSizeNormal,
+            height: variables.iconSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // The create button sits in the list as its own row, lined up with the rows below it.
+        // Overrides the medium button's own 40px minimums, so the button is 32 tall and 32 square when icon-only.
+        flatNavigationBarCreateButton: {
+            height: variables.flatNavigationBarCreateButtonHeight,
+            minHeight: variables.flatNavigationBarCreateButtonHeight,
+            minWidth: variables.flatNavigationBarCreateButtonHeight,
+        },
+
+        flatNavigationBarCreateRow: {
+            marginHorizontal: variables.flatNavigationBarCreateRowMarginHorizontal,
+            marginBottom: 16,
+        },
+
+        flatNavigationBarItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: variables.flatNavigationBarItemHeight,
+            paddingHorizontal: navigationRowPaddingHorizontal,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+            // Labels stay mounted while they fade, so a collapsed row has to clip what no longer fits.
+            overflow: 'hidden',
+        },
+
+        /**
+         * Selected and hover backgrounds shared by every navigation row: the flat navigation bar, the Inbox LHN, and
+         * the Workspace, Domain and Account editor menus. hoverComponentBG and highlightBG are the product-300 and
+         * product-200 ramp steps in both themes.
+         */
+        navigationRowSelected: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        navigationRowHovered: {
+            backgroundColor: theme.highlightBG,
+        },
+
+        // A hovered row reads as active, so its label takes the standard text color instead of the supporting one.
+        navigationRowHoveredText: {
+            color: theme.text,
+        },
+
+        // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts
+        // at the same x as the labels of the rows above them.
+        flatNavigationBarSubItem: {
+            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeNormal,
+            borderRadius: 0,
+        },
+
+        // Drawn rather than bordered: a border would sit on the row's own edge, and the active marker needs to be
+        // inset from the row's top and bottom and to overlay the resting rule. Rows sit flush, so the resting
+        // segments join into one line down the group.
+        flatNavigationBarSubItemRule: {
+            position: 'absolute',
+            left: flatNavigationBarSubItemRuleInset,
+            top: 0,
+            bottom: 0,
+            width: 1,
+            backgroundColor: theme.border,
+        },
+
+        // The line stops short of the rows above and below the group, so it reads as belonging to the sub-rows alone.
+        flatNavigationBarSubItemRuleFirst: {
+            top: 8,
+        },
+
+        flatNavigationBarSubItemRuleLast: {
+            bottom: 8,
+        },
+
+        // A stub of line laid over the resting rule, centred on it so it reads as that line lighting up.
+        flatNavigationBarSubItemMarker: {
+            position: 'absolute',
+            left: variables.flatNavigationBarRowInset + flatNavigationBarSubItemRuleInset - 1,
+            width: 3,
+            height: variables.flatNavigationBarSubItemMarkerHeight,
+            borderRadius: 1.5,
+            backgroundColor: theme.success,
+        },
+
+        // Absolute so the label keeps its full width whether or not the control is showing, rather than
+        // reflowing the moment the row is hovered.
+        flatNavigationBarRowAction: {
+            position: 'absolute',
+            right: navigationRowPaddingHorizontal,
+            top: 0,
+            bottom: 0,
+            // Wider than the icon so the fade behind it has room to ramp up before the icon itself.
+            width: flatNavigationBarRowActionWidth,
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            ...(Platform.OS === 'web' && {transition: 'opacity 150ms ease, transform 150ms ease'}),
+        },
+
+        // Parked to the right of its resting place, so it slides in from the row's edge rather than appearing.
+        flatNavigationBarRowActionHidden: {
+            opacity: 0,
+            transform: [{translateX: 8}],
+        },
+
+        // Bold is reserved for the active row, so the rest fall back to the regular weight.
+        flatNavigationBarLabelRegular: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+        },
+
+        flatNavigationBarLabel: {
+            flex: 1,
+            marginLeft: 12,
+            fontSize: variables.fontSizeNormal,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+        },
+
+        flatNavigationBarDividerContainer: {
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+        },
+
+        flatNavigationBarDivider: {
+            height: 1,
+            backgroundColor: theme.border,
+        },
+
+        flatNavigationBarFooter: {
+            paddingBottom: 12,
+        },
+
+        // The account row is taller than a standard row so the 40px avatar keeps 8px of breathing room. The height is
+        // fixed so the row never resizes with its contents.
+        flatNavigationBarAccountItem: {
+            height: variables.flatNavigationBarAccountItemHeight,
+            paddingVertical: 8,
+        },
+
+        flatNavigationBarAccountAvatar: {
+            width: variables.avatarSizeSmall,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         button: {
@@ -2399,6 +2628,34 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 20,
         },
 
+        conciergeAskColumn: {
+            width: '100%',
+            maxWidth: variables.conciergeAskColumnMaxWidth,
+            alignSelf: 'center',
+        },
+
+        askConciergeEmptyStateContainer: {
+            alignItems: 'center',
+            gap: 12,
+            paddingHorizontal: 20,
+        },
+
+        askConciergeEmptyStateTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeH1,
+            textAlign: 'center',
+            color: theme.text,
+        },
+
+        askConciergeEmptyStateDescription: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            textAlign: 'center',
+            color: theme.textSupporting,
+        },
+
         chatItemDraft: {
             display: 'flex',
             flexDirection: 'row',
@@ -2783,13 +3040,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tableTopRadius: {
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCard,
+            borderTopRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBottomRadius: {
-            borderBottomLeftRadius: variables.componentBorderRadius,
-            borderBottomRightRadius: variables.componentBorderRadius,
+            borderBottomLeftRadius: variables.componentBorderRadiusCard,
+            borderBottomRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBorder: {
@@ -2892,6 +3149,17 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderBottom: {
             borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        // Table separators on mobile, where a full pixel reads too heavy against the compact rows.
+        borderBottomHairline: {
+            borderBottomWidth: 0.5,
+            borderColor: theme.border,
+        },
+
+        borderTopHairline: {
+            borderTopWidth: 0.5,
             borderColor: theme.border,
         },
 
@@ -4302,9 +4570,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: variables.sectionMargin,
         },
 
+        // Tucked into the card's top right corner, where the composer below overlaps its lower edge.
+        conciergePromptBoxWideIllustration: {
+            position: 'absolute',
+            top: -12,
+            right: 20,
+        },
+
         widgetContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             overflow: 'hidden',
         },
 
@@ -4424,13 +4699,6 @@ const staticStyles = (theme: ThemeColors) =>
         // Reserved so the centered home layout does not slide sideways when the scrollbar appears.
         homePageScrollView: {
             ...scrollbarGutterStable,
-        },
-
-        homePageContentContainer: {
-            flexGrow: 1,
-            paddingTop: 0,
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -5093,6 +5361,17 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
+        // Mirrors rulesNewMenuItem, the workspace "New rule" card, with this page's own corner radius.
+        moreMenuCard: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 16,
+            alignItems: 'center',
+            marginBottom: 8,
+            minHeight: variables.rulesNewMenuItemMinHeight,
+        },
+
         rulesNewMenuItem: {
             backgroundColor: theme.cardBG,
             borderRadius: 8,
@@ -5724,7 +6003,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarContainer: {
-            marginTop: 12,
+            marginTop: 4,
             marginBottom: 16,
             paddingHorizontal: 20,
             gap: 8,
@@ -6681,6 +6960,15 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             zIndex: 10,
         },
+
+        // The flat navigation bar's rows are compact, so the dot's colored core drops from 8px to 6px. The stroke
+        // keeps its width, and the dot shrinks toward the icon's top-right corner rather than its own center.
+        flatNavigationBarStatusIndicator: {
+            right: -2,
+            top: -3,
+            height: 10,
+            width: 10,
+        },
         modalStackNavigatorContainer: {
             height: '100%',
             right: 0,
@@ -7366,14 +7654,14 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
-        searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+        searchListContentContainerStyles: (hasFilterBars: boolean, isTabRowHidden = false) => ({
+            paddingTop: (hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop) - (isTabRowHidden ? variables.searchHiddenTabRowOffset : 0),
         }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
-            paddingLeft: 16,
-            paddingRight: 16,
+            paddingLeft: navigationRowPaddingHorizontal,
+            paddingRight: navigationRowPaddingHorizontal,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
@@ -7620,10 +7908,24 @@ const plainStyles = (theme: ThemeColors) =>
             height: variables.componentSizeNormal,
         },
 
+        // Cards sit as close together as the page's own gutter on narrow layouts, the way the home page's do.
+        insightsCardGapStyle: (shouldUseNarrowLayout: boolean) =>
+            ({
+                gap: shouldUseNarrowLayout ? variables.insightsCardGapNarrow : variables.insightsCardGap,
+            }) satisfies ViewStyle,
+
+        homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexGrow: 1,
+                paddingTop: 4,
+                paddingHorizontal: shouldUseNarrowLayout ? 12 : 20,
+                paddingBottom: 20,
+            }) satisfies ViewStyle,
+
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: 20,
+                gap: shouldUseNarrowLayout ? 12 : 20,
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',
@@ -7643,7 +7945,6 @@ const plainStyles = (theme: ThemeColors) =>
             width: '100%',
             maxWidth: variables.centeredContentMaxWidth,
             alignSelf: 'center',
-            gap: variables.insightsCardGap,
         } satisfies ViewStyle,
 
         insightsDashboardScrollView: {
@@ -7658,11 +7959,6 @@ const plainStyles = (theme: ThemeColors) =>
         insightsChartGrid: {
             flexDirection: 'row',
             alignItems: 'flex-start',
-            gap: variables.insightsCardGap,
-        } satisfies ViewStyle,
-
-        insightsChartColumn: {
-            gap: variables.insightsCardGap,
         } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {

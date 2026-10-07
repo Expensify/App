@@ -203,6 +203,10 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether item is focused or active */
         focused?: boolean;
 
+        /** Styles the row as navigation: the shared selected/hover backgrounds, a supporting-colored label when it isn't
+         * the active route, and the smaller navigation icon size. */
+        shouldUseNavigationRowStyles?: boolean;
+
         /** Should we disable this menu item? */
         disabled?: boolean;
 
@@ -482,6 +486,7 @@ function MenuItem({
     success = false,
     iconReportID,
     focused = false,
+    shouldUseNavigationRowStyles = false,
     disabled = false,
     title,
     accessibilityLabel,
@@ -602,6 +607,9 @@ function MenuItem({
         contextMenuHint,
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
+    // Navigation rows carry the same icon size as the rows in the navigation bar beside them, on every layout.
+    const resolvedIconWidth = iconWidth ?? (shouldUseNavigationRowStyles ? variables.iconSizeNormal : undefined);
+    const resolvedIconHeight = iconHeight ?? (shouldUseNavigationRowStyles ? variables.iconSizeNormal : undefined);
 
     const hasIcon = (!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon);
     // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
@@ -611,8 +619,10 @@ function MenuItem({
         [
             styles.flexShrink1,
             styles.popoverMenuText,
+            shouldUseNavigationRowStyles && !focused ? styles.textSupporting : {},
             iconLeftPadding,
             shouldShowBasicTitle ? {} : styles.textStrong,
+            shouldUseNavigationRowStyles && !focused ? styles.textRegular : {},
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
@@ -831,6 +841,9 @@ function MenuItem({
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        // Listed last so they win over the generic button backgrounds above.
+                                        shouldUseNavigationRowStyles && focused && styles.navigationRowSelected,
+                                        shouldUseNavigationRowStyles && isHovered && interactive && !focused && !pressed && styles.navigationRowHovered,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
@@ -908,8 +921,8 @@ function MenuItem({
                                                                         hovered={isHovered}
                                                                         pressed={pressed}
                                                                         src={icon}
-                                                                        width={iconWidth}
-                                                                        height={iconHeight}
+                                                                        width={resolvedIconWidth}
+                                                                        height={resolvedIconHeight}
                                                                         fill={
                                                                             // eslint-disable-next-line no-nested-ternary
                                                                             displayInDefaultIconColor
@@ -959,8 +972,8 @@ function MenuItem({
                                                             <Icon
                                                                 contentFit={contentFit}
                                                                 src={secondaryIcon}
-                                                                width={iconWidth}
-                                                                height={iconHeight}
+                                                                width={resolvedIconWidth}
+                                                                height={resolvedIconHeight}
                                                                 fill={
                                                                     secondaryIconFill ??
                                                                     StyleUtils.getIconFillColor({
@@ -1005,7 +1018,10 @@ function MenuItem({
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
-                                                                        style={combinedTitleTextStyle}
+                                                                        style={[
+                                                                            combinedTitleTextStyle,
+                                                                            shouldUseNavigationRowStyles && isHovered && interactive && !focused && styles.navigationRowHoveredText,
+                                                                        ]}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
                                                                         accessibilityRole={titleAccessibilityRole}
@@ -1113,6 +1129,8 @@ function MenuItem({
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
+                                                            width={variables.iconSizeSmall}
+                                                            height={variables.iconSizeSmall}
                                                         />
                                                     </View>
                                                 )}

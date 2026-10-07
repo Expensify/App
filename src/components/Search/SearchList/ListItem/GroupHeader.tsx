@@ -393,7 +393,7 @@ function GroupHeader({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 wrapperStyle={[
-                    styles.mh5,
+                    isLargeScreenWidth ? styles.mh5 : styles.mh3,
                     StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
                     styles.userSelectNone,
                     isLargeScreenWidth
@@ -401,7 +401,7 @@ function GroupHeader({
                         : [
                               isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
                               isLastItemCollapsed && [styles.tableBottomRadius, styles.overflowHidden],
-                              !isLastItemCollapsed && !isExpanded && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
+                              !isLastItemCollapsed && !isExpanded && StyleUtils.getSelectedBorderBottomStyle(isItemSelected, true),
                           ],
                 ]}
             >

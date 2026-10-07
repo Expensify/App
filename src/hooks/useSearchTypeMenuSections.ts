@@ -13,6 +13,7 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import useHasOthersExpenses from './useHasOthersExpenses';
 import useHasReportAwaitingApproval from './useHasReportAwaitingApproval';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
@@ -76,6 +77,8 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
     // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
     const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused);
+    // Splitting a group into "all" and "mine" only means something once somebody else's spend is in play.
+    const hasOthersExpenses = useHasOthersExpenses();
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -121,6 +124,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
                 draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
                 hasReportAwaitingApproval,
+                hasOthersExpenses,
                 policyCategories: allPolicyCategories,
             }),
         [
@@ -136,6 +140,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
             draftTransactionIDs,
             isTrackIntentUser,
             hasReportAwaitingApproval,
+            hasOthersExpenses,
             allPolicyCategories,
         ],
     );

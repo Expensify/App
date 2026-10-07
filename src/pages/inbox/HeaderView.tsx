@@ -23,9 +23,11 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useIsInAskConcierge from '@hooks/useIsInAskConcierge';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
@@ -100,6 +102,8 @@ import {isPast} from 'date-fns';
 import React, {useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 
+import {openConciergeHistory} from '@pages/AskConcierge/ConciergeHistoryStore';
+
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: () => void;
@@ -111,7 +115,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const parentReportAction = useParentReportAction(report);
 
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'History', 'Plus']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
@@ -149,6 +153,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
+    const isInAskConcierge = useIsInAskConcierge();
+    const {isBetaEnabled} = usePermissions();
+    const isAskConciergeEnabled = isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) && !isInSidePanel;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
@@ -177,7 +184,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // Use sorted display names for the title for group chats on native small screen widths
     const title = getReportName(reportHeaderData, derivedReportHeaderName);
-    const subtitle = getChatRoomSubtitle(reportHeaderData, reportHeaderDataPolicy, conciergeReportID, translate, rules, false, isReportHeaderDataArchived);
+    const chatRoomSubtitle = getChatRoomSubtitle(reportHeaderData, reportHeaderDataPolicy, conciergeReportID, translate, rules, false, isReportHeaderDataArchived);
+    const subtitle = isAskConciergeEnabled && isConciergeChat ? translate('common.concierge.subtitle') : chatRoomSubtitle;
     // This is used to get the status badge for invoice report subtitle.
     const statusTextForInvoiceReport = isParentInvoiceAndIsTransactionThread
         ? getReportStatusTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
@@ -291,6 +299,27 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         >
             <Button.Text>{translate('common.join')}</Button.Text>
         </Button>
+    );
+
+    // A narrow layout opens the Concierge chat on its own, with no list beside it, so the header opens the list
+    // over the chat rather than navigating away from it. Wide layouts reach the list from the navigation bar.
+    const shouldShowConciergeHistoryButton = isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) && isConciergeChat && shouldUseNarrowLayout && !isInSidePanel;
+
+    const conciergeHistoryButton = (
+        <Tooltip text={translate('common.concierge.viewChatHistory')}>
+            <PressableWithoutFeedback
+                onPress={openConciergeHistory}
+                style={[styles.touchableButtonImage]}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.concierge.viewChatHistory')}
+                sentryLabel="HeaderView-ConciergeHistory"
+            >
+                <Icon
+                    src={icons.History}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 
     const renderAdditionalText = () => {
@@ -474,6 +503,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    {shouldShowConciergeHistoryButton && conciergeHistoryButton}
                                     {shouldShowBookCall && !shouldStackBookCall && bookCallButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
@@ -503,7 +533,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     </Tooltip>
                                 )}
                                 {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!shouldMirrorSidePanelHeader && !isConciergeChat && <SidePanelButton />}
+                                {!shouldMirrorSidePanelHeader && !isConciergeChat && !isInAskConcierge && <SidePanelButton />}
                             </View>
                         </View>
                     )}

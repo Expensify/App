@@ -59,6 +59,7 @@ type ThemeColors = {
     overlay: Color;
     inverse: Color;
     shadow: Color;
+    shadowTop: Color;
     componentBG: Color;
     hoverComponentBG: Color;
     activeComponentBG: Color;

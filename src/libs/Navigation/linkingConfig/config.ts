@@ -2392,8 +2392,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.MORE]: {
+                    path: ROUTES.MORE,
+                },
                 [SCREENS.INSIGHTS]: {
                     path: ROUTES.INSIGHTS.route,
+                    exact: true,
+                },
+                [SCREENS.ASK_CONCIERGE]: {
+                    path: ROUTES.ASK_CONCIERGE,
                     exact: true,
                 },
                 [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {

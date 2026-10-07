@@ -4,6 +4,7 @@ import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBann
 import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
@@ -39,6 +40,7 @@ import {
     isArchivedNonExpenseReport,
     isArchivedReport,
     isCanceledTaskReport,
+    isChatThread,
     isExpenseReport,
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
@@ -67,6 +69,8 @@ import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 
+import AskConciergeWelcome from './AskConciergeWelcome';
+import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
@@ -138,6 +142,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const sessionStartTime = useConciergeSessionStartTime();
+    const {shouldShowWelcome: shouldShowConciergeWelcome, isHistoryExpanded} = useConciergeAskState(reportID);
 
     const didLayout = useRef(false);
 
@@ -456,10 +461,18 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     ];
 
     const listHeaderComponent = (
-        <ReportActionsListHeader
-            reportID={reportID}
-            isDraftPendingCompletion={isDraftPendingCompletion}
-        />
+        <>
+            <ConciergeChatHistoryToggle
+                reportID={reportID}
+                hasPreviousMessages={!!hasPreviousMessages}
+                shouldShowFullHistory={isHistoryExpanded}
+                onShowPreviousMessages={onShowPreviousMessages}
+            />
+            <ReportActionsListHeader
+                reportID={reportID}
+                isDraftPendingCompletion={isDraftPendingCompletion}
+            />
+        </>
     );
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
@@ -492,6 +505,16 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // is cleared mid-session while the latch keeps the content mounted.
     if (!report) {
         return <ReportActionsAnimatedSkeletonCover />;
+    }
+
+    if (shouldShowConciergeWelcome) {
+        return (
+            <AskConciergeWelcome
+                reportID={reportID}
+                hasPreviousMessages={!!hasPreviousMessages}
+                onShowPreviousMessages={onShowPreviousMessages}
+            />
+        );
     }
 
     return (
@@ -527,7 +550,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    // An inverted list pads its visual top with paddingBottom. A thread opens on its first message, so it needs far less of it.
+                    contentContainerStyle={[styles.chatContentScrollView, isChatThread(report) && styles.pb2]}
                     onEndReached={loadOlderChatsOnEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChatsAfterTransitions}

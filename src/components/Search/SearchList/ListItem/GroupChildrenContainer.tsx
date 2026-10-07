@@ -1,4 +1,5 @@
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,6 +34,7 @@ function GroupChildrenContainer({
     newTransactionID,
 }: GroupChildrenContainerProps) {
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const hasBorder = !isFirstItem;
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, isExpanded && hasBorder, item.keyForList);
@@ -48,7 +50,14 @@ function GroupChildrenContainer({
     }
 
     return (
-        <View style={[styles.mh5, StyleUtils.getSearchRowBackgroundStyle(isSelected), isLastItem && [styles.tableBottomRadius, styles.overflowHidden], hasBorder && styles.tableBorder]}>
+        <View
+            style={[
+                isLargeScreenWidth ? styles.mh5 : styles.mh3,
+                StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+                hasBorder && styles.tableBorder,
+            ]}
+        >
             <Animated.View style={animatedStyle}>
                 {isContentVisible ? (
                     <Animated.View

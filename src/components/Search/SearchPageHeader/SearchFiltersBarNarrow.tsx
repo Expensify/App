@@ -45,7 +45,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             horizontal
             keyboardShouldPersistTaps="always"
             style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, (!!data.length || canSave || canReset) && styles.mb4]}
-            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5, styles.alignItemsCenter]}
+            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph3, styles.alignItemsCenter]}
             ref={scrollRef}
             showsHorizontalScrollIndicator={false}
             data={data}

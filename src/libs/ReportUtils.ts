@@ -2833,7 +2833,7 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, rep
  */
 function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
     const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    return isTransactionThreadReport || isMoneyRequestReport(report) || isInvoiceReport(report);
+    return isTransactionThreadReport || isChatThread(report) || isMoneyRequestReport(report) || isInvoiceReport(report);
 }
 
 /**
