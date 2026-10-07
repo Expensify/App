@@ -27,7 +27,7 @@ import type {Route} from '@src/ROUTES';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type SearchNLFilterContentProps = {
@@ -53,6 +53,14 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
+    const isMounted = useRef(true);
+    useEffect(
+        () => () => {
+            isMounted.current = false;
+        },
+        [],
+    );
+
     const handleSubmit = () => {
         if (isLoading) {
             return;
@@ -67,6 +75,9 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
         const policyID = !isPolicyIDNegated && queryPolicyIDValues?.at(0) ? queryPolicyIDValues.at(0) : activePolicyID;
         parseExpenseFilters(trimmedQuery, policyID)
             .then((result) => {
+                if (!isMounted.current) {
+                    return;
+                }
                 setIsLoading(false);
                 if (!result) {
                     return;
@@ -85,6 +96,9 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                 }
             })
             .catch(() => {
+                if (!isMounted.current) {
+                    return;
+                }
                 setIsLoading(false);
                 setErrorMessage(translate('common.genericErrorMessage'));
             });
