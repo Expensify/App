@@ -39,7 +39,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
@@ -285,7 +284,6 @@ type HandleActionButtonPressParams = {
     rules: OnyxCollection<Rule>;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function handleActionButtonPress({
@@ -328,7 +326,6 @@ function handleActionButtonPress({
     rules,
     conciergeChat,
     getCurrencyDecimals,
-    bankAccountList,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -383,7 +380,6 @@ function handleActionButtonPress({
                 conciergeChat,
                 getCurrencyDecimals,
                 rules,
-                bankAccountList,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -626,7 +622,6 @@ type GetPayActionCallbackParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
-    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function getPayActionCallback({
@@ -657,7 +652,6 @@ function getPayActionCallback({
     conciergeChat,
     getCurrencyDecimals,
     rules,
-    bankAccountList,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
@@ -670,13 +664,9 @@ function getPayActionCallback({
         return;
     }
 
-    const paymentPolicy = snapshotPolicy ?? policy;
-
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
-        // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
-        // them pick it instead of silently paying with (and reporting) the workspace one.
-        if (!canAccessPolicyBankAccount(paymentPolicy, bankAccountList)) {
+        const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
+        if (!hasVBBA) {
             goToItem();
             return;
         }
@@ -698,14 +688,14 @@ function getPayActionCallback({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
-        policy: paymentPolicy,
+        policy: snapshotPolicy ?? policy,
         chatReportPolicy: chatReportPolicyForPayment,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
+        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,
@@ -1049,7 +1039,16 @@ function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: numb
 }
 
 function openSearchCardFiltersPage() {
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA,
+            value: true,
+        },
+    ];
+
+    // Set on success only. On `finallyData` a failed request would pass for a complete list.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED,
@@ -1057,7 +1056,15 @@ function openSearchCardFiltersPage() {
         },
     ];
 
-    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
 function openSearchCategoryFiltersPage() {
@@ -1088,6 +1095,8 @@ function openSearchCategoryFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
+const ALL_POLICY_IDS_KEY = 'all';
+
 /**
  * Fetches a page of tag filter search results from the server.
  * Returns pagination metadata (hasMore, nextCursor) for infinite scroll.
@@ -1098,16 +1107,19 @@ function openSearchTagFiltersPage(
     params: OpenSearchTagFiltersPageParams,
     shouldCancelPendingRequests = false,
     currentResults: SearchTagFilterItem[] = [],
-): Promise<{hasMore: boolean; nextCursor: string}> {
+): Promise<{hasMore: boolean; nextCursor: string; tags?: SearchTagFilterItem[]}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
+
+    const policyIDsKey = !params.policyIDs ? ALL_POLICY_IDS_KEY : params.policyIDs;
+    const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDsKey}`;
 
     const optimisticData: AnyOnyxUpdate[] = shouldCancelPendingRequests
         ? [
               {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+                  key: resultsKey,
                   value: [],
               },
           ]
@@ -1118,12 +1130,11 @@ function openSearchTagFiltersPage(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
         const newTags = tagFiltersResponse?.tags ?? [];
-        if (params.cursor && newTags.length > 0) {
-            Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, [...currentResults, ...newTags]);
-        }
+        Onyx.set(resultsKey, params.cursor ? [...currentResults, ...newTags] : newTags);
         return {
             hasMore: !!tagFiltersResponse?.hasMore,
             nextCursor: tagFiltersResponse?.nextCursor ?? '',
+            tags: newTags,
         };
     });
 }
@@ -1132,18 +1143,25 @@ function openSearchTagFiltersPage(
  * Updates the pagination state for tag filter search.
  * Stored in RAM-only Onyx key so it survives component remounts but resets on app restart.
  */
-function setSearchTagFiltersPagination(hasMore: boolean, nextCursor: string, searchQuery: string) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION, {
+function setSearchTagFiltersPagination(
+    hasMore: boolean,
+    nextCursor: string,
+    searchQuery: string,
+    policyIDs?: string,
+    baseResults?: SearchTagFilterItem[],
+    baseHasMore?: boolean,
+    baseCursor?: string,
+) {
+    const policyIDsKey = !policyIDs ? ALL_POLICY_IDS_KEY : policyIDs;
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION}${policyIDsKey}`, {
         hasMore,
         nextCursor,
         searchQuery,
+        policyIDs,
+        baseResults,
+        baseHasMore,
+        baseCursor,
     });
-}
-
-/** Resets tag filter pagination and cached results when the filter closes. */
-function clearSearchTagFiltersState() {
-    setSearchTagFiltersPagination(false, '', '');
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, []);
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -2640,8 +2658,8 @@ export {
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
+    ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
-    clearSearchTagFiltersState,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,

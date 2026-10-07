@@ -231,6 +231,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
+    CardList,
     Card,
     Download as DownloadOnyx,
     IntroSelected,
@@ -298,6 +299,10 @@ type ShouldShow = (args: {
     type: string;
     reportAction: OnyxEntry<ReportAction>;
     childReportActions: OnyxCollection<ReportAction>;
+    /** Actions of the report the context-menu action belongs to (`reportAction` is read from this collection) */
+    originalReportActions: OnyxEntry<ReportActions>;
+    /** Actions of the money request report that `moneyRequestAction` belongs to */
+    moneyRequestReportActions: OnyxEntry<ReportActions>;
     isArchivedRoom: boolean;
     menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
@@ -320,6 +325,7 @@ type ShouldShow = (args: {
     isHarvestReport?: boolean;
     currentUserAccountID: number;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -636,9 +642,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
         icon: 'Pencil',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, moneyRequestAction, iouTransaction, rules}) =>
+        shouldShow: ({type, reportAction, originalReportActions, isArchivedRoom, isChronosReport, moneyRequestAction, moneyRequestReportActions, iouTransaction, rules}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            (canEditReportAction(reportAction, iouTransaction, rules) || canEditReportAction(moneyRequestAction, iouTransaction, rules)) &&
+            (canEditReportAction(reportAction, iouTransaction, rules, originalReportActions) || canEditReportAction(moneyRequestAction, iouTransaction, rules, moneyRequestReportActions)) &&
             !isArchivedRoom &&
             !isChronosReport,
         onPress: (
@@ -1090,7 +1096,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID, convertToDisplayString);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy, transaction, bankAccountList);
+                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy?.achAccount?.accountNumber, transaction, bankAccountList);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
@@ -1320,6 +1326,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(translate('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(translate('iou.unheldExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION) {
+                    Clipboard.setString(translate('iou.undeletedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
                     Clipboard.setString(translate('iou.reject.reportActions.rejectedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
@@ -1708,6 +1716,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             childReportActions,
             currentUserAccountID,
             rules,
+            cardList,
         }) => {
             // A single-expense report preview also exposes its embedded money request action.
             // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
@@ -1736,7 +1745,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules) &&
+                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules, cardList) &&
                 !isArchivedRoom &&
                 !isChronosReport &&
                 !isMessageDeleted(reportAction)
