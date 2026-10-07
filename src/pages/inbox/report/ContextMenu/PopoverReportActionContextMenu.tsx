@@ -507,7 +507,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         (performHold: () => void) => {
             const isSubmitter = isCurrentUserSubmitter(chatReport);
             const isChatDM = isDM(chatReport);
-            const isDismissed = false;
+            const isDismissed = isSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
             if (isDismissed || isChatDM) {
                 performHold();
             } else if (isSubmitter) {
