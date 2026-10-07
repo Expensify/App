@@ -4,7 +4,7 @@ description: Learn how to enable per diem expenses and import daily allowance ra
 keywords: [Expensify Classic, per diem, per diem rates, enable per diem, daily allowance, meal allowance, travel allowance, fixed daily rate, per diem setup, configure per diem, import per diem rates, business travel expenses, lodging allowance]
 ---
 
-# Enable Per DiemEexpenses
+# Enable Per Diem Expenses
 
 A workspace admin must first enable per diem expenses and set the per diem rates for Workspace Members to submit per diem expenses. 
 
