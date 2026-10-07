@@ -346,8 +346,8 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
  * unresolvable card fails the whole batched move. The `managedCard` flag cannot answer it, carrying no feed or
  * workspace identity.
  *
- * Search opens with only a subset of those cards, so a missing card proves nothing until `isCardListComplete`. Until
- * then it is allowed through, since hiding the flow for a card the viewer does administer is the worse error.
+ * Search opens with only a subset of those cards, so a missing card proves nothing until `isCardListComplete` and
+ * fails closed: a move the backend refuses costs the whole batch, while waiting for the list costs a moment.
  */
 function canResolveTransactionCard(
     transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'cardID'>>,
@@ -360,7 +360,7 @@ function canResolveTransactionCard(
     }
 
     if (!isCardListComplete) {
-        return true;
+        return false;
     }
 
     return !!nonPersonalAndWorkspaceCards?.[transaction.cardID];

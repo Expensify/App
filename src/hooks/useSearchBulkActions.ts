@@ -34,7 +34,6 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
-    openSearchCardFiltersPage,
     queueBulkMarkAsExported,
     queueBulkPayReports,
     queueExportSearchItemsToCSV,
@@ -147,6 +146,7 @@ import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useIsVendorColumnAvailable from './useIsVendorColumnAvailable';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
+import useLoadSearchCardData from './useLoadSearchCardData';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -685,15 +685,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
-    // Search opens with only a subset of the user's cards, so "Auto report" needs the rest before it can read a
-    // card's absence as no access. The request sets the flag in `finallyData`, so this fires once.
-    const [isSearchCardListComplete = false] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
-    useEffect(() => {
-        if (isOffline || isSearchCardListComplete) {
-            return;
-        }
-        openSearchCardFiltersPage();
-    }, [isOffline, isSearchCardListComplete]);
+    // "Auto report" cannot read a card's absence as no access until every card has arrived.
+    const {areCardsLoaded: isSearchCardListComplete} = useLoadSearchCardData();
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([

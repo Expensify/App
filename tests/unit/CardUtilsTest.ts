@@ -5700,25 +5700,14 @@ describe('canResolveTransactionCard', () => {
         expect(canResolve).toBe(false);
     });
 
-    it('accepts a card missing from a list that is still incomplete', () => {
-        // Given a card absent from a list Search has not finished loading, so absence says nothing about access
-        const transaction = buildCardTransaction({cardID: 9999});
+    it('rejects a card the list has not finished loading, even one it already holds', () => {
+        // Given a list Search has not finished fetching, so it cannot vouch for any card yet
+        const transaction = buildCardTransaction({});
 
         // When checking whether the backend could resolve a destination
         const canResolve = canResolveTransactionCard(transaction, visibleCards, false);
 
-        // Then it is allowed through, leaving the backend to refuse what it cannot resolve
-        expect(canResolve).toBe(true);
-    });
-
-    it('still rejects an expense off a managed card while the list is incomplete', () => {
-        // Given an expense with no card, which the transaction proves on its own
-        const transaction = buildCardTransaction({managedCard: false});
-
-        // When checking whether the backend could resolve a destination
-        const canResolve = canResolveTransactionCard(transaction, visibleCards, false);
-
-        // Then it cannot, having no card to resolve through whatever else loads
+        // Then it cannot, since a move the backend refuses costs the whole batch
         expect(canResolve).toBe(false);
     });
 });
