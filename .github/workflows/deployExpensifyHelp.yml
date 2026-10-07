@@ -20,11 +20,14 @@ on:
   # Run on any manual trigger
   workflow_dispatch:
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Production deploys (push to main / manual) share the 'pages' group: only one runs at a time, and in-progress
+# production deploys are never cancelled.
+# PR previews get their own group per PR. Previously they shared 'pages', so a PR's pending run was silently
+# cancelled ("Canceling since a higher priority waiting request for pages exists") whenever another PR or main
+# queued behind it, and that PR got no preview link. A newer push to the same PR still supersedes an older preview.
 concurrency:
-  group: 'pages'
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('helpdot-preview-{0}', github.event.pull_request.number) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -90,29 +93,8 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
-      - name: Check if only articles are updated
-        if: ${{ github.event_name == 'pull_request' }}
-        id: verify_articles_only_updated
-        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
-        with:
-          filters: |
-            articles:
-              - 'docs/articles/**'
-              - 'docs/**/*.csv'
-
-      - name: Ensure PR title has [No QA] prefix
-        if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' && steps.verify_articles_only_updated.outputs.articles == 'true' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
-        run: |
-          current_title=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json title -q '.title')
-          if [[ "$current_title" == "[No QA]"* ]]; then
-            echo "PR title already contains [No QA]; skipping."
-            exit 0
-          fi
-          gh pr edit "$PR_NUMBER" --repo "$REPO" --title "[No QA] $current_title"
+      # The [No QA] title prefix is handled by .github/workflows/helpDotNoQA.yml, so it no longer depends on this
+      # build succeeding or on this run not being cancelled.
 
       - name: Generate ExpensifyHelp preview comment
         id: preview_comment
