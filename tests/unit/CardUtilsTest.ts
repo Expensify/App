@@ -126,6 +126,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {FC} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
+import type {PartialDeep} from 'type-fest';
 
 import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
 import * as fs from 'fs';
@@ -2927,6 +2928,22 @@ describe('CardUtils', () => {
     });
 
     describe('getDisplayableExpensifyCards', () => {
+        function makeExpensifyCard(overrides: PartialDeep<Card> & {cardID: number}): Card {
+            return createMock<Card>({
+                accountID: 10160771,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardName: 'Expensify Card',
+                domainName: 'expensify.com',
+                fraud: 'none',
+                fundID: '767578',
+                lastFourPAN: String(overrides.cardID).slice(-4),
+                lastScrape: '',
+                lastUpdated: '',
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                ...overrides,
+            });
+        }
+
         it('should return empty array when cardList is undefined', () => {
             const result = getDisplayableExpensifyCards(undefined);
             expect(result).toEqual([]);
@@ -3075,6 +3092,65 @@ describe('CardUtils', () => {
 
             // Then both halves are kept, so spend on either half can get its own row, with the physical card first
             expect(result.map((card) => card.cardID)).toEqual([18468850, 18468851]);
+        });
+
+        it('should show only the virtual half of a combo card while the physical half waits for activation', () => {
+            // Given a new combo card, where the virtual half is open but the physical half is still in the mail
+            const cardList = createMock<CardList>({
+                1: makeExpensifyCard({cardID: 1001, state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED, nameValuePairs: {isVirtual: false}}),
+                2: makeExpensifyCard({cardID: 1002, nameValuePairs: {isVirtual: true}}),
+            });
+
+            // When the displayable cards are computed
+            const result = getDisplayableExpensifyCards(cardList);
+
+            // Then only the virtual half is shown, because it is the only half the cardholder can spend on
+            expect(result.map((card) => card.cardID)).toEqual([1002]);
+        });
+
+        it('should show only the physical half of a combo card when the virtual half is closed', () => {
+            // Given a combo card whose virtual half was closed
+            const cardList = createMock<CardList>({
+                1: makeExpensifyCard({cardID: 1001, nameValuePairs: {isVirtual: false}}),
+                2: makeExpensifyCard({cardID: 1002, state: CONST.EXPENSIFY_CARD.STATE.CLOSED, nameValuePairs: {isVirtual: true}}),
+            });
+
+            // When the displayable cards are computed
+            const result = getDisplayableExpensifyCards(cardList);
+
+            // Then the closed half is still filtered out, the same as any other closed card
+            expect(result.map((card) => card.cardID)).toEqual([1001]);
+        });
+
+        it('should show both halves of every combo card when the cardholder has combo cards on two domains', () => {
+            // Given two combo cards, each on its own domain
+            const cardList = createMock<CardList>({
+                1: makeExpensifyCard({cardID: 1001, domainName: 'first.com', nameValuePairs: {isVirtual: false}}),
+                2: makeExpensifyCard({cardID: 1002, domainName: 'first.com', nameValuePairs: {isVirtual: true}}),
+                3: makeExpensifyCard({cardID: 2001, domainName: 'second.com', nameValuePairs: {isVirtual: false}}),
+                4: makeExpensifyCard({cardID: 2002, domainName: 'second.com', nameValuePairs: {isVirtual: true}}),
+            });
+
+            // When the displayable cards are computed
+            const result = getDisplayableExpensifyCards(cardList);
+
+            // Then all four cards are shown, with the physical cards before the virtual ones
+            expect(result.map((card) => card.cardID)).toEqual([1001, 2001, 1002, 2002]);
+        });
+
+        it('should show a combo card and an admin-issued virtual card on the same domain', () => {
+            // Given a combo card and a separate virtual card that an admin issued on the same domain
+            const cardList = createMock<CardList>({
+                1: makeExpensifyCard({cardID: 1001, nameValuePairs: {isVirtual: false}}),
+                2: makeExpensifyCard({cardID: 1002, nameValuePairs: {isVirtual: true}}),
+                3: makeExpensifyCard({cardID: 1003, fundID: '767579', nameValuePairs: {isVirtual: true, issuedBy: 10160771}}),
+            });
+
+            // When the displayable cards are computed
+            const result = getDisplayableExpensifyCards(cardList);
+
+            // Then all three cards are shown, because each one has its own cardID and its own spend
+            expect(result.map((card) => card.cardID)).toEqual([1001, 1002, 1003]);
         });
 
         it('should show admin-issued virtual cards separately', () => {

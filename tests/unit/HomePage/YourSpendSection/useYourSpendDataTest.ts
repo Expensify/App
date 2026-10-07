@@ -594,6 +594,40 @@ describe('useYourSpendData — combo card rows', () => {
         // Then no card row appears
         expect(result.current.cardRows).toEqual([]);
     });
+
+    it('reads the remaining limit of each half from that half', () => {
+        // Given a combo card where each half reports its own limit and available spend
+        onyxData[ONYXKEYS.CARD_LIST] = {
+            [CARD_ID_1]: {...comboCardList[CARD_ID_1], availableSpend: 10000, nameValuePairs: {isVirtual: false, unapprovedExpenseLimit: 10000}},
+            [CARD_ID_2]: {...comboCardList[CARD_ID_2], availableSpend: 2500, nameValuePairs: {isVirtual: true, unapprovedExpenseLimit: 10000}},
+        };
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 1, total: 100, currency: 'USD'},
+            {cardID: CARD_ID_2, count: 1, total: 7500, currency: 'USD'},
+        ]);
+
+        // When the hook renders
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then each row shows the spent share of its own card, so the virtual row does not borrow the physical card's limit
+        expect(result.current.cardRows).toEqual([expect.objectContaining({cardID: CARD_ID_1, spentFraction: 0}), expect.objectContaining({cardID: CARD_ID_2, spentFraction: 0.75})]);
+    });
+
+    it('keeps both halves ahead of third-party card rows', () => {
+        // Given a combo card with spend on both halves, and a third-party card with spend
+        mockedGetDisplayableThirdPartyCards.mockReturnValue(makeThirdPartyCards([{cardID: THIRD_PARTY_CARD_ID_1, lastFourPAN: THIRD_PARTY_LAST_FOUR_1}]));
+        setupCardGroups([
+            {cardID: CARD_ID_1, count: 1},
+            {cardID: CARD_ID_2, count: 1},
+            {cardID: THIRD_PARTY_CARD_ID_1, count: 1},
+        ]);
+
+        // When the hook renders
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then the Expensify Card rows come first, physical before virtual, and the third-party row comes last
+        expect(result.current.cardRows.map((row) => row.cardID)).toEqual([CARD_ID_1, CARD_ID_2, THIRD_PARTY_CARD_ID_1]);
+    });
 });
 
 // query builder integration
