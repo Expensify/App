@@ -126,6 +126,7 @@ export default {
     insightsCardGap: 20,
     insightsEmptyStateIllustrationSize: 136,
     minScanTooltipWidth: 320,
+    chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,

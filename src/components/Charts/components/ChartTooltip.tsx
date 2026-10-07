@@ -2,6 +2,8 @@ import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import type {ComponentRef} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 
@@ -59,7 +61,7 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
             }
             tooltipMeasuredWidth.set(width);
         });
-    }, [content, tooltipMeasuredWidth]);
+    }, [content, chartWidth, tooltipMeasuredWidth]);
 
     /** Calculate the center point, ensuring the box doesn't overflow the left or right edges */
     const clampedCenter = useDerivedValue(() => {
@@ -79,10 +81,9 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
 
         return {
             position: 'absolute',
-            left: clampedCenter.get(),
+            left: 0,
             top: y,
-            /** Center the wrapper horizontally and lift it entirely above the Y point */
-            transform: [{translateX: '-50%'}, {translateY: '-100%'}],
+            transform: [{translateX: clampedCenter.get() - tooltipMeasuredWidth.get() / 2}, {translateY: '-100%'}],
             opacity: tooltipMeasuredWidth.get() > 0 ? 1 : 0,
         };
     }, [initialTooltipPosition]);
@@ -93,29 +94,10 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
             pointerEvents="none"
             ref={tooltipWrapperRef}
         >
-            <View style={styles.chartTooltipBox}>
-                <Text
-                    style={styles.chartTooltipTitle}
-                    numberOfLines={1}
-                >
-                    {label}
-                </Text>
-                {!!amountContent && (
-                    <Text
-                        style={styles.chartTooltipText}
-                        numberOfLines={1}
-                    >
-                        {amountContent}
-                    </Text>
-                )}
-                {!!expenseCount && (
-                    <Text
-                        style={styles.chartTooltipText}
-                        numberOfLines={1}
-                    >
-                        {expenseCount}
-                    </Text>
-                )}
+            <View style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}>
+                <Text style={styles.chartTooltipTitle}>{label}</Text>
+                {!!amountContent && <Text style={styles.chartTooltipText}>{amountContent}</Text>}
+                {!!expenseCount && <Text style={styles.chartTooltipText}>{expenseCount}</Text>}
             </View>
         </Animated.View>
     );

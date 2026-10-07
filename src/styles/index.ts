@@ -6859,12 +6859,10 @@ const staticStyles = (theme: ThemeColors) =>
         chartTooltipTitle: {
             ...textVariants.labelStrong,
             color: theme.text,
-            whiteSpace: 'nowrap',
         },
         chartTooltipText: {
             ...textVariants.label,
             color: theme.text,
-            whiteSpace: 'nowrap',
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
