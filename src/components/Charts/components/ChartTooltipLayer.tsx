@@ -34,6 +34,20 @@ type ChartTooltipLayerProps = {
  */
 function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
+    const [measureKey, setMeasureKey] = useState(0);
+
+    const bumpMeasureKey = () => setMeasureKey((key) => key + 1);
+
+    // The tooltip stays mounted while hidden, so each time it shows again it re-measures the room above, which scrolling may have changed
+    useAnimatedReaction(
+        () => isTooltipActive.get(),
+        (isActive, wasActive) => {
+            if (!isActive || wasActive) {
+                return;
+            }
+            scheduleOnRN(bumpMeasureKey);
+        },
+    );
 
     useAnimatedReaction(
         () => matchedIndex.get(),
@@ -69,6 +83,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
                 expenseCount={tooltipData.expenseCount}
                 chartWidth={chartWidth}
                 initialTooltipPosition={initialTooltipPosition}
+                measureKey={measureKey}
             />
         </Animated.View>
     );

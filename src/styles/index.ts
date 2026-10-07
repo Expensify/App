@@ -6880,6 +6880,11 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 12,
             rowGap: 8,
         },
+        chartTooltipOrigin: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
         chartTooltipTitle: {
             ...textVariants.labelStrong,
             color: theme.text,
