@@ -3444,6 +3444,9 @@ const translations = {
         toSubmit: 'to submit',
         toApprove: 'to approve',
         toPay: 'to pay',
+        minutesAgo: (count: number) => `${count}m ago`,
+        hoursAgo: (count: number) => `${count}h ago`,
+        daysAgo: (count: number) => `${count}d ago`,
     },
     groupChat: {
         lastMemberTitle: 'Heads up!',
