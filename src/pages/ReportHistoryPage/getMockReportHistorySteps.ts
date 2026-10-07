@@ -1,62 +1,62 @@
-import {isOpenExpenseReport, isProcessingReport, isSettled} from '@libs/ReportUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {getApprovalChain, isOpenExpenseReport, isProcessingReport, isSettled} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, Rule} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import type {ReportHistoryStep} from './types';
 
 import {REPORT_HISTORY_ACTION} from './types';
 
 // TODO: Remove once the backend returns report history. https://github.com/Expensify/App/issues/103160
-function getMockReportHistorySteps(report: Report): ReportHistoryStep[] {
+function getMockReportHistorySteps(report: Report, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>, personalDetails: OnyxEntry<PersonalDetailsList>): ReportHistoryStep[] {
+    const getAccountIDByLogin = (login: string | undefined) => Object.values(personalDetails ?? {}).find((detail) => !!login && detail?.login === login)?.accountID;
+
     const ownerAccountID = report.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const managerAccountID = report.managerID ?? ownerAccountID;
-    const otherAccountIDs = Object.keys(report.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== ownerAccountID && accountID !== managerAccountID);
-    const firstApproverAccountID = otherAccountIDs.at(0) ?? managerAccountID;
-    const finalApproverAccountID = otherAccountIDs.at(1) ?? managerAccountID;
-    const payerAccountID = otherAccountIDs.at(2) ?? finalApproverAccountID;
+    const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
+    const approverAccountIDs = getApprovalChain(policy, report, ownerLogin, rules)
+        .map(getAccountIDByLogin)
+        .filter((accountID): accountID is number => !!accountID);
+    if (approverAccountIDs.length === 0 && report.managerID) {
+        approverAccountIDs.push(report.managerID);
+    }
+    const payerAccountID = getAccountIDByLogin(policy?.reimburser ?? policy?.achAccount?.reimburser ?? policy?.owner) ?? approverAccountIDs.at(-1) ?? ownerAccountID;
+
+    const isOpen = isOpenExpenseReport(report);
+    const isPaid = isSettled(report);
+    const currentApproverIndex = approverAccountIDs.indexOf(report.managerID ?? CONST.DEFAULT_NUMBER_ID);
+    let approvedCount = approverAccountIDs.length;
+    if (isOpen) {
+        approvedCount = 0;
+    } else if (isProcessingReport(report)) {
+        approvedCount = Math.max(currentApproverIndex, 0);
+    }
 
     const now = Date.now();
-    const minutesAgo = (minutes: number) => new Date(now - minutes * 60 * 1000).toISOString();
-    const hoursAgo = (hours: number) => minutesAgo(hours * 60);
-    const daysAgo = (days: number) => hoursAgo(days * 24);
+    let remainingCompletedSteps = (isOpen ? 1 : 2) + approvedCount + (isPaid ? 1 : 0);
+    const nextTimestamp = () => {
+        const timestamp = new Date(now - remainingCompletedSteps * 6 * 60 * 60 * 1000).toISOString();
+        remainingCompletedSteps -= 1;
+        return timestamp;
+    };
 
-    if (isOpenExpenseReport(report)) {
-        return [
-            {action: REPORT_HISTORY_ACTION.CREATED, accountID: ownerAccountID, created: minutesAgo(25), isCompleted: true},
-            {action: REPORT_HISTORY_ACTION.SUBMITTED, accountID: ownerAccountID, isCompleted: false},
-            {action: REPORT_HISTORY_ACTION.APPROVED, accountID: managerAccountID, isCompleted: false},
-            {action: REPORT_HISTORY_ACTION.PAID, accountID: payerAccountID, isCompleted: false},
-        ];
-    }
-
-    if (isProcessingReport(report)) {
-        return [
-            {action: REPORT_HISTORY_ACTION.CREATED, accountID: ownerAccountID, created: daysAgo(7), isCompleted: true},
-            {action: REPORT_HISTORY_ACTION.SUBMITTED, accountID: ownerAccountID, created: daysAgo(7), isCompleted: true},
-            {action: REPORT_HISTORY_ACTION.APPROVED, accountID: firstApproverAccountID, created: daysAgo(6), isCompleted: true},
-            {action: REPORT_HISTORY_ACTION.REROUTED, accountID: finalApproverAccountID, created: hoursAgo(5), isCompleted: true},
-            {action: REPORT_HISTORY_ACTION.HELD, accountID: managerAccountID, created: minutesAgo(40), isCompleted: true},
-            {action: REPORT_HISTORY_ACTION.APPROVED, accountID: managerAccountID, isCompleted: false},
-            {action: REPORT_HISTORY_ACTION.APPROVED, accountID: finalApproverAccountID, isCompleted: false},
-            {action: REPORT_HISTORY_ACTION.PAID, accountID: payerAccountID, isCompleted: false},
-        ];
-    }
-
-    const approvedSteps: ReportHistoryStep[] = [
-        {action: REPORT_HISTORY_ACTION.CREATED, accountID: ownerAccountID, created: daysAgo(14), isCompleted: true},
-        {action: REPORT_HISTORY_ACTION.SUBMITTED, accountID: ownerAccountID, created: daysAgo(13), isCompleted: true},
-        {action: REPORT_HISTORY_ACTION.APPROVED, accountID: managerAccountID, created: daysAgo(10), isCompleted: true},
-        {action: REPORT_HISTORY_ACTION.APPROVED, accountID: finalApproverAccountID, created: daysAgo(2), isCompleted: true},
+    const steps: ReportHistoryStep[] = [
+        {action: REPORT_HISTORY_ACTION.CREATED, accountID: ownerAccountID, created: nextTimestamp(), isCompleted: true},
+        isOpen
+            ? {action: REPORT_HISTORY_ACTION.SUBMITTED, accountID: ownerAccountID, isCompleted: false}
+            : {action: REPORT_HISTORY_ACTION.SUBMITTED, accountID: ownerAccountID, created: nextTimestamp(), isCompleted: true},
     ];
 
-    if (isSettled(report)) {
-        return [...approvedSteps, {action: REPORT_HISTORY_ACTION.PAID, accountID: payerAccountID, created: hoursAgo(3), isCompleted: true}];
+    for (const [index, accountID] of approverAccountIDs.entries()) {
+        const isApproved = index < approvedCount;
+        steps.push({action: REPORT_HISTORY_ACTION.APPROVED, accountID, created: isApproved ? nextTimestamp() : undefined, isCompleted: isApproved});
     }
 
-    return [...approvedSteps, {action: REPORT_HISTORY_ACTION.PAID, accountID: payerAccountID, isCompleted: false}];
+    steps.push({action: REPORT_HISTORY_ACTION.PAID, accountID: payerAccountID, created: isPaid ? nextTimestamp() : undefined, isCompleted: isPaid});
+
+    return steps;
 }
 
 export default getMockReportHistorySteps;

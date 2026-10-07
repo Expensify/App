@@ -5,6 +5,8 @@ import ScrollView from '@components/ScrollView';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,6 +17,7 @@ import {isMoneyRequestReport} from '@libs/ReportUtils';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -26,12 +29,14 @@ import ReportHistoryItem from './ReportHistoryItem';
 
 type ReportHistoryPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportHistoryNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_HISTORY>;
 
-function ReportHistoryPage({report}: ReportHistoryPageProps) {
+function ReportHistoryPage({report, policy}: ReportHistoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_HISTORY.path);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [personalDetails] = useAllPersonalDetails();
 
-    const steps = getMockReportHistorySteps(report);
+    const steps = getMockReportHistorySteps(report, policy, rules, personalDetails);
 
     return (
         <ScreenWrapper testID="ReportHistoryPage">
