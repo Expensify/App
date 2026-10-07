@@ -2,6 +2,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import Modal from '@components/Modal';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
@@ -59,6 +60,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const formRef = useRef<FormRef>(null);
+    const inputRef = useRef<AnimatedTextInputRef>(null);
     const pendingGenerationIDRef = useRef<string>(undefined);
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -112,6 +114,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
         <Modal
             isVisible={isVisible}
             onClose={close}
+            onModalShow={() => inputRef.current?.focus()}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             avoidKeyboard
@@ -137,6 +140,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 <View style={styles.describeRulePromptInput}>
                     <InputWrapper
                         InputComponent={TextInput}
+                        ref={inputRef}
                         inputID={INPUT_IDS.PROMPT}
                         label={inputLabel}
                         accessibilityLabel={inputLabel}
