@@ -209,36 +209,28 @@ const getUnreadMarkerReportAction = ({
     const canActionTriggerMarker = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction =>
         !!action && (isReversed || action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID) && canReportActionTriggerUnreadMarker(action, currentUserAccountID);
 
-    let earliestEligibleReceivedOfflineMessageIndex = earliestReceivedOfflineMessageIndex;
-    if (!isReversed && earliestEligibleReceivedOfflineMessageIndex !== undefined) {
-        while (earliestEligibleReceivedOfflineMessageIndex >= 0 && !canActionTriggerMarker(visibleReportActions.at(earliestEligibleReceivedOfflineMessageIndex))) {
-            earliestEligibleReceivedOfflineMessageIndex--;
-        }
-        if (earliestEligibleReceivedOfflineMessageIndex < 0) {
-            earliestEligibleReceivedOfflineMessageIndex = earliestReceivedOfflineMessageIndex;
+    const eligibleIndexes: number[] = [];
+    for (const [index, action] of visibleReportActions.entries()) {
+        if (canActionTriggerMarker(action)) {
+            eligibleIndexes.push(index);
         }
     }
+    const scanIndexes = isReversed ? eligibleIndexes.toReversed() : eligibleIndexes;
+    const earliestEligibleReceivedOfflineMessageIndex =
+        !isReversed && earliestReceivedOfflineMessageIndex !== undefined
+            ? (eligibleIndexes.findLast((index) => index <= earliestReceivedOfflineMessageIndex) ?? earliestReceivedOfflineMessageIndex)
+            : earliestReceivedOfflineMessageIndex;
 
-    const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestEligibleReceivedOfflineMessageIndex ?? 0);
-    const endIndex = isReversed ? (earliestEligibleReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
-    const step = isReversed ? -1 : 1;
-
-    for (let index = startIndex; isReversed ? index >= endIndex : index < endIndex; index += step) {
-        const reportAction = visibleReportActions.at(index);
-
-        if (!canActionTriggerMarker(reportAction)) {
+    for (const [position, index] of scanIndexes.entries()) {
+        if (earliestEligibleReceivedOfflineMessageIndex !== undefined && index < earliestEligibleReceivedOfflineMessageIndex) {
             continue;
         }
-
-        let nextAction: OnyxTypes.ReportAction | undefined;
-        const nextActionStep = isReversed ? -1 : 1;
-        for (let nextIndex = index + nextActionStep; nextIndex >= 0 && nextIndex < visibleReportActions.length; nextIndex += nextActionStep) {
-            const candidate = visibleReportActions.at(nextIndex);
-            if (canActionTriggerMarker(candidate)) {
-                nextAction = candidate;
-                break;
-            }
+        const reportAction = visibleReportActions.at(index);
+        if (!reportAction) {
+            continue;
         }
+        const nextIndex = scanIndexes.at(position + 1);
+        const nextAction = nextIndex === undefined ? undefined : visibleReportActions.at(nextIndex);
 
         const isEarliestReceivedOfflineMessage = index === earliestEligibleReceivedOfflineMessageIndex;
 

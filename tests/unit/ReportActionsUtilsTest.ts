@@ -6688,6 +6688,14 @@ describe('ReportActionsUtils', () => {
             expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [exportAction]})).toEqual([null, -1]);
         });
 
+        it.each([false, true])('keeps original list indexes when exports separate unread comments (isReversed: %s)', (isReversed) => {
+            const older = makeAction({reportActionID: 'older'});
+            const exportAction = makeAction({reportActionID: 'export', actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION});
+            const newer = makeAction({reportActionID: 'newer', created: '2023-01-01 12:00:00.000'});
+            const actions = isReversed ? [older, exportAction, newer] : [newer, exportAction, older];
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: actions, isReversed})).toEqual(['older', isReversed ? 0 : 2]);
+        });
+
         it('advances a filtered offline boundary to the oldest eligible action', () => {
             const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
             const exportAction = makeAction({
