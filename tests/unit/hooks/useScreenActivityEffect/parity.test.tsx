@@ -156,6 +156,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // Then nothing accumulates, because a reveal with nothing owed leaves the entry alone
             const expected = [['setup:s:a'], [], [], [], [], ['cleanup:s:a']];
             expect(runs.liveUseEffect).toEqual(expected);
+            expect(runs.liveScreenActivityEffect).toEqual(expected);
             expect(runs.activityScreenActivityEffect).toEqual(expected);
         });
 
@@ -169,6 +170,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // Then the body runs once, because the entry counts as set up even with no cleanup to keep
             const expected = [['setup:s:a'], [], [], []];
             expect(runs.liveUseEffect).toEqual(expected);
+            expect(runs.liveScreenActivityEffect).toEqual(expected);
             expect(runs.activityScreenActivityEffect).toEqual(expected);
         });
 
@@ -182,6 +184,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // Then the hook releases right after the commit that deleted the hidden screen, so nothing is left behind
             const expected = [['setup:s:a'], [], ['cleanup:s:a']];
             expect(runs.liveUseEffect).toEqual(expected);
+            expect(runs.liveScreenActivityEffect).toEqual(expected);
             expect(runs.activityScreenActivityEffect).toEqual(expected);
         });
 
@@ -195,6 +198,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // Then the reveal releases the old setup and runs the new one, because the dependencies really did change
             const expected = [['setup:s:a'], [], ['cleanup:s:a', 'setup:s:b'], ['cleanup:s:b']];
             expect(runs.liveUseEffect).toEqual(expected);
+            expect(runs.liveScreenActivityEffect).toEqual(expected);
             expect(runs.activityScreenActivityEffect).toEqual(expected);
         });
 
@@ -205,6 +209,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // When the screen is revealed after the change
             const runs = await runEveryConfig(steps);
             expect(runs.liveUseEffect).toEqual([['setup:s:a'], [], ['cleanup:s:a', 'setup:s:b'], [], ['cleanup:s:b']]);
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
 
             // Then the same calls run in the same order, moved from the commit of the change to the commit of the
             // reveal, because the old setup stays live until a body can release it
@@ -221,6 +226,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // Then the change is not lost, only deferred: React commits the hide first and the update of the hidden
             // tree after it, so this is a change behind the cover, and the old setup survives the cover
             expect(runs.liveUseEffect).toEqual([['setup:s:a'], ['cleanup:s:a', 'setup:s:b'], [], ['cleanup:s:b']]);
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
             expect(runs.activityScreenActivityEffect).toEqual([['setup:s:a'], [], ['cleanup:s:a', 'setup:s:b'], ['cleanup:s:b']]);
         });
 
@@ -231,6 +237,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // When the screen is revealed
             const runs = await runEveryConfig(steps);
             expect(runs.liveUseEffect).toEqual([[], [], ['setup:s:a'], [], ['cleanup:s:a']]);
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
 
             // Then the setup waits for the reveal, and that deferral is the <Activity> rather than the hook
             const deferred = [[], [], [], ['setup:s:a'], ['cleanup:s:a']];
@@ -247,6 +254,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
 
             // Then its mount effects run on the reveal, which is why the wrapper keeps the first frame visible
             expect(runs.liveUseEffect).toEqual([['setup:s:a'], [], ['cleanup:s:a']]);
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
             const deferred = [[], ['setup:s:a'], ['cleanup:s:a']];
             expect(runs.activityScreenActivityEffect).toEqual(deferred);
             expect(runs.activityUseEffect).toEqual(deferred);
@@ -261,6 +269,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
 
             // Then nothing ran at all, because a hidden subtree never mounted its effects in the first place
             expect(runs.liveUseEffect).toEqual([[], [], ['setup:s:a'], ['cleanup:s:a'], [], []]);
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
             const emptyCommits = [[], [], [], [], [], []];
             expect(runs.activityScreenActivityEffect).toEqual(emptyCommits);
             expect(runs.activityUseEffect).toEqual(emptyCommits);
@@ -278,6 +287,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // Then it still releases at once, from the passive cleanup the reveal gave back to React
             const expected = [['setup:s:a'], [], [], ['cleanup:s:a'], []];
             expect(runs.liveUseEffect).toEqual(expected);
+            expect(runs.liveScreenActivityEffect).toEqual(expected);
             expect(runs.activityScreenActivityEffect).toEqual(expected);
         });
 
@@ -301,6 +311,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // and the hook releases it once the commit is over
             const expected = [['setup:s1:a', 'setup:s2:a'], [], ['cleanup:s2:a'], ['cleanup:s1:a']];
             expect(runs.liveUseEffect).toEqual(expected);
+            expect(runs.liveScreenActivityEffect).toEqual(expected);
             expect(runs.activityScreenActivityEffect).toEqual(expected);
         });
 
@@ -330,6 +341,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // followed by no mount of the call site, and the component that mounts afterwards sets up as usual
             const expected = [['setup:s:a'], [], ['cleanup:s:a'], [], ['setup:s:b'], ['cleanup:s:b']];
             expect(runs.liveUseEffect).toEqual(expected);
+            expect(runs.liveScreenActivityEffect).toEqual(expected);
             expect(runs.activityScreenActivityEffect).toEqual(expected);
 
             // And plain useEffect released it at the cover already, which is the churn the hook avoids
@@ -380,6 +392,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // Then only the component that is gone is released, in the commit that removed it
             const expected = [['setup:s1:a', 'setup:s2:a'], [], ['cleanup:s2:a'], [], ['cleanup:s1:a']];
             expect(runs.liveUseEffect).toEqual(expected);
+            expect(runs.liveScreenActivityEffect).toEqual(expected);
             expect(runs.activityScreenActivityEffect).toEqual(expected);
         });
     });
@@ -394,6 +407,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
 
             // Then the mount-once call site is left alone, because the reveal finds nothing owed for it
             expect(runs.liveUseEffect).toEqual([['setup:first:a', 'setup:second:a'], [], ['cleanup:second:a', 'setup:second:b'], [], ['cleanup:first:a', 'cleanup:second:b']]);
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
             expect(runs.activityScreenActivityEffect).toEqual([['setup:first:a', 'setup:second:a'], [], [], ['cleanup:second:a', 'setup:second:b'], ['cleanup:first:a', 'cleanup:second:b']]);
         });
 
@@ -406,6 +420,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
 
             // Then a live screen releases both siblings before it sets either of them up again
             expect(runs.liveUseEffect).toEqual([['setup:s1:a', 'setup:s2:a'], [], ['cleanup:s1:a', 'cleanup:s2:a', 'setup:s1:b', 'setup:s2:b'], [], ['cleanup:s1:b', 'cleanup:s2:b']]);
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
 
             // And the reveal runs the body of each call site in turn, which releases and sets up in one go, so the
             // first sibling acquires before the second released. A single-owner resource shared by two call sites of
@@ -435,6 +450,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
                 [],
                 ['cleanup:parent:b', 'cleanup:child:b'],
             ]);
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
             expect(runs.activityScreenActivityEffect).toEqual([
                 ['setup:child:a', 'setup:parent:a'],
                 [],
@@ -451,7 +467,10 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // When the screen is covered and then leaves the stack while still covered
             const runs = await runEveryConfig(steps);
 
-            // Then plain useEffect gets the teardown of the whole subtree on the cover, parent first
+            // Then the live screen keeps everything through the cover, with the hook and useEffect alike
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
+
+            // And plain useEffect gets the teardown of the whole subtree on the cover, parent first
             expect(runs.activityUseEffect).toEqual([['setup:child:a', 'setup:parent:a'], ['cleanup:parent:a', 'cleanup:child:a'], []]);
 
             // And the hook gets it once, when the screen really goes away, in the order React deletes the tree in
@@ -509,6 +528,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
             // Then each release lands in the commit of its own removal, which is exactly what the live screen does
             const expected = [['setup:s1:a', 'setup:s2:a'], [], ['cleanup:s2:a'], ['cleanup:s1:a']];
             expect(runs.liveUseEffect).toEqual(expected);
+            expect(runs.liveScreenActivityEffect).toEqual(expected);
             expect(runs.activityScreenActivityEffect).toEqual(expected);
         });
 
@@ -564,6 +584,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
 
         // Then the old instance is released before the new one sets up, exactly as on a live screen, so a single-owner
         // resource passes from one to the other
+        expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
         expect(runs.activityScreenActivityEffect).toEqual(runs.liveUseEffect);
         expect(runs.activityScreenActivityEffect).toEqual([['setup:s:old'], [], ['cleanup:s:old', 'setup:s:new'], ['cleanup:s:new']]);
     });
@@ -578,6 +599,7 @@ describe('useScreenActivityEffect compared to useEffect', () => {
 
             // Then a live screen ran the effect for the value nobody ever saw
             expect(runs.liveUseEffect).toEqual([['setup:s:a'], [], ['cleanup:s:a', 'setup:s:b'], ['cleanup:s:b', 'setup:s:a'], [], ['cleanup:s:a']]);
+            expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
 
             // And the hook ran it once on the reveal, because React compares the dependencies render to render, so the
             // change and its undoing both count as one, not against the setup that is live

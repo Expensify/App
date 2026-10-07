@@ -93,6 +93,7 @@ describe('useScreenActivityEffect dependencies', () => {
         // Then the reveal treats NaN as unchanged and the two zeros as a change, which is what React does
         const expected = [['setup:s:a'], [], [], ['cleanup:s:a', 'setup:s:a'], ['cleanup:s:a', 'setup:s:a'], ['cleanup:s:a']];
         expect(runs.liveUseEffect).toEqual(expected);
+        expect(runs.liveScreenActivityEffect).toEqual(expected);
         expect(runs.activityScreenActivityEffect).toEqual(expected);
     });
 
@@ -111,6 +112,7 @@ describe('useScreenActivityEffect dependencies', () => {
             ['cleanup:first:a', 'cleanup:second:a', 'setup:first:a', 'setup:second:a'],
             ['cleanup:first:a', 'cleanup:second:a'],
         ]);
+        expect(runs.liveScreenActivityEffect).toEqual(runs.liveUseEffect);
 
         // And the covered screen ran no effect for them, so the reveal is one release and one setup per call site,
         // each call site swapping at its own place, because the body of a call site is what releases its old setup
@@ -133,6 +135,7 @@ describe('useScreenActivityEffect dependencies', () => {
         // Then the setup still holds the value of the render it ran for, because its body never ran again
         const expected = [['setup:s:first'], [], [], ['cleanup:s:first']];
         expect(runs.liveUseEffect).toEqual(expected);
+        expect(runs.liveScreenActivityEffect).toEqual(expected);
         expect(runs.activityScreenActivityEffect).toEqual(expected);
     });
 
@@ -173,6 +176,7 @@ describe('useScreenActivityEffect dependencies', () => {
         // Then the reveal does not seed a second time, because the dependency of the live setup is the state it wrote
         const expected = [['setup:s:a(0)', 'cleanup:s:a(0)', 'setup:s:a(1)'], [], [], ['cleanup:s:a(1)']];
         expect(runs.liveUseEffect).toEqual(expected);
+        expect(runs.liveScreenActivityEffect).toEqual(expected);
         expect(runs.activityScreenActivityEffect).toEqual(expected);
     });
 });
