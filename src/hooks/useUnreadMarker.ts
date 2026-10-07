@@ -1,7 +1,7 @@
-import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
+import {canReportActionTriggerUnreadMarker, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
-import {canReportActionTriggerUnreadMarker, getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

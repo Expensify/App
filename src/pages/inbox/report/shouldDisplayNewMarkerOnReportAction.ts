@@ -1,4 +1,4 @@
-import {getOriginalMessage, isActionOfType, isReportActionUnread, isReportPreviewAction, shouldHideNewMarker} from '@libs/ReportActionsUtils';
+import {canReportActionTriggerUnreadMarker, isReportActionUnread, isReportPreviewAction, shouldHideNewMarker} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -112,18 +112,6 @@ const shouldDisplayNewMarkerOnReportAction = ({
     return result;
 };
 
-/** Informational exports and reimbursements for other accounts must not create unread dividers. */
-function canReportActionTriggerUnreadMarker(reportAction: OnyxTypes.ReportAction, currentUserAccountID: number): boolean {
-    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-        const originalMessage = getOriginalMessage(reportAction);
-        const actionableForAccountIDs = originalMessage?.actionableForAccountIDs;
-        // Older reimbursement actions lack recipient metadata, so preserve their marker eligibility.
-        return !actionableForAccountIDs || actionableForAccountIDs.includes(currentUserAccountID);
-    }
-
-    return !isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION);
-}
-
 export default shouldDisplayNewMarkerOnReportAction;
 
 type GetUnreadMarkerReportActionParams = {
@@ -209,12 +197,12 @@ const getUnreadMarkerReportAction = ({
         : false;
 
     // The synthetic Concierge greeting is skipped in inverted chats; keep the non-inverted list's existing behavior.
-    const canActionTriggerMarker = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction =>
+    const isMarkerCandidate = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction =>
         !!action && (isReversed || action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID) && canReportActionTriggerUnreadMarker(action, currentUserAccountID);
 
     const eligibleIndexes: number[] = [];
     for (const [index, action] of visibleReportActions.entries()) {
-        if (canActionTriggerMarker(action)) {
+        if (isMarkerCandidate(action)) {
             eligibleIndexes.push(index);
         }
     }
@@ -261,4 +249,4 @@ const getUnreadMarkerReportAction = ({
     return [null, -1];
 };
 
-export {canReportActionTriggerUnreadMarker, getUnreadMarkerReportAction};
+export {getUnreadMarkerReportAction};
