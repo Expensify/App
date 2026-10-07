@@ -110,4 +110,20 @@ describe('DisablePage', () => {
         const account = await getOnyxValue(ONYXKEYS.ACCOUNT);
         expect(account?.errors).toBeUndefined();
     });
+
+    it('keeps the pending state when the page closes while a request is in flight', async () => {
+        // Given a DisableTwoFactorAuth request is still in flight while the page is open
+        await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, isLoading: true});
+        await waitForBatchedUpdates();
+        const {unmount} = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user closes the page before the request settles
+        unmount();
+        await waitForBatchedUpdates();
+
+        // Then isLoading stays true so the Disable button can't enqueue a duplicate request if the page is reopened
+        const account = await getOnyxValue(ONYXKEYS.ACCOUNT);
+        expect(account?.isLoading).toBe(true);
+    });
 });
