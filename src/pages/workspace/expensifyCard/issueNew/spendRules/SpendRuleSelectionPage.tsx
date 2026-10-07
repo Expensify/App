@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -134,7 +134,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.card.chooseRule')}
                     onBackButtonPress={goBack}
                 />

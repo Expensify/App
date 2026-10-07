@@ -1,7 +1,7 @@
 import BankAccountVerificationView from '@components/BankAccountVerificationView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import getBankIcon from '@components/Icon/BankIcons';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -163,11 +163,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 shouldShowOfflineIndicator={false}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
-                    <HeaderWithBackButton
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.goBack()}
-                        title={getHeaderButtonText()}
-                    />
+                    <HeaderWithBackButtonAndTitle title={getHeaderButtonText()} />
                     <BankAccountVerificationView
                         verificationState={verificationState}
                         onVerifiedButtonPress={handleVerifiedButtonPress}
