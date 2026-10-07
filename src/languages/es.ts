@@ -1008,6 +1008,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `La suscripción termina el ${date}`,
                 cta: 'Gestionar',
             },
+            emailDeliveryFailure: {title: 'No podemos enviarte notificaciones por correo electrónico', subtitle: 'Cuenta'},
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -5012,7 +5013,7 @@ ${amount} para ${merchant} - ${date}`,
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Desktop todos los días.',
                 createEntities: 'Crear entidades automáticamente',
                 createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Desktop si aún no existen.',
-                fxExpenseAccount: 'Cuenta de comisión por conversión de moneda',
+                fxExpenseAccount: 'Cuenta de comisión por conversión de divisa',
                 fxExpenseAccountDescription:
                     'Cuando tu empresa cubra el coste de conversión de divisa en un reembolso pagado en el extranjero, lo añadiremos a la exportación como una línea adicional codificada a esta cuenta.',
             },
@@ -5917,6 +5918,11 @@ ${amount} para ${merchant} - ${date}`,
                     }
                     return `${customAccountsCount} tarjetas con cuentas personalizadas`;
                 },
+            },
+            fxExpenseAccount: {
+                label: 'Cuenta de comisión por conversión de divisa de Rillet',
+                description:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en Rillet como un asiento contable.',
             },
         },
         dualEntry: {
@@ -7014,6 +7020,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 `Si eliminas a ${approver} de este espacio de trabajo, lo reemplazaremos en el flujo de aprobación por ${workspaceOwner}, el propietario del espacio de trabajo.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `No puedes eliminar a ${memberName} de este espacio de trabajo. Por favor, establece un nuevo reembolsador en Flujos de trabajo > Realizar o rastrear pagos y vuelve a intentarlo.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `No puedes eliminar a ${memberName} de este espacio de trabajo mientras tenga una Tarjeta Expensify. Desactiva su tarjeta en Espacio de trabajo > Tarjeta Expensify y vuelve a intentarlo.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Si eliminas a ${memberName} de este espacio de trabajo, lo reemplazaremos como el exportador preferido por ${workspaceOwner}, el propietario del espacio de trabajo.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -7564,6 +7572,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             approvalModeWarningTitle: '¿Cambiar modo de aprobación?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `¿Seguro que quieres cambiar el modo de aprobación de este espacio de trabajo? Obtén más información sobre los diferentes modos de flujo de trabajo con ${providerName} en nuestro <a href="${helpSiteURL}">sitio de ayuda</a>.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Cambiar el modo de aprobación borrará todos los flujos de aprobación existentes. Obtén más información sobre los diferentes modos de flujo de trabajo habilitados por ${providerName} en nuestro <a href="${helpSiteURL}">sitio de ayuda</a>.`,
             approvalModeWarningConfirm: 'Cambiar modo de aprobación',
             syncingModalTitle: 'Tu conexión se está sincronizando',
             syncingModalDescription: 'La primera conexión puede tardar un poco. Se te notificará de cualquier error.',
@@ -9856,7 +9866,6 @@ ${reportName}`,
         noCategory: 'Sin categoría',
         noMerchant: 'Sin comerciante',
         noTag: 'Sin etiqueta',
-        noVendor: 'Sin proveedor',
         expenseType: 'Tipo de gasto',
         receiptType: 'Tipo de recibo',
         receiptTypeValues: {
@@ -9898,6 +9907,8 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
         mergeReports: {title: 'Combinar informes', description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.'},
+        periodSoFar: ({period}: {period: string}) => `${period} hasta ahora`,
+        weekOf: ({date}: {date: string}) => `Semana del ${date}`,
         saveEdits: {
             title: 'Guardar cambios',
             prompt: ({name}: {name: string}) => `¿Actualizar los cambios en «${name}» o crear uno nuevo?`,
@@ -11998,12 +12009,45 @@ ${reportName}`,
             description: `<muted-text>Crea agentes personalizados para revisar, aprobar y asignar gastos según las reglas que configures. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>`,
         },
     },
+    emailIssuePage: {
+        title: 'Problema de correo electrónico',
+        intro: (login: string) => `Nuestro proveedor de correo electrónico ha pausado el envío a <strong>${login}</strong> debido a problemas de entrega. Para solucionar este problema:`,
+        confirmEmailTitle: 'Confirma tu dirección de correo electrónico',
+        confirmEmailDescription: (login: string) =>
+            `Asegúrate de que <strong>${login}</strong> esté escrito correctamente y sea un buzón real. Los alias como "expenses@domain.com" necesitan su propio buzón funcional para iniciar sesión en Expensify.`,
+        allowlistTitle: 'Incluye expensify.com en la lista de permitidos',
+        allowlistDescription: `Añade <strong>expensify.com</strong> a la lista de permitidos de tu cliente de correo electrónico. Es posible que tu equipo de TI deba ajustar la configuración del servidor siguiendo <a href="${CONST.SET_NOTIFICATION_LINK}">estas instrucciones</a>.`,
+        getHelpFromConcierge: 'Obtén ayuda de Concierge',
+        completedSteps: 'He completado los pasos anteriores',
+        errorTitle: 'Algo salió mal. Por favor, inténtalo de nuevo.',
+        errorPrompt: 'Parece que algo no ha funcionado. Por favor, inténtalo de nuevo. Si el problema persiste, ponte en contacto con Concierge.',
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renueva tu suscripción por un período de 12 meses, desde ${startDate} hasta ${endDate}.`,
         title: 'Renueva tu suscripción de Expensify',
         subtitle: 'Una cosa menos que hacer antes del nuevo año.',
         confirmTitle: 'Confirmar renovación',
         renew: 'Renovar',
+        incentivizedTitle: 'Renueva antes y consigue hasta 2 meses gratis',
+        incentivizedSubtitle: 'Solicita un descuento en tu suscripción anual.',
+        claim: 'Reclamación',
+        offer: {
+            heading: 'Elige tu descuento',
+            subtitle: 'Dos excelentes ofertas para que elijas:',
+            oneYear: 'Renueva por 1 año,\nconsigue 1 mes gratis',
+            twoYears: 'Renueva por 2 años, consigue 2 meses gratis',
+            bestDeal: 'Mejor oferta',
+            disclaimer: 'La oferta anterior se aplicará como un descuento del 9 % a tu suscripción anual. Los cargos por exceso no están incluidos.',
+            renewAndClaim: 'Renueva y obtén el descuento',
+            chooseOptionError: 'Elige una opción.',
+        },
+        adminTitle: 'Pídele a tu responsable de facturación que renueve antes de la fecha',
+        adminSubtitle: 'Pueden conseguir hasta 2 meses gratis con tu suscripción anual.',
+        adminCTA: 'Aviso',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}, ¿podrías renovar nuestra suscripción de Expensify antes de tiempo? Obtendríamos hasta 2 meses gratis. Reclámalo aquí: [página de suscripción](${subscriptionURL})`,
+        mobileRenewPrompt: 'Visita Expensify en tu navegador web para renovar antes.',
+        mobileClaimPrompt: 'Visita Expensify en tu navegador web para obtener tu descuento de renovación.',
     },
 };
 export default translations;

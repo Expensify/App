@@ -955,6 +955,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT_METHOD]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletExportMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_BILL_PAYMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletBillPaymentAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_FX_EXPENSE_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletFxExpenseAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletExpensifyCardSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
@@ -1126,6 +1128,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default,
+    [SCREENS.SETTINGS.SUBSCRIPTION.EARLY_RENEWAL]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/EarlyRenewalOfferPage').default,
+    [SCREENS.SETTINGS.EMAIL_ISSUE]: () => require<ReactComponentModule>('../../../../pages/settings/EmailIssue').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/CreateReportFieldsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/reports/InitialListValueSelector/DynamicReportFieldsInitialListValuePage').default,

@@ -1003,6 +1003,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `サブスクリプションは${date}に終了`,
                 cta: '管理',
             },
+            emailDeliveryFailure: {title: 'メール通知をお送りできません', subtitle: 'アカウント'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -5928,6 +5929,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     return `${customAccountsCount} 枚のカスタムアカウント付きカード`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Rillet 通貨換算手数料勘定',
+                description: '海外で行われた支払いについて、会社が為替換算コストを負担する場合、そのコストは仕訳として Rillet のこの勘定科目に計上します。',
+            },
         },
         dualEntry: {
             dualEntrySetup: '二重仕訳の設定',
@@ -7012,6 +7017,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 `${memberName} には未承認の経費精算書があります。ワークスペースから削除する前に、承認してもらうか、その精算書の管理を引き継いでください。`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `このワークスペースから${memberName}を削除することはできません。ワークフロー ＞ 支払いの作成または追跡 で新しい払い戻し担当者を設定してから、もう一度お試しください。`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `${memberName}さんはExpensify カードをお持ちの間、このワークスペースから削除できません。ワークスペース > Expensify カードでカードを無効化してから、もう一度お試しください。`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `このワークスペースから${memberName}さんを削除すると、優先エクスポーターはワークスペースのオーナーである${workspaceOwner}さんに置き換えられます。`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -8684,6 +8691,8 @@ ${reportName}`,
             approvalModeWarningTitle: '承認モードを変更しますか？',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `このワークスペースの承認モードを変更してもよろしいですか？${providerName} 対応の各ワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>で詳しくご覧いただけます。`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `承認モードを変更すると、既存のすべての承認ワークフローが消去されます。${providerName} 対応のさまざまなワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>をご覧ください。`,
             approvalModeWarningConfirm: '承認モードを変更',
             syncingModalTitle: '接続を同期しています',
             syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
@@ -9827,7 +9836,6 @@ ${reportName}`,
         noCategory: 'カテゴリなし',
         noMerchant: '店舗なし',
         noTag: 'タグなし',
-        noVendor: 'ベンダーなし',
         expenseType: '経費の種類',
         receiptType: '領収書の種類',
         receiptTypeValues: {
@@ -9885,6 +9893,8 @@ ${reportName}`,
             violationsBySubmitter: '申請者による違反',
         },
         mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
+        periodSoFar: ({period}: {period: string}) => `これまでの${period}`,
+        weekOf: ({date}: {date: string}) => `${date} の週`,
         saveEdits: {
             title: '編集を保存',
             prompt: ({name}: {name: string}) => `「${name}」を更新しますか、それとも新規作成しますか？`,
@@ -11512,12 +11522,45 @@ ${reportName}`,
             description: `<muted-text>設定したルールに基づいて経費を確認、承認、振り分けるカスタムエージェントを作成できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">さらに詳しく</a>。</muted-text>`,
         },
     },
+    emailIssuePage: {
+        title: 'メールの問題',
+        intro: (login: string) => `配信エラーのため、メールプロバイダーが<strong>${login}</strong> 宛ての送信を一時停止しました。この問題を解決するには：`,
+        confirmEmailTitle: 'メールアドレスを確認してください',
+        confirmEmailDescription: (login: string) =>
+            `<strong>${login}</strong> の綴りが正しく、実在する受信トレイであることを確認してください。「expenses@domain.com」のようなエイリアスも、Expensify にログインするには、それ専用の有効な受信トレイが必要です。`,
+        allowlistTitle: 'expensify.com を許可リストに追加する',
+        allowlistDescription: `メールクライアントの許可リストに<strong>expensify.com</strong>を追加してください。サーバー設定の調整が必要な場合は、IT 担当者に依頼して<a href="${CONST.SET_NOTIFICATION_LINK}">こちらの手順</a>に従ってもらってください。`,
+        getHelpFromConcierge: 'Concierge に問い合わせる',
+        completedSteps: '上記の手順が完了しました',
+        errorTitle: '問題が発生しました。もう一度お試しください。',
+        errorPrompt: '問題が発生したようです。もう一度お試しください。問題が解決しない場合は、Concierge までお問い合わせください。',
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} から ${endDate} までの12か月契約でサブスクリプションを更新します。`,
         title: 'Expensify のサブスクリプションを更新する',
         subtitle: '新年までにやることがひとつ減りました。',
         confirmTitle: '更新を確認',
         renew: '更新する',
+        incentivizedTitle: '早期更新で最長2か月無料になります',
+        incentivizedSubtitle: '年額サブスクリプションの割引を受け取ります。',
+        claim: '請求',
+        offer: {
+            heading: '割引を選択してください',
+            subtitle: 'お選びいただけるお得な特典が2つあります。',
+            oneYear: '1 年間の更新で、1 か月無料になります',
+            twoYears: '2年プランに更新して、2か月分を無料にする',
+            bestDeal: '最もお得',
+            disclaimer: '上記のオファーは、年間サブスクリプションに対して9％の割引として適用されます。超過料金は対象外です。',
+            renewAndClaim: '更新して割引を受け取る',
+            chooseOptionError: 'オプションを選択してください。',
+        },
+        adminTitle: '請求担当者に早期更新を依頼してください',
+        adminSubtitle: '年間サブスクリプションで最大2か月分を無料にできます。',
+        adminCTA: 'ナッジ',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail} さん、Expensify のサブスクリプションを早めに更新してもらえますか？最長2か月分が無料になります。こちらからお手続きください：[サブスクリプションページ](${subscriptionURL})`,
+        mobileRenewPrompt: '早期に更新するには、ウェブブラウザで Expensify にアクセスしてください。',
+        mobileClaimPrompt: '更新割引を受け取るには、Web ブラウザで Expensify にアクセスしてください。',
     },
 };
 export default translations;

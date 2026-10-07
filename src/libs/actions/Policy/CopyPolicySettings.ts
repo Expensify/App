@@ -404,6 +404,11 @@ function buildCopyPolicySettingsData(
         : {};
     const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
     const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
+    // Merchant rules are only visible while Rules is on, so copying them turns Rules on for the target,
+    // the same way the backend does. This keeps the target right while offline, before the server push lands.
+    const codingRulesPatch = isCodingRulesSelected ? {areRulesEnabled: true} : {};
+    const codingRulesPendingFields = isCodingRulesSelected ? {areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const codingRulesClearedPendingFields = isCodingRulesSelected ? {areRulesEnabled: null} : {};
 
     const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;
     const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
@@ -447,7 +452,8 @@ function buildCopyPolicySettingsData(
                     : {}),
                 ...(travelSettingsPatch ?? {}),
                 ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
-                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields},
+                ...codingRulesPatch,
+                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields, ...codingRulesPendingFields},
             },
         });
 
@@ -456,7 +462,7 @@ function buildCopyPolicySettingsData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields},
+                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields, ...codingRulesClearedPendingFields},
                 errors: null,
             },
         });
