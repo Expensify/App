@@ -1023,6 +1023,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `Subskrypcja kończy się ${date}`,
                 cta: 'Zarządzaj',
             },
+            emailDeliveryFailure: {title: 'Nie możemy wysyłać ci powiadomień e-mail', subtitle: 'Konto'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -3048,7 +3049,7 @@ ${amount} dla ${merchant} - ${date}`,
             `${memberName} jest już w procesie zatwierdzania, który przesyła do ${approverName}. Dodanie go tutaj przeniesie go do tego procesu.`,
         moveEveryoneToThisWorkflowTitle: 'Przenieś wszystkich do tego przepływu pracy',
         moveEveryoneToThisWorkflowPrompt:
-            'Za chwilę przeniesiesz wszystkich do tego schematu zatwierdzania. Spowoduje to usunięcie wszystkich innych schematów zatwierdzania i przeniesienie wszystkich do tego jednego. Tej czynności nie da się cofnąć.',
+            'Za chwilę przeniesiesz wszystkich do tego nowego schematu zatwierdzania. Zapisanie go spowoduje usunięcie wszystkich innych schematów zatwierdzania. Tej czynności nie da się cofnąć.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie udało się zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -4782,6 +4783,12 @@ ${amount} dla ${merchant} - ${date}`,
             settlementFrequency: 'Częstotliwość rozliczeń',
             setAsDefault: 'Ustaw jako domyślne miejsce pracy',
             defaultNote: `Paragony wysłane na ${CONST.EMAIL.RECEIPTS} pojawią się w tym obszarze roboczym.`,
+            archive: 'Zarchiwizuj przestrzeń roboczą',
+            archiveConfirmation: 'Czy na pewno chcesz zarchiwizować tę przestrzeń roboczą?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Czy na pewno chcesz zarchiwizować tę przestrzeń roboczą? Spowoduje to anulowanie przypisania wszystkich kart kredytowych użytkownikom i trwałe usunięcie nieprzesłanych wydatków z kart.',
+            archiveWithExpensifyCardsConfirmation:
+                'Czy na pewno chcesz zarchiwizować tę przestrzeń roboczą? Spowoduje to ustawienie wszystkich limitów Expensify Card na $0 i automatyczne odrzucanie nowych prób zakupu.',
             deleteWorkspaceTitle: (workspaceName: string) => `Usunąć ${workspaceName}?`,
             deleteConfirmation: 'Czy na pewno chcesz usunąć tę przestrzeń roboczą?',
             deleteWithCardsConfirmation: 'Na pewno chcesz usunąć tę przestrzeń roboczą? Spowoduje to usunięcie wszystkich źródeł kart i przypisanych kart.',
@@ -5074,7 +5081,7 @@ ${amount} dla ${merchant} - ${date}`,
                 autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z QuickBooks Desktop każdego dnia.',
                 createEntities: 'Automatycznie twórz jednostki',
                 createEntitiesDescription: 'Expensify automatycznie utworzy dostawców w QuickBooks Desktop, jeśli jeszcze nie istnieją.',
-                fxExpenseAccount: 'Konto opłat za przewalutowanie',
+                fxExpenseAccount: 'Konto opłaty za przewalutowanie',
                 fxExpenseAccountDescription:
                     'Gdy twoja firma pokrywa koszt przewalutowania przy zwrocie wypłacanym za granicą, dodamy go do eksportu jako osobną pozycję zaksięgowaną na to konto.',
             },
@@ -6010,6 +6017,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     }
                     return `${customAccountsCount} karty z niestandardowymi kontami`;
                 },
+            },
+            fxExpenseAccount: {
+                label: 'Konto opłaty za przewalutowanie Rillet',
+                description: 'Gdy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w Rillet jako zapis w dzienniku.',
             },
         },
         dualEntry: {
@@ -7104,6 +7115,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 `${memberName} ma zaległe raporty wydatków do zatwierdzenia. Poproś tę osobę o ich zatwierdzenie lub przejmij kontrolę nad jej raportami, zanim usuniesz ją z przestrzeni roboczej.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Nie możesz usunąć ${memberName} z tego przestrzeni roboczej. Ustaw nową osobę zwracającą wydatki w Workflows > Make or track payments, a następnie spróbuj ponownie.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Nie możesz usunąć użytkownika ${memberName} z tego workspace, dopóki ma Kartę Expensify. Dezaktywuj jego kartę w Workspace > Karta Expensify, a następnie spróbuj ponownie.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zastąpimy go jako preferowanego eksportującego użytkownikiem ${workspaceOwner}, właścicielem przestrzeni roboczej.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -8786,6 +8799,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             approvalModeWarningTitle: 'Zmienić tryb zatwierdzania?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Czy na pewno chcesz zmienić tryb zatwierdzania dla tego obszaru roboczego? Dowiedz się więcej o różnych trybach przepływu pracy obsługiwanych przez ${providerName} w naszej <a href="${helpSiteURL}">witrynie pomocy</a>.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Zmiana trybu zatwierdzania usunie wszystkie istniejące przepływy zatwierdzania. Dowiedz się więcej o różnych trybach przepływu pracy obsługiwanych przez ${providerName} w naszej <a href="${helpSiteURL}">pomocy</a>.`,
             approvalModeWarningConfirm: 'Zmień tryb zatwierdzania',
             syncingModalTitle: 'Twoje połączenie jest synchronizowane',
             syncingModalDescription: 'Pierwsze połączenie może chwilę potrwać. Zostaniesz powiadomiony o wszelkich błędach.',
@@ -9948,7 +9963,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noCategory: 'Brak kategorii',
         noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
-        noVendor: 'Brak dostawcy',
         expenseType: 'Typ wydatku',
         receiptType: 'Typ paragonu',
         receiptTypeValues: {
@@ -10010,7 +10024,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
         mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} wydatków`,
+        saveEdits: {
+            title: 'Zapisz zmiany',
+            prompt: ({name}: {name: string}) => `Zaktualizować zmiany w „${name}” czy utworzyć nowy?`,
+            createNew: 'Utwórz nowy',
+            updateExisting: 'Zaktualizuj istniejące',
+        },
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',
@@ -10374,6 +10393,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     distance: {
         addStop: 'Dodaj przystanek',
         address: 'Adres',
+        reuseRoute: 'Użyj ponownie trasy',
+        reusePriorRoute: 'Użyj poprzedniej trasy',
+        choosePreviousRoute: 'Wybierz jedną z poprzednich tras:',
+        findARoute: 'Znajdź trasę',
+        lastUsed: ({date}: {date: string}) => `Ostatnio użyto ${date}`,
+        end: 'Koniec',
         waypointDescription: {
             start: 'Start',
             stop: 'Zatrzymaj',
@@ -11643,12 +11668,45 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             description: `<muted-text>Twórz niestandardowych agentów do przeglądania, zatwierdzania i kierowania wydatków na podstawie ustalonych przez siebie zasad. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Dowiedz się więcej</a>.</muted-text>`,
         },
     },
+    emailIssuePage: {
+        title: 'Problem z e‑mailem',
+        intro: (login: string) => `Nasz dostawca poczty wstrzymał wysyłanie na adres <strong>${login}</strong> z powodu problemów z dostarczaniem. Aby rozwiązać ten problem:`,
+        confirmEmailTitle: 'Potwierdź swój adres e-mail',
+        confirmEmailDescription: (login: string) =>
+            `Upewnij się, że <strong>${login}</strong> jest wpisany poprawnie i że to prawdziwa skrzynka odbiorcza. Alias, taki jak „expenses@domain.com”, musi mieć własną działającą skrzynkę, żeby można było zalogować się do Expensify.`,
+        allowlistTitle: 'Dodaj expensify.com do listy dozwolonych',
+        allowlistDescription: `Dodaj <strong>expensify.com</strong> do listy dozwolonych w swoim kliencie e-mail. Możesz potrzebować pomocy działu IT, aby dostosować ustawienia serwera zgodnie z <a href="${CONST.SET_NOTIFICATION_LINK}">tymi wskazówkami</a>.`,
+        getHelpFromConcierge: 'Uzyskaj pomoc od Concierge',
+        completedSteps: 'Wykonałem/am powyższe kroki',
+        errorTitle: 'Coś poszło nie tak. Spróbuj ponownie.',
+        errorPrompt: 'Wygląda na to, że coś nie zadziałało. Spróbuj ponownie. Jeśli problem będzie się powtarzał, skontaktuj się z Concierge.',
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Odnów swoją subskrypcję na 12-miesięczny okres, od ${startDate} do ${endDate}.`,
         title: 'Odnów swoją subskrypcję Expensify',
         subtitle: 'O jedną rzecz mniej do zrobienia przed nowym rokiem.',
         confirmTitle: 'Potwierdź odnowienie',
         renew: 'Odnów',
+        incentivizedTitle: 'Odnów wcześniej i zyskaj nawet 2 miesiące za darmo',
+        incentivizedSubtitle: 'Odbierz zniżkę na swoją roczną subskrypcję.',
+        claim: 'Roszczenie',
+        offer: {
+            heading: 'Wybierz swój rabat',
+            subtitle: 'Dwie świetne oferty do wyboru:',
+            oneYear: 'Odnów na 1 rok,  \notrzymasz 1 miesiąc gratis',
+            twoYears: 'Odnów na 2 lata,\na dostaniesz 2 miesiące gratis',
+            bestDeal: 'Najlepsza oferta',
+            disclaimer: 'Powyższa oferta zostanie zastosowana jako 9% zniżka na twoją roczną subskrypcję. Opłaty za przekroczenie limitu nie są wliczone.',
+            renewAndClaim: 'Odnów i odbierz zniżkę',
+            chooseOptionError: 'Wybierz opcję.',
+        },
+        adminTitle: 'Poproś właściciela rozliczeń o wcześniejsze odnowienie',
+        adminSubtitle: 'Mogą dostać nawet 2 miesiące za darmo z twoją subskrypcją roczną.',
+        adminCTA: 'Szturchnięcie',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}, czy mógłbyś odnowić naszą subskrypcję Expensify wcześniej? Dostaniemy nawet do 2 miesięcy za darmo. Odbierz ją tutaj: [strona subskrypcji](${subscriptionURL})`,
+        mobileRenewPrompt: 'Odwiedź Expensify w przeglądarce internetowej, żeby odnowić wcześniej.',
+        mobileClaimPrompt: 'Odwiedź Expensify w swojej przeglądarce internetowej, aby odebrać zniżkę na odnowienie.',
     },
 };
 export default translations;

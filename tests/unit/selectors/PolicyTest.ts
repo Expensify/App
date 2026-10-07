@@ -62,6 +62,53 @@ describe('createOwnedPaidPoliciesCountsSelector', () => {
         expect(selector(policies)).toEqual({total: 2, active: 1});
     });
 
+    it('excludes archived policies from both counts', () => {
+        // Given an owned paid workspace and an archived owned paid workspace
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2026-09-24 11:29:34.000'},
+        };
+
+        // When the counts are selected
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+
+        // Then the archived workspace is ignored, so the remaining one is still counted as the user's last paid workspace
+        expect(selector(policies)).toEqual({total: 1, active: 1});
+    });
+
+    it('excludes archived policies but keeps pending deletion in the total count', () => {
+        // Given an active, a pending delete and an archived owned paid workspace
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            policy3: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2026-09-24 11:29:34.000'},
+        };
+
+        // When the counts are selected
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+
+        // Then only the archived workspace drops out of the total, while the pending delete one is still excluded from the active count
+        expect(selector(policies)).toEqual({total: 2, active: 1});
+    });
+
+    it('excludes a policy that is being archived optimistically', () => {
+        // Given an owned paid workspace and another one mid-archive, which `archivePolicy` marks with `archivedDate` and a pending UPDATE rather than a pending DELETE
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {
+                ...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                archivedDate: '2026-09-24 11:29:34.000',
+            },
+        };
+
+        // When the counts are selected
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+
+        // Then the workspace being archived is already excluded, so the pending UPDATE does not keep it in the counts
+        expect(selector(policies)).toEqual({total: 1, active: 1});
+    });
+
     it('returns zero active when all owned paid policies are pending deletion', () => {
         const policies: OnyxCollection<Policy> = {
             policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
