@@ -32,7 +32,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
     const [isCollectingDepositAccounts = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isCollectingDepositAccountsSelector});
 
     // A workspace collecting deposit accounts needs the bank details its country requires, which the wallet setup does not ask for.
-    const getReimbursedPressed = () => {
+    const onGetReimbursedPressed = () => {
         if (isCollectingDepositAccounts) {
             Navigation.navigate(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute());
             return;
