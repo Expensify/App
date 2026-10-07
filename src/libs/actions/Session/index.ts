@@ -1200,6 +1200,13 @@ function clearAccountMessages() {
     });
 }
 
+/**
+ * Clears only the account errors, leaving isLoading untouched so an in-flight request keeps its pending state
+ */
+function clearAccountErrors() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errors: null});
+}
+
 function setAccountError(error: string) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(error)});
 }
@@ -1903,6 +1910,7 @@ export {
     unlinkLogin,
     clearSignInData,
     clearAccountMessages,
+    clearAccountErrors,
     setAccountError,
     authenticatePusher,
     invalidateCredentials,
