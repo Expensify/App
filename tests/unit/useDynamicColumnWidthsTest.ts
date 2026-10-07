@@ -15,8 +15,11 @@ jest.mock('@libs/measureTextWidth', () => ({
 type Row = TableData & {value: string};
 
 const SORT_ICON_WIDTH = 12 + 4; // variables.iconSizeExtraSmall + styles.ml1.marginLeft
-const ROW_CHROME_WIDTH = (20 + 12) * 2; // (styles.mh5.marginHorizontal + styles.ph3.paddingHorizontal) * 2
-const GAP_WIDTH = 12; // styles.gap3.gap
+// (values.pageGutter + styles.ph3.paddingHorizontal) * 2, at the narrow page gutter the tests render at.
+const ROW_CHROME_WIDTH = (12 + 12) * 2;
+
+// styles.gap3.gap
+const GAP_WIDTH = 12;
 
 /** Three free-text columns, each with one cell, so the only thing driving their width is the declared measurement. */
 const columns: Array<TableColumn<string, Row>> = ['first', 'second', 'third'].map((key) => ({
