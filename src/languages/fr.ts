@@ -9104,6 +9104,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noBankAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
             noPaymentMethodsFound: 'Aucun mode de règlement trouvé',
             noPaymentMethodsFoundDescription: 'Veuillez ajouter des modes de règlement dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
+            accountsDescription: 'Vos comptes Dynamics 365 Business Central seront importés en tant que catégories.',
+            dimensionsImportAsTags: 'Toutes les dimensions Dynamics 365 Business Central sont importées en tant que tags',
+            customers: 'Clients',
+            projects: 'Projets',
+            projectsAndCustomersCannotBeEnabled: 'Les projets et les clients ne peuvent pas être activés',
+            projectsAndCustomersCannotBeEnabledDescription: 'Les projets et les clients peuvent uniquement être activés si l’option d’exportation est « Facture d’achat ».',
+            enableNewCategoriesDescription: 'Les nouveaux comptes Dynamics 365 Business Central seront disponibles en tant que catégories.',
         },
     },
     getAssistancePage: {
