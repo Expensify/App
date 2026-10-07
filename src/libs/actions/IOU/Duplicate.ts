@@ -67,7 +67,7 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllTransactions, getCurrentUserAccountIDFromSession, getIOUAndChatReportForIOUAction} from '.';
+import {getCurrentUserAccountIDFromSession, getIOUAndChatReportForIOUAction} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
@@ -1464,6 +1464,7 @@ type BulkDuplicateReportsParams = {
     dateFnsLocale: DateFnsLocale | undefined;
     selectedReports: SelectedReports[];
     allReports: NonNullable<OnyxCollection<OnyxTypes.Report>>;
+    allTransactions: OnyxCollection<OnyxTypes.Transaction>;
     searchData: Record<string, unknown> | undefined;
     allPolicies: OnyxCollection<OnyxTypes.Policy>;
     allPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
@@ -1494,6 +1495,7 @@ async function bulkDuplicateReports({
     dateFnsLocale,
     selectedReports: selectedReportsParam,
     allReports,
+    allTransactions,
     searchData,
     allPolicies,
     allPolicyCategories,
@@ -1519,15 +1521,14 @@ async function bulkDuplicateReports({
     rules,
     isVendorMatchingBetaEnabled,
 }: BulkDuplicateReportsParams) {
-    const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
 
-    const allTransactionSources = Object.values(allTransactionsMap ?? {}) as OnyxTypes.Transaction[];
+    const allTransactionSources = Object.values(allTransactions ?? {}) as OnyxTypes.Transaction[];
     if (searchData) {
         for (const [key, value] of Object.entries(searchData)) {
             if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && value && typeof value === 'object' && 'transactionID' in value) {
                 const txn = value as OnyxTypes.Transaction;
-                if (!allTransactionsMap?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`]) {
+                if (!allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`]) {
                     allTransactionSources.push(txn);
                 }
             }

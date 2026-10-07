@@ -46,6 +46,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -63,6 +64,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             allReports: allReports ?? {},
             searchData,
             allPolicies,
+            allTransactions,
             allPolicyCategories,
             allPolicyTags,
             defaultExpensePolicy,
