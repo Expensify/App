@@ -1,10 +1,10 @@
 import {animatedSuperWideRHPWidth, animatedWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRHPWindowDimensions from '@hooks/useRHPWindowDimensions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
@@ -40,7 +40,7 @@ function useWideModalStackScreenOptions() {
     // https://github.com/Expensify/App/issues/63747
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth} = useRHPWindowDimensions();
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
 

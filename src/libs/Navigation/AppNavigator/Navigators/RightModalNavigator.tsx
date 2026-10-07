@@ -3,9 +3,9 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRHPWindowDimensions from '@hooks/useRHPWindowDimensions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
@@ -156,7 +156,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         isSuperWideRHPFocused,
     } = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useRHPWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
     const {sidePanelOffset} = useSidePanelState();

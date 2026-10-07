@@ -1,4 +1,5 @@
 import useOnyx from '@hooks/useOnyx';
+import useRHPWindowDimensions from '@hooks/useRHPWindowDimensions';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
@@ -98,6 +99,7 @@ function setExpandedRHPProgress(superWideRHPRouteKeys: string[], wideRHPRouteKey
 }
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
+    const {windowWidth} = useRHPWindowDimensions();
     // We have a separate containers for allWideRHPRouteKeys and wideRHPRouteKeys because we may have two or more RHPs on the stack.
     // For convenience and proper overlay logic wideRHPRouteKeys will show only the keys existing in the last RHP.
     const [allWideRHPRouteKeys, setAllWideRHPRouteKeys] = useState<string[]>([]);
@@ -260,30 +262,12 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     const getReportRHPWidthHint = (reportID: string): RHPWidthHint | undefined => reportRHPWidthHints.get(reportID);
 
-    /**
-     * Effect that handles responsive RHP width calculation when window dimensions change.
-     * Listens for dimension changes and recalculates the optimal RHP width accordingly.
-     */
+    // Safe-area changes can resize the native navigator without a Dimensions change event.
     useEffect(() => {
-        const handleDimensionChange = () => {
-            const windowWidth = Dimensions.get('window').width;
-            const newReceiptPaneRHPWidth = calculateReceiptPaneRHPWidth(windowWidth);
-            const newSuperWideRHPWidth = calculateSuperWideRHPWidth(windowWidth);
-            const newWideRHPWidth = calculateWideRHPWidth(windowWidth);
-            animatedReceiptPaneRHPWidth.setValue(newReceiptPaneRHPWidth);
-            animatedWideRHPWidth.setValue(newWideRHPWidth);
-            animatedSuperWideRHPWidth.setValue(newSuperWideRHPWidth);
-        };
-
-        // Set initial value
-        handleDimensionChange();
-
-        // Add event listener for dimension changes
-        const subscription = Dimensions.addEventListener('change', handleDimensionChange);
-
-        // Cleanup subscription on unmount
-        return () => subscription?.remove();
-    }, []);
+        animatedReceiptPaneRHPWidth.setValue(calculateReceiptPaneRHPWidth(windowWidth));
+        animatedWideRHPWidth.setValue(calculateWideRHPWidth(windowWidth));
+        animatedSuperWideRHPWidth.setValue(calculateSuperWideRHPWidth(windowWidth));
+    }, [windowWidth]);
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
