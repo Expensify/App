@@ -7,13 +7,13 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
+import useActiveServer from '@hooks/useActiveServer';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addNewCompanyCardsFeed} from '@libs/actions/CompanyCards';
-import {getActiveServer} from '@libs/ApiUtils';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -130,11 +130,12 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
     const companyCardBankIcons = useCompanyCardBankIcons();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
+    const {activeServer} = useActiveServer();
     const [localTypeSelected, setLocalTypeSelected] = useState<CardTypeSelection>();
     const typeSelected = localTypeSelected ?? addNewCard?.data?.feedType;
     const [isError, setIsError] = useState(false);
-    const shouldShowMockFeed = CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || activeServer !== CONST.SERVER.PRODUCTION;
+    // Gate on the API the requests actually reach, since a dev build talks to production by default.
+    const shouldShowMockFeed = activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
     const data = getAvailableCompanyCardTypes({
         translate,
         typeSelected,
@@ -148,7 +149,7 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
 
     const submit = useCallback(() => {
-        if (!typeSelected) {
+        if (!typeSelected || (typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK && !shouldShowMockFeed)) {
             setIsError(true);
         } else if (typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK) {
             addNewCompanyCardsFeed(policyID, workspaceAccountID, typeSelected, {}, cardFeeds, lastSelectedFeed);
@@ -163,7 +164,7 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
                 isEditing: false,
             });
         }
-    }, [bankName, cardFeeds, isNewCardTypeSelected, isOtherBankSelected, lastSelectedFeed, policyID, typeSelected, workspaceAccountID]);
+    }, [bankName, cardFeeds, isNewCardTypeSelected, isOtherBankSelected, lastSelectedFeed, policyID, shouldShowMockFeed, typeSelected, workspaceAccountID]);
 
     const handleBackButtonPress = () => {
         if (isOtherBankSelected) {
