@@ -18,6 +18,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilter, RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -348,75 +349,6 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     availableMembers.sort((a, b) => localeCompare(a.displayName ?? a.email, b.displayName ?? b.email));
 
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
-}
-
-/**
- * The workflows a workspace actually enforces. Only the advanced approval modes run more than one workflow, so under
- * every other mode the default workflow is the only one in force and the rest are inert. They can still be derived
- * from `employeeList`, because downgrading a workspace leaves each member's `submitsTo` in place.
- */
-function getEnforcedApprovalWorkflows(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
-    if (
-        isMultipleApproversBetaEnabled ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
-        isHRAdvancedMode(policy)
-    ) {
-        return approvalWorkflows;
-    }
-
-    return approvalWorkflows.filter((workflow) => workflow.isDefault);
-}
-
-/**
- * The enforced workflows seen from a member's side. A member left on an inert workflow by a downgrade submits to the
- * default approver like everyone else, so they move onto the default workflow rather than ending up on no workflow.
- */
-function getEnforcedApprovalWorkflowsForMembers(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
-    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
-    if (enforcedApprovalWorkflows.length === approvalWorkflows.length) {
-        return enforcedApprovalWorkflows;
-    }
-
-    const membersOfInertWorkflows = approvalWorkflows.filter((workflow) => !workflow.isDefault).flatMap((workflow) => workflow.members);
-
-    return enforcedApprovalWorkflows.map((workflow) => (workflow.isDefault ? {...workflow, members: [...workflow.members, ...membersOfInertWorkflows]} : workflow));
-}
-
-/**
- * Map every workflow member's email to the first approver of the workflow they belong to.
- * A member who approves their own expenses maps to themselves, matching what the Workflows tab shows.
- */
-function getFirstApproverByMemberEmail(approvalWorkflows: ApprovalWorkflow[]): Record<string, Approver> {
-    const firstApproverByMemberEmail: Record<string, Approver> = {};
-
-    for (const workflow of approvalWorkflows) {
-        const firstApprover = workflow.approvers.at(0);
-
-        if (!firstApprover?.email) {
-            continue;
-        }
-
-        for (const member of workflow.members) {
-            if (!member.email) {
-                continue;
-            }
-
-            firstApproverByMemberEmail[member.email] = firstApprover;
-        }
-    }
-
-    return firstApproverByMemberEmail;
-}
-
-/** Whether any approval workflow in the workspace has more than one approver */
-function hasMultiLevelApprovalWorkflow(approvalWorkflows: ApprovalWorkflow[]): boolean {
-    return approvalWorkflows.some((workflow) => workflow.approvers.length > 1);
-}
-
-/** Label for a member's first approver: "1st approver" when their workflow has more than one level, "Approver" otherwise. */
-function getFirstApproverLabel(hasMultipleApprovers: boolean, translate: LocaleContextProps['translate'], toLocaleOrdinalWithWords: LocaleContextProps['toLocaleOrdinalWithWords']): string {
-    return hasMultipleApprovers ? `${toLocaleOrdinalWithWords(1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
@@ -1608,6 +1540,13 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
 }
 
 /**
+ * Whether approval workflow rules route the reports of the given policy.
+ */
+function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
+    return !isEmptyObject(getApprovalWorkflowRulesForPolicy(rulesCollection, policyID));
+}
+
+/**
  * Map every submitter found in the rules to their workflow's first approver.
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
@@ -1912,7 +1851,15 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
     const params = {policy, personalDetails: {}, localeCompare: () => 0, currentUserLogin, rules};
     const {approvalWorkflows} = isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
 
-    return getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled).some((workflow) => workflow.approvers.some((approver) => !!approver.isNotWorkspaceMember));
+    // Same approval-mode filter as the Approvals tab: only the advanced modes show workflows beyond the default one
+    const showsAllWorkflows =
+        isMultipleApproversBetaEnabled ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
+        isHRAdvancedMode(policy);
+    const shownApprovalWorkflows = showsAllWorkflows ? approvalWorkflows : approvalWorkflows.filter((workflow) => workflow.isDefault);
+
+    return shownApprovalWorkflows.some((workflow) => workflow.approvers.some((approver) => !!approver.isNotWorkspaceMember));
 }
 
 /** The error for an approver who is no longer on the workspace. The default workflow can't be deleted, so its copy only asks for a new approver. */
@@ -1933,18 +1880,14 @@ export {
     extractSubmitterEmails,
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
-    getFirstApproverByMemberEmail,
-    getEnforcedApprovalWorkflows,
-    getEnforcedApprovalWorkflowsForMembers,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
+    hasApprovalWorkflowRules,
     hasApprovalWorkflowWithNonMemberApprover,
-    hasMultiLevelApprovalWorkflow,
-    getFirstApproverLabel,
     hasRuleBasedDefaultWorkflow,
     includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
@@ -1959,4 +1902,4 @@ export {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 };
-export type {ApprovalWorkflowRulesDiff, PolicyConversionResult};
+export type {ApprovalWorkflowRulesDiff};
