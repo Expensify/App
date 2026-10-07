@@ -18,7 +18,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {createBanksInCountrySelector} from '@selectors/Policy';
+import {createIsInternationalCountrySelector} from '@selectors/Policy';
 import React, {useEffect} from 'react';
 
 import type CustomSubPageProps from './types';
@@ -45,9 +45,9 @@ function CollectDepositAccount() {
 
     const formValues = draftValues ?? {};
     const bankCountry = formValues[INPUT_IDS.BANK_COUNTRY] ?? '';
-    const [banksInCountry = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createBanksInCountrySelector(bankCountry)});
+    const [isInternationalCountry = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createIsInternationalCountrySelector(bankCountry)});
 
-    const fieldsType = banksInCountry && hasLocalBankAccountFields(bankCountry) ? CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL : CONST.BANK_ACCOUNT.FIELDS_TYPE.INTERNATIONAL;
+    const fieldsType = !isInternationalCountry && hasLocalBankAccountFields(bankCountry) ? CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL : CONST.BANK_ACCOUNT.FIELDS_TYPE.INTERNATIONAL;
     const fieldsMap = getBankAccountFields(bankCountry, formValues[INPUT_IDS.BANK_CURRENCY] ?? '', fieldsType);
 
     const goBack = () => {
@@ -74,7 +74,8 @@ function CollectDepositAccount() {
         nextPage();
     };
 
-    // A country with no field mapping renders nothing to fill in, so later steps would submit an empty account.
+    // The drafted currency can stop being one the country collects, if a policy change flips the fields from
+    // international to local. There is then nothing to fill in, so later steps would submit an empty account.
     // Success is exempt because the draft is cleared once the account exists.
     const shouldReturnToCountryStep = isEmptyObject(fieldsMap) && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR && pageIndex !== STEP_INDEXES.SUCCESS;
 

@@ -76,14 +76,14 @@ const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): 
     Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy));
 
 /**
- * Whether a collecting workspace banks in this country, which decides local vs international details.
- * Both conditions must hold on the same policy - a country only counts if that same policy collects.
+ * Whether any collecting workspace would have to pay this country from abroad, which means wire details.
+ * One account has to serve every collecting workspace, so a single one banking elsewhere settles it.
  */
-const createBanksInCountrySelector =
+const createIsInternationalCountrySelector =
     (countryISO: string) =>
     (policies: OnyxCollection<Policy>): boolean =>
         Object.values(policies ?? {}).some(
-            (policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy) && countryISO in (policy.reimbursement?.countries ?? {}),
+            (policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy) && !(countryISO in (policy.reimbursement?.countries ?? {})),
         );
 
 /**
@@ -609,6 +609,6 @@ export {
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
     isCollectingDepositAccountsSelector,
-    createBanksInCountrySelector,
+    createIsInternationalCountrySelector,
 };
 export type {ReusablePolicyConnectionName};

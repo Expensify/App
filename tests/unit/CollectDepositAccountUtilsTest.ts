@@ -40,6 +40,15 @@ describe('CollectDepositAccountUtils', () => {
             expect(fields.accountNumber.label).toBe('Account Number');
             expect(fields.branchID.label).toBe('Transit Number');
         });
+
+        it('returns nothing for a currency the country does not collect locally', () => {
+            // Given a GB account drafted in USD, which can happen while the fields are international and the currency
+            // picker is unrestricted, before a policy change flips them to local
+            const fields = getBankAccountFields('GB', 'USD', LOCAL);
+
+            // Then no inputs are returned, which is what sends the flow back to the country step
+            expect(fields).toEqual({});
+        });
     });
 
     describe('hasLocalBankAccountFields', () => {
