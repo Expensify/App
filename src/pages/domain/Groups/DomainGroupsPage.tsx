@@ -5,6 +5,7 @@ import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
 import DomainGroupsTable from '@components/Tables/DomainGroupsTable';
 
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -45,6 +46,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {pageGutter} = useLayoutSpacing();
     const {isOffline} = useNetwork();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
@@ -114,7 +116,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
                 </HeaderCentralPane>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{createGroupHeaderButton}</View>}
 
                 <DomainGroupsTable
                     domainAccountID={domainAccountID}

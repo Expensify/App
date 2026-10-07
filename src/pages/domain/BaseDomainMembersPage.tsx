@@ -4,6 +4,7 @@ import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,6 +63,7 @@ function BaseDomainMembersPage({
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     return (
@@ -79,7 +81,7 @@ function BaseDomainMembersPage({
                 >
                     {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderCentralPane>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={pageGutter}>{headerContent}</View>}
                 <DomainMembersTable
                     domainAccountID={domainAccountID}
                     members={members}

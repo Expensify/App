@@ -10,6 +10,7 @@ import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -49,6 +50,7 @@ function WorkspaceReportFieldsPage({
     },
 }: WorkspaceReportFieldsPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding} = useLayoutSpacing();
     const styles = useThemeStyles();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate} = useLocalize();
@@ -124,7 +126,7 @@ function WorkspaceReportFieldsPage({
                             isCentralPane
                             renderTitle={renderReportTitle}
                             renderSubtitle={renderReportSubtitle}
-                            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                            containerStyles={cardPadding}
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue ?? policy?.pendingAction}

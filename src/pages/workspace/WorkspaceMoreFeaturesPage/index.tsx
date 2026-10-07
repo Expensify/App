@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -136,6 +137,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`, {
@@ -171,7 +173,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     //
     // Use the active vendor source so a stale GA connection cannot bypass the beta for another
     // integration. When no source is active, keep the connected integration's discovery row.
-    // QBO (R1), Sage Intacct (R2), Rillet, and DualEntry are GA. Xero and Business Central require the vendorMatching beta.
+    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, and Campfire are GA. Business Central and Certinia require the vendorMatching beta.
     // Certinia is deliberately not in the discovery list. It reaches the row only through
     // getActiveVendorMatchingIntegration's strict FFA gate, so PSA connections never see it.
     const vendorMatchingConnection =
@@ -182,13 +184,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.XERO,
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
+            CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE,
             CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
     const isGenerallyAvailableVendorConnection =
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.XERO ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.RILLET ||
-        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
     const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
@@ -286,7 +291,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
     };
 
     const promptDisableTravelViaInvoicing = async () => {
@@ -312,7 +317,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
     };
 
     const promptDisableSmartLimitForWorkflows = async () => {

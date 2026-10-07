@@ -12,6 +12,7 @@ import Text from '@components/Text';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -66,6 +67,7 @@ function WorkspaceTaxesPage({
 }: WorkspaceTaxesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.taxes');
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {pageGutter} = useLayoutSpacing();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -406,7 +408,7 @@ function WorkspaceTaxesPage({
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderCentralPane>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={pageGutter}>{headerButtons}</View>}
                 {(!hasVisibleTaxes || isLoading) && headerContent}
                 {isLoading && (
                     <ActivityIndicator

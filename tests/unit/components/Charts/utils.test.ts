@@ -1,12 +1,14 @@
+import BAR_INNER_PADDING, {BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
-    calculateMinDomainPadding,
     edgeLabelsFit,
     edgeMaxLabelWidth,
     effectiveHeight,
     effectiveWidth,
     findSliceAtPosition,
+    getBarLayout,
     getAdditionalOffset,
+    getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -635,37 +637,6 @@ describe('rotatedLabelYOffset', () => {
     });
 });
 
-describe('calculateMinDomainPadding', () => {
-    it('returns 0 for a single data point', () => {
-        expect(calculateMinDomainPadding(400, 1)).toBe(0);
-    });
-
-    it('returns 0 for zero data points', () => {
-        expect(calculateMinDomainPadding(400, 0)).toBe(0);
-    });
-
-    it('returns half the chart width for 2 points with no inner padding (line chart)', () => {
-        // minPaddingRatio = 1 / (2 * (1 + 0)) = 0.5 → ceil(100 * 0.5) = 50
-        expect(calculateMinDomainPadding(100, 2, 0)).toBe(50);
-    });
-
-    it('returns correct padding for multiple equally spaced points', () => {
-        // 5 points, no innerPadding: ratio = 1 / (2 * 4) = 0.125 → ceil(400 * 0.125) = 50
-        expect(calculateMinDomainPadding(400, 5, 0)).toBe(50);
-    });
-
-    it('uses innerPadding=0 as default', () => {
-        expect(calculateMinDomainPadding(400, 5)).toBe(calculateMinDomainPadding(400, 5, 0));
-    });
-
-    it('produces a smaller padding with inner padding (bar chart)', () => {
-        // innerPadding reduces the effective spacing between bars
-        const withoutPadding = calculateMinDomainPadding(400, 5, 0);
-        const withPadding = calculateMinDomainPadding(400, 5, 0.3);
-        expect(withPadding).toBeLessThan(withoutPadding);
-    });
-});
-
 // Bar chart domain padding constants, mirrored from BarChartContent.
 const BAR_PAD_TOP = 32;
 const BAR_PAD_BOTTOM = 1;
@@ -709,5 +680,96 @@ describe('getNiceYAxisTicks', () => {
 
     it('rounds intermediate ticks to eliminate floating-point noise', () => {
         expect(getNiceYAxisTicks(0, -1.11, 5)).toEqual([-1.2, -1, -0.8, -0.6, -0.4, -0.2, 0]);
+    });
+});
+
+describe('getBarLayout', () => {
+    it('keeps a 16px gap and fills the rest of the plot with bars', () => {
+        // Given a 300px plot with 4 bars, wide enough for the full gap
+        // When computing the bar layout
+        const layout = getBarLayout(300, 4);
+
+        // Then the gaps take 3 * 16px and the bars split the remaining width evenly
+        expect(layout.gap).toBe(16);
+        expect(layout.barWidth).toBe((300 - 3 * 16) / 4);
+    });
+
+    it('puts the outer bars flush with the plot edges', () => {
+        // Given a 300px plot with 4 bars
+        const plotWidth = 300;
+        const {barWidth, xDomain} = getBarLayout(plotWidth, 4);
+
+        // When mapping the x-domain onto the plot width
+        const pxPerUnit = plotWidth / (xDomain[1] - xDomain[0]);
+
+        // Then the first bar starts at the left edge and the last one ends at the right edge
+        expect((0 - xDomain[0]) * pxPerUnit - barWidth / 2).toBeCloseTo(0, 5);
+        expect((3 - xDomain[0]) * pxPerUnit + barWidth / 2).toBeCloseTo(plotWidth, 5);
+    });
+
+    it('caps the bar width and centers the bars when there are only a few', () => {
+        // Given 2 bars in a plot wide enough that, uncapped, each would be well over BAR_MAX_WIDTH
+        const plotWidth = 4 * BAR_MAX_WIDTH;
+
+        // When computing the bar layout
+        const {barWidth, gap, edgeSpace, xDomain} = getBarLayout(plotWidth, 2);
+
+        // Then the bars stop at BAR_MAX_WIDTH, keep the 16px gap, and the leftover width is split evenly on both sides
+        expect(barWidth).toBe(BAR_MAX_WIDTH);
+        expect(gap).toBe(16);
+        expect(edgeSpace).toBe((plotWidth - 2 * BAR_MAX_WIDTH - 16) / 2 + BAR_MAX_WIDTH / 2);
+        const pxPerUnit = plotWidth / (xDomain[1] - xDomain[0]);
+        expect((0 - xDomain[0]) * pxPerUnit).toBeCloseTo(edgeSpace, 5);
+        expect((xDomain[1] - 1) * pxPerUnit).toBeCloseTo(edgeSpace, 5);
+    });
+
+    it('shrinks the gap when there are too many bars for it', () => {
+        // Given 50 bars in a 300px plot, where 16px gaps alone would be wider than the plot
+        // When computing the bar layout
+        const layout = getBarLayout(300, 50);
+
+        // Then the gap takes the same share of each slot as BAR_INNER_PADDING, so bars keep a positive width
+        expect(layout.gap).toBeCloseTo((300 / 50) * BAR_INNER_PADDING, 5);
+        expect(layout.barWidth).toBeGreaterThan(0);
+    });
+
+    it('does not count a gap when there is only one bar', () => {
+        // Given one bar, which has no neighbor to keep a gap from
+        // When computing the bar layout
+        const layout = getBarLayout(300, 1);
+
+        // Then the gap is 0, so the bar stays centered in the plot instead of being offset by a gap that isn't drawn
+        expect(layout.gap).toBe(0);
+        expect(layout.xDomain[0]).toBeCloseTo(-layout.xDomain[1], 5);
+    });
+
+    it('keeps every bar inside the plot before the plot is measured', () => {
+        // Given a plot width of 0 (chart not yet laid out)
+        // When computing the bar layout
+        // Then barWidth is 0 so victory-native sizes the bars itself, and the domain gives each bar a slot centered on its x value
+        expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, 2.5]});
+    });
+});
+
+describe('getDomainPaddingForEdgeSpace', () => {
+    it('returns the padding victory-native shrinks back to the requested edge space', () => {
+        // Given a 200px plot and the space wanted before the first and after the last point
+        const plotWidth = 200;
+        const edgeSpace = {left: 40, right: 10};
+
+        // When converting it to domain padding
+        const padding = getDomainPaddingForEdgeSpace(edgeSpace, plotWidth);
+
+        // Then victory-native's scaling (padding * plotWidth / (plotWidth + both paddings)) lands back on the requested space
+        const scale = plotWidth / (plotWidth + padding.left + padding.right);
+        expect(padding.left * scale).toBeCloseTo(edgeSpace.left, 5);
+        expect(padding.right * scale).toBeCloseTo(edgeSpace.right, 5);
+    });
+
+    it('returns the edge space unchanged when it leaves no room for the points', () => {
+        // Given edge space that covers the whole plot (or a plot that is not measured yet)
+        // When converting it to domain padding
+        // Then it is returned as is instead of dividing by zero or going negative
+        expect(getDomainPaddingForEdgeSpace({left: 30, right: 0}, 0)).toEqual({left: 30, right: 0});
     });
 });

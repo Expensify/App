@@ -55,6 +55,7 @@ export type {default as UpdateRilletAutoSyncParams} from './UpdateRilletAutoSync
 export type {default as UpdateRilletAccountingMethodParams} from './UpdateRilletAccountingMethodParams';
 export type {default as UpdateRilletSyncReimbursedReportsParams} from './UpdateRilletSyncReimbursedReportsParams';
 export type {default as UpdateRilletBillPaymentAccountParams} from './UpdateRilletBillPaymentAccountParams';
+export type {default as UpdateRilletFxExpenseAccountParams} from './UpdateRilletFxExpenseAccountParams';
 export type {default as UpdateRilletSyncExpensifyCardSettlementsParams} from './UpdateRilletSyncExpensifyCardSettlementsParams';
 export type {default as UpdateRilletSettlementsAccountParams} from './UpdateRilletSettlementsAccountParams';
 export type {default as UpdateRilletSyncTravelBillingSettlementsParams} from './UpdateRilletSyncTravelBillingSettlementsParams';
@@ -246,6 +247,7 @@ export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams
 export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';
 export type {default as TransferWalletBalanceParams} from './TransferWalletBalanceParams';
 export type {default as DeleteWorkspaceParams} from './DeleteWorkspaceParams';
+export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
@@ -591,6 +593,7 @@ export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './Chan
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
+export type {default as SetPolicyWorkArrangementParams} from './SetPolicyWorkArrangementParams';
 export type {default as SetEmployeeWorkArrangementParams} from './SetEmployeeWorkArrangementParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
@@ -611,11 +614,13 @@ export type {default as ExportSearchWithTemplateParams} from './ExportSearchWith
 export type {default as QueueExportSearchItemsToCSVParams} from './QueueExportSearchItemsToCSVParams';
 export type {default as QueueExportSearchWithTemplateParams} from './QueueExportSearchWithTemplateParams';
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
+export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';
 export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
+export type {default as AcceptEarlyRenewalOfferParams} from './AcceptEarlyRenewalOfferParams';
 export type {default as DomainParams} from './DomainParams';
 export type {default as OpenDomainPageParams} from './OpenDomainPageParams';
 export type {default as RequestDomainAdminshipParams} from './RequestDomainAdminshipParams';

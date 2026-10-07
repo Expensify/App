@@ -17,6 +17,7 @@ import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -36,6 +37,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -67,6 +69,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {pageGutter} = useLayoutSpacing();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
@@ -267,6 +270,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
 
+    const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
+
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -292,8 +297,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
                 isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
+                canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
+                onRenameName: (newName: string) => renameCategoryInline(policyData, value.name, newName, isVendorMatchingBetaEnabled),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
             });
 
@@ -305,6 +312,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         shouldShowApproverColumn,
         categoryApproverEmails,
         canWriteCategories,
+        isSelectionModeActive,
+        policyData,
         policy,
         policyCategories,
         navigateToCategory,
@@ -312,6 +321,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         policyId,
         employeePersonalDetails,
         formatPhoneNumber,
+        isVendorMatchingBetaEnabled,
     ]);
 
     const navigateToCategoriesSettings = useCallback(() => {
@@ -683,7 +693,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderCentralPane>
-                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
 
                 {(!hasVisibleCategories || isLoading) && headerContent}
 
