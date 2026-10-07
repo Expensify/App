@@ -203,7 +203,7 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => {
-    const {getColumnsToShow} = jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
+    const {getColumnsToShow, getTransactionsByReportID} = jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
     const actualCONSTForSearchUIUtils = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
     return {
         shouldShowDeleteOption: () => false,
@@ -214,6 +214,8 @@ jest.mock('@libs/SearchUIUtils', () => {
         getValidGroupBy: jest.fn(jest.requireActual<{getValidGroupBy: (groupBy?: string) => string | undefined}>('@libs/SearchUIUtils').getValidGroupBy),
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
         getColumnsToShow,
+        // The bulk pay check reads each report's expenses from the search snapshot, so keep the real lookup
+        getTransactionsByReportID,
         insertColumnBeforeTotalAmount: (columns: string[], columnId: string) => {
             if (columns.includes(columnId)) {
                 return;
