@@ -36,6 +36,7 @@ import {getSearchParamFromUrl} from '@libs/Url';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import {clearStaleExportDownloads} from '@userActions/Export';
+import {setUpPoliciesAndNavigate} from '@userActions/Policy/CreateWorkspaceFlow';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -170,6 +171,11 @@ function AuthScreensInitHandler() {
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
+            Log.info('[AuthScreensInitHandler] Signing out for a transition to another user', false, {
+                isLinkNamingDelegator: SessionUtils.isLoggingInAsDelegate(currentUrl),
+                isDelegateSession: Session.isDelegateSession(session),
+                isSupportalTransition,
+            });
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();
@@ -220,7 +226,7 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate({
+        setUpPoliciesAndNavigate({
             session,
             introSelected,
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,

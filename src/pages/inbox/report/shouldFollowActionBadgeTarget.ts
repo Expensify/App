@@ -1,7 +1,4 @@
 type ShouldFollowActionBadgeTargetParams = {
-    /** Whether the app is running in production, where this auto-scroll behavior is gated off */
-    isProduction: boolean;
-
     /** The report action the badge currently targets (the oldest preview still requiring action) */
     actionTargetReportActionID: string | undefined;
 
@@ -24,13 +21,12 @@ type ShouldFollowActionBadgeTargetParams = {
  * upward/backward (e.g. when older actions are loaded in via pagination).
  */
 function shouldFollowActionBadgeTarget({
-    isProduction,
     actionTargetReportActionID,
     prevActionTargetReportActionID,
     actionBadgeTargetIndex,
     prevActionBadgeTargetIndex,
 }: ShouldFollowActionBadgeTargetParams): boolean {
-    if (isProduction || !actionTargetReportActionID || !prevActionTargetReportActionID || actionTargetReportActionID === prevActionTargetReportActionID || actionBadgeTargetIndex < 0) {
+    if (!actionTargetReportActionID || !prevActionTargetReportActionID || actionTargetReportActionID === prevActionTargetReportActionID || actionBadgeTargetIndex < 0) {
         return false;
     }
     return prevActionBadgeTargetIndex >= 0 && actionBadgeTargetIndex > prevActionBadgeTargetIndex;

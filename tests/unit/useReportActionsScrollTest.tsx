@@ -419,7 +419,7 @@ describe('useReportActionsScroll', () => {
                 result.current.scrollToActionBadgeTarget();
             });
 
-            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
     });
 

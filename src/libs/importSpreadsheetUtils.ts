@@ -59,6 +59,7 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
         case 'payrollid':
         case 'payrolls':
         case 'payrol':
+        case 'payrollcode':
         case 'customfield2':
             attribute = CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2;
             break;
@@ -149,6 +150,8 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
 
         case 'updatedtag':
         case 'newtag':
+        case 'label':
+        case 'labels':
             attribute = CONST.CSV_IMPORT_COLUMNS.TAG;
             break;
 
@@ -189,9 +192,30 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
 
         case 'itemisedreceiptrequirement':
         case 'itemizedreceiptrequirement':
+        case 'itemisedreceiptsrequired':
+        case 'itemizedreceiptsrequired':
         case 'requireitemizedreceiptsover':
         case 'maxamountnoitemizedreceipt':
             attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_ITEMIZED_RECEIPT;
+            break;
+
+        case 'comments':
+        case 'requiredescription':
+            attribute = CONST.CSV_IMPORT_COLUMNS.ARE_COMMENTS_REQUIRED;
+            break;
+
+        case 'commenthint':
+        case 'descriptionhint':
+            attribute = CONST.CSV_IMPORT_COLUMNS.COMMENT_HINT;
+            break;
+
+        case 'maxexpenseamount':
+        case 'flagamountsover':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_EXPENSE_AMOUNT;
+            break;
+
+        case 'expenselimittype':
+            attribute = CONST.CSV_IMPORT_COLUMNS.EXPENSE_LIMIT_TYPE;
             break;
 
         default:
@@ -216,6 +240,10 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             }
             if (attribute === CONST.CSV_IMPORT_COLUMNS.MERCHANT && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT)) {
                 return CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT;
+            }
+            // Payroll headers map to the members-import CUSTOM_FIELD_2 role, but the categories import offers PAYROLL_CODE instead.
+            if (attribute === CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2 && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.PAYROLL_CODE)) {
+                return CONST.CSV_IMPORT_COLUMNS.PAYROLL_CODE;
             }
             // Only tag-like headers remap from NAME to TAG, so headers like "Name" or "Customer" stay
             // unmapped in contexts without a NAME role instead of silently becoming a tag column.
