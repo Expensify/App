@@ -5654,6 +5654,7 @@ const staticStyles = (theme: ThemeColors) =>
         reportHistoryConnector: {
             width: 1,
             height: 12,
+            marginVertical: 8,
             marginLeft: variables.iconSizeXLarge / 2,
             backgroundColor: theme.border,
         },
