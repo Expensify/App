@@ -1,6 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,6 +36,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
 
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
@@ -53,15 +55,12 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                 shouldEnableMaxHeight
                 testID="RulesRandomReportAuditPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
                     onSubmit={({auditRatePercentage}) => {
-                        setPolicyAutomaticApprovalRate(policyID, auditRatePercentage, policy?.autoApproval?.auditRate);
+                        setPolicyAutomaticApprovalRate(policyID, auditRatePercentage, policy?.autoApproval?.auditRate, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

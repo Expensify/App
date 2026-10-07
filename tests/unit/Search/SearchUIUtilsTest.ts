@@ -50,6 +50,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../../utils/TestHelper';
@@ -3783,6 +3784,96 @@ describe('SearchUIUtils', () => {
                     },
                 ]),
             );
+        });
+
+        it('should not carry the group limit into the category drill-down query', () => {
+            // Given a category-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:category limit:10');
+            if (!parsedQuery) {
+                throw new Error('Failed to parse category-grouped search query');
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the category sections are built
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByCategory.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: {...parsedQuery},
+                }),
+                SearchUIUtils.isTransactionCategoryGroupListItemType,
+            );
+
+            // Then the per-group query drops the limit along with the grouping, so expanding a group
+            // shows every transaction in it instead of capping them at the group limit
+            const categorySection = sections.at(0);
+            if (!categorySection) {
+                throw new Error('Expected a category group section');
+            }
+            expect(categorySection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(categorySection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+        });
+
+        // Every date granularity drills down through the same `buildDateRangeGroupQuery` builder, so they are
+        // covered together: a regression that reintroduced `limit` in that one builder would break all five.
+        it.each([
+            [CONST.SEARCH.GROUP_BY.DAY, searchResultsGroupByDay, SearchUIUtils.isTransactionDayGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.WEEK, searchResultsGroupByWeek, SearchUIUtils.isTransactionWeekGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.MONTH, searchResultsGroupByMonth, SearchUIUtils.isTransactionMonthGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.QUARTER, searchResultsGroupByQuarter, SearchUIUtils.isTransactionQuarterGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.YEAR, searchResultsGroupByYear, SearchUIUtils.isTransactionYearGroupListItemType],
+        ] as const)('should not carry the group limit into the %s drill-down query', (groupBy, groupSearchResults, isExpectedGroupType) => {
+            // Given a date-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON(`type:expense group-by:${groupBy} limit:10`);
+            if (!parsedQuery) {
+                throw new Error(`Failed to parse ${groupBy}-grouped search query`);
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the date-range sections are built
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: groupSearchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                groupBy,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+                queryJSON: {...parsedQuery},
+            });
+
+            // Then the per-group query drops the limit along with the grouping, so expanding a date group
+            // shows every transaction in the range instead of capping them at the group limit
+            const dateSection = sections.at(0);
+            if (!dateSection || !isExpectedGroupType(dateSection)) {
+                throw new Error(`Expected a ${groupBy} group section`);
+            }
+            expect(dateSection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(dateSection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(dateSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+
+            // And the date-range filter that defines the group is still present, so dropping `limit` did not
+            // widen the drill-down beyond the bar the user clicked
+            expect(dateSection.transactionsQueryJSON?.inputQuery).toContain('date>=');
+            expect(dateSection.transactionsQueryJSON?.inputQuery).toContain('date<=');
         });
 
         it('should match a day group using created when modifiedCreated is empty', () => {
@@ -9254,6 +9345,52 @@ describe('SearchUIUtils', () => {
             expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
         });
 
+        it('should hide Violations by submitter from Spend menus once the Insights page replaces those entries', () => {
+            // Given a Control admin who still gets Violations by submitter from the Spend Insights section
+            const mockPolicies = {
+                policy1: {
+                    id: policyID,
+                    name: 'Control Workspace',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    areRulesEnabled: true,
+                    areCategoriesEnabled: true,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const menuKeysBeforeInsightsPage = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+            expect(menuKeysBeforeInsightsPage).toContain(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+
+            // When Spend menus hide the entries the Insights page takes over
+            const menuSections = SearchUIUtils.omitInsightsPageMenuItems(sections);
+            const menuKeys = menuSections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+            // Then Violations by submitter leaves the Spend menu, while the suggested search definition remains
+            expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+            expect(menuKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            expect(menuSections.find((section) => section.translationPath === 'search.tabs.insights')).toBeUndefined();
+            expect(SearchUIUtils.getSuggestedSearches(adminAccountID)[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER].key).toBe(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+        });
+
         it('should not show Needs approval for a Submit workspace member who is not an approver', () => {
             const mockPolicies = {
                 policy1: {
@@ -11196,6 +11333,53 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
+        test('Should show the vendor column on Search only when picked, and in the report view when an expense has a vendor assigned', () => {
+            const transactionWithoutVendor = createRandomTransaction(1);
+            const transactionWithVendor = {...createRandomTransaction(2), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
+            const pickedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE})).not.toContain(
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+            );
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: pickedColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE})).toContain(
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+            );
+            expect(
+                SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithoutVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE, isExpenseReportView: true}),
+            ).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+            expect(
+                SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE, isExpenseReportView: true}),
+            ).toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+        });
+
+        test('Should drop the vendor column from the saved list and the report view when the vendor feature is unavailable', () => {
+            // Given a saved Search column list that includes Vendor, and an expense that still carries a vendor
+            const transactionWithVendor = {...createRandomTransaction(3), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
+            const pickedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+            // When no workspace has the vendor feature anymore
+            const searchColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: [transactionWithVendor],
+                visibleColumns: pickedColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                isVendorColumnAvailable: false,
+            });
+            const reportColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: [transactionWithVendor],
+                visibleColumns: [],
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                isExpenseReportView: true,
+                isVendorColumnAvailable: false,
+            });
+
+            // Then the Search table keeps the other saved columns but not Vendor, and the report view does not auto-show it either
+            expect(searchColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+            expect(searchColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(reportColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+        });
+
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
                 CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -11912,6 +12096,33 @@ describe('SearchUIUtils', () => {
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+        });
+
+        test('Should honor an explicit column selection that matches the default set', () => {
+            // Given a transaction that has a description, which the data-driven fallback would turn the Description column on for
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const descriptionTransaction = {
+                ...baseTransaction,
+                transactionID: 'description',
+                merchant: '',
+                modifiedMerchant: '',
+                comment: {comment: 'Business meeting lunch'},
+                category: '',
+                tag: '',
+                managerID: submitterAccountID,
+            };
+
+            // When the user has explicitly saved a selection that happens to be element-for-element the default set,
+            // which is what unchecking Description leaves behind
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [descriptionTransaction],
+                visibleColumns: Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE),
+            });
+
+            // Then the selection wins and Description stays hidden instead of being re-added from the data
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
         });
 
         test('Should respect isExpenseReportView flag and not show From/To columns', () => {
@@ -12644,10 +12855,10 @@ describe('SearchUIUtils', () => {
             backTo,
             currentUserLogin,
             currentUserAccountID,
-            betas: undefined,
             personalDetails,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: true,
+            delegateAccountID: undefined,
             IOUTransactionID: threadReportID,
         };
 
@@ -12667,7 +12878,6 @@ describe('SearchUIUtils', () => {
                 conciergeChat: undefined,
                 currentUserLogin,
                 currentUserAccountID,
-                betas: undefined,
                 iouReport: report1,
                 iouReportAction: reportAction1,
                 transaction: undefined,
@@ -12676,6 +12886,51 @@ describe('SearchUIUtils', () => {
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
             });
+        });
+
+        test("Should not create a transaction thread in the current user's self DM for another user's unreported expense", () => {
+            // Given an unreported expense owned by another user
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1},
+            };
+
+            // When the current user opens the expense from Search
+            const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction});
+
+            // Then no optimistic data, transaction thread, or navigation is created
+            expect(targetReportID).toBeUndefined();
+            expect(setOptimisticDataForTransactionThreadPreview).not.toHaveBeenCalled();
+            expect(createTransactionThreadReport).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        test("Should create a transaction thread in the current user's self DM for their own unreported expense", () => {
+            // Given an unreported expense owned by the current user
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID},
+            };
+
+            // When the current user opens the expense from Search
+            const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the transaction thread is created using the unreported transaction data
+            expect(targetReportID).toBe(threadReportID);
+            expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    currentUserAccountID,
+                    iouReport: undefined,
+                    iouReportAction: unreportedTransaction.reportAction,
+                    transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                }),
+            );
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
@@ -12755,7 +13010,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -12767,7 +13022,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -12777,9 +13032,26 @@ describe('SearchUIUtils', () => {
             expect(parentReportAction).toBeTruthy();
         });
 
+        it('Should set delegateAccountID on the optimistic parent report action', async () => {
+            // Given a transaction opened from Search by a copilot
+            const transactionListItem = getTransactionListItem(0);
+            const delegateAccountID = 99;
+
+            // When the optimistic parent report action is built
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal, delegateAccountID);
+
+            await waitForBatchedUpdates();
+
+            // Then it carries the copilot so the "on behalf of" label renders before the API responds
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
+            const parentReportAction = transactionListItem?.reportAction?.reportActionID && parentReport?.[transactionListItem?.reportAction?.reportActionID];
+
+            expect(parentReportAction).toMatchObject({delegateAccountID});
+        });
+
         it('Should create an optimistic transaction if the hasTransaction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -12790,7 +13062,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, '456');
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, undefined, '456');
 
             await waitForBatchedUpdates();
 
@@ -12998,7 +13270,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -13184,7 +13456,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {
@@ -14070,6 +14342,12 @@ describe('SearchUIUtils', () => {
                     translateLocal,
                 ),
             ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+    });
+
+    describe('vendor column label', () => {
+        test('Should label the vendor column as Vendor', () => {
+            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe('common.vendor');
         });
     });
 

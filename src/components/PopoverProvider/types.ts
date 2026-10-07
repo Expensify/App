@@ -1,8 +1,8 @@
-import type {ReactNode, RefObject} from 'react';
+import type {ComponentRef, ReactNode, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text, View} from 'react-native';
 
-type AnchorType = View | HTMLDivElement | Text | null;
+type AnchorType = ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof Text> | null;
 
 type PopoverContextProps = {
     children: ReactNode;

@@ -257,7 +257,11 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
  * @returns Sunday, July 9, 2023
  */
 function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
+    const date = new Date(datetime);
+    if (!isValid(date)) {
+        return '';
+    }
+    return format(date, CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
 }
 
 /**
@@ -323,11 +327,9 @@ function startCurrentDateUpdater() {
 }
 
 function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
-    const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (timezone.automatic && timezone.selected !== currentTimezone) {
-        return {...timezone, selected: currentTimezone as SelectedTimezone, automatic: timezone.automatic ?? false};
-    }
-    return {selected: timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic: timezone.automatic ?? false};
+    const automatic = timezone.automatic ?? false;
+    const currentTimezone = automatic ? formatToSupportedTimezone({selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone}).selected : undefined;
+    return {selected: currentTimezone ?? timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic};
 }
 
 /**
@@ -869,6 +871,9 @@ function getFormattedDateRange(translate: LocalizedTranslate, dateFnsLocale: Dat
  * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
  */
 function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date1: Date, date2: Date): string {
+    if (!isValid(date1) || !isValid(date2)) {
+        return '';
+    }
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
         return format(date1, 'EEEE, MMM d', {locale: dateFnsLocale});
@@ -892,6 +897,9 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFns
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date: Date): string {
+    if (!isValid(date)) {
+        return '';
+    }
     if (isThisYear(date)) {
         return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
     }
@@ -905,6 +913,9 @@ function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale:
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
 function getFormattedTransportDateAndHour(date: Date, dateFnsLocale: DateFnsLocale | undefined): {date: string; hour: string} {
+    if (!isValid(date)) {
+        return {date: '', hour: ''};
+    }
     if (isThisYear(date)) {
         return {
             date: format(date, 'EEEE, MMM d', {locale: dateFnsLocale}),
@@ -957,6 +968,9 @@ function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: Date
  * Returns a formatted layover duration in format "2h 30m".
  */
 function getFormattedDurationBetweenDates(translateParam: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
+    if (!isValid(start) || !isValid(end)) {
+        return;
+    }
     const {days, hours, minutes} = intervalToDuration({start, end});
 
     if (days && days > 0) {
@@ -1235,14 +1249,22 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
     // This ensures the dates are created in the current/local timezone, not UTC
     const quarterStart = set(new Date(), {year, month: startMonth - 1, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
     const quarterEnd = set(new Date(), {year, month: endMonth, date: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
-    return `Q${quarter} ${year} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
+    // `QQQ` is the locale's own abbreviated quarter, such as `Q1` in English, `T1` in Spanish, `K1` in Dutch,
+    // `I kw.` in Polish and `第一季` in Chinese. `Intl.DateTimeFormat` has no quarter option at all, so date-fns is
+    // the only way to localize this. The quarter still comes before the year by hand, because neither library has
+    // a canned pattern pairing the two.
+    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
 }
 
 /**
  * Returns a compact quarter label, e.g. "Q3 ’25".
  */
-function getShortFormattedQuarterForSearch(year: number, quarter: number): string {
-    return `Q${quarter} ${format(new Date(year, 0, 1), '’yy')}`;
+function getShortFormattedQuarterForSearch(year: number, quarter: number, dateFnsLocale: DateFnsLocale | undefined): string {
+    // Same reasoning as `getFormattedQuarterForSearch`. The quarter label has to come from `QQQ` rather than a
+    // hand-built `Q${quarter}`, because every locale names quarters differently and `Intl.DateTimeFormat` has no
+    // quarter option to fall back on.
+    const quarterStart = set(new Date(), {year, month: (quarter - 1) * 3, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+    return format(quarterStart, `QQQ ’yy`, {locale: dateFnsLocale});
 }
 
 function getNextNthOfMonth(nth: number) {

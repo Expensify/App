@@ -323,7 +323,7 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME, anchorTransactionID: ROW_1.transactionID}));
         });
 
         it('navigates to SEARCH_REPORT with backTo Home on narrow layout (carousel available on both layouts)', async () => {
@@ -337,7 +337,7 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME, anchorTransactionID: ROW_1.transactionID}));
         });
 
         it('opens the tapped expense in a multi-expense report by navigating to its transaction thread', async () => {
@@ -366,7 +366,7 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: ROUTES.HOME, anchorTransactionID: ROW_1.transactionID}));
         });
 
         it('opens (creating if needed) the transaction thread for an expense in a one-transaction report, not the parent report', async () => {
@@ -390,7 +390,7 @@ describe('RecentlyAddedSection', () => {
 
             expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'created_thread_report', backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'created_thread_report', backTo: ROUTES.HOME, anchorTransactionID: ROW_1.transactionID}));
         });
 
         it('seeds the prev/next carousel with the IDs and a lazy descriptor for every recently added expense', async () => {
@@ -429,6 +429,45 @@ describe('RecentlyAddedSection', () => {
                 [ROW_1.transactionID]: expect.objectContaining({reportID: ROW_1.reportID, transaction: expect.objectContaining({transactionID: ROW_1.transactionID})}),
                 [ROW_2.transactionID]: expect.objectContaining({reportID: ROW_2.reportID, transaction: expect.objectContaining({transactionID: ROW_2.transactionID})}),
             });
+        });
+
+        it('seeds a pending-delete expense without a descriptor so the carousel follows its live transaction', async () => {
+            // Given an expense deleted offline, which stays in the list with strikethrough
+            setWideLayout();
+            const pendingDeleteRow = {...ROW_1, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [pendingDeleteRow, ROW_2], isAwaitingFirstResult: false});
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user opens the expense next to it
+            fireEvent.press(screen.getByTestId('recentlyAddedRow-t2'));
+            await waitForBatchedUpdatesWithAct();
+
+            const seededIDs = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            const seededDescriptors = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            // Then the deleted expense keeps its ID, so the carousel can bring it back if the delete rolls back,
+            // but gets no descriptor, so nothing keeps it in the arrows once the delete syncs and its live copy is gone
+            expect(seededIDs).toEqual([ROW_1.transactionID, ROW_2.transactionID]);
+            expect(seededDescriptors).not.toHaveProperty(ROW_1.transactionID);
+            expect(seededDescriptors).toHaveProperty(ROW_2.transactionID);
         });
 
         it('resolves only the tapped expense and creates no threads for siblings (lazy carousel)', async () => {

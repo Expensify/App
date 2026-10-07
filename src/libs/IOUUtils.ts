@@ -15,7 +15,8 @@ import {SafeString} from 'expensify-common';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isMoneyRequestAction} from './ReportActionTypeGuards';
 import {canAddTransaction, generateReportID, getChatByParticipants, isArchivedReport, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
@@ -54,18 +55,23 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
     }
 }
 
-function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
-    let navigationIOUType: IOUType = iouType;
+/**
+ * `request` and `send` are deprecated OldDot aliases of `submit` and `pay`. This resolves an
+ * alias to the type NewDot actually renders before building a route with it.
+ */
+function getNonDeprecatedIOUType(iouType: IOUType): IOUType {
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
-            navigationIOUType = CONST.IOU.TYPE.SUBMIT;
-            break;
+            return CONST.IOU.TYPE.SUBMIT;
         case CONST.IOU.TYPE.SEND:
-            navigationIOUType = CONST.IOU.TYPE.PAY;
-            break;
+            return CONST.IOU.TYPE.PAY;
         default:
-            break;
+            return iouType;
     }
+}
+
+function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+    const navigationIOUType = getNonDeprecatedIOUType(iouType);
 
     // The base is explicit because the picker can be opened from a create tab, the Inbox or Search drop zone.
     Navigation.navigate(
@@ -669,6 +675,7 @@ export {
     calculateSplitAmountFromPercentage,
     calculateSplitPercentagesFromAmounts,
     getExistingTransactionID,
+    getNonDeprecatedIOUType,
     insertTagIntoTransactionTagsString,
     isMovingTransactionFromTrackExpense,
     shouldUseTransactionDraft,

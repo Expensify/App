@@ -13,6 +13,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +49,7 @@ type SearchBulkActionsButtonProps = {
 
 function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
@@ -185,12 +187,11 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // The server count is the only source for how many items "select all" covers, so keep the button loading until it
     // arrives. Offline or on error it never will, so fall back to the count of the items we do have selected.
     const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof relevantAllMatchingCount !== 'number' && !isOffline && !hasSearchErrors;
-    // Excluded items only map onto the server count for expenses. For expense reports an excluded transaction doesn't
-    // necessarily drop its whole report from the results, so the report count is used as-is there.
     let selectedAllMatchingItemsCount: number;
     if (isExpenseReportType) {
-        // Show the matching-report total once it lands. Before then, or while offline, fall back to the loaded-page report count.
-        selectedAllMatchingItemsCount = typeof allMatchingReportsCount === 'number' ? allMatchingReportsCount : selectedItemsCount;
+        // Show the matching-report total minus excluded reports once it lands. Before then, or while offline, fall back
+        // to the loaded-page selected report count.
+        selectedAllMatchingItemsCount = typeof allMatchingReportsCount === 'number' ? Math.max(allMatchingReportsCount - excludedItemsCount, 0) : selectedItemsCount;
     } else if (typeof allMatchingItemsCount !== 'number') {
         selectedAllMatchingItemsCount = selectedItemsCount;
     } else {
@@ -252,7 +253,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 isSplitButton={false}
-                                style={[styles.w100, styles.ph5]}
+                                style={[styles.w100, pageGutter]}
                                 anchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,

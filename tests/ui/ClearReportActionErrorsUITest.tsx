@@ -22,6 +22,7 @@ import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -34,6 +35,8 @@ const REPORT_ID = '12345';
 const REPORT_ACTION_ID = '99999';
 const CHILD_REPORT_ID = '67890';
 const CHILD_REPORT_ACTION_ID = '88888';
+const SPLIT_CHILD_TRANSACTION_ID = '77777';
+const SPLIT_CONTAINER_TRANSACTION_ID = '66666';
 
 const DEFAULT_ERROR_TIMESTAMP = Date.now() * 1000;
 const DEFAULT_ERRORS = {[DEFAULT_ERROR_TIMESTAMP]: 'Something went wrong. Please try again.'};
@@ -148,7 +151,7 @@ describe('ClearReportActionErrors UI', () => {
             fireEvent.press(dismissButton);
 
             // Then clearAllRelatedReportActionErrors should be called with correct arguments
-            expect(spy).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID);
+            expect(spy).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID, false);
             spy.mockRestore();
         });
 
@@ -238,6 +241,58 @@ describe('ClearReportActionErrors UI', () => {
 
             expect(parentReportActions?.[REPORT_ACTION_ID]?.errors).toBeUndefined();
             expect(childReportActions?.[CHILD_REPORT_ACTION_ID]?.errors).toEqual({});
+        });
+    });
+
+    describe('Split container error propagation', () => {
+        it('should clear both the split child and the hidden container errors when dismissed', async () => {
+            // Given a money request action for a split child whose transaction points back to the hidden split
+            // container, with an error on each of them
+            const action = {
+                ...getFakeReportAction(Number(REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, errors: DEFAULT_ERRORS}),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: SPLIT_CHILD_TRANSACTION_ID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            } as ReportAction;
+            const report = createMockReport({reportID: REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                    [REPORT_ACTION_ID]: action,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${SPLIT_CHILD_TRANSACTION_ID}`, {
+                    transactionID: SPLIT_CHILD_TRANSACTION_ID,
+                    reportID: REPORT_ID,
+                    amount: 1000,
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                    comment: {originalTransactionID: SPLIT_CONTAINER_TRANSACTION_ID},
+                    errors: {[DEFAULT_ERROR_TIMESTAMP]: 'child error'},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${SPLIT_CONTAINER_TRANSACTION_ID}`, {
+                    transactionID: SPLIT_CONTAINER_TRANSACTION_ID,
+                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                    errors: {[DEFAULT_ERROR_TIMESTAMP]: 'container error'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderReportActionItem(action, report);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user dismisses the error
+            fireEvent.press(screen.getByLabelText('Dismiss'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the child's error and the error on its hidden container are both cleared
+            const childTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${SPLIT_CHILD_TRANSACTION_ID}`);
+            const containerTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${SPLIT_CONTAINER_TRANSACTION_ID}`);
+
+            expect(childTransaction?.errors).toBeFalsy();
+            expect(containerTransaction?.errors).toBeFalsy();
         });
     });
 

@@ -1,3 +1,4 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -6,6 +7,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+
+import useDomainsTabBadge from '@pages/home/ForYouSection/useDomainsTabBadge';
 
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -39,8 +42,10 @@ type WorkspaceListLayoutProps = {
 
 function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
+    const {pageGutterRight, pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
+    const {badgeText: domainsBadgeText, hasDomainErrors} = useDomainsTabBadge();
     const navigationOptions = [
         {
             key: 'workspaces',
@@ -55,6 +60,9 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
             icon: icons.Globe,
             route: ROUTES.DOMAINS_LIST.getRoute(),
             screenName: SCREENS.DOMAINS_LIST,
+            badgeText: domainsBadgeText,
+            isBadgeCondensed: true,
+            isBadgeError: hasDomainErrors,
         },
     ];
 
@@ -69,8 +77,9 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     };
 
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
+        <View style={[styles.flexRow, styles.justifyContentBetween, pageGutterRight, styles.pt1, styles.pb2]}>
             <TabSelectorBase
+                contentContainerStyles={pageGutter}
                 tabs={navigationOptions}
                 activeTabKey={activeTabKey}
                 onTabPress={onTabPress}

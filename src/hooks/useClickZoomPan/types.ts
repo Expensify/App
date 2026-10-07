@@ -1,11 +1,11 @@
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {RefObject, SyntheticEvent} from 'react';
+import type {ComponentRef, RefObject, SyntheticEvent} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 
 type UseClickZoomPanParams = {
     /** The scrollable element the zoomed content overflows into */
-    scrollableRef: RefObject<(View & HTMLDivElement) | null>;
+    scrollableRef: RefObject<(ComponentRef<typeof View> & HTMLDivElement) | null>;
 
     /** Size of the visible scroll area, used to center the clicked point after zooming */
     containerSize: Dimensions;
