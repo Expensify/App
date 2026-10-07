@@ -40,7 +40,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
-    const transaction = useTransactionSelector(transactionID, (t) => t);
+    const transaction = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const merchantValue = merchantState?.merchant ?? '';
     const displayMerchantValue = isUntypedPlaceholderMerchant(merchantState?.isMerchantSet, merchantValue) ? '' : merchantValue;

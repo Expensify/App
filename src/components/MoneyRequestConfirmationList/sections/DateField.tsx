@@ -65,7 +65,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     const personalPolicy = usePersonalPolicy();
 
     const dateState = useTransactionSelector(transactionID, dateStateSelector);
-    const transaction = useTransactionSelector(transactionID, (t) => t);
+    const transaction = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const iouCreated = dateState?.iouCreated ?? '';
     const createdMissing = dateState?.isMissing ?? true;
