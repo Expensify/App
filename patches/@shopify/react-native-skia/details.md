@@ -217,6 +217,6 @@
     the existing size-changed path, which queues a fresh frame for the new layer.
     ```
 
-- Upstream PR/issue:
+- Upstream PR/issue: https://github.com/wcandillon/react-native-skia/issues/2135
 - E/App issue: https://github.com/Expensify/App/issues/101396
-- PR introducing patch:
+- PR introducing patch: https://github.com/Expensify/App/pull/103398
