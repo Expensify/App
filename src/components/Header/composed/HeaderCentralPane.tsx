@@ -2,7 +2,7 @@
  * Narrow preset over `<Header>` for a Central Pane root screen of a Split Navigator
  * (Workspace/Settings/Domain). Every such screen shares the same shape: a headline title,
  * a back button shown only on narrow layout (the sidebar covers "back" on wide layout),
- * and the Side Panel (help) button. `shouldDisplaySearchRouter` is Settings-only.
+ * and the Side Panel (help) button. Some account settings pages also use `displaySearchRouter`.
  */
 import Header from '@components/Header/Header';
 import HeaderActions from '@components/Header/layout/HeaderActions';

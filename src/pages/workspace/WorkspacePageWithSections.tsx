@@ -20,7 +20,6 @@ import type {PolicyFeature} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -45,9 +44,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps & {
 
     /** Content to be added as fixed footer */
     footer?: ReactNode;
-
-    /** The route where we navigate when the user press the back button */
-    backButtonRoute?: Route;
 
     /** Option to use the default scroll view  */
     shouldUseScrollView?: boolean;
@@ -100,7 +96,6 @@ function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
 }
 
 function WorkspacePageWithSections({
-    backButtonRoute,
     children = () => null,
     footer = null,
     headerText,
@@ -192,11 +187,6 @@ function WorkspacePageWithSections({
 
         if (onBackButtonPress) {
             onBackButtonPress();
-            return true;
-        }
-
-        if (backButtonRoute) {
-            Navigation.goBack(backButtonRoute);
             return true;
         }
 

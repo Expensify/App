@@ -443,12 +443,6 @@ function WalletPage() {
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
-    const headerWithBackButton = (
-        <HeaderCentralPane
-            title={translate('common.wallet')}
-            displaySearchRouter
-        />
-    );
 
     const bottomMountItem = useMemo(
         () => ({
@@ -687,7 +681,10 @@ function WalletPage() {
                 testID="WalletPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                {headerWithBackButton}
+                <HeaderCentralPane
+                    title={translate('common.wallet')}
+                    displaySearchRouter
+                />
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
@@ -700,7 +697,10 @@ function WalletPage() {
             testID="WalletPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            {headerWithBackButton}
+            <HeaderCentralPane
+                title={translate('common.wallet')}
+                displaySearchRouter
+            />
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <OfflineWithFeedback
