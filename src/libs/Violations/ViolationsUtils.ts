@@ -445,9 +445,11 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
 }
 
 /**
- * Syncs the customUnitOutOfPolicy violation with the current policy rate enabled state.
- * This mirrors syncCustomUnitRateOutOfDateRangeViolation. It keeps Inbox and Spend previews in sync
- * when a workspace rate is disabled, without waiting for Onyx to recompute.
+ * Adds customUnitOutOfPolicy for a reported distance expense whose workspace rate is disabled.
+ * Disabled-rate warnings are not stored, so this only adds one at render time.
+ * It never removes a violation. Clearing one hides warnings the server already wrote, such as a
+ * moved expense whose rate is still enabled on the original workspace, or a P2P rate whose
+ * participants field is missing when the expense is loaded from Search or another device.
  */
 function syncCustomUnitOutOfPolicyViolation(
     violations: TransactionViolation[],
@@ -455,24 +457,19 @@ function syncCustomUnitOutOfPolicyViolation(
     policy: OnyxEntry<Policy>,
     distanceOriginalPolicy?: OnyxEntry<Policy>,
 ): TransactionViolation[] {
-    const isPerDiem = !!transaction && TransactionUtils.isPerDiemRequest(transaction);
-    if (!transaction || (!TransactionUtils.isDistanceRequest(transaction) && !isPerDiem)) {
-        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    if (!transaction || !TransactionUtils.isDistanceRequest(transaction) || TransactionUtils.isPerDiemRequest(transaction)) {
+        return violations;
     }
 
-    // Per-diem customUnitOutOfPolicy is owned by the Onyx pipeline. Leave it untouched.
-    if (isPerDiem) {
+    // Unreported expenses are self-DM Track expenses (reportID '0'). Do not add the warning, and do not
+    // strip one already present. getViolationsOnyxData owns that case.
+    if (TransactionUtils.isExpenseUnreported(transaction)) {
         return violations;
     }
 
     const customUnitRateID = transaction.comment?.customUnit?.customUnitRateID;
-    if (!customUnitRateID) {
+    if (!customUnitRateID || TransactionUtils.isCustomUnitRateIDForP2P(transaction)) {
         return violations;
-    }
-
-    const isTransactionOnPolicyExpenseChat = transaction.participants?.some((participant) => participant?.isPolicyExpenseChat);
-    if (TransactionUtils.isCustomUnitRateIDForP2P(transaction) && !isTransactionOnPolicyExpenseChat) {
-        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
     }
 
     let policyForCustomUnitRate = policy;
@@ -482,36 +479,24 @@ function syncCustomUnitOutOfPolicyViolation(
 
     const customRate = getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
 
-    // The rate does not resolve to a workspace rate, which happens when the rate was deleted or when a
-    // Track expense still holds its P2P rate on a workspace chat. Onyx owns the violation in those cases,
-    // so leave it exactly as it is rather than inventing or dropping one here.
-    if (!customRate) {
+    // A missing rate (deleted) or an enabled rate stays as Onyx left it. Removing the violation here
+    // would hide a server warning when the rate still exists on the workspace that owns it.
+    if (!customRate || customRate.enabled !== false) {
         return violations;
     }
 
-    const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
-
-    if (customRate.enabled === false) {
-        // Unreported expenses (self-DM Track) store reportID '0', so callers cannot resolve a self-DM
-        // report. A deleted rate on that personal expense is already cleared by getViolationsOnyxData.
-        // A disabled workspace rate must stay clear too.
-        if (TransactionUtils.isExpenseUnreported(transaction ?? undefined)) {
-            return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
-        }
-
-        return hasViolation
-            ? violations
-            : [
-                  ...violations,
-                  {
-                      name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
-                      type: CONST.VIOLATION_TYPES.VIOLATION,
-                      showInReview: true,
-                  },
-              ];
+    if (violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)) {
+        return violations;
     }
 
-    return hasViolation ? violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) : violations;
+    return [
+        ...violations,
+        {
+            name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        },
+    ];
 }
 
 const ViolationsUtils = {

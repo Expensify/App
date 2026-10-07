@@ -94,7 +94,6 @@ import {
     isInvoiceReport,
     isOpenReport,
     isReportApproved,
-    isSelfDM,
     isSettled as isSettledReportUtils,
     isTrackExpenseReportNew,
     shouldEnableNegative,
@@ -641,7 +640,7 @@ function MoneyRequestView({
     const isCustomUnitOutOfPolicy =
         transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) ||
         (isDistanceRequest && !rate && !isTrackExpense) ||
-        (isDistanceRequest && isSelectedRateEnabled === false && !isSelfDM(moneyRequestReport));
+        (isDistanceRequest && isSelectedRateEnabled === false && !isExpenseUnreported);
     const calculateFromTransactionData = isTrackExpense && !rate;
     const distanceUnit = calculateFromTransactionData ? transaction?.comment?.customUnit?.distanceUnit : unit;
     const backCalculationQuantity = transaction?.comment?.customUnit?.quantity;

@@ -296,7 +296,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
     });
 
@@ -881,7 +881,7 @@ describe('getViolationsOnyxData', () => {
             expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
-        it('should remove the customUnitOutOfPolicy violation when the distance rate is re-enabled', () => {
+        it('should keep a server customUnitOutOfPolicy violation when the resolved rate is enabled', () => {
             transactionViolations = [
                 {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
@@ -892,7 +892,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
 
-            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
         it('should leave per-diem customUnitOutOfPolicy violations untouched', () => {
@@ -918,7 +918,7 @@ describe('getViolationsOnyxData', () => {
             expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
-        it('should strip customUnitOutOfPolicy for non-distance non-per-diem transactions', () => {
+        it('should keep customUnitOutOfPolicy for non-distance non-per-diem transactions', () => {
             transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL;
             transaction.comment = {...transaction.comment, customUnit: undefined};
             transactionViolations = [
@@ -931,10 +931,10 @@ describe('getViolationsOnyxData', () => {
 
             const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
 
-            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
-        it('should not add customUnitOutOfPolicy for a P2P self-DM rate', () => {
+        it('should keep customUnitOutOfPolicy for a P2P rate when participants is missing', () => {
             transaction.comment = {
                 ...transaction.comment,
                 customUnit: {
@@ -942,11 +942,18 @@ describe('getViolationsOnyxData', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
             };
-            transaction.participants = [{accountID: 1, login: 'test@expensify.com'}];
+            transaction.participants = undefined;
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
 
             const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
 
-            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
         it('should not add customUnitOutOfPolicy when the rate cannot be resolved (Track unresolvable-rate case)', () => {
