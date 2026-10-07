@@ -132,6 +132,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -206,6 +208,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: undefined,
+                        initialReport: undefined,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -295,6 +299,11 @@ describe('actions/IOU/Hold', () => {
                     // When multiple transactions are put on hold
                     putTransactionsOnHold({
                         transactionsID: [transaction1.transactionID, transaction2.transactionID],
+                        allReports: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
+                        },
                         comment,
                         reportID: iouReport.reportID,
                         isOffline: false,
@@ -401,6 +410,11 @@ describe('actions/IOU/Hold', () => {
                     // When transactions are put on hold while offline (isOffline: true)
                     putTransactionsOnHold({
                         transactionsID: [transaction1.transactionID, transaction2.transactionID],
+                        allReports: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
+                        },
                         comment,
                         reportID: iouReport.reportID,
                         isOffline: true,
@@ -482,6 +496,11 @@ describe('actions/IOU/Hold', () => {
                     // When one of the two transaction IDs has no matching entry in the transactions list
                     putTransactionsOnHold({
                         transactionsID: [transaction1.transactionID, transaction2.transactionID],
+                        allReports: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
+                        },
                         comment,
                         reportID: iouReport.reportID,
                         isOffline: false,
@@ -553,6 +572,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -573,6 +594,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: true,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -638,6 +661,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -736,6 +761,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
