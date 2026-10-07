@@ -16,17 +16,17 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getCartesianChartHeight, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getXAxisLabel, getXAxisLabelSpace, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import VictoryTheme, {GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
+import type {CartesianChartRenderArg, Scale} from 'victory-native';
 
-import React, {useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -54,10 +54,8 @@ type LineChartContentProps = LineChartProps & {
 function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, chartWidth}: LineChartContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const fontManager = useChartFontManager();
-    const [plotAreaWidth, setPlotAreaWidth] = useState(0);
-    const [boundsLeft, setBoundsLeft] = useState(0);
-    const [boundsRight, setBoundsRight] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
     const chartData = data.map((point, index) => ({
@@ -88,8 +86,9 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
 
-    const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
     const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING;
+    const {left: boundsLeft, right: boundsRight, width: plotAreaWidth} = getCartesianPlotBounds(chartWidth, chartPaddingRight);
+    const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
 
     const domainPadding = (() => {
         if (!firstLabelWidth || !lastLabelWidth) {
@@ -136,12 +135,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         labelSkipInterval,
         chartBottom,
     });
-
-    const handleChartBoundsChange = (bounds: ChartBounds) => {
-        setPlotAreaWidth(bounds.right - bounds.left);
-        setBoundsLeft(bounds.left);
-        setBoundsRight(bounds.right);
-    };
 
     const checkIsOverDot = (args: HitTestArgs) => {
         'worklet';
@@ -213,9 +206,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         );
     };
 
-    const labelSpace = VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0);
-    const chartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
-    const dynamicChartStyle = {height: chartHeight};
+    const labelSpace = getXAxisLabelSpace(xAxisLabelHeight);
+    const chartHeight = getCartesianChartHeight(xAxisLabelHeight);
     const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
     const chartPadding = {
         ...VictoryTheme.axis.padding,
@@ -225,7 +217,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     if (isLoading || !fontManager) {
         return (
-            <View style={styles.chartActivityIndicator}>
+            <View style={[styles.chartActivityIndicator, StyleUtils.getHeight(getCartesianChartHeight())]}>
                 <ActivityIndicator size="large" />
             </View>
         );
@@ -240,7 +232,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
             gesture={customGestures}
             touchAction="pan-y"
         >
-            <Animated.View style={[styles.chartContent, dynamicChartStyle, cursorStyle]}>
+            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
                 {!!chartSize && (
                     <CartesianChart
                         explicitSize={chartSize}
@@ -248,7 +240,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         padding={chartPadding}
                         yKeys={['y']}
                         domainPadding={domainPadding}
-                        onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
                         renderOutside={renderOutside}
                         xAxis={{
@@ -315,4 +306,4 @@ function LineChartContent(props: LineChartContentProps) {
 }
 
 export default LineChartContent;
-export type {LineChartProps, LineChartContentProps};
+export type {LineChartProps};

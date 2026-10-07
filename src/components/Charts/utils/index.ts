@@ -1,5 +1,15 @@
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {
+    CHART_CONTENT_MIN_HEIGHT,
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    SIN_45,
+    X_AXIS_LABEL_MIN_HEIGHT,
+} from '@components/Charts/VictoryTheme';
 
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
 
@@ -465,10 +475,11 @@ function getNiceValueTicks(domain: [number, number], tickCount: number): number[
 }
 
 /**
- * Horizontal plot bounds of a vertical bar chart for a container width, mirroring victory-native's layout.
- * Deriving it from the width (not post-mount) lets the wrapper re-decide orientation on every resize.
+ * Horizontal plot bounds of a cartesian chart with its y axis on the right, for a container width, mirroring
+ * victory-native's layout. Deriving them from the width (not post-mount) lets the line and vertical bar charts lay
+ * out their labels before they mount, and lets the bar wrapper re-decide orientation on every resize.
  */
-function getVerticalBarPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
+function getCartesianPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
     const left = VictoryTheme.axis.padding.left;
     const right = Math.max(left, chartWidth - paddingRight - VictoryTheme.axis.labelGap);
     return {left, right, width: right - left};
@@ -488,8 +499,8 @@ function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, 
 
 /**
  * Layout inputs shared by the vertical bar chart body and the orientation dispatcher, derived from the plot bounds.
- * The body passes its measured bounds and the dispatcher passes bounds predicted from the container width, so both
- * feed `useChartLabelLayout` the exact same geometry and cannot drift apart.
+ * The body and the dispatcher both pass bounds predicted from the container width, so they feed
+ * `useChartLabelLayout` the exact same geometry and cannot drift apart.
  */
 function getVerticalBarLabelLayoutInputs({
     containerWidth,
@@ -523,6 +534,14 @@ function getVerticalBarLabelLayoutInputs({
  */
 function getHorizontalChartHeight(rowCount: number, minRowHeight: number, verticalPadding: number, minHeight: number): number {
     return Math.max(minHeight, rowCount * minRowHeight + verticalPadding);
+}
+
+function getXAxisLabelSpace(xAxisLabelHeight = 0, labelGap: number = VictoryTheme.axis.xAxisLabelGap): number {
+    return labelGap + Math.max(xAxisLabelHeight, X_AXIS_LABEL_MIN_HEIGHT);
+}
+
+function getCartesianChartHeight(xAxisLabelHeight = 0): number {
+    return CHART_CONTENT_MIN_HEIGHT + getXAxisLabelSpace(xAxisLabelHeight);
 }
 
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
@@ -575,7 +594,9 @@ export {
     getNiceValueTicks,
     getYAxisLabelWidth,
     getHorizontalChartHeight,
-    getVerticalBarPlotBounds,
+    getXAxisLabelSpace,
+    getCartesianChartHeight,
+    getCartesianPlotBounds,
     getVerticalBarLabelLayoutInputs,
     getDomainPaddingForEdgeSpace,
 };

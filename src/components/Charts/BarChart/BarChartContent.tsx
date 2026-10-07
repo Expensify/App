@@ -1,6 +1,6 @@
 import BAR_INNER_PADDING, {VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import {ChartFontsProvider, useChartFontManager, useChartLabelFormats, useChartLabelLayout, useChartLabelMeasurements} from '@components/Charts/hooks';
-import {getVerticalBarLabelLayoutInputs, getVerticalBarPlotBounds, getYAxisLabelWidth} from '@components/Charts/utils';
+import {getVerticalBarLabelLayoutInputs, getCartesianPlotBounds, getYAxisLabelWidth} from '@components/Charts/utils';
 import {GLYPH_PADDING, LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 
 import variables from '@styles/variables';
@@ -21,9 +21,9 @@ function BarChartOrientationDispatcher({isHorizontal = false, canFallBackToHoriz
     const {formatCompactValue} = useChartLabelFormats({data, unit: yAxisUnit, unitPosition: yAxisUnitPosition});
     const measurements = useChartLabelMeasurements(data, fontManager, FONT_SIZE);
 
-    // Predict the vertical chart's plot geometry from the container width so the fit decision matches what it would measure after mounting.
+    // Predict the vertical chart's plot geometry from the container width so the fit decision matches the geometry the vertical chart lays its labels out with.
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, FONT_SIZE, VERTICAL_BAR_DOMAIN_PADDING);
-    const plotBounds = getVerticalBarPlotBounds(chartWidth, yAxisLabelWidth + GLYPH_PADDING);
+    const plotBounds = getCartesianPlotBounds(chartWidth, yAxisLabelWidth + GLYPH_PADDING);
 
     const {labelRotation} = useChartLabelLayout({
         data,

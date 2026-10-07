@@ -38,7 +38,6 @@ describe('chart width handoff', () => {
     it.each([
         ['bar', BarChart],
         ['line', LineChart],
-        ['pie', PieChart],
     ])('should measure the %s chart width while the chart is still loading', (_name, Chart) => {
         // Given a chart whose data has not arrived yet
         const loadingChart = (
@@ -76,5 +75,19 @@ describe('chart width handoff', () => {
 
         // Then the chart mounts with that size instead of measuring itself, which would cost it a render with no content
         expect(PolarChart).toHaveBeenCalledWith(expect.objectContaining({explicitSize: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}), undefined);
+    });
+
+    it('should hand the pie chart no size before a width has been measured', () => {
+        // Given a pie chart whose box has not reported a layout yet
+        // When it renders with its data
+        render(
+            <PieChart
+                data={data}
+                isLoading={false}
+            />,
+        );
+
+        // Then the chart is left to measure itself rather than being pinned to a zero width
+        expect(PolarChart).toHaveBeenCalledWith(expect.objectContaining({explicitSize: undefined}), undefined);
     });
 });

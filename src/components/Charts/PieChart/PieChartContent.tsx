@@ -10,6 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -151,9 +153,12 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         );
     };
 
+    // The legend container's top margin plus one line of its `textNormal` labels, which are taller than the legend dot.
+    const legendFirstRowHeight = shouldShowLegend ? styles.pieChartLegendContainer.marginTop + variables.fontSizeNormalHeight : 0;
+
     if (isLoading) {
         return (
-            <View style={styles.chartActivityIndicator}>
+            <View style={[styles.chartActivityIndicator, StyleUtils.getHeight(CHART_CONTENT_MIN_HEIGHT + legendFirstRowHeight)]}>
                 <ActivityIndicator size="large" />
             </View>
         );
@@ -226,4 +231,4 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 }
 
 export default PieChartContent;
-export type {PieChartProps, PieChartContentProps};
+export type {PieChartProps};

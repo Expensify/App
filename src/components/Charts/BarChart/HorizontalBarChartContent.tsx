@@ -5,9 +5,10 @@ import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
-import {getFontLineMetrics, getHorizontalChartHeight, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
+import {getFontLineMetrics, getHorizontalChartHeight, getNiceValueDomain, getNiceValueTicks, getXAxisLabelSpace, measureTextWidth} from '@components/Charts/utils';
 import VictoryTheme, {CATEGORY_LABEL_WIDTH_RATIO, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -151,6 +152,7 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
 function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress, chartWidth}: BarChartBodyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const fontManager = useChartFontManager();
 
     // Transpose: value on the x-axis, category index on the y-axis.
@@ -286,7 +288,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     const {ascent, descent} = fontManager ? getFontLineMetrics(fontManager, variables.iconSizeExtraSmall) : {ascent: 0, descent: 0};
     const valueLabelHeight = ascent + descent;
-    const labelSpace = VictoryTheme.axis.labelGap + valueLabelHeight;
+    const labelSpace = getXAxisLabelSpace(valueLabelHeight, VictoryTheme.axis.labelGap);
 
     // The last value tick lands at the plot's right edge and its label is centered on it, so reserve half the
     // widest label as a right gutter. This squeezes the plot inward just enough that the max label stays on-canvas
@@ -346,8 +348,8 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         left: categoryLabelWidth + CATEGORY_LABEL_GAP + GLYPH_PADDING,
     };
 
-    const chartHeight = getHorizontalChartHeight(data.length, MIN_BAR_ROW_HEIGHT, chartPadding.top + chartPadding.bottom, CHART_CONTENT_MIN_HEIGHT + labelSpace);
-    const dynamicChartStyle = {height: chartHeight};
+    const minChartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
+    const chartHeight = getHorizontalChartHeight(data.length, MIN_BAR_ROW_HEIGHT, chartPadding.top + chartPadding.bottom, minChartHeight);
     const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
 
     // Draw each bar as its own Skia path so the rounded pill sits on the value tip and the axis end stays square,
@@ -382,7 +384,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
 
     if (isLoading || !fontManager) {
         return (
-            <View style={styles.chartActivityIndicator}>
+            <View style={[styles.chartActivityIndicator, StyleUtils.getHeight(minChartHeight)]}>
                 <ActivityIndicator size="large" />
             </View>
         );
@@ -397,7 +399,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
             gesture={customGestures}
             touchAction="pan-y"
         >
-            <Animated.View style={[styles.chartContent, dynamicChartStyle, cursorStyle]}>
+            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
                 {!!chartSize && (
                     <CartesianChart
                         explicitSize={chartSize}

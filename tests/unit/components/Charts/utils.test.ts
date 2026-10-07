@@ -7,11 +7,12 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
+    getCartesianChartHeight,
     getDomainPaddingForEdgeSpace,
     getHorizontalChartHeight,
     getNiceYAxisTicks,
     getVerticalBarLabelLayoutInputs,
-    getVerticalBarPlotBounds,
+    getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -23,7 +24,14 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {
+    CHART_CONTENT_MIN_HEIGHT,
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    LABEL_ROTATIONS,
+    SIN_45,
+    X_AXIS_LABEL_MIN_HEIGHT,
+} from '@components/Charts/VictoryTheme';
 
 const LINE_HEIGHT = 16;
 
@@ -670,7 +678,7 @@ describe('calculateMinDomainPadding', () => {
     });
 });
 
-// Bar chart domain padding constants, mirrored from BarChartContent.
+// Bar chart domain padding constants, mirrored from barChartConstants.
 const BAR_PAD_TOP = 32;
 const BAR_PAD_BOTTOM = 1;
 
@@ -752,7 +760,31 @@ describe('getHorizontalChartHeight', () => {
     });
 });
 
-describe('getVerticalBarPlotBounds', () => {
+describe('getCartesianChartHeight', () => {
+    const ROTATED_LABEL_HEIGHT = 120;
+
+    it('should give the loading box and a chart with one line of labels the same height', () => {
+        // Given the loading box, which has no labels to measure, and a loaded chart whose labels fit on one line
+        const loadingHeight = getCartesianChartHeight();
+
+        // When the loaded chart sizes its box from the measured label strip
+        const loadedHeight = getCartesianChartHeight(X_AXIS_LABEL_MIN_HEIGHT - 1);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadedHeight).toBe(loadingHeight);
+    });
+
+    it('should grow the box when rotated labels need more room than one line', () => {
+        // Given labels rotated so their strip is taller than one line of text
+        // When the chart sizes its box
+        const height = getCartesianChartHeight(ROTATED_LABEL_HEIGHT);
+
+        // Then the box makes room for the whole strip, since clipping the labels would be worse than a jump
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.axis.xAxisLabelGap + ROTATED_LABEL_HEIGHT);
+    });
+});
+
+describe('getCartesianPlotBounds', () => {
     // labelGap = 12, padding.left = 5 (from VictoryTheme.axis)
     const LABEL_GAP = VictoryTheme.axis.labelGap;
     const PADDING_LEFT = VictoryTheme.axis.padding.left;
@@ -761,15 +793,15 @@ describe('getVerticalBarPlotBounds', () => {
         // Given a 300px container with a 30px right gutter
         // When computing the plot bounds
         // Then the plot starts after the left padding and ends before the gutter+labelGap
-        expect(getVerticalBarPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30 - LABEL_GAP, width: 300 - 30 - LABEL_GAP - PADDING_LEFT});
+        expect(getCartesianPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30 - LABEL_GAP, width: 300 - 30 - LABEL_GAP - PADDING_LEFT});
     });
 
     it('grows the plot width one-for-one with the container width', () => {
         // Given the same right gutter but a wider container
         // When comparing plot widths
         // Then every extra container pixel becomes plot width (lets a horizontal chart switch back to vertical as it grows)
-        const narrow = getVerticalBarPlotBounds(300, 30).width;
-        const wide = getVerticalBarPlotBounds(360, 30).width;
+        const narrow = getCartesianPlotBounds(300, 30).width;
+        const wide = getCartesianPlotBounds(360, 30).width;
         expect(wide - narrow).toBe(60);
     });
 
@@ -777,7 +809,7 @@ describe('getVerticalBarPlotBounds', () => {
         // Given a container narrower than the right gutter itself
         // When computing the plot bounds
         // Then the right edge clamps to the left edge instead of going past it
-        const bounds = getVerticalBarPlotBounds(10, 30);
+        const bounds = getCartesianPlotBounds(10, 30);
         expect(bounds.left).toBe(PADDING_LEFT);
         expect(bounds.right).toBe(PADDING_LEFT);
         expect(bounds.width).toBe(0);
