@@ -206,11 +206,14 @@ describe('buildChartSeries', () => {
         const quarterLabel = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : '');
 
         // When the series is built with a label for the in-progress group
-        const rows = buildChartSeries({
-            data,
+        const {rows} = buildChartSeries({
+            rows: data,
             view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             getLabel: quarterLabel,
             getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
             getInProgressLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 4 ? 'Q4 so far' : undefined),
         });
 

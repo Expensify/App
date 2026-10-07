@@ -1291,7 +1291,6 @@ const translations = {
             average: 'Average',
             yearToDate: (year: number) => `YTD ${year}`,
             lastTwelveMonths: 'Last 12 months',
-            change: (amount: string) => `Change: ${amount}`,
             dayNumber: (day: number) => `Day ${day}`,
             weekNumber: (week: number) => `Week ${week}`,
             monthNumber: (month: number) => `Month ${month}`,

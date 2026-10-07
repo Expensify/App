@@ -65,7 +65,7 @@ function useInsightsChartComparison(chart: InsightsChartSpec, filters: InsightsF
         comparison: {
             rows: data,
             primaryPeriod: {...windows.current, color: chart.color ?? VictoryTheme.colors.default},
-            comparisonPeriod: {...windows.previous, color: chart.comparisonColor ?? VictoryTheme.colors.defaultDot},
+            comparisonPeriod: {...windows.previous, color: chart.comparisonColor ?? VictoryTheme.colors.getDarkerShade(VictoryTheme.colors.default)},
         },
         blockingState: undefined,
     };
