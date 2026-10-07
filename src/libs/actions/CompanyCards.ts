@@ -217,6 +217,10 @@ function clearAddNewCardFlow() {
     });
 }
 
+function clearAddNewCompanyCardErrors() {
+    Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {errors: null});
+}
+
 function addNewCompanyCardsFeed(
     policyID: string | undefined,
     workspaceAccountID: number,
@@ -826,7 +830,7 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-            value: {[cardID]: oldCardTitle},
+            value: {[cardID]: oldCardTitle ?? null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1499,6 +1503,7 @@ export {
     clearCompanyCardErrorField,
     setAddNewCompanyCardStepAndData,
     clearAddNewCardFlow,
+    clearAddNewCompanyCardErrors,
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
     openPolicyAddCardFeedPage,

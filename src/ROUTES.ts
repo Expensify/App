@@ -125,6 +125,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
             SCREENS.TRAVEL.MY_TRIPS,
             SCREENS.WORKSPACE.TRAVEL,
+            SCREENS.WORKSPACES_ADD_DOMAIN,
         ],
     },
     CONTACT_METHODS: {
@@ -585,12 +586,26 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
         ],
-        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string | undefined; reportID: string | undefined; isWorkspacesOnly?: boolean}) => {
-            const {action, iouType, transactionID, reportID, isWorkspacesOnly} = params;
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string | undefined;
+            reportID: string | undefined;
+            isWorkspacesOnly?: boolean;
+            shouldExcludeWorkspaces?: boolean;
+        }) => {
+            const {action, iouType, transactionID, reportID, isWorkspacesOnly, shouldExcludeWorkspaces} = params;
             // `getUrlWithParams` drops falsy values, so the flag is only sent when it is on.
-            return getUrlWithParams('expense-participants', {action, iouType, transactionID, reportID, isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined});
+            return getUrlWithParams('expense-participants', {
+                action,
+                iouType,
+                transactionID,
+                reportID,
+                isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined,
+                shouldExcludeWorkspaces: shouldExcludeWorkspaces ? 'true' : undefined,
+            });
         },
-        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly'],
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly', 'shouldExcludeWorkspaces'],
     },
     MONEY_REQUEST_STEP_SCAN: {
         path: 'expense-scan',
@@ -2105,14 +2120,18 @@ const ROUTES = {
     },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({reportID, reportActionID, backTo, anchorTransactionID}: {reportID: string | undefined; reportActionID?: string; backTo?: string; anchorTransactionID?: string}) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
             }
 
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            // Which expense in the prev/next carousel this screen is anchored to. The header falls back to it while
+            // the thread's own parent report action is still loading, so the carousel doesn't wink out of existence
+            // on a cold open (e.g. straight after clearing the cache).
+            const routeWithAnchor = anchorTransactionID ? (`${baseRoute}?anchorTransactionID=${anchorTransactionID}` as const) : baseRoute;
 
-            return getUrlWithBackToParam(baseRoute, backTo);
+            return getUrlWithBackToParam(routeWithAnchor, backTo);
         },
     },
 
@@ -2307,6 +2326,8 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION: 'settings/subscription/cancel-subscription-survey',
+    SETTINGS_SUBSCRIPTION_EARLY_RENEWAL: 'settings/subscription/early-renewal',
+    SETTINGS_EMAIL_ISSUE: 'settings/email-issue',
     SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY: 'settings/subscription/payment-history',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
@@ -2425,6 +2446,14 @@ const ROUTES = {
             }
 
             return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
+        },
+    },
+    SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
+        route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `settings/wallet/collect-deposit-account${subPagePart}${actionPart}` as const;
         },
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: {
@@ -2796,6 +2825,16 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
+    MONEY_REQUEST_STEP_REUSE_ROUTE: {
+        route: ':action/:iouType/reuse-route/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_REUSE_ROUTE route');
+            }
+
+            return `${action as string}/${iouType as string}/reuse-route/${transactionID}/${reportID}` as const;
+        },
+    },
     MONEY_REQUEST_RECEIPT_PREVIEW: {
         route: ':action/:iouType/receipt/:transactionID/:reportID',
         getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType) => {
@@ -3040,12 +3079,19 @@ const ROUTES = {
     },
     WORKSPACE_OVERVIEW_CURRENCY: {
         route: 'workspaces/:policyID/overview/currency',
-        getRoute: (policyID: string, isForcedToChangeCurrency?: boolean) => {
-            let queryParams = '';
+        getRoute: (
+            policyID: string,
+            {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {},
+        ) => {
+            const params = new URLSearchParams();
             if (isForcedToChangeCurrency) {
-                queryParams += `?isForcedToChangeCurrency=true`;
+                params.set('isForcedToChangeCurrency', 'true');
             }
-            return `workspaces/${policyID}/overview/currency${queryParams}` as const;
+            if (shouldStartExpensifyCardEnrollment) {
+                params.set('shouldStartExpensifyCardEnrollment', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/overview/currency${query ? `?${query}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
@@ -3903,6 +3949,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS: {
         route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions/work-arrangement',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions/work-arrangement` as const,
     },
     WORKSPACE_DISTANCE_RATE_DETAILS: {
         route: 'workspaces/:policyID/distance-rates/:rateID',
@@ -4988,6 +5038,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/advanced/bill-payment-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/bill-payment-account` as const,
     },
+    POLICY_ACCOUNTING_RILLET_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/fx-expense-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/fx-expense-account` as const,
+    },
     POLICY_ACCOUNTING_RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/advanced/expensify-card-settlement-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/expensify-card-settlement-account` as const,
@@ -5313,7 +5367,6 @@ const ROUTES = {
         getRoute: (domainAccountID: number) => `workspaces/domain-verified/${domainAccountID}` as const,
     },
     WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
-    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: `workspaces/add-domain/${VERIFY_ACCOUNT}`,
     WORKSPACES_DOMAIN_ADDED: {
         route: 'workspaces/domain-added/:domainAccountID',
         getRoute: (domainAccountID: number) => `workspaces/domain-added/${domainAccountID}` as const,
