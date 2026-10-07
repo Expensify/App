@@ -9,6 +9,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {MerchantMatchType} from '@src/types/form/SearchAdvancedFiltersForm';
 
@@ -44,12 +46,15 @@ function MerchantMatchTypeSelector({value, onChange}: MerchantMatchTypeSelectorP
             <View style={[styles.pb2, styles.ph5]}>
                 <Text style={[styles.textLabelSupporting]}>{translate('search.filters.merchant.matchType')}</Text>
             </View>
-            <SelectionList
-                data={items}
-                ListItem={SingleSelectListItem}
-                onSelectRow={(item) => onChange(item.keyForList)}
-                shouldSingleExecuteRowSelect
-            />
+            {/* Inside a ScrollView a flex list can shrink to zero height when the keyboard is open, so reserve room for every row */}
+            <View style={[styles.flex1, {minHeight: items.length * variables.optionRowHeight}]}>
+                <SelectionList
+                    data={items}
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={(item) => onChange(item.keyForList)}
+                    shouldSingleExecuteRowSelect
+                />
+            </View>
         </>
     );
 }
