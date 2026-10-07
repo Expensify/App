@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const US_PROGRAM = CONST.COUNTRY.US;
+const CURRENT_PROGRAM = CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT;
 
 const currentPolicyID = 'policy_current';
 const otherPolicyID = 'policy_other';
@@ -234,6 +235,94 @@ describe('useReconciliationCardFeeds', () => {
             });
 
             expect(candidateFundIDs()).toEqual([domainFundID]);
+        });
+    });
+
+    describe('a feed on the CURRENT program', () => {
+        it("is a candidate when it is this workspace's own feed", () => {
+            // Given this workspace's own feed provisioned only on the deprecated CURRENT program, which the feed selectors hide but which still reconciles
+            mockCollections({
+                cardSettings: {[cardSettingsKey(workspaceAccountID)]: {[CURRENT_PROGRAM]: {paymentBankAccountID: 23242}, isEnabled: true}},
+                policies: adminPolicyWithAccount(currentPolicyID, workspaceAccountID),
+            });
+
+            // When the reconciliation candidates are resolved
+            // Then the feed is offered, so its admin can still reach the toggle
+            expect(candidateFundIDs()).toEqual([workspaceAccountID]);
+        });
+
+        it('is a candidate and the default when it is an unclaimed domain feed linked to this policy', () => {
+            // Given an unclaimed domain feed on the CURRENT program that links this policy, and no feed of this workspace's own
+            mockCollections({
+                cardSettings: {[cardSettingsKey(domainFundID)]: {[CURRENT_PROGRAM]: {paymentBankAccountID: 23242, linkedPolicyIDs: [currentPolicyID]}, isEnabled: true}},
+                policies: adminPolicyWithAccount(currentPolicyID, workspaceAccountID),
+                domains: domainWithAdmin(domainFundID),
+            });
+
+            // When the reconciliation candidates are resolved
+            // Then the domain feed is offered and selected, rather than falling back to this workspace's account, which holds no feed
+            expect(candidateFundIDs()).toEqual([domainFundID]);
+            expect(defaultFundID()).toBe(domainFundID);
+        });
+
+        it('is not a candidate when another workspace has claimed it as preferred', () => {
+            // Given a domain feed on the CURRENT program that links this policy but is already claimed by another workspace
+            mockCollections({
+                cardSettings: {
+                    [cardSettingsKey(domainFundID)]: {[CURRENT_PROGRAM]: {paymentBankAccountID: 23242, preferredPolicy: otherPolicyID, linkedPolicyIDs: [currentPolicyID]}, isEnabled: true},
+                },
+                policies: adminPolicyWithAccount(currentPolicyID, workspaceAccountID),
+                domains: domainWithAdmin(domainFundID),
+            });
+
+            // When the reconciliation candidates are resolved
+            // Then the feed is withheld, because the CURRENT program follows the same claim rule as US and GB
+            expect(candidateFundIDs()).toEqual([]);
+        });
+
+        it('is offered once when the domain also has a US program', () => {
+            // Given a domain whose settings hold both a US and a CURRENT program, claimed by this policy through the CURRENT block
+            mockCollections({
+                cardSettings: {
+                    [cardSettingsKey(domainFundID)]: {
+                        [US_PROGRAM]: {paymentBankAccountID: 23242},
+                        [CURRENT_PROGRAM]: {paymentBankAccountID: 23243, preferredPolicy: currentPolicyID},
+                        isEnabled: true,
+                    },
+                },
+                policies: adminPolicyWithAccount(currentPolicyID, workspaceAccountID),
+                domains: domainWithAdmin(domainFundID),
+            });
+
+            // When the reconciliation candidates are resolved
+            // Then the domain appears once, since reconciliation is set per feed account, not per program
+            expect(candidateFundIDs()).toEqual([domainFundID]);
+        });
+
+        it('is a candidate and the default when it is an un-nested domain feed linked to this policy', () => {
+            // Given an unclaimed pre-2024 domain feed stored un-nested, with its settlement account and links on the settings root, and no feed of this workspace's own
+            mockCollections({
+                cardSettings: {[cardSettingsKey(domainFundID)]: {paymentBankAccountID: 23242, linkedPolicyIDs: [currentPolicyID], limit: 1000000}},
+                policies: adminPolicyWithAccount(currentPolicyID, workspaceAccountID),
+                domains: domainWithAdmin(domainFundID),
+            });
+
+            // When the reconciliation candidates are resolved
+            // Then the feed is offered and selected, so the page does not fall back to this workspace's account, which holds no settings
+            expect(candidateFundIDs()).toEqual([domainFundID]);
+            expect(defaultFundID()).toBe(domainFundID);
+        });
+
+        it("is a candidate when it is this workspace's own un-nested feed", () => {
+            // Given this workspace's own pre-2024 feed stored un-nested
+            mockCollections({
+                cardSettings: {[cardSettingsKey(workspaceAccountID)]: {paymentBankAccountID: 23242, limit: 1000000}},
+                policies: adminPolicyWithAccount(currentPolicyID, workspaceAccountID),
+            });
+
+            // When the reconciliation candidates are resolved
+            // Then the feed is offered
+            expect(candidateFundIDs()).toEqual([workspaceAccountID]);
         });
     });
 

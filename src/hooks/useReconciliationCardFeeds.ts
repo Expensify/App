@@ -1,5 +1,5 @@
 import {getDomainByFundID, getLinkedPolicyIDsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings, isPolicyIDInLinkedExpensifyCardPolicyList} from '@libs/CardUtils';
-import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
+import type {ExpensifyCardFeedEntry, ExpensifyCardFeedProgram} from '@libs/ExpensifyCardFeedSelectorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,6 +8,9 @@ import useDefaultFundID from './useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from './useExpensifyCardFeedsForFeedSelector';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
+
+// The feed selectors leave out the deprecated CURRENT program, but its feeds still reconcile, so they stay reachable from the reconciliation toggle.
+const RECONCILIATION_CARD_FEED_PROGRAMS: ExpensifyCardFeedProgram[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB];
 
 /**
  * The card feeds whose Continuous Reconciliation settings this workspace's admin can configure.
@@ -20,7 +23,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
 function useReconciliationCardFeeds(policyID: string | undefined): {candidates: ExpensifyCardFeedEntry[]; defaultFundID: number} {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const defaultFundID = useDefaultFundID(policyID);
-    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
+    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID, RECONCILIATION_CARD_FEED_PROGRAMS);
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
 
     const candidates = allFeeds.filter((entry) => {
@@ -54,8 +57,7 @@ function useReconciliationCardFeeds(policyID: string | undefined): {candidates: 
     const findCandidate = (fundID: number) => candidates.find((entry) => entry.fundID === fundID);
     const resolvedFundID = findCandidate(workspaceAccountID) ?? findCandidate(defaultFundID) ?? candidates.at(0);
 
-    // With no candidates, fall back to this workspace's own account. The candidates miss feeds that are still loading and legacy feeds configured outside the US/GB program
-    // blocks, and either way the workspace account is the feed the page configures.
+    // With no candidates, fall back to this workspace's own account. The candidates miss feeds that are still loading, and the workspace account is the feed the page configures.
     return {candidates, defaultFundID: resolvedFundID?.fundID ?? workspaceAccountID};
 }
 
