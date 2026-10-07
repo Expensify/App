@@ -74,6 +74,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <WidgetHeaderMenu
+                size={CONST.BUTTON_SIZE.SMALL}
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel="InsightsChartMenu"
                 menuItems={[
@@ -93,7 +94,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
             containerStyles={styles.overflowVisible}
             titleRightContent={
                 !!groupByControl || !!headerMenu ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
                         {groupByControl}
                         {headerMenu}
                     </View>
@@ -111,8 +112,8 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                         groupBy={groupBy}
                         data={data}
                         isLoading={isLoading}
-                        color={chart.color}
                         chartContainerStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
                                 ? (rows) => (

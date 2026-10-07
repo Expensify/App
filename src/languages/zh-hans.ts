@@ -978,6 +978,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `订阅将于 ${date} 结束`,
                 cta: '管理',
             },
+            emailDeliveryFailure: {title: '我们无法向你发送电子邮件通知', subtitle: '账户'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -4893,7 +4894,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 autoSyncDescription: 'Expensify 将每天自动与 QuickBooks Desktop 同步。',
                 createEntities: '自动创建实体',
                 createEntitiesDescription: '如果供应商尚未在 QuickBooks Desktop 中存在，Expensify 将自动创建这些供应商。',
-                fxExpenseAccount: '货币转换手续费科目',
+                fxExpenseAccount: '货币兑换费用科目',
                 fxExpenseAccountDescription: '当您的公司承担一笔支付到海外的报销所产生的货币兑换费用时，我们会在导出内容中额外添加一行，将其归入此科目。',
             },
             itemsDescription: '选择如何在 Expensify 中处理 QuickBooks Desktop 项目。',
@@ -5790,6 +5791,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     return `${customAccountsCount} 张带有自定义账户的卡`;
                 },
             },
+            fxExpenseAccount: {label: 'Rillet 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 Rillet 中将该成本作为一条日记账分录记入此科目。'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry 设置',
@@ -6839,6 +6841,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             removeMemberPromptApprover: (approver: string, workspaceOwner: string) => `如果你将 ${approver} 从此工作区中移除，我们会在审批流程中用工作区所有者 ${workspaceOwner} 替换 TA。`,
             removeMemberPromptPendingApproval: (memberName: string) => `${memberName} 还有待审批的报销报告。请先让 TA 审批，或在将其从工作区中移除之前接管 TA 的报告。`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) => `您无法将${memberName}从此工作区中移除。请在“工作流”>“进行或跟踪付款”中设置新的报销人，然后重试。`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `在 ${memberName} 仍持有 Expensify 卡时，您无法将其从此工作区中移除。请在“工作区 > Expensify 卡”中停用其卡片后重试。`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `如果您将 ${memberName} 从此工作区中移除，我们会将其首选导出人替换为工作区所有者 ${workspaceOwner}。`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -8456,6 +8460,8 @@ ${reportName}`,
             approvalModeWarningTitle: '更改审批模式？',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 ${providerName} 启用的工作流模式的信息。`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `更改审批模式将清除所有现有的审批流程。请在我们的<a href="${helpSiteURL}">帮助中心</a>中了解更多关于不同 ${providerName} 启用的流程模式的信息。`,
             approvalModeWarningConfirm: '更改审批模式',
             syncingModalTitle: '您的连接正在同步',
             syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
@@ -9567,7 +9573,6 @@ ${reportName}`,
         noCategory: '无类别',
         noMerchant: '无商家',
         noTag: '无标签',
-        noVendor: '无供应商',
         expenseType: '报销类型',
         receiptType: '收据类型',
         receiptTypeValues: {
@@ -11213,12 +11218,45 @@ ${reportName}`,
             description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
         },
     },
+    emailIssuePage: {
+        title: '邮件问题',
+        intro: (login: string) => `由于投递问题，我们的邮件服务提供商已暂停向 <strong>${login}</strong> 发送邮件。要解决此问题：`,
+        confirmEmailTitle: '确认您的邮箱地址',
+        confirmEmailDescription: (login: string) =>
+            `请确保 <strong>${login}</strong> 拼写正确且是一个真实存在的收件箱。像“expenses@domain.com”这样的别名也需要有各自可正常使用的收件箱才能登录 Expensify。`,
+        allowlistTitle: '将 expensify.com 加入允许列表',
+        allowlistDescription: `将 <strong>expensify.com</strong> 添加到您的邮箱客户端的允许列表中。您可能需要 IT 通过<a href="${CONST.SET_NOTIFICATION_LINK}">这些说明</a>调整服务器设置。`,
+        getHelpFromConcierge: '向 Concierge 寻求帮助',
+        completedSteps: '我已完成以上步骤',
+        errorTitle: '出现问题。请重试',
+        errorPrompt: '好像出了点问题。请重试。如果问题仍然存在，请联系 Concierge。',
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,
         title: '续订您的 Expensify 订阅',
         subtitle: '在新年到来前又少了一件要做的事。',
         confirmTitle: '确认续订',
         renew: '续订',
+        incentivizedTitle: '提前续订，最多可享 2 个月免费',
+        incentivizedSubtitle: '领取年度订阅折扣。',
+        claim: '报销申请',
+        offer: {
+            heading: '选择你的折扣',
+            subtitle: '两种超值优惠供你选择：',
+            oneYear: '续订 1 年，赠送 1 个月',
+            twoYears: '续订 2 年，赠送 2 个月',
+            bestDeal: '最优惠',
+            disclaimer: '上述优惠将作为您年度订阅的 9% 折扣予以应用。超额费用不包括在内。',
+            renewAndClaim: '续订并领取折扣',
+            chooseOptionError: '请选择一个选项。',
+        },
+        adminTitle: '请联系您的账单负责人提前续订',
+        adminSubtitle: '通过你的年度订阅，他们最多可享受 2 个月的免费使用。',
+        adminCTA: '提醒',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}，你能提前续订我们的 Expensify 订阅吗？我们最多可以免费使用 2 个月。在这里领取：［订阅页面］(${subscriptionURL})`,
+        mobileRenewPrompt: '请在网页浏览器中访问 Expensify 以提前续订。',
+        mobileClaimPrompt: '请在网页浏览器中访问 Expensify 以领取您的续订折扣。',
     },
 };
 export default translations;

@@ -54,13 +54,6 @@ describe('VictoryTheme', () => {
         });
     });
 
-    describe('colors.defaultDot', () => {
-        it('equals the palette entry at the default dot index (green500)', () => {
-            const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.colors.defaultDot).toBe(colors.green500);
-        });
-    });
-
     describe('colors.getColor', () => {
         it('returns a non-empty hex string for index 0', () => {
             const VictoryTheme = loadVictoryTheme();

@@ -1,7 +1,7 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories, description hint, category description hint, remind members what to write in description]
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories, description hint, category description hint, remind members what to write in description, auto-categorize new expenses, turn off auto-categorization]
 internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, inline category creation from the expense flow, and adding a Description hint to a category. Does not cover personal expense rules or accounting integration setup.
 ---
 
@@ -62,13 +62,20 @@ The following columns are supported:
 | **GL Code** | No | Control |
 | **Require receipts over** | No | Control |
 | **Require itemized receipts over** | No | Control |
+| **Payroll code** | No | Control |
+| **Require description** | No | Collect, Control |
+| **Description hint** | No | Collect, Control |
+| **Flag amounts over** | No | Collect, Control |
+| **Expense limit type** | No | Collect, Control |
+
+The **Require description**, **Description hint**, **Flag amounts over**, and **Expense limit type** columns are available when **Rules** is enabled for the workspace. For **Expense limit type**, use `expense` (**Individual expense**) or `daily` (**Category total**).
 
 For the **Require receipts over** and **Require itemized receipts over** columns, use one of the following values:
 
 - `default` — Keep the existing workspace or category setting (no change).
 - `required` — Always require a receipt (or itemized receipt), regardless of amount.
 - `not_required` — Never require a receipt (or itemized receipt).
-- A number (e.g., `2500`) — Require a receipt (or itemized receipt) for expenses over that amount in cents.
+- A number (e.g., `25`) — Require a receipt (or itemized receipt) for expenses over that amount.
 
 ---
 
@@ -182,6 +189,7 @@ Expensify learns your category preferences over time and suggests them automatic
 - If you manually change a category, Expensify remembers the update.
 - Existing expenses are not updated retroactively.
 - These suggestions are based on patterns and may vary by user.
+- This is on by default. To stop new expenses from being categorized automatically, a Workspace Admin can go to **Workspaces > [workspace name] > Categories > More > Settings** and disable **Auto-categorize new expenses**.
 
 ## How to set default categories by MCC code
 

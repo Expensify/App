@@ -586,12 +586,26 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
         ],
-        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string | undefined; reportID: string | undefined; isWorkspacesOnly?: boolean}) => {
-            const {action, iouType, transactionID, reportID, isWorkspacesOnly} = params;
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string | undefined;
+            reportID: string | undefined;
+            isWorkspacesOnly?: boolean;
+            shouldExcludeWorkspaces?: boolean;
+        }) => {
+            const {action, iouType, transactionID, reportID, isWorkspacesOnly, shouldExcludeWorkspaces} = params;
             // `getUrlWithParams` drops falsy values, so the flag is only sent when it is on.
-            return getUrlWithParams('expense-participants', {action, iouType, transactionID, reportID, isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined});
+            return getUrlWithParams('expense-participants', {
+                action,
+                iouType,
+                transactionID,
+                reportID,
+                isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined,
+                shouldExcludeWorkspaces: shouldExcludeWorkspaces ? 'true' : undefined,
+            });
         },
-        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly'],
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly', 'shouldExcludeWorkspaces'],
     },
     MONEY_REQUEST_STEP_SCAN: {
         path: 'expense-scan',
@@ -2312,6 +2326,8 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION: 'settings/subscription/cancel-subscription-survey',
+    SETTINGS_SUBSCRIPTION_EARLY_RENEWAL: 'settings/subscription/early-renewal',
+    SETTINGS_EMAIL_ISSUE: 'settings/email-issue',
     SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY: 'settings/subscription/payment-history',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
@@ -5009,6 +5025,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/advanced/bill-payment-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/fx-expense-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/fx-expense-account` as const,
     },
     POLICY_ACCOUNTING_RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/advanced/expensify-card-settlement-account',
