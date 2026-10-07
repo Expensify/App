@@ -87,7 +87,7 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
-    const labelStyle = [styles.badgeText, styles.textStrong, styles.badgeDefaultText, styles.textNoWrap, styles.receiptPageNavigatorLabel];
+    const labelStyle = [styles.badgeText, styles.textStrong, styles.badgeDefaultText, styles.textNoWrap];
 
     return (
         <View
@@ -101,7 +101,7 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
                 onPress={() => onChangePage(page - 1)}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.PREVIOUS_PAGE_BUTTON}
             />
-            <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
+            <View style={styles.receiptPageNavigatorSpacer} />
             <PageButton
                 icon={icons.ArrowRight}
                 label={translate('common.next')}
@@ -109,6 +109,10 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
                 onPress={() => onChangePage(page + 1)}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.NEXT_PAGE_BUTTON}
             />
+            {/* Absolutely positioned so its width never affects the row above; see receiptPageNavigator's comment. */}
+            <View style={[styles.receiptPageNavigatorLabelContainer, styles.pointerEventsNone]}>
+                <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
+            </View>
         </View>
     );
 }

@@ -4181,6 +4181,9 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
         },
 
+        // The label is an absolutely positioned overlay (see receiptPageNavigatorLabelContainer), so it never affects
+        // this row's own layout. Its width here comes only from the two buttons and the spacer between them, fixed
+        // regardless of the page number's digit count. overflow: hidden masks a label too long to fit.
         receiptPageNavigator: {
             ...RECEIPT_PAGE_BADGE_POSITION,
             flexDirection: 'row',
@@ -4189,13 +4192,25 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 4,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.badgeDefaultBG,
+            overflow: 'hidden',
         },
 
-        // Keeps the buttons from shifting sideways as the page number's digit count changes: only the label grows
-        // or shrinks, centered within this floor, and only past it if a locale's text genuinely needs more room.
-        receiptPageNavigatorLabel: {
-            minWidth: 60,
-            textAlign: 'center',
+        // Reserves room for the label between the two buttons, roughly the width of a typical "Page N of N".
+        receiptPageNavigatorSpacer: {
+            width: 60,
+        },
+
+        // Centers the label over the whole pill rather than just the spacer, so a longer label isn't cut off before
+        // it has the full pill's width to grow into.
+        receiptPageNavigatorLabelContainer: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
         },
 
         // A real tap target around the small arrow glyph; react-native-web's Pressable doesn't support hitSlop
