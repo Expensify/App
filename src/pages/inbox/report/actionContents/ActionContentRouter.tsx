@@ -179,6 +179,7 @@ function ActionContentRouter({
     const actionOwnerReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
+    const isSupportTicketReport = report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
 
     if (isIOURequestReportAction(action)) {
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
@@ -341,12 +342,13 @@ function ActionContentRouter({
             />
         );
     }
-    if (report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET && (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CLOSED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED))) {
+    if (isSupportTicketReport && (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CLOSED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED))) {
         return (
             <ReportActionMessageContent
                 action={action}
                 displayAsGroup={displayAsGroup}
                 reportID={reportID}
+                isSupportTicketReport={isSupportTicketReport}
             />
         );
     }

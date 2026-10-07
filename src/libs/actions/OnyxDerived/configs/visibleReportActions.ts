@@ -23,6 +23,7 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
  */
 function computeReportVisibility(reportActions: ReportActions, currentUserAccountID: number | undefined, report: Report | undefined): Record<string, boolean> {
     const reportVisibility: Record<string, boolean> = {};
+    const isSupportTicketReport = isSupportTicket(report);
 
     for (const [actionID, action] of Object.entries(reportActions)) {
         if (!action) {
@@ -36,7 +37,7 @@ function computeReportVisibility(reportActions: ReportActions, currentUserAccoun
         if (shouldSkipCachingAction(action)) {
             continue;
         }
-        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID, undefined, isSupportTicket(report));
+        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID, undefined, isSupportTicketReport);
     }
 
     return reportVisibility;

@@ -5,6 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Growl from '@libs/Growl';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {isNoSupportRepAvailableResponse, openSupportTicket} from '@userActions/Report';
@@ -43,7 +44,7 @@ function SupportTicketResolvedFooter({reportID, isOffline, shouldShowReopenButto
                 Growl.error(translate('supportTicket.noSupportRepAvailable'));
                 Navigation.goBack(undefined, {afterTransition: () => openConciergeAnywhere({forceConcierge: true})});
             })
-            .catch(() => undefined)
+            .catch((error: unknown) => Log.hmmm('[SupportTicketResolvedFooter] Failed to reopen support ticket', {reportID, error}))
             .finally(() => setIsReopening(false));
     };
 

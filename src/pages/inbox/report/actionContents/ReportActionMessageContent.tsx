@@ -1,7 +1,6 @@
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
@@ -16,7 +15,6 @@ import {
 import ReportActionItemFragment from '@pages/inbox/report/ReportActionItemFragment';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 import type {ReactElement} from 'react';
@@ -41,15 +39,17 @@ type ReportActionMessageContentProps = {
 
     /** Optional IOU display message passed into each fragment */
     iouMessage?: string;
+
+    /** Whether this action belongs to a support ticket */
+    isSupportTicketReport?: boolean;
 };
 
-function ReportActionMessageContent({action, displayAsGroup, reportID, style, isHidden = false, iouMessage}: ReportActionMessageContentProps) {
+function ReportActionMessageContent({action, displayAsGroup, reportID, style, isHidden = false, iouMessage, isSupportTicketReport = false}: ReportActionMessageContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isApprovedOrSubmittedReportAction = isApprovedOrSubmittedReportActionUtils(action);
     const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD].some((type) => type === action.actionName);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const fragments = getReportActionMessageFragments(translate, action, report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET);
+    const fragments = getReportActionMessageFragments(translate, action, isSupportTicketReport);
 
     const renderReportActionItemFragments = (shouldWrapInText: boolean): ReactElement | ReactElement[] => {
         const reportActionItemFragments = fragments.map((fragment, index) => (
