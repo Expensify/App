@@ -83,7 +83,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteApprovalAccountSelectPage"
             headerContent={headerContent}
-            isRowMultilineSupported
+            titleNumberOfLines={2}
             data={netsuiteApprovalAccountOptions}
             onSelectRow={updateCollectionAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
