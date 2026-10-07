@@ -6,28 +6,28 @@ keywords: [New Expensify, per diem, expense settings, daily rate, import per die
 
 # Configure Per Diem Expenses Within a Workspace
 
-Per Diem allows workspace admins to assign fixed daily rates for travel or other recurring allowances. Once enabled, it appears as its own menu item in the workspace settings, giving you full control over importing, editing, and categorizing daily allowances.
+Per diem allows workspace admins to assign fixed daily rates for travel or other recurring allowances. Once enabled, it appears as its own menu item in the workspace settings, giving you full control over importing, editing, and categorizing daily allowances.
 
 ---
 
 ## Who Can Enable Per Diem in a Workspace
 
-To enable Per Diem you must be a workspace admin with a workspace on the Control plan. 
+To enable per diem you must be a workspace admin with a workspace on the Control plan. 
 
 ---
 
 ## Enable Per Diem in a Workspace
 
-To enable the Per Diem feature:
+To enable the per diem feature:
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name** to open settings.
 3. Click **More Features** in the left menu.
-4. Under the **Spend** section, toggle on **Per Diem**.
+4. Under the **Spend** section, toggle on **Per diem**.
 
 Once enabled, **Per Diem** will appear as a dedicated item in the left-hand menu under the workspace settings.
 
-![Enable Per Diem under the Spend section of the workspace settings]({{site.url}}/assets/images/perdiem_01.png){:width="100%"}
+![Enable per diem under the Spend section of the workspace settings]({{site.url}}/assets/images/perdiem_01.png){:width="100%"}
 
 ---
 
@@ -36,9 +36,9 @@ Once enabled, **Per Diem** will appear as a dedicated item in the left-hand menu
 Admins can manage rates by uploading a spreadsheet or exporting existing ones.
 
 - **Import spreadsheet** – Upload a CSV to add or update rates.
-- **Download CSV** – Export your current Per Diem rate list.
+- **Download CSV** – Export your current per diem rate list.
 
-Both options are found in the **three-dot menu** at the top-right corner of the Per Diem page.
+Both options are found in the **three-dot menu** at the top-right corner of the per diem page.
 
 ![Use the three dot menu to upload or export per diem rates]({{site.url}}/assets/images/perdiem_02.png){:width="100%"}
 
@@ -69,9 +69,9 @@ Each rate is listed as a line item. You can:
 
 ## Set a Default Category for Per Diem
 
-You can assign a default expense category to all Per Diem entries:
+You can assign a default expense category to all per diem entries:
 
-1. Click the **Settings** button in the upper-right corner of the Per Diem page.
+1. Click the **Settings** button in the upper-right corner of the per diem page.
 2. In the right-hand panel, click **Default category**.
 3. Choose a category from the list.
 
@@ -83,7 +83,7 @@ You can assign a default expense category to all Per Diem entries:
 
 ## Why Don’t I See the Per Diem Option When Submitting an Expense?
 
-Per Diem is only available when submitting expenses within a workspace where the feature is enabled. It will not appear in DMs, group chats, or expenses submitted outside a workspace.
+Per diem is only available when submitting expenses within a workspace where the feature is enabled. It will not appear in DMs, group chats, or expenses submitted outside a workspace.
 
 ## Can I Bulk-Edit or Delete Per Diem Rates?
 
