@@ -78,6 +78,7 @@ import {
     isSubmitPolicy,
     PAYER_ROLES,
     shouldFilterExpensifyTeam,
+    shouldHideDynamicExternalWorkflowPeople,
 } from '@libs/PolicyUtils';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
@@ -429,7 +430,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
     const firstApproverByMemberEmail = getFirstApproverByMemberEmail(enforcedApprovalWorkflows);
-    const shouldShowApproverColumn = hasWideTableLayout && isApprovalsEnabled && !isEmptyObject(firstApproverByMemberEmail);
+    // A Dynamic External Workflow set to hide people takes the approval configuration off screen everywhere it is
+    // surfaced, so the column goes with it rather than showing approvers the workspace is hiding.
+    const shouldShowApproverColumn = hasWideTableLayout && isApprovalsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy) && !isEmptyObject(firstApproverByMemberEmail);
     const shouldUseOrdinalApproverLabel = hasMultiLevelApprovalWorkflow(enforcedApprovalWorkflows);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.

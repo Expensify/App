@@ -37,7 +37,6 @@ import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {clearApprovalWorkflow, removeApprovalWorkflow as removeApprovalWorkflowAction, setApprovalWorkflow, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -52,6 +51,7 @@ import {
     isControlPolicy,
     isPolicyApprover,
     PAYER_ROLES,
+    shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
@@ -59,7 +59,7 @@ import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButt
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
-import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -183,9 +183,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberApprovalWorkflow = enforcedApprovalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
     const memberFirstApprover = memberApprovalWorkflow?.approvers.at(0);
     const isApprovalsEnabled = areApprovalsEnabled(policy);
-    // An HR integration in a read-only approval mode owns the workflows, so the editor rejects manual edits.
-    // Keep the row visible for reference but inert, the same way the Workflows tab disables its own actions.
-    const shouldAllowApproverEdit = canWriteMembers && !isAnyHRReadOnlyWorkflowMode(policy);
+    // An HR or recruiting integration in a read-only approval mode owns the workflows, so the editor rejects manual
+    // edits. Keep the row visible for reference but inert, the same way the Workflows tab disables its own actions.
+    const shouldAllowApproverEdit = canWriteMembers && !isApprovalWorkflowLockedByIntegration(policy);
+
+    // A Dynamic External Workflow set to hide people takes the whole approval configuration off screen rather than
+    // disabling it, so the row follows the Workflows tab and disappears instead of pointing at a Not Found editor.
+    const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
     const approverLabel = getFirstApproverLabel((memberApprovalWorkflow?.approvers.length ?? 0) > 1, translate, toLocaleOrdinalWithWords);
 
     const openMemberApprovalWorkflow = () => {
@@ -195,7 +199,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         // A member who approves their own expenses still has a workflow, so open it rather than offering to build a
         // second one. The row names them as their own approver, and a blank create page would contradict that.
         if (memberFirstApprover?.email) {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, memberLogin));
+            // The editor matches the member ahead of the approver, against workflows that are not filtered down to the
+            // enforced ones. A downgrade leaves a member on an inert workflow while the row already shows the default
+            // approver they submit to, so naming the member there would open a workflow the workspace no longer runs.
+            const memberWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
+            const isMemberOnTheWorkflowShown = memberWorkflow?.approvers.at(0)?.email === memberFirstApprover.email;
+
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, isMemberOnTheWorkflowShown ? memberLogin : undefined));
             return;
         }
 
@@ -467,7 +477,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
-                            {isApprovalsEnabled && (
+                            {isApprovalsEnabled && !shouldHideApprovalWorkflows && (
                                 <OfflineWithFeedback pendingAction={approverPendingActionByMemberEmail[memberLogin]}>
                                     <MenuItemWithTopDescription
                                         description={approverLabel}

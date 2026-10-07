@@ -527,6 +527,103 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should open the workflow the member is actually on after a downgrade left them on an inert one', async () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // Given a workspace downgraded to basic mode, where the member still carries a `submitsTo` from the workflow
+        // they used to be on. Basic mode runs the default workflow alone, so they submit to the default approver now.
+        await act(async () => {
+            // The enforced workflows only ever differ from the raw ones outside this beta, which reads the workflows
+            // from rules instead of from `submitsTo`.
+            await Onyx.set(ONYXKEYS.BETAS, []);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [adminPayerEmail]: {email: adminPayerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: adminPayerEmail},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const approverItem = await screen.findByTestId('member-approver-menu-item');
+
+        // Then the row names the default approver rather than the one on the workflow that no longer runs.
+        expect(within(approverItem).getByText('Owner User')).toBeOnTheScreen();
+
+        fireEvent.press(approverItem, {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // The editor matches the member ahead of the approver, so naming them would reopen the inert workflow and let a
+        // save write to it. Leaving the member out opens the default workflow the row just showed.
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail));
+        expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, invitedEmail));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should leave the approver row inert when a recruiting integration owns the workflows', async () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // Given a workspace whose ATS connection runs the approvals, which the editor refuses to open for manual edits.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+                employeeList: {
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC}},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const approverItem = await screen.findByTestId('member-approver-menu-item');
+
+        // Then the approver stays readable, but the row cannot be tapped into an editor that would only show Not Found.
+        expect(within(approverItem).getByText('Owner User')).toBeOnTheScreen();
+
+        fireEvent.press(approverItem, {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(navigateSpy).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should hide the approver row when the workspace hides its Dynamic External Workflow people', async () => {
+        // Given a Dynamic External Workflow set to hide people, which takes the approval configuration off screen.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                dynamicExternalWorkflowHidePeople: true,
+                approver: ownerEmail,
+                employeeList: {
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row goes with the rest of the configuration rather than showing an approver the workspace hides.
+        expect(screen.queryByTestId('member-approver-menu-item')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should open the workflow a self-approving member heads rather than offer them a second one', async () => {
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
