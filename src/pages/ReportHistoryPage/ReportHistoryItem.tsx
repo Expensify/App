@@ -7,13 +7,13 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DateUtils from '@libs/DateUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import variables from '@styles/variables';
 
 import type {TranslationPaths} from '@src/languages/types';
 
-import {differenceInMinutes} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -61,16 +61,6 @@ function ReportHistoryItem({step}: ReportHistoryItemProps) {
         translate,
         formatPhoneNumber,
     });
-    const getTimeAgo = (created: string) => {
-        const minutes = Math.max(differenceInMinutes(new Date(), new Date(created)), 1);
-        if (minutes < 60) {
-            return translate('reportHistoryPage.minutesAgo', minutes);
-        }
-        if (minutes < 60 * 24) {
-            return translate('reportHistoryPage.hoursAgo', Math.floor(minutes / 60));
-        }
-        return translate('reportHistoryPage.daysAgo', Math.floor(minutes / (60 * 24)));
-    };
     const label = step.isCompleted ? COMPLETED_LABELS[step.action] : (UPCOMING_LABELS[step.action] ?? COMPLETED_LABELS[step.action]);
 
     return (
@@ -86,7 +76,7 @@ function ReportHistoryItem({step}: ReportHistoryItemProps) {
             <Text style={[styles.flex1, styles.ml3]}>
                 <Text style={styles.textStrong}>{displayName}</Text> {translate(label)}
             </Text>
-            {!!step.created && <Text style={[styles.textMicroSupporting, styles.ml2]}>{getTimeAgo(step.created)}</Text>}
+            {!!step.created && <Text style={[styles.textMicroSupporting, styles.ml2]}>{DateUtils.datetimeToShortRelative(translate, step.created)}</Text>}
         </View>
     );
 }

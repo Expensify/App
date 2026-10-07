@@ -17,6 +17,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
+import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import RenderHTML from './RenderHTML';
@@ -35,7 +36,7 @@ function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatus
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch']);
     const iconMap: IconMap = useMemo(
         () => ({
             [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
@@ -55,6 +56,12 @@ function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatus
         return buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
     }, [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber]);
 
+    const message = (
+        <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
+            <RenderHTML html={messageContent} />
+        </View>
+    );
+
     const content = (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
@@ -65,19 +72,7 @@ function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatus
                     fill={nextStep?.iconFill ?? theme.icon}
                 />
             </View>
-            <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
-                <RenderHTML html={messageContent} />
-            </View>
-            {!!onPress && (
-                <View style={[styles.ml1]}>
-                    <Icon
-                        src={icons.DownArrow}
-                        height={variables.iconSizeExtraSmall}
-                        width={variables.iconSizeExtraSmall}
-                        fill={theme.icon}
-                    />
-                </View>
-            )}
+            {onPress ? <CaretWrapper style={styles.flexShrink1}>{message}</CaretWrapper> : message}
         </View>
     );
 
