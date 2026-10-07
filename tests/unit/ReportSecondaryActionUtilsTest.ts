@@ -2247,6 +2247,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then UNAPPROVE is not offered because the backend rejects unapproving until that money posts
