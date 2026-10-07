@@ -5,6 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,6 +42,9 @@ type WorkspaceRowThreeDotsMenuProps = {
     /** Called when the user picks Delete, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
 
+    /** Called when the user picks Archive, so the page can mount the archive flow */
+    onArchiveWorkspace: (policyID: string) => void;
+
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
 };
@@ -50,12 +54,14 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
+    const {isBetaEnabled} = usePermissions();
+    const icons = useMemoizedLazyExpensifyIcons(['Box', 'Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
+    const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -67,7 +73,8 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
     const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
-    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    // Archiving doesn't change the subscription or bill the user, so the final bill is only calculated when deleting.
+    const shouldCalculateBillNewDot = !canArchivePolicies && !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
     const [activeAction, setActiveAction] = useState<ActiveAction>();
@@ -142,10 +149,16 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
 
         if (isOwner) {
             menuItems.push({
-                icon: icons.Trashcan,
-                text: translate('workspace.common.delete'),
-                shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
+                icon: canArchivePolicies ? icons.Box : icons.Trashcan,
+                text: translate(canArchivePolicies ? 'workspace.common.archive' : 'workspace.common.delete'),
+                shouldShowLoadingSpinnerIcon: !canArchivePolicies && !!isLoadingBill && pendingDeletePolicyID === item.policyID,
                 onSelected: () => {
+                    // The confirmation modal is handled by ArchiveWorkspaceFlow, mounted by the page.
+                    if (canArchivePolicies) {
+                        onArchiveWorkspace(item.policyID);
+                        return;
+                    }
+
                     if (isLoadingBill) {
                         return;
                     }
