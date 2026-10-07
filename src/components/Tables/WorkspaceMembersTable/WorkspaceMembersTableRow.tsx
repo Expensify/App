@@ -2,7 +2,6 @@ import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -13,11 +12,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceMemberRowData} from '.';
+
+import WorkspaceMemberRoleCell from './WorkspaceMemberRoleCell';
 
 type WorkspaceMembersTableRowProps = {
     item: WorkspaceMemberRowData;
@@ -32,6 +36,9 @@ type WorkspaceMembersTableRowProps = {
 
     /** Whether the bank account column is visible on web screens or not */
     shouldShowBankAccountColumn: boolean;
+
+    /** Policy used to determine which roles can be assigned from the inline editor */
+    policy: OnyxEntry<Policy>;
 };
 
 export default function WorkspaceMembersTableRow({
@@ -41,6 +48,7 @@ export default function WorkspaceMembersTableRow({
     shouldShowCustomField2Column,
     shouldShowBankAccountColumn,
     shouldUseNarrowTableLayout,
+    policy,
 }: WorkspaceMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -146,10 +154,16 @@ export default function WorkspaceMembersTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <Text numberOfLines={1}>{roleLabel}</Text>
+                            <WorkspaceMemberRoleCell
+                                role={item.role}
+                                policy={policy}
+                                memberLogin={item.login}
+                                canEdit={item.canEditRole}
+                                onSave={item.onChangeRole}
+                            />
                         </View>
                     )}
 

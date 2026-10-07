@@ -339,6 +339,8 @@ function IOURequestStepConfirmationContent({
                           currentUserAccountID: currentUserPersonalDetails.accountID,
                           localize: {translate, dateFnsLocale, convertToDisplayString},
                           rules,
+                          // Passing pendingDeleteMemberAccountIDs as undefined is intentional, isValidReport keeps group chats out of this list because the config here leaves includeMultipleParticipantReports false.
+                          pendingDeleteMemberAccountIDs: undefined,
                       });
             }) ?? [],
         [
@@ -671,7 +673,6 @@ function IOURequestStepConfirmationContent({
         participants,
         iouType,
         action,
-        requestType,
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
