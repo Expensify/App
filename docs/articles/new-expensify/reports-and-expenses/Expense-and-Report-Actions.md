@@ -150,6 +150,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
+| **Switch to table view** or **Switch to expense view** | Reports with one expense | All roles | Changes how you see reports with one expense. Your choice is saved and applies to all reports with one expense |
 | **View details** | Any report | All roles | Opens report details |
 | **Cancel payment** | Before payment processing | Payer, or a Payments admin on a workspace that tracks payments made elsewhere | Cancels a pending payment |
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
