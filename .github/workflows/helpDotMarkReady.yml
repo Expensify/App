@@ -1,0 +1,75 @@
+name: Mark help site PR ready when the assignee comments /ready
+
+# MelvinBot opens help site PRs as drafts and assigns the contributor who built the feature. That assignee checks the
+# article, then marks the PR ready for review. Contributors don't have write access to App, so GitHub doesn't show
+# them the "Ready for review" button. This workflow does it for them when they comment `/ready`.
+#
+# Guards (all must pass, otherwise nothing happens):
+#   - The comment is exactly `/ready` (any case, surrounding whitespace ignored).
+#   - The commenter is currently assigned to the PR. Only people with triage access can set assignees, so a commenter
+#     can't assign themselves to get around this.
+#   - The PR is an open draft.
+#   - Every file the PR changes is a help site article (docs/articles/**/*.md). This matches how PullerBear decides
+#     a PR is docs-only (PullerBear::hasNonDocChanges in Web-Expensify). Any other PR is never touched.
+#
+# It never checks out or runs PR code. It only reads the PR through the API and marks it ready.
+#
+# It uses OS_BOTIFY_TOKEN rather than GITHUB_TOKEN on purpose: GitHub doesn't start other workflows for events caused
+# by GITHUB_TOKEN, so a PR marked ready with it would skip everything that listens for ready_for_review (for example
+# the HelpDot AI review in claude-review.yml).
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  markReady:
+    name: Mark help site PR ready for review
+    # Cheap pre-filter in the expression; the exact checks happen in the step below
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      contains(github.event.comment.body, '/ready') &&
+      contains(github.event.issue.assignees.*.login, github.event.comment.user.login)
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    concurrency:
+      group: helpdot-mark-ready-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Mark ready if this is a draft help site PR
+        env:
+          GH_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENTER: ${{ github.event.comment.user.login }}
+        run: |
+          set -euo pipefail
+
+          # Only a comment that is exactly /ready counts, so "is this /ready?" or a quote of the command does nothing
+          command=$(printf '%s' "$COMMENT_BODY" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')
+          if [[ "$command" != "/ready" ]]; then
+            echo "Comment is not exactly /ready; nothing to do."
+            exit 0
+          fi
+
+          isDraft=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.draft')
+          if [[ "$isDraft" != "true" ]]; then
+            echo "PR is already ready for review; nothing to do."
+            exit 0
+          fi
+
+          # --paginate so PRs with more than 30 files are fully checked
+          nonArticleFiles=$(gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/files" --jq '.[].filename | select((startswith("docs/articles/") and (ascii_downcase | endswith(".md"))) | not)')
+          if [[ -n "$nonArticleFiles" ]]; then
+            echo "PR changes files that aren't help site articles:"
+            echo "$nonArticleFiles"
+            gh pr comment "$PR_NUMBER" --repo "$REPO" --body "@$COMMENTER \`/ready\` only works on PRs where every changed file is a help site article (\`docs/articles/*.md\`). This PR changes other files too, so it needs to be marked ready by someone with write access."
+            exit 0
+          fi
+
+          gh pr ready "$PR_NUMBER" --repo "$REPO"
+          echo "Marked PR #$PR_NUMBER ready for review at @$COMMENTER's request."
+
+          # Acknowledge with a 👍 on the /ready comment instead of posting another comment
+          gh api --method POST "repos/$REPO/issues/comments/$COMMENT_ID/reactions" -f content='+1' > /dev/null || true
