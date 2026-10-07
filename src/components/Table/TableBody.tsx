@@ -13,7 +13,7 @@ import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Keyboard, Platform, StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 import type {TableListMetadata} from './buildTableListData';
@@ -28,6 +28,7 @@ import {
     rendersColumnHeaderAsStickyRow,
     rendersColumnHeaderInListHeader,
 } from './buildTableListData';
+import dismissKeyboardOnDrag from './dismissKeyboardOnDrag';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
@@ -193,9 +194,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
     const handleScrollBeginDrag: NonNullable<typeof onScrollBeginDrag> = (event) => {
         // Match native SelectionList behavior so a focused search cannot be dragged offscreen with the keyboard open.
-        if (Platform.OS !== 'web') {
-            Keyboard.dismiss();
-        }
+        dismissKeyboardOnDrag();
         onScrollBeginDrag?.(event);
     };
 

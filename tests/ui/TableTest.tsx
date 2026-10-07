@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import dismissKeyboardOnDrag from '@components/Table/dismissKeyboardOnDrag';
 import Text from '@components/Text';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
@@ -25,7 +26,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import {Keyboard, Platform, StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 
@@ -95,6 +96,11 @@ let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
 let mockFlashListMeasurementTargetIndexes: number[] = [];
 let mockShouldUseNarrowLayout = false;
+
+jest.mock('@components/Table/dismissKeyboardOnDrag', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
 
 jest.mock('@components/SelectionList/hooks/useScrollToFocusedInput', () => ({
     __esModule: true,
@@ -1087,80 +1093,66 @@ describe('Table', () => {
             }
         });
 
-        it.each(['android', 'ios', 'web'] as const)('should dismiss the keyboard only on native drag and preserve the query and caller callback (%s)', (platform) => {
-            const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
-            const dismissKeyboard = jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => {});
-            try {
-                // Given a focused, filtered table with a caller-owned drag callback, scrolling must not erase its search.
-                const props = createDefaultProps();
-                const onScrollBeginDrag = jest.fn();
-                render(
-                    <Table
-                        {...props}
-                        onScrollBeginDrag={onScrollBeginDrag}
-                    >
-                        <Table.ListHeader>
-                            <Table.FilterBar label="Search" />
-                        </Table.ListHeader>
-                        <Table.Body />
-                    </Table>,
-                );
-                fireEvent(screen.getByTestId('search-input'), 'focus');
-                fireEvent.changeText(screen.getByTestId('search-input'), 'apple');
-                const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 80}}});
+        it('should request drag dismissal and preserve the query and caller callback', () => {
+            // Given a focused, filtered table with a caller-owned drag callback, scrolling must not erase its search.
+            const props = createDefaultProps();
+            const onScrollBeginDrag = jest.fn();
+            render(
+                <Table
+                    {...props}
+                    onScrollBeginDrag={onScrollBeginDrag}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+            fireEvent(screen.getByTestId('search-input'), 'focus');
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple');
+            const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 80}}});
 
-                // When the list scrolls without a drag, focus remains available for keyboard navigation and query resets.
-                act(() => mockFlashListProps.at(-1)?.onScroll?.(event));
-                expect(dismissKeyboard).not.toHaveBeenCalled();
-                expect(onScrollBeginDrag).not.toHaveBeenCalled();
-                act(() => mockFlashListProps.at(-1)?.onScrollBeginDrag?.(event));
+            // When the list scrolls without a drag, focus remains available for keyboard navigation and query resets.
+            act(() => mockFlashListProps.at(-1)?.onScroll?.(event));
+            expect(dismissKeyboardOnDrag).not.toHaveBeenCalled();
+            expect(onScrollBeginDrag).not.toHaveBeenCalled();
+            act(() => mockFlashListProps.at(-1)?.onScrollBeginDrag?.(event));
 
-                // Then native dragging dismisses the keyboard, web does not, and the caller still receives the same event.
-                expect(dismissKeyboard).toHaveBeenCalledTimes(platform === 'web' ? 0 : 1);
-                expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
-                expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
-                expect(screen.getByTestId('search-input').props.value).toBe('apple');
-                expect(screen.getByTestId('row-1')).toBeTruthy();
-            } finally {
-                dismissKeyboard.mockRestore();
-                platformOverride.restore();
-            }
+            // Then dragging invokes the platform helper and the caller receives the same event with its query intact.
+            expect(dismissKeyboardOnDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(screen.getByTestId('row-1')).toBeTruthy();
         });
 
-        it.each(['android', 'ios', 'web'] as const)('should preserve native drag dismissal and the caller callback in the standalone empty state (%s)', (platform) => {
-            const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
-            const dismissKeyboard = jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => {});
-            try {
-                // Given an empty table, the standalone scroll container must retain the normal list's drag behavior.
-                const props = createDefaultProps();
-                const onScrollBeginDrag = jest.fn();
-                render(
-                    <Table
-                        {...props}
-                        data={[]}
-                        onScrollBeginDrag={onScrollBeginDrag}
-                    >
-                        <Table.ListHeader>
-                            <Table.FilterBar label="Search" />
-                        </Table.ListHeader>
-                        <Table.EmptyState title="No items" />
-                        <Table.Body />
-                    </Table>,
-                );
-                const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 20}}});
+        it('should request drag dismissal and preserve the caller callback in the standalone empty state', () => {
+            // Given an empty table, the standalone scroll container must retain the normal list's drag behavior.
+            const props = createDefaultProps();
+            const onScrollBeginDrag = jest.fn();
+            render(
+                <Table
+                    {...props}
+                    data={[]}
+                    onScrollBeginDrag={onScrollBeginDrag}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.EmptyState title="No items" />
+                    <Table.Body />
+                </Table>,
+            );
+            const event = createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {x: 0, y: 20}}});
 
-                // When the empty-state content is dragged, use the same callback path as a populated list.
-                fireEvent(screen.getByTestId('table-empty-state-scroll-view'), 'scrollBeginDrag', event);
+            // When the empty-state content is dragged, use the same callback path as a populated list.
+            fireEvent(screen.getByTestId('table-empty-state-scroll-view'), 'scrollBeginDrag', event);
 
-                // Then native dismissal and caller notification work even without a FlashList instance.
-                expect(screen.queryByTestId('flash-list')).toBeNull();
-                expect(dismissKeyboard).toHaveBeenCalledTimes(platform === 'web' ? 0 : 1);
-                expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
-                expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
-            } finally {
-                dismissKeyboard.mockRestore();
-                platformOverride.restore();
-            }
+            // Then dismissal is requested once and caller notification works even without a FlashList instance.
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(dismissKeyboardOnDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledTimes(1);
+            expect(onScrollBeginDrag).toHaveBeenCalledWith(event);
         });
 
         it('should keep FlashList measurement copies inert without remounting the focused search input', () => {
