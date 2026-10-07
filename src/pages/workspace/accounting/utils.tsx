@@ -16,7 +16,8 @@ import {getAccountingIntegrationDisplayName, getQuickbooksOnlineIntegrationName,
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {canUseTaxNetSuite, getCurrentConnectionName} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite} from '@libs/NetSuiteUtils';
+import {getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -530,6 +531,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.AUTO_SYNC,
                     CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE,
+                    CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE,
                     CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
                     CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
                     CONST.RILLET_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
@@ -674,8 +676,17 @@ function getAccountingIntegrationData(
                     CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES,
                     ...(policy?.connections?.businessCentral?.data?.dimensions?.map((dimension) => `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
-                subscribedExportSettings: [],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.BUSINESS_CENTRAL_CONFIG.EXPORTER,
+                    CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_DATE,
+                    CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE,
+                    CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE_ACCOUNT,
+                    CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE,
+                    CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID,
+                    CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                    CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE,
+                ],
                 onAdvancedPagePress: () => null,
                 subscribedAdvancedSettings: [],
                 workspaceUpgradeNavigationDetails: {
