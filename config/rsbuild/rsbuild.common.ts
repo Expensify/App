@@ -521,12 +521,12 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   clientsClaim: true,
                                   skipWaiting: true,
                                   // Cap is generous on purpose: the vendor (~6.5 MiB), main (~5.5 MiB),
-                                  // authScreens.prefetch (~6.3 MiB) chunks and the canvaskit wasm (~7.7 MiB) are
+                                  // authScreens.prefetch (~10.1 MiB) chunks and the canvaskit wasm (~7.7 MiB) are
                                   // all critical for offline boot, so we precache the lot. JS chunks are
                                   // content-hashed and the wasm is versioned (see `CANVASKIT_WASM_FILENAME`),
                                   // so growth here only costs first-install bytes. Copied assets that keep a
                                   // fixed name (e.g. `cmaps/`) are keyed by Workbox revision instead.
-                                  maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+                                  maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
                                   // Workbox's defaults, plus the `.br` twins BrotliCompressionPlugin emits: the service
                                   // worker requests the original URLs and the CDN transparently serves the Brotli copy,
                                   // so adding the twins to the precache as well would download every chunk twice.
