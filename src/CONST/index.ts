@@ -9303,6 +9303,9 @@ const CONST = {
             /** Widest drag width, so one drag can't push later columns out of reach. */
             MAX_WIDTH: 1200,
 
+            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
+            DRAG_SLOP: 3,
+
             /** Width of the invisible drag strip centred on a column's edge. */
             HANDLE_HIT_WIDTH: 12,
 

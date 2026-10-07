@@ -62,6 +62,9 @@ type UseDynamicColumnWidthsResult = {
 
     /** Narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths: Record<string, number>;
+
+    /** Width that fits each content-sized column's widest cell and its heading, which a click on its edge sizes it to. */
+    fitColumnWidths: Record<string, number>;
 };
 
 /**
@@ -145,6 +148,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         resizableColumnKeys: [],
         resolvedColumnWidths: {},
         dragMinWidths: {},
+        fitColumnWidths: {},
     };
 
     // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
@@ -189,6 +193,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     }
 
     const constraints: DynamicColumnConstraints[] = [];
+    const fitColumnWidths: Record<string, number> = {};
 
     for (const column of dynamicColumns) {
         const contentWidth = measureColumnContentWidth(column, data);
@@ -202,6 +207,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         // A column has to fit its header label as well as its cells, so the label is part of what its content needs
         // rather than a separate floor.
         const columnContentWidth = Math.max(contentWidth, headerLabelWidth);
+        fitColumnWidths[column.key] = columnContentWidth;
 
         // A column holding a known, short set of values is never squeezed below its content, so it never truncates.
         // A free-text column is squeezed no further than a readable width, or its content when that is narrower.
@@ -252,13 +258,15 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         return {...noDynamicWidths, gridTemplateColumns, scrollWidth, resolvedColumnWidths};
     }
 
-    return getResizableColumnLayout({
+    const resizableColumnLayout = getResizableColumnLayout({
         columns,
         resolvedColumnWidths,
         columnWidthOverrides,
         tableWidth,
         rowChromeWidths: {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth},
     });
+
+    return {...resizableColumnLayout, fitColumnWidths};
 }
 
 export default useDynamicColumnWidths;
