@@ -135,8 +135,13 @@ function initSplitExpense(
                 ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID))
                 : createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(reportID, originalTransactionID));
             initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
-            Navigation.navigate(splitExpenseOverviewRoute);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, transaction.transactionID), splitExpenseOverviewRoute));
+            // Open the edit page only after the overview's RHP has mounted. Pushed in the same tick, the edit page replaces the overview's RHP,
+            // so going back from it (e.g. after Remove split) closes the RHP instead of returning to the overview to Save.
+            Navigation.navigate(splitExpenseOverviewRoute, {
+                afterTransition: () => {
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, transaction.transactionID), splitExpenseOverviewRoute));
+                },
+            });
             return;
         }
         if (isSearchTopmostFullScreenRoute()) {

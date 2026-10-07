@@ -23,6 +23,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -125,6 +126,7 @@ function WalletPage() {
     const StyleUtils = useStyleUtils();
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const {showConfirmModal} = useConfirmModal();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
@@ -729,8 +731,8 @@ function WalletPage() {
                                 onPress={onBankAccountRowPressed}
                                 onAddBankAccountPress={addBankAccountPressed}
                                 onThreeDotsMenuPress={paymentMethodPressed}
-                                style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                style={[styles.mt5, cardEdgeToEdge]}
+                                listItemStyle={cardPaddingHorizontal}
                                 shouldShowBankAccountSections
                                 shouldShowConnectionStatus
                                 threeDotsMenuItems={threeDotMenuItems}
@@ -750,8 +752,8 @@ function WalletPage() {
                                     shouldShowAssignedCards
                                     onPress={assignedCardPressed}
                                     threeDotsMenuItems={cardThreeDotsMenuItems}
-                                    style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                    listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    style={[styles.mt5, cardEdgeToEdge]}
+                                    listItemStyle={cardPaddingHorizontal}
                                     shouldShowConnectionStatus
                                 />
                                 <MenuItemSectionRoot
