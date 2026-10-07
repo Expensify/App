@@ -133,10 +133,10 @@ import {
     getReportPreviewReportAction,
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 type TrackExpenseInformation = {
     createdWorkspaceParams?: CreateWorkspaceParams;
@@ -671,7 +671,7 @@ type GetDeleteTrackExpenseInformationParams = {
     actionableWhisperReportActionID?: string;
     resolution?: string;
     shouldRemoveIOUTransaction?: boolean;
-    transactionThread?: OnyxEntry<OnyxTypes.Report>;
+    transactionThread: OnyxEntry<OnyxTypes.Report>;
 };
 
 function getDeleteTrackExpenseInformation({
@@ -1047,8 +1047,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             introSelected,
             activePolicy,
             conciergeChat,
-            // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
-            hasActiveAdminPolicies: undefined,
             // This workspace is created by AddTrackedExpenseToPolicy, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
             hasOwnedPaidPolicy: undefined,
@@ -1277,6 +1275,7 @@ const getConvertTrackedExpenseInformation = (
         currentUserAccountID,
         // isMovingTransactionFromTrackExpense is true, so the transaction thread is never deleted and these report actions are unused here.
         transactionThreadReportActions: undefined,
+        transactionThread: undefined,
         shouldDeleteTransactionFromOnyx: false,
         isMovingTransactionFromTrackExpense: true,
         actionableWhisperReportActionID,
@@ -1662,7 +1661,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report} {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report; transactionID?: string} {
     const {
         report,
         existingIOUReport,
@@ -2001,11 +2000,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     deferredAPIWrite?.();
 
-    if (!requestMoneyInformation.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (!requestMoneyInformation.isRetry && isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 
-    return {iouReport};
+    return {iouReport, transactionID: transaction.transactionID};
 }
 
 /**
@@ -2964,13 +2963,15 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    if (!params.isRetry) {
-        highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (!params.isRetry && isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 
     if (!isNotificationDeferredToWrite) {
         notifyTrackedAction();
     }
+
+    return {iouReport, transactionID: transaction?.transactionID};
 }
 
 /**
@@ -3058,11 +3059,11 @@ function deleteTrackExpense({
         isSingleTransactionView,
     );
 
+    const allReports = getAllReports();
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
-        const allReports = getAllReports();
-        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-
         deleteMoneyRequest({
             transactionID,
             reportAction,
@@ -3093,6 +3094,7 @@ function deleteTrackExpense({
         isChatReportArchived,
         currentUserAccountID,
         transactionThreadReportActions,
+        transactionThread: transactionThreadReport,
         actionableWhisperReportActionID,
         resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
         shouldRemoveIOUTransaction: false,

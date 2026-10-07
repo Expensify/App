@@ -30,7 +30,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
-import {isSplitChildTransaction} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isSplitChildTransaction, isTimeRequest} from '@libs/TransactionUtils';
 
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
@@ -238,7 +238,8 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
             {/* "Submit it to someone" is one button per destination. */}
             {shouldShowSubmitButtons && (
                 <>
-                    {!isSplitExpense && (
+                    {/* A DM is not a valid destination for per diem and time expenses, nor for a user restricted to one workspace. */}
+                    {!isSplitExpense && !isRestrictedToPreferredPolicy && !isPerDiemRequest(trackExpenseTransaction) && !isTimeRequest(trackExpenseTransaction) && (
                         <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}>
                             <Button.Text>{translate('actionableMentionTrackExpense.submitToFriend')}</Button.Text>
                         </Button>

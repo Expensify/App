@@ -317,6 +317,8 @@ function getMoneyRequestParticipantOptions({
                       convertToDisplayString,
                   },
                   rules,
+                  // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
+                  pendingDeleteMemberAccountIDs: undefined,
               });
     });
 }
@@ -332,6 +334,7 @@ type InitMoneyRequestParams = {
     report: OnyxEntry<Report>;
     parentReport: OnyxEntry<Report>;
     currentDate: string | undefined;
+    overrideCurrency?: string;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
@@ -362,6 +365,7 @@ function initMoneyRequest({
     report,
     parentReport,
     currentDate,
+    overrideCurrency,
     lastSelectedDistanceRates,
     hasOnlyPersonalPolicies,
     draftTransactionIDs,
@@ -369,7 +373,7 @@ function initMoneyRequest({
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const currency = overrideCurrency ?? policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const created = currentDate ?? format(new Date(), 'yyyy-MM-dd');
 
