@@ -91,7 +91,34 @@ function useReportActionsNewActionLiveTail({
     const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
+    const pendingPreviewScrollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
+
+    const cancelPendingPreviewScroll = useCallback(() => {
+        if (pendingPreviewScrollRef.current === null) {
+            return;
+        }
+        clearTimeout(pendingPreviewScrollRef.current);
+        pendingPreviewScrollRef.current = null;
+    }, []);
+
+    const scrollToCurrentPreviewPosition = useEffectEvent((actionID: string, targetReportID: string) => {
+        if (reportID !== targetReportID || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
+            return;
+        }
+
+        // Reconciliation can remove or move a preview while its layout-time scroll is pending.
+        const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === actionID);
+        if (index < 0) {
+            return;
+        }
+        if (index === 0) {
+            setIsFloatingMessageCounterVisible(false);
+            reportScrollManager.scrollToBottom();
+            return;
+        }
+        reportScrollManager.scrollToIndex(index);
+    });
 
     const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
         TransitionTracker.runAfterTransitions({
@@ -101,6 +128,8 @@ function useReportActionsNewActionLiveTail({
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
+                // A newer current-user action takes over the scroll target for this chat.
+                cancelPendingPreviewScroll();
                 if (!hasNewestReportAction && !isFromCurrentUser) {
                     if (Navigation.getReportRHPActiveRoute()) {
                         return;
@@ -133,8 +162,10 @@ function useReportActionsNewActionLiveTail({
                 const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     if (index > 0) {
-                        setTimeout(() => {
-                            reportScrollManager.scrollToIndex(index);
+                        const actionID = action.reportActionID;
+                        pendingPreviewScrollRef.current = setTimeout(() => {
+                            pendingPreviewScrollRef.current = null;
+                            scrollToCurrentPreviewPosition(actionID, reportID);
                         }, 100);
                     } else {
                         setIsFloatingMessageCounterVisible(false);
@@ -225,6 +256,7 @@ function useReportActionsNewActionLiveTail({
         const unsubscribe = subscribeToNewActionEvent(reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
+            cancelPendingPreviewScroll();
             if (!unsubscribe) {
                 return;
             }
@@ -234,7 +266,7 @@ function useReportActionsNewActionLiveTail({
         newActionUnsubscribeMap[reportID] = cleanup;
 
         return cleanup;
-    }, [reportID]);
+    }, [reportID, cancelPendingPreviewScroll]);
 
     return {
         isScrollToBottomEnabled,
