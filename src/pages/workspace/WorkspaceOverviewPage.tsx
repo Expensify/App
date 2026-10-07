@@ -39,6 +39,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {close} from '@libs/actions/Modal';
+import {clearOfficeLocationErrors} from '@libs/actions/Policy/DistanceRate';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     clearAvatarErrors,
@@ -56,7 +57,15 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, getRulesDocumentSourceURL, getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyOwner} from '@libs/PolicyUtils';
+import {
+    canEditWorkspaceSettings,
+    getRulesDocumentSourceURL,
+    getUserFriendlyWorkspaceType,
+    goBackFromInvalidPolicy,
+    hasCompanyAddress,
+    isPendingDeletePolicy,
+    isPolicyOwner,
+} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -93,12 +102,12 @@ const rulesDocumentMenuPositionStyle = {top: variables.spacing2, right: variable
 
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Box', 'Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Box', 'Exit', 'ImageCropSquareMask', 'Plus', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {isBetaEnabled} = usePermissions();
     const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
@@ -244,6 +253,19 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         [translate, expensifyIcons, handleRulesDocumentPicked, policyID, rulesDocumentURL],
     );
     const shouldShowExpensePolicySection = isPolicyAdmin || hasRulesDocument || hasCustomRulesText;
+
+    // The primary office is listed first and the rest by name, since the server returns them keyed by random officeIDs
+    const officeLocationEntries = Object.entries(policy?.officeLocations ?? {}).sort(
+        ([, officeLocation], [, otherOfficeLocation]) =>
+            Number(!!otherOfficeLocation.isDefault) - Number(!!officeLocation.isDefault) || localeCompare(officeLocation.name, otherOfficeLocation.name),
+    );
+    const shouldShowCompanyAddressOffice = hasCompanyAddress(policy);
+
+    // The company address is the workspace's default office while no office is
+    const isCompanyAddressPrimary = !officeLocationEntries.some(
+        ([, officeLocation]) => officeLocation.isDefault && officeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+    const shouldShowOfficeLocationsSection = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && (!readOnly || shouldShowCompanyAddressOffice || officeLocationEntries.length > 0);
     const shouldShowRulesDocumentSubSection = isPolicyAdmin || hasRulesDocument;
 
     const personalDetails = usePersonalDetails();
@@ -708,6 +730,75 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         </OfflineWithFeedback>
                     )}
                 </Section>
+                {shouldShowOfficeLocationsSection && (
+                    <Section
+                        isCentralPane
+                        title={translate('workspace.officeLocations.title')}
+                        titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
+                        subtitle={translate('workspace.officeLocations.subtitle')}
+                        subtitleStyles={[styles.mb2]}
+                        subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
+                        containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                    >
+                        {shouldShowCompanyAddressOffice && (
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
+                                <MenuItemSectionRoot>
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate('common.companyAddress')}</MenuItem.Title>
+                                            <MenuItem.Description>{formattedAddress}</MenuItem.Description>
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            {isCompanyAddressPrimary && <MenuItem.RightLabel>{translate('workspace.officeLocations.primary')}</MenuItem.RightLabel>}
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
+                            </OfflineWithFeedback>
+                        )}
+                        {officeLocationEntries.map(([officeID, officeLocation]) => {
+                            const isEditable = !readOnly && officeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                            return (
+                                <OfflineWithFeedback
+                                    key={officeID}
+                                    pendingAction={officeLocation.pendingAction}
+                                    errors={officeLocation.errors}
+                                    onClose={() => clearOfficeLocationErrors(routePolicyID, officeID, officeLocation.pendingAction)}
+                                >
+                                    <MenuItemSectionRoot
+                                        onPress={isEditable ? () => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.getRoute(routePolicyID, officeID)) : undefined}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.OFFICE_LOCATION}
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{officeLocation.name}</MenuItem.Title>
+                                                <MenuItem.Description>{formatAddressToString(officeLocation.address)}</MenuItem.Description>
+                                            </MenuItem.Content>
+                                            <MenuItem.Trailing>
+                                                {!!officeLocation.isDefault && <MenuItem.RightLabel>{translate('workspace.officeLocations.primary')}</MenuItem.RightLabel>}
+                                                {isEditable && <MenuItem.Chevron />}
+                                            </MenuItem.Trailing>
+                                        </MenuItem.Row>
+                                    </MenuItemSectionRoot>
+                                </OfflineWithFeedback>
+                            );
+                        })}
+                        {!readOnly && (
+                            <MenuItemSectionRoot
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.getRoute(routePolicyID))}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADD_OFFICE_LOCATION}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={expensifyIcons.Plus} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('workspace.officeLocations.addOfficeLocation')}</MenuItem.Title>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItemSectionRoot>
+                        )}
+                    </Section>
+                )}
                 {shouldShowExpensePolicySection ? (
                     <Section
                         isCentralPane

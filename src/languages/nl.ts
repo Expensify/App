@@ -7643,6 +7643,19 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             addressContext: 'Een werkruimte-adres is vereist om Expensify Travel in te schakelen. Voer een adres in dat bij uw bedrijf hoort.',
             policy: 'Declaratiebeleid',
         },
+        officeLocations: {
+            title: 'Kantoorlocaties',
+            subtitle: 'Voeg kantoorlocaties toe om aan leden toe te wijzen, bijvoorbeeld voor het bijhouden van afstanden.',
+            addOfficeLocation: 'Kantoorlocatie toevoegen',
+            editOfficeLocation: 'Kantoorlocatie bewerken',
+            locationName: 'Locatienaam',
+            locationNameHint: 'Kies een bijnaam voor de locatie als je meerdere kantoorlocaties toevoegt',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Kantoorlocatie ${officeNumber}`,
+            setAsPrimary: 'Instellen als primair',
+            primary: 'Primair',
+            deleteOfficeLocation: 'Kantoorlocatie verwijderen',
+            deleteOfficeLocationConfirmation: 'Weet je zeker dat je deze kantoorlocatie wilt verwijderen?',
+        },
         bankAccount: {
             continueWithSetup: 'Setup voortzetten',
             youAreAlmostDone:
@@ -9426,6 +9439,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft ‘${prohibitedExpense}’ toegevoegd aan verboden uitgaven`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `heeft de kantoorlocatie ‘${name}’ (${address}) toegevoegd`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `heeft de kantoorlocatie ‘${oldName}’ hernoemd naar ‘${newName}’`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `heeft het adres van de kantoorlocatie ‘${name}’ gewijzigd in ‘${newAddress}’ (voorheen ‘${oldAddress}’)`,
+            setAsPrimary: ({name}: {name: string}) => `heeft de kantoorlocatie ‘${name}’ als primair ingesteld`,
+            removed: ({name}: {name: string}) => `heeft de kantoorlocatie ‘${name}’ verwijderd`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `heeft woon-werkverkeer wijzigen in een vaste afstand per declaratie (voorheen ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>

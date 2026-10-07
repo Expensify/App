@@ -129,6 +129,7 @@ export type {EditAgentNameForm} from './EditAgentNameForm';
 export type {EditAgentPromptForm} from './EditAgentPromptForm';
 export type {AddAgentRuleForm} from './AddAgentRuleForm';
 export type {EditAgentRuleForm} from './EditAgentRuleForm';
+export type {WorkspaceOfficeLocationForm} from './WorkspaceOfficeLocationForm';
 export type {RilletCredentialsForm} from './RilletCredentialsForm';
 export type {DualEntryCredentialsForm} from './DualEntryCredentialsForm';
 export type {CampfireCredentialsForm} from './CampfireCredentialsForm';

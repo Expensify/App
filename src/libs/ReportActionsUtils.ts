@@ -4689,6 +4689,45 @@ function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, r
     return translate('workspaceActions.updatedMemberWorkArrangement', {displayName, newArrangement, oldArrangement});
 }
 
+function getAddedOfficeLocationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION)) {
+        return getReportActionText(reportAction);
+    }
+    const {name = '', address} = getOriginalMessage(reportAction) ?? {};
+    return translate('workspaceActions.officeLocation.added', {name, address: formatAddressToString(address)});
+}
+
+function getUpdatedOfficeLocationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION)) {
+        return getReportActionText(reportAction);
+    }
+    const {name = '', updatedField, newValue, oldValue, newAddress, oldAddress} = getOriginalMessage(reportAction) ?? {};
+
+    if (updatedField === CONST.POLICY.OFFICE_LOCATION_FIELD.NAME) {
+        return translate('workspaceActions.officeLocation.renamed', {
+            oldName: typeof oldValue === 'string' ? oldValue : '',
+            newName: typeof newValue === 'string' ? newValue : '',
+        });
+    }
+
+    if (updatedField === CONST.POLICY.OFFICE_LOCATION_FIELD.ADDRESS) {
+        return translate('workspaceActions.officeLocation.changedAddress', {name, newAddress: formatAddressToString(newAddress), oldAddress: formatAddressToString(oldAddress)});
+    }
+
+    if (updatedField === CONST.POLICY.OFFICE_LOCATION_FIELD.IS_DEFAULT) {
+        return translate('workspaceActions.officeLocation.setAsPrimary', {name});
+    }
+
+    return getReportActionText(reportAction);
+}
+
+function getDeletedOfficeLocationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION)) {
+        return getReportActionText(reportAction);
+    }
+    return translate('workspaceActions.officeLocation.removed', {name: getOriginalMessage(reportAction)?.name ?? ''});
+}
+
 function getUpdatedProhibitedExpensesMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
     const {newProhibitedExpenses, oldProhibitedExpenses} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES>) ?? {};
@@ -5518,6 +5557,9 @@ export {
     getUpdatedProhibitedExpensesMessage,
     getUpdatedCommuterExclusionsMessage,
     getUpdatedMemberWorkArrangementMessage,
+    getAddedOfficeLocationMessage,
+    getUpdatedOfficeLocationMessage,
+    getDeletedOfficeLocationMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

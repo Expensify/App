@@ -7,13 +7,14 @@ import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import type {ReactNode} from 'react';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
-import type {FormOnyxValues} from './Form/types';
+import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import type {State} from './StateSelector';
 
 import AddressSearch from './AddressSearch';
@@ -28,7 +29,9 @@ type CountryZipRegex = {
     samples?: string;
 };
 
-type AddressFormProps = {
+type AddressFormID = typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM | typeof ONYXKEYS.FORMS.WORKSPACE_OFFICE_LOCATION_FORM;
+
+type AddressFormProps<TFormID extends AddressFormID> = {
     /** Address city field */
     city?: string;
 
@@ -51,7 +54,7 @@ type AddressFormProps = {
     onAddressChanged?: (value: unknown, key: unknown) => void;
 
     /** Callback which is executed when the user submits his address changes */
-    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
+    onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
     /** Whether or not should the form data should be saved as draft */
     shouldSaveDraft?: boolean;
@@ -60,7 +63,16 @@ type AddressFormProps = {
     submitButtonText?: string;
 
     /** A unique Onyx key identifying the form */
-    formID: typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
+    formID: TFormID;
+
+    /** Inputs of the same form rendered above the address fields */
+    inputsBeforeAddress?: ReactNode;
+
+    /** Inputs of the same form rendered below the address fields */
+    inputsAfterAddress?: ReactNode;
+
+    /** Validates the inputs added above or below the address fields. Its errors are added to the address errors. */
+    validate?: (values: FormOnyxValues<TFormID>) => Record<string, string>;
 
     /** Whether to hide the country selector (e.g. when country cannot be changed) */
     shouldHideCountrySelector?: boolean;
@@ -86,7 +98,7 @@ type AddressFormProps = {
     addBottomSafeAreaPadding?: boolean;
 };
 
-function AddressForm({
+function AddressForm<TFormID extends AddressFormID>({
     city = '',
     country = '',
     formID,
@@ -103,7 +115,10 @@ function AddressForm({
     shouldRequireZip = false,
     shouldValidatePhysicalAddress = false,
     addBottomSafeAreaPadding = true,
-}: AddressFormProps) {
+    inputsBeforeAddress,
+    inputsAfterAddress,
+    validate,
+}: AddressFormProps<TFormID>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -121,13 +136,14 @@ function AddressForm({
      */
 
     const validator = useCallback(
-        (rawValues: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
-            // When hidden, the country input is unregistered so fall back to the country prop.
-            const values = shouldHideCountrySelector ? {...rawValues, country: rawValues.country || country} : rawValues;
+        (rawValues: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+            // Every form rendered here has the home address fields, so they are validated the same way
+            const addressValues: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM> = rawValues;
 
-            const errors: Errors & {
-                zipPostCode?: string | string[];
-            } = {};
+            // When hidden, the country input is unregistered so fall back to the country prop.
+            const values = shouldHideCountrySelector ? {...addressValues, country: addressValues.country || country} : addressValues;
+
+            const errors: Record<string, string> = {};
             const baseRequiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
             const requiredFields = shouldRequireZip ? ([...baseRequiredFields, 'zipPostCode'] as const) : baseRequiredFields;
 
@@ -193,9 +209,11 @@ function AddressForm({
                 errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
 
-            return errors;
+            // TypeScript can't tell that the address input IDs are keys of a generic form, though every form in AddressFormID has them
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            return (validate ? {...errors, ...validate(rawValues)} : errors) as FormInputErrors<TFormID>;
         },
-        [translate, shouldHideCountrySelector, country, shouldRequireZip, shouldValidatePhysicalAddress],
+        [translate, shouldHideCountrySelector, country, shouldRequireZip, shouldValidatePhysicalAddress, validate],
     );
 
     return (
@@ -208,6 +226,12 @@ function AddressForm({
             enabledWhenOffline={enabledWhenOfflineProp}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
+            {!!inputsBeforeAddress && (
+                <>
+                    {inputsBeforeAddress}
+                    <View style={styles.formSpaceVertical} />
+                </>
+            )}
             <View>
                 <InputWrapper
                     InputComponent={AddressSearch}
@@ -305,6 +329,12 @@ function AddressForm({
                 shouldSaveDraft={shouldSaveDraft}
                 autoComplete="postal-code"
             />
+            {!!inputsAfterAddress && (
+                <>
+                    <View style={styles.formSpaceVertical} />
+                    {inputsAfterAddress}
+                </>
+            )}
         </FormProvider>
     );
 }

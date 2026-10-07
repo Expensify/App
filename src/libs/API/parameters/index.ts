@@ -595,6 +595,9 @@ export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProh
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
 export type {default as SetEmployeeWorkArrangementParams} from './SetEmployeeWorkArrangementParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
+export type {default as AddOfficeLocationParams} from './AddOfficeLocationParams';
+export type {default as UpdateOfficeLocationParams} from './UpdateOfficeLocationParams';
+export type {default as DeleteOfficeLocationParams} from './DeleteOfficeLocationParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';

@@ -16,6 +16,7 @@ import {
     evaluateApprovalWorkflowRule,
     findVendorByID,
     getVendorDisplayName,
+    hasCompanyAddress,
     hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
@@ -6703,5 +6704,22 @@ describe('shouldHideDynamicExternalWorkflowPeople', () => {
     it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
         const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
         expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+});
+
+describe('hasCompanyAddress', () => {
+    it('only counts a company address that has a street, the same way Auth does', () => {
+        // Given workspaces without an address, with a blank street, and with a street
+        const policy = createRandomPolicy(0);
+        const address = {city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US' as const};
+        const withoutAddress: Policy = {...policy, address: undefined};
+        const withBlankStreet: Policy = {...policy, address: {...address, addressStreet: '  '}};
+        const withStreet: Policy = {...policy, address: {...address, addressStreet: '88 Kearny St'}};
+
+        // When checking whether each has a company address
+        // Then only the one with a street has one, since that's when Auth counts the company address as an office
+        expect(hasCompanyAddress(withoutAddress)).toBe(false);
+        expect(hasCompanyAddress(withBlankStreet)).toBe(false);
+        expect(hasCompanyAddress(withStreet)).toBe(true);
     });
 });

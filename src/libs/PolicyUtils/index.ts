@@ -388,6 +388,13 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
 }
 
 /**
+ * Whether the workspace has a company address
+ */
+function hasCompanyAddress(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.address?.addressStreet?.trim();
+}
+
+/**
  * Retrieves the distance custom unit object for the given policy
  */
 function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
@@ -2865,6 +2872,7 @@ export {
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
     getSageIntacctExpenseAccounts,
+    hasCompanyAddress,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,

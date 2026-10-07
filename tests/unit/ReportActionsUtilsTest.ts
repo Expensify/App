@@ -20,6 +20,7 @@ import Onyx from 'react-native-onyx';
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
 import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
+import type {CompanyAddress} from '../../src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
 
@@ -29,6 +30,7 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     getAddedCardFeedMessage,
+    getAddedOfficeLocationMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -41,6 +43,7 @@ import {
     getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
+    getDeletedOfficeLocationMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
@@ -72,6 +75,7 @@ import {
     getUpdatedMemberWorkArrangementMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedOfficeLocationMessage,
     hasNextActionMadeBySameActor,
     hasReasoning,
     isConsecutiveActionMadeByPreviousActor,
@@ -4611,6 +4615,61 @@ describe('ReportActionsUtils', () => {
                     oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
                 }),
             );
+        });
+    });
+
+    describe('office location change logs', () => {
+        const headquartersAddress: CompanyAddress = {addressStreet: '88 Kearny St', city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US'};
+        const newJerseyAddress: CompanyAddress = {addressStreet: '900 Asbury Ave\nSuite 2', city: 'Ocean City', state: 'NJ', zipCode: '08226', country: 'US'};
+
+        it('names the added office and its address', () => {
+            // Given an office added to the workspace
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {officeID: 'OFFICE1', name: 'Headquarters', address: headquartersAddress, isDefault: true},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getAddedOfficeLocationMessage(translateLocal, action)).toBe('added the office location "Headquarters" (88 Kearny St, San Francisco, CA 94108)');
+        });
+
+        it.each([
+            ['a rename', {updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.NAME, name: 'HQ', newValue: 'HQ', oldValue: 'Headquarters'}, 'renamed the office location "Headquarters" to "HQ"'],
+            [
+                'an address change',
+                {updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.ADDRESS, name: 'HQ', newAddress: newJerseyAddress, oldAddress: headquartersAddress},
+                'changed the address of the office location "HQ" to "900 Asbury Ave, Suite 2, Ocean City, NJ 08226" (previously "88 Kearny St, San Francisco, CA 94108")',
+            ],
+            ['a new primary office', {updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.IS_DEFAULT, name: 'HQ', newValue: true, oldValue: false}, 'set the office location "HQ" as primary'],
+        ])('describes %s', (_description, originalMessage, expected) => {
+            // Given an office update that changed a single field
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {officeID: 'OFFICE1', ...originalMessage},
+            };
+
+            // When the change log is rendered
+            // Then it describes the field that changed, the same way Auth does
+            expect(getUpdatedOfficeLocationMessage(translateLocal, action)).toBe(expected);
+        });
+
+        it('names the deleted office', () => {
+            // Given an office deleted from the workspace
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {officeID: 'OFFICE2', name: 'New Jersey Office'},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getDeletedOfficeLocationMessage(translateLocal, action)).toBe('removed the office location "New Jersey Office"');
         });
     });
 

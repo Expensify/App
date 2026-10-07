@@ -7725,6 +7725,19 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             addressContext: 'Une adresse d’espace de travail est requise pour activer Expensify Travel. Veuillez saisir une adresse associée à votre entreprise.',
             policy: 'Politique de dépenses',
         },
+        officeLocations: {
+            title: 'Lieux de travail',
+            subtitle: 'Ajoutez des lieux de travail à attribuer aux membres, par exemple pour le suivi des distances.',
+            addOfficeLocation: 'Ajouter un lieu de travail',
+            editOfficeLocation: 'Modifier le lieu de travail',
+            locationName: 'Nom du lieu',
+            locationNameHint: 'Choisissez un surnom pour le lieu si vous ajoutez plusieurs lieux de travail',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Lieu de travail ${officeNumber}`,
+            setAsPrimary: 'Définir comme principal',
+            primary: 'Principal',
+            deleteOfficeLocation: 'Supprimer le lieu de travail',
+            deleteOfficeLocationConfirmation: 'Voulez-vous vraiment supprimer ce lieu de travail ?',
+        },
         bankAccount: {
             continueWithSetup: 'Continuer la configuration',
             youAreAlmostDone:
@@ -9526,6 +9539,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `a ajouté le lieu de travail « ${name} » (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `a renommé le lieu de travail « ${oldName} » en « ${newName} »`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `a modifié l’adresse du lieu de travail « ${name} » en « ${newAddress} » (auparavant « ${oldAddress} »)`,
+            setAsPrimary: ({name}: {name: string}) => `a défini le lieu de travail « ${name} » comme principal`,
+            removed: ({name}: {name: string}) => `a supprimé le lieu de travail « ${name} »`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
                 `modification de l’exclusion des trajets domicile-travail en une distance fixe par demande (auparavant ${previousMethod})`,

@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, hasCompanyAddress} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -62,7 +62,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         selector: (policy) => ({
             commuterExclusions: policy?.commuterExclusions,
             unit: getDistanceRateCustomUnit(policy)?.attributes?.unit,
-            hasWorkspaceAddress: !!policy?.address?.addressStreet?.trim(),
+            hasWorkspaceAddress: hasCompanyAddress(policy),
             pendingFields: policy?.pendingFields,
             errorFields: policy?.errorFields,
         }),
