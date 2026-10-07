@@ -5,15 +5,16 @@ import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsRepo
 import useOnyx from '@hooks/useOnyx';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import '@libs/actions/IOU/MoneyRequest';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
+import '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
+
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1619,11 +1620,15 @@ describe('actions/Transaction', () => {
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
                     const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+                    const transactionThreadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+                    const transactionReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${originalTransaction?.reportID}`);
                     putOnHold({
                         transactionID: originalTransactionID,
                         transaction: originalTransaction,
                         comment: 'Test hold reason',
                         initialReportID: transactionThreadReportID,
+                        initialReport: transactionThreadReport,
+                        transactionReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
