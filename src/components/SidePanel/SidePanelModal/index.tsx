@@ -11,10 +11,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 
+import {areAllModalsHidden} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {isRHPVisibleSelector, willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
+import {isRHPVisibleSelector} from '@selectors/Modal';
 import React, {useEffect} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
@@ -30,9 +32,6 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const {paddingTop, paddingBottom, paddingLeft, paddingRight} = useSafeAreaPaddings();
 
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
-    // Set by any BaseModal (e.g. an attachment preview or an expanded chart) opened on top of the Side Panel. An RHP
-    // beneath the panel doesn't set it, so Esc keeps closing the panel in that case.
-    const [isModalOpenOnTop = false] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
     const uniqueModalId = ComposerFocusManager.getId();
 
     const {wideRHPRouteKeys, isWideRHPFocused, superWideRHPRouteKeys, isSuperWideRHPFocused} = useWideRHPState();
@@ -47,9 +46,19 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
         closeSidePanel();
     };
 
-    // Close Side Panel on escape key press. Stand down while a modal is open on top, otherwise the same Esc that
-    // closes the modal (whose handler bubbles) would also close the panel underneath it.
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePanel(), {isActive: !isExtraLargeScreenWidth && !isModalOpenOnTop, shouldBubble: false});
+    // Close Side Panel on escape key press. Stand down while any modal is open on top of it, otherwise the same Esc
+    // that closes the modal (whose handler bubbles) would also close the panel underneath. The open-modal registry is
+    // read when the key is pressed, so it stays correct for stacked modals and has no gap while Onyx writes are pending.
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            if (!areAllModalsHidden()) {
+                return;
+            }
+            closeSidePanel();
+        },
+        {isActive: !isExtraLargeScreenWidth, shouldBubble: false},
+    );
     // Close Side Panel on debug key press i.e. opening the TestTools modal
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.DEBUG, () => closeSidePanel(), {shouldBubble: true});
 
