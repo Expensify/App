@@ -7661,6 +7661,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             deleteOfficeLocation: 'Excluir local de escritório',
             deleteOfficeLocationConfirmation: 'Tem certeza de que deseja excluir este local de escritório?',
             existingOfficeLocationError: 'Já existe um local de escritório com este nome',
+            setCompanyAddressAsPrimaryConfirmation: 'Definir o endereço da empresa como escritório principal?',
         },
         bankAccount: {
             continueWithSetup: 'Continuar configuração',
@@ -9444,6 +9445,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `alterou o endereço do local de escritório "${name}" para "${newAddress}" (antes "${oldAddress}")`,
             setAsPrimary: ({name}: {name: string}) => `definiu o local de escritório "${name}" como principal`,
+            setCompanyAddressAsPrimary: 'definiu o endereço da empresa como principal',
             removed: ({name}: {name: string}) => `removeu o local de escritório "${name}"`,
         },
         commuterExclusions: {

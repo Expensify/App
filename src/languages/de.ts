@@ -7719,6 +7719,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             deleteOfficeLocation: 'Bürostandort löschen',
             deleteOfficeLocationConfirmation: 'Möchtest du diesen Bürostandort wirklich löschen?',
             existingOfficeLocationError: 'Ein Bürostandort mit diesem Namen existiert bereits',
+            setCompanyAddressAsPrimaryConfirmation: 'Die Firmenadresse als Hauptstandort festlegen?',
         },
         bankAccount: {
             continueWithSetup: 'Einrichtung fortsetzen',
@@ -9526,6 +9527,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `hat die Adresse des Bürostandorts „${name}“ in „${newAddress}“ geändert (zuvor „${oldAddress}“)`,
             setAsPrimary: ({name}: {name: string}) => `hat den Bürostandort „${name}“ als Hauptstandort festgelegt`,
+            setCompanyAddressAsPrimary: 'hat die Firmenadresse als Hauptstandort festgelegt',
             removed: ({name}: {name: string}) => `hat den Bürostandort „${name}“ entfernt`,
         },
         commuterExclusions: {

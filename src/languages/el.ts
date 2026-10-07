@@ -8012,6 +8012,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             deleteOfficeLocation: 'Διαγραφή τοποθεσίας γραφείου',
             deleteOfficeLocationConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτή την τοποθεσία γραφείου;',
             existingOfficeLocationError: 'Υπάρχει ήδη τοποθεσία γραφείου με αυτό το όνομα',
+            setCompanyAddressAsPrimaryConfirmation: 'Ορισμός της διεύθυνσης εταιρείας ως κύριου γραφείου;',
         },
         bankAccount: {
             continueWithSetup: 'Συνεχίστε τη ρύθμιση',
@@ -9651,6 +9652,7 @@ ${reportName}`,
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `άλλαξε τη διεύθυνση της τοποθεσίας γραφείου «${name}» σε «${newAddress}» (προηγουμένως «${oldAddress}»)`,
             setAsPrimary: ({name}: {name: string}) => `όρισε την τοποθεσία γραφείου «${name}» ως κύρια`,
+            setCompanyAddressAsPrimary: 'όρισε τη διεύθυνση εταιρείας ως κύρια',
             removed: ({name}: {name: string}) => `αφαίρεσε την τοποθεσία γραφείου «${name}»`,
         },
         commuterExclusions: {

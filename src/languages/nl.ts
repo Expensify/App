@@ -7656,6 +7656,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             deleteOfficeLocation: 'Kantoorlocatie verwijderen',
             deleteOfficeLocationConfirmation: 'Weet je zeker dat je deze kantoorlocatie wilt verwijderen?',
             existingOfficeLocationError: 'Er bestaat al een kantoorlocatie met deze naam',
+            setCompanyAddressAsPrimaryConfirmation: 'Het adres van het bedrijf instellen als primair kantoor?',
         },
         bankAccount: {
             continueWithSetup: 'Setup voortzetten',
@@ -9446,6 +9447,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `heeft het adres van de kantoorlocatie ‘${name}’ gewijzigd in ‘${newAddress}’ (voorheen ‘${oldAddress}’)`,
             setAsPrimary: ({name}: {name: string}) => `heeft de kantoorlocatie ‘${name}’ als primair ingesteld`,
+            setCompanyAddressAsPrimary: 'heeft het adres van het bedrijf als primair ingesteld',
             removed: ({name}: {name: string}) => `heeft de kantoorlocatie ‘${name}’ verwijderd`,
         },
         commuterExclusions: {

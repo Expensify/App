@@ -7678,6 +7678,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             deleteOfficeLocation: 'Usuń lokalizację biura',
             deleteOfficeLocationConfirmation: 'Czy na pewno chcesz usunąć tę lokalizację biura?',
             existingOfficeLocationError: 'Lokalizacja biura o tej nazwie już istnieje',
+            setCompanyAddressAsPrimaryConfirmation: 'Ustawić adres firmy jako główne biuro?',
         },
         bankAccount: {
             continueWithSetup: 'Kontynuuj konfigurację',
@@ -9456,6 +9457,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `zmieniono adres lokalizacji biura „${name}” na „${newAddress}” (poprzednio „${oldAddress}”)`,
             setAsPrimary: ({name}: {name: string}) => `ustawiono lokalizację biura „${name}” jako główną`,
+            setCompanyAddressAsPrimary: 'ustawiono adres firmy jako główny',
             removed: ({name}: {name: string}) => `usunięto lokalizację biura „${name}”`,
         },
         commuterExclusions: {

@@ -7582,6 +7582,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             deleteOfficeLocation: 'オフィスの所在地を削除',
             deleteOfficeLocationConfirmation: 'このオフィスの所在地を削除してもよろしいですか？',
             existingOfficeLocationError: 'この名前のオフィスの所在地はすでに存在します',
+            setCompanyAddressAsPrimaryConfirmation: '会社住所をメインのオフィスに設定しますか？',
         },
         bankAccount: {
             continueWithSetup: 'セットアップを続行',
@@ -9342,6 +9343,7 @@ ${reportName}`,
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `オフィスの所在地「${name}」の住所を「${newAddress}」（以前は「${oldAddress}」）に変更しました`,
             setAsPrimary: ({name}: {name: string}) => `オフィスの所在地「${name}」をメインに設定しました`,
+            setCompanyAddressAsPrimary: '会社住所をメインに設定しました',
             removed: ({name}: {name: string}) => `オフィスの所在地「${name}」を削除しました`,
         },
         commuterExclusions: {

@@ -7675,6 +7675,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             deleteOfficeLocation: 'Elimina sede dell’ufficio',
             deleteOfficeLocationConfirmation: 'Sei sicuro di voler eliminare questa sede dell’ufficio?',
             existingOfficeLocationError: 'Esiste già una sede dell’ufficio con questo nome',
+            setCompanyAddressAsPrimaryConfirmation: 'Impostare l’indirizzo dell’azienda come sede principale?',
         },
         bankAccount: {
             continueWithSetup: 'Continua configurazione',
@@ -9474,6 +9475,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `ha modificato l’indirizzo della sede dell’ufficio "${name}" in "${newAddress}" (precedentemente "${oldAddress}")`,
             setAsPrimary: ({name}: {name: string}) => `ha impostato la sede dell’ufficio "${name}" come principale`,
+            setCompanyAddressAsPrimary: 'ha impostato l’indirizzo dell’azienda come principale',
             removed: ({name}: {name: string}) => `ha rimosso la sede dell’ufficio "${name}"`,
         },
         commuterExclusions: {

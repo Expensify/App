@@ -39,7 +39,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {close} from '@libs/actions/Modal';
-import {clearOfficeLocationErrors} from '@libs/actions/Policy/DistanceRate';
+import {clearOfficeLocationErrors, updateOfficeLocation} from '@libs/actions/Policy/DistanceRate';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     clearAvatarErrors,
@@ -262,9 +262,23 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowCompanyAddressOffice = hasCompanyAddress(policy);
 
     // The company address is the workspace's default office while no office is
-    const isCompanyAddressPrimary = !officeLocationEntries.some(
-        ([, officeLocation]) => officeLocation.isDefault && officeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    const defaultOfficeID = officeLocationEntries.find(([, officeLocation]) => officeLocation.isDefault && officeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)?.[0];
+    const isCompanyAddressPrimary = !defaultOfficeID;
+
+    // Taking the primary flag off the primary office makes the company address the primary one
+    const setCompanyAddressAsPrimary = () => {
+        showConfirmModal({
+            title: translate('common.companyAddress'),
+            prompt: translate('workspace.officeLocations.setCompanyAddressAsPrimaryConfirmation'),
+            confirmText: translate('workspace.officeLocations.setAsPrimary'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !defaultOfficeID) {
+                return;
+            }
+            updateOfficeLocation(routePolicyID, policy?.officeLocations, defaultOfficeID, {isDefault: false});
+        });
+    };
     const shouldShowOfficeLocationsSection = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && (!readOnly || shouldShowCompanyAddressOffice || officeLocationEntries.length > 0);
     const shouldShowRulesDocumentSubSection = isPolicyAdmin || hasRulesDocument;
 
@@ -742,7 +756,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     >
                         {shouldShowCompanyAddressOffice && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
-                                <MenuItemSectionRoot>
+                                <MenuItemSectionRoot
+                                    onPress={readOnly || isCompanyAddressPrimary ? undefined : setCompanyAddressAsPrimary}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.COMPANY_ADDRESS_OFFICE_LOCATION}
+                                >
                                     <MenuItem.Row>
                                         <MenuItem.Content>
                                             <MenuItem.Title>{translate('common.companyAddress')}</MenuItem.Title>

@@ -8230,6 +8230,7 @@ const translations = {
             deleteOfficeLocation: 'Delete office location',
             deleteOfficeLocationConfirmation: 'Are you sure you want to delete this office location?',
             existingOfficeLocationError: 'An office location with this name already exists',
+            setCompanyAddressAsPrimaryConfirmation: 'Set the company address as primary office?',
         },
         bankAccount: {
             continueWithSetup: 'Continue setup',
@@ -9677,6 +9678,7 @@ const translations = {
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `changed the address of the office location "${name}" to "${newAddress}" (previously "${oldAddress}")`,
             setAsPrimary: ({name}: {name: string}) => `set the office location "${name}" as primary`,
+            setCompanyAddressAsPrimary: 'set the company address as primary',
             removed: ({name}: {name: string}) => `removed the office location "${name}"`,
         },
         commuterExclusions: {

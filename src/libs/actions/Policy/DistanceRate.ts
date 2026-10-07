@@ -840,8 +840,9 @@ function addOfficeLocation(policyID: string, officeLocations: Record<string, Off
 }
 
 /**
- * Update the name, address or default flag of a workspace office. Callers pass the workspace's current
- * `officeLocations` so the failure path can restore the office, and the default office it replaced.
+ * Update the name, address or default flag of a workspace office. Unsetting the default flag makes the company address
+ * the default. Callers pass the workspace's current `officeLocations` so the failure path can restore the office, and
+ * the default office it replaced.
  */
 function updateOfficeLocation(
     policyID: string,

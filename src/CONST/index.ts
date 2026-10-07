@@ -9866,6 +9866,7 @@ const CONST = {
                 CURRENCY: 'WorkspaceOverview-Currency',
                 ADDRESS: 'WorkspaceOverview-Address',
                 OFFICE_LOCATION: 'WorkspaceOverview-OfficeLocation',
+                COMPANY_ADDRESS_OFFICE_LOCATION: 'WorkspaceOverview-CompanyAddressOfficeLocation',
                 ADD_OFFICE_LOCATION: 'WorkspaceOverview-AddOfficeLocation',
                 DELETE_OFFICE_LOCATION: 'WorkspaceOverview-DeleteOfficeLocation',
                 PLAN_TYPE: 'WorkspaceOverview-PlanType',

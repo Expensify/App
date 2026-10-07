@@ -7738,6 +7738,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             deleteOfficeLocation: 'Eliminar ubicación de oficina',
             deleteOfficeLocationConfirmation: '¿Estás seguro de que quieres eliminar esta ubicación de oficina?',
             existingOfficeLocationError: 'Ya existe una ubicación de oficina con este nombre',
+            setCompanyAddressAsPrimaryConfirmation: '¿Establecer la dirección física de la empresa como oficina principal?',
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',
@@ -9302,6 +9303,7 @@ ${reportName}`,
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `cambió la dirección de la ubicación de oficina "${name}" a "${newAddress}" (anteriormente "${oldAddress}")`,
             setAsPrimary: ({name}: {name: string}) => `estableció la ubicación de oficina "${name}" como principal`,
+            setCompanyAddressAsPrimary: 'estableció la dirección física de la empresa como principal',
             removed: ({name}: {name: string}) => `eliminó la ubicación de oficina "${name}"`,
         },
         commuterExclusions: {

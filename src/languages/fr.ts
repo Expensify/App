@@ -7738,6 +7738,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             deleteOfficeLocation: 'Supprimer le lieu de travail',
             deleteOfficeLocationConfirmation: 'Voulez-vous vraiment supprimer ce lieu de travail ?',
             existingOfficeLocationError: 'Un lieu de travail portant ce nom existe déjà',
+            setCompanyAddressAsPrimaryConfirmation: 'Définir l’adresse de l’entreprise comme bureau principal ?',
         },
         bankAccount: {
             continueWithSetup: 'Continuer la configuration',
@@ -9546,6 +9547,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
                 `a modifié l’adresse du lieu de travail « ${name} » en « ${newAddress} » (auparavant « ${oldAddress} »)`,
             setAsPrimary: ({name}: {name: string}) => `a défini le lieu de travail « ${name} » comme principal`,
+            setCompanyAddressAsPrimary: 'a défini l’adresse de l’entreprise comme principale',
             removed: ({name}: {name: string}) => `a supprimé le lieu de travail « ${name} »`,
         },
         commuterExclusions: {

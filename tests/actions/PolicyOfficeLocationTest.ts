@@ -227,6 +227,28 @@ describe('actions/PolicyOfficeLocation', () => {
             expect(officeLocations.OFFICE2?.name).toBe('New Jersey Office');
             expect(officeLocations.OFFICE2?.errors).toBeFalsy();
         });
+
+        it('takes the primary flag off the primary office to make the company address primary, and restores it when that fails', async () => {
+            // When the primary office stops being primary while the request is in flight, as making the company address
+            // primary does
+            mockFetch?.pause?.();
+            updateOfficeLocation(policyID, {OFFICE1: HEADQUARTERS}, 'OFFICE1', {isDefault: false});
+            await waitForBatchedUpdates();
+
+            // Then no office shows as primary, and the request clears the flag
+            expect((await getPolicy(policyID))?.officeLocations?.OFFICE1?.isDefault).toBe(false);
+            expect(getRequestParams(WRITE_COMMANDS.UPDATE_OFFICE_LOCATION).isDefault).toBe('false');
+
+            // When the request fails
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the office is the primary one again and shows an error
+            const officeLocation = (await getPolicy(policyID))?.officeLocations?.OFFICE1;
+            expect(officeLocation?.isDefault).toBe(true);
+            expect(Object.keys(officeLocation?.errors ?? {}).length).toBeGreaterThan(0);
+        });
     });
 
     describe('deleteOfficeLocation', () => {

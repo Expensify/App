@@ -4715,7 +4715,8 @@ function getUpdatedOfficeLocationMessage(translate: LocalizedTranslate, reportAc
     }
 
     if (updatedField === CONST.POLICY.OFFICE_LOCATION_FIELD.IS_DEFAULT) {
-        return translate('workspaceActions.officeLocation.setAsPrimary', {name});
+        // Unsetting the primary office makes the company address the primary one
+        return newValue === false ? translate('workspaceActions.officeLocation.setCompanyAddressAsPrimary') : translate('workspaceActions.officeLocation.setAsPrimary', {name});
     }
 
     return getReportActionText(reportAction);

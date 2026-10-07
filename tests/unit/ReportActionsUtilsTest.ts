@@ -4644,6 +4644,11 @@ describe('ReportActionsUtils', () => {
                 'changed the address of the office location "HQ" to "900 Asbury Ave, Suite 2, Ocean City, NJ 08226" (previously "88 Kearny St, San Francisco, CA 94108")',
             ],
             ['a new primary office', {updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.IS_DEFAULT, name: 'HQ', newValue: true, oldValue: false}, 'set the office location "HQ" as primary'],
+            [
+                'the company address becoming primary',
+                {updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.IS_DEFAULT, name: 'HQ', newValue: false, oldValue: true},
+                'set the company address as primary',
+            ],
         ])('describes %s', (_description, originalMessage, expected) => {
             // Given an office update that changed a single field
             const action: ReportAction = {
