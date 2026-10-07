@@ -31,7 +31,7 @@ const NESTING_FLAVORS = new Set<CommentFlavor>(['swift', 'kotlin']);
 const CHAR_LITERAL_FLAVORS = new Set<CommentFlavor>(['c', 'kotlin']);
 
 /**
- * The comment flavor a file extension implies. Anything unrecognised is treated
+ * The comment flavor a file extension implies. Anything unrecognized is treated
  * as the non-nesting C family, which is the safe default: it can leave a comment
  * standing, but it can never discard code.
  */
