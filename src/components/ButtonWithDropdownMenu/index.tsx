@@ -365,6 +365,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                       accessibilityState: {checked: item.switchProps.isOn, disabled: isSwitchDisabled},
                                       // Mirror the disabled state so the row (and Enter) can't flip a disabled toggle.
                                       disabled: isSwitchDisabled,
+                                      shouldGreyOutWhenDisabled: false,
+                                      shouldRemoveHoverBackground: !!isSwitchDisabled,
                                       // Decorative Switch: isNested lets it animate without double-toggling, focusable={false} keeps the row the only tab stop, and the wrapper is aria-hidden.
                                       rightComponent: (
                                           <View
