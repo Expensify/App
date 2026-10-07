@@ -96,8 +96,11 @@ describe('actions/Report', () => {
         // Given the exact error returned when the backend cannot assign a support rep
         const response = {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'No support rep is available to take this ticket.'};
 
-        // Then the App can show the Concierge fallback instead of leaving the pending ticket open
-        expect(isNoSupportRepAvailableResponse(response)).toBe(true);
+        // When the App inspects the response
+        const isNoSupportRepAvailable = isNoSupportRepAvailableResponse(response);
+
+        // Then it can show the Concierge fallback instead of leaving the pending ticket open
+        expect(isNoSupportRepAvailable).toBe(true);
     });
 
     it.each<{jsonCode: number; message?: string}>([
@@ -105,6 +108,12 @@ describe('actions/Report', () => {
         {jsonCode: CONST.JSON_CODE.BAD_REQUEST, message: 'No support rep is available to take this ticket.'},
         {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: undefined},
     ])('does not mistake other failures for the no-rep response', (response) => {
-        expect(isNoSupportRepAvailableResponse(response)).toBe(false);
+        // Given a failed response that is not the no-rep response
+
+        // When the App inspects the response
+        const isNoSupportRepAvailable = isNoSupportRepAvailableResponse(response);
+
+        // Then it does not show the Concierge fallback
+        expect(isNoSupportRepAvailable).toBe(false);
     });
 });

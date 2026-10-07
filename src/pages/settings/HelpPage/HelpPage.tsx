@@ -10,6 +10,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePermissions from '@hooks/usePermissions';
@@ -65,6 +66,7 @@ function HelpPage() {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const {isBetaEnabled} = usePermissions();
+    const {isOffline} = useNetwork();
 
     const openSupportTicketOrConcierge = () => {
         openSupportTicket()
@@ -218,6 +220,7 @@ function HelpPage() {
               icon: icons.ChatBubbles,
               iconType: CONST.ICON_TYPE_ICON,
               onPress: openSupportTicketOrConcierge,
+              isDisabled: isOffline,
               shouldShowRightIcon: true,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.SUPPORT_TICKET,

@@ -1,9 +1,13 @@
 import useLocalize from '@hooks/useLocalize';
+import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openSupportTicket} from '@userActions/Report';
+import Growl from '@libs/Growl';
+import Navigation from '@libs/Navigation/Navigation';
+
+import {isNoSupportRepAvailableResponse, openSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 
@@ -24,11 +28,20 @@ function SupportTicketResolvedFooter({reportID, isOffline}: SupportTicketResolve
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const [isReopening, setIsReopening] = useState(false);
 
     const reopenTicket = () => {
         setIsReopening(true);
         openSupportTicket(reportID)
+            .then((response) => {
+                if (!isNoSupportRepAvailableResponse(response)) {
+                    return;
+                }
+
+                Growl.error(translate('supportTicket.noSupportRepAvailable'));
+                Navigation.goBack(undefined, {afterTransition: () => openConciergeAnywhere({forceConcierge: true})});
+            })
             .catch(() => undefined)
             .finally(() => setIsReopening(false));
     };
