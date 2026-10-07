@@ -576,7 +576,8 @@ function getLastMessageTextForReport({
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
-            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED: {
                 lastMessageTextFromReport = translate(`reportArchiveReasons.${archiveReason}`, {
                     displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
                     policyName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
