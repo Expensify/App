@@ -7,7 +7,6 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import type {TableHandle} from '@components/Table';
 import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
@@ -263,9 +262,9 @@ function AgentsPage() {
                     }}
                     isHeadline={!selectionModeHeader}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
+                    displaySearchRouter
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                    <SearchButton />
                 </HeaderCentralPane>
             </CollapsibleHeaderOnKeyboard>
             <AgentsTable

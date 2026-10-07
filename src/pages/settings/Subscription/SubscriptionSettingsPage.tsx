@@ -2,7 +2,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
@@ -72,9 +71,8 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                     }
                     Navigation.goBack();
                 }}
-            >
-                <SearchButton />
-            </HeaderCentralPane>
+                displaySearchRouter
+            />
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <CardSection />

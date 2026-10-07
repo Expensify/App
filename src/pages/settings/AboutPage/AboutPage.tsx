@@ -3,7 +3,6 @@ import MenuItemList from '@components/MenuItemList';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
@@ -171,9 +170,10 @@ function AboutPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="AboutPage"
         >
-            <HeaderCentralPane title={translate('initialSettingsPage.about')}>
-                <SearchButton />
-            </HeaderCentralPane>
+            <HeaderCentralPane
+                title={translate('initialSettingsPage.about')}
+                displaySearchRouter
+            />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section

@@ -6,7 +6,6 @@ import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -292,9 +291,10 @@ function SecuritySettingsPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderCentralPane title={translate('initialSettingsPage.security')}>
-                <SearchButton />
-            </HeaderCentralPane>
+            <HeaderCentralPane
+                title={translate('initialSettingsPage.security')}
+                displaySearchRouter
+            />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section

@@ -14,7 +14,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -222,9 +221,8 @@ function ProfilePage() {
                         }
                         Navigation.goBack();
                     }}
-                >
-                    <SearchButton />
-                </HeaderCentralPane>
+                    displaySearchRouter
+                />
             </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}

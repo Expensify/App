@@ -12,7 +12,6 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
@@ -445,9 +444,10 @@ function WalletPage() {
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
     const headerWithBackButton = (
-        <HeaderCentralPane title={translate('common.wallet')}>
-            <SearchButton />
-        </HeaderCentralPane>
+        <HeaderCentralPane
+            title={translate('common.wallet')}
+            displaySearchRouter
+        />
     );
 
     const bottomMountItem = useMemo(

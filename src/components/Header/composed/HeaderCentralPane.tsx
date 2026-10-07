@@ -5,9 +5,11 @@
  * and the Side Panel (help) button. `shouldDisplaySearchRouter` is Settings-only.
  */
 import Header from '@components/Header/Header';
+import HeaderActions from '@components/Header/layout/HeaderActions';
 import HeaderRight from '@components/Header/layout/HeaderRight';
 import HeaderBackButton from '@components/Header/primitives/HeaderBackButton';
 import HeaderTitle from '@components/Header/primitives/HeaderTitle';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,9 +23,12 @@ type HeaderCentralPaneProps = Partial<ChildrenProps> & {
 
     /** Whether to use the taller headline style bar with the larger title font. Screens that swap the title for a "select multiple" prompt in selection mode turn this off while selecting. */
     isHeadline?: boolean;
+
+    /** Whether to display the SearchRouter button. */
+    displaySearchRouter?: boolean;
 };
 
-function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, children}: HeaderCentralPaneProps) {
+function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, displaySearchRouter = false, children}: HeaderCentralPaneProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -35,9 +40,10 @@ function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, childre
                 titleStyles={isHeadline && styles.textHeadlineH2}
             />
             <HeaderRight>
-                {children}
-                <SidePanelButton />
+                <HeaderActions>{children}</HeaderActions>
             </HeaderRight>
+            {displaySearchRouter && <SearchButton />}
+            <SidePanelButton />
         </Header>
     );
 }

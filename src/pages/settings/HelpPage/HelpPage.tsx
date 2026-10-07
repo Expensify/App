@@ -3,7 +3,6 @@ import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
@@ -207,9 +206,10 @@ function HelpPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="HelpPage"
         >
-            <HeaderCentralPane title={translate('common.help')}>
-                <SearchButton />
-            </HeaderCentralPane>
+            <HeaderCentralPane
+                title={translate('common.help')}
+                displaySearchRouter
+            />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section

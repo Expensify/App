@@ -4,7 +4,6 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -65,9 +64,10 @@ function PreferencesPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="PreferencesPage"
         >
-            <HeaderCentralPane title={translate('common.preferences')}>
-                <SearchButton />
-            </HeaderCentralPane>
+            <HeaderCentralPane
+                title={translate('common.preferences')}
+                displaySearchRouter
+            />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section

@@ -12,7 +12,6 @@ import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -453,9 +452,10 @@ function CopilotPage() {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderCentralPane title={translate('delegate.copilot')}>
-                        <SearchButton />
-                    </HeaderCentralPane>
+                    <HeaderCentralPane
+                        title={translate('delegate.copilot')}
+                        displaySearchRouter
+                    />
                     <ScrollView contentContainerStyle={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, safeAreaPaddingBottomStyle]}>
                             <Section
