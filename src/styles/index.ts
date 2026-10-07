@@ -6111,7 +6111,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         describeRulePromptInput: {
-            height: variables.textInputAutoGrowMaxHeight,
+            height: variables.describeRulePromptInputHeight,
         },
 
         emptyStateSamlIllustration: {
