@@ -70,7 +70,6 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     const barLayout = getBarLayout(barAreaWidth, data.length);
     const groupedBarWidth = getGroupedBarWidth(barLayout.barWidth, seriesKeys.length);
 
-    const slotWidth = useSharedValue(0);
     const slotHitHalfWidth = useSharedValue(0);
     const plotTop = useSharedValue(0);
     const plotBottom = useSharedValue(0);
@@ -78,26 +77,13 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     /** Canvas x of each slot's center */
     const slotCenters = useSharedValue<number[]>([]);
 
-    /** Index of the series whose bar is nearest the cursor within a slot */
-    const getSeriesIndexAt = (index: number, cursorX: number): number => {
-        'worklet';
-
-        const slotCenter = slotCenters.get().at(index);
-        const currentSlotWidth = slotWidth.get();
-        if (slotCenter === undefined || currentSlotWidth === 0) {
-            return 0;
-        }
-        const offset = cursorX - (slotCenter - currentSlotWidth / 2);
-        return Math.max(0, Math.min(seriesKeys.length - 1, Math.floor(offset / (currentSlotWidth / seriesKeys.length))));
-    };
-
-    const handleBarPress = (index: number, cursor: {x: number; y: number}) => {
+    const handleBarPress = (index: number) => {
         if (index < 0 || index >= data.length) {
             return;
         }
         const dataPoint = data.at(index);
         if (dataPoint && onBarPress) {
-            onBarPress(dataPoint, index, seriesKeys.at(getSeriesIndexAt(index, cursor.x)) ?? primarySeriesKey);
+            onBarPress(dataPoint, index);
         }
     };
 
@@ -143,7 +129,6 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const domainWidth = bounds.right - bounds.left;
         const {barWidth, gap} = getBarLayout(domainWidth, data.length);
-        slotWidth.set(barWidth);
         slotHitHalfWidth.set(barWidth > 0 ? barWidth / 2 + gap * BAR_HIT_GAP_RATIO : 0);
         plotTop.set(bounds.top);
         plotBottom.set(bounds.bottom);

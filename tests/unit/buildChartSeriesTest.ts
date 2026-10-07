@@ -1,7 +1,7 @@
 import type {ChartDataPoint} from '@components/Charts/types';
 import {getSeriesValue, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
-import {buildChartSeries, CHART_SERIES_KEY, getCounterpartBucketRange, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
+import {buildChartSeries, CHART_SERIES_KEY, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import type {
     TransactionDayGroupListItemType,
@@ -514,23 +514,5 @@ describe('buildChartSeries labels for compared time buckets', () => {
 
         // Then it keeps its own label with the year, since there is no other period it needs to fit
         expect(labels).toEqual([['1/2026', '1']]);
-    });
-});
-
-describe('getCounterpartBucketRange', () => {
-    it('finds the compared week at the same position, starting on the same weekday', () => {
-        // Given the first week of September, which starts on Sunday August 30, compared with August
-        const range = getCounterpartBucketRange({start: '2026-08-30', end: '2026-09-05'}, '2026-09-01', '2026-08-01', 'week');
-
-        // Then its counterpart is August's first week, which starts on Sunday July 26
-        expect(range).toEqual({start: '2026-07-26', end: '2026-08-01'});
-    });
-
-    it('finds the whole compared month, even when the compared window starts mid-month', () => {
-        // Given September in a custom range starting September 10, compared with the range starting August 25
-        const range = getCounterpartBucketRange({start: '2026-09-01', end: '2026-09-30'}, '2026-09-10', '2026-08-25', 'month');
-
-        // Then its counterpart is the whole of August, which the drill-down then cuts to the compared window
-        expect(range).toEqual({start: '2026-08-01', end: '2026-08-31'});
     });
 });

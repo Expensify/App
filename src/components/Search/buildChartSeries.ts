@@ -158,25 +158,6 @@ function getPairingKey(item: GroupedItem, periodStart: string, groupBy: SearchGr
     return `bucket:${BUCKET_OFFSET[bucketUnit](parseISO(bucketStart), parseISO(periodStart))}`;
 }
 
-/** Returns the calendar bucket at the same offset in the comparison period, for a bucket it returned no row for. */
-function getCounterpartBucketRange(bucketRange: ChartBucketRange, primaryStart: string, comparisonStart: string, bucketUnit: ChartBucketUnit): ChartBucketRange {
-    const bucketStart = parseISO(bucketRange.start);
-    const offset = BUCKET_OFFSET[bucketUnit](bucketStart, parseISO(primaryStart));
-    const dateInBucket = BUCKET_ADD[bucketUnit](parseISO(comparisonStart), offset);
-    // Align weeks to the primary bucket's week start.
-    const toBucketStart: Record<ChartBucketUnit, (date: Date) => Date> = {
-        day: (date) => date,
-        week: (date) => addDays(date, -((getDay(date) - getDay(bucketStart) + DAYS_IN_WEEK) % DAYS_IN_WEEK)),
-        month: startOfMonth,
-        quarter: startOfQuarter,
-        year: startOfYear,
-    };
-    const counterpartStart = toBucketStart[bucketUnit](dateInBucket);
-    const counterpartEnd = addDays(BUCKET_ADD[bucketUnit](counterpartStart, 1), -1);
-
-    return {start: format(counterpartStart, CONST.DATE.FNS_FORMAT_STRING), end: format(counterpartEnd, CONST.DATE.FNS_FORMAT_STRING)};
-}
-
 /** date-fns patterns for a bucket's full and axis names */
 type CalendarNamePatterns = {full: string; short: string};
 
@@ -286,5 +267,5 @@ function buildChartSeries({
     };
 }
 
-export {buildChartSeries, getCounterpartBucketRange, getSliceColorsByDataIndex, CHART_SERIES_KEY};
+export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
 export type {ChartComparison, SearchChartModel};

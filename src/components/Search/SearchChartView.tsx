@@ -18,10 +18,9 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
-import type {ChartBucketRange} from './chartGroupByConfig';
-import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
-import {buildChartSeries, CHART_SERIES_KEY, getCounterpartBucketRange} from './buildChartSeries';
+import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery, getBucketDrillDownRange} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
@@ -63,7 +62,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getFilterQuery, getBucketRange, bucketUnit} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getFilterQuery, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
@@ -82,30 +81,16 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
     const {series, rows} = model;
     const points = rows.map((row) => row.point);
 
-    /** A comparison bucket with no expenses has no row, so its dates come from its position */
-    const getPressedBucketRange = (row: SearchChartDataRow, isComparisonSeries: boolean): ChartBucketRange => {
-        const bucketRange = getBucketRange?.(row.item) ?? {start: '', end: ''};
-        if (!isComparisonSeries) {
-            return bucketRange;
-        }
-        if (row.comparisonItem) {
-            return getBucketRange?.(row.comparisonItem) ?? bucketRange;
-        }
-        return comparison && bucketUnit ? getCounterpartBucketRange(bucketRange, comparison.primaryPeriod.range.start, comparison.comparisonPeriod.range.start, bucketUnit) : bucketRange;
-    };
-
-    const handleItemPress = (index: number, seriesKey: string) => {
+    const handleItemPress = (index: number) => {
         const row = rows.at(index);
         if (!row || !queryJSON) {
             return;
         }
 
-        const isComparisonSeries = seriesKey === CHART_SERIES_KEY.COMPARISON;
-        const pressedPeriod = isComparisonSeries ? comparison?.comparisonPeriod : comparison?.primaryPeriod;
-        const pressedItem = (isComparisonSeries ? row.comparisonItem : row.item) ?? row.item;
-        // Time buckets open their own dates; ranking groups open the pressed series' period.
-        const dateRange = getBucketRange ? getBucketDrillDownRange(queryJSON, getPressedBucketRange(row, isComparisonSeries), pressedPeriod?.range) : pressedPeriod?.range;
-        const query = buildChartDrillDownQuery(queryJSON, {groupFilter: getBucketRange ? undefined : getFilterQuery(pressedItem), dateRange});
+        const primaryRange = comparison?.primaryPeriod.range;
+        // Time buckets open their own dates; ranking groups open the current period.
+        const dateRange = getBucketRange ? getBucketDrillDownRange(queryJSON, getBucketRange(row.item), primaryRange) : primaryRange;
+        const query = buildChartDrillDownQuery(queryJSON, {groupFilter: getBucketRange ? undefined : getFilterQuery(row.item), dateRange});
 
         if (!query) {
             return;
@@ -128,7 +113,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
                 data={points}
                 series={series}
                 isLoading={isLoading}
-                onBarPress={(dataPoint, index, seriesKey) => handleItemPress(index, seriesKey)}
+                onBarPress={(dataPoint, index) => handleItemPress(index)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 shouldShowLabels={shouldShowGroupLabels}
@@ -139,7 +124,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
                 data={points}
                 series={series}
                 isLoading={isLoading}
-                onPointPress={(dataPoint, index, seriesKey) => handleItemPress(index, seriesKey)}
+                onPointPress={(dataPoint, index) => handleItemPress(index)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
             />
@@ -149,7 +134,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
                 data={points}
                 series={series}
                 isLoading={isLoading}
-                onSlicePress={(dataPoint, index) => handleItemPress(index, CHART_SERIES_KEY.PRIMARY)}
+                onSlicePress={(dataPoint, index) => handleItemPress(index)}
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
                 shouldShowLegend={shouldShowGroupLabels}

@@ -41,8 +41,8 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 type LineChartDatum = Record<string, number>;
 
 type LineChartProps = CartesianChartProps & {
-    /** Called with the pressed point and the series whose line was pressed */
-    onPointPress?: (dataPoint: ChartDataPoint, index: number, seriesKey: string) => void;
+    /** Called with the pressed point of the primary series */
+    onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
 function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
@@ -71,19 +71,13 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     /** Canvas y of every series at every point */
     const seriesPointY = useSharedValue<number[][]>([]);
 
-    /** Series whose point is closest to the cursor vertically */
-    const resolveSeriesKey = (index: number, cursorY: number): string => {
-        const distances = seriesPointY.get().map((positions) => Math.abs((positions.at(index) ?? Infinity) - cursorY));
-        return seriesKeys.at(distances.indexOf(Math.min(...distances))) ?? primarySeriesKey;
-    };
-
-    const handlePointPress = (index: number, cursor: {x: number; y: number}) => {
+    const handlePointPress = (index: number) => {
         if (index < 0 || index >= data.length) {
             return;
         }
         const dataPoint = data.at(index);
         if (dataPoint && onPointPress) {
-            onPointPress(dataPoint, index, resolveSeriesKey(index, cursor.y));
+            onPointPress(dataPoint, index);
         }
     };
 
@@ -194,6 +188,8 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         chartBottom,
     });
 
+    const activePointX = useDerivedValue(() => activePointPosition.get().x);
+    const activeSeriesY = useDerivedValue(() => seriesPointY.get().map((positions) => positions.at(matchedIndex.get()) ?? 0));
     const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
 
     /** Stores canvas positions for hover, press and the tooltip */
@@ -204,7 +200,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         seriesPointY.set(seriesKeys.map((key) => data.map((point) => yScale(getSeriesValue(point, key)))));
         setPointPositions(
             chartData.map((point, index) => xScale(point.x ?? index)),
-            // The hover dot and the tooltip follow the primary series.
+            // The tooltip follows the primary series.
             data.map((point) => yScale(getSeriesValue(point, primarySeriesKey))),
         );
     };
@@ -288,12 +284,13 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                     />
                 )}
                 <ActivePointIndicator
-                    position={activePointPosition}
+                    x={activePointX}
+                    dotYs={activeSeriesY}
+                    dotColors={series.map((seriesItem) => seriesItem.color ?? VictoryTheme.colors.default)}
                     isActive={isTooltipActive}
                     top={args.chartBounds.top}
                     bottom={chartBoundsBottom}
                     dotRadius={VictoryTheme.line.activeDotRadius}
-                    dotColor={primaryColor}
                     guidelineColor={primaryColor}
                     guidelineOpacity={VictoryTheme.line.guidelineOpacity}
                     isHollow={isActivePointHollow}
