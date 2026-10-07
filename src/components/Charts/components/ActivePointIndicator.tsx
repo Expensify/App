@@ -20,12 +20,10 @@ type ActivePointIndicatorProps = {
     dotColor: string;
     guidelineColor: string;
     guidelineOpacity: number;
+    isHollow: DerivedValue<boolean>;
 
-    /** Whether the dot is drawn as a ring, e.g. for a point whose period hasn't ended yet */
-    isHollow?: DerivedValue<boolean>;
-
-    /** Color filling a hollow dot's center, which should match what's behind the chart */
-    hollowColor?: string;
+    /** Painted over the dot's center to hollow it out, so it must match the background behind the chart */
+    hollowColor: string;
 };
 
 const GUIDELINE_WIDTH = 2;
@@ -38,7 +36,7 @@ function ActivePointIndicator({position, isActive, top, bottom, dotRadius, dotCo
     const guidelineEnd = useDerivedValue(() => ({x: position.get().x, y: bottom}));
     const cx = useDerivedValue(() => position.get().x);
     const cy = useDerivedValue(() => position.get().y);
-    const hollowCenterOpacity = useDerivedValue(() => (isHollow?.get() ? 1 : 0));
+    const hollowCenterOpacity = useDerivedValue(() => (isHollow.get() ? 1 : 0));
 
     return (
         <Group opacity={opacity}>
@@ -56,15 +54,13 @@ function ActivePointIndicator({position, isActive, top, bottom, dotRadius, dotCo
                 r={dotRadius}
                 color={dotColor}
             />
-            {!!hollowColor && (
-                <Circle
-                    cx={cx}
-                    cy={cy}
-                    r={dotRadius - HOLLOW_RING_WIDTH}
-                    color={hollowColor}
-                    opacity={hollowCenterOpacity}
-                />
-            )}
+            <Circle
+                cx={cx}
+                cy={cy}
+                r={dotRadius - HOLLOW_RING_WIDTH}
+                color={hollowColor}
+                opacity={hollowCenterOpacity}
+            />
         </Group>
     );
 }
