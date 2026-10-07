@@ -29,15 +29,12 @@ import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDrop
  * TRANSACTION_PRIMARY_ACTIONS values (e.g. "keepThisOne") are irrelevant here.
  */
 function narrowPrimaryAction(primaryAction: MoneyReportHeaderActionsProps['primaryAction']): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
-    if ((Object.values(CONST.REPORT.PRIMARY_ACTIONS) as string[]).includes(primaryAction)) {
-        return primaryAction as ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS>;
-    }
-    return '';
+    return Object.values(CONST.REPORT.PRIMARY_ACTIONS).find((action) => action === primaryAction) ?? '';
 }
 
 function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, backTo}: MoneyReportHeaderActionsProps) {
     const styles = useThemeStyles();
-    const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null) as React.RefObject<ButtonWithDropdownMenuRef>;
+    const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
 
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
