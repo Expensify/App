@@ -942,7 +942,6 @@ export type {
     ExpenseTypeValues,
     MerchantMatchType,
     ReceiptTypeValue,
-    ReceiptTypeValues,
     TransactionStatusValue,
     SearchNegatableFilterKeys,
 };
