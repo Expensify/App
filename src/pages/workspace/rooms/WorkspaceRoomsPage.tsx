@@ -23,7 +23,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isArchivedPolicy, isPolicyAdmin, isPolicyGuest} from '@libs/PolicyUtils';
+import {canMemberWrite, isPolicyAdmin, isPolicyGuest} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -57,7 +57,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const policy = usePolicy(policyID);
     const isAdmin = isPolicyAdmin(policy);
     const isGuest = isPolicyGuest(policy);
-    const isArchived = isArchivedPolicy(policy);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -158,7 +158,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         setPagination({queryKey: roomsQueryKey, pageNumber: pageNumber + 1});
     };
 
-    const canCreateRooms = !isArchived && !isGuest;
+    const canCreateRooms = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS);
 
     const roomsTableHeader =
         shouldUseNarrowLayout && canCreateRooms ? (

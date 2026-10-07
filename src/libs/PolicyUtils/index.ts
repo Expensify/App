@@ -862,7 +862,9 @@ const isPolicyGuest = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
  * Get the active group policies where the current user can create policy rooms.
  */
 function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePolicies(policies, currentUserLogin).filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && !isPolicyGuest(policy, currentUserLogin));
+    return getActivePolicies(policies, currentUserLogin).filter(
+        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS),
+    );
 }
 
 /**
