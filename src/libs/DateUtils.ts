@@ -234,8 +234,10 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
 /**
  * Formats a datetime as a compact relative time, e.g. "5m ago", "3h ago" or "7d ago".
  */
-function datetimeToShortRelative(translate: LocalizedTranslate, datetime: string): string {
-    const minutes = Math.max(differenceInMinutes(new Date(), new Date(datetime)), 1);
+function datetimeToShortRelative(translate: LocalizedTranslate, datetime: string, currentSelectedTimezone: SelectedTimezone): string {
+    const date = getLocalDateFromDatetime(undefined, currentSelectedTimezone, datetime);
+    const now = getLocalDateFromDatetime(undefined, currentSelectedTimezone);
+    const minutes = Math.max(differenceInMinutes(now, date), 1);
     if (minutes < 60) {
         return translate('reportHistoryPage.minutesAgo', minutes);
     }

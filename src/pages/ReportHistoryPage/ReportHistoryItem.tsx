@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -12,6 +13,7 @@ import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import React from 'react';
@@ -45,6 +47,8 @@ function ReportHistoryItem({step}: ReportHistoryItemProps) {
     const theme = useTheme();
     const {translate, formatPhoneNumber} = useLocalize();
     const [personalDetail] = usePersonalDetail(step.accountID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'Send', 'ThumbsUp', 'ArrowRight', 'Stopwatch', 'MoneyBag']);
 
     const actionIcons = {
@@ -76,7 +80,7 @@ function ReportHistoryItem({step}: ReportHistoryItemProps) {
             <Text style={[styles.flex1, styles.ml3]}>
                 <Text style={styles.textStrong}>{displayName}</Text> {translate(label)}
             </Text>
-            {!!step.created && <Text style={[styles.textMicroSupporting, styles.ml2]}>{DateUtils.datetimeToShortRelative(translate, step.created)}</Text>}
+            {!!step.created && <Text style={[styles.textMicroSupporting, styles.ml2]}>{DateUtils.datetimeToShortRelative(translate, step.created, currentSelectedTimezone)}</Text>}
         </View>
     );
 }

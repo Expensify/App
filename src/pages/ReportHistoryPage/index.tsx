@@ -26,6 +26,7 @@ import {View} from 'react-native';
 
 import getMockReportHistorySteps from './getMockReportHistorySteps';
 import ReportHistoryItem from './ReportHistoryItem';
+import useHoldActions from './useHoldActions';
 
 type ReportHistoryPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportHistoryNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_HISTORY>;
 
@@ -35,8 +36,10 @@ function ReportHistoryPage({report, policy}: ReportHistoryPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_HISTORY.path);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [personalDetails] = useAllPersonalDetails();
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
+    const holdActions = useHoldActions(report.reportID, reportActions);
 
-    const steps = getMockReportHistorySteps(report, policy, rules, personalDetails);
+    const steps = getMockReportHistorySteps({report, policy, rules, personalDetails, reportActions, holdActions});
 
     return (
         <ScreenWrapper testID="ReportHistoryPage">
