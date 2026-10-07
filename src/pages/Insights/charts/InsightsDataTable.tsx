@@ -6,9 +6,9 @@ import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,7 +58,7 @@ function InsightsDataTable({rows, series, isLoading}: InsightsDataTableProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
     const {preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
 
     if (isLoading) {
         return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
@@ -78,7 +78,7 @@ function InsightsDataTable({rows, series, isLoading}: InsightsDataTableProps) {
     };
 
     return (
-        <View style={[styles.chartInlineTable, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+        <View style={[styles.chartInlineTable, cardPaddingHorizontal]}>
             {rows.map(({item, comparisonItem, point, color}) => {
                 const indicatorColor = color ?? series.at(0)?.color;
                 const relativeChange = isComparing ? getRelativeChange(item.total ?? 0, comparisonItem?.total ?? 0) : undefined;

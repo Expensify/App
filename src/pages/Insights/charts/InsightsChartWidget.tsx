@@ -8,10 +8,10 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,7 +55,7 @@ type InsightsChartWidgetProps = {
 function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
     const {isOffline} = useNetwork();
@@ -116,7 +116,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={shouldUseNarrowLayout ? styles.pb5 : styles.pb8}>
+                <View style={cardPaddingBottom}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
@@ -124,7 +124,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                         data={data}
                         isLoading={isLoading}
                         comparison={comparison}
-                        chartContainerStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        chartContainerStyle={cardPaddingHorizontal}
                         shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
