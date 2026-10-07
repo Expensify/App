@@ -50,6 +50,8 @@ When writing agent instructions:
 
 Approval instructions work best when they define clear approval criteria. 
 
+Approving, rejecting, editing, and forwarding reports require the Agent or RuleBot to be an approver in the workspace's approval workflow.
+
 Example:
 
 > Approve reports under $100 that contain no violations. Forward all other reports to Alice for review.
