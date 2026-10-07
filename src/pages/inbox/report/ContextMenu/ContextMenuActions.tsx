@@ -1558,6 +1558,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction, originalReportID}) => {
             getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = reportAction?.reportActionID;
+                // Link to the report that owns the action so the link can never go stale. ReportFetchHandler redirects a
+                // one-transaction thread to its parent at open time.
                 Clipboard.setString(`${environmentURL}/r/${originalReportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
