@@ -2662,6 +2662,29 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it.each([
+            [CONST.REPORT.TYPE.BILL, true],
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+        ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
+            // Given a NewDot payment action on a report. Bills and invoices are paid without an IOU PAY action.
+            const reportID = '9001';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: reportType});
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this bill'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only bills and invoices show it, because other reports show their IOU PAY action instead
+            expect(actual).toBe(isVisible);
+        });
+
         it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
             const reportAction = buildTakeControlActionFixture({
                 lastModified: '2025-09-29',

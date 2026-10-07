@@ -1,4 +1,4 @@
-import {isActionableWhisperRequiringWritePermission, isConciergeCategoryOptions, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {isActionableWhisperRequiringWritePermission, isConciergeCategoryOptions, isNewDotPaymentAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 
@@ -8,10 +8,10 @@ import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValu
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
- * such as write permissions or policy settings.
+ * such as write permissions, policy settings, or the type of its report.
  */
 function shouldSkipCachingAction(action: ReportAction): boolean {
-    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action);
+    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action) || isNewDotPaymentAction(action);
 }
 
 /**
