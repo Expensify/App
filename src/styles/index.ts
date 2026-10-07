@@ -6852,22 +6852,36 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
         chartTooltipBox: {
-            backgroundColor: theme.heading,
-            borderRadius: variables.componentBorderRadiusSmall,
-            paddingVertical: 4,
-            paddingHorizontal: 8,
+            backgroundColor: theme.appBG,
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            padding: 12,
+            rowGap: 8,
+        },
+        chartTooltipTitle: {
+            ...textVariants.labelStrong,
+            color: theme.text,
+            whiteSpace: 'nowrap',
         },
         chartTooltipText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            ...textVariants.label,
+            color: theme.text,
             whiteSpace: 'nowrap',
+        },
+        chartTooltipPointerContainer: {
+            marginTop: -1,
         },
         chartTooltipPointer: {
             width: 0,
             height: 0,
             backgroundColor: theme.transparent,
             borderStyle: 'solid',
+        },
+        chartTooltipPointerFill: {
+            position: 'absolute',
+            top: 0,
+            left: 1,
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,

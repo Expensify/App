@@ -66,6 +66,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
                 label={tooltipData.label}
                 amount={tooltipData.amount}
                 percentage={tooltipData.percentage}
+                expenseCount={tooltipData.expenseCount}
                 chartWidth={chartWidth}
                 initialTooltipPosition={initialTooltipPosition}
             />

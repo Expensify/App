@@ -54,6 +54,7 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
             shortLabel: getShortLabel?.(item),
             total: convertToFrontendAmountAsInteger(item.total ?? 0, decimals),
             percentOfTotal: item.percentOfTotal,
+            count: item.count,
         };
 
         return {point, item};
