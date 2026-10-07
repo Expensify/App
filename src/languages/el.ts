@@ -7293,6 +7293,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 `Ο/Η ${memberName} έχει σε εκκρεμότητα αναφορές εξόδων προς έγκριση. Παρακαλούμε ζητήστε τους να τις εγκρίνουν ή αναλάβετε τον έλεγχο των αναφορών τους προτού τους αφαιρέσετε από τον χώρο εργασίας.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Δεν μπορείτε να αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας. Ορίστε έναν νέο υπεύθυνο αποζημιώσεων στις Ροές εργασιών > Πραγματοποιήστε ή παρακολουθήστε πληρωμές και μετά δοκιμάστε ξανά.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Δεν μπορείτε να αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας όσο έχει Κάρτα Expensify. Απενεργοποιήστε την κάρτα του/της στο Χώρος εργασίας > Κάρτα Expensify και μετά δοκιμάστε ξανά.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Αν αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας, θα τον/την αντικαταστήσουμε ως προτιμώμενο εξαγωγέα με τον/την ${workspaceOwner}, τον/την κάτοχο του χώρου εργασίας.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -7928,6 +7930,20 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     distanceMustBePositive: 'Η απόσταση πρέπει να είναι ένας θετικός ακέραιος αριθμός.',
                     invalidAddress: 'Παρακαλούμε εισαγάγετε έγκυρη διεύθυνση',
                     distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.',
+                },
+                workArrangement: {
+                    title: 'Προεπιλεγμένη εργασιακή ρύθμιση',
+                    officeBasedTitle: 'Σε γραφείο',
+                    officeBasedHelp: 'Το μέλος μετακινείται σε ένα γραφείο. Οι συνήθεις μετακινήσεις από και προς την εργασία εξαιρούνται από την αποζημίωση.',
+                    noRegularWorkplaceTitle: 'Απομακρυσμένο ή κινητό',
+                    noRegularWorkplaceHelp: 'Το μέλος εργάζεται από το σπίτι ή ταξιδεύει μεταξύ τοποθεσιών χωρίς σταθερό γραφείο, επομένως οι κανόνες μετακίνησης δεν ισχύουν.',
+                    startingPrompt: {
+                        title: 'Ορίστε μια τυπική εργασιακή ρύθμιση',
+                        prompt: 'Επιλέξτε τη ρύθμιση που ισχύει για τους περισσότερους τρέχοντες μέλη. Μπορείτε να ενημερώσετε τα μέλη μεμονωμένα ή μαζικά αργότερα.',
+                        officeBasedHelp: 'Οι περισσότεροι συμμετέχοντες μετακινούνται καθημερινά σε ένα γραφείο. Οι συνηθισμένες μετακινήσεις από και προς την εργασία εξαιρούνται.',
+                        noRegularWorkplaceHelp: 'Τα περισσότερα μέλη εργάζονται απομακρυσμένα, επομένως οι εξαιρέσεις από το σπίτι προς την εργασία συνήθως δεν ισχύουν.',
+                        confirm: 'Εφαρμογή',
+                    },
                 },
             },
             distance: 'Απόσταση',
@@ -9631,6 +9647,11 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `άλλαξε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement} (προηγουμένως ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
                 `αλλάχθηκε ο αποκλεισμός μετακινήσεων από/προς εργασία σε σταθερή απόσταση ανά αίτημα (προηγουμένως ${previousMethod})`,
@@ -10300,6 +10321,8 @@ ${reportName}`,
             title: 'Λήψη κατάστασης',
             oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.',
         },
+        periodSoFar: ({period}: {period: string}) => `${period} μέχρι τώρα`,
+        weekOf: ({date}: {date: string}) => `Εβδομάδα από ${date}`,
         saveEdits: {
             title: 'Αποθήκευση αλλαγών',
             prompt: ({name}: {name: string}) => `Θέλετε να ενημερώσετε τις αλλαγές στο «${name}» ή να δημιουργήσετε νέο;`,

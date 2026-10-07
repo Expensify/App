@@ -244,6 +244,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
+    CardList,
     Onboarding,
     OnyxInputOrEntry,
     PersonalDetailsList,
@@ -279,6 +280,7 @@ import Onyx from 'react-native-onyx';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
+import {createRandomExpensifyCard} from '../utils/collections/card';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
@@ -5887,6 +5889,8 @@ describe('ReportUtils', () => {
                 transaction: expenseTransaction,
                 comment: 'hold',
                 initialReportID: transactionThreadReport.reportID,
+                initialReport: transactionThreadReport,
+                transactionReport: expenseReport,
                 isOffline: false,
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
@@ -6141,18 +6145,19 @@ describe('ReportUtils', () => {
             changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(
+            expect(unholdRequestSpy).toHaveBeenCalledWith({
                 transactionID,
-                childReportID,
-                expect.objectContaining({id: policyID}),
-                false,
-                currentUserEmail,
+                transaction: iouTransaction,
+                reportID: childReportID,
+                policy: expect.objectContaining({id: policyID}),
+                isOffline: false,
+                currentUserLogin: currentUserEmail,
                 currentUserAccountID,
-                undefined,
-                false,
-                undefined,
-                undefined,
-            );
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -12192,27 +12197,116 @@ describe('ReportUtils', () => {
             expect(result).toHaveProperty('reason');
         });
 
-        it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT when report has unresolved fraud alert', async () => {
-            const report: OptionData = {
+        describe('card fraud alert', () => {
+            const fraudReport: OptionData = {
                 ...createRandomReport(40000, undefined),
                 keyForList: 'someStringKey',
-                type: CONST.REPORT.TYPE.EXPENSE,
-                isUnreadWithMention: true,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(40000),
+            const CARD_ID = 1;
+            const OTHER_CARD_ID = 2;
+            const createFraudAlertAction = (index: number, cardID: number): ReportAction => ({
+                ...createRandomReportAction(index),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
-                [reportAction.reportActionID]: reportAction,
+                originalMessage: {cardID, maskedCardNumber: '1234', triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366'},
+            });
+            const otherCardFraudAlertAction = createFraudAlertAction(40001, OTHER_CARD_ID);
+            const fraudAlertAction = createFraudAlertAction(40000, CARD_ID);
+            const fraudReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudReport.reportID}`]: {[fraudAlertAction.reportActionID]: fraudAlertAction}};
+            const cardWithFraud = createRandomExpensifyCard(CARD_ID, {
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: Number(fraudReport.reportID)},
             });
 
-            // When the reason is retrieved
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const getReason = (cardList: CardList | undefined, isReportArchived = false, reportActions = fraudReportActions) =>
+                getReasonAndReportActionThatRequiresAttention(
+                    fraudReport,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    undefined,
+                    isReportArchived,
+                    reportActions,
+                    undefined,
+                    undefined,
+                    undefined,
+                    cardList,
+                );
 
-            expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
+            it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT for the cardholder while the fraud is live', () => {
+                // Given the current user's card has live fraud pointing at a report with an unresolved alert
+                const cardList: CardList = {[CARD_ID]: cardWithFraud};
+
+                // When the reason is retrieved
+                const result = getReason(cardList);
+
+                // Then the cardholder gets the fraud alert green dot on that report
+                expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
+                expect(result?.reportAction?.reportActionID).toBe(fraudAlertAction.reportActionID);
+            });
+
+            it("should point at the alert for the cardholder's card when the report has alerts for other cards", () => {
+                // Given the report has an unresolved alert for another card listed before the cardholder's own alert
+                const cardList: CardList = {[CARD_ID]: cardWithFraud};
+                const reportActions = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudReport.reportID}`]: {
+                        [otherCardFraudAlertAction.reportActionID]: otherCardFraudAlertAction,
+                        [fraudAlertAction.reportActionID]: fraudAlertAction,
+                    },
+                };
+
+                // When the reason is retrieved
+                const result = getReason(cardList, false, reportActions);
+
+                // Then the green dot leads to the alert the cardholder can resolve, not the first alert in the report
+                expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
+                expect(result?.reportAction?.reportActionID).toBe(fraudAlertAction.reportActionID);
+            });
+
+            it('should not return a reason when the report only has unresolved alerts for other cards', () => {
+                // Given the cardholder's card has live fraud on this report, but the only unresolved alert belongs to another card
+                const cardList: CardList = {[CARD_ID]: cardWithFraud};
+                const reportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudReport.reportID}`]: {[otherCardFraudAlertAction.reportActionID]: otherCardFraudAlertAction}};
+
+                // When the reason is retrieved
+                const result = getReason(cardList, false, reportActions);
+
+                // Then no green dot shows, since that alert has no buttons for this user to clear it
+                expect(result).toBeNull();
+            });
+
+            it('should not return a reason once the fraud is cleared on the card', () => {
+                // Given the backend cleared possibleFraud but nobody resolved the alert action
+                const cardList: CardList = {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE})};
+
+                // When the reason is retrieved
+                const result = getReason(cardList);
+
+                // Then the green dot clears without a button press
+                expect(result).toBeNull();
+            });
+
+            it('should not return a reason for a user who is not the cardholder', () => {
+                // Given a workspace admin whose card list does not contain the flagged card
+                const cardList: CardList = {};
+
+                // When the reason is retrieved
+                const result = getReason(cardList);
+
+                // Then the admin gets no green dot for someone else's fraud alert
+                expect(result).toBeNull();
+            });
+
+            it('should not return a reason on an archived report', () => {
+                // Given the cardholder's live fraud alert sits on an archived report
+                const cardList: CardList = {[CARD_ID]: cardWithFraud};
+
+                // When the reason is retrieved
+                const result = getReason(cardList, true);
+
+                // Then the archived report shows no green dot
+                expect(result).toBeNull();
+            });
         });
 
         it('should return null for an archived report', async () => {

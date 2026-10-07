@@ -560,6 +560,9 @@ const CONST = {
 
         // 15 seconds, don't wait too long because the server can always fall back to using the IP address
         TIMEOUT: 15000,
+
+        // 3 seconds, the longest a submit waits for a position before going out without one
+        SUBMIT_WAIT_TIMEOUT: 3000,
     },
 
     LEGAL_NAME: {
@@ -1957,6 +1960,7 @@ const CONST = {
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
+                    UPDATE_POLICY_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_POLICY_WORK_ARRANGEMENT',
                     UPDATE_MEMBER_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_MEMBER_WORK_ARRANGEMENT',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
@@ -2506,6 +2510,7 @@ const CONST = {
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
+        ATTRIBUTE_LOCATION_SOURCE: 'location_source',
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
@@ -2574,6 +2579,12 @@ const CONST = {
         SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
             FOCUS: 'focus',
             LAYOUT: 'layout',
+        },
+        SUBMIT_EXPENSE_LOCATION_SOURCE: {
+            CACHED: 'cached',
+            WAITED: 'waited',
+            TIMED_OUT: 'timed_out',
+            NONE: 'none',
         },
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
@@ -4797,6 +4808,10 @@ const CONST = {
             METHOD: 'method',
             FIXED_DISTANCE: 'fixedDistance',
             DISABLED: 'disabled',
+        },
+        WORK_ARRANGEMENT: {
+            OFFICE_BASED: 'officeBased',
+            NO_REGULAR_WORKPLACE: 'noRegularWorkplace',
         },
         RECEIPT_PARTNERS: {
             NAME: {UBER: 'uber'},

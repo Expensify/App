@@ -7511,6 +7511,8 @@ const translations = {
                 `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `You can't remove ${memberName} from this workspace while they have an Expensify Card. Please deactivate their card in Workspace > Expensify Card, then try again.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -8140,6 +8142,20 @@ const translations = {
                     distanceMustBePositive: 'Distance must be a positive whole number.',
                     invalidAddress: 'Please enter a valid address',
                     distanceTooLarge: 'Distance is too large.',
+                },
+                workArrangement: {
+                    title: 'Default work arrangement',
+                    officeBasedTitle: 'Office-based',
+                    officeBasedHelp: 'Member commutes to an office. Ordinary commutes are excluded from reimbursement.',
+                    noRegularWorkplaceTitle: 'Remote or mobile',
+                    noRegularWorkplaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
+                    startingPrompt: {
+                        title: 'Set a typical work arrangement',
+                        prompt: 'Choose the arrangement that applies to most current members. You can update members individually or in bulk later.',
+                        officeBasedHelp: 'Most members commute to an office. Ordinary commutes are excluded.',
+                        noRegularWorkplaceHelp: "Most members work remotely, so home-to-work exclusions usually don't apply.",
+                        confirm: 'Apply',
+                    },
                 },
             },
             distance: 'Distance',
@@ -9657,6 +9673,11 @@ const translations = {
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `changed the default work arrangement to ${arrangement} (previously ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `changed exclude commutes to a fixed distance per claim (previously ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `changed exclude commutes to calculate by home and office (previously ${previousMethod})`,
@@ -10114,6 +10135,8 @@ const translations = {
         mySavedSearch: 'My expenses',
         urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
+        periodSoFar: ({period}: {period: string}) => `${period} so far`,
+        weekOf: ({date}: {date: string}) => `Week of ${date}`,
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             editMultiple: 'Edit multiple',

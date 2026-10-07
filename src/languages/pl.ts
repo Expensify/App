@@ -7116,6 +7116,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 `${memberName} ma zaległe raporty wydatków do zatwierdzenia. Poproś tę osobę o ich zatwierdzenie lub przejmij kontrolę nad jej raportami, zanim usuniesz ją z przestrzeni roboczej.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Nie możesz usunąć ${memberName} z tego przestrzeni roboczej. Ustaw nową osobę zwracającą wydatki w Workflows > Make or track payments, a następnie spróbuj ponownie.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Nie możesz usunąć użytkownika ${memberName} z tego workspace, dopóki ma Kartę Expensify. Dezaktywuj jego kartę w Workspace > Karta Expensify, a następnie spróbuj ponownie.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zastąpimy go jako preferowanego eksportującego użytkownikiem ${workspaceOwner}, właścicielem przestrzeni roboczej.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -7600,6 +7602,20 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     cta: 'Jasne',
                 },
                 errors: {distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.', invalidAddress: 'Wpisz prawidłowy adres', distanceTooLarge: 'Odległość jest zbyt duża.'},
+                workArrangement: {
+                    title: 'Domyślny tryb pracy',
+                    officeBasedTitle: 'Pracujący z biura',
+                    officeBasedHelp: 'Członek dojeżdża do biura. Zwykłe dojazdy są wyłączone ze zwrotu kosztów.',
+                    noRegularWorkplaceTitle: 'Zdalnie lub mobilnie',
+                    noRegularWorkplaceHelp: 'Członek pracuje z domu lub podróżuje między różnymi lokalizacjami bez stałego biura, więc zasady dotyczące dojazdów nie mają zastosowania.',
+                    startingPrompt: {
+                        title: 'Ustaw typowy tryb pracy',
+                        prompt: 'Wybierz układ, który dotyczy większości obecnych członków. Później możesz zaktualizować członków indywidualnie lub hurtowo.',
+                        officeBasedHelp: 'Większość członków dojeżdża do biura. Zwykłe dojazdy są wyłączone.',
+                        noRegularWorkplaceHelp: 'Większość członków pracuje zdalnie, więc wyłączenia dotyczące dojazdu z domu do pracy zazwyczaj nie mają zastosowania.',
+                        confirm: 'Zastosuj',
+                    },
+                },
             },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',
@@ -9436,6 +9452,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `dodano „${prohibitedExpense}” do zabronionych wydatków`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `ustaw domyślny tryb pracy na ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `zmienił domyślny tryb pracy na ${arrangement} (wcześniej ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `zmienił(-a) wykluczanie dojazdów na stałą odległość na zgłoszenie (wcześniej ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `zmienił(-a) wykluczanie dojazdów na obliczanie według domu i biura (wcześniej ${previousMethod})`,
@@ -10035,6 +10056,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
         mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
+        periodSoFar: ({period}: {period: string}) => `${period} do tej pory`,
+        weekOf: ({date}: {date: string}) => `Tydzień od ${date}`,
         saveEdits: {
             title: 'Zapisz zmiany',
             prompt: ({name}: {name: string}) => `Zaktualizować zmiany w „${name}” czy utworzyć nowy?`,

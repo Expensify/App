@@ -7019,6 +7019,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 `${memberName} には未承認の経費精算書があります。ワークスペースから削除する前に、承認してもらうか、その精算書の管理を引き継いでください。`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `このワークスペースから${memberName}を削除することはできません。ワークフロー ＞ 支払いの作成または追跡 で新しい払い戻し担当者を設定してから、もう一度お試しください。`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `${memberName}さんはExpensify カードをお持ちの間、このワークスペースから削除できません。ワークスペース > Expensify カードでカードを無効化してから、もう一度お試しください。`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `このワークスペースから${memberName}さんを削除すると、優先エクスポーターはワークスペースのオーナーである${workspaceOwner}さんに置き換えられます。`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -7504,6 +7506,20 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     cta: '了解です',
                 },
                 errors: {distanceMustBePositive: '距離は正の整数で入力してください。', invalidAddress: '有効な住所を入力してください', distanceTooLarge: '距離が大きすぎます。'},
+                workArrangement: {
+                    title: 'デフォルトの勤務形態',
+                    officeBasedTitle: 'オフィス勤務',
+                    officeBasedHelp: 'メンバーはオフィスに通勤します。通常の通勤は払い戻しの対象外です。',
+                    noRegularWorkplaceTitle: 'リモートまたはモバイル',
+                    noRegularWorkplaceHelp: 'メンバーは自宅勤務、または決まったオフィスを持たずに拠点間を移動して勤務しているため、通勤規定は適用されません。',
+                    startingPrompt: {
+                        title: '通常の勤務形態を設定',
+                        prompt: '現在のメンバーの大半に該当する構成を選択してください。メンバーは後から個別または一括で更新できます。',
+                        officeBasedHelp: 'ほとんどのメンバーはオフィスに通勤しています。通常の通勤は対象外です。',
+                        noRegularWorkplaceHelp: 'ほとんどのメンバーはリモートワークのため、自宅から職場までの区間除外は通常は適用されません。',
+                        confirm: '適用',
+                    },
+                },
             },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',
@@ -9322,6 +9338,11 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `デフォルトの勤務形態を${arrangement}に設定します`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `既定の勤務形態を${arrangement}（以前は${previousArrangement}）に変更しました`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `通勤分の除外方法を、申請ごとの固定距離に変更しました（以前は${previousMethod}）。`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `「通勤を除外」の計算方法を自宅とオフィスに基づいて行うよう変更しました（以前の方法：${previousMethod}）`,
@@ -9904,6 +9925,8 @@ ${reportName}`,
             violationsBySubmitter: '申請者による違反',
         },
         mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
+        periodSoFar: ({period}: {period: string}) => `これまでの${period}`,
+        weekOf: ({date}: {date: string}) => `${date} の週`,
         saveEdits: {
             title: '編集を保存',
             prompt: ({name}: {name: string}) => `「${name}」を更新しますか、それとも新規作成しますか？`,

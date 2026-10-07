@@ -365,6 +365,21 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+/**
+ * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
+ * reports it needs doesn't re-render when any other report in the account changes.
+ */
+const reportsByIDsSelector =
+    (reportIDs: string[]) =>
+    (allReports: OnyxCollection<Report>): OnyxCollection<Report> => {
+        const result: OnyxCollection<Report> = {};
+        for (const reportID of reportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            result[key] = allReports?.[key];
+        }
+        return result;
+    };
+
 export {
     getArchiveReason,
     getReportChatType,
@@ -383,6 +398,7 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    reportsByIDsSelector,
 };
 
 export type {ReportAvatarFields, StableReport};
