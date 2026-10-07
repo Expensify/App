@@ -8,12 +8,13 @@ describe('WorkArrangementUtils', () => {
             {memberArrangement: true, workspaceArrangement: false, fallbackArrangement: false, expected: true},
             {memberArrangement: false, workspaceArrangement: true, fallbackArrangement: false, expected: false},
             {memberArrangement: undefined, workspaceArrangement: true, fallbackArrangement: false, expected: true},
+            {memberArrangement: undefined, workspaceArrangement: false, expected: false},
+            {memberArrangement: undefined, workspaceArrangement: undefined, expected: true},
             {memberArrangement: undefined, workspaceArrangement: undefined, fallbackArrangement: false, expected: false},
-            {memberArrangement: undefined, workspaceArrangement: undefined, fallbackArrangement: true, expected: true},
-        ] as const)('uses member arrangement when set and otherwise falls back to the workspace default (%#)', ({memberArrangement, workspaceArrangement, fallbackArrangement, expected}) => {
+        ] as const)('uses member arrangement when set, then workspace default, then fallback (%#)', ({memberArrangement, workspaceArrangement, fallbackArrangement, expected}) => {
             // Given a member arrangement and an optional workspace default,
-            // When resolving the member's effective work arrangement with an optional fallback,
-            // Then the member and workspace values take precedence and the fallback is used only when both are missing.
+            // When resolving the member's effective work arrangement,
+            // Then explicit member and workspace values take precedence, with an office-based server default unless an explicit fallback is provided.
             expect(getEffectiveWorkArrangement(memberArrangement, workspaceArrangement, fallbackArrangement)).toBe(expected);
         });
     });

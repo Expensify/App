@@ -20,6 +20,7 @@ import {isApprovalWorkflowRule, isRuleFilterComparison} from '@libs/RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isPublicDomain, isValidAccountRoute} from '@libs/ValidationUtils';
+import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +33,7 @@ import type {
     Account,
     ApprovalRule,
     ConnectionLastSync,
+    CommuterExclusions,
     ConnectionName,
     Connections,
     CustomUnit,
@@ -392,6 +394,13 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
  */
 function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+}
+
+/**
+ * The workspace-wide work arrangement, which members follow unless they were given one of their own.
+ */
+function hasOfficeWorkArrangement(commuterExclusions: CommuterExclusions | undefined): boolean {
+    return getEffectiveWorkArrangement(undefined, commuterExclusions?.isOfficeWorkArrangement);
 }
 
 /**
@@ -812,6 +821,12 @@ function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: strin
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
+}
+
+/** Check if the passed employee holds an active Expensify Card on the policy, as reported by the backend in the policy's employeeList */
+function hasActiveExpensifyCard(policy: OnyxEntry<Policy>, employeeLogin: string) {
+    const primaryLogin = policy?.primaryLoginsInvited?.[employeeLogin];
+    return !!policy?.employeeList?.[employeeLogin]?.hasActiveExpensifyCard || (!!primaryLogin && !!policy?.employeeList?.[primaryLogin]?.hasActiveExpensifyCard);
 }
 
 /** Set of every approver login in the policy. Prefer over calling isPolicyApprover in a loop (scans employeeList once, not per candidate). */
@@ -2860,6 +2875,7 @@ export {
     getSageIntacctBankAccounts,
     getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
+    hasOfficeWorkArrangement,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
@@ -2937,6 +2953,7 @@ export {
     sortPoliciesByName,
     resolveCurrentTaxCode,
     isPolicyApprover,
+    hasActiveExpensifyCard,
     getPolicyApproverLogins,
     tryNavigateToSubmitWorkspaceUpgrade,
     tryNavigateToControlPolicyUpgrade,

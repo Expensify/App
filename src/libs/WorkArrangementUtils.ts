@@ -8,7 +8,11 @@ import {Str} from 'expensify-common';
 
 import {generateAccountID} from './UserUtils';
 
-function getEffectiveWorkArrangement(memberArrangement: boolean | undefined, workspaceArrangement: boolean | undefined, fallbackArrangement = false): boolean {
+/**
+ * Whether a member commutes to an office. When neither the member nor workspace has an explicit arrangement,
+ * the server treats the member as office-based by default.
+ */
+function getEffectiveWorkArrangement(memberArrangement: boolean | undefined, workspaceArrangement: boolean | undefined, fallbackArrangement = true): boolean {
     return memberArrangement ?? workspaceArrangement ?? fallbackArrangement;
 }
 
