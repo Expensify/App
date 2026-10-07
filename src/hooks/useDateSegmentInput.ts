@@ -37,6 +37,8 @@ const DELETE_KEY = 'Delete';
 const SELECT_ALL_KEY = 'a';
 const COPY_KEY = 'c';
 const CUT_KEY = 'x';
+const UNDO_KEY = 'z';
+const REDO_KEY = 'y';
 const MOVE_KEYS = {
     [CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey]: -1,
     [CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey]: 1,
@@ -60,6 +62,9 @@ type UseDateSegmentInputParams = {
 
     /** Called with a stored format date whenever the segments produce one, and with an empty string whenever they do not */
     onCommit: (isoDate: string) => void;
+
+    /** Called as a keystroke carries focus out of the field, which no press anywhere reports */
+    onLeaveByKeyboard: () => void;
 };
 
 /** Everything one segment's input needs. The segment itself is stateless and reports back through these */
@@ -123,7 +128,7 @@ function isMoveKey(key: string): key is keyof typeof MOVE_KEYS {
     return key in MOVE_KEYS;
 }
 
-function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: UseDateSegmentInputParams): UseDateSegmentInputResult {
+function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLeaveByKeyboard}: UseDateSegmentInputParams): UseDateSegmentInputResult {
     // The segments only describe an edit in progress, so they are seeded on focus rather than synced with the value
     const [segments, setSegments] = useState<DateSegments>(EMPTY_SEGMENTS);
     const [isEditing, setIsEditing] = useState(false);
@@ -139,6 +144,15 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     const [isAllSelected, setIsAllSelected] = useState(false);
     // A repeated click selects as its last press goes down, and the press completing that click arrives after
     const hasJustSelectedByClick = useRef(false);
+    // Every keystroke is prevented, so each segment's input has an empty undo history of its own and the field keeps
+    // one covering all three. `pastSegments` is what undo walks back through and `undoneSegments` is what redo returns.
+    const pastSegments = useRef<DateSegments[]>([]);
+    const undoneSegments = useRef<DateSegments[]>([]);
+
+    const forgetHistory = () => {
+        pastSegments.current = [];
+        undoneSegments.current = [];
+    };
 
     // A date set from outside, by the calendar or a restored draft, has to reach an edit in progress too
     if (value !== appliedValue) {
@@ -203,22 +217,54 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     };
 
     /** The one place segments are written, so the calendar cannot fall out of step with them */
-    const applySegments = (newSegments: DateSegments) => {
+    const writeSegments = (newSegments: DateSegments) => {
         setSegments(newSegments);
         assertViewDate(getViewDateFromSegments(newSegments, viewDate ?? new Date(), minDate, maxDate));
         commitSegments(newSegments);
     };
 
+    /** A change the user made, which is therefore one they can take back. Anything undone is no longer ahead of them. */
+    const applySegments = (newSegments: DateSegments) => {
+        pastSegments.current.push(segments);
+        undoneSegments.current = [];
+        writeSegments(newSegments);
+    };
+
+    /** Steps one change back or forward, moving the state being left behind onto the other side of the history */
+    const moveThroughHistory = (isRedo: boolean) => {
+        const from = isRedo ? undoneSegments.current : pastSegments.current;
+        const restored = from.pop();
+
+        if (!restored) {
+            return;
+        }
+
+        (isRedo ? pastSegments : undoneSegments).current.push(segments);
+        setIsAllSelected(false);
+        writeSegments(restored);
+
+        // The caret belongs where the user would be typing in the restored date, which is the digit it stops short at
+        focusSegment(getFirstUnfilledSegmentName(restored) ?? LAST_SEGMENT_NAME);
+        setShouldOverwrite(false);
+    };
+
     const handleKeyPress = (name: DateSegmentName, event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
 
-        // A shortcut is the browser's to handle, apart from the two it cannot apply across separate inputs
+        // A shortcut is the browser's to handle, apart from the ones it cannot apply across separate inputs
         if (event.nativeEvent.metaKey || event.nativeEvent.ctrlKey) {
             if (key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey || key === DELETE_KEY) {
                 event.preventDefault();
                 setIsAllSelected(false);
                 applySegments(isAllSelected ? EMPTY_SEGMENTS : clearSegmentsUpTo(segments, name));
                 enterSegment(FIRST_SEGMENT_NAME);
+                return;
+            }
+
+            // Each segment's input was never written to directly, so the browser has no change of its own to take back
+            if (key.toLowerCase() === UNDO_KEY || key.toLowerCase() === REDO_KEY) {
+                event.preventDefault();
+                moveThroughHistory(key.toLowerCase() === REDO_KEY || !!event.nativeEvent.shiftKey);
                 return;
             }
 
@@ -255,6 +301,15 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
 
         const wasAllSelected = isAllSelected;
         setIsAllSelected(false);
+
+        // Tab is left to the browser, which moves focus without pressing anything, so nothing else reports the field
+        // being left behind. Only the outermost segment hands focus out of the field rather than on to a sibling.
+        if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+            if (event.nativeEvent.shiftKey ? name === FIRST_SEGMENT_NAME : name === LAST_SEGMENT_NAME) {
+                onLeaveByKeyboard();
+            }
+            return;
+        }
 
         if (isNumeric(key)) {
             event.preventDefault();
@@ -356,6 +411,8 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
             return;
         }
 
+        forgetHistory();
+
         // Returning to an entry that was left unusable resumes it, since the date it reported was the empty one
         const seededSegments = hasInvalidEntry ? segments : getSegmentsFromISODate(value);
         setHasInvalidEntry(false);
@@ -365,6 +422,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
     };
 
     const handleFieldBlur = () => {
+        forgetHistory();
         setIsEditing(false);
         setViewDate(undefined);
         setShouldOverwrite(false);
@@ -380,6 +438,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
 
     // The clear button unmounts as it is pressed, so focus is placed here rather than left to whatever is underneath
     const handleClear = () => {
+        forgetHistory();
         setSegments(EMPTY_SEGMENTS);
         setHasInvalidEntry(false);
         setIsAllSelected(false);

@@ -50,6 +50,7 @@ declare module 'react-native' {
     interface TextInputKeyPressEventData {
         metaKey?: boolean;
         ctrlKey?: boolean;
+        shiftKey?: boolean;
     }
 
     interface PressableStateCallbackType extends WebPressableStateCallbackType {

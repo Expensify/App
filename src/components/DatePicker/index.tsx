@@ -107,9 +107,44 @@ function DatePicker({
         onInputChange?.(newDate);
     };
 
+    const setPickerVisibility = useCallback(
+        (isVisible: boolean) => {
+            setIsModalVisible(isVisible);
+            onPickerVisibilityChange?.(isVisible);
+        },
+        [onPickerVisibilityChange],
+    );
+
+    const closeDatePicker = useCallback(() => {
+        openIntentRef.current = false;
+        setPickerVisibility(false);
+
+        if (!shouldDismissKeyboardBeforeShow || shouldAllowTyping) {
+            return;
+        }
+
+        textInputRef.current?.blur();
+        ComposerFocusManager.blurActiveInput();
+        Keyboard.dismiss();
+    }, [shouldDismissKeyboardBeforeShow, shouldAllowTyping, setPickerVisibility]);
+
     // The hook is the single gate on typing. When the platform does not allow it, the handlers it returns are no-ops
     // and the value passes straight through, so the call sites below do not have to check again.
-    const segmentInput = useDateSegmentInput({value: selectedDate, isEnabled: shouldAllowTyping, minDate, maxDate, onCommit: commitDate});
+    const segmentInput = useDateSegmentInput({
+        value: selectedDate,
+        isEnabled: shouldAllowTyping,
+        minDate,
+        maxDate,
+        onCommit: commitDate,
+        // Tabbing away leaves a calendar nothing has been pressed outside of, which is what otherwise dismisses it
+        onLeaveByKeyboard: () => {
+            if (!isModalVisible) {
+                return;
+            }
+
+            closeDatePicker();
+        },
+    });
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
@@ -149,14 +184,6 @@ function DatePicker({
             });
         },
         [windowHeight],
-    );
-
-    const setPickerVisibility = useCallback(
-        (isVisible: boolean) => {
-            setIsModalVisible(isVisible);
-            onPickerVisibilityChange?.(isVisible);
-        },
-        [onPickerVisibilityChange],
     );
 
     const showDatePickerModal = useCallback(() => {
@@ -199,19 +226,6 @@ function DatePicker({
 
         openPicker();
     }, [isModalVisible, shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, shouldAllowTyping, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
-
-    const closeDatePicker = useCallback(() => {
-        openIntentRef.current = false;
-        setPickerVisibility(false);
-
-        if (!shouldDismissKeyboardBeforeShow || shouldAllowTyping) {
-            return;
-        }
-
-        textInputRef.current?.blur();
-        ComposerFocusManager.blurActiveInput();
-        Keyboard.dismiss();
-    }, [shouldDismissKeyboardBeforeShow, shouldAllowTyping, setPickerVisibility]);
 
     const handlePress = useCallback<NonNullable<BaseTextInputProps['onPress']>>(
         (event) => {
