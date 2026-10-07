@@ -1227,7 +1227,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: On
 
     // Check if manual request is being created
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        return true;
+        return transaction.wasAutoCategorizeEnabledOnCreation !== false;
     }
 
     // Check if within auto-categorization grace period
