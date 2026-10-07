@@ -14660,15 +14660,6 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false, false)).toBe(true);
         });
 
-        it('should return false if the chat is public room and the user is the guest', () => {
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
-                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
-            };
-
-            expect(canLeaveChat(report, undefined, currentUserAccountID, true, false)).toBe(false);
-        });
-
         it('should return true for the same public room when the user is not anonymous', () => {
             // Given a public policy room the current user participates in, viewed by a regular (non-anonymous) user
             const report: Report = {
@@ -14682,15 +14673,15 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(report, undefined, currentUserAccountID, false, false)).toBe(true);
         });
 
-        it('should return false for that public room when the user is anonymous', () => {
-            // Given the same public room, but viewed by an anonymous (signed-out) visitor
+        it('should return false if the chat is public room and the user is the guest', () => {
+            // Given the same public room, but viewed by an anonymous (signed-out) guest
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
             };
 
-            // When checking whether the user can leave it
+            // When checking whether the guest can leave it
             // Then the anonymous flag passed by the caller blocks leaving
             expect(canLeaveChat(report, undefined, currentUserAccountID, true, false)).toBe(false);
         });
