@@ -90,6 +90,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     return (
         <WidgetContainer
             title={translate(chart.titleKey)}
+            containerStyles={styles.overflowVisible}
             titleRightContent={
                 !!groupByControl || !!headerMenu ? (
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
