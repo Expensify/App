@@ -1,4 +1,3 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
 import useLocalize from '@hooks/useLocalize';
@@ -29,12 +28,6 @@ function ValidateCodeStep({onNext, prevPage}: SubPageProps) {
         }
         clearPersonalBankAccountErrors();
     };
-
-    // Once the bank account is added, the page moves on to the success step. The success step is pushed on top of this one, so going back from it lands here, where the code
-    // form would send another magic code.
-    if (personalBankAccount?.shouldShowSuccess) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <ValidateCodeActionContent

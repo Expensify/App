@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import {useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
@@ -63,6 +63,7 @@ const PERSONAL_DETAILS_FIELDS = ['legalFirstName', 'legalLastName', 'addressStre
 function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const route = useRoute();
+    const navigation = useNavigation();
     const urlSubPage = (route.params as {subPage?: string} | undefined)?.subPage;
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -186,6 +187,7 @@ function AddPersonalBankAccountPage() {
 
     const confirmationIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.CONFIRMATION);
     const successIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.SUCCESS);
+    const successRoute = buildRoute(SUB_PAGE_NAMES.SUCCESS);
 
     const handleNext = (data?: unknown) => {
         // Submitting a details step may change what the user confirmed after an account ownership error, so they need to confirm again
@@ -241,12 +243,19 @@ function AddPersonalBankAccountPage() {
 
     // Advance to the success step once the bank account has been added successfully. This can resolve while the user
     // has navigated back to an earlier substep, so jump straight to success rather than relying on the current page.
+    // Every substep the user passed through stays mounted under the focused one, so only the focused substep moves on.
     useEffect(() => {
-        if (!shouldShowSuccess || currentPageName === SUB_PAGE_NAMES.SUCCESS) {
+        if (!shouldShowSuccess || currentPageName === SUB_PAGE_NAMES.SUCCESS || !navigation.isFocused()) {
+            return;
+        }
+
+        // Replace the magic code step, so going back from success lands on the confirmation step instead of a code form that would send another magic code
+        if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
+            Navigation.navigate(successRoute, {forceReplace: true});
             return;
         }
         moveTo(successIndex, false);
-    }, [shouldShowSuccess, currentPageName, moveTo, successIndex]);
+    }, [shouldShowSuccess, currentPageName, navigation, successRoute, moveTo, successIndex]);
 
     // Refresh the report the flow was opened from once the account is added, since that changes its server-owned fields.
     // Doing it here instead of on exit covers every way of closing the flow. The report may not be on screen, so don't mark it as read.
