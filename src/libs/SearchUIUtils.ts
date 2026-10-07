@@ -210,7 +210,6 @@ import {
     isSearchDatePreset,
     removeNegation,
     sortOptionsWithEmptyValue,
-    withExactMatchFilterKeys,
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
@@ -3037,11 +3036,7 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFil
         sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
         flatFilters: newFlatFilters,
     };
-    const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
-    if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
-        return specificGroupQueryJSON;
-    }
-    return withExactMatchFilterKeys(specificGroupQueryJSON, [filterKey]);
+    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
 }
 
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
