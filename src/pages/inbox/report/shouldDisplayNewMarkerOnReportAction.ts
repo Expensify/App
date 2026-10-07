@@ -112,10 +112,12 @@ const shouldDisplayNewMarkerOnReportAction = ({
     return result;
 };
 
+/** Informational exports and reimbursements for other accounts must not create unread dividers. */
 function canReportActionTriggerUnreadMarker(reportAction: OnyxTypes.ReportAction, currentUserAccountID: number): boolean {
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
         const originalMessage = getOriginalMessage(reportAction);
         const actionableForAccountIDs = originalMessage?.actionableForAccountIDs;
+        // Older reimbursement actions lack recipient metadata, so preserve their marker eligibility.
         return !actionableForAccountIDs || actionableForAccountIDs.includes(currentUserAccountID);
     }
 
@@ -206,6 +208,7 @@ const getUnreadMarkerReportAction = ({
         ? visibleReportActions.some((action) => action.reportActionID === prevUnreadMarkerReportActionID && !shouldHideNewMarker(action, isOffline))
         : false;
 
+    // The synthetic Concierge greeting is skipped in inverted chats; keep the non-inverted list's existing behavior.
     const canActionTriggerMarker = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction =>
         !!action && (isReversed || action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID) && canReportActionTriggerUnreadMarker(action, currentUserAccountID);
 
@@ -216,6 +219,7 @@ const getUnreadMarkerReportAction = ({
         }
     }
     const scanIndexes = isReversed ? eligibleIndexes.toReversed() : eligibleIndexes;
+    // Newest-first chats start at the oldest eligible offline action. If none exists, keep scanning older unread activity.
     const earliestEligibleReceivedOfflineMessageIndex =
         !isReversed && earliestReceivedOfflineMessageIndex !== undefined
             ? (eligibleIndexes.findLast((index) => index <= earliestReceivedOfflineMessageIndex) ?? earliestReceivedOfflineMessageIndex)
