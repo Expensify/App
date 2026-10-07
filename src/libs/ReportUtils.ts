@@ -11023,7 +11023,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         return false;
     }
 
-    // Approve-only members cannot create expenses on the workspace, so its chats and reports offer no create options.
+    // Members without create-expenses permission get no create options in the workspace chats and reports.
     if (!!policy?.id && report?.policyID === policy.id && !canRoleCreateExpenses(policy.role)) {
         return false;
     }
@@ -13635,7 +13635,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
-    // Moving a report to a workspace creates expenses there, which an approve-only submitter cannot do.
+    // Moving a report to a workspace creates expenses there, which requires create-expenses permission.
     if (!canRoleCreateExpenses(getPolicyRole(newPolicy, submitterEmail))) {
         return false;
     }

@@ -83,7 +83,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         shouldSortSelectedToTop: false,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        // Approve-only members cannot create expenses, so their workspaces cannot be the default expense destination.
+        // A workspace cannot be the default expense destination when the member lacks create-expenses permission.
         additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canRoleCreateExpenses(newPolicy?.role),
     });
 

@@ -1970,7 +1970,7 @@ function isValidReport(
         return false;
     }
 
-    // Approve-only members cannot create expenses, so their workspace chat is not a valid submit destination.
+    // A workspace chat is not a valid submit destination when the member lacks create-expenses permission.
     if (isPolicyExpenseChat && excludeApproveOnlyWorkspaces && !canRoleCreateExpenses(policy?.role)) {
         return false;
     }

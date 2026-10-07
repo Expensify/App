@@ -133,7 +133,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             }
         }
 
-        // Approve-only members cannot create expenses, so making the workspace their default would break expense creation routing.
+        // Making the workspace the default would break expense creation routing for members without create-expenses permission.
         if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy && canRoleCreateExpenses(item.role)) {
             menuItems.push({
                 icon: icons.Star,

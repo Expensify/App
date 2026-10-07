@@ -337,7 +337,7 @@ function AttachmentPickerWithMenuItems({
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        // Approve-only members cannot create expenses, so they cannot create reports on the workspace either.
+        // Members without create-expenses permission cannot create reports on the workspace either.
         if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canRoleCreateExpenses(policy?.role)) {
             return [];
         }

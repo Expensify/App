@@ -29,7 +29,7 @@ function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string
     return (
         checkForUserPendingDelete(login, policy) &&
         isPolicyMemberByRole(policy) &&
-        // Moving an expense to a workspace creates it there, which approve-only members cannot do.
+        // Moving an expense to a workspace creates it there, which requires create-expenses permission.
         canRoleCreateExpenses(policy?.role) &&
         isGroupPolicy(policy) &&
         policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
