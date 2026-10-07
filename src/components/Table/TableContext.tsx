@@ -84,7 +84,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The width the rows need when the columns don't fit, which makes the list scroll horizontally too. `undefined` means they fit. */
     scrollWidth: number | undefined;
 
-    /** Measured width of the area the table lays out into. Content-sized columns only. `0` until the first layout. */
+    /** Width the rows are really given, so the measured area less any vertical scrollbar. `0` until the first layout. */
     tableWidth: number;
 
     /** Filter configuration for dropdown filters. */

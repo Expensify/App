@@ -518,7 +518,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         columns,
         dynamicGridTemplateColumns,
         scrollWidth: dynamicScrollWidth,
-        tableWidth,
+        tableWidth: contentWidth,
         filterConfig: filters,
         activeFilters: currentFilters,
         activeSorting,
