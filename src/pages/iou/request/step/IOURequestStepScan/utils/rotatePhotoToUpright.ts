@@ -13,9 +13,7 @@ import ImageSize from 'react-native-image-size';
 
 type PhotoSize = {
     width: number;
-
     height: number;
-
     rotation?: number;
 };
 
@@ -30,13 +28,7 @@ function getUprightRotation({width, height, rotation = 0}: PhotoSize, orientatio
     // counter-clockwise angle (see its `RotationHelper`): a portrait capture off a landscape sensor reports
     // `landscape-left`, so 270 counter-clockwise, so 90 clockwise. The opposite hold turns the other way.
     const quarterTurn = orientation === 'landscape-right' ? 270 : 90;
-    const angle = decodedWidth > decodedHeight ? quarterTurn : 0;
-
-    if (!angle) {
-        return undefined;
-    }
-
-    return angle;
+    return decodedWidth > decodedHeight ? quarterTurn : undefined;
 }
 
 function rotatePhotoToUpright(stillPath: string, orientation?: Orientation): Promise<string | undefined> {
@@ -49,12 +41,8 @@ function rotatePhotoToUpright(stillPath: string, orientation?: Orientation): Pro
             return undefined;
         }
 
-        const context = ImageManipulator.manipulate(sourceUri);
-        if (angle) {
-            context.rotate(angle);
-        }
-
-        return context
+        return ImageManipulator.manipulate(sourceUri)
+            .rotate(angle)
             .renderAsync()
             .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}))
             .then((result) => {

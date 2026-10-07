@@ -270,8 +270,9 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             flash={flash}
                             hasFlash={hasFlash}
                             setFlash={setFlash}
-                            // With "device", a phone held flat over a receipt keeps its last landscape reading, and the
-                            // still is saved rotated, so photos follow the screen orientation instead.
+                            // "preview" turns every capture to match the screen, the way the preview is drawn. The default "device" follows the
+                            // phone's physical orientation instead, so a phone held flat over a receipt keeps its last landscape reading and the
+                            // photo comes out sideways.
                             outputOrientation="preview"
                         />
                     )}

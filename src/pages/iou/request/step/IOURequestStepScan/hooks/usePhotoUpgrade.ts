@@ -37,13 +37,22 @@ function discardWhenItLands(pending: PendingPhoto) {
         .catch(() => {});
 }
 
+class DeadlineError extends Error {
+    step: string;
+
+    constructor(step: string, capMs: number) {
+        super(`[PhotoUpgrade] ${step} did not finish within ${capMs}ms`);
+        this.step = step;
+    }
+}
+
 function withDeadline<T>(promise: Promise<T>, capMs: number, step: string, discardLateResult?: (value: T) => void): Promise<T> {
     let cap: ReturnType<typeof setTimeout>;
     let hasTimedOut = false;
     const deadline = new Promise<never>((_resolve, reject) => {
         cap = setTimeout(() => {
             hasTimedOut = true;
-            reject(new Error(`[PhotoUpgrade] ${step} did not finish within ${capMs}ms`));
+            reject(new DeadlineError(step, capMs));
         }, capMs);
     });
 
@@ -276,7 +285,7 @@ function usePhotoUpgrade() {
                 let outcome: string = CONST.TELEMETRY.UPGRADE_OUTCOME.SWAP_FAILED;
                 if (wasClaimed) {
                     outcome = CONST.TELEMETRY.UPGRADE_OUTCOME.CLAIMED_FOR_UPLOAD;
-                } else if (reason.includes('rotate did not finish')) {
+                } else if (error instanceof DeadlineError && error.step === 'rotate') {
                     outcome = CONST.TELEMETRY.UPGRADE_OUTCOME.ROTATE_TIMED_OUT;
                 }
                 reportOutcome(outcome);
