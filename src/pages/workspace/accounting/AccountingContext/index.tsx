@@ -158,16 +158,17 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 isUnifiedConnectionsBetaEnabled,
             );
 
+            // Connections has no feature toggle, so turn it on here. The Control upgrade only enables the integration's own feature.
+            if (isUnifiedConnectionsBetaEnabled && !policy?.areConnectionsEnabled) {
+                enablePolicyConnections(policyID, true, false);
+            }
+
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
                 Navigation.navigate(
                     ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, workspaceUpgradeNavigationDetails.integrationAlias, workspaceUpgradeNavigationDetails.backToAfterWorkspaceUpgradeRoute),
                 );
                 return;
-            }
-            // Connections has no feature toggle, so the feature is turned on once the plan allows the integration
-            if (isUnifiedConnectionsBetaEnabled && !policy?.areConnectionsEnabled) {
-                enablePolicyConnections(policyID, true, false);
             }
             setActiveIntegration({
                 ...newActiveIntegration,
