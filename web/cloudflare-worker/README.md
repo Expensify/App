@@ -105,19 +105,26 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 
 ## Deploying
 
-| Environment | Worker | Route |
-| --- | --- | --- |
-| `staging` | `staging-new-expensify-assets` | `test-staging.new.expensify.com/*` until switchover, then `staging.new.expensify.com/*` |
-| `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` |
+| Environment | Worker | Route | CSP |
+| --- | --- | --- | --- |
+| `test-staging` | `test-staging-new-expensify-assets` | `test-staging.new.expensify.com/*` | Staging |
+| `staging` | `staging-new-expensify-assets` | None until switchover, then `staging.new.expensify.com/*` | Staging |
+| `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` | Production |
 
-Deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets.
+`test-staging` is for testing a staging build on a hostname nobody else uses. Deploy it with a staging build in `dist/`:
 
-Workers Logs are sampled per environment (`head_sampling_rate`), because the Worker runs for every asset request.
+```bash
+npx wrangler deploy --env test-staging
+```
+
+Staging and production deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets.
+
+Workers Logs are sampled in `staging` and `production` (`head_sampling_rate`), because the Worker runs for every asset request. `test-staging` logs every request.
 
 To check the config without credentials or uploading anything:
 
 ```bash
-npx wrangler deploy --dry-run --env staging
+npx wrangler deploy --dry-run --env test-staging
 ```
 
 Never commit credentials, account IDs or `.dev.vars` files here. This is a public repository.

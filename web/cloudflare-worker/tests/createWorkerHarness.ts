@@ -49,7 +49,7 @@ function writeFakeWebBuild(assetsDir: string) {
  * override the assets directory, so this writes a temporary config that changes `main` and `assets.directory`, and
  * copies .assetsignore itself in place of the `build` command.
  */
-function createWorkerHarness(env?: 'staging' | 'production'): WorkerHarness {
+function createWorkerHarness(env?: 'test-staging' | 'staging' | 'production'): WorkerHarness {
     const tempDir = mkdtempSync(path.join(tmpdir(), 'new-expensify-worker-'));
     const assetsDir = path.join(tempDir, 'dist');
     writeFakeWebBuild(assetsDir);

@@ -207,6 +207,27 @@ describe('staging worker', () => {
     });
 });
 
+describe('test-staging worker', () => {
+    const {server, cleanup} = createWorkerHarness('test-staging');
+
+    before(async () => {
+        await server.listen();
+    });
+
+    after(async () => {
+        await cleanup();
+    });
+
+    test('uses the staging CSP', async () => {
+        // Given the test-staging environment, which serves a staging build
+        // When any page is requested
+        const csp = (await server.fetch('/', {headers: NAVIGATION_HEADERS})).headers.get('Content-Security-Policy') ?? '';
+
+        // Then it gets the staging CSP, so a staging build behaves there as it does on staging.new.expensify.com
+        assert.match(csp, /new-expensify:\/\/staging\.new\.expensify\.com/);
+    });
+});
+
 describe('production worker', () => {
     const {server, cleanup} = createWorkerHarness('production');
 

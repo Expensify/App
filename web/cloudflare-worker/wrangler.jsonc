@@ -27,9 +27,16 @@
         "ENVIRONMENT": "staging",
     },
     "env": {
+        // Serves a staging build on a hostname nobody else uses, so it can be deployed and tested independently.
+        "test-staging": {
+            "name": "test-staging-new-expensify-assets",
+            "routes": [{"pattern": "test-staging.new.expensify.com/*", "zone_name": "expensify.com"}],
+            "vars": {
+                "ENVIRONMENT": "staging",
+            },
+        },
         "staging": {
             "name": "staging-new-expensify-assets",
-            "routes": [{"pattern": "test-staging.new.expensify.com/*", "zone_name": "expensify.com"}],
             // The Worker runs for every asset, so logging every request would exceed the included Workers Logs volume.
             "observability": {
                 "enabled": true,
