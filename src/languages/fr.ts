@@ -10181,8 +10181,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
             exportedWarning:
-                'Une ou plusieurs notes de frais sélectionnées ont déjà été exportées vers une intégration comptable. Les fusionner peut créer des données en double si elles sont exportées à nouveau.',
-            reportFieldsMismatch: 'Ces notes de frais ont des valeurs de champs différentes. Pour les fusionner, commencez par faire correspondre les champs de chaque note de frais.',
+                'Une ou plusieurs notes de frais sélectionnées ont déjà été exportées vers une intégration comptable. Les fusionner peut entraîner des doublons si elles sont exportées de nouveau.',
+            reportFieldsMismatch:
+                'Ces notes de frais ont des valeurs de champ de note de frais différentes. Pour les fusionner, faites d’abord correspondre les champs de note de frais sur chaque note de frais.',
         },
         periodSoFar: ({period}: {period: string}) => `${period} jusqu’à présent`,
         weekOf: ({date}: {date: string}) => `Semaine du ${date}`,
