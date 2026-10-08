@@ -39,7 +39,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
     const {windowWidth} = useWindowDimensions();
     // One of the tabs never has a bar item, so the bar splits its width between the others.
     const barItemCount = Object.keys(tabLabels).length - 1;
-    const labelMaxWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount;
+    const labelMaxWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
 
     const screenOptions: NativeBottomTabNavigationOptions = {
         headerShown: false,

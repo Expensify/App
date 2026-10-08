@@ -122,6 +122,9 @@ export default {
     nativeTabIconLabelGap: 6,
     /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
     iosNativeTabBarHorizontalInset: 25,
+    // UITabBar sizes its items to their icons and gives the selected pill a minimum width, so a label as wide as an even
+    // share of the bar lets that pill reach over the label next to it.
+    iosNativeTabBarLabelInset: 8,
     /** Material's BottomNavigationView row, without the gesture inset under it. */
     androidNativeTabBarHeight: 80,
     /** Material's bar row (androidNativeTabBarHeight) plus the 16 dp Material keeps between a FAB and the bar. */
