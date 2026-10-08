@@ -47,7 +47,7 @@ function EditBankAccountNicknamePage({route}: EditBankAccountNicknamePageProps) 
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_BANK_ACCOUNT_NICKNAME_FORM>) => {
         const newName = values[INPUT_IDS.NICKNAME].trim();
-        if (newName !== bankAccount?.title) {
+        if (newName !== defaultValue) {
             updateBankAccountName(bankAccountID, newName, bankAccount?.title);
         }
         Navigation.goBack(ROUTES.SETTINGS_WALLET);

@@ -1659,8 +1659,8 @@ function updateBankAccountName(bankAccountID: number, newName: string, oldName?:
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
                 value: {
                     [bankAccountID]: {
-                        title: oldName,
-                        accountData: {addressName: oldName},
+                        title: oldName ?? null,
+                        accountData: {addressName: oldName ?? null},
                         pendingAction: null,
                         errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },

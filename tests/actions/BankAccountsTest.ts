@@ -305,6 +305,27 @@ describe('actions/BankAccounts', () => {
             expect(bankAccountList?.[bankAccountID]?.pendingAction).toBeFalsy();
             expect(bankAccountList?.[bankAccountID]?.errors).toBeTruthy();
         });
+
+        test('clears the optimistic name when the request fails and there was no previous name', async () => {
+            // Given a bank account with no title, so there is no previous name to restore
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    accountData: {bankAccountID, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                },
+            });
+            mockFetch.fail?.();
+
+            // When the bank account is renamed and the backend rejects it
+            updateBankAccountName(bankAccountID, newName, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the optimistic name is removed, because Onyx merge would ignore an undefined rollback value
+            const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(bankAccountList?.[bankAccountID]?.title).toBeUndefined();
+            expect(bankAccountList?.[bankAccountID]?.accountData?.addressName).toBeUndefined();
+            expect(bankAccountList?.[bankAccountID]?.errors).toBeTruthy();
+        });
     });
 
     describe('initiateBankAccountUnlock', () => {
