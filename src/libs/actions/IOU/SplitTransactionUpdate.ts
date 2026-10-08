@@ -552,6 +552,8 @@ function updateSplitTransactions({
     const newSplitsFailureCleanupData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
     // Reports whose totals the optimistic pass rewrites, keyed by reportID, so the pre-split values can be restored on failure
     const reportsToRestoreOnFailure = new Map<string, OnyxTypes.Report>();
+    // SelfDM reports that splits are routed to, keyed by reportID, so the chat preview the optimistic pass points at a split can be restored on failure
+    const selfDMReportsToRestoreOnFailure = new Map<string, OnyxTypes.Report>();
 
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
@@ -786,6 +788,13 @@ function updateSplitTransactions({
             moneyRequestReportIDForSplit = splitTransaction?.reportID;
         } else {
             moneyRequestReportIDForSplit = splitExpense?.reportID;
+        }
+
+        // getMoneyRequestInformation sets lastVisibleActionCreated on the selfDM report object in place, so copy the
+        // pre-split selfDM before the first call that can touch it
+        const selfDMReportBeforeSplit = isSelfDMSplit && selfDMReportID ? allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] : undefined;
+        if (selfDMReportBeforeSplit && !selfDMReportsToRestoreOnFailure.has(selfDMReportBeforeSplit.reportID)) {
+            selfDMReportsToRestoreOnFailure.set(selfDMReportBeforeSplit.reportID, {...selfDMReportBeforeSplit});
         }
 
         const {
@@ -2056,6 +2065,19 @@ function updateSplitTransactions({
                 unheldReimbursableTotal: reportToRestore.unheldReimbursableTotal ?? null,
                 transactionCount: reportToRestore.transactionCount ?? null,
                 lastVisibleActionCreated: reportToRestore.lastVisibleActionCreated ?? null,
+            },
+        });
+    }
+    // The selfDM split builder's own failure data only covers the transaction and IOU action, so put back the preview fields it overwrote
+    for (const [reportID, selfDMReportToRestore] of selfDMReportsToRestoreOnFailure) {
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastMessageText: selfDMReportToRestore.lastMessageText ?? null,
+                lastMessageHtml: selfDMReportToRestore.lastMessageHtml ?? null,
+                lastReadTime: selfDMReportToRestore.lastReadTime ?? null,
+                lastVisibleActionCreated: selfDMReportToRestore.lastVisibleActionCreated ?? null,
             },
         });
     }

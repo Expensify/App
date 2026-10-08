@@ -6157,6 +6157,89 @@ describe('updateSplitTransactions', () => {
         expect(reportAfterFailure?.transactionCount).toBe(reportBeforeSplit?.transactionCount);
     });
 
+    it('should restore the selfDM chat preview when a new split moved to the selfDM fails', async () => {
+        // Given an existing expense on an expense report, and a selfDM whose chat preview shows an earlier message
+        const {expenseReport, originalTransactionID} = await createBaseExpense();
+        if (!originalTransactionID || !expenseReport?.reportID) {
+            throw new Error('Missing original transaction data');
+        }
+        const selfDMPreviewBeforeSplit = {
+            lastMessageText: 'Earlier selfDM message',
+            lastMessageHtml: 'Earlier selfDM message',
+            lastReadTime: '2024-01-01 00:00:00.000',
+            lastVisibleActionCreated: '2024-01-01 00:00:00.000',
+        };
+        const selfDMReport: Report = {...createSelfDM(41, RORY_ACCOUNT_ID), ...selfDMPreviewBeforeSplit};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await waitForBatchedUpdates();
+
+        const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+        const {allTransactions, allReports, allReportNameValuePairs, allReportActions} = await getCollections();
+        const allPolicyTags = await getAllPolicyTags();
+        const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+        const workspaceSplitTransactionID = rand64();
+        const selfDMSplitTransactionID = rand64();
+
+        // When the expense is split with one split moved to the selfDM while the request is held, which points the
+        // selfDM's preview at the new split
+        mockFetch?.pause?.();
+        updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: workspaceSplitTransactionID, amount: amount / 2, created: DateUtils.getDBTime(), reportID: expenseReport.reportID},
+                    {transactionID: selfDMSplitTransactionID, amount: amount / 2, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                ],
+                splitExpensesTotal: undefined,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: iouAction,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            allPolicyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+        expect(getIOUActionForReportID(selfDMReport.reportID, selfDMSplitTransactionID)).toBeDefined();
+        const selfDMDuringRequest = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`);
+        expect(selfDMDuringRequest?.lastMessageText).not.toBe(selfDMPreviewBeforeSplit.lastMessageText);
+        expect(selfDMDuringRequest?.lastVisibleActionCreated).not.toBe(selfDMPreviewBeforeSplit.lastVisibleActionCreated);
+
+        // And the server then rejects it
+        mockFetch?.fail?.();
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        // Then the selfDM split's TRACK action is removed
+        expect(getIOUActionForReportID(selfDMReport.reportID, selfDMSplitTransactionID)).toBeUndefined();
+
+        // And the selfDM preview is back to its pre-split message instead of describing the removed split
+        const selfDMAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`);
+        expect(selfDMAfterFailure).toMatchObject(selfDMPreviewBeforeSplit);
+    });
+
     it('should keep all split transactions on hold when splitting a held transaction', async () => {
         const {expenseReport, transactionThreadReportID, originalTransactionID} = await createBaseExpense();
         const {allReports, allReportActions} = await getCollections();
