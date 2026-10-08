@@ -1227,7 +1227,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: On
 
     // Check if manual request is being created
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        return true;
+        return transaction.wasAutoCategorizeEnabledOnCreation !== false;
     }
 
     // Check if within auto-categorization grace period
@@ -1761,7 +1761,8 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
     }
 
     const selectedRouteKey = getSelectedRouteKey(transaction);
-    return transaction?.routes?.[selectedRouteKey]?.distance ?? undefined;
+    const reusedRouteDistance = transaction?.isReusedRoute ? transaction.comment?.customUnit?.routeDistanceMeters : undefined;
+    return transaction?.routes?.[selectedRouteKey]?.distance ?? reusedRouteDistance ?? undefined;
 }
 
 /**
@@ -1784,6 +1785,14 @@ function hasManualDistanceOverride(transaction: OnyxInputOrEntry<Transaction>): 
     // re-fetch can return a slightly different distance for the same route, which must not read as an override.
     const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
     return !quantityMatchesDistance(selectedRouteDistanceInMeters) && !(routeDistanceMeters && quantityMatchesDistance(routeDistanceMeters));
+}
+
+function isTransactionOwner(transaction: OnyxEntry<Transaction>, cardList: OnyxEntry<CardList>) {
+    /**
+     * The transaction should belong to the current user if its card is in Onyx. Note that cash transactions are also
+     * linked to a "cash card".
+     */
+    return !!cardList?.[transaction?.cardID ?? CONST.DEFAULT_NUMBER_ID];
 }
 
 export {
@@ -1973,6 +1982,7 @@ export {
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,
     getReservationNights,
+    isTransactionOwner,
 };
 
 export type {ManuallyEnteredScanFields};
