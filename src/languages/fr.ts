@@ -936,6 +936,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Cette discussion n’est plus active, car <strong>vous</strong> n’êtes plus membre de l’espace de travail ${policyName}.`
                 : `Cette discussion n’est plus active, car ${displayName} n’est plus membre de l’espace de travail ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `Cette discussion n’est plus active, car ${policyName} est un espace de travail archivé.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Cette réservation est archivée.',
@@ -2056,6 +2057,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Aucune autre action n’est requise !`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Modifiez l’espace de travail de la note de frais pour effectuer d’autres actions.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2419,9 +2426,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
+        talkToAHuman: 'Parler à une personne',
         helpPage: {
             title: 'Aide et assistance',
             description: 'Nous sommes là pour vous aider, à toute heure.',
+            talkToAHumanDescription: 'Obtenez de l’aide d’une vraie personne',
             helpSite: "Site d'aide",
             helpSiteDescription: 'Articles, tutoriels et plus',
             conciergeChat: 'Concierge',
@@ -5406,11 +5415,11 @@ ${amount} pour ${merchant} - ${date}`,
                         label: 'Date de la dernière dépense',
                         description: 'Date de la dépense la plus récente sur la note de frais.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Date d’exportation',
                         description: 'Date à laquelle la note de frais a été exportée vers Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Date de soumission',
                         description: 'Date à laquelle la note de frais a été soumise pour approbation.',
                     },
@@ -9883,6 +9892,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         genericCreateTaskFailureMessage: 'Une erreur s’est produite lors de la création de cette tâche. Veuillez réessayer plus tard.',
         deleteTask: 'Supprimer la tâche',
         deleteConfirmation: 'Voulez-vous vraiment supprimer cette tâche ?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Ticket d’assistance, ${date} : ${customer} et ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Bonjour, je suis ${supportRep} et je travaillerai avec vous jusqu’à ce que ce soit entièrement résolu. Si vous avez déjà partagé des informations avec nous, je les examinerai avant de vous répondre afin que vous n’ayez pas à vous répéter. S’il s’agit d’un nouveau problème, indiquez-moi ce dont vous avez besoin.`,
+        checkboxTooltip: 'Votre représentant du support vérifiera cela une fois que ce sera résolu.',
+        genericCreateSupportTicketFailureMessage: 'Nous n’avons pas pu créer ce ticket d’assistance. Veuillez ignorer cette erreur et réessayer.',
+        noSupportRepAvailable: 'Aucun représentant de l’assistance n’est disponible pour le moment. Vous pouvez toujours envoyer un message à Concierge pour obtenir de l’aide.',
+        fallbackTitle: 'Ticket d’assistance',
+        resolved: 'Ce ticket d’assistance est résolu.',
+        surveyPrompt: 'Comment s’est passée votre expérience avec l’assistance ?',
+        reopenTicket: 'Rouvrir le ticket',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Relevé de ${monthName} ${year}`,
