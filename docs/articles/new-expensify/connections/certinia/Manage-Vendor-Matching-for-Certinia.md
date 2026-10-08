@@ -1,40 +1,38 @@
 ---
 title: Manage Vendor Matching for Certinia
-description: Learn how Certinia FFA vendor matching assigns vendors to non-reimbursable company card expenses before they export as Payable Invoices, including automatic matching, manual selection, and default vendor behavior.
+description: Learn how Certinia FFA vendor matching assigns vendors to non-reimbursable expenses before they export as Payable Invoices, including automatic matching, manual selection, and default vendor behavior.
 keywords: [Certinia, FinancialForce, FFA, vendor matching, vendor, company card expenses, Payable Invoices, default vendor]
-internalScope: Audience is Workspace Admins using the Certinia FFA connection. Covers imported Certinia vendors, automatic and manual vendor assignment, default vendor behavior, how vendors affect Payable Invoice export, and vendors that are no longer valid. Does not cover Certinia connection setup, other Certinia configuration settings, Certinia PSA/SRP, or vendor matching for other accounting connections.
+internalScope: Audience is workspace admins using the Certinia FFA connection. Covers imported Certinia vendors, automatic and manual vendor assignment, default vendor behavior, how vendors affect Payable Invoice export, and vendors that are no longer valid. Does not cover Certinia connection setup, other Certinia configuration settings, Certinia PSA/SRP, or vendor matching for other accounting connections.
 noindex: true
 sitemap: false
 ---
 
 # Manage Vendor Matching for Certinia
 
-Certinia vendor matching lets Workspace Admins review and update the vendor assigned to non-reimbursable company card expenses before they export to Certinia FFA as Payable Invoices. Expensify imports your Certinia vendor accounts, automatically matches vendors where possible, and lets admins set or update the **Vendor** field before export. This helps ensure expenses export to the correct vendor account instead of requiring manual corrections in Certinia.
+Certinia vendor matching lets workspace admins review and update the vendor assigned to non-reimbursable expenses before they export to Certinia FFA as Payable Invoices. Expensify imports your Certinia vendor accounts, automatically matches vendors where possible, and lets admins set or update the **Vendor** field before export. This helps ensure expenses export to the correct vendor account instead of requiring manual corrections in Certinia.
 
 ## Who can use Certinia vendor matching
 
-This feature is available to Workspace Admins whose Workspace:
+This feature is available to workspace admins whose workspace:
 
  - Is connected to Certinia using the FFA module.
  - Has finished configuring the Certinia connection.
 
 Certinia vendor matching isn't available for Certinia PSA or SRP connections.
 
-Certinia vendor matching is rolling out gradually. If the **Vendors** feature and the **Vendor** field don't appear on a configured Certinia FFA Workspace, they aren't enabled for your Workspace yet.
+Certinia vendor matching is rolling out gradually. If the **Vendors** feature and the **Vendor** field don't appear on a configured Certinia FFA workspace, they aren't enabled for your workspace yet.
 
-If your Workspace isn't connected to Certinia yet, learn how to [connect to Certinia](/articles/new-expensify/connections/certinia/Connect-To-Certinia).
+If your workspace isn't connected to Certinia yet, learn how to [connect to Certinia](/articles/new-expensify/connections/certinia/Connect-To-Certinia).
 
-## How vendors are matched to Certinia company card expenses
+## How vendors are matched to expenses
 
 Expensify assigns vendors automatically in the following order:
 
  - If a workspace merchant rule specifies a vendor, that vendor is assigned.
  - Otherwise, Expensify automatically matches the merchant name against your imported Certinia vendor list. For example, **STARBUCKS #456 DOWNTOWN** matches **Starbucks**.
- - If no match is found, the **Vendor** field remains empty until a Workspace Admin selects one.
+ - If no match is found, the **Vendor** field remains empty until a workspace admin selects one.
 
 Whenever a vendor is assigned automatically, Concierge posts a system message on the expense indicating whether the vendor was set by a merchant rule or by vendor matching.
-
-The **Vendor** field appears only on non-reimbursable expenses. It isn't shown on reimbursable expenses.
 
 ## How to select a Certinia vendor on an expense
 
@@ -45,9 +43,11 @@ The **Vendor** field appears only on non-reimbursable expenses. It isn't shown o
 
 Once a vendor is selected manually, Expensify preserves that selection and won't overwrite it with automatic matching.
 
+![The expense details view for a non-reimbursable company card expense on a Certinia-connected workspace, with the Vendor row visible directly below Category and a matched vendor name shown]({{site.url}}/assets/images/Expense_select-vendor.png){:width="100%"}
+
 ## Where to find your imported Certinia vendors
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Vendors**.
 3. Use **Find vendor** to search the list by name.
 
@@ -55,7 +55,7 @@ Vendors are managed in Certinia, so the list is read-only in Expensify and refre
 
 ## How to set a default vendor for Certinia
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
 2. Select **Accounting**.
 3. On the Certinia connection, select **Export**.
 4. Select **Default vendor**.
@@ -94,12 +94,12 @@ Expensify automatically attempts to match a vendor using your imported Certinia 
 
 ## Does manually assigning a vendor stop automatic matching?
 
-Yes. Once a Workspace Admin manually assigns a vendor to an expense, Expensify preserves that selection and won't replace it with automatic matching.
+Yes. Once a workspace admin manually assigns a vendor to an expense, Expensify preserves that selection and won't replace it with automatic matching.
 
 ## Why don't I see any vendors to choose from?
 
 The vendor selector shows **No vendors found** when your Certinia vendor list is empty. Add the vendors in Certinia, then sync the connection again.
 
-## Why is vendor matching missing on my Certinia PSA Workspace?
+## Why is vendor matching missing on my Certinia PSA workspace?
 
 Vendor matching is only available for Certinia FFA connections. Certinia PSA and SRP connections don't support vendor matching.
