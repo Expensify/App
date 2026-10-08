@@ -79,7 +79,7 @@ The API at `www.expensify.com`, and Google Sign-In, only accept requests from kn
 ### Automated tests
 
 ```bash
-npm test          # integration tests: the real wrangler.jsonc in workerd, against tests/fixtures/webBuild
+npm test          # integration tests: the real wrangler.jsonc in workerd, against a fake web build
 npm run typecheck # regenerates worker-configuration.d.ts with `wrangler types`, then type-checks src/ and tests/
 ```
 

@@ -1,1 +1,0 @@
-self.fixtureServiceWorker = true;
