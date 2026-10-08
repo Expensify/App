@@ -6,6 +6,7 @@ import SkeletonTextLine, {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLi
 import WidgetContainer from '@components/WidgetContainer';
 
 import useContainerWidth from '@hooks/useContainerWidth';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -176,11 +177,12 @@ function HomePageSkeletonTableCard() {
 function HomePageSkeletonSpinnerCard() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <HomePageSkeletonCard hasBottomPadding={false}>
-            <View style={styles.getWidgetChartPaddingStyle(shouldUseNarrowLayout)}>
+            <View style={[cardPaddingHorizontal, cardPaddingBottom, !shouldUseNarrowLayout && styles.pt3]}>
                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

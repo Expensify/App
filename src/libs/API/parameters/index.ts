@@ -10,6 +10,7 @@ export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
 export type {default as VerifySetupIntentParams} from './VerifySetupIntentParams';
 export type {default as VerifySetupIntentAndRequestPolicyOwnerChangeParams} from './VerifySetupIntentAndRequestPolicyOwnerChangeParams';
 export type {default as AddPersonalBankAccountParams} from './AddPersonalBankAccountParams';
+export type {default as CreateCollectOnlyDepositAccountParams} from './CreateCollectOnlyDepositAccountParams';
 export type {default as RestartBankAccountSetupParams} from './RestartBankAccountSetupParams';
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
@@ -55,6 +56,7 @@ export type {default as UpdateRilletAutoSyncParams} from './UpdateRilletAutoSync
 export type {default as UpdateRilletAccountingMethodParams} from './UpdateRilletAccountingMethodParams';
 export type {default as UpdateRilletSyncReimbursedReportsParams} from './UpdateRilletSyncReimbursedReportsParams';
 export type {default as UpdateRilletBillPaymentAccountParams} from './UpdateRilletBillPaymentAccountParams';
+export type {default as UpdateRilletFxExpenseAccountParams} from './UpdateRilletFxExpenseAccountParams';
 export type {default as UpdateRilletSyncExpensifyCardSettlementsParams} from './UpdateRilletSyncExpensifyCardSettlementsParams';
 export type {default as UpdateRilletSettlementsAccountParams} from './UpdateRilletSettlementsAccountParams';
 export type {default as UpdateRilletSyncTravelBillingSettlementsParams} from './UpdateRilletSyncTravelBillingSettlementsParams';
@@ -101,6 +103,7 @@ export type {default as UpdateCampfireTravelInvoicingSettlementsAccountParams} f
 export type {default as UpdateCampfireTravelInvoicingPayableAccountParams} from './UpdateCampfireTravelInvoicingPayableAccountParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
+export type {default as UpdateBusinessCentralCustomerMappingParams} from './UpdateBusinessCentralCustomerMappingParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
 export type {default as UpdateBusinessCentralFieldMappingParams} from './UpdateBusinessCentralFieldMappingParams';
 export type {default as UpdateBusinessCentralSyncTaxRatesParams} from './UpdateBusinessCentralSyncTaxRatesParams';
@@ -119,6 +122,7 @@ export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAcco
 export type {default as UpdateSageIntacctAccountingMethodParams} from './UpdateSageIntacctAccountingMethodParams';
 export type {default as UpdateQuickbooksDesktopAccountingMethodParams} from './UpdateQuickbooksDesktopAccountingMethodParams';
 export type {default as ShareBankAccountParams} from './ShareBankAccountParams';
+export type {default as UpdateBankAccountParams} from './UpdateBankAccountParams';
 export type {default as RemovePolicyReceiptPartnersConnectionParams} from './RemovePolicyReceiptPartnersConnectionParams';
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
@@ -246,8 +250,10 @@ export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams
 export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';
 export type {default as TransferWalletBalanceParams} from './TransferWalletBalanceParams';
 export type {default as DeleteWorkspaceParams} from './DeleteWorkspaceParams';
+export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
+export type {default as CreateJoinWorkspaceOnboardingContentParams} from './CreateJoinWorkspaceOnboardingContentParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';
@@ -306,6 +312,7 @@ export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspac
 export type {default as UpdateWorkspaceClientIDParams} from './UpdateWorkspaceClientIDParams';
 export type {default as UpdateWorkspaceMembersRoleParams} from './UpdateWorkspaceMembersRoleParams';
 export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspaceCategoriesEnabledParams';
+export type {default as SetPolicyVendorsEnabledParams} from './SetPolicyVendorsEnabledParams';
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
@@ -591,6 +598,7 @@ export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './Chan
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
+export type {default as SetPolicyWorkArrangementParams} from './SetPolicyWorkArrangementParams';
 export type {default as SetEmployeeWorkArrangementParams} from './SetEmployeeWorkArrangementParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
