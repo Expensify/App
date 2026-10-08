@@ -44,7 +44,6 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
     }
 
     const currentUser = getCurrentUserPersonalDetails();
-    // Unreported amounts are stored negated; this returns them positive, as `trackExpense` expects.
     const details = getTransactionDetails(transaction);
     if (!details) {
         return undefined;
@@ -78,9 +77,7 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
             isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             receipt,
         },
-        // Same ID, so if the first attempt reached Auth the retry gets `Transaction already created.` instead of a second expense.
         optimisticTransactionID: transaction.transactionID,
-        // Without these two, the retry creates a second IOU action and thread for the same transaction.
         currentReportActionID: iouActionID,
         existingTransactionThreadReportID: transactionThreadReportID,
         existingTransaction: transaction,
@@ -94,7 +91,6 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
         quickAction: undefined,
         recentWaypoints: [],
         isSelfTourViewed,
-        // Only read when a draft chat report builds a new workspace, which the create path behind this error never does.
         currentUserLocalCurrency: undefined,
         delegateAccountID,
         reportActionsList: undefined,
