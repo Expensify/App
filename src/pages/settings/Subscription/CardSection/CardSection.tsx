@@ -212,7 +212,7 @@ function CardSection() {
     ]);
 
     const handleRetryPayment = () => {
-        clearOutstandingBalance();
+        clearOutstandingBalance(route.name);
     };
 
     const handleAuthenticatePayment = () => {

@@ -244,8 +244,8 @@ function addSubscriptionPaymentCard(
 }
 
 /**
- * Goes in successData, not optimisticData, so the source lands in the same Onyx flush as its response's link and the
- * two stay paired when 3DS requests overlap.
+ * Goes in the data applied with whichever response carries the link, not optimisticData,
+ * so the source lands in the same Onyx flush as its response's link and the two stay paired when 3DS requests overlap.
  */
 function getVerify3dsSubscriptionSourceData(source?: string): Array<OnyxUpdate<typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> {
     if (!source) {
