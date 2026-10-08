@@ -10,6 +10,11 @@ import android.content.res.Configuration
 import android.database.CursorWindow
 import android.os.Bundle
 import android.os.Process
+import android.view.View
+import android.view.WindowManager
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
 import com.expensify.chat.navbar.NavBarManagerPackage
@@ -55,6 +60,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
                 if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity") {
                     activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    keepPlaidContentAboveKeyboard(activity)
                 }
             }
             override fun onActivityStarted(activity: Activity) {}
@@ -107,6 +113,23 @@ class MainApplication : MultiDexApplication(), ReactApplication {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
+    }
+
+    // In landscape the keyboard covers most of the screen and Plaid's window doesn't shrink for it,
+    // so the focused input in Plaid's WebView stays hidden behind the keyboard. We handle the insets
+    // ourselves so Plaid's content always fits in the space above the keyboard.
+    private fun keepPlaidContentAboveKeyboard(activity: Activity) {
+        val window = activity.window
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+
+        val content = activity.findViewById<View>(android.R.id.content) ?: return
+        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            view.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, ime.bottom))
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     private fun isOnfidoProcess(): Boolean {
