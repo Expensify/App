@@ -63,6 +63,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {deepEqual} from 'fast-equals';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 type ReportScreenRoute =
@@ -117,6 +118,7 @@ function ReportFetchHandler() {
     const hasCreatedLegacyThreadRef = useRef(false);
     const didSubscribeToReportLeavingEvents = useRef(false);
     const joinedSecureLinkReportIDRef = useRef<string | undefined>(undefined);
+    const hiddenPreMountFetchedRouteRef = useRef<Pick<ReportScreenRoute, 'key' | 'params'> | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
@@ -231,6 +233,14 @@ function ReportFetchHandler() {
             return;
         }
 
+        // The reveal rebuilds the route with the same key and params, which re-runs this fetch. Skip it once, or it would
+        // run as a return trip that clears the manual unread marker and jumps to the last unread page.
+        const hiddenPreMountFetchedRoute = hiddenPreMountFetchedRouteRef.current;
+        hiddenPreMountFetchedRouteRef.current = isHiddenPreMount ? {key: route.key, params: route.params} : undefined;
+        if (!isHiddenPreMount && hiddenPreMountFetchedRoute?.key === route.key && deepEqual(hiddenPreMountFetchedRoute.params, route.params)) {
+            return;
+        }
+
         // For a cached 1:1 DM, pass the other participant so the server can resolve a stale/optimistic
         // reportID to the real chat (via preexistingReportID) instead of failing with "Report not found".
         const dmParticipants = getOneOnOneChatParticipants(report, personalDetails, currentUserAccountID);
@@ -245,7 +255,7 @@ function ReportFetchHandler() {
             // Falsy means a page refresh / cold start, which is when openReport clears a manual unread marker.
             // This screen opens the report the user is looking at, so it is the only caller that passes it.
             hasOnceLoadedReportActions: reportLoadingState.hasOnceLoadedReportActions,
-            // Not re-fetched on reveal: it shows the newest page (the new expense) and keeps a manual unread marker this visit.
+            // The reveal skips the next fetch (see above), so the newest page with the new expense and a manual unread marker stay.
             shouldMarkAsRead: !isHiddenPreMount,
             shouldKeepManualUnreadMarker: isHiddenPreMount,
             currentUserAccountID,
@@ -445,11 +455,11 @@ function ReportFetchHandler() {
     }, [prevTransactionThreadReportID, transactionThreadReportID, isInPreloadedTab]);
 
     useEffect(() => {
-        if (!reportID || !isFocused || isInSidePanel) {
+        if (!reportID || !isFocused || isInSidePanel || isHiddenPreMount) {
             return;
         }
         updateLastVisitTime(reportID);
-    }, [reportID, isFocused, isInSidePanel]);
+    }, [reportID, isFocused, isInSidePanel, isHiddenPreMount]);
 
     useEffect(() => {
         if (!isFocused || !reportID || !isPublicRoom(report) || !isAnonymousUser) {
@@ -469,11 +479,11 @@ function ReportFetchHandler() {
     // on blur (wide layout keeps the screen mounted) and on unmount / reportID change (narrow layout tears it
     // down). Staying in the report never flags it, so the user's marker is not wiped mid-session.
     useEffect(() => {
-        if (!prevIsFocused || isFocused) {
+        if (!prevIsFocused || isFocused || isHiddenPreMount) {
             return;
         }
         flagReportNavigatedAway(reportIDFromRoute);
-    }, [isFocused, prevIsFocused, reportIDFromRoute]);
+    }, [isFocused, prevIsFocused, reportIDFromRoute, isHiddenPreMount]);
 
     // A hidden pre-mount the user never saw, e.g. after a cancelled submit, was not navigated away from.
     const flagNavigatedAwayIfShown = useEffectEvent((navigatedAwayReportID: string | undefined) => {
@@ -616,7 +626,7 @@ function ReportFetchHandler() {
     }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields, currentUserAccountID]);
 
     useEffect(() => {
-        if (isInPreloadedTab) {
+        if (isInPreloadedTab || isHiddenPreMount) {
             return;
         }
         if (!!report?.lastReadTime || !isTaskReport(report)) {
@@ -624,7 +634,7 @@ function ReportFetchHandler() {
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         readNewestAction(report?.reportID, isReportActionsLoaded);
-    }, [report, isReportActionsLoaded, isInPreloadedTab]);
+    }, [report, isReportActionsLoaded, isInPreloadedTab, isHiddenPreMount]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
