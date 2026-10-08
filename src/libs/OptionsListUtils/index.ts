@@ -63,6 +63,7 @@ import {
     isOneOnOneChat as reportUtilsIsOneOnOneChat,
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
+    isSupportTicket as reportUtilsIsSupportTicket,
     isSystemChat as reportUtilsIsSystemChat,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
@@ -3376,6 +3377,7 @@ function shouldUseFullTitleForOption(option: OptionData): boolean {
         !!option.isChatRoom ||
         !!option.isPolicyExpenseChat ||
         !!option.isTaskReport ||
+        reportUtilsIsSupportTicket(option) ||
         !!option.isThread ||
         !!option.isMoneyRequestReport ||
         !!option.isInvoiceReport ||
