@@ -168,8 +168,7 @@ function rescaleSnapshotGroupAmount<T extends OnyxTypes.Transaction>(transaction
 }
 
 /**
- * Whether any of the given splits still lives on a report that hasn't been submitted yet - read live off
- * each split's own report rather than a cached field, so a status change elsewhere is never stale here.
+ * Whether any of the given splits still lives on a report that hasn't been submitted yet.
  */
 function hasEditableSplitExpenseLeft(
     splitExpenses: SplitExpense[],

@@ -9214,6 +9214,151 @@ describe('updateSplitExpenseAmountField', () => {
         expect(frozenSplitAfter?.amount).toBe(6000);
     });
 
+    it('restores a frozen split with the correct (positive) sign when its expense report is only in the search snapshot', async () => {
+        const originalTransactionID = '123-frozen-snapshot';
+        const frozenTransactionID = '789-frozen-snapshot';
+        const editedTransactionID = '999-frozen-snapshot';
+
+        // Given an expense report and the frozen split's transaction that exist only in the search snapshot (e.g. opened
+        // from Spend) - neither is in Onyx, so the report type can only be resolved from the snapshot.
+        const expenseReport: Report = {
+            ...createRandomReport(2, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const searchResultsData: SearchResults['data'] = {};
+        searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`] = expenseReport;
+        searchResultsData[`${ONYXKEYS.COLLECTION.TRANSACTION}${frozenTransactionID}`] = {
+            transactionID: frozenTransactionID,
+            amount: -6000,
+            currency: 'USD',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'Test Merchant',
+            comment: {},
+        };
+
+        const draftTransaction: Transaction = {
+            transactionID: '234-frozen-snapshot',
+            amount: 100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                comment: 'Test comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: frozenTransactionID,
+                        amount: 5000,
+                        description: 'Test comment',
+                        category: 'Food',
+                        tags: ['lunch'],
+                        created: DateUtils.getDBTime(),
+                    },
+                    {
+                        transactionID: editedTransactionID,
+                        amount: 3000,
+                        description: 'Test comment 2',
+                        category: 'Food',
+                        tags: ['dinner'],
+                        created: DateUtils.getDBTime(),
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            tag: 'lunch',
+            created: DateUtils.getDBTime(),
+            reportID: expenseReport.reportID,
+        };
+
+        // When the sibling (non-frozen) split's amount is edited, triggering redistribution.
+        updateSplitExpenseAmountField(draftTransaction, editedTransactionID, 4000, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal, undefined, {
+            frozenSplitTransactionIDs: new Set([frozenTransactionID]),
+            searchResultsData,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the report is resolved from the snapshot as an expense report, so the frozen split is restored to the
+        // positive SplitExpense convention (6000) instead of the report-internal negative one (-6000).
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const frozenSplitAfter = updatedDraftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === frozenTransactionID);
+        expect(frozenSplitAfter?.amount).toBe(6000);
+    });
+
+    it('keeps the live tax amount of a frozen split instead of recomputing it from the tax rate', async () => {
+        const originalTransactionID = '123-frozen-tax';
+        const frozenTransactionID = '789-frozen-tax';
+        const editedTransactionID = '999-frozen-tax';
+
+        const expenseReport: Report = {
+            ...createRandomReport(3, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+
+        // Given a frozen split whose tax was edited manually to a value that doesn't match its 10% rate
+        // (the rate would give 600, the live tax is 450 - stored negative like the amount on an expense report).
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${frozenTransactionID}`, {
+            transactionID: frozenTransactionID,
+            amount: -6000,
+            taxAmount: -450,
+            currency: 'USD',
+            reportID: expenseReport.reportID,
+        });
+        await waitForBatchedUpdates();
+
+        const draftTransaction: Transaction = {
+            transactionID: '234-frozen-tax',
+            amount: 100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                comment: 'Test comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: frozenTransactionID,
+                        amount: 6000,
+                        taxValue: '10%',
+                        taxAmount: 450,
+                        description: 'Test comment',
+                        category: 'Food',
+                        tags: ['lunch'],
+                        created: DateUtils.getDBTime(),
+                    },
+                    {
+                        transactionID: editedTransactionID,
+                        amount: 3000,
+                        description: 'Test comment 2',
+                        category: 'Food',
+                        tags: ['dinner'],
+                        created: DateUtils.getDBTime(),
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            tag: 'lunch',
+            created: DateUtils.getDBTime(),
+            reportID: expenseReport.reportID,
+        };
+
+        // When the sibling (non-frozen) split's amount is edited, triggering redistribution.
+        updateSplitExpenseAmountField(draftTransaction, editedTransactionID, 4000, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal, undefined, {
+            frozenSplitTransactionIDs: new Set([frozenTransactionID]),
+        });
+        await waitForBatchedUpdates();
+
+        // Then the frozen split keeps its live (manually edited) tax, so Save doesn't send a changed tax for a split
+        // that isn't supposed to change.
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const frozenSplitAfter = updatedDraftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === frozenTransactionID);
+        expect(frozenSplitAfter?.amount).toBe(6000);
+        expect(frozenSplitAfter?.taxAmount).toBe(450);
+    });
+
     it('should update distance and merchant for distance transactions when amount changes', async () => {
         const customUnitRateID = 'rate-update';
         const customUnitID = 'distance-unit';

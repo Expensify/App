@@ -134,7 +134,7 @@ type SplitExpense = {
     /** Merchant where the amount was spent */
     merchant?: string;
 
-    /** Current reportID  */
+    /** ID of the report the split expense belongs to */
     reportID?: string;
 
     /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */

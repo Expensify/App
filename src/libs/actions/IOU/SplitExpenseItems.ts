@@ -14,6 +14,7 @@ import {
     getCurrency,
     getDefaultTaxCode,
     getSelectedRouteKey,
+    getTaxAmount,
     getTaxValue,
     hasManualDistanceOverride,
     hasValidModifiedAmount,
@@ -475,10 +476,12 @@ function redistributeExcludingFrozenSplits(
         if (!liveTransaction) {
             return original;
         }
-        const isLiveTransactionFromExpenseReport = isExpenseReport(getReportOrDraftReport(liveTransaction.reportID));
+        const liveReport = getReportOrDraftReport(liveTransaction.reportID) ?? frozenSplitsContext?.searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${liveTransaction.reportID}`];
+        const isLiveTransactionFromExpenseReport = isExpenseReport(liveReport);
         const rawLiveAmount = hasValidModifiedAmount(liveTransaction) ? Number(liveTransaction.modifiedAmount) : (liveTransaction.amount ?? 0);
         const liveAmount = isLiveTransactionFromExpenseReport && rawLiveAmount ? -rawLiveAmount : rawLiveAmount;
-        return {...original, amount: liveAmount, taxAmount: convertToBackendAmount(calculateTaxAmount(original.taxValue, liveAmount, getCurrencyDecimals(currency)))};
+        // Keep the live tax as-is - a frozen split isn't supposed to change, and its tax may have been edited manually.
+        return {...original, amount: liveAmount, taxAmount: getTaxAmount(liveTransaction, isLiveTransactionFromExpenseReport)};
     });
 }
 
