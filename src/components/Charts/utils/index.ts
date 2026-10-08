@@ -1,15 +1,5 @@
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {
-    CHART_CONTENT_MIN_HEIGHT,
-    CHART_Y_SCALE_HEIGHT,
-    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
-    ELLIPSIS,
-    LABEL_PADDING,
-    LABEL_ROTATIONS,
-    MAX_X_AXIS_LABEL_WIDTH,
-    SIN_45,
-    X_AXIS_LABEL_MIN_HEIGHT,
-} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
 
@@ -536,14 +526,6 @@ function getHorizontalChartHeight(rowCount: number, minRowHeight: number, vertic
     return Math.max(minHeight, rowCount * minRowHeight + verticalPadding);
 }
 
-function getXAxisLabelSpace(xAxisLabelHeight = 0, labelGap: number = VictoryTheme.axis.xAxisLabelGap): number {
-    return labelGap + Math.max(xAxisLabelHeight, X_AXIS_LABEL_MIN_HEIGHT);
-}
-
-function getCartesianChartHeight(xAxisLabelHeight = 0): number {
-    return CHART_CONTENT_MIN_HEIGHT + getXAxisLabelSpace(xAxisLabelHeight);
-}
-
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -594,8 +576,6 @@ export {
     getNiceValueTicks,
     getYAxisLabelWidth,
     getHorizontalChartHeight,
-    getXAxisLabelSpace,
-    getCartesianChartHeight,
     getCartesianPlotBounds,
     getVerticalBarLabelLayoutInputs,
     getDomainPaddingForEdgeSpace,

@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import SkeletonTextLine, {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
@@ -29,8 +29,8 @@ const TRAILING_SUB_BAR_WIDTH = 40;
 const CARD_TITLE_WIDTH = 120;
 const LOWER_BAR_WIDTH = 80;
 
-// The chart this stands in for holds its own loading spinner at exactly this height.
-const SPINNER_CARD_HEIGHT = CHART_CONTENT_MIN_HEIGHT;
+// Home's first insight, spend over time, is a line chart, which holds its loading spinner at this height.
+const SPINNER_CARD_HEIGHT = getCartesianChartHeight();
 const ROWS_PER_LIST_CARD = 3;
 const ROWS_PER_TABLE_CARD = CONST.HOME.SECTION_VISIBLE_LIMIT;
 
@@ -48,7 +48,7 @@ type SkeletonRowArgs = {
 };
 
 type TrailingSkeletonRowArgs = SkeletonRowArgs & {
-    /** Measured width of the card's row area, which the trailing bars are right-aligned against */
+    /** Measured width of the card's row area */
     width: number;
 };
 
@@ -108,9 +108,10 @@ function renderIconTwoBarWithTrailingRow(args: TrailingSkeletonRowArgs) {
 
 type HomePageSkeletonCardProps = {
     children: React.ReactNode;
+    hasBottomPadding?: boolean;
 };
 
-function HomePageSkeletonCard({children}: HomePageSkeletonCardProps) {
+function HomePageSkeletonCard({children, hasBottomPadding = true}: HomePageSkeletonCardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -123,7 +124,7 @@ function HomePageSkeletonCard({children}: HomePageSkeletonCardProps) {
                         barWidth={CARD_TITLE_WIDTH}
                     />
                 }
-                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
+                containerStyles={hasBottomPadding && styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
                 {children}
             </WidgetContainer>
@@ -163,7 +164,6 @@ function HomePageSkeletonTableCard() {
                 itemViewHeight={rowHeight}
                 // The default `mr5` on each row would shrink the SVG below the card width and pull the right-aligned bars inward.
                 itemViewStyle={styles.mr0}
-                // The rows this stands in for are separated.
                 itemContainerStyle={styles.borderBottom}
                 renderSkeletonItem={({itemIndex}) => renderIconTwoBarWithTrailingRow({itemIndex, width: containerWidth, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
                 onLayout={onLayout}
@@ -176,14 +176,17 @@ function HomePageSkeletonTableCard() {
 function HomePageSkeletonSpinnerCard() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <HomePageSkeletonCard>
-            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    testID={SPINNER_TEST_ID}
-                />
+        <HomePageSkeletonCard hasBottomPadding={false}>
+            <View style={styles.getWidgetChartPaddingStyle(shouldUseNarrowLayout)}>
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        testID={SPINNER_TEST_ID}
+                    />
+                </View>
             </View>
         </HomePageSkeletonCard>
     );

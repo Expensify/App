@@ -7,7 +7,6 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
-    getCartesianChartHeight,
     getDomainPaddingForEdgeSpace,
     getHorizontalChartHeight,
     getNiceYAxisTicks,
@@ -24,6 +23,7 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
+import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 import VictoryTheme, {
     CHART_CONTENT_MIN_HEIGHT,
     CHART_Y_SCALE_HEIGHT,

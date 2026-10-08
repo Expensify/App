@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -31,7 +32,8 @@ type SkiaWebChartProps<TProps> = {
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
 
-    /** Identifies the loading skeleton span for telemetry. */
+    /** Off under a ChartReveal, whose spinner already covers the chart engine download. */
+    shouldShowLoadingSpinner?: boolean;
 };
 
 type ChartUnavailableProps = {
@@ -50,6 +52,9 @@ function ChartUnavailable({description = 'common.webGLNotSupported'}: ChartUnava
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['MonitorSyncNo']);
+
+    // This state never loads, and Skia draws none of it, so an enclosing ChartReveal shows it at once
+    useReportChartLoading(false, false);
 
     return (
         <View style={styles.chartWebFallback}>
@@ -94,7 +99,7 @@ const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) 
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
 // interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
-function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
+function SkiaWebChart<TProps extends object>({getComponent, componentProps, shouldShowLoadingSpinner = true}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElement | null>(null);
 
@@ -111,11 +116,11 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
         return <ChartUnavailable />;
     }
 
-    const fallback = (
+    const fallback = shouldShowLoadingSpinner ? (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator size="large" />
         </View>
-    );
+    ) : null;
 
     return (
         <View

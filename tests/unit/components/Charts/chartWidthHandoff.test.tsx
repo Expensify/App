@@ -55,6 +55,31 @@ describe('chart width handoff', () => {
         expect(getMeasuredBox()).toBeTruthy();
     });
 
+    it.each([
+        ['bar', BarChart],
+        ['line', LineChart],
+        ['pie', PieChart],
+    ])('should collapse the %s chart as soon as it loads with no data', (_name, Chart) => {
+        // Given a loading chart
+        const {rerender} = render(
+            <Chart
+                data={[]}
+                isLoading
+            />,
+        );
+
+        // When it finishes loading with nothing to draw
+        rerender(
+            <Chart
+                data={[]}
+                isLoading={false}
+            />,
+        );
+
+        // Then the spinner goes in the same render, because holding it for Skia's first draw would leave it over an empty box
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+    });
+
     it('should hand the pie chart the width measured while it was loading', () => {
         // Given a loading pie chart whose box has been measured
         const {rerender} = render(

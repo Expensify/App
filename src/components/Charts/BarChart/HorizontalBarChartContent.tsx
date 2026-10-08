@@ -1,12 +1,13 @@
 import {HORIZONTAL_BAR_DOMAIN_PADDING, MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
-import ChartReveal from '@components/Charts/components/ChartReveal';
+import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
-import {getFontLineMetrics, getHorizontalChartHeight, getNiceValueDomain, getNiceValueTicks, getXAxisLabelSpace, measureTextWidth} from '@components/Charts/utils';
-import VictoryTheme, {CATEGORY_LABEL_WIDTH_RATIO, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
+import {getFontLineMetrics, getHorizontalChartHeight, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
+import {getHorizontalBarChartMinHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {CATEGORY_LABEL_WIDTH_RATIO, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -347,7 +348,7 @@ function HorizontalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxi
         left: categoryLabelWidth + CATEGORY_LABEL_GAP + GLYPH_PADDING,
     };
 
-    const minChartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
+    const minChartHeight = getHorizontalBarChartMinHeight(valueLabelHeight);
     const chartHeight = getHorizontalChartHeight(data.length, MIN_BAR_ROW_HEIGHT, chartPadding.top + chartPadding.bottom, minChartHeight);
     const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
 
@@ -382,60 +383,56 @@ function HorizontalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxi
     };
 
     const isChartLoading = isLoading || !fontManager;
+    useReportChartLoading(isChartLoading);
 
-    if (!isChartLoading && data.length === 0) {
+    if (isChartLoading) {
         return null;
     }
 
     return (
-        <ChartReveal
-            isLoading={isChartLoading}
-            loadingHeight={minChartHeight}
+        <GestureDetector
+            gesture={customGestures}
+            touchAction="pan-y"
         >
-            <GestureDetector
-                gesture={customGestures}
-                touchAction="pan-y"
-            >
-                <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
-                    {!!chartSize && (
-                        <CartesianChart
-                            explicitSize={chartSize}
-                            xKey="x"
-                            padding={chartPadding}
-                            yKeys={['y']}
-                            domain={valueDomain ? {x: valueDomain} : undefined}
-                            domainPadding={HORIZONTAL_BAR_DOMAIN_PADDING}
-                            onChartBoundsChange={handleChartBoundsChange}
-                            onScaleChange={handleScaleChange}
-                            renderOutside={renderOutside}
-                            xAxis={{
-                                tickCount: VictoryTheme.axis.tickCount,
-                                lineWidth: VictoryTheme.axis.yLineWidth,
-                                lineColor: theme.border,
-                            }}
-                            yAxis={[
-                                {
-                                    tickCount: data.length,
-                                    lineWidth: 0,
-                                },
-                            ]}
-                            frame={{lineWidth: 0}}
-                            data={chartData}
-                        >
-                            {renderBars}
-                        </CartesianChart>
-                    )}
-                    <ChartTooltipLayer
-                        matchedIndex={matchedIndex}
-                        isTooltipActive={isTooltipActive}
-                        data={data}
-                        formatValue={formatValue}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                    />
-                </Animated.View>
-            </GestureDetector>
-        </ChartReveal>
+            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
+                {!!chartSize && (
+                    <CartesianChart
+                        explicitSize={chartSize}
+                        xKey="x"
+                        padding={chartPadding}
+                        yKeys={['y']}
+                        domain={valueDomain ? {x: valueDomain} : undefined}
+                        domainPadding={HORIZONTAL_BAR_DOMAIN_PADDING}
+                        onChartBoundsChange={handleChartBoundsChange}
+                        onScaleChange={handleScaleChange}
+                        renderOutside={renderOutside}
+                        xAxis={{
+                            tickCount: VictoryTheme.axis.tickCount,
+                            lineWidth: VictoryTheme.axis.yLineWidth,
+                            lineColor: theme.border,
+                        }}
+                        yAxis={[
+                            {
+                                tickCount: data.length,
+                                lineWidth: 0,
+                            },
+                        ]}
+                        frame={{lineWidth: 0}}
+                        data={chartData}
+                    >
+                        {renderBars}
+                    </CartesianChart>
+                )}
+                <ChartTooltipLayer
+                    matchedIndex={matchedIndex}
+                    isTooltipActive={isTooltipActive}
+                    data={data}
+                    formatValue={formatValue}
+                    chartWidth={chartWidth}
+                    initialTooltipPosition={initialTooltipPosition}
+                />
+            </Animated.View>
+        </GestureDetector>
     );
 }
 

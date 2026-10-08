@@ -1,5 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
+import ActivityIndicator from '@components/ActivityIndicator';
+import ChartReveal from '@components/Charts/components/ChartReveal';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
 import isSkiaWebSupported from '@components/Charts/SkiaWebChart/isSkiaWebSupported';
 
@@ -27,6 +29,8 @@ jest.mock('@components/Icon', () => ({
     default: () => null,
 }));
 
+const CHART_LOADING_HEIGHT = 289;
+
 const mockIsSkiaWebSupported = jest.mocked(isSkiaWebSupported);
 const mockWithSkiaWeb = jest.mocked(WithSkiaWeb);
 const mockCaptureException = jest.mocked(Sentry.captureException);
@@ -51,6 +55,26 @@ describe('SkiaWebChart', () => {
         expect(screen.getByText('common.unableToDisplayChart')).toBeTruthy();
         expect(screen.getByText('common.webGLNotSupported')).toBeTruthy();
         expect(mockWithSkiaWeb).not.toHaveBeenCalled();
+    });
+
+    it('should show the unavailable message under a reveal without holding its spinner', () => {
+        // Given a browser without WebGL
+        mockIsSkiaWebSupported.mockReturnValue(false);
+
+        // When the chart renders under a reveal
+        render(
+            <ChartReveal loadingHeight={CHART_LOADING_HEIGHT}>
+                <SkiaWebChart
+                    getComponent={getComponent}
+                    componentProps={{}}
+                    shouldShowLoadingSpinner={false}
+                />
+            </ChartReveal>,
+        );
+
+        // Then the message replaces the spinner in the same render, because the hold waits for a Skia draw this state never makes
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+        expect(screen.getByText('common.unableToDisplayChart')).toBeTruthy();
     });
 
     it('should mount Skia when WebGL is supported', () => {

@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
-import React, {useEffect, useState} from 'react';
+import React, {createContext, useContext, useEffect, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -17,15 +17,33 @@ import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-nati
  */
 const HOLD_FRAMES = 5;
 
-type ChartRevealProps = {
+type ChartLoadState = {
     isLoading: boolean;
+    isDrawnBySkia: boolean;
+};
+
+const ChartLoadingContext = createContext<(loadState: ChartLoadState) => void>(() => {});
+
+function useReportChartLoading(isLoading: boolean, isDrawnBySkia = true) {
+    const setLoadState = useContext(ChartLoadingContext);
+
+    // Before paint, so no frame shows the chart and the in-flow spinner stacked, or neither of them
+    useLayoutEffect(() => {
+        setLoadState({isLoading, isDrawnBySkia});
+    }, [setLoadState, isLoading, isDrawnBySkia]);
+}
+
+type ChartRevealProps = {
     loadingHeight: number;
+
+    /** Must report through `useReportChartLoading`, or the spinner never goes away. */
     children: ReactNode;
 };
 
-function ChartReveal({isLoading, loadingHeight, children}: ChartRevealProps) {
+function ChartReveal({loadingHeight, children}: ChartRevealProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const [{isLoading, isDrawnBySkia}, setLoadState] = useState<ChartLoadState>({isLoading: true, isDrawnBySkia: true});
     const [isRevealed, setIsRevealed] = useState(false);
     const opacity = useSharedValue(0);
     const fadeStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));
@@ -33,10 +51,19 @@ function ChartReveal({isLoading, loadingHeight, children}: ChartRevealProps) {
     if (isLoading && isRevealed) {
         setIsRevealed(false);
     }
+    if (!isLoading && !isDrawnBySkia && !isRevealed) {
+        setIsRevealed(true);
+    }
 
     useEffect(() => {
         if (isLoading) {
             opacity.set(0);
+            return;
+        }
+
+        const fadeIn = () => opacity.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
+        if (!isDrawnBySkia) {
+            fadeIn();
             return;
         }
 
@@ -49,24 +76,26 @@ function ChartReveal({isLoading, loadingHeight, children}: ChartRevealProps) {
                 return;
             }
             setIsRevealed(true);
-            opacity.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
+            fadeIn();
         };
         frameID = requestAnimationFrame(countFrame);
 
         return () => cancelAnimationFrame(frameID);
-    }, [isLoading, opacity]);
+    }, [isLoading, isDrawnBySkia, opacity]);
 
     return (
-        <View>
-            {!isLoading && <Animated.View style={fadeStyle}>{children}</Animated.View>}
-            {/* The spinner keeps its place among the children, so it stays the same instance and its rotation carries on when the chart mounts */}
-            {!isRevealed && (
-                <View style={[styles.chartActivityIndicator, StyleUtils.getHeight(loadingHeight), !isLoading && [styles.pAbsolute, styles.t0, styles.l0, styles.r0]]}>
-                    <ActivityIndicator size="large" />
-                </View>
-            )}
-        </View>
+        <ChartLoadingContext.Provider value={setLoadState}>
+            <View>
+                <Animated.View style={fadeStyle}>{children}</Animated.View>
+                {!isRevealed && (
+                    <View style={[styles.chartActivityIndicator, StyleUtils.getHeight(loadingHeight), !isLoading && [styles.pAbsolute, styles.t0, styles.l0, styles.r0]]}>
+                        <ActivityIndicator size="large" />
+                    </View>
+                )}
+            </View>
+        </ChartLoadingContext.Provider>
     );
 }
 
 export default ChartReveal;
+export {HOLD_FRAMES, useReportChartLoading};

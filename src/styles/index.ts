@@ -7497,6 +7497,9 @@ const plainStyles = (theme: ThemeColors) =>
 
         getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
 
+        getWidgetChartPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle =>
+            shouldUseNarrowLayout ? {...spacing.ph5, ...spacing.pb5} : {...spacing.ph8, ...spacing.pt3, ...spacing.pb8},
+
         getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: 'row',

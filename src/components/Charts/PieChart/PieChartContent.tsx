@@ -1,4 +1,4 @@
-import ChartReveal from '@components/Charts/components/ChartReveal';
+import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
@@ -9,8 +9,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import variables from '@styles/variables';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -134,7 +132,7 @@ function PieChartContent({data, isLoading = false, valueUnit, valueUnitPosition,
     // Combined gestures - Race allows both hover and tap to work independently
     const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
 
-    // The loading box reserves one row of this height in `legendFirstRowHeight`, so anything that changes the row's height has to be mirrored there.
+    // The loading box reserves one row of this height in `getPieChartLoadingHeight`, so anything that changes the row's height has to be mirrored there.
     const renderLegendItem = (slice: PieSlice) => {
         return (
             <View
@@ -154,18 +152,14 @@ function PieChartContent({data, isLoading = false, valueUnit, valueUnitPosition,
         );
     };
 
-    // The legend container's top margin plus one line of its `textNormal` labels, which are taller than the legend dot.
-    const legendFirstRowHeight = shouldShowLegend ? styles.pieChartLegendContainer.marginTop + variables.fontSizeNormalHeight : 0;
+    useReportChartLoading(isLoading);
 
-    if (!isLoading && data.length === 0) {
+    if (isLoading) {
         return null;
     }
 
     return (
-        <ChartReveal
-            isLoading={isLoading}
-            loadingHeight={CHART_CONTENT_MIN_HEIGHT + legendFirstRowHeight}
-        >
+        <>
             <GestureDetector
                 gesture={combinedGesture}
                 touchAction="pan-y"
@@ -222,7 +216,7 @@ function PieChartContent({data, isLoading = false, valueUnit, valueUnitPosition,
                 </Animated.View>
             </GestureDetector>
             {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>}
-        </ChartReveal>
+        </>
     );
 }
 

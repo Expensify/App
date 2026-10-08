@@ -1,7 +1,7 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartReveal from '@components/Charts/components/ChartReveal';
+import ChartReveal, {HOLD_FRAMES, useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import Text from '@components/Text';
 
 import React from 'react';
@@ -23,13 +23,27 @@ function runFrames(count: number) {
     }
 }
 
+type ChartBodyProps = {
+    isLoading: boolean;
+    label: string;
+};
+
+function ChartBody({isLoading, label}: ChartBodyProps) {
+    useReportChartLoading(isLoading);
+    return isLoading ? null : <Text>{label}</Text>;
+}
+
+function EngineDownloading() {
+    return null;
+}
+
 function renderChart(isLoading: boolean, label = 'chart') {
     return (
-        <ChartReveal
-            isLoading={isLoading}
-            loadingHeight={LOADING_HEIGHT}
-        >
-            <Text>{label}</Text>
+        <ChartReveal loadingHeight={LOADING_HEIGHT}>
+            <ChartBody
+                isLoading={isLoading}
+                label={label}
+            />
         </ChartReveal>
     );
 }
@@ -54,41 +68,49 @@ describe('ChartReveal', () => {
         jest.restoreAllMocks();
     });
 
-    it('should keep the spinner over the mounted chart until the fifth frame', () => {
+    it('should keep the spinner over the mounted chart until the last held frame', () => {
         // Given a chart whose data has just become ready
         render(renderChart(false));
 
-        // When four frames pass
-        runFrames(4);
+        // When every held frame but the last passes
+        runFrames(HOLD_FRAMES - 1);
 
-        // Then the chart is mounted but still covered
+        // Then the chart is mounted but still covered, because Skia may not have drawn it yet
         expect(screen.getByText('chart')).toBeTruthy();
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
 
-        // When the fifth frame passes
+        // When the last held frame passes
         runFrames(1);
 
-        // Then the spinner goes away
+        // Then the spinner goes away, since the hold has outlasted Skia's first draw
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
-    it('should keep the same spinner from loading through the hold', () => {
-        // Given a chart that is still loading
-        const {rerender} = render(renderChart(true));
-        const loadingSpinner = screen.UNSAFE_getByType(ActivityIndicator);
+    it('should keep one spinner from the engine download until the reveal', () => {
+        // Given a chart whose engine is still downloading, so nothing below has reported yet
+        const {rerender} = render(
+            <ChartReveal loadingHeight={LOADING_HEIGHT}>
+                <EngineDownloading />
+            </ChartReveal>,
+        );
+        const downloadSpinner = screen.UNSAFE_getByType(ActivityIndicator);
+        runFrames(HOLD_FRAMES);
 
-        // When its data becomes ready
+        // When the chart replaces the download placeholder, loads, and then gets its data
+        rerender(renderChart(true));
+        const loadingSpinner = screen.UNSAFE_getByType(ActivityIndicator);
         rerender(renderChart(false));
 
-        // Then the spinner covering the hold is the one shown while loading,
-        // because a new one would restart its rotation at the moment the data arrives
-        expect(screen.UNSAFE_getByType(ActivityIndicator)).toBe(loadingSpinner);
+        // Then the spinner covering the hold is the one shown during the download,
+        // because a new one would restart its rotation at each of those steps
+        expect(loadingSpinner).toBe(downloadSpinner);
+        expect(screen.UNSAFE_getByType(ActivityIndicator)).toBe(downloadSpinner);
     });
 
     it('should not hold again when a revealed chart gets new data', () => {
         // Given a chart that has been revealed
         const {rerender} = render(renderChart(false));
-        runFrames(5);
+        runFrames(HOLD_FRAMES);
 
         // When its data changes without it loading again
         rerender(renderChart(false, 'updated chart'));
@@ -101,7 +123,7 @@ describe('ChartReveal', () => {
     it('should hold again when a revealed chart reloads', () => {
         // Given a chart that has been revealed
         const {rerender} = render(renderChart(false));
-        runFrames(5);
+        runFrames(HOLD_FRAMES);
 
         // When it loads again and its new data arrives
         rerender(renderChart(true));
