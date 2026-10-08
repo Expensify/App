@@ -43,7 +43,8 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
-import retryReceiptUpload, {canBuildRetryPayload} from '@libs/ReceiptUploadRetryHandler';
+import ReceiptStorage from '@libs/ReceiptStorage';
+import retryReceiptUpload, {canRetryReceiptUpload} from '@libs/ReceiptUploadRetryHandler';
 import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
@@ -95,6 +96,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
@@ -183,6 +185,10 @@ function MoneyRequestReceiptView({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
+        selector: transactionThreadReportIDSelector(transaction?.transactionID),
+    });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
@@ -232,7 +238,7 @@ function MoneyRequestReceiptView({
         }
     }, [isLoading, hoverBind]);
 
-    const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
+    const displayedReceiptSource = ReceiptStorage.resolve(transaction?.receipt?.localSource) ?? transaction?.receipt?.source;
     const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
     useEffect(() => {
@@ -443,10 +449,14 @@ function MoneyRequestReceiptView({
               delegateAccountID,
               formatPhoneNumber,
               getCurrencyDecimals,
+              transactionReport,
+              transactionThreadReport,
+              transactionViolations: rawTransactionViolations,
+              currentUserPersonalDetails: currentUserPersonalDetail,
           }
         : undefined;
 
-    const canRetryUpload = !!receiptRetryContext && canBuildRetryPayload(receiptRetryContext);
+    const canRetryUpload = !!receiptRetryContext && canRetryReceiptUpload(receiptRetryContext);
 
     const retryReceiptUploadAndClearError = () => {
         if (!receiptRetryContext) {
@@ -632,6 +642,9 @@ function MoneyRequestReceiptView({
             transactionPolicyTagList: policyTagList,
             transactionViolations: rawTransactionViolations,
             transactionReport,
+            delegateAccountID,
+            currentUserPersonalDetails: currentUserPersonalDetail,
+            transactionThreadReport,
         });
     };
 

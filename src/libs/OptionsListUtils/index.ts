@@ -6,6 +6,8 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import getCollator from '@libs/CollatorUtils';
+import {convertToDisplayStringWithoutCurrencyForLocale, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
@@ -28,7 +30,7 @@ import {
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType} from '@libs/ReportActionsUtils';
-import {deprecatedCachedOneTransactionThreadReportIDs, getLastMessageTextForReport} from '@libs/ReportAlternateTextUtils';
+import {getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
@@ -42,7 +44,6 @@ import {
     getPolicyName,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportSubtitlePrefix,
     getViolatingReportIDForRBRInLHN,
     hasExpensifyGuidesEmails,
     hasIOUWaitingOnCurrentUserBankAccount,
@@ -99,7 +100,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import lodashOrderBy from 'lodash/orderBy';
-import Onyx from 'react-native-onyx';
 
 import type {
     FilterUserToInviteConfig,
@@ -126,7 +126,6 @@ import type {
     SectionForSearchTerm,
 } from './types';
 
-import getChatPreviewParts from './getChatPreviewParts';
 import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from './searchMatchUtils';
 
 /**
@@ -134,20 +133,6 @@ import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersona
  * be configured to display different results based on the options passed to the private getOptions() method. Public
  * methods should be named for the views they build options for and then exported for use in a component.
  */
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (value) => {
-        allReports = value;
-    },
-});
-
-let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (activePolicyID = value),
-});
 
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
@@ -234,20 +219,39 @@ type GetAlternateTextConfig = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     // We'll make it required in the next PR. Ref: https://github.com/Expensify/App/issues/66415
     policy?: OnyxEntry<Policy>;
-    lastActorDetails?: Partial<PersonalDetails> | null;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     conciergeReportID: string | undefined;
-    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
-    sortedActions?: Record<string, ReportAction[]>;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    currentUserLogin?: string;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
 };
+
+/**
+ * Fallback for non-React callers that cannot provide the hook-bound localeCompare.
+ */
+function fallbackLocaleCompare(a: string, b: string): number {
+    return getCollator(IntlStore.getCurrentLocale()).compare(a, b);
+}
+
+/**
+ * Fallback for the non-React option builders that cannot provide the hook-bound convertToDisplayStringWithoutCurrency. Those builders never
+ * render a chat preview. Every preview caller threads the context implementation from useCurrencyListActions().
+ */
+function fallbackConvertToDisplayStringWithoutCurrency(amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string {
+    return convertToDisplayStringWithoutCurrencyForLocale(IntlStore.getCurrentLocale(), amountInCents, currencyCode, getCurrencyDecimals);
+}
 
 /**
  * Update alternate text for the option when applicable
@@ -259,17 +263,22 @@ function getAlternateText(
         isReportArchived,
         personalDetails,
         policy,
-        lastActorDetails = {},
+        invoiceReceiverPolicy,
         visibleReportActionsData = {},
         translate,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         dateFnsLocale,
         reportAttributesDerived,
         policyTags,
         conciergeReportID,
-        sortedActions,
+        transactionThreadIDs,
+        lastActions,
         isTrackIntentUser,
         currentUserAccountID,
+        currentUserLogin,
+        localeCompare,
+        formatPhoneNumber,
         rules,
     }: GetAlternateTextConfig,
 ) {
@@ -279,75 +288,76 @@ function getAlternateText(
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const translateFn = translate ?? translateLocal;
-    // Keep Plain comments as they're typed (example: `<b>test</b>` stays `<b>test</b>`).
-    // Parser.htmlToText would strip it to `test`. Ref: https://github.com/Expensify/App/issues/82036
-    const isLastActionAddComment = report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-    const formattedLastMessageText =
-        formatReportLastMessageText(isLastActionAddComment ? (option.lastMessageText ?? '') : Parser.htmlToText(option.lastMessageText ?? '')) ||
-        getLastMessageTextForReport({
-            translate: translateFn,
-            convertToDisplayString,
-            dateFnsLocale,
-            report,
-            personalDetails,
-            lastActorDetails,
-            policy,
-            isReportArchived,
-            visibleReportActionsDataParam: visibleReportActionsData,
-            reportAttributesDerived,
-            policyTags,
-            conciergeReportID,
-            sortedActions,
-            isTrackIntentUser,
-            currentUserAccountID,
-            rules,
-        });
-    const reportPrefix = getReportSubtitlePrefix(report);
 
-    const {actorPrefix, customAlternateText} =
-        showChatPreviewLine && formattedLastMessageText
-            ? getChatPreviewParts({
-                  report,
-                  personalDetails,
-                  isReportArchived,
-                  translate: translateFn,
-                  visibleReportActionsData,
-                  currentUserAccountID,
-                  sortedActions,
-                  reportAttributesDerived,
-                  // eslint-disable-next-line @typescript-eslint/no-deprecated
-                  oneTransactionThreadReportID: report?.reportID ? deprecatedCachedOneTransactionThreadReportIDs[report.reportID] : undefined,
-              })
-            : {actorPrefix: '', customAlternateText: undefined};
-    const formattedLastMessageTextWithPrefix = reportPrefix + actorPrefix + (customAlternateText ?? formattedLastMessageText);
+    const forcePolicyName = forcePolicyNamePreview && ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom);
+    if (showChatPreviewLine && !forcePolicyName) {
+        if (report) {
+            const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+            const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
+            const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
+            return getReportAlternateText({
+                report,
+                lastAction,
+                lastActionReport,
+                movedFromReport,
+                movedToReport,
+                personalDetails,
+                policy,
+                invoiceReceiverPolicy,
+                policyTags,
+                isReportArchived,
+                // The Search path has no separate report NVP source here. The archived flag and private_isArchived
+                // both derive from the same NVP, so the option's archived flag is the equivalent input.
+                privateIsArchived: !!isReportArchived,
+                conciergeReportID,
+                reportAttributesDerived,
+                visibleReportActionsData,
+                // The LHN passes no `sortedActions`, so its preview reads the parent-only actions. The derived value
+                // combines one-transaction reports with their thread and drops the IOU action the report preview needs.
+                oneTransactionThreadReportID,
+                lastOriginalAction: lastActions?.[report.reportID],
+                currentUserAccountID: resolvedCurrentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
+                isTrackIntentUser,
+                translate: translateFn,
+                localeCompare: localeCompare ?? fallbackLocaleCompare,
+                formatPhoneNumber: formatPhoneNumber ?? formatPhoneNumberPhoneUtils,
+                dateFnsLocale,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency: convertToDisplayStringWithoutCurrency ?? fallbackConvertToDisplayStringWithoutCurrency,
+                rules,
+            });
+        }
+        if (option.lastMessageText) {
+            return formatReportLastMessageText(Parser.htmlToText(option.lastMessageText));
+        }
+    }
 
     if (isExpenseThread || option.isMoneyRequestReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('iou.expense');
+        return translateFn('iou.expense');
     }
 
     if (option.isThread) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('threads.thread');
+        return translateFn('threads.thread');
     }
 
     if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
+        return option.subtitle;
     }
 
     if ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom) {
-        return showChatPreviewLine && !forcePolicyNamePreview && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
+        return option.subtitle;
     }
 
     if (option.isTaskReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('task.task');
+        return translateFn('task.task');
     }
 
     if (isGroupChat) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('common.group');
+        return translateFn('common.group');
     }
 
-    return showChatPreviewLine && formattedLastMessageText
-        ? formattedLastMessageTextWithPrefix
-        : formatPhoneNumberPhoneUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
+    return formatPhoneNumberPhoneUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
 }
 
 /**
@@ -379,14 +389,18 @@ type CreateOptionParams = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     isTrackIntentUser?: boolean;
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
+    currentUserLogin?: string;
 };
 
 /** Shared by createOption and shells so filtering uses the final display text. */
@@ -425,12 +439,15 @@ function createOption({
     visibleReportActionsData = {},
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     dateFnsLocale,
     isTrackIntentUser,
     conciergeReportID,
-    sortedActions,
+    transactionThreadIDs,
+    lastActions,
     currentUserAccountID,
     pendingDeleteMemberAccountIDs,
+    currentUserLogin,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -506,26 +523,6 @@ function createOption({
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
         subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translateFn, rules, true, result.private_isArchived);
 
-        // If displaying chat preview line is needed, let's overwrite the default alternate text
-        const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
-        result.lastMessageText = getLastMessageTextForReport({
-            translate: translateFn,
-            convertToDisplayString,
-            dateFnsLocale,
-            report,
-            personalDetails,
-            lastActorDetails,
-            policy,
-            isReportArchived: result.private_isArchived,
-            visibleReportActionsDataParam: visibleReportActionsData,
-            reportAttributesDerived,
-            policyTags,
-            conciergeReportID,
-            sortedActions,
-            isTrackIntentUser,
-            currentUserAccountID,
-            rules,
-        });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
@@ -537,15 +534,18 @@ function createOption({
                           isReportArchived: !!result.private_isArchived,
                           personalDetails,
                           policy,
-                          lastActorDetails,
                           visibleReportActionsData,
                           translate: translateFn,
                           convertToDisplayString,
+                          convertToDisplayStringWithoutCurrency,
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
-                          sortedActions,
+                          transactionThreadIDs,
+                          lastActions,
+                          isTrackIntentUser,
                           currentUserAccountID,
+                          currentUserLogin,
                           rules,
                       },
                   );
@@ -613,6 +613,7 @@ type GetReportOptionParams = {
     localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']};
     rules: OnyxCollection<Rule>;
     policyTags?: OnyxCollection<PolicyTagLists>;
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 /**
@@ -630,6 +631,7 @@ function getReportOption({
     localize,
     rules,
     policyTags,
+    pendingDeleteMemberAccountIDs,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
@@ -657,6 +659,7 @@ function getReportOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -701,6 +704,7 @@ type GetReportDisplayOptionParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 /**
@@ -721,6 +725,7 @@ function getReportDisplayOption({
     reportAttributesDerived,
     policyTags,
     visibleReportActionsData = {},
+    pendingDeleteMemberAccountIDs,
 }: GetReportDisplayOptionParams): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
@@ -745,6 +750,7 @@ function getReportDisplayOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -936,8 +942,11 @@ function processReport(
         visibleReportActionsData = {},
         isTrackIntentUser,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
         currentUserAccountID,
         pendingDeleteMemberAccountIDs,
+        currentUserLogin,
         convertToDisplayString,
     }: {
         currentUserAccountID: number;
@@ -949,6 +958,9 @@ function processReport(
         isTrackIntentUser?: boolean;
         // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
         sortedActions?: Record<string, ReportAction[]>;
+        transactionThreadIDs?: Record<string, string | undefined>;
+        lastActions?: Record<string, ReportAction>;
+        currentUserLogin?: string;
     },
     rules: OnyxCollection<Rule>,
 ): {
@@ -989,8 +1001,11 @@ function processReport(
                 visibleReportActionsData,
                 isTrackIntentUser,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
                 currentUserAccountID,
                 pendingDeleteMemberAccountIDs,
+                currentUserLogin,
             }),
         },
     };
@@ -1171,6 +1186,9 @@ function createFilteredOptionList(
     policiesCollection: OnyxCollection<Policy>,
     options: {
         currentUserAccountID: number;
+        currentUserLogin?: string;
+        transactionThreadIDs?: Record<string, string | undefined>;
+        lastActions?: Record<string, ReportAction>;
         dateFnsLocale: DateFnsLocale | undefined;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         conciergeReportID: string | undefined;
@@ -1201,6 +1219,9 @@ function createFilteredOptionList(
 ): OptionList {
     const {
         currentUserAccountID,
+        currentUserLogin,
+        transactionThreadIDs,
+        lastActions,
         conciergeReportID,
         maxRecentReports = 500,
         includeP2P = true,
@@ -1245,8 +1266,11 @@ function createFilteredOptionList(
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
         currentUserAccountID,
         pendingDeleteMemberAccountIDsByReportID,
+        currentUserLogin,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1314,8 +1338,11 @@ function createFilteredOptionList(
                 visibleReportActionsData,
                 isTrackIntentUser,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
                 currentUserAccountID,
                 pendingDeleteMemberAccountIDs: pendingDeleteMemberAccountIDsByReportID?.[report.reportID],
+                currentUserLogin,
             },
             rules,
         );
@@ -1395,14 +1422,19 @@ type CreateOptionFromReportParams = {
     rules: OnyxCollection<Rule>;
     policy: OnyxEntry<Policy>;
     sortedActions: Record<string, ReportAction[]> | undefined;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
+    currentUserAccountID: number;
+    currentUserLogin?: string;
     conciergeReportID: string | undefined;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     config?: PreviewConfig;
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     isTrackIntentUser?: boolean;
-    currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 function createOptionFromReport({
@@ -1413,14 +1445,19 @@ function createOptionFromReport({
     rules,
     policy,
     sortedActions,
+    transactionThreadIDs,
+    lastActions,
+    currentUserAccountID,
+    currentUserLogin,
     conciergeReportID,
     reportAttributesDerived,
     config,
     policyTags,
     visibleReportActionsData = {},
     isTrackIntentUser,
-    currentUserAccountID,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
+    pendingDeleteMemberAccountIDs,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -1429,6 +1466,7 @@ function createOptionFromReport({
         ...createOption({
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             accountIDs,
             personalDetails,
             report,
@@ -1441,8 +1479,12 @@ function createOptionFromReport({
             policyTags,
             visibleReportActionsData,
             sortedActions,
-            isTrackIntentUser,
+            transactionThreadIDs,
+            lastActions,
             currentUserAccountID,
+            currentUserLogin,
+            isTrackIntentUser,
+            pendingDeleteMemberAccountIDs,
         }),
     };
 }
@@ -1621,6 +1663,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
 function orderReportOptionsWithSearch(
     options: SearchOptionData[],
     searchValue: string,
+    activePolicyID: OnyxEntry<string>,
     {preferChatRoomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
 ) {
     const orderedByDate = orderReportOptions(options);
@@ -1667,7 +1710,7 @@ function orderReportOptionsWithSearch(
     );
 }
 
-function orderWorkspaceOptions(options: SearchOptionData[]): SearchOptionData[] {
+function orderWorkspaceOptions(options: SearchOptionData[], activePolicyID: OnyxEntry<string>): SearchOptionData[] {
     return options.sort((a, b) => {
         // Check if `a` is the default workspace
         if (a.isPolicyExpenseChat && a.policyID === activePolicyID) {
@@ -1696,21 +1739,31 @@ function sortComparatorReportOptionByDate(options: SearchOptionData) {
 /**
  * Sorts reports and personal details independently.
  */
-function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>): ReportAndPersonalDetailOptions<T>;
+function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, activePolicyID: OnyxEntry<string>): ReportAndPersonalDetailOptions<T>;
 
 /**
  * Sorts reports and personal details independently, but prioritizes the search value.
  */
-function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions<T>;
-function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions<T> {
+function orderOptions<T extends SearchOptionData>(
+    options: ReportAndPersonalDetailOptions<T>,
+    activePolicyID: OnyxEntry<string>,
+    searchValue: string,
+    config?: OrderReportOptionsConfig,
+): ReportAndPersonalDetailOptions<T>;
+function orderOptions<T extends SearchOptionData>(
+    options: ReportAndPersonalDetailOptions<T>,
+    activePolicyID: OnyxEntry<string>,
+    searchValue?: string,
+    config?: OrderReportOptionsConfig,
+): ReportAndPersonalDetailOptions<T> {
     let orderedReportOptions: SearchOptionData[];
     if (searchValue) {
-        orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
+        orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, activePolicyID, config);
     } else {
         orderedReportOptions = orderReportOptions(options.recentReports);
     }
     const orderedPersonalDetailsOptions = orderPersonalDetailsOptions(options.personalDetails);
-    const orderedWorkspaceChats = orderWorkspaceOptions(options?.workspaceChats ?? []);
+    const orderedWorkspaceChats = orderWorkspaceOptions(options?.workspaceChats ?? [], activePolicyID);
 
     return {
         recentReports: orderedReportOptions,
@@ -1991,6 +2044,67 @@ function isValidReport(
 }
 
 /**
+ * Cache for the chat preview text that `getAlternateText` resolves.
+ *
+ * `createFilteredOptionList` reuses its whole result while its Onyx inputs are unchanged, but
+ * `prepareReportOptionsForDisplay` runs on every call - once per keystroke in Search - and resolves the full preview
+ * (`getReportAlternateText`) for every option it keeps. The preview depends only on the report and on the Onyx
+ * snapshots guarded below, so it is kept per report and the whole cache is dropped as soon as any of those inputs
+ * changes identity.
+ */
+const alternateTextCache = new Map<string, string | undefined>();
+let alternateTextCacheInputs: unknown[] | undefined;
+
+// Bound the LRU cache so a wide result cap cannot grow it without limit.
+const ALTERNATE_TEXT_CACHE_MAX_ENTRIES = 500;
+
+// The cached previews belong to the signed-in account, so drop them on sign-out instead of holding them until the
+// next call.
+registerSessionCleanupCallback(() => {
+    alternateTextCache.clear();
+    alternateTextCacheInputs = undefined;
+});
+
+/** Clears the preview cache. For tests that measure or exercise the resolve path while the guarded inputs keep their identity. */
+function clearAlternateTextCache() {
+    alternateTextCache.clear();
+    alternateTextCacheInputs = undefined;
+}
+
+/** Drops every cached preview as soon as any input that feeds `getAlternateText` changes identity. */
+function syncAlternateTextCache(inputs: unknown[]) {
+    if (alternateTextCacheInputs?.length === inputs.length && inputs.every((input, index) => input === alternateTextCacheInputs?.at(index))) {
+        return;
+    }
+
+    alternateTextCache.clear();
+    alternateTextCacheInputs = inputs;
+}
+
+/** Returns the cached preview for the key, resolving and storing it on a miss. */
+function getCachedAlternateText(cacheKey: string, resolveAlternateText: () => string | undefined): string | undefined {
+    if (alternateTextCache.has(cacheKey)) {
+        const cachedAlternateText = alternateTextCache.get(cacheKey);
+        // Re-inserting refreshes recency so a frequently-hit entry is not evicted by misses on other keys.
+        alternateTextCache.delete(cacheKey);
+        alternateTextCache.set(cacheKey, cachedAlternateText);
+        return cachedAlternateText;
+    }
+
+    const alternateText = resolveAlternateText();
+
+    if (alternateTextCache.size >= ALTERNATE_TEXT_CACHE_MAX_ENTRIES) {
+        const oldestEntry = alternateTextCache.keys().next();
+        if (!oldestEntry.done) {
+            alternateTextCache.delete(oldestEntry.value);
+        }
+    }
+    alternateTextCache.set(cacheKey, alternateText);
+
+    return alternateText;
+}
+
+/**
  * Prepares report options for display by enriching them with UI-specific properties and filtering out invalid options.
  *
  * Not every property of the report option can be computed on the initial computing in the OptionListContextProvider. Some of them are based on the context (config) so they are computed here.
@@ -2009,13 +2123,19 @@ function prepareReportOptionsForDisplay(
     config: GetValidReportsConfig & {
         translate: LocalizedTranslate;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+        convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
         dateFnsLocale: DateFnsLocale | undefined;
         currentUserAccountID?: number;
+        currentUserLogin?: string;
+        localeCompare?: LocaleContextProps['localeCompare'];
+        formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+        transactionThreadIDs?: Record<string, string | undefined>;
+        lastActions?: Record<string, ReportAction>;
     },
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
     rules: OnyxCollection<Rule>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    visibleReportActionsData: VisibleReportActionsDerivedValue = EMPTY_VISIBLE_REPORT_ACTIONS,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
     isTrackIntentUser?: boolean,
@@ -2034,13 +2154,43 @@ function prepareReportOptionsForDisplay(
         shouldUnreadBeBold = false,
         personalDetails,
         translate,
+        getReportByID,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         currentUserAccountID,
+        currentUserLogin,
+        localeCompare,
+        formatPhoneNumber,
+        transactionThreadIDs,
+        lastActions,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
 
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
+
+    syncAlternateTextCache([
+        getReportByID,
+        policiesCollection,
+        personalDetails,
+        visibleReportActionsData,
+        reportAttributesDerived,
+        policyTags,
+        sortedActions,
+        transactionThreadIDs,
+        lastActions,
+        rules,
+        conciergeReportID,
+        isTrackIntentUser,
+        currentUserAccountID,
+        currentUserLogin,
+        config.dateFnsLocale,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
+        localeCompare,
+        formatPhoneNumber,
+        translate,
+    ]);
 
     for (let i = 0; i < options.length; i++) {
         const option = options.at(i);
@@ -2050,43 +2200,57 @@ function prepareReportOptionsForDisplay(
         const report = option.item;
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
+        const parentReport = getReportByID(report.parentReportID);
+        let invoiceReceiverPolicyID: string | undefined;
+        if (report.invoiceReceiver && 'policyID' in report.invoiceReceiver) {
+            invoiceReceiverPolicyID = report.invoiceReceiver.policyID;
+        }
+        if (parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver) {
+            invoiceReceiverPolicyID = parentReport.invoiceReceiver.policyID;
+        }
+        const invoiceReceiverPolicy = invoiceReceiverPolicyID ? policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         /**
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const lastActorDetails = personalDetails?.[report.lastActorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? null;
-
-        const alternateText = getAlternateText(
-            option,
-            {showChatPreviewLine, forcePolicyNamePreview},
-            {
-                dateFnsLocale: config.dateFnsLocale,
-                isReportArchived: !!option.private_isArchived,
-                personalDetails,
-                policy,
-                lastActorDetails,
-                visibleReportActionsData,
-                translate,
-                convertToDisplayString,
-                reportAttributesDerived,
-                policyTags: reportPolicyTags,
-                conciergeReportID,
-                sortedActions,
-                isTrackIntentUser,
-                currentUserAccountID,
-                rules,
-            },
+        const alternateText = getCachedAlternateText(`${report.reportID}_${showChatPreviewLine ? 1 : 0}_${forcePolicyNamePreview ? 1 : 0}_${option.private_isArchived ? 1 : 0}`, () =>
+            getAlternateText(
+                option,
+                {showChatPreviewLine, forcePolicyNamePreview},
+                {
+                    dateFnsLocale: config.dateFnsLocale,
+                    isReportArchived: !!option.private_isArchived,
+                    personalDetails,
+                    policy,
+                    invoiceReceiverPolicy,
+                    visibleReportActionsData,
+                    translate,
+                    convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
+                    reportAttributesDerived,
+                    policyTags: reportPolicyTags,
+                    conciergeReportID,
+                    transactionThreadIDs,
+                    lastActions,
+                    isTrackIntentUser,
+                    currentUserAccountID,
+                    currentUserLogin,
+                    localeCompare,
+                    formatPhoneNumber,
+                    rules,
+                },
+            ),
         );
         const isSelected = isReportSelected(option, selectedOptions);
 
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+            const chatReport = getReportByID(report.chatReportID);
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
                     ? getOneTransactionThreadReportID(report, chatReport, sortedActions?.[report.reportID], isOffline)
                     : undefined;
-            const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
+            const oneTransactionThreadReport = oneTransactionThreadReportID ? getReportByID(oneTransactionThreadReportID) : undefined;
 
             isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportAttributesDerived?.[report.reportID]?.isEmpty) && !!report.lastActorAccountID;
         }
@@ -2178,9 +2342,14 @@ function getValidOptions(
         personalDetails,
         allPolicyTags,
         countryCode = CONST.DEFAULT_COUNTRY_CODE,
-        visibleReportActionsData = {},
+        visibleReportActionsData = EMPTY_VISIBLE_REPORT_ACTIONS,
         reportAttributesDerived,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
+        currentUserLogin,
+        localeCompare,
+        formatPhoneNumber,
         isTrackIntentUser,
         isOffline,
         ...config
@@ -2236,26 +2405,6 @@ function getValidOptions(
         const isWorkspaceChat = (report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
 
-        const isSearchTermsFound = (report: SearchOption<Report>) => {
-            let searchText = `${report.text ?? ''}${report.login ?? ''}`;
-            if (report.isThread) {
-                searchText += report.alternateText ?? '';
-            } else if (report.isChatRoom) {
-                searchText += report.subtitle ?? '';
-            } else if (report.isPolicyExpenseChat) {
-                searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
-            } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
-                const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
-                searchText += participantsSearchText;
-            }
-            searchText = deburr(searchText.toLocaleLowerCase());
-
-            // Keep the pre-filter a superset of filterReports(). The canonical matcher handles apostrophes,
-            // hyphens, zero-width characters, diacritics, and email searches without dots that this cheap
-            // substring check may miss. Run it only when the cheap check does not find a match.
-            return searchTerms.every((term) => searchText.includes(term)) || filterReports([report], searchTerms).length > 0;
-        };
-
         const filteringFunction = (report: SearchOption<Report>) => {
             if (excludeHidden) {
                 if (report.isThread && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
@@ -2279,13 +2428,12 @@ function getValidOptions(
             }
 
             const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            if (!isSearchTermsFound(report)) {
+            if (!doesReportMatchSearchTerms(report, searchTerms)) {
                 return false;
             }
 
             const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
-            // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.item.chatReportID}`];
+            const chatReport = getValidReportsConfig.getReportByID(report.item.chatReportID);
 
             return isValidReport(
                 report,
@@ -2329,6 +2477,11 @@ function getValidOptions(
                     personalDetails,
                     translate,
                     currentUserAccountID,
+                    currentUserLogin: currentUserLogin ?? currentUserEmail,
+                    localeCompare,
+                    formatPhoneNumber,
+                    transactionThreadIDs,
+                    lastActions,
                 },
                 conciergeReportID,
                 sortedActions,
@@ -2358,6 +2511,11 @@ function getValidOptions(
                 personalDetails,
                 translate,
                 currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? currentUserEmail,
+                localeCompare,
+                formatPhoneNumber,
+                transactionThreadIDs,
+                lastActions,
             },
             conciergeReportID,
             sortedActions,
@@ -2383,6 +2541,11 @@ function getValidOptions(
                 personalDetails,
                 translate,
                 currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? currentUserEmail,
+                localeCompare,
+                formatPhoneNumber,
+                transactionThreadIDs,
+                lastActions,
             },
             conciergeReportID,
             sortedActions,
@@ -2448,12 +2611,12 @@ function getValidOptions(
             }
 
             // Keep this pre-filter a superset of filterPersonalDetails().
-            if (searchTerms.length > 0 && filterPersonalDetails([personalDetail], searchTerms, currentUserAccountID).length > 0) {
+            if (searchTerms.length > 0 && filterPersonalDetails([personalDetail], searchTerms, currentUserAccountID, translate).length > 0) {
                 return true;
             }
 
             return searchTerms.every((term) =>
-                doesPersonalDetailMatchSearchTerm(personalDetail, currentUserAccountID, term, {
+                doesPersonalDetailMatchSearchTerm(personalDetail, currentUserAccountID, term, translate, {
                     useLocaleLowerCase: true,
                     transformSearchText: (concatenatedSearchTerms) => deburr(`${concatenatedSearchTerms} ${(personalDetail.text ?? '').toLocaleLowerCase()}`),
                 }),
@@ -2533,6 +2696,7 @@ function getValidOptions(
 type SearchOptionsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     options: OptionList;
     draftComments: OnyxCollection<string>;
     isDefaultRoomsBetaEnabled?: boolean;
@@ -2555,10 +2719,17 @@ type SearchOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     sortedActions: Record<string, ReportAction[]> | undefined;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
+    currentUserLogin?: string;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
     translate: LocalizedTranslate;
+    /** @see GetValidReportsConfig['getReportByID'] */
+    getReportByID: GetOptionsConfig['getReportByID'];
     rules: OnyxCollection<Rule>;
 };
 
@@ -2581,7 +2752,7 @@ function getSearchOptions({
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
     loginList,
-    visibleReportActionsData = {},
+    visibleReportActionsData = EMPTY_VISIBLE_REPORT_ACTIONS,
     policyCollection,
     currentUserAccountID,
     currentUserEmail,
@@ -2589,11 +2760,18 @@ function getSearchOptions({
     personalDetails,
     allPolicyTags,
     sortedActions,
+    transactionThreadIDs,
+    lastActions,
+    currentUserLogin,
+    localeCompare,
+    formatPhoneNumber,
     conciergeReportID,
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
     translate,
+    getReportByID,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     rules,
 }: SearchOptionsConfig): OptionsResult {
     const optionList = getValidOptions(
@@ -2607,6 +2785,7 @@ function getSearchOptions({
         {
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             isDefaultRoomsBetaEnabled,
             includeRecentReports,
             includeMultipleParticipantReports: true,
@@ -2632,8 +2811,14 @@ function getSearchOptions({
             reportAttributesDerived,
             allPolicyTags,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserLogin: currentUserLogin ?? currentUserEmail,
+            localeCompare,
+            formatPhoneNumber,
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
+            getReportByID,
         },
         translate,
         rules,
@@ -2771,14 +2956,13 @@ function formatSectionsFromSearchTerm(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     dateFnsLocale: DateFnsLocale | undefined,
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>,
     rules: OnyxCollection<Rule>,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
-    // The default falls back to the module-level Onyx.connect() cache until every caller passes a resolver (tracked in https://github.com/Expensify/App/issues/66378).
-    getReportByID: (reportID: string | undefined) => OnyxEntry<Report> = (reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`],
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -2819,7 +3003,7 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm);
+        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate);
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
 
@@ -2905,6 +3089,30 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
     return filteredReports;
 }
 
+/**
+ * Whether a report matches every search term. Keep the cheap substring check a superset of filterReports(): that
+ * canonical matcher handles apostrophes, hyphens, zero-width characters, diacritics, and emails searched without
+ * their dots, and only runs when the cheap check misses. Narrowing the cheap check silently drops matches.
+ */
+function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
+    const normalizeSearchText = (value: string) => deburr(StringUtils.normalizeForMatch(value).toLocaleLowerCase());
+    const normalizedSearchTerms = searchTerms.map(normalizeSearchText);
+    let searchText = `${report.text ?? ''}${report.login ?? ''}`;
+    if (report.isThread) {
+        searchText += report.alternateText ?? '';
+    } else if (report.isChatRoom) {
+        searchText += report.subtitle ?? '';
+    } else if (report.isPolicyExpenseChat) {
+        searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
+    } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
+        const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
+        searchText += participantsSearchText;
+    }
+    searchText = normalizeSearchText(searchText);
+
+    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms).length > 0;
+}
+
 function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
     const filteredReports = searchTerms.reduceRight(
         (items, term) =>
@@ -2922,24 +3130,24 @@ function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]
     return filteredReports;
 }
 
-function filterPersonalDetails<T extends SearchOptionData>(personalDetails: T[], searchTerms: string[], currentUserAccountID: number): T[] {
+function filterPersonalDetails<T extends SearchOptionData>(personalDetails: T[], searchTerms: string[], currentUserAccountID: number, translate: LocalizedTranslate): T[] {
     return searchTerms.reduceRight(
         (items, term) =>
             filterArrayByMatch(items, term, (item) => {
-                const values = getPersonalDetailSearchTerms(item, currentUserAccountID);
+                const values = getPersonalDetailSearchTerms(item, currentUserAccountID, translate);
                 return uniqFast(values);
             }),
         personalDetails,
     );
 }
 
-function filterCurrentUserOption<T extends SearchOptionData>(currentUserOption: T | null | undefined, searchTerms: string[]): T | null | undefined {
+function filterCurrentUserOption<T extends SearchOptionData>(currentUserOption: T | null | undefined, searchTerms: string[], translate: LocalizedTranslate): T | null | undefined {
     return searchTerms.reduceRight<T | null | undefined>((item, term) => {
         if (!item) {
             return null;
         }
 
-        const currentUserOptionSearchText = uniqFast(getCurrentUserSearchTerms(item)).join(' ');
+        const currentUserOptionSearchText = uniqFast(getCurrentUserSearchTerms(item, translate)).join(' ');
         return isSearchStringMatch(term, currentUserOptionSearchText) ? item : null;
     }, currentUserOption);
 }
@@ -3000,6 +3208,7 @@ function filterOptions<T extends SearchOptionData>(
     currentUserAccountID: number,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     config: FilterUserToInviteConfig,
+    translate: LocalizedTranslate,
     rules: OnyxCollection<Rule>,
 ): Options<T> {
     const trimmedSearchInput = searchInputValue.trim();
@@ -3010,8 +3219,8 @@ function filterOptions<T extends SearchOptionData>(
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const recentReports = filterReports(options.recentReports, searchTerms);
-    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, currentUserAccountID);
-    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
+    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms, currentUserAccountID, translate);
+    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms, translate);
     const userToInvite = filterUserToInvite(
         {
             recentReports,
@@ -3055,16 +3264,17 @@ type FilterAndOrderConfig = FilterUserToInviteConfig & AllOrderConfigs;
 function combineOrderingOfReportsAndPersonalDetails<T extends SearchOptionData>(
     options: ReportAndPersonalDetailOptions<T>,
     searchInputValue: string,
+    activePolicyID: OnyxEntry<string>,
     {maxRecentReportsToShow, sortByReportTypeInSearch, ...orderReportOptionsConfig}: AllOrderConfigs = {},
 ): ReportAndPersonalDetailOptions<T> {
     // sortByReportTypeInSearch will show the personal details as part of the recent reports
     if (sortByReportTypeInSearch) {
         const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
         const reportsAndPersonalDetails = options.recentReports.concat(personalDetailsWithoutDMs);
-        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, orderReportOptionsConfig);
+        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, activePolicyID, searchInputValue, orderReportOptionsConfig);
     }
 
-    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, orderReportOptionsConfig);
+    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, activePolicyID, orderReportOptionsConfig);
     if (typeof maxRecentReportsToShow === 'number') {
         orderedReports = orderedReports.slice(0, maxRecentReportsToShow);
     }
@@ -3078,27 +3288,43 @@ function combineOrderingOfReportsAndPersonalDetails<T extends SearchOptionData>(
     };
 }
 
+type FilterAndOrderOptionsParams<T extends SearchOptionData> = {
+    options: Options<T>;
+    searchInputValue: string;
+    countryCode: number;
+    loginList: OnyxEntry<Login>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    config: FilterAndOrderConfig;
+    translate: LocalizedTranslate;
+    rules: OnyxCollection<Rule>;
+    activePolicyID: OnyxEntry<string>;
+};
+
 /**
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions<T extends SearchOptionData>(
-    options: Options<T>,
-    searchInputValue: string,
-    countryCode: number,
-    loginList: OnyxEntry<Login>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    config: FilterAndOrderConfig,
-    rules: OnyxCollection<Rule>,
-): Options<T> {
+function filterAndOrderOptions<T extends SearchOptionData>({
+    options,
+    searchInputValue,
+    countryCode,
+    loginList,
+    currentUserEmail,
+    currentUserAccountID,
+    personalDetails,
+    config,
+    translate,
+    rules,
+    activePolicyID,
+}: FilterAndOrderOptionsParams<T>): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, rules);
+        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, translate, rules);
     }
 
-    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
+    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, activePolicyID, config);
 
     // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
     const uniqueLogins = new Set<string>();
@@ -3115,10 +3341,6 @@ function filterAndOrderOptions<T extends SearchOptionData>(
         ...filterResult,
         ...orderedOptions,
     };
-}
-
-function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey, localeCompare: LocaleContextProps['localeCompare']): T[] {
-    return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
 
 function getEmptyOptions(): OptionsResult {
@@ -3169,12 +3391,14 @@ function processSearchString(searchString: string | undefined): string[] {
 
 export {
     canCreateOptimisticPersonalDetailOption,
+    clearAlternateTextCache,
     clearFilteredOptionListCache,
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
     createFilteredOptionList,
     hydrateContactOption,
     createOption,
+    doesReportMatchSearchTerms,
     filterAndOrderOptions,
     filterReports,
     filterSelfDMChat,
@@ -3210,7 +3434,6 @@ export {
     recentReportComparator,
     shouldUseBoldText,
     shouldUseFullTitleForOption,
-    sortAlphabetically,
     personalDetailsComparator,
     processSearchString,
 };

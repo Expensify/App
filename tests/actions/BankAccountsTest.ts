@@ -1,4 +1,4 @@
-import {clearPersonalBankAccount, connectBankAccountWithPlaid, openPersonalBankAccountSetupView, updateBankAccountName} from '@libs/actions/BankAccounts';
+import {clearPersonalBankAccount, connectBankAccountWithPlaid, initiateBankAccountUnlock, openPersonalBankAccountSetupView, updateBankAccountName} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -304,6 +304,34 @@ describe('actions/BankAccounts', () => {
             expect(bankAccountList?.[bankAccountID]?.accountData?.addressName).toBe(oldName);
             expect(bankAccountList?.[bankAccountID]?.pendingAction).toBeFalsy();
             expect(bankAccountList?.[bankAccountID]?.errors).toBeTruthy();
+        });
+    });
+
+    describe('initiateBankAccountUnlock', () => {
+        test('clears both pendingAction and isOptimisticAction on the Concierge unlock message after success', async () => {
+            // Given an optimistic Concierge unlock message, as written when the user presses a locked bank account
+            const conciergeReportID = '98765';
+            const optimisticReportActionID = '12345';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {
+                [optimisticReportActionID]: {
+                    reportActionID: optimisticReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-01-01 00:00:00.000',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    isOptimisticAction: true,
+                },
+            });
+
+            // When the unlock request succeeds
+            initiateBankAccountUnlock(123, conciergeReportID, optimisticReportActionID);
+            await waitForBatchedUpdates();
+
+            // Then the message is no longer optimistic, so it is not dimmed on later offline transitions
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, 1);
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`);
+            const reportAction = reportActions?.[optimisticReportActionID];
+            expect(reportAction?.pendingAction).toBeFalsy();
+            expect(reportAction?.isOptimisticAction).toBeFalsy();
         });
     });
 });
