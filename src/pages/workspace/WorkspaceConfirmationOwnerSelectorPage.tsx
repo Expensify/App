@@ -1,5 +1,5 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -140,7 +140,7 @@ function WorkspaceConfirmationOwnerSelectorPageContent({currentOwner}: Workspace
             includeSafeAreaPaddingBottom={false}
             testID="WorkspaceConfirmationOwnerSelectorPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.common.workspaceOwner')}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />

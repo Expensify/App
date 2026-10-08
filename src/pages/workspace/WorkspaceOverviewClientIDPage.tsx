@@ -1,7 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -56,10 +56,7 @@ function WorkspaceOverviewClientIDPage({policy}: Props) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceOverviewClientIDPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.clientID')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.common.clientID')} />
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.common.clientIDInputHint')}</Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CLIENT_ID_FORM}

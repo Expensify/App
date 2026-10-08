@@ -1,11 +1,15 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
+import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -20,6 +24,7 @@ import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -70,6 +75,7 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -122,15 +128,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const policyName = policy?.name ?? '';
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const shouldShowRBR = shouldShowRbrForWorkspaceAccountID[workspaceAccountID];
-
-    const policyAvatar = !policy
-        ? {source: expensifyIcons.ExpensifyAppIcon, name: CONST.EXPENSIFY_ICON_NAME, type: CONST.ICON_TYPE_AVATAR}
-        : {
-              source: policy.avatarURL ?? '',
-              name: policy.name ?? '',
-              type: CONST.ICON_TYPE_WORKSPACE,
-              id: policy.id,
-          };
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
 
@@ -243,16 +240,33 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <HeaderWithBackButton
-                    title={policyName}
-                    shouldUseHeadlineHeader
-                    titleStyles={styles.noWrap}
-                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
-                    policyAvatar={policyAvatar}
-                    policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
-                    shouldDisplayHelpButton={shouldUseNarrowLayout}
-                    shouldDisplayAccountButton
-                />
+                <Header>
+                    <Header.BackButton onPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)} />
+                    {policy ? (
+                        <WorkspaceAvatar
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)), styles.mr3]}
+                            size={CONST.AVATAR_SIZE.SMALL}
+                            source={policy.avatarURL ?? ''}
+                            name={policy.name ?? ''}
+                            avatarID={policy.id ?? CONST.DEFAULT_NUMBER_ID}
+                        />
+                    ) : (
+                        <UserAvatar
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)), styles.mr3]}
+                            size={CONST.AVATAR_SIZE.SMALL}
+                            source={expensifyIcons.ExpensifyAppIcon}
+                            accountID={CONST.DEFAULT_NUMBER_ID}
+                        />
+                    )}
+                    <Header.Title
+                        title={policyName}
+                        titleStyles={[styles.textHeadlineH2, styles.noWrap]}
+                    />
+                    <Header.Right>
+                        {shouldUseNarrowLayout && <SidePanelButton />}
+                        <AccountAvatarButton />
+                    </Header.Right>
+                </Header>
 
                 <ScrollView contentContainerStyle={styles.flexColumn}>
                     <OfflineWithFeedback

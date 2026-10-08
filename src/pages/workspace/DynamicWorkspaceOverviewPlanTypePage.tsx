@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -144,7 +144,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton title={translate('workspace.common.planType')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />

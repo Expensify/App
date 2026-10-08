@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -21,7 +21,7 @@ function WorkspaceConfirmationSuccessPage() {
             shouldEnableMaxHeight
             testID={WorkspaceConfirmationSuccessPage.displayName}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={closePage}
             />
