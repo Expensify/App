@@ -99,7 +99,7 @@ Yes. Expensify encrypts your API key and stores it securely on its servers. The 
 
 ## Why can’t I select a Campfire subsidiary?
 
-**Subsidiary** is only selectable when your Campfire organization has more than one subsidiary. If Expensify shows **No subsidiaries found**, add an entity in Campfire, then sync the connection again.
+**Subsidiary** is only selectable when your Campfire organization has more than one eligible subsidiary. Expensify only uses active entities and skips elimination and adjusting entities. If none are eligible, the sync fails. Add an active entity in Campfire, then sync the connection again.
 
 ## Why don’t I see tax rates after connecting to Campfire?
 
