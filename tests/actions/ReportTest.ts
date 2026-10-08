@@ -6202,6 +6202,52 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('openReport with shouldKeepManualUnreadMarker', () => {
+        async function givenAManualUnreadMark(reportID: string) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, manuallyMarkedUnreadReportActionID: 'marked-action-id'});
+            await waitForBatchedUpdates();
+        }
+
+        async function getManualUnreadMark(reportID: string) {
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            return report?.manuallyMarkedUnreadReportActionID;
+        }
+
+        function openReportFor(reportID: string, shouldKeepManualUnreadMarker: boolean) {
+            Report.openReport({
+                conciergeChat: undefined,
+                reportID,
+                introSelected: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+                hasOnceLoadedReportActions: true,
+                shouldKeepManualUnreadMarker,
+            });
+        }
+
+        it('keeps the manual unread mark of a report the user left, and still treats the next real open as a return trip', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkHiddenPreMount';
+            // Given a report the user marked as unread and then navigated away from
+            await givenAManualUnreadMark(REPORT_ID);
+            Report.flagReportNavigatedAway(REPORT_ID);
+
+            // When it is loaded for a screen the user does not see yet (a hidden wide submit pre-mount)
+            openReportFor(REPORT_ID, true);
+            await waitForBatchedUpdates();
+
+            // Then the mark stays, so the user still sees the New line when they open the report
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+
+            // When the user really opens it later
+            openReportFor(REPORT_ID, false);
+            await waitForBatchedUpdates();
+
+            // Then it counts as a return trip and the mark is cleared, like on any return to a report
+            expect(await getManualUnreadMark(REPORT_ID)).toBeFalsy();
+        });
+    });
+
     describe('openReport with participants', () => {
         it('should send passed participants as emailList/accountIDList so the server can resolve a stale optimistic reportID', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();

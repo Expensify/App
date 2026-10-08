@@ -9,8 +9,9 @@ import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInS
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import markPendingWriteForSearchPage from '@libs/Navigation/helpers/markPendingWriteForSearchPage';
+import runAfterClosingScreenUnmount from '@libs/Navigation/helpers/runAfterClosingScreenUnmount';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {holdPendingSearchWriteFlush, markPendingSearchWrite, releasePendingSearchWriteFlush} from '@libs/pendingSearchWrite';
 import {trackPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import type {PendingSubmitWrite} from '@libs/pendingSubmitWrite';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
@@ -339,8 +340,15 @@ function SubmitExpenseOrchestrator({
             return;
         }
 
+        // Wide Search refocuses mid slide and its write re-renders the whole list, so the release is deferred until the RHP closed.
+        if (!isNarrow) {
+            holdPendingSearchWriteFlush();
+        }
         Navigation.dismissModal({
             afterTransition: () => {
+                if (!isNarrow) {
+                    runAfterClosingScreenUnmount(releasePendingSearchWriteFlush);
+                }
                 runAfterSearchDismissRecovery(() => {
                     if (!shouldNavigateToSearch) {
                         return;

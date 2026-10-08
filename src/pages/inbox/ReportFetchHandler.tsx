@@ -2,6 +2,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useIsHiddenWideTabPreMount from '@hooks/useIsHiddenWideTabPreMount';
 import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
@@ -107,6 +108,8 @@ function ReportFetchHandler() {
     // fetch that could mark it read is held while the tab is preloaded. Opening the tab drops the flag, which re-runs
     // the navigate effect below and fetches this report, so a held fetch of this report needs no separate replay.
     const isInPreloadedTab = useIsInPreloadedTab();
+    // A hidden wide submit pre-mount still loads its report, but the read state is left for the reveal (see useMarkAsRead).
+    const isHiddenPreMount = useIsHiddenWideTabPreMount();
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
@@ -242,6 +245,8 @@ function ReportFetchHandler() {
             // Falsy means a page refresh / cold start, which is when openReport clears a manual unread marker.
             // This screen opens the report the user is looking at, so it is the only caller that passes it.
             hasOnceLoadedReportActions: reportLoadingState.hasOnceLoadedReportActions,
+            shouldMarkAsRead: !isHiddenPreMount,
+            shouldKeepManualUnreadMarker: isHiddenPreMount,
             currentUserAccountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
@@ -469,8 +474,16 @@ function ReportFetchHandler() {
         flagReportNavigatedAway(reportIDFromRoute);
     }, [isFocused, prevIsFocused, reportIDFromRoute]);
 
+    // A hidden pre-mount the user never saw, e.g. after a cancelled submit, was not navigated away from.
+    const flagNavigatedAwayIfShown = useEffectEvent((navigatedAwayReportID: string | undefined) => {
+        if (isHiddenPreMount) {
+            return;
+        }
+        flagReportNavigatedAway(navigatedAwayReportID);
+    });
+
     useEffect(() => {
-        return () => flagReportNavigatedAway(reportIDFromRoute);
+        return () => flagNavigatedAwayIfShown(reportIDFromRoute);
     }, [reportIDFromRoute]);
 
     // `isLoadingInitialReportActions` is memory-only and is not reset between navigations. A prior failed

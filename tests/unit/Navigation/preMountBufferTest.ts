@@ -1,3 +1,7 @@
+import Log from '@libs/Log';
+import {setIsRevealingPreMountedFullscreen, takePreMountedFullscreenForReveal} from '@libs/Navigation/helpers/preMountBuffer';
+import {finishWideTabPreMountReveal} from '@libs/Navigation/helpers/wideTabPreMount';
+import {getLiveWideTabPreMountRouteKey, isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -9,8 +13,13 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 
 import {DeviceEventEmitter} from 'react-native';
 
-type MockRoute = {key: string; name: string; state?: PartialState<NavigationState>; params?: {reportID?: string}};
-type MockAction = {type: string; payload?: {routes?: MockRoute[]; index?: number; shouldInsertPreMountBuffer?: boolean}};
+type MockRoute = {key: string; name: string; state?: PartialState<NavigationState> | MockTabState; params?: {reportID?: string}};
+type MockTabState = {key: string; index: number; routes: MockRoute[]; routeNames: string[]; stale: false; type?: string; preloadedRouteKeys?: string[]};
+type MockAction = {
+    type: string;
+    target?: string;
+    payload?: {routes?: MockRoute[]; index?: number; shouldInsertPreMountBuffer?: boolean; preMountedRouteKey?: string; key?: string; preloadedRouteKeys?: string[]};
+};
 
 let mockRootState: {key: string; routes: MockRoute[]; index: number; routeNames?: string[]; stale?: boolean} | undefined;
 const mockDispatch = jest.fn<void, [MockAction]>();
@@ -22,6 +31,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         isReady: () => true,
         getRootState: () => mockRootState,
         getState: () => mockRootState,
+        dispatch: (action: MockAction) => mockDispatch(action),
         get current() {
             return {
                 getRootState: () => mockRootState,
@@ -46,6 +56,12 @@ jest.mock('@libs/getIsNarrowLayout', () => ({
     default: () => mockIsNarrowLayout,
 }));
 
+let mockPlatform = 'web';
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    default: () => mockPlatform,
+}));
+
 let mockStateFromPathRoutes: MockRoute[] = [];
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => ({
     __esModule: true,
@@ -58,6 +74,7 @@ const mockClearPreInsertedOriginalTabRoute = jest.fn(() => {
 });
 jest.mock('@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers', () => ({
     __esModule: true,
+    ...jest.requireActual<Record<string, unknown>>('@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers'),
     getPreInsertedOriginalTabRoute: () => mockOriginalTabRoute,
     clearPreInsertedOriginalTabRoute: () => mockClearPreInsertedOriginalTabRoute(),
 }));
@@ -75,6 +92,7 @@ describe('Navigation pre-mount buffer', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsNarrowLayout = true;
+        mockPlatform = 'web';
         mockOriginalTabRoute = undefined;
         mockStateFromPathRoutes = [{key: 'target', name: NAVIGATORS.WORKSPACE_NAVIGATOR}];
         setRootState([
@@ -382,15 +400,263 @@ describe('Navigation pre-mount buffer', () => {
         expect(resetAction?.payload?.routes).toEqual([switchedTabRoute]);
     });
 
-    it('guard: preInsertFullscreenUnderRHP is a no-op on wide layout (buffer only guards a swipe gesture that exists on narrow)', () => {
-        // Given a wide layout without the narrow-screen swipe dismissal risk
+    const TAB_STATE_KEY = 'tab-state';
+
+    function makeStack(key: string, routes: MockRoute[], index = routes.length - 1): MockTabState {
+        return {key, index, routes, routeNames: [SCREENS.INBOX, SCREENS.REPORT], stale: false, type: 'stack'};
+    }
+
+    /** Wide root state: [TAB_NAVIGATOR, RHP], the tab navigator holding Home and a visited Reports tab. */
+    function setWideTabState(focusedTab: string, reportsRoutes: MockRoute[]) {
+        const tabState: MockTabState = {
+            key: TAB_STATE_KEY,
+            index: focusedTab === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR ? 1 : 0,
+            routes: [
+                {key: 'home-key', name: SCREENS.HOME},
+                {key: 'reports-key', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, state: makeStack('reports-stack', reportsRoutes)},
+            ],
+            routeNames: [SCREENS.HOME, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR],
+            stale: false,
+            type: 'tab',
+            preloadedRouteKeys: [],
+        };
+        setRootState([
+            {key: 'tab-nav', name: NAVIGATORS.TAB_NAVIGATOR, state: tabState},
+            {key: RHP_KEY, name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
+        ]);
+    }
+
+    function isMockTabState(state: unknown): state is MockTabState {
+        return typeof state === 'object' && state !== null && 'key' in state && 'routes' in state;
+    }
+
+    function getWideTabState() {
+        const state = mockRootState?.routes.at(0)?.state;
+        return isMockTabState(state) ? state : undefined;
+    }
+
+    function getReportsStack() {
+        const state = getWideTabState()?.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)?.state;
+        return isMockTabState(state) ? state : undefined;
+    }
+
+    function mockTabTargetFromPath(reportID = '42') {
+        mockStateFromPathRoutes = [
+            {
+                key: 'target',
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.REPORT, params: {reportID}}]}}]},
+            },
+        ];
+    }
+
+    /** Simulates the tab router: a RESET aimed at the tab navigator replaces its state. */
+    function applyTabResets() {
+        mockDispatch.mockImplementation((action) => {
+            if (action.type !== CONST.NAVIGATION.ACTION_TYPE.RESET || action.target !== TAB_STATE_KEY || !mockRootState || !isMockTabState(action.payload)) {
+                return;
+            }
+            const [tabRoute, ...rest] = mockRootState.routes;
+            setRootState([{...tabRoute, state: action.payload}, ...rest]);
+        });
+    }
+
+    function preMountOnWide(focusedTab: string = SCREENS.HOME, reportsRoutes: MockRoute[] = [{key: 'inbox-key', name: SCREENS.INBOX}]) {
+        mockIsNarrowLayout = false;
+        setWideTabState(focusedTab, reportsRoutes);
+        mockTabTargetFromPath();
+        applyTabResets();
+        // eslint-disable-next-line rulesdir/no-direct-pre-insert-fullscreen-under-rhp -- unit-testing the guarded function itself, not a production call site
+        Navigation.preInsertFullscreenUnderRHP(ROUTES.REPORT_WITH_ID.getRoute('42'));
+    }
+
+    it('wide layout: pre-mounts the destination on top of its covered tab and keeps that tab preloaded', () => {
+        // Given a wide layout on Home with a visited Reports tab
+        // When report 42 is pre-inserted
+        preMountOnWide();
+
+        // Then the report sits on top of the Reports stack inside the one tab navigator, and Home stays focused
+        const preMountedRouteKey = Navigation.getPreMountedFullscreenRouteKey(ROUTES.REPORT_WITH_ID.getRoute('42'));
+        expect(getReportsStack()?.routes.map((route) => route.key)).toEqual(['inbox-key', preMountedRouteKey]);
+        expect(getWideTabState()?.index).toBe(0);
+        expect(getWideTabState()?.preloadedRouteKeys).toEqual(['reports-key']);
+        expect(mockRootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]);
+        expect(getLiveWideTabPreMountRouteKey()).toBe(preMountedRouteKey);
+        expect(Navigation.getPreInsertedFullscreenRouteName()).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    });
+
+    it('wide layout: pre-mounts a destination in the focused tab directly under the current screen', () => {
+        // Given the Reports tab focused on report A
+        // When report 42 is pre-inserted
+        preMountOnWide(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, [
+            {key: 'inbox-key', name: SCREENS.INBOX},
+            {key: 'a-key', name: SCREENS.REPORT, params: {reportID: 'A'}},
+        ]);
+
+        // Then report A stays on top and visible, with the destination mounted right under it
+        const preMountedRouteKey = Navigation.getPreMountedFullscreenRouteKey();
+        expect(getReportsStack()?.routes.map((route) => route.key)).toEqual(['inbox-key', preMountedRouteKey, 'a-key']);
+        expect(getReportsStack()?.index).toBe(2);
+        expect(getWideTabState()?.preloadedRouteKeys).toEqual([]);
+    });
+
+    it('wide layout: skips the pre-mount when the destination is the screen already shown', () => {
+        // Given the Reports tab focused on report 42 itself
+        // When report 42 is pre-inserted
+        preMountOnWide(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, [
+            {key: 'inbox-key', name: SCREENS.INBOX},
+            {key: 'r42-key', name: SCREENS.REPORT, params: {reportID: '42'}},
+        ]);
+
+        // Then nothing is dispatched, because the destination is already on screen
+        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(Navigation.getIsFullscreenPreInsertedUnderRHP()).toBe(false);
+    });
+
+    it('wide layout: the pre-mounted key only matches the route it was built for', () => {
+        // Given a wide pre-mount for report 42
+        preMountOnWide();
+
+        // When another route asks for the key
+        // Then it gets nothing, so revealing a different destination never shows the wrong screen
+        expect(Navigation.getPreMountedFullscreenRouteKey(ROUTES.REPORT_WITH_ID.getRoute('43'))).toBeUndefined();
+        expect(Navigation.getPreMountedFullscreenRouteKey()).toBe(getLiveWideTabPreMountRouteKey());
+    });
+
+    it('wide layout: cancel takes the pre-mount out and drops the preload it added', () => {
+        // Given a wide pre-mount on top of the covered Reports tab
+        preMountOnWide();
+        const preMountedRouteKey = Navigation.getPreMountedFullscreenRouteKey();
+        const restoreAnimationSpy = jest.spyOn(DeviceEventEmitter, 'emit');
+
+        // When the user backs out without submitting
+        Navigation.removePreInsertedFullscreenIfNeeded();
+
+        // Then the Reports tab is back to how it was, and a later browser forward restoring the pre-mount sees it as stale
+        expect(getReportsStack()?.routes.map((route) => route.key)).toEqual(['inbox-key']);
+        expect(getWideTabState()?.preloadedRouteKeys).toEqual([]);
+        expect(restoreAnimationSpy).not.toHaveBeenCalled();
+        expect(Navigation.getIsFullscreenPreInsertedUnderRHP()).toBe(false);
+        expect(getLiveWideTabPreMountRouteKey()).toBeUndefined();
+        expect(isStaleWideTabPreMountRouteKey(preMountedRouteKey)).toBe(true);
+        restoreAnimationSpy.mockRestore();
+    });
+
+    it('wide layout: cancel takes the pre-mount out of its tab navigator while another fullscreen covers it', () => {
+        // Given a wide pre-mount on top of the covered Reports tab, then a workspace pushed above the RHP
+        preMountOnWide();
+        setRootState([...(mockRootState?.routes ?? []), {key: 'workspace-key', name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}]);
+
+        // When the user backs out of the form without submitting
+        Navigation.removePreInsertedFullscreenIfNeeded();
+
+        // Then the covered tab navigator still gets its Reports tab back, so a later back to it shows no leftover hidden screen
+        expect(getReportsStack()?.routes.map((route) => route.key)).toEqual(['inbox-key']);
+        expect(getWideTabState()?.preloadedRouteKeys).toEqual([]);
+    });
+
+    it('wide layout: clearFullscreenPreInsertedFlag drops a pre-mount that was never revealed', () => {
+        // Given a wide pre-mount, which only a reveal can show, so a plain dismiss after clearing would leave it hidden in the stack
+        preMountOnWide();
+
+        // When a caller clears the flag without revealing (e.g. the dismiss-first submit path)
+        Navigation.clearFullscreenPreInsertedFlag();
+
+        // Then the pre-mounted screen is removed and nothing is tracked anymore
+        expect(getReportsStack()?.routes.map((route) => route.key)).toEqual(['inbox-key']);
+        expect(Navigation.getPreMountedFullscreenRouteKey()).toBeUndefined();
+    });
+
+    it('wide layout: revealing hands the pre-mount to REPLACE and stops treating it as a pre-mount', () => {
+        // Given a wide pre-mount for report 42
+        preMountOnWide();
+        const preMountedRouteKey = Navigation.getPreMountedFullscreenRouteKey() ?? '';
+        mockDispatch.mockClear();
+        const rafSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            callback(0);
+            return 0;
+        });
+
+        // When that route is revealed
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute('42'));
+
+        // Then REPLACE gets the key to reuse, and the revealed screen is a regular one that browser history may restore
+        expect(mockDispatch).toHaveBeenCalledWith({
+            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+            payload: {route: ROUTES.REPORT_WITH_ID.getRoute('42'), preMountedRouteKey},
+        });
+        expect(getLiveWideTabPreMountRouteKey()).toBeUndefined();
+        expect(isStaleWideTabPreMountRouteKey(preMountedRouteKey)).toBe(false);
+        rafSpy.mockRestore();
+    });
+
+    it('wide layout: taking the pre-mount for a reveal keeps its screen in the stack', () => {
+        // Given a wide pre-mount for report 42
+        preMountOnWide();
+        const preMountedRouteKey = Navigation.getPreMountedFullscreenRouteKey();
+        mockDispatch.mockClear();
+
+        // When the reveal of that same route takes it
+        const takenRouteKey = takePreMountedFullscreenForReveal(ROUTES.REPORT_WITH_ID.getRoute('42'));
+
+        // Then the key is handed to the reveal and nothing is dispatched, since REPLACE is about to show that screen
+        expect(takenRouteKey).toBe(preMountedRouteKey);
+        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(Navigation.getPreMountedFullscreenRouteKey()).toBeUndefined();
+
+        // Navigation finishes the reveal after dispatching REPLACE in the app, so finish it here to leave no live pre-mount for the next test
+        finishWideTabPreMountReveal(takenRouteKey ?? '');
+        setIsRevealingPreMountedFullscreen(false);
+    });
+
+    it('wide layout: a reveal drops a pre-mount covered by a later tab navigator', () => {
+        // Given a wide pre-mount for report 42, then a tab navigator pushed above the RHP (e.g. a Cmd+K result)
+        preMountOnWide();
+        const hmmmSpy = jest.spyOn(Log, 'hmmm').mockImplementation(() => {});
+        const coveredTabState = getWideTabState();
+        if (!coveredTabState) {
+            throw new Error('The wide pre-mount did not leave a tab state');
+        }
+        setRootState([...(mockRootState?.routes ?? []), {key: 'tab-navigator-2', name: NAVIGATORS.TAB_NAVIGATOR, state: {...coveredTabState, key: 'tab-state-2'}}]);
+
+        // When a later submit reveals the same route
+        const takenRouteKey = takePreMountedFullscreenForReveal(ROUTES.REPORT_WITH_ID.getRoute('42'));
+
+        // Then the covered pre-mount is not handed over, so the reveal does not reuse a screen the user cannot see
+        expect(takenRouteKey).toBeUndefined();
+        expect(Navigation.getPreMountedFullscreenRouteKey()).toBeUndefined();
+        expect(hmmmSpy).toHaveBeenCalledWith(expect.stringContaining('Wide pre-mount dropped'), expect.objectContaining({isInTopFullscreen: false}));
+        hmmmSpy.mockRestore();
+    });
+
+    it('wide layout: a reveal of another route drops the pre-mount and logs the mismatch', () => {
+        // Given a wide pre-mount for report 42
+        preMountOnWide();
+        const hmmmSpy = jest.spyOn(Log, 'hmmm').mockImplementation(() => {});
+
+        // When the reveal asks for a different route, e.g. a route string built differently than the pre-mount one
+        const takenRouteKey = takePreMountedFullscreenForReveal(ROUTES.REPORT_WITH_ID.getRoute('43'));
+
+        // Then no key is handed over and the drop is logged, so a silent loss of the pre-mount shows up in the logs
+        expect(takenRouteKey).toBeUndefined();
+        expect(Navigation.getPreMountedFullscreenRouteKey()).toBeUndefined();
+        expect(hmmmSpy).toHaveBeenCalledWith(expect.stringContaining('Wide pre-mount dropped'), {
+            preMountedRoute: ROUTES.REPORT_WITH_ID.getRoute('42'),
+            route: ROUTES.REPORT_WITH_ID.getRoute('43'),
+            isInTopFullscreen: true,
+        });
+        hmmmSpy.mockRestore();
+    });
+
+    it('guard: preInsertFullscreenUnderRHP is a no-op on wide layout when the destination is not a tab navigator', () => {
+        // Given a wide layout and a destination outside the tab navigator
         mockIsNarrowLayout = false;
 
         // When speculative fullscreen insertion is requested
         // eslint-disable-next-line rulesdir/no-direct-pre-insert-fullscreen-under-rhp -- unit-testing the guarded function itself, not a production call site
         Navigation.preInsertFullscreenUnderRHP(ROUTES.HOME);
 
-        // Then navigation stays unchanged because the buffer has no purpose on wide screens
+        // Then navigation stays unchanged because only tab destinations can be swapped in later
         expect(mockDispatch).not.toHaveBeenCalled();
         expect(Navigation.getIsFullscreenPreInsertedUnderRHP()).toBe(false);
     });

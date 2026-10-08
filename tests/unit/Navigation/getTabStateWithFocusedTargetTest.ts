@@ -1,4 +1,4 @@
-import {getTabStateWithFocusedTarget, markFocusedTabRouteForRemount} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import {getTabStateWithFocusedTarget, getTabStateWithFreshTarget, markFocusedTabRouteForRemount} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -123,6 +123,40 @@ describe('getTabStateWithFocusedTarget', () => {
 
             expect(result).toBeUndefined();
         });
+    });
+});
+
+describe('getTabStateWithFreshTarget', () => {
+    it('carries over the other tabs and the tab history from the existing state', () => {
+        // Given a tab state where Settings sits on a sub-page and was visited before Spend
+        const settingsState = {routes: [{name: SCREENS.SETTINGS.PREFERENCES.ROOT}], index: 0};
+        const existingState = {
+            ...makeTabState([{name: SCREENS.HOME}, {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, state: settingsState}, {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}], 1),
+            history: [{type: 'route', key: `${NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}-key-1`}],
+        };
+
+        // When the Spend tab is built fresh on top of it, e.g. for a target tab that is not mounted yet
+        const result = getTabStateWithFreshTarget(existingState, {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR});
+
+        // Then Settings keeps its key and sub-page, and the history still points at it, so the reveal does not reset the tab
+        const settingsRoute = result?.routes.find((r) => r.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+        expect(settingsRoute?.key).toBe(`${NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}-key-1`);
+        expect(settingsRoute?.state).toBe(settingsState);
+        expect(result?.history).toEqual(existingState.history);
+    });
+
+    it('builds the target tab without reusing its existing key', () => {
+        // Given a tab state where the Spend tab is already mounted under a key
+        const existingState = makeTabState([{name: SCREENS.HOME}, {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}], 1);
+
+        // When the Spend tab is built fresh
+        const result = getTabStateWithFreshTarget(existingState, {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR});
+
+        // Then it has no key yet, so rehydration gives it a fresh one instead of reusing the old tab's key
+        const searchRoute = result?.routes.find((r) => r.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+        expect(searchRoute).toBeDefined();
+        expect(searchRoute?.key).toBeUndefined();
+        expect(result?.stale).toBe(true);
     });
 });
 

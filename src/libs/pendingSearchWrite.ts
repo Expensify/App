@@ -145,9 +145,37 @@ function restartPendingSearchWriteSafetyTimeoutForGeneration(generation: number)
     pending.safetyTimeoutID = setTimeout(() => clearPending(generation), SAFETY_TIMEOUT_MS);
 }
 
+/** Set while a revealed wide pre-mount slides the RHP out, so the write does not re-render the visible list mid-slide. */
+let flushHoldTimeoutID: ReturnType<typeof setTimeout> | undefined;
+let isFlushRequestedWhileHeld = false;
+
+/** Holds flushes until `releasePendingSearchWriteFlush`, or the safety timeout if the release never comes. */
+function holdPendingSearchWriteFlush() {
+    clearTimeout(flushHoldTimeoutID);
+    flushHoldTimeoutID = setTimeout(releasePendingSearchWriteFlush, SAFETY_TIMEOUT_MS);
+}
+
+/** Ends the hold and runs a flush that was requested during it. */
+function releasePendingSearchWriteFlush() {
+    if (flushHoldTimeoutID === undefined) {
+        return;
+    }
+    clearTimeout(flushHoldTimeoutID);
+    flushHoldTimeoutID = undefined;
+    if (!isFlushRequestedWhileHeld) {
+        return;
+    }
+    isFlushRequestedWhileHeld = false;
+    flushPendingSearchWrite();
+}
+
 /** Resolves `pending.barrier`. Clears `pending` right away if a write already consumed it, otherwise flags `isFlushRequested` so the next one to consume it clears it instead. */
 function flushPendingSearchWrite() {
     if (!pending) {
+        return;
+    }
+    if (flushHoldTimeoutID !== undefined) {
+        isFlushRequestedWhileHeld = true;
         return;
     }
 
@@ -185,6 +213,9 @@ function resetForTesting() {
     }
     pending = undefined;
     watchKey = undefined;
+    clearTimeout(flushHoldTimeoutID);
+    flushHoldTimeoutID = undefined;
+    isFlushRequestedWhileHeld = false;
 }
 
 export {
@@ -196,6 +227,8 @@ export {
     consumePendingSearchWriteForGeneration,
     restartPendingSearchWriteSafetyTimeoutForGeneration,
     flushPendingSearchWrite,
+    holdPendingSearchWriteFlush,
+    releasePendingSearchWriteFlush,
     setSearchWriteWatchKey,
     getSearchWriteWatchKey,
     resetForTesting,

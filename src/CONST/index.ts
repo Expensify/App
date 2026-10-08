@@ -386,7 +386,7 @@ const CONST = {
     /**
      * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
      */
-    NARROW_DESTINATION_STRATEGY: {
+    DESTINATION_STRATEGY: {
         /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
         PRE_INSERT: 'preInsert',
 

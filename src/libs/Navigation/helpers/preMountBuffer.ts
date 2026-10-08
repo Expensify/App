@@ -1,8 +1,10 @@
+import Log from '@libs/Log';
 import {clearPreInsertedOriginalTabRoute, getPreInsertedOriginalTabRoute} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {CommonActions, TabActions} from '@react-navigation/native';
@@ -10,10 +12,16 @@ import {DeviceEventEmitter} from 'react-native';
 
 import hasNativeSwipeBackGesture from './hasNativeSwipeBackGesture';
 import {isPreMountBufferHostName} from './isNavigatorName';
+import {cancelWideTabPreMount, isWideTabPreMountInTopFullscreen} from './wideTabPreMount';
 
 // Always set and cleared together - the route name is only meaningful while the flag is true.
 let isFullscreenPreInsertedUnderRHP = false;
 let preInsertedFullscreenRouteName: string | undefined;
+// Wide layout pre-mounts the destination screen inside the current TAB_NAVIGATOR instead of a route under the RHP. This
+// holds that screen's key and the route it was built for, so REPLACE can reveal it or the cancel can drop it. Cleared with the flag.
+let preMountedFullscreen: {routeKey: string; route: Route} | undefined;
+// Set while the dismiss reveals a wide pre-mount, so its focus-time work stays out of the RHP slide (see useSearchOverlay).
+let isRevealingPreMountedFullscreen = false;
 
 // Set while a neutral placeholder route sits directly under the RHP, so a native swipe-dismiss
 // reveals that placeholder instead of the real destination underneath.
@@ -196,9 +204,45 @@ function canNativeSwipeDismissRHP(): boolean {
 }
 
 /** Records that `preInsertFullscreenUnderRHP` landed a destination under the RHP, so the cleanup helpers know what to remove later. */
-function markFullscreenPreInsertedUnderRHP(routeName: string | undefined) {
+function markFullscreenPreInsertedUnderRHP(routeName: string | undefined, preMounted?: {routeKey: string; route: Route}) {
     isFullscreenPreInsertedUnderRHP = true;
     preInsertedFullscreenRouteName = routeName;
+    preMountedFullscreen = preMounted;
+}
+
+/** Key of the wide-layout pre-mounted destination, only when it was pre-mounted for exactly this route. */
+function getPreMountedFullscreenRouteKey(route?: Route) {
+    if (!preMountedFullscreen) {
+        return undefined;
+    }
+    return route === undefined || preMountedFullscreen.route === route ? preMountedFullscreen.routeKey : undefined;
+}
+
+/** Hands the wide-layout pre-mount to a reveal of `route` and returns its key. A pre-mount for another route is dropped. */
+function takePreMountedFullscreenForReveal(route: Route): string | undefined {
+    if (!preMountedFullscreen) {
+        return undefined;
+    }
+    const isInTopFullscreen = isWideTabPreMountInTopFullscreen();
+    if (preMountedFullscreen.route !== route || !isInTopFullscreen) {
+        // Built for another route, or covered by a tab navigator pushed later (e.g. a Cmd+K result): fall back to a regular reveal.
+        Log.hmmm('[preMountBuffer] Wide pre-mount dropped before reveal', {preMountedRoute: preMountedFullscreen.route, route, isInTopFullscreen});
+        removePreInsertedFullscreenIfNeeded();
+        return undefined;
+    }
+    const {routeKey} = preMountedFullscreen;
+    preMountedFullscreen = undefined;
+    clearFullscreenPreInsertedFlag();
+    isRevealingPreMountedFullscreen = true;
+    return routeKey;
+}
+
+function setIsRevealingPreMountedFullscreen(value: boolean) {
+    isRevealingPreMountedFullscreen = value;
+}
+
+function getIsRevealingPreMountedFullscreen() {
+    return isRevealingPreMountedFullscreen;
 }
 
 function getIsFullscreenPreInsertedUnderRHP() {
@@ -211,9 +255,14 @@ function getPreInsertedFullscreenRouteName() {
 
 /** Called once the pre-inserted destination is confirmed, so it should stay - only the Buffer route in front of it needs cleaning up. */
 function clearFullscreenPreInsertedFlag() {
+    // A wide pre-mount is only shown by a reveal, which takes it first. Left here it would stay hidden in the stack.
+    if (preMountedFullscreen) {
+        removePreInsertedFullscreenIfNeeded();
+    }
     removeBufferRouteOnly();
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
+    preMountedFullscreen = undefined;
     clearPreInsertedOriginalTabRoute();
 }
 
@@ -229,9 +278,17 @@ function removePreInsertedFullscreenIfNeeded() {
     }
 
     const routeNameToRemove = preInsertedFullscreenRouteName;
+    const preMountedRouteKey = preMountedFullscreen?.routeKey;
 
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
+    preMountedFullscreen = undefined;
+
+    // Wide layout: the destination is a hidden screen inside the current tab navigator, so taking it out is the whole cleanup.
+    if (preMountedRouteKey) {
+        cancelWideTabPreMount();
+        return;
+    }
 
     DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
 
@@ -306,8 +363,12 @@ export {
     captureBufferTransaction,
     clearFullscreenPreInsertedFlag,
     getIsFullscreenPreInsertedUnderRHP,
+    getIsRevealingPreMountedFullscreen,
     getPreInsertedFullscreenRouteName,
+    getPreMountedFullscreenRouteKey,
     markFullscreenPreInsertedUnderRHP,
     recoverFromPreMountBuffer,
     removePreInsertedFullscreenIfNeeded,
+    setIsRevealingPreMountedFullscreen,
+    takePreMountedFullscreenForReveal,
 };

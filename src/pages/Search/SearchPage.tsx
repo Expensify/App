@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchInServer} from '@libs/actions/Report';
 import {clearFooterConversion, search} from '@libs/actions/Search';
+import {isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isQueryARefinement} from '@libs/SearchQueryRefinement';
@@ -101,7 +102,16 @@ function SearchPage({route}: SearchPageProps) {
     }, []);
 
     // Converted footer totals are ephemeral, session-scoped display data, so drop them when leaving Search.
-    useEffect(() => () => clearFooterConversion(), []);
+    // A cancelled wide submit pre-mount was never shown, so its unmount must not drop the totals of the visible Search.
+    useEffect(
+        () => () => {
+            if (isStaleWideTabPreMountRouteKey(route.key)) {
+                return;
+            }
+            clearFooterConversion();
+        },
+        [route.key],
+    );
 
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 
