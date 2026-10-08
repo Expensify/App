@@ -713,6 +713,7 @@ describe('Workspace Search Router navigation source', () => {
             isOffline,
             isVendorMatchingBetaEnabled: false,
             isRecruitingBetaEnabled: false,
+            isCompanyAgentsBetaEnabled: false,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
             getItemText: (item) => {

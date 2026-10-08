@@ -143,6 +143,9 @@ type BuildWorkspaceNavigationItemsParams = {
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
     isRecruitingBetaEnabled: boolean;
 
+    /** Whether the company agents beta is enabled. */
+    isCompanyAgentsBetaEnabled: boolean;
+
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
 
@@ -291,6 +294,7 @@ function buildWorkspaceNavigationItems({
     isOffline,
     isVendorMatchingBetaEnabled,
     isRecruitingBetaEnabled,
+    isCompanyAgentsBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -441,6 +445,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         isOffline: !!isOffline,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
+        isCompanyAgentsBetaEnabled: isBetaEnabled(CONST.BETAS.COMPANY_AGENTS),
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),

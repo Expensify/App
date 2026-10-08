@@ -113,6 +113,8 @@ type GetWorkspaceMenuItemsParams = {
     isVendorMatchingBetaEnabled?: boolean;
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
     isRecruitingBetaEnabled?: boolean;
+    /** Whether the company agents beta is enabled. */
+    isCompanyAgentsBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
@@ -130,6 +132,7 @@ function getWorkspaceMenuItems({
     shouldShowRBR = false,
     isVendorMatchingBetaEnabled = false,
     isRecruitingBetaEnabled = false,
+    isCompanyAgentsBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
@@ -211,13 +214,6 @@ function getWorkspaceMenuItems({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
         },
         {
-            translationKey: 'workspace.agents.title',
-            icon: icons.Bot,
-            getRoute: () => ROUTES.WORKSPACE_AGENTS.getRoute(policyID),
-            screenName: SCREENS.WORKSPACE.AGENTS,
-            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
-        },
-        {
             translationKey: 'workspace.common.rooms',
             icon: icons.Hashtag,
             getRoute: () => ROUTES.WORKSPACE_ROOMS.getRoute(policyID),
@@ -225,6 +221,17 @@ function getWorkspaceMenuItems({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
         },
     ];
+
+    if (isGroupPolicy(policy) && isCompanyAgentsBetaEnabled) {
+        const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
+        items.splice(membersItemIndex + 1, 0, {
+            translationKey: 'workspace.agents.title',
+            icon: icons.Bot,
+            getRoute: () => ROUTES.WORKSPACE_AGENTS.getRoute(policyID),
+            screenName: SCREENS.WORKSPACE.AGENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
+        });
+    }
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {
