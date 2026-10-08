@@ -135,6 +135,8 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 shouldUseScrollView={false}
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
+                // On native the autofocused input can blur while the modal opens, which would show the required error before the user types
+                shouldValidateOnBlur={false}
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
