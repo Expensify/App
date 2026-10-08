@@ -35,6 +35,8 @@ export default {
     floatingTabBarHorizontalInset: 16,
     // How far the selected pill reaches past its tab on each side, whatever the label's length.
     floatingTabBarSelectedOverhang: 4,
+    // Space between a label's truncation edge and its tab's edge, so a neighbor's selected pill never reaches the label.
+    floatingTabBarLabelInset: 8,
     floatingTabBarBottomInset: 8,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,

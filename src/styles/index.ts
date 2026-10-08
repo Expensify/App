@@ -768,12 +768,17 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        // Stretches every tab to its slot, so a long label truncates inside the slot instead of spilling into its neighbors.
+        navigationTabBarItemNarrow: {
+            alignSelf: 'stretch',
+            paddingHorizontal: variables.floatingTabBarLabelInset,
+        },
+
         navigationTabBarItemSelected: {
             backgroundColor: theme.floatingTabBarSelectedBG,
             borderRadius: variables.componentBorderRadiusCircle,
-            // The padding matches the negative margin, so the label keeps the tab's width to wrap in, selected or not.
-            alignSelf: 'stretch',
-            paddingHorizontal: variables.floatingTabBarSelectedOverhang,
+            // The extra padding matches the negative margin, so the label keeps the same width selected or not.
+            paddingHorizontal: variables.floatingTabBarLabelInset + variables.floatingTabBarSelectedOverhang,
             marginHorizontal: -variables.floatingTabBarSelectedOverhang,
         },
 

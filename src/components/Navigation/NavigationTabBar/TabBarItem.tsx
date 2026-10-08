@@ -38,7 +38,7 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
     const iconSize = shouldUseNarrowLayout ? variables.iconFloatingTabBar : variables.iconBottomBar;
 
     return (
-        <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
+        <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && styles.navigationTabBarItemNarrow, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
             <View>
                 <Icon
                     src={icon}
