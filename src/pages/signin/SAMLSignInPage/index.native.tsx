@@ -106,7 +106,7 @@ function SAMLSignInPage() {
             // A forced re-auth leaves account.isLoading true until sign-in, so the token alone decides here.
             if (credentials?.login && shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath);
+                signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath, credentials?.login);
                 return;
             }
 
