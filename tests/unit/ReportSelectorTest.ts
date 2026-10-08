@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createMoveExpenseReportNVPSelector, getStableReportSelector, policyChatRoomsSelector} from '@src/selectors/Report';
+import {conciergeChatSelector, createMoveExpenseReportNVPSelector, getStableReportSelector, policyChatRoomsSelector} from '@src/selectors/Report';
 import type {Report} from '@src/types/onyx';
 
 describe('policyChatRoomsSelector', () => {
@@ -155,5 +155,79 @@ describe('getStableReportSelector', () => {
 
     it('passes undefined permissions through', () => {
         expect(getStableReportSelector({reportID: '1'} as Report)?.permissions).toBeUndefined();
+    });
+});
+
+describe('conciergeChatSelector', () => {
+    // The 9 keys of `ConciergeChatReport` (src/types/onyx/ConciergeChatReport.ts), sorted.
+    const CONCIERGE_CHAT_REPORT_KEYS = [
+        'chatType',
+        'conciergeReportID',
+        'errorFields',
+        'parentReportActionID',
+        'parentReportID',
+        'permissions',
+        'policyID',
+        'type',
+        'writeCapability',
+    ].sort();
+
+    const fullReport = {
+        reportID: '1',
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        policyID: 'policy1',
+        type: CONST.REPORT.TYPE.CHAT,
+        permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE],
+        writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ALL,
+        errorFields: {lastScrape: {error: 'Update failed'}},
+        parentReportID: '2',
+        parentReportActionID: '3',
+        // `Report` fields outside the 9-key projection; presence here proves the selector narrows rather than forwards.
+        reportName: 'Concierge',
+        isPinned: true,
+    } as Report;
+
+    it('returns undefined when report is undefined', () => {
+        // Given no report is loaded yet (the Onyx key has never been written).
+        // When the selector runs on an undefined entry.
+        // Then there is nothing to project, so it must return undefined rather than throw.
+        expect(conciergeChatSelector(undefined)).toBeUndefined();
+    });
+
+    it('returns undefined when reportID is empty', () => {
+        // Given a placeholder/never-hydrated report shape with an empty reportID (mirrors useCompleteOnboarding's default).
+        // When the selector runs on it.
+        // Then it must be treated the same as "no report", not as a valid empty projection.
+        expect(conciergeChatSelector({reportID: ''} as Report)).toBeUndefined();
+    });
+
+    it('returns exactly the 9 ConciergeChatReport keys for a full report', () => {
+        // Given a report populated with the 9 projected keys plus unrelated Report fields (reportName, isPinned).
+        // When the selector runs on it.
+        // Then the output must carry exactly the 9-key surface, not the full Report shape, so downstream code
+        // cannot silently start depending on a field the projection never promised.
+        const result = conciergeChatSelector(fullReport);
+        expect(Object.keys(result ?? {}).sort()).toEqual(CONCIERGE_CHAT_REPORT_KEYS);
+    });
+
+    it('drops unknown live* keys from the projection', () => {
+        // Given a report carrying an untyped/unknown key (`liveTypingAccountIDs`), the shape that motivated this
+        // selector: Concierge chat reports churn on `live*` fields that no subscriber actually reads.
+        // When the selector runs on it.
+        // Then that key must not appear in the output, proving the projection allow-lists fields instead of
+        // forwarding whatever Onyx happens to deliver.
+        const reportWithLiveKey: Report & Record<string, unknown> = {...fullReport, liveTypingAccountIDs: [1]};
+        const result = conciergeChatSelector(reportWithLiveKey);
+        expect(result).not.toHaveProperty('liveTypingAccountIDs');
+    });
+
+    it('produces equal output for two reports differing only in an unknown live* key', () => {
+        // Given two otherwise-identical reports that differ only in an untyped `live*` field's value.
+        // When the selector runs on each.
+        // Then the outputs must be deep-equal, proving a `live*` update alone cannot change the projection and
+        // therefore cannot trigger a re-render in a subscriber using this selector.
+        const first: Report & Record<string, unknown> = {...fullReport, liveTypingAccountIDs: [1]};
+        const second: Report & Record<string, unknown> = {...fullReport, liveTypingAccountIDs: [1, 2]};
+        expect(conciergeChatSelector(first)).toEqual(conciergeChatSelector(second));
     });
 });
