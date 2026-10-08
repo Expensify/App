@@ -154,6 +154,7 @@ function SingleSelectImpl({
                     data={options}
                     shouldSingleExecuteRowSelect
                     ListItem={SingleSelectListItem}
+                    titleNumberOfLines={2}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
