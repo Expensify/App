@@ -183,8 +183,6 @@ function useChartInteractions({
     const isCursorOverTarget = useSharedValue(false);
     const isCursorOverClickable = useSharedValue(false);
     const isTooltipActive = useSharedValue(false);
-
-    /** True while a tooltip opened by a touch tap stays visible until the next tap */
     const isTouchPinned = useSharedValue(false);
 
     /**
@@ -334,14 +332,6 @@ function useChartInteractions({
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
 
-    /**
-     * Hover gesture to be placed on the full-height outer container (chart + label area).
-     * Clamps the y coordinate to chartBottom before passing to Victory so that hovering
-     * over x-axis labels below the plot area still resolves the nearest data point.
-     * This gesture is returned separately and must NOT be passed to CartesianChart's
-     * customGestures prop, because Victory's internal GestureHandler view only covers
-     * the plot area and would drop events from the label area.
-     */
     const hideTooltip = () => {
         'worklet';
 
@@ -352,12 +342,19 @@ function useChartInteractions({
         isTooltipActive.set(false);
     };
 
+    /**
+     * Hover gesture to be placed on the full-height outer container (chart + label area).
+     * Clamps the y coordinate to chartBottom before passing to Victory so that hovering
+     * over x-axis labels below the plot area still resolves the nearest data point.
+     * This gesture is returned separately and must NOT be passed to CartesianChart's
+     * customGestures prop, because Victory's internal GestureHandler view only covers
+     * the plot area and would drop events from the label area.
+     */
     const hoverGesture = () =>
         Gesture.Hover()
             .onBegin((e) => {
                 'worklet';
 
-                // Touch on web can start a hover through pointerenter, which would fight the tap-to-show tooltip
                 if (e.pointerType === PointerType.TOUCH) {
                     return;
                 }
@@ -392,7 +389,7 @@ function useChartInteractions({
 
     /**
      * Touch taps toggle the tooltip instead of drilling in, since touch devices have no hover.
-     * Tapping a new target shows its tooltip; tapping the same target again or empty space hides it.
+     * Tapping a new target shows its tooltip and tapping the same target again or empty space hides it.
      */
     const handleTouchTap = (cursorX: number, cursorY: number) => {
         'worklet';
