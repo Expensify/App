@@ -211,6 +211,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 
     // for report actions with this type we get an empty array as message by design
     if (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
@@ -712,6 +713,26 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAc
     }
     const effectiveCurrentUserAccountID = currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
     return !getWhisperedTo(reportAction).includes(effectiveCurrentUserAccountID);
+}
+
+/**
+ * Whether the action asks to notify only its actionableForAccountIDs and the current user isn't one of them
+ */
+function isPushScopedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
+    const originalMessage = reportAction ? getOriginalMessage(reportAction) : undefined;
+    if (
+        !originalMessage ||
+        typeof originalMessage !== 'object' ||
+        !('shouldScopePushToActionableAccounts' in originalMessage) ||
+        originalMessage.shouldScopePushToActionableAccounts !== true
+    ) {
+        return false;
+    }
+    const actionableForAccountIDs: unknown = 'actionableForAccountIDs' in originalMessage ? originalMessage.actionableForAccountIDs : undefined;
+    if (!Array.isArray(actionableForAccountIDs) || actionableForAccountIDs.length === 0) {
+        return false;
+    }
+    return !actionableForAccountIDs.some((accountID) => accountID === currentUserAccountID);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {
@@ -2767,6 +2788,25 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): stri
     return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
 }
 
+function getAgentPromptUpdatedMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    return originalMessage ? translate('agentPromptUpdated', originalMessage) : getReportActionMessageText(reportAction);
+}
+
+function getAgentPromptUpdatedMessageHTML(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return Str.htmlEncode(getReportActionMessageText(reportAction));
+    }
+
+    return translate('agentPromptUpdated', {
+        ...originalMessage,
+        updatedBy: `<mention-user accountID="${originalMessage.updatedByAccountID}"/>`,
+        previousPrompt: Str.htmlEncode(originalMessage.previousPrompt),
+        newPrompt: Str.htmlEncode(originalMessage.newPrompt),
+    });
+}
+
 function getDismissedViolationMessageText(translate: LocalizedTranslate, originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage']): string {
     const reason = originalMessage?.reason;
     const violationName = originalMessage?.violationName;
@@ -2783,11 +2823,15 @@ function getMentionedEmailsFromMessage(message: string) {
     return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
 }
 
-function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string) {
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string, currentUserAccountID?: number) {
     const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
     const message = getReportActionMessage(reportAction)?.html ?? '';
     const emailsFromMessage = getMentionedEmailsFromMessage(message);
-    return accountIDsFromMessage.includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(currentUserEmail) || message.includes('<mention-here>');
+    return (
+        accountIDsFromMessage.includes(currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) ||
+        emailsFromMessage.includes(currentUserEmail) ||
+        message.includes('<mention-here>')
+    );
 }
 
 /**
@@ -2822,6 +2866,43 @@ function getIOUActionForTransactionID(reportActions: ReportAction[], transaction
     // Deleting blanks the message, so a missing message doesn't mean the action is deleted
     const isLive = (reportAction: ReportAction) => reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (!reportAction.message || !isDeletedAction(reportAction));
     return reportActions.find((reportAction) => isMatch(reportAction) && isLive(reportAction)) ?? firstMatch;
+}
+
+/** IOU action types that reference a transaction without being the action that created the expense. */
+const nonExpenseCreationIOUTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
+    CONST.IOU.REPORT_ACTION_TYPE.PAY,
+    CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+    CONST.IOU.REPORT_ACTION_TYPE.REJECT,
+    CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
+    CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+]);
+
+/**
+ * The transaction an action created, or undefined when the action merely references one.
+ *
+ * Several IOU actions carry the same `IOUTransactionID`. Paying, approving or rejecting an expense all reference
+ * the transaction they act on, and each has its own thread. Callers that want the expense itself (to open it, or
+ * to page to it in the prev/next carousel) must not match those, or they land the user on, say, the
+ * "marked as paid" system message thread instead of the expense.
+ *
+ * Actions with no `type` are kept: legacy IOU actions predate the field and are expense-creating.
+ */
+function getExpenseCreationTransactionID(reportAction: ReportAction): string | undefined {
+    if (!isMoneyRequestAction(reportAction)) {
+        return undefined;
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage?.IOUTransactionID) {
+        return undefined;
+    }
+    return !originalMessage.type || !nonExpenseCreationIOUTypes.has(originalMessage.type) ? originalMessage.IOUTransactionID : undefined;
+}
+
+/**
+ * Get the action that created an expense, for a transactionID, from the given reportActions.
+ */
+function getExpenseCreationIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
+    return reportActions.find((reportAction) => getExpenseCreationTransactionID(reportAction) === transactionID);
 }
 
 /**
@@ -2968,6 +3049,7 @@ function getExportIntegrationActionFragments(
                 case CONST.EXPORT_LABELS.INTACCT:
                 case CONST.EXPORT_LABELS.SAGE_INTACCT:
                 case CONST.EXPORT_LABELS.QBD:
+                case CONST.EXPORT_LABELS.BUSINESS_CENTRAL:
                     // These integrations store IDs, not URLs.
                     url = '';
                     break;
@@ -4606,6 +4688,26 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
     return getReportActionText(reportAction);
 }
 
+function getPolicyWorkArrangementMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT)) {
+        return getReportActionText(reportAction);
+    }
+    const {newValue, oldValue} = getOriginalMessage(reportAction) ?? {};
+
+    if (typeof newValue !== 'boolean') {
+        return getReportActionText(reportAction);
+    }
+
+    const arrangement = getWorkArrangementLabel(translate, newValue);
+
+    if (typeof oldValue !== 'boolean') {
+        return translate('workspaceActions.workArrangement.set', {arrangement});
+    }
+
+    const previousArrangement = getWorkArrangementLabel(translate, oldValue);
+    return translate('workspaceActions.workArrangement.changed', {arrangement, previousArrangement});
+}
+
 function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
         return getReportActionText(reportAction);
@@ -5250,6 +5352,8 @@ export {
     isReportActionUnread,
     getHtmlWithAttachmentID,
     getActionableMentionWhisperMessage,
+    getAgentPromptUpdatedMessage,
+    getAgentPromptUpdatedMessageHTML,
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
@@ -5258,6 +5362,8 @@ export {
     getLatestConciergeFeedbackActionIDFromReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
+    getExpenseCreationIOUActionForTransactionID,
+    getExpenseCreationTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleActionIncludingTransactionThread,
@@ -5371,6 +5477,7 @@ export {
     getMostRecentActiveDEWApproveFailedAction,
     hasPendingDEWApprove,
     isWhisperActionTargetedToOthers,
+    isPushScopedToOthers,
     isCategoryModificationAction,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
@@ -5379,7 +5486,6 @@ export {
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
-    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
@@ -5452,6 +5558,7 @@ export {
     getSendMoneyFlowAction,
     getUpdatedProhibitedExpensesMessage,
     getUpdatedCommuterExclusionsMessage,
+    getPolicyWorkArrangementMessage,
     getUpdatedMemberWorkArrangementMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,

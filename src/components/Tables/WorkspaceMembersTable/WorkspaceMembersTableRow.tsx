@@ -2,23 +2,26 @@ import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceMemberRowData} from '.';
+
+import WorkspaceMemberRoleCell from './WorkspaceMemberRoleCell';
 
 type WorkspaceMembersTableRowProps = {
     item: WorkspaceMemberRowData;
@@ -31,8 +34,8 @@ type WorkspaceMembersTableRowProps = {
     /** Whether the custom field 2 column is visible on web screens or not */
     shouldShowCustomField2Column: boolean;
 
-    /** Whether the approver column is visible on web screens or not */
-    shouldShowApproverColumn: boolean;
+    /** Policy used to determine which roles can be assigned from the inline editor */
+    policy: OnyxEntry<Policy>;
 };
 
 export default function WorkspaceMembersTableRow({
@@ -40,12 +43,11 @@ export default function WorkspaceMembersTableRow({
     rowIndex,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
-    shouldShowApproverColumn,
     shouldUseNarrowTableLayout,
+    policy,
 }: WorkspaceMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
@@ -53,14 +55,7 @@ export default function WorkspaceMembersTableRow({
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
-    const accessibilityLabel = [
-        item.name,
-        item.email,
-        shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
-        roleLabel,
-    ]
-        .filter(Boolean)
-        .join(', ');
+    const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
@@ -105,30 +100,6 @@ export default function WorkspaceMembersTableRow({
                         </View>
                     </View>
 
-                    {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
-                        <View
-                            style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
-                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
-                        >
-                            {!!item.approverDisplayName && !!item.approverAccountID && (
-                                <>
-                                    <AccountAvatar
-                                        accountID={item.approverAccountID}
-                                        accountEmail={item.approverLogin}
-                                        fallbackDisplayName={item.approverDisplayName}
-                                        size={CONST.AVATAR_SIZE.XXX_SMALL}
-                                        containerStyle={StyleUtils.getWidthAndHeightStyle(variables.avatarSizeXxxSmall)}
-                                    />
-                                    <TextWithTooltip
-                                        shouldShowTooltip
-                                        numberOfLines={1}
-                                        text={item.approverDisplayName}
-                                    />
-                                </>
-                            )}
-                        </View>
-                    )}
-
                     {!shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
@@ -163,10 +134,16 @@ export default function WorkspaceMembersTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <Text numberOfLines={1}>{roleLabel}</Text>
+                            <WorkspaceMemberRoleCell
+                                role={item.role}
+                                policy={policy}
+                                memberLogin={item.login}
+                                canEdit={item.canEditRole}
+                                onSave={item.onChangeRole}
+                            />
                         </View>
                     )}
 

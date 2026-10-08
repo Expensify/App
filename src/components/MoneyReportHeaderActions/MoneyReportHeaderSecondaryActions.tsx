@@ -35,12 +35,14 @@ import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import {setSingleExpenseReportView} from '@libs/actions/ReportLayout';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -87,6 +89,8 @@ type MoneyReportHeaderSecondaryActionsProps = {
     isReportInSearch?: boolean;
     backTo?: Route;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
+    /** Disables the "More" dropdown, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
 const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
@@ -94,7 +98,7 @@ const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
@@ -114,6 +118,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     });
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {singleExpenseReportView, shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
@@ -130,6 +135,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {},
@@ -308,7 +314,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             ? sortPoliciesByName(activeAdminPolicies, localeCompare)
             : [];
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building', 'Table', 'Receipt']);
 
     // Build PAY action sub-items. Workspace-policy entries carry the policy as data and have no onSelected;
     // MoneyReportHeaderKYCDropdown picks them up via onSubItemSelected where triggerKYCFlow is in scope.
@@ -405,11 +411,24 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
               isChatReportArchived,
               isOffline,
               rules,
+              cardList,
           })
         : [];
 
     // Merge all action implementations
     const secondaryActionsImplementation: Record<string, (typeof lifecycleActionEntries)[string]> = {
+        [CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW,
+            text: shouldUseTableViewForSingleExpense ? translate('reportLayout.switchToExpenseView') : translate('reportLayout.switchToTableView'),
+            icon: shouldUseTableViewForSingleExpense ? expensifyIcons.Receipt : expensifyIcons.Table,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.TOGGLE_SINGLE_EXPENSE_VIEW,
+            onSelected: () => {
+                setSingleExpenseReportView(
+                    shouldUseTableViewForSingleExpense ? CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE : CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE,
+                    singleExpenseReportView,
+                );
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
@@ -489,6 +508,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             primaryAction={primaryAction}
             applicableSecondaryActions={applicableSecondaryActions}
             dropdownMenuRef={dropdownMenuRef}
+            isDisabled={isDisabled}
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
             shouldPutHeaderTextAfterBackButton
@@ -496,7 +516,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     );
 }
 
-function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ''}) {
+function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction, isDisabled}: {primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ''; isDisabled?: boolean}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -512,6 +532,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 innerStyles={innerStyles}
                 style={shouldTakeRemainingWidth ? styles.w100 : undefined}
+                isDisabled={isDisabled}
                 onPress={() => {}}
             >
                 <Button.Text>{translate('common.more')}</Button.Text>
@@ -521,7 +542,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
     );
 }
 
-function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
@@ -533,7 +554,12 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
             anchorAlignment={MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
             <NavigationDeferredMount
-                placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
+                placeholder={
+                    <MoneyReportHeaderSecondaryActionsPlaceholder
+                        primaryAction={primaryAction}
+                        isDisabled={isDisabled}
+                    />
+                }
                 // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
                 // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
                 waitForUpcomingTransition={false}
@@ -544,6 +570,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
                     isReportInSearch={isReportInSearch}
                     backTo={backTo}
                     dropdownMenuRef={dropdownMenuRef}
+                    isDisabled={isDisabled}
                 />
             </NavigationDeferredMount>
         </ReportSubmitToPopoverAnchor>
