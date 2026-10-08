@@ -17,6 +17,7 @@ import {
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
+    hasApprovalWorkflowRules,
     includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
     mergeWorkflowMembersWithAvailableMembers,
@@ -2969,6 +2970,50 @@ describe('WorkflowUtils', () => {
         it('returns an empty collection when there is no policy or no rules', () => {
             expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
             expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
+        });
+    });
+
+    describe('hasApprovalWorkflowRules', () => {
+        const approvalWorkflowRule = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID,
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
+            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
+            ...extra,
+        });
+
+        it('only counts the rules that route reports', () => {
+            // Given a policy whose only rule is an expense default, which shares the rules collection with approval workflows
+            const expenseDefaultRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: 'policy1',
+                triggers: {'1': CONST.RULES.TRIGGERS.CREATE_TRANSACTION},
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, right: 'Starbucks'},
+                actions: {'1': {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}},
+            };
+
+            // When the policy has only that rule, and then also a rule that forwards its reports
+            const hasRulesWithExpenseDefaultOnly = hasApprovalWorkflowRules({rules_1: expenseDefaultRule}, 'policy1');
+            const hasRulesWithForwardingRule = hasApprovalWorkflowRules({rules_1: expenseDefaultRule, rules_2: approvalWorkflowRule('policy1')}, 'policy1');
+
+            // Then only the forwarding rule makes approval workflow rules route its reports
+            expect(hasRulesWithExpenseDefaultOnly).toBe(false);
+            expect(hasRulesWithForwardingRule).toBe(true);
+        });
+
+        it("only counts the policy's own rules that are not pending deletion", () => {
+            // Given an approval workflow rule of another policy, and one of this policy that is being deleted offline
+            const otherPolicyRule = approvalWorkflowRule('policy2');
+            const pendingDeleteRule = approvalWorkflowRule('policy1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When the deletion is still pending, and once it is undone
+            const hasRulesWhileDeleting = hasApprovalWorkflowRules({rules_1: otherPolicyRule, rules_2: pendingDeleteRule}, 'policy1');
+            const hasRulesOnceUndone = hasApprovalWorkflowRules({rules_1: otherPolicyRule, rules_2: {...pendingDeleteRule, pendingAction: null}}, 'policy1');
+
+            // Then the other policy's rule never counts, and this policy's rule stops counting while it is being deleted, since it won't route once that goes through
+            expect(hasRulesWhileDeleting).toBe(false);
+            expect(hasRulesOnceUndone).toBe(true);
         });
     });
 
