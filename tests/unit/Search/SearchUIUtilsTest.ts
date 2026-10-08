@@ -2801,13 +2801,13 @@ describe('SearchUIUtils', () => {
                 message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: snapshotReportID, amount: 100, currency: CONST.CURRENCY.USD},
             } as OnyxTypes.ReportAction;
-            const data = {
-                personalDetailsList: {},
+            const data: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${snapshotReportID}`]: {
                     [markedReimbursedAction.reportActionID]: markedReimbursedAction,
                     [payAction.reportActionID]: payAction,
                 },
-            } as unknown as OnyxTypes.SearchResults['data'];
+            };
 
             // When the CHAT sections are built from the snapshot
             const [sections] = SearchUIUtils.getSections({
@@ -2826,7 +2826,11 @@ describe('SearchUIUtils', () => {
             });
 
             // Then only the PAY action is listed, because the snapshot is used to find the sibling of the MARKED_REIMBURSED action
-            expect((sections as Array<{reportActionID: string}>).map((item) => item.reportActionID)).toStrictEqual([payAction.reportActionID]);
+            const snapshotReportActionIDs = sections
+                .filter(SearchUIUtils.isReportActionListItemType)
+                .filter((item) => item.reportID === snapshotReportID)
+                .map((item) => item.reportActionID);
+            expect(snapshotReportActionIDs).toStrictEqual([payAction.reportActionID]);
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
