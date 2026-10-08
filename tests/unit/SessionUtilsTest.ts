@@ -153,6 +153,7 @@ describe('SessionUtils', () => {
             ['should return the raw value unchanged when it contains an un-encoded percent that is not a valid escape sequence', '?email=100%off@example.com', '100%off@example.com'],
             ['should ignore a fragment after the query string', '?email=user@example.com#section', 'user@example.com'],
             ['should return undefined when email only appears after a hash fragment', '?shortLivedAuthToken=abc123#email=user@example.com', undefined],
+            ['should strip a zero-width space from the email', '?email=user@exa​mple.com', 'user@example.com'],
         ])('%s', (_description, url, expectedResult) => {
             expect(getEmailFromTransitionURL(url)).toBe(expectedResult);
         });
