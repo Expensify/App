@@ -55,14 +55,14 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         if (isSupportalLogin) {
             // The public transition page may already have started this exact sign-in before the Public/Auth
             // navigator swap re-mounted us here. Firing it again trips the support-token rate limit, so skip
-            // the duplicate but still finish navigating home.
+            // the duplicate but still finish the navigation.
             if (shortLivedAuthToken !== getLastShortAuthToken()) {
                 signInWithSupportAuthToken(shortLivedAuthToken);
             }
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(exitTo ?? ROUTES.HOME);
             });
             return;
         }
