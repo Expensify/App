@@ -4,6 +4,7 @@ import useSaveMarketingAttribution from '@hooks/useSaveMarketingAttribution';
 
 import {captureMarketingAttributionFromURL, saveMarketingAttribution} from '@libs/actions/MarketingAttribution';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MarketingAttribution} from '@src/types/onyx';
 
@@ -156,6 +157,19 @@ describe('MarketingAttribution', () => {
 
             // Then the key stays unset
             expect(await getStoredAttribution()).toBeUndefined();
+        });
+
+        it('stores the attribution when the user only has an anonymous session from viewing a public room', async () => {
+            // Given an anonymous session and a landing URL with Google Ads params
+            await Onyx.set(ONYXKEYS.SESSION, {authToken: 'anonymousAuthToken', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS, email: 'anon-123@guest.expensify.com'});
+            setLandingURL('?gclid=testGclid&utm_source=google');
+
+            // When the hook renders and the session has loaded
+            renderHook(() => useSaveMarketingAttribution());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the attribution is written, since the anonymous user can still sign up from the room
+            expect(await getStoredAttribution()).toEqual({gclid: 'testGclid', utm_source: 'google'});
         });
 
         it('reads the URL on the first render only', async () => {

@@ -34,7 +34,7 @@ function captureMarketingAttributionFromURL(): MarketingAttribution | undefined 
 
 /**
  * Persists the attribution read from the landing URL to Onyx so it can be sent during signup.
- * Does nothing when the user already has a session, since attribution only matters for signup.
+ * Does nothing when the user is already signed in to a real account, since attribution only matters for signup.
  *
  * We replace the whole stored attribution instead of merging into it, so values from different ad clicks
  * (e.g. a Google gclid and later Reddit UTMs) never get combined. A page load without any of the params
