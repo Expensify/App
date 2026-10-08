@@ -7,7 +7,6 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,8 +18,7 @@ import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {tableColumnWidthsSelector} from '@src/selectors/TableColumnWidths';
+import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -36,6 +34,7 @@ import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from '.
 
 import {getDataVisibleIndices, getListIndex, getTableListMetadata, rendersColumnHeader} from './buildTableListData';
 import useColumnResize from './columnResize/useColumnResize';
+import useStoredColumnWidths from './columnResize/useStoredColumnWidths';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -264,7 +263,12 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
  * </Table>
  * ```
  */
-function Table<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
+type TableContentProps<DataType extends TableData, ColumnKey extends string, FilterKey extends string> = TableProps<DataType, ColumnKey, FilterKey> & {
+    /** Stored dragged widths for this table's `columnResizingID`. */
+    columnWidthOverrides?: ColumnWidthOverrides;
+};
+
+function TableContent<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     title,
     columns,
@@ -285,11 +289,12 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     shouldPreserveSelectionOnSearchAndFilter,
     shouldFooterRenderAsLastRow,
     columnResizingID,
+    columnWidthOverrides,
     onRowSelectionChange,
     onSearchStringChange,
     onSortingChange,
     ...listProps
-}: TableProps<DataType, ColumnKey, FilterKey>) {
+}: TableContentProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
     const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
 
@@ -395,7 +400,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
     const {isBetaEnabled} = usePermissions();
     const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
-    const [columnWidthOverrides] = useOnyx(ONYXKEYS.TABLE_COLUMN_WIDTHS, {selector: tableColumnWidthsSelector(columnResizingID)});
 
     // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
     // searches or filters instead of reflowing on every keystroke.
@@ -629,6 +633,33 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 </View>
             </Modal>
         </TableContext.Provider>
+    );
+}
+
+function TableWithStoredColumnWidths<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
+    props: TableProps<DataType, ColumnKey, FilterKey> & {columnResizingID: string},
+) {
+    const columnWidthOverrides = useStoredColumnWidths(props.columnResizingID);
+
+    return (
+        <TableContent
+            {...props}
+            columnWidthOverrides={columnWidthOverrides}
+        />
+    );
+}
+
+/** Only tables that opted into resizing subscribe to stored widths */
+function Table<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(props: TableProps<DataType, ColumnKey, FilterKey>) {
+    if (!props.columnResizingID) {
+        return <TableContent {...props} />;
+    }
+
+    return (
+        <TableWithStoredColumnWidths
+            {...props}
+            columnResizingID={props.columnResizingID}
+        />
     );
 }
 
