@@ -83,5 +83,3 @@ function ConfirmationPageDefault({
 }
 
 export default ConfirmationPageDefault;
-
-export type {ConfirmationPageProps};
