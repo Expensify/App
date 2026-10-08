@@ -36,7 +36,7 @@ Each Workspace has its own Intuit Enterprise Suite integration. To view or updat
 The **Import** tab controls which accounting data is imported from Intuit Enterprise Suite into Expensify.
 
 - **Chart of accounts** – Imports as Categories. This setting is always enabled.
-- **Dimensions** – Choose which Intuit Enterprise Suite dimensions, including custom dimensions, to import as tags. Each available dimension can be enabled independently.
+- **Dimensions** – Choose which Intuit Enterprise Suite custom dimensions to import as tags. Each available dimension can be enabled independently.
 
 ---
 
