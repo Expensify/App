@@ -445,11 +445,11 @@ const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): bool
  * Returns the name of a workspace the member belongs to that calculates commuter exclusions from the member's
  * home address, so the private home address row can name the workspace relying on it.
  */
-const isActiveHomeAndOfficeCommuterExclusionPolicy = (policy: OnyxEntry<Policy>): policy is Policy =>
-    !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
 const homeAndOfficeCommuterExclusionPolicyNameSelector = (policies: OnyxCollection<Policy>): string | undefined =>
-    Object.values(policies ?? {}).find(isActiveHomeAndOfficeCommuterExclusionPolicy)?.name;
+    Object.values(policies ?? {}).find(
+        (policy): policy is Policy =>
+            !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    )?.name;
 
 function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {
     return !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy.connections?.[connectionName];
