@@ -1026,6 +1026,10 @@ const DYNAMIC_ROUTES = {
         getRoute: (state = '', label = '') => `state${state ? `?state=${encodeURIComponent(state)}` : ''}${label ? `${state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''}`,
         queryParams: ['state', 'label'],
     },
+    ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: {
+        path: 'wallet-confirm-validate-code',
+        entryScreens: [SCREENS.IOU_SEND.ENABLE_PAYMENTS, SCREENS.ENABLE_PAYMENTS_ROOT],
+    },
     SETTINGS_CATEGORY_SETTINGS: {
         path: 'category-settings/:categoryName',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
