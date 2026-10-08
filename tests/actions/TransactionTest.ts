@@ -4,6 +4,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useOnyx from '@hooks/useOnyx';
 
+import {getCurrentUserPersonalDetails} from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -44,7 +45,15 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'currentUserPersonalDetails'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -53,7 +62,15 @@ type LegacyChangeTransactionsReportProps = Omit<
     isTrackIntentUser: boolean | undefined;
 };
 
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
+function changeTransactionsReport({
+    allTransactions,
+    transactionIDs,
+    transactionViolations,
+    personalPolicyOutputCurrency,
+    selfDMReportActions,
+    currentUserPersonalDetails: passedCurrentUserPersonalDetails,
+    ...rest
+}: LegacyChangeTransactionsReportProps & {currentUserPersonalDetails?: CurrentUserPersonalDetails}) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
     changeTransactionsReportAction({
         transactionIDs,
@@ -65,6 +82,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
         rules: undefined,
+        currentUserPersonalDetails: passedCurrentUserPersonalDetails ?? (getCurrentUserPersonalDetails() as CurrentUserPersonalDetails),
         ...rest,
     });
 }

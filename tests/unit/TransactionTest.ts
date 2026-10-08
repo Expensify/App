@@ -2,6 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 
+import {getCurrentUserPersonalDetails} from '@libs/actions/IOU';
 import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import {
     changeTransactionsReport as changeTransactionsReportAction,
@@ -26,6 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -54,7 +56,15 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'currentUserPersonalDetails'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -81,7 +91,14 @@ function isChangeTransactionsReportParams(value: unknown): value is ChangeTransa
 }
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
+function changeTransactionsReport({
+    allTransactions,
+    transactionIDs,
+    transactionViolations = {},
+    personalPolicyOutputCurrency,
+    currentUserPersonalDetails: passedCurrentUserPersonalDetails,
+    ...rest
+}: LegacyChangeTransactionsReportProps & {currentUserPersonalDetails?: CurrentUserPersonalDetails}) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
     changeTransactionsReportAction({
         transactionIDs,
@@ -93,6 +110,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
         getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
         rules: undefined,
+        currentUserPersonalDetails: passedCurrentUserPersonalDetails ?? (getCurrentUserPersonalDetails() as CurrentUserPersonalDetails),
         ...rest,
     });
 }
