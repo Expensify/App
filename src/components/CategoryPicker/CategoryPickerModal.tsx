@@ -76,7 +76,10 @@ function CategoryPickerModal({
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const {top: safeAreaTop} = useSafeAreaInsets();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+    });
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});

@@ -74,4 +74,39 @@ describe('getBottomSheetHeight', () => {
         // Then it keeps the minimum height, so the search input and a row stay visible instead of the sheet collapsing
         expect(height).toBe(MIN_HEIGHT);
     });
+
+    it('never lets the minimum height push the sheet past its own cap', () => {
+        // Given a landscape window so short that its share of the screen is below the minimum height
+        const windowHeight = 200;
+        const cappedHeight = windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE - BOTTOM_SHEET_TOP_PADDING;
+        expect(cappedHeight).toBeLessThan(MIN_HEIGHT);
+
+        const height = getBottomSheetHeight({
+            preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+            windowHeight,
+            isInLandscapeMode: true,
+            keyboardHeight: 120,
+            topSafeAreaInset: TOP_INSET,
+            minHeight: MIN_HEIGHT,
+        });
+
+        expect(height).toBe(cappedHeight);
+    });
+
+    it('caps at the height it is handed instead of the dropdown cap', () => {
+        const maxHeight = 600;
+
+        // When the sheet asks for more than that
+        const height = getBottomSheetHeight({
+            preferredHeight: 700,
+            windowHeight: 900,
+            isInLandscapeMode: false,
+            keyboardHeight: 0,
+            topSafeAreaInset: TOP_INSET,
+            minHeight: MIN_HEIGHT,
+            maxHeight,
+        });
+
+        expect(height).toBe(maxHeight - BOTTOM_SHEET_TOP_PADDING);
+    });
 });

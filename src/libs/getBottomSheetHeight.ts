@@ -23,22 +23,34 @@ type BottomSheetHeightParams = {
 
     /** Least height the sheet keeps above the keyboard, so a short window still shows something to pick */
     minHeight: number;
+
+    /** Tallest the sheet may be regardless of the window. Defaults to the dropdown cap, `CONST.POPOVER_DROPDOWN_MAX_HEIGHT` */
+    maxHeight?: number;
 };
 
 /**
- * Height to give the content of a bottom sheet so it fits on screen: capped by the window (less of it in landscape),
- * and, while the keyboard is open, by the room between the keyboard and the status bar.
+ * Height to give the content of a bottom sheet so it fits on screen: capped by `maxHeight` and by the window (less of
+ * it in landscape), and, while the keyboard is open, by the room between the keyboard and the status bar. `minHeight`
+ * never pushes the sheet past that cap.
  */
-function getBottomSheetHeight({preferredHeight, windowHeight, isInLandscapeMode, keyboardHeight, topSafeAreaInset, minHeight}: BottomSheetHeightParams): number {
+function getBottomSheetHeight({
+    preferredHeight,
+    windowHeight,
+    isInLandscapeMode,
+    keyboardHeight,
+    topSafeAreaInset,
+    minHeight,
+    maxHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+}: BottomSheetHeightParams): number {
     const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
-    const maxHeight = Math.min(preferredHeight, Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio) - BOTTOM_SHEET_TOP_PADDING);
+    const cappedHeight = Math.min(preferredHeight, Math.min(maxHeight, windowHeight * heightRatio) - BOTTOM_SHEET_TOP_PADDING);
 
     if (!keyboardHeight) {
-        return maxHeight;
+        return cappedHeight;
     }
 
     const heightAboveKeyboard = windowHeight - keyboardHeight - topSafeAreaInset - BOTTOM_SHEET_TOP_PADDING;
-    return Math.max(Math.min(minHeight, maxHeight), Math.min(maxHeight, heightAboveKeyboard));
+    return Math.max(Math.min(minHeight, cappedHeight), Math.min(cappedHeight, heightAboveKeyboard));
 }
 
 export default getBottomSheetHeight;
