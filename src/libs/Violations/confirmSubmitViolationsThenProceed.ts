@@ -7,7 +7,7 @@ import type showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAft
 
 import type {getReportSubmitViolationSummary} from './getReportSubmitViolationSummary';
 
-import {hasAnySubmitViolation, hasOnlyPendingCardMatch, shouldResolveAcknowledgedViolations} from './getReportSubmitViolationSummary';
+import {hasAnySubmitViolation, shouldResolveAcknowledgedViolations} from './getReportSubmitViolationSummary';
 import showSubmitViolationsConfirmModal from './showSubmitViolationsConfirmModal';
 
 type ShowConfirmModal = Parameters<typeof showConfirmModalAfterMoreMenuDismiss>[0];
@@ -20,16 +20,17 @@ type ConfirmSubmitViolationsThenProceedParams = {
     dateFnsLocale: LocaleContextProps['dateFnsLocale'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     shouldShowMarkAsDoneCopy?: boolean;
-    /** Called once the user confirms, only when the summary has a pending card match to resolve as cash. */
-    onMarkPendingCardMatchAsCash: () => void;
     /** Called immediately when there's nothing to confirm, or once the user confirms the violations modal. */
     onProceed: (shouldResolveAcknowledgedViolations?: boolean) => void;
 };
 
 /**
  * Shared "confirm violations, then proceed" sequence: skips the modal when the summary has nothing to show,
- * otherwise shows it and - only if the user confirms - marks any pending card match as cash before calling
- * onProceed with the resolved flag. Every Submit entry point uses this so the sequence can't drift between them.
+ * otherwise shows it and only proceeds if the user confirms - cancelling always just returns to the report so
+ * the user can fix violations manually. Every violation other than a rejected expense, including a pending card
+ * match, stays on the expense even after confirming; only the user's own "Mark as cash" action resolves that
+ * one, and RTER's own backend logic decides separately whether a card-matched expense can still submit. Every
+ * Submit entry point uses this so the sequence can't drift between them.
  */
 function confirmSubmitViolationsThenProceed({
     summary,
@@ -38,7 +39,6 @@ function confirmSubmitViolationsThenProceed({
     dateFnsLocale,
     convertToDisplayString,
     shouldShowMarkAsDoneCopy,
-    onMarkPendingCardMatchAsCash,
     onProceed,
 }: ConfirmSubmitViolationsThenProceedParams) {
     if (!hasAnySubmitViolation(summary)) {
@@ -47,15 +47,10 @@ function confirmSubmitViolationsThenProceed({
     }
 
     showSubmitViolationsConfirmModal({summary, showConfirmModal, translate, dateFnsLocale, convertToDisplayString, shouldShowMarkAsDoneCopy}).then((result) => {
-        const isConfirmed = result.action === ModalActions.CONFIRM;
-
-        if (!isConfirmed && !hasOnlyPendingCardMatch(summary)) {
+        if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        if (isConfirmed && summary.hasPendingCardMatch) {
-            onMarkPendingCardMatchAsCash();
-        }
-        onProceed(isConfirmed ? shouldResolveAcknowledgedViolations(summary) : undefined);
+        onProceed(shouldResolveAcknowledgedViolations(summary));
     });
 }
 

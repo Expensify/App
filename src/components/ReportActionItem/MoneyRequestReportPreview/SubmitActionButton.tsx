@@ -76,7 +76,6 @@ function SubmitActionButtonContent() {
         delegateEmail,
         delegateAccountID,
     } = useReportPreviewActionButtonData(iouReportID);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -113,8 +112,6 @@ function SubmitActionButtonContent() {
         shouldShowMarkAsDoneCopy,
         transactions,
         violationsCollection: filteredTransactionViolations,
-        rawViolationsCollection: transactionViolations,
-        reportActions: Object.values(reportActions ?? {}),
     });
 
     const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules);

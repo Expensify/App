@@ -121,7 +121,6 @@ import variables from '@styles/variables';
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
-import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2890,12 +2889,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 dateFnsLocale,
                                 convertToDisplayString,
                                 shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
-                                onMarkPendingCardMatchAsCash: () =>
-                                    markPendingRTERTransactionsAsCash(
-                                        reportTransactionsForSubmit,
-                                        allTransactionViolations,
-                                        Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDForSubmit}`] ?? {}),
-                                    ),
                                 onProceed: openPopoverForSubmit,
                             });
                         }
@@ -2904,12 +2897,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     const itemsToSubmit = itemList.filter((item) => !(item.reportID && blockedReportIDs.has(item.reportID)));
                     const reportIDsToSubmit = new Set(itemsToSubmit.map((item) => item.reportID).filter((id): id is string => !!id));
-
-                    // Filtered per report (rather than the raw allTransactionViolations collection) so a violation the
-                    // current user already dismissed does not reappear here and disagree with the row-level Submit
-                    // buttons, which apply the same filter for the same reason. Kept across every report (rather than
-                    // scoped per report below) because markPendingRTERTransactionsAsCash needs it later for every report.
-                    const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {};
 
                     // One summary per report, each with that report's own report/policy so getReportSubmitViolationSummary
                     // can apply its usual shouldShowViolation filtering and whole-report-rejection check itself, merged
@@ -2923,10 +2910,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                         for (const transaction of reportTransactions) {
                             const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
-                            const transactionViolationsForReport =
+                            reportViolationsCollection[violationsKey] =
                                 getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, reportForViolations, reportOwnerLogin, policyForViolations) ?? [];
-                            reportViolationsCollection[violationsKey] = transactionViolationsForReport;
-                            filteredViolationsCollection[violationsKey] = transactionViolationsForReport;
                         }
 
                         return getReportSubmitViolationSummary(reportTransactions, reportViolationsCollection, reportForViolations, policyForViolations, email ?? '', accountID);
@@ -2994,15 +2979,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         dateFnsLocale,
                         convertToDisplayString,
                         shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
-                        onMarkPendingCardMatchAsCash: () => {
-                            for (const reportID of reportIDsToSubmit) {
-                                markPendingRTERTransactionsAsCash(
-                                    transactionsByReportID.get(reportID) ?? [],
-                                    allTransactionViolations,
-                                    Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}),
-                                );
-                            }
-                        },
                         onProceed: runSubmit,
                     });
                 },

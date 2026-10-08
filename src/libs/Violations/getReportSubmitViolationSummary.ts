@@ -122,20 +122,14 @@ function hasAnySubmitViolation(summary: ReportSubmitViolationSummary): boolean {
     return summary.hasRejectedExpense || summary.hasReportBeenRejected || summary.hasPendingCardMatch || summary.otherViolations.size > 0;
 }
 
-/** The shouldResolveAcknowledgedViolations flag to submit with, once the user has confirmed the modal. */
-function shouldResolveAcknowledgedViolations(summary: ReportSubmitViolationSummary): boolean {
-    return summary.hasRejectedExpense || summary.hasPendingCardMatch;
-}
-
 /**
- * Whether a pending card match is the only reason the modal has anything to show. Unlike every other violation
- * here, a pending card match never blocked Submit on its own before this modal existed - the user was only ever
- * asked whether to mark it as cash first, and either answer still submitted. Cancelling this modal must keep doing
- * the same when nothing else needs acknowledging, or a card transaction that later tries to match this expense can
- * no longer merge into it.
+ * The shouldResolveAcknowledgedViolations flag to submit with, once the user has confirmed the modal. Only the
+ * rejected-expense violation is resolved this way - acknowledging the modal is enough to confirm the submitter
+ * saw the rejection. Every other violation (including a pending card match) must stay on the expense for the
+ * approver to review, so Submit anyway never resolves those.
  */
-function hasOnlyPendingCardMatch(summary: ReportSubmitViolationSummary): boolean {
-    return summary.hasPendingCardMatch && !summary.hasRejectedExpense && !summary.hasReportBeenRejected && summary.otherViolations.size === 0;
+function shouldResolveAcknowledgedViolations(summary: ReportSubmitViolationSummary): boolean {
+    return summary.hasRejectedExpense;
 }
 
 /**
@@ -162,11 +156,4 @@ function mergeReportSubmitViolationSummaries(summaries: ReportSubmitViolationSum
     return {hasRejectedExpense, hasReportBeenRejected, hasPendingCardMatch, otherViolations};
 }
 
-export {
-    getReportSubmitViolationSummary,
-    buildSubmitViolationBullets,
-    hasAnySubmitViolation,
-    shouldResolveAcknowledgedViolations,
-    hasOnlyPendingCardMatch,
-    mergeReportSubmitViolationSummaries,
-};
+export {getReportSubmitViolationSummary, buildSubmitViolationBullets, hasAnySubmitViolation, shouldResolveAcknowledgedViolations, mergeReportSubmitViolationSummaries};
