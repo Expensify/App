@@ -65,11 +65,15 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         }
 
         if (shouldAddOrReplaceReceipt && transactionID) {
-            const source = URL.createObjectURL(files.at(0) as Blob);
+            const file = files.at(0);
+            if (!(file instanceof File)) {
+                throw new TypeError('Receipt replacement requires a File');
+            }
+            const source = URL.createObjectURL(file);
             replaceReceipt({
                 isVendorMatchingBetaEnabled,
                 transaction,
-                file: files.at(0) as File,
+                file,
                 source,
                 transactionPolicy: policy,
                 transactionPolicyCategories: policyCategories,
@@ -95,12 +99,15 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         });
 
         for (const [index, file] of files.entries()) {
-            const source = URL.createObjectURL(file as Blob);
+            if (!(file instanceof File)) {
+                throw new TypeError('Receipt upload requires a File');
+            }
+            const source = URL.createObjectURL(file);
             const newTransaction =
                 index === 0
-                    ? (initialTransaction as Partial<OnyxTypes.Transaction>)
+                    ? initialTransaction
                     : buildOptimisticTransactionAndCreateDraft({
-                          initialTransaction: initialTransaction as Partial<OnyxTypes.Transaction>,
+                          initialTransaction: initialTransaction ?? {},
                           reportID,
                       });
             const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;

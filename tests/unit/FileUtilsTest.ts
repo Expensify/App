@@ -5,6 +5,11 @@ import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
     appendTimeToFileName,
     canvasFallback,
+    cleanFileObject,
+    cleanFileObjectName,
+    getFilesFromClipboardEvent,
+    isValidReceiptExtension,
+    validateReceipt,
     getExportFileName,
     getFileNameWithFallback,
     getFileValidationErrorText,
@@ -14,6 +19,7 @@ import {
 } from '@libs/fileDownload/FileUtils';
 
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
@@ -43,6 +49,129 @@ describe('FileUtils', () => {
             const file = splitExtensionFromFileName('image');
             expect(file.fileName).toEqual('image');
             expect(file.fileExtension).toEqual('');
+        });
+    });
+
+    describe('receipt extension membership', () => {
+        it.each([
+            ['receipt.PDF', true],
+            ['receipt.JpG', true],
+            // Intentionally invalid extension tests strict membership.
+            // cspell:disable-next-line
+            ['receipt.pdfx', false],
+            ['receipt', false],
+            ['', false],
+        ])('preserves exact case-insensitive membership for %s', (name, expected) => {
+            // Given extension fragments must not be accepted as complete receipt extensions.
+            const file = {name} satisfies FileObject;
+
+            // When the exported production membership helper checks the filename.
+            const result = isValidReceiptExtension(file);
+
+            // Then only strict complete extensions match the allowed receipt tuple.
+            expect(result).toBe(expected);
+        });
+
+        it('retains receipt error callbacks for disallowed extensions and file sizes', async () => {
+            // Given non-image receipts avoid corruption decoding but still require extension and size checks.
+            const setError = jest.fn<ReturnType<Parameters<typeof validateReceipt>[1]>, Parameters<Parameters<typeof validateReceipt>[1]>>();
+
+            // When actual receipt validation receives an invalid type, oversize or undersize PDF.
+            // Intentionally invalid extension retains the wrong-file-type scenario.
+            // cspell:disable-next-line
+            const invalidExtension = await validateReceipt({name: 'receipt.pdfx', size: CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE}, setError);
+            expect(setError).toHaveBeenLastCalledWith(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+            const tooLarge = await validateReceipt({name: 'receipt.pdf', size: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 1}, setError);
+            expect(setError).toHaveBeenLastCalledWith(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
+            const tooSmall = await validateReceipt({name: 'receipt.pdf', size: CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1}, setError);
+            expect(setError).toHaveBeenLastCalledWith(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+            const valid = await validateReceipt({name: 'receipt.PDF', size: CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE}, setError);
+
+            // Then invalid results stay false while a valid mixed-case extension does not add an error.
+            expect([invalidExtension, tooLarge, tooSmall, valid]).toEqual([false, false, false, true]);
+            expect(setError).toHaveBeenCalledTimes(3);
+        });
+    });
+
+    describe('clipboard extraction and name cleaning', () => {
+        const mockCreateObjectURL = jest.fn<ReturnType<typeof URL.createObjectURL>, Parameters<typeof URL.createObjectURL>>().mockReturnValue('blob:clipboard-file');
+        let originalCreateObjectURL: PropertyDescriptor | undefined;
+
+        beforeEach(() => {
+            originalCreateObjectURL = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+            Object.defineProperty(URL, 'createObjectURL', {configurable: true, value: mockCreateObjectURL});
+            mockCreateObjectURL.mockClear();
+        });
+
+        afterEach(() => {
+            if (originalCreateObjectURL) {
+                Object.defineProperty(URL, 'createObjectURL', originalCreateObjectURL);
+            } else {
+                Reflect.deleteProperty(URL, 'createObjectURL');
+            }
+        });
+
+        it('returns and augments the actual File through clipboard extraction', () => {
+            // Given the browser clipboard contains real Files, rather than native descriptors.
+            const file = new File(['clipboard bytes'], 'receipt.txt', {type: 'text/plain'});
+            const event = createMock<DragEvent>({dataTransfer: {files: createMock<FileList>({length: 1, [Symbol.iterator]: () => [file][Symbol.iterator]()})}});
+
+            // When the real clipboard helper augments that File with a URI.
+            const clipboardFiles: File[] = getFilesFromClipboardEvent(event);
+
+            // Then File identity, bytes and MIME stay intact and each URI is created from the File itself.
+            expect(clipboardFiles).toHaveLength(1);
+            expect(clipboardFiles.at(0)).toBe(file);
+            expect(file.uri).toBe('blob:clipboard-file');
+            expect(file.size).toBe('clipboard bytes'.length);
+            expect(file.type).toBe('text/plain');
+            expect(mockCreateObjectURL.mock.calls.map(([blob]) => blob)).toEqual([file]);
+        });
+
+        it('keeps null extraction and native descriptors at their existing boundaries', () => {
+            // Given failed DataTransferItem extraction is distinct from a valid native descriptor.
+            const failedItem = {getAsFile: () => null} satisfies FileObject;
+            const descriptor = {name: 'receipt.jpg', type: 'image/jpeg', uri: 'file:///receipt.jpg'} satisfies FileObject;
+
+            // When the actual extraction/name-cleaning functions process those categories.
+            const failed = cleanFileObject(failedItem);
+            const cleanedFailure = cleanFileObjectName(failed);
+            const cleanedDescriptor = cleanFileObjectName(cleanFileObject(descriptor));
+
+            // Then null remains null and descriptors retain identity without creating browser URLs.
+            expect(failed).toBeNull();
+            expect(cleanedFailure).toBeNull();
+            expect(cleanedDescriptor).toBe(descriptor);
+            expect(mockCreateObjectURL).not.toHaveBeenCalled();
+        });
+
+        it('renames only unsafe File names and retains extraction and URI identity for valid names', async () => {
+            // Given only an illegal filename needs a replacement File during name cleaning.
+            const file = new File(['file bytes'], 'bad:name.txt', {type: 'text/plain'});
+            const item = {getAsFile: () => file} satisfies FileObject;
+
+            // When actual extraction returns the File and cleaning supplies the safe replacement.
+            const extracted = cleanFileObject(item);
+            const cleaned = cleanFileObjectName(extracted);
+            expect(cleaned).toBeInstanceOf(File);
+            if (!(cleaned instanceof File)) {
+                throw new Error('File name cleaning must return a File');
+            }
+            const bytes = await new Promise<FileReader['result']>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsText(cleaned);
+            });
+
+            // Then bytes/MIME survive renaming and repeated cleaning does not replace or recreate the URI.
+            expect(extracted).toBe(file);
+            expect(cleaned).not.toBe(file);
+            expect(cleaned.name).toBe('bad_name.txt');
+            expect(cleaned.type).toBe(file.type);
+            expect(bytes).toBe('file bytes');
+            expect(cleaned.uri).toBe('blob:clipboard-file');
+            expect(cleanFileObjectName(cleaned)).toBe(cleaned);
+            expect(mockCreateObjectURL).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -387,9 +516,11 @@ describe('FileUtils', () => {
             };
 
             const mockFetchWithBlob = (blob: Blob) => {
-                global.fetch = jest.fn().mockResolvedValue({
-                    blob: () => Promise.resolve(blob),
-                });
+                global.fetch = jest.fn<ReturnType<typeof fetch>, Parameters<typeof fetch>>().mockResolvedValue(
+                    createMock<Response>({
+                        blob: () => Promise.resolve(blob),
+                    }),
+                );
             };
 
             afterEach(() => {
@@ -397,12 +528,16 @@ describe('FileUtils', () => {
             });
 
             it('should read dimensions from JPEG file header (SOF0 marker)', async () => {
+                // Given non-square JPEG dimensions distinguish width and height offsets.
                 const jpegBlob = createMockJpegBlob(1920, 1080);
                 mockFetchWithBlob(jpegBlob);
 
+                // When the actual reader and parser decode the binary header.
                 const file = {uri: 'blob:http://localhost/test-jpeg', name: 'test.jpg', type: 'image/jpeg'};
                 const result = await getImageDimensionsAfterResize(file);
 
+                // Then scaling preserves the exact dimensions from the JPEG offsets.
+                expect(result).toEqual({width: CONST.MAX_IMAGE_DIMENSION, height: 1080 * (CONST.MAX_IMAGE_DIMENSION / 1920)});
                 // Should scale down from 1920x1080 to fit MAX_IMAGE_DIMENSION
                 expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
                 expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
@@ -411,12 +546,16 @@ describe('FileUtils', () => {
             });
 
             it('should read dimensions from PNG file header (IHDR chunk)', async () => {
+                // Given non-square PNG dimensions distinguish the two IHDR offsets.
                 const pngBlob = createMockPngBlob(2560, 1440);
                 mockFetchWithBlob(pngBlob);
 
+                // When the actual reader and parser decode the PNG header.
                 const file = {uri: 'blob:http://localhost/test-png', name: 'test.png', type: 'image/png'};
                 const result = await getImageDimensionsAfterResize(file);
 
+                // Then both IHDR dimensions are retained before scaling.
+                expect(result).toEqual({width: CONST.MAX_IMAGE_DIMENSION, height: 1440 * (CONST.MAX_IMAGE_DIMENSION / 2560)});
                 // Should scale down from 2560x1440 to fit MAX_IMAGE_DIMENSION
                 expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
                 expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
@@ -456,6 +595,20 @@ describe('FileUtils', () => {
                 expect(ImageSize.getSize).toHaveBeenCalled();
                 expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
                 expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+            });
+
+            it.each([null, 'not an ArrayBuffer'])('falls back when FileReader.result is %p', async (readerResult) => {
+                // Given readAsArrayBuffer normally produces binary data, while absence or another member cannot be parsed.
+                mockFetchWithBlob(new Blob(['unrecognized header']));
+                jest.spyOn(FileReader.prototype, 'result', 'get').mockReturnValue(readerResult);
+                jest.mocked(ImageSize.getSize).mockResolvedValue({width: 800, height: 600});
+
+                // When the real exported resize interface reaches its header-reader boundary.
+                const result = await getImageDimensionsAfterResize({name: 'receipt.png', uri: 'blob:reader-result'});
+
+                // Then the established ImageSize fallback retains its URI and scaled dimensions.
+                expect(ImageSize.getSize).toHaveBeenCalledWith('blob:reader-result');
+                expect(result).toEqual({width: CONST.MAX_IMAGE_DIMENSION, height: 600 * (CONST.MAX_IMAGE_DIMENSION / 800)});
             });
 
             it('should handle JPEG with SOF2 marker (progressive)', async () => {
