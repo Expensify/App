@@ -1,18 +1,20 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import useSaveMarketingAttribution from '@hooks/useSaveMarketingAttribution';
 
-import {captureMarketingAttributionFromURL, savePendingMarketingAttribution} from '@libs/actions/MarketingAttribution';
+import {captureMarketingAttributionFromURL, saveMarketingAttribution} from '@libs/actions/MarketingAttribution';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MarketingAttribution} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import React from 'react';
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 function setLandingURL(search: string) {
     window.history.replaceState({}, '', `/${search}`);
@@ -44,113 +46,160 @@ describe('MarketingAttribution', () => {
         setLandingURL('');
     });
 
-    it('stores the UTM params, Google Ads params and click IDs from the landing URL', async () => {
-        // Given a landing URL from a Google ad
-        setLandingURL(
-            '?utm_source=google&utm_medium=cpc&utm_campaign=123&utm_content=456-789&utm_term=expense%20app-e&device=m&network=g&gclid=testGclid&gbraid=testGbraid&wbraid=testWbraid',
-        );
+    describe('captureMarketingAttributionFromURL', () => {
+        it('returns the UTM params, Google Ads params and click IDs from the landing URL', () => {
+            // Given a landing URL from a Google ad
+            setLandingURL(
+                '?utm_source=google&utm_medium=cpc&utm_campaign=123&utm_content=456-789&utm_term=expense%20app-e&device=m&network=g&gclid=testGclid&gbraid=testGbraid&wbraid=testWbraid',
+            );
 
-        // When the attribution is captured
-        captureMarketingAttributionFromURL();
-        savePendingMarketingAttribution(false);
-        await waitForBatchedUpdates();
+            // When the attribution is captured, then every param is returned under its request param name
+            expect(captureMarketingAttributionFromURL()).toEqual({
+                utm_source: 'google',
+                utm_medium: 'cpc',
+                utm_campaign: '123',
+                utm_content: '456-789',
+                utm_term: 'expense app-e',
+                device: 'm',
+                network: 'g',
+                gclid: 'testGclid',
+                gbraid: 'testGbraid',
+                wbraid: 'testWbraid',
+            });
+        });
 
-        // Then every param is stored under its request param name
-        expect(await getStoredAttribution()).toEqual({
-            utm_source: 'google',
-            utm_medium: 'cpc',
-            utm_campaign: '123',
-            utm_content: '456-789',
-            utm_term: 'expense app-e',
-            device: 'm',
-            network: 'g',
-            gclid: 'testGclid',
-            gbraid: 'testGbraid',
-            wbraid: 'testWbraid',
+        it('ignores params that are not marketing attribution', () => {
+            // Given a landing URL with unrelated params
+            setLandingURL('?utm_source=reddit&exitTo=settings&fbclid=testFbclid');
+
+            // When the attribution is captured, then only the attribution param is returned
+            expect(captureMarketingAttributionFromURL()).toEqual({utm_source: 'reddit'});
+        });
+
+        it('returns undefined when the URL carries no params', () => {
+            // Given a landing URL without attribution params
+            setLandingURL('?exitTo=settings');
+
+            // When the attribution is captured, then nothing is returned
+            expect(captureMarketingAttributionFromURL()).toBeUndefined();
+        });
+
+        it('does not write to Onyx', async () => {
+            // Given a landing URL with UTM params
+            setLandingURL('?utm_source=google');
+
+            // When the attribution is captured
+            captureMarketingAttributionFromURL();
+            await waitForBatchedUpdates();
+
+            // Then nothing is stored
+            expect(await getStoredAttribution()).toBeUndefined();
         });
     });
 
-    it('ignores params that are not marketing attribution', async () => {
-        // Given a landing URL with an unrelated param
-        setLandingURL('?utm_source=reddit&exitTo=settings&fbclid=testFbclid');
+    describe('saveMarketingAttribution', () => {
+        it('replaces the stored attribution instead of merging into it', async () => {
+            // Given attribution stored from an earlier Google ad click
+            await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, {utm_source: 'google', utm_medium: 'cpc', gclid: 'testGclid', device: 'm'});
 
-        // When the attribution is captured
-        captureMarketingAttributionFromURL();
-        savePendingMarketingAttribution(false);
-        await waitForBatchedUpdates();
+            // When attribution from a later Reddit ad is saved
+            saveMarketingAttribution({utm_source: 'reddit', utm_campaign: 'spring'}, false);
+            await waitForBatchedUpdates();
 
-        // Then only the attribution param is stored
-        expect(await getStoredAttribution()).toEqual({utm_source: 'reddit'});
+            // Then only the Reddit values are kept, so values from the two clicks are not combined
+            expect(await getStoredAttribution()).toEqual({utm_source: 'reddit', utm_campaign: 'spring'});
+        });
+
+        it('keeps the stored attribution when nothing was captured', async () => {
+            // Given attribution stored from an earlier ad click
+            await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, {utm_source: 'google', gclid: 'testGclid'});
+
+            // When a load without attribution params is saved
+            saveMarketingAttribution(undefined, false);
+            await waitForBatchedUpdates();
+
+            // Then the stored attribution is kept
+            expect(await getStoredAttribution()).toEqual({utm_source: 'google', gclid: 'testGclid'});
+        });
+
+        it('does nothing when the user has a session', async () => {
+            // When attribution is saved for a signed-in user
+            saveMarketingAttribution({utm_source: 'google'}, true);
+            await waitForBatchedUpdates();
+
+            // Then the key stays unset
+            expect(await getStoredAttribution()).toBeUndefined();
+        });
     });
 
-    it('replaces the stored attribution when the URL carries new params', async () => {
-        // Given attribution stored from an earlier Google ad click
-        await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, {utm_source: 'google', utm_medium: 'cpc', gclid: 'testGclid', device: 'm'});
+    describe('useSaveMarketingAttribution', () => {
+        it('stores the attribution from the landing URL when the user has no session', async () => {
+            // Given no session and a landing URL with UTM params
+            setLandingURL('?utm_source=google&utm_medium=cpc');
 
-        // When the user lands again from a Reddit ad
-        setLandingURL('?utm_source=reddit&utm_campaign=spring');
-        captureMarketingAttributionFromURL();
-        savePendingMarketingAttribution(false);
-        await waitForBatchedUpdates();
+            // When the hook renders and the session has loaded
+            renderHook(() => useSaveMarketingAttribution());
+            await waitForBatchedUpdatesWithAct();
 
-        // Then only the Reddit values are kept, so values from the two clicks are not combined
-        expect(await getStoredAttribution()).toEqual({utm_source: 'reddit', utm_campaign: 'spring'});
-    });
+            // Then the attribution is written
+            expect(await getStoredAttribution()).toEqual({utm_source: 'google', utm_medium: 'cpc'});
+        });
 
-    it('keeps the stored attribution when the URL carries no params', async () => {
-        // Given attribution stored from an earlier ad click
-        await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, {utm_source: 'google', gclid: 'testGclid'});
+        it('does not store the attribution when the user already has a session', async () => {
+            // Given a signed-in user and a landing URL with UTM params
+            await Onyx.set(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'test@test.com'});
+            setLandingURL('?utm_source=google&utm_medium=cpc');
 
-        // When the user comes back without any attribution params
-        setLandingURL('');
-        captureMarketingAttributionFromURL();
-        savePendingMarketingAttribution(false);
-        await waitForBatchedUpdates();
+            // When the hook renders and the session has loaded
+            renderHook(() => useSaveMarketingAttribution());
+            await waitForBatchedUpdatesWithAct();
 
-        // Then the stored attribution is kept
-        expect(await getStoredAttribution()).toEqual({utm_source: 'google', gclid: 'testGclid'});
-    });
+            // Then the key stays unset
+            expect(await getStoredAttribution()).toBeUndefined();
+        });
 
-    it('does not store the attribution when the user already has a session', async () => {
-        // Given a signed-in user and a landing URL with UTM params
-        await Onyx.set(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'test@test.com'});
-        setLandingURL('?utm_source=google&utm_medium=cpc');
+        it('reads the URL on the first render only', async () => {
+            // Given a landing URL with UTM params that the router later strips
+            setLandingURL('?utm_source=google');
+            const {rerender} = renderHook(() => useSaveMarketingAttribution());
+            setLandingURL('');
+            rerender({});
+            await waitForBatchedUpdatesWithAct();
 
-        // When the attribution is captured and the session has loaded
-        captureMarketingAttributionFromURL();
-        renderHook(() => useSaveMarketingAttribution());
-        await waitForBatchedUpdates();
+            // Then the attribution from the landing URL is stored
+            expect(await getStoredAttribution()).toEqual({utm_source: 'google'});
+        });
 
-        // Then the key stays unset
-        expect(await getStoredAttribution()).toBeUndefined();
-    });
+        it('saves the attribution only once, even after the session changes', async () => {
+            // Given attribution saved on landing
+            setLandingURL('?utm_source=google');
+            renderHook(() => useSaveMarketingAttribution());
+            await waitForBatchedUpdatesWithAct();
 
-    it('stores the attribution when the user has no session', async () => {
-        // Given no session and a landing URL with UTM params
-        setLandingURL('?utm_source=google&utm_medium=cpc');
+            // When signup clears it and the user later signs in and out
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, null);
+                await Onyx.set(ONYXKEYS.SESSION, {authToken: 'testAuthToken'});
+            });
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {});
+            });
+            await waitForBatchedUpdatesWithAct();
 
-        // When the attribution is captured and the session has loaded
-        captureMarketingAttributionFromURL();
-        renderHook(() => useSaveMarketingAttribution());
-        await waitForBatchedUpdates();
+            // Then the attribution is not written again
+            expect(await getStoredAttribution()).toBeUndefined();
+        });
 
-        // Then the attribution is written
-        expect(await getStoredAttribution()).toEqual({utm_source: 'google', utm_medium: 'cpc'});
-    });
+        it('works under StrictMode', async () => {
+            // Given a landing URL with UTM params
+            setLandingURL('?utm_source=google&gclid=testGclid');
 
-    it('saves the captured attribution only once', async () => {
-        // Given attribution captured from the landing URL and saved
-        setLandingURL('?utm_source=google');
-        captureMarketingAttributionFromURL();
-        savePendingMarketingAttribution(false);
-        await waitForBatchedUpdates();
+            // When the hook renders under StrictMode, which double-invokes initializers and effects
+            renderHook(() => useSaveMarketingAttribution(), {wrapper: React.StrictMode});
+            await waitForBatchedUpdatesWithAct();
 
-        // When the stored value is cleared, as signup does, and the save runs again
-        await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, null);
-        savePendingMarketingAttribution(false);
-        await waitForBatchedUpdates();
-
-        // Then the attribution is not written again
-        expect(await getStoredAttribution()).toBeUndefined();
+            // Then the attribution is stored
+            expect(await getStoredAttribution()).toEqual({utm_source: 'google', gclid: 'testGclid'});
+        });
     });
 });

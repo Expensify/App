@@ -12,18 +12,13 @@ import Onyx from 'react-native-onyx';
  */
 const MARKETING_PARAM_KEYS: Array<keyof MarketingAttribution> = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'device', 'network', 'gclid', 'gbraid', 'wbraid'];
 
-/** Attribution read from the landing URL at startup, waiting for the session to load before it is saved */
-let pendingMarketingAttribution: MarketingAttribution | undefined;
-
 /**
  * Reads marketing attribution (UTM params, Google Ads device and network, and Google Ads click IDs) from the landing URL.
- * This only runs on web, where ad traffic lands, and reads `window.location` directly at app startup before the router
- * can strip the query string. The values are kept in memory until `savePendingMarketingAttribution` is called once the
- * session has loaded.
+ * This only finds values on web, where ad traffic lands. It has no side effects, and returns undefined when the URL carries none of the params.
  */
-function captureMarketingAttributionFromURL() {
+function captureMarketingAttributionFromURL(): MarketingAttribution | undefined {
     if (typeof window === 'undefined' || !window.location) {
-        return;
+        return undefined;
     }
 
     const captured: MarketingAttribution = {};
@@ -34,7 +29,7 @@ function captureMarketingAttributionFromURL() {
         }
     }
 
-    pendingMarketingAttribution = Object.keys(captured).length > 0 ? captured : undefined;
+    return Object.keys(captured).length > 0 ? captured : undefined;
 }
 
 /**
@@ -45,9 +40,7 @@ function captureMarketingAttributionFromURL() {
  * (e.g. a Google gclid and later Reddit UTMs) never get combined. A page load without any of the params
  * keeps the stored attribution.
  */
-function savePendingMarketingAttribution(hasSession: boolean) {
-    const captured = pendingMarketingAttribution;
-    pendingMarketingAttribution = undefined;
+function saveMarketingAttribution(captured: MarketingAttribution | undefined, hasSession: boolean) {
     if (!captured || hasSession) {
         return;
     }
@@ -55,4 +48,4 @@ function savePendingMarketingAttribution(hasSession: boolean) {
     Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, captured);
 }
 
-export {captureMarketingAttributionFromURL, savePendingMarketingAttribution};
+export {captureMarketingAttributionFromURL, saveMarketingAttribution};
