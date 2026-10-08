@@ -8,6 +8,7 @@ import type {Route} from './ROUTES';
 import CONST from './CONST';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useOnyx from './hooks/useOnyx';
+import {usePersonalDetailsByIDs} from './hooks/usePersonalDetails';
 import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
@@ -17,6 +18,7 @@ import {endSpan} from './libs/telemetry/activeSpans';
 import {hasSecureLinkKey} from './libs/Url';
 import ONYXKEYS from './ONYXKEYS';
 import {guidedSetupAndTourStatusSelector} from './selectors/Onboarding';
+import {isEmptyObject} from './types/utils/EmptyObject';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 type DeepLinkHandlerProps = {
@@ -45,11 +47,19 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+    // Only Concierge's personal detail is needed to create the Concierge chat when a deep link points to a missing report.
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    // Read through a ref so a Concierge personal detail update (e.g. OpenApp loading it) does not re-run deep link handling.
+    const conciergePersonalDetailsRef = useRef(conciergePersonalDetails);
     const isAuthenticated = useIsAuthenticated();
 
     useEffect(() => {
         reportNameValuePairsRef.current = reportNameValuePairs;
     }, [reportNameValuePairs]);
+
+    useEffect(() => {
+        conciergePersonalDetailsRef.current = conciergePersonalDetails;
+    }, [conciergePersonalDetails]);
 
     // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
     // below). Track the pending reportID so both the initial-URL and the url-change paths stay in sync.
@@ -121,6 +131,9 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     if (introSelected === undefined) {
                         Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                     }
+                    if (isEmptyObject(conciergePersonalDetailsRef.current)) {
+                        Log.info('[Deep link] Concierge personal details are empty when processing initial URL', false, {url});
+                    }
                     openReportFromDeepLink(
                         url,
                         allReports,
@@ -130,6 +143,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         guidedSetupAndTourStatus?.isSelfTourViewed,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         reportNameValuePairsRef.current,
+                        conciergePersonalDetailsRef.current,
                     );
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
@@ -157,6 +171,9 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             if (introSelected === undefined) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
+            if (isEmptyObject(conciergePersonalDetailsRef.current)) {
+                Log.info('[Deep link] Concierge personal details are empty when processing URL change', false, {url: state.url});
+            }
             const isCurrentlyAuthenticated = hasAuthToken();
             // A Submit-via-PDF secure access link can arrive while the app is already running (warm), where
             // getInitialURL() is empty. Record it so onboarding suppression has a session-sticky signal, the same
@@ -173,6 +190,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 guidedSetupAndTourStatus?.isSelfTourViewed,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 reportNameValuePairsRef.current,
+                conciergePersonalDetailsRef.current,
             );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
