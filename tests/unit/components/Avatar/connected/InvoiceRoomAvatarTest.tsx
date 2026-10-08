@@ -169,8 +169,10 @@ describe('InvoiceRoomAvatar (connected)', () => {
     });
 
     it('should prefer the Search snapshot personal details over the live list', () => {
-        // Given an invoice room whose receiving person is only known to the Search snapshot, as on a Search surface
-        mockPersonalDetails = {};
+        // Given an invoice room whose receiving person is in both the Search snapshot and the live list, with conflicting details, as on a Search surface
+        mockPersonalDetails = {
+            [RECEIVER_ACCOUNT_ID]: {accountID: RECEIVER_ACCOUNT_ID, login: RECEIVER_LOGIN, displayName: 'Live Name', avatar: 'https://example.com/live-avatar.png'},
+        };
         mockOnyxData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
             [RECEIVER_ACCOUNT_ID]: {accountID: RECEIVER_ACCOUNT_ID, login: RECEIVER_LOGIN, displayName: RECEIVER_DISPLAY_NAME, avatar: RECEIVER_AVATAR_URL},
         };
@@ -184,7 +186,7 @@ describe('InvoiceRoomAvatar (connected)', () => {
             />,
         );
 
-        // Then the person is named and pictured from the snapshot
+        // Then the person is named and pictured from the snapshot, not the live list
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(PERSON_ICON);
     });
 
@@ -192,7 +194,7 @@ describe('InvoiceRoomAvatar (connected)', () => {
         ['a person without personal details, with the given container style', INDIVIDUAL_RECEIVER, () => (mockPersonalDetails = {}), CONTAINER_STYLE, CONTAINER_STYLE],
         ['a workspace whose policy row has not loaded, with the size-derived container styles', BUSINESS_RECEIVER, () => (mockOnyxData = {}), undefined, SIZE_DERIVED_CONTAINER_STYLE],
         [
-            'a workspace whose policy row has no name, with the emptied container styles of a horizontal stack',
+            'a workspace whose policy row has no name, with empty container styles',
             BUSINESS_RECEIVER,
             () => (mockOnyxData = {[`${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`]: {id: RECEIVER_POLICY_ID}}),
             [],
@@ -306,6 +308,34 @@ describe('InvoiceRoomAvatar (connected)', () => {
         expect(screen.getByTestId('MockedSubscriptAvatar')).toBeOnTheScreen();
         expect(screen.queryByTestId('MockedHorizontalAvatars')).not.toBeOnTheScreen();
         expect(mockCapturedSubscriptAvatarProps).toMatchObject({primaryAvatar: SENDER_ICON, secondaryAvatar: RECEIVER_WORKSPACE_ICON, containerStyle: SUBSCRIPT_CONTAINER_STYLE});
+    });
+
+    it('should render the workspace alone for an invoice room between two workspaces whose receiver has not loaded inside a horizontal stack', () => {
+        // Given an invoice room sent to another workspace whose policy row has not loaded
+        mockOnyxData = {};
+
+        // When it renders inside a horizontal stack, with the empty container styles the dispatcher passes there
+        renderWithPersonalDetails(
+            <InvoiceRoomAvatar
+                invoiceReceiver={BUSINESS_RECEIVER}
+                primaryAvatar={SENDER_ICON}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+                containerStyle={[]}
+                horizontalStacking
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then two workspaces never stack, and a nameless subscript would render as an empty ring, so the single layout gets the workspace alone
+        expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
+        expect(screen.queryByTestId('MockedHorizontalAvatars')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('MockedSubscriptAvatar')).not.toBeOnTheScreen();
+        expect(mockCapturedSingleAvatarProps).toEqual({
+            avatar: SENDER_ICON,
+            size: CONST.AVATAR_SIZE.DEFAULT,
+            containerStyles: [],
+            fallbackDisplayName: FALLBACK_NAME,
+        });
     });
 
     it('should stack the unknown account and a receiving workspace when the room has no sending workspace', () => {
