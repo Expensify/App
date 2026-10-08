@@ -211,6 +211,13 @@ function getWorkspaceMenuItems({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
         },
         {
+            translationKey: 'workspace.agents.title',
+            icon: icons.Bot,
+            getRoute: () => ROUTES.WORKSPACE_AGENTS.getRoute(policyID),
+            screenName: SCREENS.WORKSPACE.AGENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
+        },
+        {
             translationKey: 'workspace.common.rooms',
             icon: icons.Hashtag,
             getRoute: () => ROUTES.WORKSPACE_ROOMS.getRoute(policyID),

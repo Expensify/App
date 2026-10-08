@@ -851,6 +851,7 @@ const SCREENS = {
         DYNAMIC_INVOICE_FIELDS_INITIAL_LIST_VALUE: 'Dynamic_Invoice_Fields_Initial_List_Value',
         INVOICE_FIELDS_TYPE_SELECTOR: 'Workspace_InvoiceFields_TypeSelector',
         MEMBERS: 'Workspace_Members',
+        AGENTS: 'Workspace_Agents',
         ROOMS: 'Workspace_Rooms',
         ROOM_CREATE: 'Workspace_Room_Create',
         MEMBERS_IMPORT: 'Members_Import',

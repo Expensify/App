@@ -1162,6 +1162,7 @@ const CONST = {
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        COMPANY_AGENTS: 'companyAgents',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -9883,6 +9884,7 @@ const CONST = {
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
                 MEMBERS: 'WorkspaceInitial-Members',
+                AGENTS: 'WorkspaceInitial-Agents',
                 ROOMS: 'WorkspaceInitial-Rooms',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',

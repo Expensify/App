@@ -535,6 +535,7 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.map((item) => item.getRoute())).toEqual([
             ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id),
             ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id),
+            ROUTES.WORKSPACE_AGENTS.getRoute(policy.id),
             ROUTES.WORKSPACE_ROOMS.getRoute(policy.id),
             ROUTES.WORKSPACE_REPORTS.getRoute(policy.id),
             ROUTES.POLICY_ACCOUNTING.getRoute(policy.id),
@@ -560,6 +561,7 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.map((item) => item.screenName)).toEqual([
             SCREENS.WORKSPACE.PROFILE,
             SCREENS.WORKSPACE.MEMBERS,
+            SCREENS.WORKSPACE.AGENTS,
             SCREENS.WORKSPACE.ROOMS,
             SCREENS.WORKSPACE.REPORTS,
             SCREENS.WORKSPACE.ACCOUNTING.ROOT,

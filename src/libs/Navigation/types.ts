@@ -3291,6 +3291,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.AGENTS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ROOMS]: {
         policyID: string;
     };

@@ -23,6 +23,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.WORKFLOWS]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPageRevamp').default,
     [SCREENS.WORKSPACE.INVOICES]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesPage').default,
     [SCREENS.WORKSPACE.MEMBERS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceMembersPage').default,
+    [SCREENS.WORKSPACE.AGENTS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceAgentsPage').default,
     [SCREENS.WORKSPACE.ROOMS]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
     [SCREENS.WORKSPACE.HR]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/WorkspaceHRPage').default,
