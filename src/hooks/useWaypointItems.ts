@@ -28,7 +28,9 @@ function useWaypointItems(waypoints: WaypointCollection): UseWaypointItemsParams
         const key = `waypoint${i}`;
         const waypoint = waypoints[key];
 
-        const keyForList = waypoint?.keyForList ?? '';
+        // Waypoints saved on the server have no keyForList, so fall back to the waypoint key to
+        // keep rows unique. A shared key makes the lookup resolve every row to the same waypoint.
+        const keyForList = waypoint?.keyForList ?? key;
 
         waypointItems.push(keyForList);
         waypointsByKeyForList[keyForList] = {key, waypoint};

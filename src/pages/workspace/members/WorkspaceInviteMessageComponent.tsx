@@ -226,9 +226,20 @@ function WorkspaceInviteMessageComponent({
             if (nestedBackTo) {
                 Navigation.goBack(nestedBackTo as Routes);
             } else if (approvalWorkflow?.isFastEdit) {
+                const invitedEmails = new Set(Object.keys(invitedEmailsToAccountIDsDraft ?? {}));
+                const shouldExcludeInvitedMembers = shouldShowApproverRow && !!approverDraft && !!validatedApprover && validatedApprover !== approvalWorkflow.approvers.at(0)?.email;
+                // An explicit approver choice owns the invited members. Saving them with the edited workflow would overwrite that choice.
+                const approvalWorkflowToSave = shouldExcludeInvitedMembers
+                    ? {...approvalWorkflow, members: approvalWorkflow.members.filter((member) => !invitedEmails.has(member.email))}
+                    : approvalWorkflow;
                 Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID), {
                     afterTransition: () =>
-                        saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: rulesCollection, isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)}),
+                        saveFastEditApprovalWorkflow({
+                            approvalWorkflow: approvalWorkflowToSave,
+                            policy,
+                            rules: rulesCollection,
+                            isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS),
+                        }),
                 });
             } else {
                 // forceReplace so the invite page is removed from the stack. Otherwise it stays
