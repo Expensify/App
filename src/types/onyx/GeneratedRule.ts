@@ -20,17 +20,8 @@ type GeneratedRule = {
     /** The outcome of the generation attempt */
     state: GeneratedRuleState;
 
-    /** The rule type the description was mapped to */
-    ruleType?: GeneratedRuleType;
-
     /** The form values to seed the rule draft with */
     rule?: GeneratedRuleValues;
-
-    /** Short description of the generated rule */
-    summary?: string;
-
-    /** The area no rule type supports */
-    unsupportedArea?: string;
 };
 
 export default GeneratedRule;

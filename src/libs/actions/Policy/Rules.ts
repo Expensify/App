@@ -6,9 +6,9 @@ import * as API from '@libs/API';
 import type {
     AddPolicyAgentRuleParams,
     DeletePolicyAgentRuleParams,
+    GenerateRuleParams,
     GetAgentRuleSuggestionsParams,
     ImportMerchantRulesSpreadsheetParams,
-    GenerateRuleParams,
     UpdatePolicyAgentRuleParams,
 } from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -411,7 +411,7 @@ const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths
 
 /**
  * Asks Concierge to turn a description into values for the given rule form. The response only confirms the job was
- * queued; the answer arrives later under `ONYXKEYS.GENERATED_RULE`, so the form stays loading until it does.
+ * queued. The answer arrives later under `ONYXKEYS.GENERATED_RULE`, so the form stays loading until it does.
  * @returns the generationID the answer carries
  */
 function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: string): string {

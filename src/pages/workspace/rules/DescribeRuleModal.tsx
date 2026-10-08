@@ -132,8 +132,6 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 shouldUseScrollView={false}
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
-                shouldValidateOnChange
-                shouldValidateOnBlur
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
