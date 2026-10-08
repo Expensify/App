@@ -1458,12 +1458,10 @@ describe('Session', () => {
 
         test('sends the captured marketing attribution and clears it on success', async () => {
             // Given marketing attribution captured from a Google ad
-            await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, googleAdAttribution);
-            await waitForBatchedUpdates();
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
-            // When the user signs up
-            SessionUtil.signUpUser('new.user@example.com', CONST.LOCALES.EN);
+            // When the user signs up with it
+            SessionUtil.signUpUser('new.user@example.com', CONST.LOCALES.EN, undefined, googleAdAttribution);
             await waitForBatchedUpdates();
 
             // Then the attribution is sent with the request params

@@ -131,12 +131,6 @@ Onyx.connect({
     callback: (value) => (credentials = value ?? {}),
 });
 
-let marketingAttribution: MarketingAttribution = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.MARKETING_ATTRIBUTION,
-    callback: (value) => (marketingAttribution = value ?? {}),
-});
-
 let stashedCredentials: Credentials = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.STASHED_CREDENTIALS,
@@ -670,9 +664,9 @@ function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
 
 /**
  * Creates an account for the new user and signs them into the application with the newly created account.
- *
+ * The marketing attribution captured from the landing URL is sent with the request and cleared once signup succeeds.
  */
-function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean) {
+function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean, marketingAttribution?: OnyxEntry<MarketingAttribution>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

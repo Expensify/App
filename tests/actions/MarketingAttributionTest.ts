@@ -1,4 +1,8 @@
-import {captureMarketingAttribution} from '@libs/actions/MarketingAttribution';
+import {renderHook} from '@testing-library/react-native';
+
+import useSaveMarketingAttribution from '@hooks/useSaveMarketingAttribution';
+
+import {captureMarketingAttributionFromURL, savePendingMarketingAttribution} from '@libs/actions/MarketingAttribution';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MarketingAttribution} from '@src/types/onyx';
@@ -26,7 +30,7 @@ function getStoredAttribution(): Promise<OnyxEntry<MarketingAttribution>> {
     });
 }
 
-describe('captureMarketingAttribution', () => {
+describe('MarketingAttribution', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -47,7 +51,8 @@ describe('captureMarketingAttribution', () => {
         );
 
         // When the attribution is captured
-        await captureMarketingAttribution();
+        captureMarketingAttributionFromURL();
+        savePendingMarketingAttribution(false);
         await waitForBatchedUpdates();
 
         // Then every param is stored under its request param name
@@ -70,7 +75,8 @@ describe('captureMarketingAttribution', () => {
         setLandingURL('?utm_source=reddit&exitTo=settings&fbclid=testFbclid');
 
         // When the attribution is captured
-        await captureMarketingAttribution();
+        captureMarketingAttributionFromURL();
+        savePendingMarketingAttribution(false);
         await waitForBatchedUpdates();
 
         // Then only the attribution param is stored
@@ -83,7 +89,8 @@ describe('captureMarketingAttribution', () => {
 
         // When the user lands again from a Reddit ad
         setLandingURL('?utm_source=reddit&utm_campaign=spring');
-        await captureMarketingAttribution();
+        captureMarketingAttributionFromURL();
+        savePendingMarketingAttribution(false);
         await waitForBatchedUpdates();
 
         // Then only the Reddit values are kept, so values from the two clicks are not combined
@@ -96,7 +103,8 @@ describe('captureMarketingAttribution', () => {
 
         // When the user comes back without any attribution params
         setLandingURL('');
-        await captureMarketingAttribution();
+        captureMarketingAttributionFromURL();
+        savePendingMarketingAttribution(false);
         await waitForBatchedUpdates();
 
         // Then the stored attribution is kept
@@ -108,8 +116,9 @@ describe('captureMarketingAttribution', () => {
         await Onyx.set(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'test@test.com'});
         setLandingURL('?utm_source=google&utm_medium=cpc');
 
-        // When the attribution is captured
-        await captureMarketingAttribution();
+        // When the attribution is captured and the session has loaded
+        captureMarketingAttributionFromURL();
+        renderHook(() => useSaveMarketingAttribution());
         await waitForBatchedUpdates();
 
         // Then the key stays unset
@@ -120,11 +129,28 @@ describe('captureMarketingAttribution', () => {
         // Given no session and a landing URL with UTM params
         setLandingURL('?utm_source=google&utm_medium=cpc');
 
-        // When the attribution is captured
-        await captureMarketingAttribution();
+        // When the attribution is captured and the session has loaded
+        captureMarketingAttributionFromURL();
+        renderHook(() => useSaveMarketingAttribution());
         await waitForBatchedUpdates();
 
         // Then the attribution is written
         expect(await getStoredAttribution()).toEqual({utm_source: 'google', utm_medium: 'cpc'});
+    });
+
+    it('saves the captured attribution only once', async () => {
+        // Given attribution captured from the landing URL and saved
+        setLandingURL('?utm_source=google');
+        captureMarketingAttributionFromURL();
+        savePendingMarketingAttribution(false);
+        await waitForBatchedUpdates();
+
+        // When the stored value is cleared, as signup does, and the save runs again
+        await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, null);
+        savePendingMarketingAttribution(false);
+        await waitForBatchedUpdates();
+
+        // Then the attribution is not written again
+        expect(await getStoredAttribution()).toBeUndefined();
     });
 });
