@@ -11,6 +11,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
+import type {NavigationAction} from '@react-navigation/native';
+
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -33,14 +35,25 @@ let mockOnInputFocus: ((restoreFocus: () => void) => void) | undefined;
 let mockOnInputBlur: (() => void) | undefined;
 let mockOnCancel: (() => void) | undefined;
 let mockOnVisibilityChange: ((isVisible: boolean) => void) | undefined;
+let mockShouldPromptForNavigationAction: ((action: NavigationAction) => boolean) | undefined;
 
 jest.mock('@userActions/Tab');
-jest.mock('@hooks/useDiscardChangesConfirmation', () => (options: {getHasUnsavedChanges: () => boolean; onCancel?: () => void; onVisibilityChange?: (isVisible: boolean) => void}) => {
-    mockGetHasUnsavedChanges = options.getHasUnsavedChanges;
-    mockOnCancel = options.onCancel;
-    mockOnVisibilityChange = options.onVisibilityChange;
-    return {suppressDiscardPrompt: jest.fn()};
-});
+jest.mock(
+    '@hooks/useDiscardChangesConfirmation',
+    () =>
+        (options: {
+            getHasUnsavedChanges: () => boolean;
+            onCancel?: () => void;
+            onVisibilityChange?: (isVisible: boolean) => void;
+            shouldPromptForNavigationAction?: (action: NavigationAction) => boolean;
+        }) => {
+            mockGetHasUnsavedChanges = options.getHasUnsavedChanges;
+            mockOnCancel = options.onCancel;
+            mockOnVisibilityChange = options.onVisibilityChange;
+            mockShouldPromptForNavigationAction = options.shouldPromptForNavigationAction;
+            return {suppressDiscardPrompt: jest.fn()};
+        },
+);
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
     MarkerView: jest.fn(),
@@ -131,6 +144,7 @@ describe('IOURequestStartPage manual tab content', () => {
         mockOnInputBlur = undefined;
         mockOnCancel = undefined;
         mockOnVisibilityChange = undefined;
+        mockShouldPromptForNavigationAction = undefined;
         await act(async () => {
             await Onyx.clear();
         });
@@ -294,6 +308,53 @@ describe('IOURequestStartPage manual tab content', () => {
         });
 
         expect(mockGetHasUnsavedChanges?.()).toBe(true);
+    });
+
+    it('allows browser Back and Forward resets between the form and an inline field page for the same dirty draft', async () => {
+        await renderStartPage({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            transactionDraft: {isAmountSet: true, amount: 1200},
+        });
+
+        const formReset = {
+            type: 'RESET',
+            payload: {
+                routes: [
+                    {
+                        name: SCREENS.MONEY_REQUEST.CREATE,
+                        params: {params: {transactionID: TRANSACTION_ID}},
+                    },
+                ],
+            },
+        } as NavigationAction;
+        const categoryReset = {
+            type: 'RESET',
+            payload: {
+                routes: [
+                    {
+                        name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY,
+                        params: {transactionID: TRANSACTION_ID},
+                    },
+                ],
+            },
+        } as NavigationAction;
+
+        // After refresh, browser Back restores the Create route and browser Forward restores Category.
+        expect(mockShouldPromptForNavigationAction?.(formReset)).toBe(false);
+        expect(mockShouldPromptForNavigationAction?.(categoryReset)).toBe(false);
+
+        const otherDraftCategoryReset = {
+            ...categoryReset,
+            payload: {
+                routes: [
+                    {
+                        name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY,
+                        params: {transactionID: 'other-transaction'},
+                    },
+                ],
+            },
+        } as NavigationAction;
+        expect(mockShouldPromptForNavigationAction?.(otherDraftCategoryReset)).toBe(true);
     });
 
     it('keeps the discard guard clean on pay flow mount when pre-populated with an initial amount, but triggers when amount changes', async () => {

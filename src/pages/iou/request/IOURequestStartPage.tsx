@@ -64,6 +64,20 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
 
+// These are the child screens opened from the embedded confirmation fields. Browser history restores them with a
+// RESET after a refresh, but moving between them and the form is still internal navigation within the same draft.
+const EMBEDDED_CONFIRMATION_INTERNAL_SCREENS = new Set<string>([
+    SCREENS.MONEY_REQUEST.CREATE,
+    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY,
+    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE,
+    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE,
+    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION,
+    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT,
+    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG,
+    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT,
+    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE,
+]);
+
 function isNavigationStatePayload(payload: unknown): payload is NavigationState {
     return !!payload && typeof payload === 'object' && 'routes' in payload && Array.isArray(payload.routes);
 }
@@ -271,14 +285,15 @@ function IOURequestStartPage({
 
     const shouldPromptForEmbeddedNavigationAction = useCallback(
         (action: NavigationAction) => {
-            // After a refresh, browser Back from a child page is restored as a RESET that temporarily removes the
-            // parent Create route. It is still an internal return when the reset's destination is this same draft.
+            // After a refresh, browser Back and Forward restore the form or an inline field page as a RESET. It is
+            // still internal navigation when the reset's destination belongs to this same draft.
             if (action.type !== 'RESET' || !isNavigationStatePayload(action.payload)) {
                 return true;
             }
 
             const destinationRoute = findFocusedRouteWithOnyxTabGuard(action.payload);
-            return destinationRoute?.name !== SCREENS.MONEY_REQUEST.CREATE || getTransactionIDFromRouteParams(destinationRoute.params) !== route.params.transactionID;
+            const isInternalDestination = EMBEDDED_CONFIRMATION_INTERNAL_SCREENS.has(destinationRoute?.name ?? '');
+            return !isInternalDestination || getTransactionIDFromRouteParams(destinationRoute?.params) !== route.params.transactionID;
         },
         [route.params.transactionID],
     );
