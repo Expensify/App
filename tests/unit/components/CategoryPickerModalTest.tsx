@@ -5,12 +5,7 @@ import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasure
 
 import type * as Browser from '@libs/Browser';
 
-import ONYXKEYS from '@src/ONYXKEYS';
-
 import React from 'react';
-import Onyx from 'react-native-onyx';
-
-import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // Only mobile browsers dock the sheet behind the keyboard, so the tests flip this to cover both.
 let mockIsMobileBrowser = true;
@@ -38,15 +33,9 @@ jest.mock('@components/PopoverWithMeasuredContent', () => (props: PopoverWithMea
 });
 
 describe('CategoryPickerModal', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-    });
-
-    beforeEach(async () => {
+    beforeEach(() => {
         mockPopoverProps = undefined;
         mockIsMobileBrowser = true;
-        await Onyx.clear();
-        await waitForBatchedUpdates();
     });
 
     const renderSheet = () =>
@@ -71,7 +60,7 @@ describe('CategoryPickerModal', () => {
     });
 
     it('keeps the plain full-width sheet off mobile browsers', () => {
-        // Given a narrow window that is not a mobile browser, where the modal already follows the window the keyboard shrinks
+        // Given a narrow window outside a mobile browser: native lifts the sheet with avoidKeyboard, and a desktop window has no keyboard to clear
         mockIsMobileBrowser = false;
 
         // When the picker opens as a bottom sheet

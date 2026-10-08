@@ -102,8 +102,8 @@ function CategoryPickerModal({
     const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
     const resolvedHeight = isSmallScreenWidth ? bottomSheetHeight : popoverContentHeight;
     const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
-    // Mobile Safari ignores `interactive-widget=resizes-content`, leaving the sheet docked behind the keyboard, so on mobile browsers
-    // the sheet is sized and offset to the visual viewport, which the keyboard does shrink. Elsewhere this adds nothing.
+    // Mobile Safari ignores `interactive-widget=resizes-content` and leaves the sheet docked behind the keyboard, so on mobile browsers
+    // the sheet is sized and offset to the visual viewport, which the keyboard does shrink.
     const outerStyle = isSmallScreenWidth ? {...styles.w100, ...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)} : undefined;
 
     const handleCategorySelect = (item: ListItem) => {
