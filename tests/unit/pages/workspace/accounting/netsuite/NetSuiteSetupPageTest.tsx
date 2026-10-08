@@ -67,11 +67,11 @@ const mockedGetShortLivedAuthTokenURL = jest.mocked(getShortLivedAuthTokenURL);
 const mockedGoBack = jest.mocked(Navigation.goBack);
 
 // Takes accountID explicitly rather than defaulting it, so a test can pass `undefined` to exercise the missing-param route.
-const renderNetSuiteSetupPage = (accountID: string | undefined) =>
+const renderNetSuiteSetupPage = (accountID: string | undefined, isMigration?: string) =>
     render(
         <NetSuiteSetupPage
             // @ts-expect-error - route type from navigator
-            route={{key: 'test-route', name: 'Workspace_Accounting_NetSuite_Setup', params: {policyID: POLICY_ID, accountID}}}
+            route={{key: 'test-route', name: 'Workspace_Accounting_NetSuite_Setup', params: {policyID: POLICY_ID, accountID, isMigration}}}
         />,
     );
 
@@ -103,5 +103,16 @@ describe('NetSuiteSetupPage', () => {
 
         expect(screen.queryByTestId('netsuite-webview')).not.toBeOnTheScreen();
         expect(mockedGetNetSuiteSetupLink).not.toHaveBeenCalled();
+    });
+
+    it('passes isMigration=true to getNetSuiteSetupLink when the route has isMigration set', async () => {
+        // Given a migration route param
+        renderNetSuiteSetupPage(ACCOUNT_ID, 'true');
+
+        // When the WebView loads
+        expect(await screen.findByTestId('netsuite-webview')).toBeOnTheScreen();
+
+        // Then getNetSuiteSetupLink is called with isMigration=true so the backend handles the TBA→OAuth migration
+        expect(mockedGetNetSuiteSetupLink).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, true);
     });
 });

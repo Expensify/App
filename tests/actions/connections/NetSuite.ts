@@ -85,6 +85,28 @@ describe('actions/connections/NetSuite', () => {
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
+
+        it('appends isMigration=true to the URL when migrating a TBA connection to OAuth', () => {
+            // Given a migration scenario
+            const setupLink = getNetSuiteSetupLink(MOCK_POLICY_ID, MOCK_CREDENTIALS.netSuiteAccountID, true);
+
+            // When we inspect the URL params
+            const params = new URLSearchParams(setupLink.slice(setupLink.indexOf('?') + 1));
+
+            // Then isMigration is present
+            expect(params.get('isMigration')).toBe('true');
+        });
+
+        it('omits isMigration from the URL for a fresh connection', () => {
+            // Given a fresh (non-migration) connection
+            const setupLink = getNetSuiteSetupLink(MOCK_POLICY_ID, MOCK_CREDENTIALS.netSuiteAccountID);
+
+            // When we inspect the URL params
+            const params = new URLSearchParams(setupLink.slice(setupLink.indexOf('?') + 1));
+
+            // Then isMigration is absent
+            expect(params.has('isMigration')).toBe(false);
+        });
     });
 
     describe('connectPolicyToNetSuite', () => {

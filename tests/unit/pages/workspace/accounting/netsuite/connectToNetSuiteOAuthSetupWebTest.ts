@@ -59,4 +59,13 @@ describe('connectToNetSuiteOAuthSetup (web)', () => {
 
         expect(mockedNavigate).not.toHaveBeenCalled();
     });
+
+    it('passes isMigration flag to getNetSuiteSetupLink when migrating a TBA connection to OAuth', () => {
+        // Given a TBA → OAuth migration
+        // When the OAuth setup is triggered with isMigration: true
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, true);
+
+        // Then the setup link is built with the migration flag so the backend knows to migrate
+        expect(mockedGetNetSuiteSetupLink).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, true);
+    });
 });
