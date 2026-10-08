@@ -1197,6 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfe es und versuche es erneut.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfe es und versuche es erneut.`,
+        invalidApprovalLimit: 'Genehmigungslimits müssen gültige Beträge in der Währung des Arbeitsbereichs sein.',
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere Werte mit mehr als ${limit} Zeichen. Bitte überprüfe es und versuche es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',
@@ -10215,8 +10216,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
-        switchToTableView: 'Zur Tabellenansicht wechseln',
-        switchToExpenseView: 'Zur Ausgabenansicht wechseln',
     },
     report: {
         newReport: {

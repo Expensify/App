@@ -1197,6 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ops! Un campo obbligatorio ("${fieldName}") non è stato mappato. Controlla e riprova.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Hai associato un singolo campo ("${fieldName}") a più colonne. Controlla e riprova.`,
         emptyMappedField: (fieldName: string) => `Ops! Il campo ("${fieldName}") contiene uno o più valori vuoti. Controlla e riprova.`,
+        invalidApprovalLimit: 'I limiti di approvazione devono essere importi validi nella valuta dello spazio di lavoro.',
         fieldValueTooLong: (fieldName: string, limit: number) => `Ops! Il campo ("${fieldName}") contiene uno o più valori più lunghi di ${limit} caratteri. Controlla e riprova.`,
         importSuccessfulTitle: 'Importazione riuscita',
         importCategoriesNoneAddedOrUpdated: 'Nessuna categoria è stata aggiunta o aggiornata.',
@@ -10165,8 +10166,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             category: 'Categoria',
             tag: 'Etichetta',
         },
-        switchToTableView: 'Passa alla vista tabella',
-        switchToExpenseView: 'Passa alla vista spesa',
     },
     report: {
         newReport: {

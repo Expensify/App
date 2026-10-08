@@ -1192,6 +1192,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName) => `¡Vaya! Un campo obligatorio ("${fieldName}") no ha sido mapeado. Por favor, revisa e inténtalo de nuevo.`,
         singleFieldMultipleColumns: (fieldName) => `¡Vaya! Has mapeado un solo campo ("${fieldName}") a varias columnas. Por favor, revisa e inténtalo de nuevo.`,
         emptyMappedField: (fieldName) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores vacíos. Por favor, revísalo e inténtalo de nuevo.`,
+        invalidApprovalLimit: 'Los límites de aprobación deben ser importes válidos en la moneda del espacio de trabajo.',
         fieldValueTooLong: (fieldName, limit) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores de más de ${limit} caracteres. Por favor, revísalo e inténtalo de nuevo.`,
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
@@ -10030,8 +10031,6 @@ ${reportName}`,
             category: 'Categoría',
             tag: 'Etiqueta',
         },
-        switchToTableView: 'Cambiar a vista de tabla',
-        switchToExpenseView: 'Cambiar a vista de gasto',
     },
     report: {
         newReport: {

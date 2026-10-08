@@ -1217,6 +1217,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ups! Wymagane pole („${fieldName}”) nie zostało zmapowane. Sprawdź i spróbuj ponownie.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
+        invalidApprovalLimit: 'Limity zatwierdzania muszą być prawidłowymi kwotami w walucie przestrzeni roboczej.',
         fieldValueTooLong: (fieldName: string, limit: number) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej wartości dłuższych niż ${limit} znaków. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony powodzeniem',
         importCategoriesNoneAddedOrUpdated: 'Nie dodano ani nie zaktualizowano żadnych kategorii.',
@@ -10147,8 +10148,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             category: 'Kategoria',
             tag: 'Tag',
         },
-        switchToTableView: 'Przełącz na widok tabeli',
-        switchToExpenseView: 'Przełącz na widok wydatku',
     },
     report: {
         newReport: {

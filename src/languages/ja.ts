@@ -1183,6 +1183,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認してもう一度お試しください。`,
         singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）を複数の列に割り当てています。確認してもう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
+        invalidApprovalLimit: '承認上限額は、ワークスペースの通貨で有効な金額である必要があります。',
         fieldValueTooLong: (fieldName: string, limit: number) => `おっと！フィールド（「${fieldName}」）に${limit}文字を超える値が1つ以上含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
         importCategoriesNoneAddedOrUpdated: 'カテゴリーは追加も更新もされていません。',
@@ -10015,8 +10016,6 @@ ${reportName}`,
             category: 'カテゴリ',
             tag: 'タグ',
         },
-        switchToTableView: 'テーブル表示に切り替え',
-        switchToExpenseView: '経費表示に切り替え',
     },
     report: {
         newReport: {

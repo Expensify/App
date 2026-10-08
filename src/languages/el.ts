@@ -1242,6 +1242,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ουπς! Ένα υποχρεωτικό πεδίο («${fieldName}») δεν έχει αντιστοιχιστεί. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ωχ! Έχετε αντιστοιχίσει ένα μόνο πεδίο («${fieldName}») σε πολλές στήλες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         emptyMappedField: (fieldName: string) => `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες κενές τιμές. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        invalidApprovalLimit: 'Τα όρια έγκρισης πρέπει να είναι έγκυρα ποσά στο νόμισμα του χώρου εργασίας.',
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες τιμές μεγαλύτερες από ${limit} χαρακτήρες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         importSuccessfulTitle: 'Η εισαγωγή ήταν επιτυχής',
@@ -10416,8 +10417,6 @@ ${reportName}`,
             category: 'Κατηγορία',
             tag: 'Ετικέτα',
         },
-        switchToTableView: 'Εναλλαγή σε προβολή πίνακα',
-        switchToExpenseView: 'Εναλλαγή σε προβολή δαπάνης',
     },
     report: {
         newReport: {

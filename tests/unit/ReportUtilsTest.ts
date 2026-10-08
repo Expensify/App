@@ -10674,6 +10674,28 @@ describe('ReportUtils', () => {
             expect(result?.reportID).toBe(normalReport.reportID);
             expect(result?.reportID).not.toBe(archivedReport.reportID);
         });
+
+        it('should prefer a visited report over an unvisited one, and fall back to lastReadTime when no visited report is eligible', () => {
+            // Given an unvisited report that was read more recently than the visited one
+            const unvisitedReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1003',
+                lastReadTime: '2025-01-01 04:56:47.233',
+                lastVisibleActionCreated: '2025-01-01 04:56:47.233',
+            };
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`]: normalReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${unvisitedReport.reportID}`]: unvisitedReport,
+            };
+
+            // When resolving with visit data present
+            // Then the visited report wins, because any visit time outranks a lastReadTime-only report
+            expect(findLastAccessedReport(false, undefined, false, undefined, undefined, reports)?.reportID).toBe(normalReport.reportID);
+
+            // When the only visited report is excluded
+            // Then the lookup falls back to the most recently read eligible report
+            expect(findLastAccessedReport(false, undefined, false, normalReport.reportID, undefined, reports)?.reportID).toBe(unvisitedReport.reportID);
+        });
     });
     describe('findLastAccessedReport should return owned report if no reports was accessed before', () => {
         let ownedReport: Report;
