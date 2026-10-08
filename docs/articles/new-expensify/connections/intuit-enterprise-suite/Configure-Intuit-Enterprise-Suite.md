@@ -2,7 +2,7 @@
 title: Configure Intuit Enterprise Suite
 description: Learn how to configure Intuit Enterprise Suite import, export, and advanced settings in Expensify, including importing custom dimensions as tags.
 keywords: [New Expensify, Intuit Enterprise Suite, IES, Intuit Enterprise Suite configuration, Intuit Enterprise Suite import, Intuit Enterprise Suite export, custom dimensions, custom dimensions as tags]
-internalScope: Audience is Workspace Admins configuring an existing Intuit Enterprise Suite connection. Covers import settings (including custom dimensions), export settings, and advanced settings. Does not cover the initial connection.
+internalScope: Audience is workspace admins configuring an existing Intuit Enterprise Suite connection. Covers import settings (including custom dimensions), export settings, and advanced settings. Does not cover the initial connection.
 ---
 
 # Configure Intuit Enterprise Suite
@@ -21,7 +21,7 @@ Once configured, you can:
 
 ## Where to find Intuit Enterprise Suite settings
 
-Each Workspace has its own Intuit Enterprise Suite integration. To view or update the configuration settings:
+Each workspace has its own Intuit Enterprise Suite integration. To view or update the configuration settings:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Workspaces > [workspace name]**.
 2. Select **Accounting**.
@@ -44,7 +44,7 @@ The **Import** tab controls which accounting data is imported from Intuit Enterp
 
 The **Export** tab determines how Expensify sends data to Intuit Enterprise Suite.
 
-- **Preferred exporter** – Assign the Workspace Admin to automatically receive reports to export.
+- **Preferred exporter** – Assign the workspace admin to automatically receive reports to export.
 - **Export date** – Choose the date to use when exporting reports to Intuit Enterprise Suite. You can choose **Date of last expense**, **Export date**, or **Submitted date**.
 - **Export out-of-pocket expenses as** – Choose whether reimbursable expenses export as **Check**, **Journal entry**, or **Vendor bill**.
 - **Export invoices to** – Choose which account to use when exporting invoices to Intuit Enterprise Suite.
@@ -80,4 +80,4 @@ No. Custom dimensions always import as tags.
 
 ## Who can configure Intuit Enterprise Suite settings?
 
-Workspace Admins on the Control plan with **Accounting** enabled under **More features** and Intuit Enterprise Suite connected to the workspace.
+Workspace admins on the Control plan with **Accounting** enabled under **More features** and Intuit Enterprise Suite connected to the workspace.
