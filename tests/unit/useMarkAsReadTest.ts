@@ -5,7 +5,6 @@ import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
 
 import Log from '@libs/Log';
 import type Navigation from '@libs/Navigation/Navigation';
-import type * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -46,7 +45,7 @@ jest.mock('@hooks/useAppFocusEvent', () => ({
 }));
 
 jest.mock('@libs/ReportUtils', () => {
-    const actual = jest.requireActual<typeof ReportUtils>('@libs/ReportUtils');
+    const actual = jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils');
     return {
         ...actual,
         isUnread: () => mockIsUnread,
