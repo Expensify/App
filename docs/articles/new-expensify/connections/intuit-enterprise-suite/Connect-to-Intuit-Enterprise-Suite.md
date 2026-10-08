@@ -1,8 +1,8 @@
 ---
 title: Connect to Intuit Enterprise Suite
 description: Connect Intuit Enterprise Suite to your workspace in New Expensify to sync your accounting data automatically.
-keywords: [New Expensify, Intuit Enterprise Suite, IES, connect Intuit Enterprise Suite, Intuit Enterprise Suite integration, QuickBooks Online, accounting sync, Control plan, Workspace Admin]
-internalScope: Audience is Workspace Admins. Covers connecting Intuit Enterprise Suite to a workspace in New Expensify. Does not cover configuring import and export settings after connecting, connecting QuickBooks Online, or QuickBooks Desktop.
+keywords: [New Expensify, Intuit Enterprise Suite, IES, connect Intuit Enterprise Suite, Intuit Enterprise Suite integration, QuickBooks Online, accounting sync, Control plan, workspace admin]
+internalScope: Audience is workspace admins. Covers connecting Intuit Enterprise Suite to a workspace in New Expensify. Does not cover configuring import and export settings after connecting, connecting QuickBooks Online, or QuickBooks Desktop.
 ---
 
 # Connect to Intuit Enterprise Suite
@@ -12,7 +12,6 @@ Connect Intuit Enterprise Suite to your Expensify workspace to sync your account
 Once connected, the integration imports:
 
  - Your chart of accounts as categories.
- - Your dimensions, like Departments, Projects, and Classes, as tags.
  - Your custom dimensions as tags (when enabled).
  - Tax rates (when enabled).
 
@@ -24,7 +23,7 @@ Custom dimensions are turned off until you enable each one. Learn how to [config
 
 To connect Intuit Enterprise Suite, you must:
 
-- Be a Workspace Admin with a workspace on the Control plan.
+- Be a workspace admin with a workspace on the Control plan.
 - Have **Accounting** enabled on your workspace, under **More features**.
 - Have Intuit Enterprise Suite login credentials.
 
@@ -59,7 +58,7 @@ The Intuit Enterprise Suite integration is only available on the Control plan. O
 
 ## Can I change which Entity is used?
 
-Yes. If your Intuit Enterprise Suite organization has multiple entities, you can select which entity to sync with your Expensify Workspace under **Entities**. Expensify will sync data from the newly selected entity, including its chart of accounts, departments, projects, classes and tax rates.
+Yes. If your Intuit Enterprise Suite organization has multiple entities, you can select which entity to sync with your Expensify workspace under **Entities**. Expensify will sync data from the newly selected entity, including its chart of accounts, departments, projects, classes and tax rates.
 
 ## Can I connect both QuickBooks Online and Intuit Enterprise Suite to the same workspace?
 
