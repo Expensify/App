@@ -27,7 +27,7 @@ Some settings are available only for specific feed types. For example, **Assign 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Company cards**.
 3. Confirm the card feed you want to manage is selected.
-    - If you have multiple card feeds and need to select a different one, select the current card feed name, then select the card feed you want to manage.
+    - If you have multiple card feeds and need to select a different one, select the current card feed name, select the card feed you want to manage, then select **Save**.
 4. Select **Settings**.
 5. Configure the applicable settings:
     - **Card feed name**: Change the name of the card feed to make it easier to identify.
@@ -58,4 +58,4 @@ The **Statement close date** tells Expensify when the card statement closes. Exp
 
 ## How do I manage settings for a different company card feed?
 
-**Settings** applies to the currently selected card feed. If you have multiple card feeds, select the current card feed name, then select the feed you want to manage. Select **Settings** to configure that feed.
+**Settings** applies to the currently selected card feed. If you have multiple card feeds, select the current card feed name, select the feed you want to manage, then select **Save**. Select **Settings** to configure that feed.
