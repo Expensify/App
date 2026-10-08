@@ -118,6 +118,7 @@ jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     hideContextMenu: jest.fn((_: boolean, onHideCallback?: () => void) => onHideCallback?.()),
     showContextMenu: jest.fn(),
     showDeleteModal: (...args: unknown[]) => mockShowDeleteModal(...args),
+    handleHoldEducationalModal: jest.fn((performHold: () => void) => performHold()),
 }));
 
 const mockUnholdRequest = jest.fn();
