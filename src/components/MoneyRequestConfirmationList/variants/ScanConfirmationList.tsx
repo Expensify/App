@@ -1,5 +1,3 @@
-import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import ConfirmationDataContext from '@components/MoneyRequestConfirmationList/ConfirmationDataContext';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData, {INLINE_FIELD_ERROR_KEYS} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
@@ -9,30 +7,18 @@ import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestCo
 import ScanFooter from '@components/MoneyRequestConfirmationListFooter/variants/ScanFooter';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 /**
  * Confirms a scanned expense. The only variant that reaches the compact layout, where the receipt fills the
  * screen and the optional fields collapse behind a show-more button, so it owns that state.
  */
 function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {
-        transaction,
-        selectedParticipants,
-        isEditingSplitBill,
-        isParticipantPickerVisible = false,
-        canEnterScanFieldsManually = false,
-        onToggleBillable,
-        onToggleReimbursable,
-        receiptOptions,
-    } = props;
+    const {transaction, canEnterScanFieldsManually = false} = props;
 
-    const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const data = useConfirmationListData(props);
@@ -58,48 +44,29 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     // "Show more", or when one of them raises an inline error, or opening the section and pressing Create looks like
     // it did nothing. Done during render so the expense never paints collapsed first and it survives a remount.
     const hasManuallyEnteredFields = canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction);
-    if (transactionID && !showMoreFields && (hasManuallyEnteredFields || INLINE_FIELD_ERROR_KEYS.has(data.errorState.formError))) {
+    if (transactionID && !showMoreFields && (hasManuallyEnteredFields || INLINE_FIELD_ERROR_KEYS.has(data.footerProps.errorState.formError))) {
         setRevealedTransactionIDs([...revealedTransactionIDs, transactionID]);
     }
 
     const isCompactMode = !showMoreFields && !isInLandscapeMode;
 
-    const listFooterContent = (
-        <ConfirmationFieldsProvider
-            {...data.confirmationFieldsProviderProps}
-            isEditingSplitBill={isEditingSplitBill}
-            isScanRequest
-            onTaxAmountEmptyChange={data.setIsTaxAmountEmpty}
-        >
-            <View style={isCompactMode ? styles.flex1 : undefined}>
+    return (
+        <ConfirmationListLayout
+            {...data.layoutProps}
+            fieldFlags={{isScanRequest: true}}
+            isCompactMode={isCompactMode}
+            listFooterContent={
                 <ScanFooter
+                    {...data.footerProps}
                     isCompactMode={isCompactMode}
-                    policy={data.policy}
-                    policyTags={data.policyTags}
-                    selectedParticipants={selectedParticipants}
-                    amountDisplay={data.amountDisplay}
-                    requiredFlags={data.requiredFlags}
-                    visibilityFlags={{...data.visibilityFlags, isParticipantPickerVisible}}
-                    errorState={data.errorState}
-                    toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                    receiptOptions={receiptOptions}
                     compactControls={{showMoreFields, setShowMoreFields}}
                 />
-            </View>
-        </ConfirmationFieldsProvider>
-    );
-
-    return (
-        <ConfirmationDataContext.Provider value={data}>
-            <TaxController />
-            <SplitBillController />
-            <FieldAutoSelector />
-            <ConfirmationListLayout
-                {...data.layoutProps}
-                isCompactMode={isCompactMode}
-                listFooterContent={listFooterContent}
-            />
-        </ConfirmationDataContext.Provider>
+            }
+        >
+            <TaxController {...data.taxControllerProps} />
+            <SplitBillController {...data.splitBillControllerProps} />
+            <FieldAutoSelector {...data.fieldAutoSelectProps} />
+        </ConfirmationListLayout>
     );
 }
 

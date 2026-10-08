@@ -13,9 +13,9 @@ import {
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
+    canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
-    getVendorFeaturePolicyIDs,
     getVendorDisplayName,
     hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
@@ -24,6 +24,7 @@ import {
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getConnectedIntegration,
+    getConnectionExporters,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
@@ -44,8 +45,10 @@ import {
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getPolicyApproverLogins,
+    hasActiveExpensifyCard,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
+    getPolicyForAssignedCard,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
     getOwnerChangePayerSuccessData,
@@ -110,6 +113,7 @@ import {
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
+    getDefaultVendorID,
     sortVendors,
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -379,11 +383,20 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
         });
 
-        it('allows auditors to read but not write every policy feature', () => {
+        it('allows auditors to read every policy feature but write only rooms', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 
             for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
                 expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS);
+            }
+        });
+
+        it('allows guests to read only the workspace overview', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.GUEST);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW);
                 expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
             }
         });
@@ -395,15 +408,24 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
         });
 
-        it('limits People Admin member role management to members and auditors', () => {
+        it('limits People Admin member role management to guests, members, and auditors', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+        });
+
+        it('allows Guest assignment only on Control workspaces', () => {
+            const controlPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+            const collectPolicy = {...controlPolicy, type: CONST.POLICY.TYPE.TEAM};
+
+            expect(canMemberAssignRole(controlPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
+            expect(canMemberAssignRole(collectPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
         });
 
         it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
@@ -444,6 +466,28 @@ describe('PolicyUtils', () => {
 
         it('returns false for an undefined policy', () => {
             expect(isArchivedPolicy(undefined)).toBe(false);
+        });
+    });
+
+    describe('canUnarchivePolicy', () => {
+        it('returns true for the owner of an archived workspace when the beta is enabled', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, true)).toBe(true);
+        });
+
+        it('returns false when the beta is disabled', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, false)).toBe(false);
+        });
+
+        it('returns false when the workspace is not archived', () => {
+            expect(canUnarchivePolicy(false, ownerAccountID, ownerAccountID, true)).toBe(false);
+        });
+
+        it('returns false when the current user is not the owner', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID + 1, true)).toBe(false);
+        });
+
+        it('returns false when the owner is unknown', () => {
+            expect(canUnarchivePolicy(true, undefined, ownerAccountID, true)).toBe(false);
         });
     });
 
@@ -4543,6 +4587,171 @@ describe('PolicyUtils', () => {
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
         });
+
+        it('breaks name ties using externalID when id is absent', () => {
+            const vendors = [
+                {externalID: 'vendor_b', name: 'Acme'},
+                {externalID: 'vendor_a', name: 'Acme'},
+            ];
+
+            const result = sortVendors(vendors, localeCompare);
+            expect(result.map((v) => v.externalID)).toEqual(['vendor_a', 'vendor_b']);
+        });
+    });
+
+    describe('getDefaultVendorID', () => {
+        it('resolves QBO credit card default vendor when destination is credit_card', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                            nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('qbo_vendor_1');
+        });
+
+        it('returns undefined for QBO when destination is not credit_card', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+                            nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
+        });
+
+        it('resolves Sage Intacct credit card charge default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        config: {
+                            export: {
+                                nonReimbursableCreditCardChargeDefaultVendor: 'intacct_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('intacct_vendor_1');
+        });
+
+        it('resolves Xero default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                        config: {
+                            defaultVendor: 'xero_contact_1',
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.XERO)).toBe('xero_contact_1');
+        });
+
+        it('resolves Rillet default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'rillet_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET)).toBe('rillet_vendor_1');
+        });
+
+        it('resolves DualEntry default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'dualentry_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY)).toBe('dualentry_vendor_1');
+        });
+
+        it('resolves Campfire default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'campfire_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+        });
+
+        it('resolves Business Central default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'bc_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBe('bc_vendor_1');
+        });
+
+        it('resolves Certinia default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            export: {
+                                vendorAccount: 'certinia_acc_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA)).toBe('certinia_acc_1');
+        });
+
+        it('returns undefined when policy has no connections', () => {
+            expect(getDefaultVendorID(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
+        });
     });
 
     describe('getSageIntacctVendors', () => {
@@ -4940,7 +5149,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('Vendor matching helpers', () => {
+    describe('vendor', () => {
         const buildQBOPolicy = (
             exportDestination: QBONonReimbursableExportAccountType | undefined,
             vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
@@ -5050,6 +5259,26 @@ describe('PolicyUtils', () => {
                 expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toBe(false);
                 expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy([]))).toBe(true);
                 expect(getMatchingVendors(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toEqual([]);
+            });
+
+            it('uses Campfire vendors when Campfire and Business Central are both configured', () => {
+                // Given a workspace configured with both Business Central and Campfire connections
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = createMock<Connections>({
+                    ...policy.connections,
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {isConfigured: true},
+                        data: {vendors: [{id: 'cf-1', name: 'Campfire vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR}]},
+                    },
+                });
+
+                // When resolving the vendor source without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then Campfire is the source, so the vendor field never shows the beta-gated Business Central list
+                expect(isVendorFeatureAvailable).toBe(true);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['cf-1']);
             });
 
             it('uses the Business Central empty state when the synced list has no vendors', () => {
@@ -5376,19 +5605,22 @@ describe('PolicyUtils', () => {
             });
 
             it.each([
-                {isConfigured: true, isVendorMatchingBetaEnabled: false, expected: false},
-                {isConfigured: true, isVendorMatchingBetaEnabled: true, expected: true},
-                {isConfigured: false, isVendorMatchingBetaEnabled: true, expected: false},
-                {isConfigured: undefined, isVendorMatchingBetaEnabled: true, expected: false},
-            ])('keeps Campfire vendor matching gated for %j', ({isConfigured, isVendorMatchingBetaEnabled, expected}) => {
-                // Given a Campfire connection with the specified configuration state
-                const policy = createMock<Policy>({connections: {campfire: {config: {isConfigured}}}});
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Campfire vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Campfire workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: connection}});
 
-                // When checking the independent vendorMatching beta
-                const isVendorFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
 
-                // Then both beta access and a configured connection are required
-                expect(isVendorFeatureAvailable).toBe(expected);
+                // Then only a configured connection enables Campfire vendor matching
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
             });
 
             it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
@@ -5594,13 +5826,15 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
+        describe('hasVendorFeatureOnAnyPolicy', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const campfirePolicy = createMock<Policy>({id: 'campfire', connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured: true}}}});
             const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
             const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
             const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
             const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const campfireKey = `${ONYXKEYS.COLLECTION.POLICY}campfire`;
             const businessCentralKey = `${ONYXKEYS.COLLECTION.POLICY}businessCentral`;
             const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
 
@@ -5620,6 +5854,17 @@ describe('PolicyUtils', () => {
                 const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
 
                 // Then the feature is available because Xero is generally available
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('is true for a Campfire workspace without the beta', () => {
+                // Given a configured Campfire workspace and a workspace with no accounting connection
+                const policies = {[campfireKey]: campfirePolicy, [plainKey]: plainPolicy};
+
+                // When Search checks vendor availability without beta enrollment
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then Campfire makes vendor filtering available
                 expect(isVendorFeatureAvailable).toBe(true);
             });
 
@@ -5643,19 +5888,6 @@ describe('PolicyUtils', () => {
 
                 // Then the feature is not available on any workspace because Business Central still depends on the beta
                 expect(isVendorFeatureAvailable).toBe(false);
-            });
-
-            it('lists the workspaces that have the vendor feature', () => {
-                // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
-                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
-
-                // When the workspace IDs are listed with and without the vendorMatching beta
-                const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
-                const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
-
-                // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
-                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
-                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
             });
         });
 
@@ -5884,36 +6116,6 @@ describe('PolicyUtils', () => {
 
             it('returns undefined when Xero contacts have not synced yet', () => {
                 expect(getXeroSupplierByID(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), 'xc1')).toBeUndefined();
-            });
-        });
-
-        describe('getXeroExpenseAccounts', () => {
-            const XERO_EXPENSE_ACCOUNTS = [
-                {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
-                {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
-            ];
-
-            it('maps the expense accounts to selector options', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
-                    {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
-                    {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
-                ]);
-            });
-
-            it('marks only the selected account as selected', () => {
-                const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
-                expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
-                    {keyForList: 'acc1', isSelected: false},
-                    {keyForList: 'acc2', isSelected: true},
-                ]);
-            });
-
-            it('selects nothing when the stored account is no longer in the synced list', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
-            });
-
-            it('returns an empty array when Xero expense accounts have not synced yet', () => {
-                expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
             });
         });
 
@@ -6173,6 +6375,83 @@ describe('PolicyUtils', () => {
                     subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
                 });
             });
+        });
+
+        describe('sortVendors', () => {
+            const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+            it('sorts vendors alphabetically by name using localeCompare', () => {
+                const vendors = [
+                    {id: '1', name: 'Zebra'},
+                    {id: '2', name: 'Apple'},
+                    {id: '3', name: 'Banana'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
+            });
+
+            it('breaks name ties using vendor id', () => {
+                const vendors = [
+                    {id: 'vendor_b', name: 'Acme'},
+                    {id: 'vendor_a', name: 'Acme'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
+            });
+
+            it('does not sort the input array in place', () => {
+                const vendors = [
+                    {id: '2', name: 'Zebra'},
+                    {id: '1', name: 'Alpha'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).not.toBe(vendors);
+                expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
+            });
+
+            it('returns empty array for empty input', () => {
+                expect(sortVendors([], localeCompare)).toEqual([]);
+            });
+
+            it('returns single-element array as-is', () => {
+                const vendors = [{id: '1', name: 'Only'}];
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.name).toBe('Only');
+            });
+        });
+    });
+
+    describe('getXeroExpenseAccounts', () => {
+        const XERO_EXPENSE_ACCOUNTS = [
+            {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
+            {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
+        ];
+
+        it('maps the expense accounts to selector options', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
+                {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
+                {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
+            ]);
+        });
+
+        it('marks only the selected account as selected', () => {
+            const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
+            expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
+                {keyForList: 'acc1', isSelected: false},
+                {keyForList: 'acc2', isSelected: true},
+            ]);
+        });
+
+        it('selects nothing when the stored account is no longer in the synced list', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
+        });
+
+        it('returns an empty array when Xero expense accounts have not synced yet', () => {
+            expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
         });
     });
 
@@ -6480,6 +6759,43 @@ describe('getPolicyIDFromDomainName', () => {
     });
 });
 
+describe('getPolicyForAssignedCard', () => {
+    const policy: Policy = {...createRandomPolicy(0), id: 'A1B2C3', policyAccountID: 88801};
+    const policies = {[`${ONYXKEYS.COLLECTION.POLICY}A1B2C3`]: policy};
+
+    // The workspace is what decides whether the cardholder is shown the fix link or told to ask an admin, so a card
+    // has to find it whatever the company named their domain.
+    it('finds the workspace for a card on a domain that is not a workspace feed', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('finds the workspace for a card on a workspace-feed domain', () => {
+        const card = {domainName: 'expensify-policyA1B2C3.exfy', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('falls back to the domain name for a card that has no fundID', () => {
+        const card = {domainName: 'expensify-policyA1B2C3.exfy'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('returns undefined when no workspace matches the card', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '99999'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toBeUndefined();
+    });
+
+    it('returns undefined when there are no policies', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, {})).toBeUndefined();
+    });
+});
+
 describe('getDefaultWorkspacePlanType', () => {
     const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
     const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
@@ -6570,6 +6886,56 @@ describe('getPolicyApproverLogins', () => {
     });
 });
 
+describe('hasActiveExpensifyCard', () => {
+    it('returns false when policy is undefined', () => {
+        expect(hasActiveExpensifyCard(undefined, 'cardholder@test.com')).toBe(false);
+    });
+
+    it('returns true when the backend flags the member as holding an active Expensify Card', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'cardholder@test.com')).toBe(true);
+    });
+
+    it('returns false when the flag is false or missing', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'former-cardholder@test.com': {email: 'former-cardholder@test.com', hasActiveExpensifyCard: false},
+                'employee@test.com': {email: 'employee@test.com'},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'former-cardholder@test.com')).toBe(false);
+        expect(hasActiveExpensifyCard(policy, 'employee@test.com')).toBe(false);
+    });
+
+    it('returns false when the member is not in the employeeList', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'someone-else@test.com')).toBe(false);
+    });
+
+    it('returns true when the secondary login is checked and the backend flags its paired primary login', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            primaryLoginsInvited: {'secondary@test.com': 'primary@test.com'},
+            employeeList: {
+                'secondary@test.com': {email: 'secondary@test.com'},
+                'primary@test.com': {email: 'primary@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'secondary@test.com')).toBe(true);
+    });
+});
+
 describe('getConnectedIntegration', () => {
     it('returns the connected accounting integration when present on the policy', () => {
         const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
@@ -6628,5 +6994,25 @@ describe('shouldHideDynamicExternalWorkflowPeople', () => {
     it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
         const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
         expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+});
+
+describe('getConnectionExporters', () => {
+    it('includes the Business Central preferred exporter', () => {
+        // Given a workspace connected to Business Central with a preferred exporter
+        const policy = createMock<Policy>({
+            ...createRandomPolicy(0),
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                    config: {export: {exporter: 'exporter@example.com'}},
+                },
+            },
+        });
+
+        // When the workspace's connection exporters are read
+        const exporters = getConnectionExporters(policy);
+
+        // Then the Business Central exporter is listed, so that member can export reports to Business Central
+        expect(exporters).toContain('exporter@example.com');
     });
 });
