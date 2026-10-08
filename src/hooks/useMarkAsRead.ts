@@ -187,7 +187,7 @@ function useMarkAsRead({
     // Runs once per opened report, before the initial mark-as-read merges a new lastReadTime, and relies only on the
     // report's own fields so a wrong derived or LHN value cannot hide the mismatch.
     useEffect(() => {
-        if (isInPreloadedTab || isAnonymousUser || !report?.reportID) {
+        if (isHiddenFromUser || isAnonymousUser || !report?.reportID) {
             return;
         }
 
@@ -218,9 +218,9 @@ function useMarkAsRead({
             lastReadTime: report.lastReadTime,
             notificationPreference,
         });
-        // Only the report ID and preloaded flag should re-run this; the report fields are read as of the open.
+        // Only the report ID and hidden flag should re-run this; the report fields are read as of the open.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportID, isInPreloadedTab]);
+    }, [reportID, isHiddenFromUser]);
 
     useEffect(() => {
         // Skip while preloaded without latching, so the effect re-runs and marks read once the tab is focused.

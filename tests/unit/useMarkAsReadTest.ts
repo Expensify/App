@@ -636,5 +636,26 @@ describe('useMarkAsRead', () => {
             renderMarkAsRead({report: unreadChat});
             expect(logInfoSpy).not.toHaveBeenCalled();
         });
+
+        it('logs on reveal of a hidden wide pre-mount, not while it is hidden', () => {
+            // Given an unread chat the LHN did not list, mounted hidden as a wide submit pre-mount
+            mockLHNUnreadState = 'notListed';
+            let isHiddenPreMount = true;
+            const {rerender} = renderMarkAsRead(
+                {report: unreadChat},
+                createHiddenPreMountWrapper(() => isHiddenPreMount),
+            );
+
+            // Then nothing is logged while the user cannot see it
+            expect(logInfoSpy).not.toHaveBeenCalled();
+
+            // When the submit reveals it
+            isHiddenPreMount = false;
+            rerender(undefined);
+
+            // Then the mismatch is logged once, as on a regular open
+            expect(logInfoSpy).toHaveBeenCalledTimes(1);
+            expect(logInfoSpy).toHaveBeenCalledWith('[LHNUnread] Opened unread report that LHN did not show as unread', false, expect.objectContaining({reportID: REPORT_ID}));
+        });
     });
 });
