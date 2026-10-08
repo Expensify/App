@@ -1217,6 +1217,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ups! Wymagane pole („${fieldName}”) nie zostało zmapowane. Sprawdź i spróbuj ponownie.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
+        invalidApprovalLimit: 'Limity zatwierdzania muszą być prawidłowymi kwotami w walucie przestrzeni roboczej.',
         fieldValueTooLong: (fieldName: string, limit: number) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej wartości dłuższych niż ${limit} znaków. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony powodzeniem',
         importCategoriesNoneAddedOrUpdated: 'Nie dodano ani nie zaktualizowano żadnych kategorii.',
@@ -2743,6 +2744,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Ustawiono domyślną metodę płatności!',
         deleteAccount: 'Usuń konto',
         deleteConfirmation: 'Czy na pewno chcesz usunąć to konto?',
+        editNickname: 'Edytuj pseudonim',
+        nickname: 'Pseudonim',
+        editNicknameInstruction: 'Nadaj temu rachunkowi bankowemu pseudonim, który odróżni go od innych.',
         deleteCard: 'Usuń kartę',
         deleteCardConfirmation:
             'Wszystkie niewysłane transakcje z karty, w tym te na otwartych raportach, zostaną usunięte. Na pewno chcesz usunąć tę kartę? Tej czynności nie można cofnąć.',
@@ -4885,6 +4889,7 @@ ${amount} dla ${merchant} - ${date}`,
             memberAlternateText: 'Przesyłaj i zatwierdzaj raporty.',
             adminAlternateText: 'Zarządzaj raportami i ustawieniami przestrzeni roboczej.',
             auditorAlternateText: 'Przeglądaj i komentuj raporty.',
+            guestAlternateText: 'Przesyłaj raporty z ograniczoną widocznością.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4893,6 +4898,8 @@ ${amount} dla ${merchant} - ${date}`,
                         return 'Administrator przestrzeni roboczej';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Audytor';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Gość';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Edytor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -7130,6 +7137,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 one: 'Ustaw jako audytora',
                 other: 'Utwórz audytorów',
             }),
+            makeGuest: () => ({
+                one: 'Ustaw jako gościa',
+                other: 'Dodaj gości',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Ustaw jako administratora osób',
                 other: 'Ustaw administratorów osób',
@@ -7166,6 +7177,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             admins: 'Administratorzy przestrzeni roboczej',
             approvers: 'Osoby zatwierdzające',
             auditors: 'Audytorzy',
+            guests: 'Goście',
             editors: 'Edytorzy',
             emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},
             configureHRSync: (providerName: string) => `Skonfiguruj synchronizację ${providerName}.`,

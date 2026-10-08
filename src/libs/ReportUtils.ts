@@ -166,6 +166,7 @@ import {
     isPerDiemEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
+    isPolicyGuest,
     isPolicyOwner,
     isSubmitAndClose,
     isSubmitterApproveBlockedOnSubmitWorkspace,
@@ -2544,49 +2545,57 @@ function findLastAccessedReport(
     reports?: OnyxCollection<Report>,
 ): LastAccessedReport | undefined {
     const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
-    let reportsValues = Object.values(reports ?? deprecatedAllReports ?? {});
+    const reportsCollection = reports ?? deprecatedAllReports ?? {};
 
     if (openOnAdminRoom) {
-        const adminReport = reportsValues.find((report) => getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+        const adminReport = Object.values(reportsCollection).find((report) => getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
         if (adminReport) {
             return toLastAccessedReport(adminReport);
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldFilter = excludeReportID || ignoreDomainRooms;
-    if (shouldFilter) {
-        reportsValues = reportsValues.filter((report) => {
-            if (excludeReportID && report?.reportID === excludeReportID) {
-                return false;
-            }
+    const isEligible = (report: OnyxEntry<Report>) => {
+        if (excludeReportID && report?.reportID === excludeReportID) {
+            return false;
+        }
 
-            // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
-            // Check where findLastAccessedReport is called in MainDrawerNavigator.js for more context.
-            // Domain rooms are now the only type of default room that are on the defaultRooms beta.
-            // When guideAccountIDs is undefined, hasExpensifyGuidesEmails falls back to the personal details store (https://github.com/Expensify/App/issues/66413)
-            if (ignoreDomainRooms && isDomainRoom(report) && !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs)) {
-                return false;
-            }
+        // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
+        // Domain rooms are now the only type of default room that are on the defaultRooms beta.
+        // When guideAccountIDs is undefined, hasExpensifyGuidesEmails falls back to the personal details store (https://github.com/Expensify/App/issues/66413)
+        if (ignoreDomainRooms && isDomainRoom(report) && !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs)) {
+            return false;
+        }
 
-            return true;
-        });
+        // Filter out the system chat (Expensify chat) because the composer is disabled in it,
+        // and it prompts the user to use the Concierge chat instead.
+        return !isSystemChat(report) && !isArchivedReport(reportNameValuePairsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
+    };
+    const isVisible = (report: OnyxEntry<Report>) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession());
+
+    // Any visited report outranks every unvisited one, so pick the newest eligible visit instead of scanning all reports.
+    let newestVisitTime = '';
+    let newestVisitedReport: OnyxEntry<Report>;
+    for (const [reportID, visitTime] of Object.entries(allReportLastVisitTimes)) {
+        if (!visitTime || visitTime <= newestVisitTime) {
+            continue;
+        }
+        const report = reportsCollection[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (report?.reportID && isEligible(report) && isVisible(report)) {
+            newestVisitTime = visitTime;
+            newestVisitedReport = report;
+        }
+    }
+    if (newestVisitedReport) {
+        return toLastAccessedReport(newestVisitedReport);
     }
 
-    // Filter out the system chat (Expensify chat) because the composer is disabled in it,
-    // and it prompts the user to use the Concierge chat instead.
-    reportsValues =
-        reportsValues.filter((report) => {
-            const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`;
-            const isArchived = isArchivedReport(reportNameValuePairsCollection?.[reportNameValuePairsKey]);
-            return !isSystemChat(report) && !isArchived;
-        }) ?? [];
+    const reportsValues = Object.values(reportsCollection).filter(isEligible);
 
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the last-visit-times map.
     // If we have no visit data we'll return most recent report owned by user.
     if (isEmptyObject(allReportLastVisitTimes)) {
-        const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession()));
+        const visibleReports = reportsValues.filter(isVisible);
         const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === deprecatedCurrentUserAccountID);
         if (ownedReports.length > 0) {
             return toLastAccessedReport(lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? ''));
@@ -11522,7 +11531,7 @@ function getAllWorkspaceReports(policyID?: string): Array<OnyxEntry<Report>> {
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false, policy?: OnyxEntry<Policy>): boolean {
     if (
         isDefaultRoom(report) ||
         isReportArchived ||
@@ -11543,6 +11552,10 @@ function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false
     }
 
     if (isDeprecatedGroupDM(report, isReportArchived) || isTaskReport(report)) {
+        return true;
+    }
+
+    if (isPolicyGuest(policy)) {
         return true;
     }
 
@@ -11907,7 +11920,8 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         !isChatThread(report) &&
         !isEmpty(policy) &&
         hasParticipantInArray(report, deprecatedCurrentUserAccountID ? [deprecatedCurrentUserAccountID] : []) &&
-        !isAuditor(report)
+        !isAuditor(report) &&
+        !isPolicyGuest(policy)
     );
 }
 

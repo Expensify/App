@@ -1202,6 +1202,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Oups ! Un champ obligatoire (« ${fieldName} ») n’a pas été associé. Veuillez examiner et réessayer.`,
         singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
+        invalidApprovalLimit: 'Les limites d’approbation doivent être des montants valides dans la devise de l’espace de travail.',
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs de plus de ${limit} caractères. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
@@ -2718,6 +2719,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Mode de paiement par défaut défini !',
         deleteAccount: 'Supprimer le compte',
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce compte ?',
+        editNickname: 'Modifier le pseudo',
+        nickname: 'Pseudo',
+        editNicknameInstruction: 'Donnez à ce compte bancaire un surnom qui le distingue des autres.',
         deleteCard: 'Supprimer la carte',
         deleteCardConfirmation:
             'Toutes les transactions de carte non soumises, y compris celles figurant sur les notes de frais ouvertes, seront supprimées. Êtes-vous sûr de vouloir supprimer cette carte ? Cette action est irréversible.',
@@ -4892,6 +4896,7 @@ ${amount} pour ${merchant} - ${date}`,
             memberAlternateText: 'Soumettre et approuver des notes de frais.',
             adminAlternateText: 'Gérer les notes de frais et les paramètres de l’espace de travail.',
             auditorAlternateText: 'Afficher et commenter les notes de frais.',
+            guestAlternateText: 'Soumettre des notes de frais avec une visibilité limitée.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4900,12 +4905,14 @@ ${amount} pour ${merchant} - ${date}`,
                         return 'Administrateur de l’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Invité';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Éditeur';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administration des personnes';
+                        return 'Administrateur des personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
@@ -7180,6 +7187,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 one: 'Nommer auditeur',
                 other: 'Créer des auditeurs',
             }),
+            makeGuest: () => ({
+                one: 'Rendre invité',
+                other: 'Rendre invités',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Nommer administrateur des personnes',
                 other: 'Nommer des administrateurs des personnes',
@@ -7216,6 +7227,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             admins: 'Administrateurs de l’espace de travail',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
+            guests: 'Invités',
             editors: 'Éditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
             configureHRSync: (providerName: string) => `Configurer la synchronisation ${providerName}.`,
