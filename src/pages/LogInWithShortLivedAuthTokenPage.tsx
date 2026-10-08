@@ -60,6 +60,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         // A forced SAML re-auth leaves account.isLoading true until this sign-in, so it must not block a SAML token.
         if (token && (isSAML || !account?.isLoading)) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
+            // This screen only mounts via PublicScreens, where SESSION is always cleared, so session?.authToken is normally undefined. Read it live instead of hardcoding undefined, so this keeps working correctly
             signInWithShortLivedAuthToken(token, session?.authToken, isSAML, isSAML ? lastVisitedPath : undefined, credentials?.login).catch((signInError) => {
                 Log.warn('Unable to sign in with shortLivedAuthToken', {error: signInError});
             });
