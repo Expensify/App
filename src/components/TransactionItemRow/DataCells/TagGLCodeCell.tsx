@@ -31,7 +31,11 @@ type TagGLCodeCellProps = TransactionDataCellProps &
  */
 function TagGLCodeCell({canEdit: canEditTag, onSave, shouldShowTooltip, transactionItem, policyID, policy: policyProp, policyTagLists}: TagGLCodeCellProps) {
     const styles = useThemeStyles();
-    const canEdit = !!canEditTag && hasAnyTagGLCode(policyTagLists);
+    const [tagsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policyID}`);
+
+    // On a lazy-loaded workspace `policyTagLists` may hold only the expense's own tag until the picker fetches the full
+    // list, so "no GL codes" is only trusted after that fetch. Otherwise the picker never mounts and never loads them.
+    const canEdit = !!canEditTag && (!tagsLoadingState?.hasOnceLoaded || hasAnyTagGLCode(policyTagLists));
 
     const [livePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);

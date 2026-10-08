@@ -4,11 +4,13 @@ import type {EditableProps} from '@components/EditableCell';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCategoryGLCode, hasAnyCategoryGLCode, isCategoryMissing} from '@libs/CategoryUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories} from '@src/types/onyx';
 
 import React from 'react';
@@ -31,7 +33,12 @@ type CategoryGLCodeCellProps = TransactionDataCellProps &
  */
 function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEditCategory, onSave, policyID, policyCategories}: CategoryGLCodeCellProps) {
     const styles = useThemeStyles();
-    const canEdit = !!canEditCategory && hasAnyCategoryGLCode(policyCategories);
+    const [categoriesLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}`);
+
+    // On a lazy-loaded workspace `policyCategories` may hold only the expense's own category until the picker fetches
+    // the full list, so "no GL codes" is only trusted after that fetch. Otherwise the picker never mounts and never
+    // loads them.
+    const canEdit = !!canEditCategory && (!categoriesLoadingState?.hasOnceLoaded || hasAnyCategoryGLCode(policyCategories));
 
     const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
