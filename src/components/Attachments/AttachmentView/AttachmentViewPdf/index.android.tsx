@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import React, {memo, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 
 import type AttachmentViewPdfProps from './types';
@@ -33,9 +33,9 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     const offsetY = useSharedValue(0);
     const isPanGestureActive = useSharedValue(false);
 
-    const Pan = Gesture.Pan()
-        .manualActivation(true)
-        .onTouchesMove((evt) => {
+    const Pan = usePanGesture({
+        manualActivation: true,
+        onTouchesMove: (evt) => {
             if (offsetX.get() !== 0 && offsetY.get() !== 0 && isScrollEnabled && scale.get() === 1) {
                 const translateX = Math.abs((evt.allTouches.at(0)?.absoluteX ?? 0) - offsetX.get());
                 const translateY = Math.abs((evt.allTouches.at(0)?.absoluteY ?? 0) - offsetY.get());
@@ -54,14 +54,15 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
             isPanGestureActive.set(true);
             offsetX.set(evt.allTouches.at(0)?.absoluteX ?? 0);
             offsetY.set(evt.allTouches.at(0)?.absoluteY ?? 0);
-        })
-        .onTouchesUp(() => {
+        },
+        onTouchesUp: () => {
             isPanGestureActive.set(false);
             if (!isScrollEnabled) {
                 return;
             }
             isScrollEnabled.set(scale.get() === 1);
-        });
+        },
+    });
 
     const Content = useMemo(
         () => (

@@ -1,7 +1,7 @@
-import type {LegacyTapGesture} from 'react-native-gesture-handler';
+import type {PanGesture, TapGesture} from 'react-native-gesture-handler';
 
 import {useCallback, useMemo} from 'react';
-import {Gesture} from 'react-native-gesture-handler';
+import {GestureStateManager, useTapGesture} from 'react-native-gesture-handler';
 import {withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -27,7 +27,10 @@ type UseTapGesturesProps = Pick<
     | 'stopAnimation'
     | 'onScaleChanged'
     | 'onTap'
->;
+> & {
+    /** The pan gesture of the canvas. A single tap waits for it to fail, and both taps can run simultaneously with it */
+    panGesture: PanGesture;
+};
 
 const useTapGestures = ({
     canvasSize,
@@ -45,7 +48,8 @@ const useTapGestures = ({
     isTransformGestureActive,
     onScaleChanged,
     onTap,
-}: UseTapGesturesProps): {singleTapGesture: LegacyTapGesture; doubleTapGesture: LegacyTapGesture} => {
+    panGesture,
+}: UseTapGesturesProps): {singleTapGesture: TapGesture; doubleTapGesture: TapGesture} => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledContentHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
@@ -132,21 +136,21 @@ const useTapGestures = ({
         [stopAnimation, isTransformGestureActive, canvasSize.width, canvasSize.height, scaledContentWidth, scaledContentHeight, doubleTapScale, offsetX, offsetY, zoomScale, pinchScale],
     );
 
-    const doubleTapGesture = Gesture.Tap()
-        // The first argument is not used, but must be defined
-        .onTouchesDown((_evt, state) => {
+    const doubleTapGesture = useTapGesture({
+        numberOfTaps: 2,
+        maxDelay: 150,
+        maxDistance: 20,
+        simultaneousWith: panGesture,
+        onTouchesDown: (evt) => {
             'worklet';
 
             if (!shouldDisableTransformationGestures.get()) {
                 return;
             }
 
-            state.fail();
-        })
-        .numberOfTaps(2)
-        .maxDelay(150)
-        .maxDistance(20)
-        .onEnd((evt) => {
+            GestureStateManager.fail(evt.handlerTag);
+        },
+        onDeactivate: (evt) => {
             'worklet';
 
             const triggerScaleChangedEvent = () => {
@@ -168,25 +172,29 @@ const useTapGestures = ({
             } else {
                 zoomToCoordinates(evt.x, evt.y, triggerScaleChangedEvent);
             }
-        });
+        },
+    });
 
-    const singleTapGesture = Gesture.Tap()
-        .numberOfTaps(1)
-        .maxDuration(125)
-        .onBegin(() => {
+    const singleTapGesture = useTapGesture({
+        numberOfTaps: 1,
+        maxDuration: 125,
+        requireToFail: [doubleTapGesture, panGesture],
+        simultaneousWith: panGesture,
+        onBegin: () => {
             'worklet';
 
             stopAnimation();
-        })
-        .onFinalize((_evt, success) => {
+        },
+        onFinalize: (evt) => {
             'worklet';
 
-            if (!success || onTap === undefined) {
+            if (evt.canceled || onTap === undefined) {
                 return;
             }
 
             scheduleOnRN(onTap);
-        });
+        },
+    });
 
     return {singleTapGesture, doubleTapGesture};
 };
