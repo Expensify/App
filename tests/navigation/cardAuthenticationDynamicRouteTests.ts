@@ -54,23 +54,32 @@ const subscriptionPath = createDynamicRoute(DYNAMIC_ROUTES.CARD_AUTHENTICATION.p
 
 describe('card-authentication dynamic route policyID inheritance', () => {
     it('inherits policyID from the owner-change base path onto the dynamic auth screen (parse layer)', () => {
+        // Given the auth screen opened on top of the owner-change flow, whose base path carries the workspace's policyID
+        // When that URL is parsed into navigation state
         const focused = findFocusedRoute(getStateFromPath(ownerChangePath));
 
+        // Then the auth screen gets the policyID, which is how it knows to verify the owner change rather than the subscription card
         expect(focused?.name).toBe(SCREENS.DYNAMIC_CARD_AUTHENTICATION);
         expect(getPolicyID(focused?.params)).toBe(POLICY_ID);
     });
 
     it('carries policyID into the dispatched navigation action for the owner-change flow', () => {
+        // Given the same owner-change URL
+        // When its state is turned into the action that navigation actually dispatches
         const action = getActionFromState(getStateFromPath(ownerChangePath), linkingConfig.config);
         const target = findDeepestPayload(action);
 
+        // Then the policyID survives the conversion, because parsed state alone doesn't prove the mounted screen receives it
         expect(target.name).toBe(SCREENS.DYNAMIC_CARD_AUTHENTICATION);
         expect(getPolicyID(target.params)).toBe(POLICY_ID);
     });
 
     it('does not attach a policyID for the subscription flow', () => {
+        // Given the auth screen opened on top of Subscription, which belongs to no workspace
+        // When that URL is parsed into navigation state
         const focused = findFocusedRoute(getStateFromPath(subscriptionPath));
 
+        // Then no policyID is attached, so a successful challenge verifies the subscription card
         expect(focused?.name).toBe(SCREENS.DYNAMIC_CARD_AUTHENTICATION);
         expect(getPolicyID(focused?.params)).toBeUndefined();
     });

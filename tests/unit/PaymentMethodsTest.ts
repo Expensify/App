@@ -38,13 +38,16 @@ describe('clearAddPaymentCardDraftCurrency', () => {
     // strips the key. A literal null (e.g. if this were ever changed to `Onyx.set`) would be hydrated by FormProvider
     // and clobber the preferred-currency default, blanking the selector / submitting a null currency. Guard that here.
     it('removes the currency key from the draft rather than storing a literal null', async () => {
+        // Given a currency the user picked earlier, still sitting in the add-card draft
         await Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT, {currency: CONST.PAYMENT_CARD_CURRENCY.GBP});
         await waitForBatchedUpdates();
 
+        // When the draft currency is cleared
         await clearAddPaymentCardDraftCurrency();
 
         const draft = await getAddPaymentCardDraft();
 
+        // Then the key is gone rather than null, so FormProvider falls back to the preferred currency
         expect(draft).not.toHaveProperty('currency');
         expect(draft?.currency).toBeUndefined();
     });

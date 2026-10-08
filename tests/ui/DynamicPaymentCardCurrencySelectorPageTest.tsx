@@ -170,51 +170,61 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
     });
 
     it('ignores the add-payment-card draft in the change-billing flow and falls back to the billing card currency', () => {
-        // Change-billing flow (default back path); a leftover add-card pick (NZD) must not leak into this flow's selection.
+        // Given the change-billing flow (the default back path), a leftover NZD pick in the add-card draft and a GBP billing card
         mockOnyx(undefined, 'NZD', 'GBP');
 
+        // When the selector opens
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
+        // Then GBP is selected, because a pick made in the add-card flow must not leak into change-billing
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
     });
 
     it('selects the add-payment-card draft currency in the add payment card flow', () => {
+        // Given the add payment card flow with NZD already picked in its draft
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
         mockOnyx(undefined, 'NZD');
 
+        // When the selector opens
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
+        // Then NZD is selected, so reopening the picker shows the currency the user chose last time
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('NZD');
     });
 
     it('falls back to the billing card currency when both the change-billing-currency draft and the add-card draft are empty', () => {
+        // Given no currency in either draft and a GBP billing card
         mockOnyx(undefined, undefined, 'GBP');
 
+        // When the selector opens
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
+        // Then GBP is selected, because with nothing picked yet the current billing currency is the best default
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
     });
 
     it('clamps a EUR preferred currency to USD in the add payment card flow when the beta is disabled', () => {
+        // Given the add payment card flow with no draft, so the default comes from a EUR billing card, while the EUR beta is off
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
-        // No add-card draft, so usePreferredCurrency resolves to the billing card currency (EUR).
         mockOnyx(undefined, undefined, 'EUR');
 
+        // When the selector opens
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
+        // Then USD is selected instead, because the list hides EUR and a hidden default would leave the user nothing checked
         const currencies = capturedData.map((option) => option.value);
         expect(currencies).not.toContain('EUR');
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('USD');
     });
 
     it('does not clamp a EUR preferred currency in the change-billing flow (keeps the existing card currency)', () => {
-        // Default back path is change-billing; preferred currency resolves to the existing EUR card.
+        // Given the change-billing flow (the default back path) with a EUR billing card while the EUR beta is off
         mockOnyx(undefined, undefined, 'EUR');
 
+        // When the selector opens
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        // EUR is still filtered out of the options when the beta is off, but the current value is NOT clamped to USD
-        // (unlike the add-card flow), so USD must not be pre-selected.
+        // Then USD is not selected, because change-billing keeps the card's real currency even though the list hides EUR
         expect(capturedData.find((option) => option.value === 'USD')?.isSelected).toBe(false);
         expect(capturedData.find((option) => option.isSelected)).toBeUndefined();
     });
@@ -239,8 +249,10 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
     });
 
     it('writes only the change-billing draft (not the add-card draft) and navigates back when Save is tapped', () => {
+        // Given the selector opened from the change-billing flow (the default back path)
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
+        // When the user picks AUD and taps Save
         const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
         act(() => {
@@ -253,6 +265,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
             capturedConfirmButtonOptions?.onConfirm?.();
         });
 
+        // Then only the change-billing draft gets AUD, so the add-card flow's own pick is untouched, and the user lands back on change-billing
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
         expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/change-billing-currency');
@@ -276,10 +289,12 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
     });
 
     it('writes only the add-card draft (not the change-billing draft) when Save is tapped in the add payment card flow', () => {
+        // Given the selector opened from the add payment card flow
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
+        // When the user picks AUD and taps Save
         const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
         act(() => {
@@ -291,6 +306,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
             capturedConfirmButtonOptions?.onConfirm?.();
         });
 
+        // Then only the add-card draft gets AUD, so the change-billing draft is untouched, and the user lands back on the add-card form
         expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
         expect(mockSetDraftValues).not.toHaveBeenCalled();
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/add-payment-card');
