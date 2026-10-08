@@ -244,7 +244,6 @@ function ReportActionItem({
     const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
-
     const draftMessage = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
     const hasDraft = draftMessage !== undefined;
     const isEditingInline = !shouldUseNarrowLayout && hasDraft;
@@ -668,7 +667,7 @@ function ReportActionItem({
                                                                     <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
                                                                 </View>
                                                             )}
-                                                            {!isOnSearch && !isMessageDeleted(action) && (
+                                                            {!isOnSearch && !isMessageDeleted(action) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && (
                                                                 <ReportActionItemEmojiReactions
                                                                     reportAction={action}
                                                                     reportID={reportID}
