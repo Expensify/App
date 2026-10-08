@@ -1,9 +1,8 @@
-import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
+import captureRegistrationState from '@components/MultifactorAuthentication/biometrics/captureRegistrationState';
 import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import {MFAMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
-import type {MFARegistrationStateSnapshot} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
 import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 
@@ -14,7 +13,6 @@ import useNetwork from '@hooks/useNetwork';
 import getPlatform from '@libs/getPlatform';
 import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
 
-import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 import {createScenarioActionRunner} from '@userActions/MultifactorAuthentication/processing';
 
 import CONST from '@src/CONST';
@@ -40,7 +38,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const platform = getPlatform();
-    const biometrics = useBiometrics();
 
     const [snapshot, send] = useInspectedMachine(MFAMachine);
     const state = snapshotToState(snapshot);
@@ -53,15 +50,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         addMFABreadcrumb('Flow canceled: account changed', {flowAccountID: state.accountID, currentAccountID: accountID}, 'warning');
         send({type: 'CLOSE_MODAL'});
     }, [accountID, send, state.accountID, state.modalState]);
-
-    const captureRegistrationState = async (flowAccountID: number): Promise<MFARegistrationStateSnapshot> => {
-        const [hasLocalCredentials, deviceBiometrics] = await Promise.all([biometrics.areLocalCredentialsKnownToServer(), readOnyxValueOnce(getDeviceBiometricsOnyxKey(flowAccountID))]);
-        return {
-            hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
-            hasLocalCredentials,
-            hasEverAcceptedSoftPrompt: deviceBiometrics?.hasAcceptedSoftPrompt ?? false,
-        };
-    };
 
     /**
      * Initiates a multifactor authentication scenario: captures start-of-flow telemetry, then sends
@@ -115,6 +103,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             scenario,
             payload: params && Object.keys(params).length > 0 ? params : undefined,
             runScenarioAction,
+            registrationStateAtStart: startRegistrationState,
         });
     };
 

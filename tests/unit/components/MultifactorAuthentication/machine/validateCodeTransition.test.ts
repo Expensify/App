@@ -83,7 +83,7 @@ describe('MFA validate code and registration decision', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false});
+        sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false});
 
         expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
@@ -96,7 +96,7 @@ describe('MFA validate code and registration decision', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false});
+        sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false});
 
         expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}})).toBe(true);
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();

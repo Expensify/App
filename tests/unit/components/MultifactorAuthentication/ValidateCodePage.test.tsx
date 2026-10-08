@@ -16,7 +16,6 @@ jest.mock('@hooks/useResponsiveLayout');
 jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: undefined}}));
 
 jest.mock('@components/MultifactorAuthentication/machine/mfaActors', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').mfaActorsMock());
-jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
 jest.mock('@components/RenderHTML', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').renderHtmlMock());
 jest.mock('@components/ValidateCodeCountdown', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').validateCodeCountdownMock());
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').syncHistoryMock());
@@ -54,7 +53,7 @@ describe('MultifactorAuthenticationValidateCodePage', () => {
 
         await act(async () => validateDeviceControl.resolve({success: true}));
         await waitForBatchedUpdatesWithAct();
-        await act(async () => loadRegistrationStateControl.resolve({hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}));
+        await act(async () => loadRegistrationStateControl.resolve({hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}));
         await waitForBatchedUpdatesWithAct();
 
         const submitButton = screen.getByTestId(TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON);

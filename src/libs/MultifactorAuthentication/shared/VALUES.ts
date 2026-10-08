@@ -249,7 +249,7 @@ const MFA_STATE = {
     CREATING_CREDENTIAL: 'creatingCredential',
     AUTHORIZING: 'authorizing',
     OUTCOME: 'outcome',
-    RESOLVING_OUTCOME: 'resolvingOutcome',
+    FINALIZING_OUTCOME: 'finalizingOutcome',
     SUCCESS: 'success',
     FAILURE: 'failure',
 } as const;

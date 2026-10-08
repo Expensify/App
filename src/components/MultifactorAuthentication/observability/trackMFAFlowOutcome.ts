@@ -1,3 +1,4 @@
+import type {MFARegistrationStateSnapshot} from '@components/MultifactorAuthentication/biometrics/captureRegistrationState';
 import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
 
 import Log from '@libs/Log';
@@ -26,16 +27,11 @@ function classifyFailure(reason: MultifactorAuthenticationReason | undefined): F
     return 'unclassified';
 }
 
-/** Snapshot of account and device registration signals captured at MFA flow boundaries for routing decisions and telemetry. */
-type MFARegistrationStateSnapshot = {
-    hasServerCredentials: boolean;
-    hasLocalCredentials: boolean;
-    hasEverAcceptedSoftPrompt: boolean;
-};
-
 type MFAFlowOutcomeContext = {
     isSuccessful: boolean;
     scenario: string | undefined;
+
+    /** Callers pass the scenario response as-is; only its status/reason/message ever leave this module - see the sanitization in {@link trackMFAFlowOutcome}. */
     scenarioResponse: MultifactorAuthenticationScenarioResponse | undefined;
     error: MFAError | undefined;
     authenticationMethod: AuthTypeName | undefined;
@@ -46,7 +42,19 @@ type MFAFlowOutcomeContext = {
     endState: MFARegistrationStateSnapshot;
 };
 
-function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
+function trackMFAFlowOutcome(rawContext: MFAFlowOutcomeContext): void {
+    // The scenario response `body` carries scenario secrets - the reveal scenarios put the card PIN and
+    // the PAN/expiration/CVV there. Reduce it to the reportable fields before anything else in this
+    // function can see the context, including the catch-all below that logs the whole thing verbatim.
+    const context = {
+        ...rawContext,
+        scenarioResponse: {
+            httpStatusCode: rawContext.scenarioResponse?.httpStatusCode,
+            reason: rawContext.scenarioResponse?.reason,
+            message: rawContext.scenarioResponse?.message,
+        },
+    };
+
     try {
         const failureClassification = context.isSuccessful ? undefined : classifyFailure(context.error?.reason);
 
@@ -64,11 +72,7 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
         const extra = {
             isSuccessful: context.isSuccessful,
             scenario: context.scenario,
-            scenarioResponse: {
-                reason: context.scenarioResponse?.reason,
-                httpStatusCode: context.scenarioResponse?.httpStatusCode,
-                message: context.scenarioResponse?.message,
-            },
+            scenarioResponse: context.scenarioResponse,
             error: {
                 reason: context.error?.reason,
                 httpStatusCode: context.error?.httpStatusCode,
@@ -88,7 +92,7 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
                 level,
                 tags,
                 extra,
-                fingerprint: ['mfa-flow-outcome', 'error', context.error?.reason ?? context.scenarioResponse?.reason ?? 'unknown'],
+                fingerprint: ['mfa-flow-outcome', 'error', context.error?.reason ?? context.scenarioResponse.reason ?? 'unknown'],
             });
             Log.warn(`[MFA] ${eventMessage}`, {mfa: extra});
         } else {
@@ -100,4 +104,3 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
 }
 
 export default trackMFAFlowOutcome;
-export type {MFARegistrationStateSnapshot};

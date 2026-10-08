@@ -25,6 +25,9 @@ const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
 const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
 const VALIDATE_CODE_TARGET = `#${MFA_STATE.VALIDATE_CODE}` as const;
 const AUTHORIZING_TARGET = `#${MFA_STATE.PROMPT}.${MFA_STATE.AUTHORIZING}` as const;
+// `closing` is a sibling of `open`, not of `outcome`, so the finalize actor's SKIP_OUTCOME_SCREEN exit
+// needs an absolute target the same way the branches above do.
+const CLOSING_TARGET = `#${MFA_STATE.CLOSING}` as const;
 
 // One literal shared by both branches of an explicit soft-prompt approval, so they can't drift apart.
 const SOFT_PROMPT_ACCEPTED_ACTIONS = ['approveSoftPrompt', 'persistSoftPromptAcceptance'] as const;
@@ -47,6 +50,8 @@ const DEFAULT_CONTEXT: MfaContext = {
     scenarioResponse: undefined,
     promptPresentationPhase: undefined,
     validateCodePresentationPhase: undefined,
+    registrationStateAtStart: undefined,
+    isRegistrationComplete: false,
 };
 
 /**
@@ -86,6 +91,7 @@ const MFAMachine = setup({
                 scenario: event.scenario,
                 payload: event.payload,
                 runScenarioAction: event.runScenarioAction,
+                registrationStateAtStart: event.registrationStateAtStart,
             };
         }),
         // Deferring the outcome push until the modal-open transition settles lets the screen slide in
@@ -122,8 +128,9 @@ const MFAMachine = setup({
             }
             markHasAcceptedSoftPrompt(context.accountID);
         },
-        // Runs on CLOSE_MODAL: drops the cancel-confirmation modal so it cannot linger over the
-        // closing navigator (CLOSE_MODAL can fire without the flow completing, e.g. an offline cancel).
+        // Runs on entering `closing`: drops the cancel-confirmation modal so it cannot linger over the
+        // closing navigator. The context is not wiped until `closed`, so without this the flag would
+        // survive the whole close animation.
         hideCancelConfirmModal: assign({isCancelConfirmVisible: false}),
         resetContext: assign(() => ({...DEFAULT_CONTEXT})),
         // Clears the module-level navigation buffer (pendingNavigation/hasInitialLaidOut). Owned by
@@ -154,7 +161,7 @@ const MFAMachine = setup({
         [MFA_STATE.OPEN]: {
             initial: MFA_STATE.PREPARING,
             on: {
-                CLOSE_MODAL: {target: MFA_STATE.CLOSING, actions: 'hideCancelConfirmModal'},
+                CLOSE_MODAL: MFA_STATE.CLOSING,
             },
             states: {
                 // This is the transparent initial screen, and its child states run the pre-screen
@@ -305,7 +312,7 @@ const MFAMachine = setup({
                                 },
                                 onDone: [
                                     {guard: ({event}) => !event.output.success, target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
-                                    {target: MFA_STATE.AUTHORIZING},
+                                    {target: MFA_STATE.AUTHORIZING, actions: assign({isRegistrationComplete: true})},
                                 ],
                                 onError: {
                                     target: OUTCOME_TARGET,
@@ -345,10 +352,46 @@ const MFAMachine = setup({
                 },
                 [MFA_STATE.OUTCOME]: {
                     id: MFA_STATE.OUTCOME,
-                    initial: MFA_STATE.RESOLVING_OUTCOME,
+                    initial: MFA_STATE.FINALIZING_OUTCOME,
                     states: {
-                        [MFA_STATE.RESOLVING_OUTCOME]: {
-                            always: [{guard: 'hasError', target: MFA_STATE.FAILURE}, {target: MFA_STATE.SUCCESS}],
+                        // Runs the scenario's callback (and, when it returns SKIP_OUTCOME_SCREEN, lets the
+                        // callback own navigation instead of showing an outcome screen) before deciding
+                        // success or failure. See `finalizeOutcomeActor` for what it does.
+                        [MFA_STATE.FINALIZING_OUTCOME]: {
+                            invoke: {
+                                id: 'finalizeOutcome',
+                                src: 'finalizeOutcome',
+                                input: ({context}) => {
+                                    if (context.accountID === undefined || context.scenario === undefined || context.scenarioName === undefined) {
+                                        throw new Error('MFA account and scenario must be initialized before finalizing the outcome');
+                                    }
+                                    return {
+                                        callback: context.scenario.callback,
+                                        payload: context.payload,
+                                        accountID: context.accountID,
+                                        scenarioName: context.scenarioName,
+                                        scenarioResponse: context.scenarioResponse,
+                                        error: context.error,
+                                        authenticationMethod: context.authenticationMethod,
+                                        isRegistrationComplete: context.isRegistrationComplete,
+                                        softPromptApproved: context.softPromptApproved,
+                                        registrationStateAtStart: context.registrationStateAtStart,
+                                    };
+                                },
+                                onDone: [
+                                    {
+                                        guard: ({event}) => event.output.callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN,
+                                        target: CLOSING_TARGET,
+                                    },
+                                    {guard: 'hasError', target: MFA_STATE.FAILURE},
+                                    {target: MFA_STATE.SUCCESS},
+                                ],
+                                // Neither the scenario callback nor the end-of-flow telemetry rejects the actor
+                                // (both are contained there), so reaching here means something else in the actor
+                                // threw unexpectedly. Route on the error state already known before this actor
+                                // ran, rather than re-running the callback.
+                                onError: [{guard: 'hasError', target: MFA_STATE.FAILURE}, {target: MFA_STATE.SUCCESS}],
+                            },
                         },
                         [MFA_STATE.SUCCESS]: {
                             entry: ['navigateToSuccessOutcome'],
@@ -363,6 +406,8 @@ const MFAMachine = setup({
         // animation finishes; if it unmounts before that, the event never comes and the
         // `closeFallback` timer re-enters `closed` instead.
         [MFA_STATE.CLOSING]: {
+            id: MFA_STATE.CLOSING,
+            entry: ['hideCancelConfirmModal'],
             on: {
                 MODAL_CLOSED: MFA_STATE.CLOSED,
             },

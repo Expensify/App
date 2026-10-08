@@ -1,13 +1,13 @@
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import snapshotToState from '@components/MultifactorAuthentication/machine/snapshotToState';
-import type {CreateCredentialInput, CreateCredentialOutput} from '@components/MultifactorAuthentication/machine/types';
+import type {CreateCredentialInput, CreateCredentialOutput, FinalizeOutcomeInput, FinalizeOutcomeOutput} from '@components/MultifactorAuthentication/machine/types';
 
 import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
 
-import {createActorAtState, createFlowContext, sendCreateCredentialDone} from 'tests/utils/mfa/flowActors';
-import {MFA_TEST_REGISTRATION_CHALLENGE} from 'tests/utils/mfa/flowFixtures';
+import {createActorAtState, createFlowContext, sendCreateCredentialDone, sendFinalizeOutcomeDone} from 'tests/utils/mfa/flowActors';
+import {MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN, MFA_TEST_REGISTRATION_CHALLENGE} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, fromPromise} from 'xstate';
 
@@ -94,7 +94,9 @@ describe('MFA credential creation', () => {
             actor.start();
             sendCreateCredentialDone(actor, {success: true});
 
-            expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
+            const result = actor.getSnapshot();
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
+            expect(result.context.isRegistrationComplete).toBe(true);
 
             actor.stop();
         });
@@ -105,6 +107,7 @@ describe('MFA credential creation', () => {
 
             actor.start();
             sendCreateCredentialDone(actor, {success: false, error: failureError});
+            sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);
 
             const result = actor.getSnapshot();
             expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
@@ -121,6 +124,7 @@ describe('MFA credential creation', () => {
             const machine = mfaMachine.provide({
                 actors: {
                     createCredential: fromPromise<CreateCredentialOutput, CreateCredentialInput>(() => Promise.reject(new Error('Credential registration exploded'))),
+                    finalizeOutcome: fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeInput>(() => Promise.resolve(MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN)),
                 },
             });
             const snapshot = machine.resolveState({

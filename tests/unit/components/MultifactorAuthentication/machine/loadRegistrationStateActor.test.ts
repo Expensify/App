@@ -3,6 +3,8 @@ import createActors from '@components/MultifactorAuthentication/machine/mfaActor
 
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, waitFor} from 'xstate';
@@ -39,7 +41,16 @@ describe('loadRegistrationState actor', () => {
         const snapshot = await runLoadRegistrationStateActor();
 
         expect(mockAreLocalCredentialsKnownToServer).toHaveBeenCalledWith(ACCOUNT_ID, expect.any(AbortSignal));
-        expect(snapshot.output).toEqual({hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true});
+        expect(snapshot.output).toEqual({hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true});
+    });
+
+    it('reports server credentials from the account, the same snapshot the flow boundaries take', async () => {
+        mockAreLocalCredentialsKnownToServer.mockResolvedValue(false);
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: ['server-credential-id']});
+
+        const snapshot = await runLoadRegistrationStateActor();
+
+        expect(snapshot.output).toEqual({hasServerCredentials: true, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false});
     });
 
     it('defaults soft-prompt acceptance to false when the account has no persisted value', async () => {
@@ -47,6 +58,6 @@ describe('loadRegistrationState actor', () => {
 
         const snapshot = await runLoadRegistrationStateActor();
 
-        expect(snapshot.output).toEqual({hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false});
+        expect(snapshot.output).toEqual({hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false});
     });
 });

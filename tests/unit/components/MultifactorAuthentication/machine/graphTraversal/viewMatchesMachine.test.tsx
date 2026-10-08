@@ -19,6 +19,7 @@ import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
     authorizeControl,
     createCredentialControl,
+    finalizeOutcomeControl,
     loadRegistrationStateControl,
     registrationStateCaptureControl,
     pendingModalClose,
@@ -47,8 +48,10 @@ jest.mock('@libs/XStateInspector', () => ({__esModule: true, default: {inspect: 
 
 // The UI walk needs to control invoked actor outcomes, and the actors' real side effects are outside the modal lifecycle contract.
 jest.mock('@components/MultifactorAuthentication/machine/mfaActors', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').mfaActorsMock());
-// Native and WebAuthn biometrics are outside the modal lifecycle contract.
-jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
+// The Provider's pre-INIT snapshot is a real Onyx/platform read outside the modal lifecycle contract.
+jest.mock('@components/MultifactorAuthentication/biometrics/captureRegistrationState', () =>
+    jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').captureRegistrationStateMock(),
+);
 // RenderHTML requires an ambient provider that this lifecycle test does not mount.
 jest.mock('@components/RenderHTML', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').renderHtmlMock());
 // The resend countdown is a real-time presentational timer; finishing it immediately keeps the resend button pressable for the walk.
@@ -171,6 +174,8 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         [actorErrorEventType('createCredential')]: () => settleActor(createCredentialControl.reject),
         [actorDoneEventType('authorize')]: (step) => settleActor(() => authorizeControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('authorize')]: () => settleActor(authorizeControl.reject),
+        [actorDoneEventType('finalizeOutcome')]: (step) => settleActor(() => finalizeOutcomeControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('finalizeOutcome')]: () => settleActor(finalizeOutcomeControl.reject),
     } satisfies MfaEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
@@ -260,6 +265,12 @@ const testConfig = {
             } else {
                 expect(screen.getByText(translateLocal('multifactorAuthentication.verifyYourself.biometrics'))).toBeOnTheScreen();
             }
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.FINALIZING_OUTCOME}`]: () => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            // The scenario callback and its SKIP-vs-SHOW routing decide the outcome screen, so neither
+            // has appeared yet while this state is still resolving.
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);

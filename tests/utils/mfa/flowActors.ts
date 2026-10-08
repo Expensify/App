@@ -30,6 +30,8 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
         scenarioResponse: undefined,
         promptPresentationPhase: undefined,
         validateCodePresentationPhase: undefined,
+        registrationStateAtStart: initEvent.registrationStateAtStart,
+        isRegistrationComplete: false,
         ...overrides,
     };
 }
@@ -71,4 +73,11 @@ function sendAuthorizeDone(actor: ReturnType<typeof createActorAtState>, output:
     actor.send(createActorDoneEvent('authorize', output));
 }
 
-export {createActorAtState, createFlowContext, sendAuthorizeDone, sendCreateCredentialDone, sendLoadRegistrationStateDone, sendRequestRegistrationChallengeDone};
+/**
+ * Completes the invoked finalize-outcome actor by sending its done event carrying the given output.
+ */
+function sendFinalizeOutcomeDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'finalizeOutcome'>) {
+    actor.send(createActorDoneEvent('finalizeOutcome', output));
+}
+
+export {createActorAtState, createFlowContext, sendAuthorizeDone, sendCreateCredentialDone, sendFinalizeOutcomeDone, sendLoadRegistrationStateDone, sendRequestRegistrationChallengeDone};

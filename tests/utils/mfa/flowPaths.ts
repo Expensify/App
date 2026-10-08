@@ -16,6 +16,7 @@ import createInitEvent, {
     MFA_TEST_AUTHORIZATION_ORDINARY_ERROR,
     MFA_TEST_CREDENTIAL_CREATION_ERROR,
     MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR,
+    MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN,
     MFA_TEST_INVALID_CODE_ERROR,
     MFA_TEST_REGISTRATION_CHALLENGE,
     MFA_TEST_SCENARIO_RESPONSE,
@@ -103,7 +104,7 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
             {type: 'RESEND_VALIDATE_CODE'},
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
@@ -115,7 +116,7 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: false, error: MFA_TEST_INVALID_CODE_ERROR}),
             {type: 'VALIDATE_CODE_CHANGED'},
@@ -129,7 +130,7 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
             {type: 'SOFT_PROMPT_APPROVED'},
@@ -143,7 +144,7 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true}),
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
         ],
@@ -156,7 +157,7 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AUTHORIZING}`,
     },
@@ -167,12 +168,13 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
             {type: 'SOFT_PROMPT_APPROVED'},
             createActorDoneEvent('createCredential', {success: true}),
             createActorDoneEvent('authorize', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
     },
@@ -182,8 +184,9 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
             createActorDoneEvent('authorize', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
     },
@@ -233,10 +236,10 @@ const MFA_ACTOR_EVENT_FIXTURES = {
     ),
     loadRegistrationState: createActorEvents(
         'loadRegistrationState',
-        {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false},
-        {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true},
-        {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false},
-        {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true},
+        {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false},
+        {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true},
+        {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false},
+        {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true},
     ),
     requestRegistrationChallenge: createActorEvents(
         'requestRegistrationChallenge',
@@ -253,6 +256,9 @@ const MFA_ACTOR_EVENT_FIXTURES = {
         {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD},
         {success: false, error: MFA_TEST_AUTHORIZATION_ORDINARY_ERROR},
     ),
+    // SKIP_OUTCOME_SCREEN routes to `closing` instead of an outcome screen, so both variants need a
+    // graph branch for the walk to reach both endpoints.
+    finalizeOutcome: createActorEvents('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN, {callbackResponse: CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN}),
 } satisfies MfaActorEventFixtures;
 
 /** Every concrete event the traversal can offer, in the order its fixtures declare them. */

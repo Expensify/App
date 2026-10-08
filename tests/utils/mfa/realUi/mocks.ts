@@ -1,10 +1,12 @@
-import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
+import type {MFARegistrationStateSnapshot} from '@components/MultifactorAuthentication/biometrics/captureRegistrationState';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import type {
     AuthorizeInput,
     AuthorizeOutput,
     CreateCredentialInput,
     CreateCredentialOutput,
+    FinalizeOutcomeInput,
+    FinalizeOutcomeOutput,
     LoadRegistrationStateInput,
     LoadRegistrationStateOutput,
     RequestRegistrationChallengeInput,
@@ -52,22 +54,20 @@ const pendingModalClose = {
     },
 };
 
+const DEFAULT_REGISTRATION_STATE_SNAPSHOT: MFARegistrationStateSnapshot = {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false};
+
+let captureRegistrationStateImpl: (accountID: number, signal?: AbortSignal) => Promise<MFARegistrationStateSnapshot> = () => Promise.resolve(DEFAULT_REGISTRATION_STATE_SNAPSHOT);
+let pendingRegistrationStateCapture: ((snapshot: MFARegistrationStateSnapshot) => void) | undefined;
+
 /**
- * Provides only the biometric values captured for telemetry while preparing `INIT`. They do not
- * currently affect machine transitions. The `Pick` makes renamed hook fields fail type checking.
+ * Lets a test hold the Provider's pre-INIT registration-state snapshot across an account switch.
+ * Controls the shared `captureRegistrationState` helper directly (mocked as its own module below), the
+ * same helper the finalize-outcome actor uses for its end-of-flow snapshot.
  */
-const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'areLocalCredentialsKnownToServer'> = {
-    serverKnownCredentialIDs: [],
-    areLocalCredentialsKnownToServer: () => Promise.resolve(false),
-};
-
-let pendingRegistrationStateCapture: ((hasLocalCredentials: boolean) => void) | undefined;
-
-/** Lets a test hold the Provider's pre-INIT registration-state snapshot across an account switch. */
 const registrationStateCaptureControl = {
     defer: () => {
-        biometricsMock.areLocalCredentialsKnownToServer = () =>
-            new Promise<boolean>((resolve) => {
+        captureRegistrationStateImpl = () =>
+            new Promise<MFARegistrationStateSnapshot>((resolve) => {
                 pendingRegistrationStateCapture = resolve;
             });
     },
@@ -77,11 +77,11 @@ const registrationStateCaptureControl = {
         if (!resolve) {
             throw new Error('No pending registration-state capture is available.');
         }
-        resolve(hasLocalCredentials);
+        resolve({...DEFAULT_REGISTRATION_STATE_SNAPSHOT, hasLocalCredentials});
     },
     reset: () => {
         pendingRegistrationStateCapture = undefined;
-        biometricsMock.areLocalCredentialsKnownToServer = () => Promise.resolve(false);
+        captureRegistrationStateImpl = () => Promise.resolve(DEFAULT_REGISTRATION_STATE_SNAPSHOT);
     },
 };
 
@@ -122,6 +122,7 @@ const loadRegistrationStateControl = createControlledActor<LoadRegistrationState
 const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
 const createCredentialControl = createControlledActor<CreateCredentialOutput, CreateCredentialInput>('createCredential');
 const authorizeControl = createControlledActor<AuthorizeOutput, AuthorizeInput>('authorize');
+const finalizeOutcomeControl = createControlledActor<FinalizeOutcomeOutput, FinalizeOutcomeInput>('finalizeOutcome');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
@@ -131,6 +132,7 @@ function resetMfaUiMocks() {
     requestRegistrationChallengeControl.reset();
     createCredentialControl.reset();
     authorizeControl.reset();
+    finalizeOutcomeControl.reset();
 }
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
@@ -141,6 +143,7 @@ function mfaActorsMock() {
         requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
         createCredential: createCredentialControl.actor,
         authorize: authorizeControl.actor,
+        finalizeOutcome: finalizeOutcomeControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -149,10 +152,11 @@ function mfaActorsMock() {
     };
 }
 
-function biometricsHookMock() {
+/** Replaces the shared `captureRegistrationState` helper the Provider (and the real finalize-outcome actor) call. */
+function captureRegistrationStateMock() {
     return {
         __esModule: true,
-        default: () => biometricsMock,
+        default: (accountID: number, signal?: AbortSignal) => captureRegistrationStateImpl(accountID, signal),
     };
 }
 
@@ -237,10 +241,11 @@ export {
     requestRegistrationChallengeControl,
     createCredentialControl,
     authorizeControl,
+    finalizeOutcomeControl,
     resetMfaUiMocks,
     mfaActorsMock,
+    captureRegistrationStateMock,
     userActionsMock,
-    biometricsHookMock,
     renderHtmlMock,
     validateCodeCountdownMock,
     syncHistoryMock,

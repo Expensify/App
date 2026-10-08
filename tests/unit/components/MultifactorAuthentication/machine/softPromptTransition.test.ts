@@ -25,7 +25,7 @@ describe('MFA soft prompt', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false});
+        sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false});
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
@@ -39,7 +39,7 @@ describe('MFA soft prompt', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true});
+        sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true});
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
@@ -52,7 +52,7 @@ describe('MFA soft prompt', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true});
+        sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true});
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);

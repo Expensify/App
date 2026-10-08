@@ -1,6 +1,6 @@
-import Log from '@libs/Log';
+import type {MFARegistrationStateSnapshot} from '@components/MultifactorAuthentication/biometrics/captureRegistrationState';
 
-import type {MFARegistrationStateSnapshot} from './trackMFAFlowOutcome';
+import Log from '@libs/Log';
 
 type MFAFlowStartContext = {
     scenario: string;
