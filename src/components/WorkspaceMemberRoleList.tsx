@@ -45,6 +45,9 @@ type WorkspaceMemberRoleListProps = {
 
     /** Shown above the confirm button, for a confirmation pressed without a role picked */
     errorMessage?: string;
+
+    /** Bump to have the error read out again, since a repeated confirmation leaves the message itself unchanged */
+    errorAnnouncementKey?: number;
 };
 
 /**
@@ -124,6 +127,7 @@ function WorkspaceMemberRoleList({
     allowedRoles = undefined,
     confirmButtonOptions = undefined,
     errorMessage = '',
+    errorAnnouncementKey = 0,
 }: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -150,7 +154,10 @@ function WorkspaceMemberRoleList({
                     >
                         {!!errorMessage && (
                             <View style={[styles.ph3, styles.mb3]}>
+                                {/* Remounting is what makes the alert speak again. The list is not inside a `Form`,
+                                    so `FormHelpMessage` has no submit count of its own to re-announce from. */}
                                 <FormHelpMessage
+                                    key={errorAnnouncementKey}
                                     isError
                                     message={errorMessage}
                                 />

@@ -298,6 +298,17 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(TestHelper.translateLocal('common.error.pleaseSelectOne'))).toBeOnTheScreen();
             });
 
+            // When Save is pressed again with still nothing picked, the ask stays up rather than being counted as handled
+            fireEvent.press(saveButton, {
+                nativeEvent: {},
+                type: 'press',
+                target: saveButton,
+                currentTarget: saveButton,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(TestHelper.translateLocal('common.error.pleaseSelectOne'))).toBeOnTheScreen();
+
             // When a role is then picked, the message clears
             const auditorRow = screen.getByText(roleName(CONST.POLICY.ROLE.AUDITOR));
             fireEvent.press(auditorRow, {

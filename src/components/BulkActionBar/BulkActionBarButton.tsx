@@ -76,6 +76,7 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
                 isDisabled={option.disabled}
                 accessibilityLabel={option.text}
                 accessibilityState={hasSubMenu ? {expanded: isMenuVisible} : undefined}
+                accessibilityHasPopup={hasSubMenu ? CONST.ROLE.MENU : undefined}
                 sentryLabel={option.sentryLabel}
             >
                 {!!option.icon && (

@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
 import mergeRefs from '@libs/mergeRefs';
+import moveMiniToolbarFocusWithArrowKey from '@libs/moveContextMenuFocusWithArrowKey';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
 import {areAllModalsHidden, setDisableDismissOnEscape} from '@userActions/Modal';
@@ -178,6 +179,9 @@ function BulkActionBarContent<TValueType>({
             style={styles.bulkActionBar}
             role={CONST.ROLE.TOOLBAR}
             accessibilityLabel={translate('bulkActionBar.label')}
+            // The toolbar role has screen readers promise Left and Right move between the buttons, so the bar has to
+            // answer them. Same handler as the report action mini toolbar, which is the same row of role=button children.
+            onKeyDown={moveMiniToolbarFocusWithArrowKey}
             onLayout={(event) => onBarLayout(event.nativeEvent.layout.width)}
         >
             {/* Sized for a three-digit count so the bar keeps still as the selection grows, and so swapping the
@@ -208,6 +212,7 @@ function BulkActionBarContent<TValueType>({
                         onPress={() => setIsMoreMenuVisible((isVisible) => !isVisible)}
                         accessibilityLabel={translate('common.more')}
                         accessibilityState={{expanded: isMoreMenuVisible}}
+                        accessibilityHasPopup={CONST.ROLE.MENU}
                         sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_BAR.MORE}
                     >
                         <Button.Text>{translate('common.more')}</Button.Text>

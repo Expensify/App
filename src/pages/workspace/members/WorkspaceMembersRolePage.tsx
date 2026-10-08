@@ -50,7 +50,8 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
     // selected and the member has to make a deliberate choice.
     const sharedRole = memberRoles.length > 0 ? Object.values(CONST.POLICY.ROLE).find((role) => memberRoles.every((memberRole) => memberRole === role)) : undefined;
     const [draftRole, setDraftRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>();
-    const [hasError, setHasError] = useState(false);
+    // Counted rather than flagged, so a Save pressed again with still nothing picked reads the error out again.
+    const [rejectedSaveCount, setRejectedSaveCount] = useState(0);
     const selectedRole = draftRole ?? sharedRole;
 
     // The Authorized Payer (reimburser) must stay a valid payer, so restrict the whole selection to the roles that can pay once it includes them.
@@ -89,7 +90,7 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
 
     const saveAndGoBack = () => {
         if (!selectedRole) {
-            setHasError(true);
+            setRejectedSaveCount((count) => count + 1);
             return;
         }
 
@@ -126,7 +127,7 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
                     policy={policy}
                     onSelectRole={({value}: ListItemType) => {
                         setDraftRole(value);
-                        setHasError(false);
+                        setRejectedSaveCount(0);
                     }}
                     allowedRoles={allowedRoles}
                     navigateBackTo={ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)}
@@ -135,7 +136,8 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
                         text: translate('common.save'),
                         onConfirm: saveAndGoBack,
                     }}
-                    errorMessage={hasError ? translate('common.error.pleaseSelectOne') : ''}
+                    errorMessage={rejectedSaveCount > 0 ? translate('common.error.pleaseSelectOne') : ''}
+                    errorAnnouncementKey={rejectedSaveCount}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
