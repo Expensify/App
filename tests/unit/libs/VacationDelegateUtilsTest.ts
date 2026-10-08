@@ -5,6 +5,7 @@ import {
     getVacationDelegateClearDateTime,
     getVacationDelegateLocalClearDateTime,
     isVacationDelegateClearAfterTooSoon,
+    isVacationDelegateClearDatePassed,
     isVacationDelegateExpired,
 } from '@libs/VacationDelegateUtils';
 
@@ -95,6 +96,27 @@ describe('VacationDelegateUtils', () => {
             expect(isVacationDelegateExpired('2026-09-28 11:59:59')).toBe(true);
             expect(isVacationDelegateExpired('2026-09-28 12:00:01')).toBe(false);
             expect(isVacationDelegateExpired(undefined)).toBe(false);
+        });
+    });
+
+    describe('isVacationDelegateClearDatePassed', () => {
+        it('reads the clear date in the Profile timezone, not the device timezone', () => {
+            // Given it is 2026-10-08 03:00 UTC: still Oct 7 in Los Angeles, already Oct 8 in Tokyo, and Oct 8 on the UTC test device
+            jest.setSystemTime(new Date('2026-10-08T03:00:00Z'));
+
+            // When Oct 7 is checked for a user whose Profile timezone is Los Angeles, and for one whose Profile timezone is Tokyo
+            // Then it is still open in Los Angeles, even though the device's day has moved on, and it has ended in Tokyo
+            expect(isVacationDelegateClearDatePassed('2026-10-07', 'America/Los_Angeles')).toBe(false);
+            expect(isVacationDelegateClearDatePassed('2026-10-07', 'Asia/Tokyo')).toBe(true);
+            expect(isVacationDelegateClearDatePassed('2026-10-06', 'America/Los_Angeles')).toBe(true);
+            expect(isVacationDelegateClearDatePassed('2026-10-08', 'Asia/Tokyo')).toBe(false);
+        });
+
+        it('treats a date that does not parse as passed', () => {
+            // Given a clear date that isn't a yyyy-MM-dd date
+            // When it is checked
+            // Then it is rejected, so the form shows the invalid date error instead of building a clearAfter from it
+            expect(isVacationDelegateClearDatePassed('not-a-date', 'America/Los_Angeles')).toBe(true);
         });
     });
 

@@ -80,6 +80,18 @@ function isVacationDelegateExpired(clearAfter: string | undefined): boolean {
 }
 
 /**
+ * Whether the picked clear date (yyyy-MM-dd) has already ended in the given timezone. The day is read in the user's Profile timezone,
+ * not the device's, so a device in another timezone doesn't reject a day that hasn't ended yet for the user, or accept one that has.
+ */
+function isVacationDelegateClearDatePassed(clearDate: string, timezone: SelectedTimezone | undefined): boolean {
+    if (!isValid(parse(clearDate, CONST.DATE.FNS_FORMAT_STRING, new Date()))) {
+        return true;
+    }
+
+    return isVacationDelegateExpired(getVacationDelegateClearAfter(clearDate, undefined, timezone));
+}
+
+/**
  * Whether the picked clearAfter datetime is less than one minute from now. Such a delegate could clear while the request is still in
  * flight, so the form asks for a time at least one minute ahead.
  */
@@ -95,5 +107,6 @@ export {
     getVacationDelegateLocalClearDateTime,
     formatVacationDelegateClearDateTime,
     isVacationDelegateExpired,
+    isVacationDelegateClearDatePassed,
     isVacationDelegateClearAfterTooSoon,
 };

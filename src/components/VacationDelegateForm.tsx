@@ -12,9 +12,9 @@ import {
     getVacationDelegateClearDateTime,
     getVacationDelegateLocalClearDateTime,
     isVacationDelegateClearAfterTooSoon,
+    isVacationDelegateClearDatePassed,
     isVacationDelegateExpired,
 } from '@libs/VacationDelegateUtils';
-import {getDatePassedError} from '@libs/ValidationUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/VacationDelegateForm';
@@ -66,7 +66,7 @@ type VacationDelegateFormProps = {
 
 function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, onSubmit, onRemove, errors, pendingAction, onCloseError}: VacationDelegateFormProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, getLocalDateFromDatetime} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Trashcan']);
     const {timezone} = useCurrentUserPersonalDetails();
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT);
@@ -88,9 +88,9 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
             return formErrors;
         }
 
-        const dateError = getDatePassedError(translate, values[INPUT_IDS.CLEAR_AFTER_DATE]);
-        if (dateError) {
-            formErrors[INPUT_IDS.CLEAR_AFTER_DATE] = dateError;
+        // Both checks read the picked date and time in the Profile timezone, the same one clearAfter is built from, not the device's
+        if (isVacationDelegateClearDatePassed(values[INPUT_IDS.CLEAR_AFTER_DATE], timezone?.selected)) {
+            formErrors[INPUT_IDS.CLEAR_AFTER_DATE] = translate('common.error.dateInvalid');
         } else if (isVacationDelegateClearAfterTooSoon(getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], values[INPUT_IDS.CLEAR_AFTER_TIME], timezone?.selected))) {
             formErrors[INPUT_IDS.CLEAR_AFTER_TIME] = translate('common.error.invalidTimeShouldBeFuture');
         }
@@ -127,13 +127,14 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
                 onPress={onChangeDelegate}
             />
             <View style={styles.ph5}>
-                {/* The date can only be changed through the picker, so it keeps its icon and has no clear button, as in the mockups */}
+                {/* The date can only be changed through the picker, so it keeps its icon and has no clear button, as in the mockups.
+                    The earliest day is today in the Profile timezone, so it matches the validation even when the device is in another timezone. */}
                 <InputWrapper
                     InputComponent={DatePicker}
                     inputID={INPUT_IDS.CLEAR_AFTER_DATE}
                     label={translate('statusPage.vacationDelegate.clearAfterRecommended')}
                     defaultValue={savedClearDate}
-                    minDate={new Date()}
+                    minDate={getLocalDateFromDatetime()}
                     icon={icons.CalendarSolid}
                     shouldForceActiveLabel={false}
                     shouldKeepCalendarIconWhenSelected
