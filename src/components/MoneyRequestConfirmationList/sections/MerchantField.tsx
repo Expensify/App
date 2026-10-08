@@ -22,6 +22,8 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {merchantStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -33,6 +35,7 @@ type MerchantFieldProps = {
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
     const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -149,6 +152,23 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
 
     // The row hides the label once it has a value, and an error replaces it
     const shouldShowRequiredLabel = !displayMerchantValue && !!isMerchantRequired && !shouldDisplayMerchantError;
+
+    // On the bordered form the editable merchant is a text input, so a locked one has to read as a disabled input
+    // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={translate('common.merchant')}
+                value={displayMerchantValue}
+                numberOfLinesValue={2}
+                rightLabel={isMerchantRequired ? translate('common.required') : ''}
+                errorText={merchantErrorText}
+                isDisabled={didConfirm}
+                isInteractive={false}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
+            />
+        );
+    }
 
     // Only read-only confirmations reach this row, so it never navigates
     return (
