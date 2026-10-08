@@ -73,7 +73,7 @@ To learn about the available suggested rules, see [Use Suggested Agent Rules](/a
 
 ---
 
-## How are Agent templates different from suggested agent rules
+## How are agent templates different from suggested agent rules
 
 Both give you pre-written instructions, but for different kinds of agents:
 
