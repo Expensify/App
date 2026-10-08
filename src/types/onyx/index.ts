@@ -153,6 +153,7 @@ import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
+import type {Purchases} from './PurchaseList';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -400,6 +401,7 @@ export type {
     WalletTransfer,
     SupportalPermissionDenied,
     PurchaseList,
+    Purchases,
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
