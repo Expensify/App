@@ -218,7 +218,7 @@ function useMarkAsRead({
             lastReadTime: report.lastReadTime,
             notificationPreference,
         });
-        // Only the report ID and hidden flag should re-run this; the report fields are read as of the open.
+        // Only the report ID and hidden flag should re-run this. The report fields are read as of the open.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportID, isHiddenFromUser]);
 
