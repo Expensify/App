@@ -1,0 +1,74 @@
+{
+    "import/consistent-type-specifier-style": {
+        "fixture": "fixtures/importNativeBatch.ts",
+        "oxlintRule": "import/consistent-type-specifier-style",
+        "expected": 1,
+        "why": "production passes prefer-top-level, and the inline `type` specifier is exactly the shape that option rejects"
+    },
+    "import/extensions": {
+        "fixture": "fixtures/importNativeBatch.ts",
+        "oxlintRule": "import/extensions",
+        "expected": 1,
+        "why": "production's ignorePackages plus never-for-every-extension map, proved on a spelled-out `.ts` relative import; unresolvable specifiers are kept out of this file because ESLint adds a second finding for each"
+    },
+    "import/first": {
+        "fixture": "fixtures/importNativeBatch.ts",
+        "oxlintRule": "import/first",
+        "expected": 1,
+        "why": "enabled bare in production; the import sits below the file's first non-import statement"
+    },
+    "import/newline-after-import": {
+        "fixture": "fixtures/importNativeBatch.ts",
+        "oxlintRule": "import/newline-after-import",
+        "expected": 1,
+        "why": "enabled bare in production; an import followed immediately by a const with no blank line between"
+    },
+    "import/no-absolute-path": {
+        "fixture": "fixtures/importNativeBatchAbsolute.ts",
+        "oxlintRule": "import/no-absolute-path",
+        "expected": 1,
+        "why": "enabled bare in production; on its own fixture because ESLint's import/extensions reports \"Missing file extension\" for every specifier it cannot resolve, which an absolute path always is, so the two rules cannot share a file at equal counts"
+    },
+    "import/no-amd": {
+        "fixture": "fixtures/importNativeBatch.ts",
+        "oxlintRule": "import/no-amd",
+        "expected": 1,
+        "why": "enabled bare in production; a top-level define() call is the AMD factory shape both tools reject"
+    },
+    "import/no-mutable-exports": {
+        "fixture": "fixtures/importNativeBatch.ts",
+        "oxlintRule": "import/no-mutable-exports",
+        "expected": 1,
+        "why": "enabled bare in production; `export let` is a live binding the rule wants as const"
+    },
+    "import/no-named-default": {
+        "fixture": "fixtures/importNativeBatch.ts",
+        "oxlintRule": "import/no-named-default",
+        "expected": 1,
+        "why": "enabled bare in production; `import {default as x}` is the specifier shape it replaces with a default import"
+    },
+    "import/no-self-import": {
+        "fixture": "fixtures/importNativeBatch.ts",
+        "oxlintRule": "import/no-self-import",
+        "expected": 1,
+        "why": "enabled bare in production; the file imports itself by relative path, and this is one of the three rules here that stay silent on the oxlint side unless the import plugin is genuinely enabled (--import-plugin) rather than only listed in an override"
+    },
+    "import/no-webpack-loader-syntax": {
+        "fixture": "fixtures/importNativeBatch.ts",
+        "oxlintRule": "import/no-webpack-loader-syntax",
+        "expected": 1,
+        "why": "enabled bare in production; written `raw-loader!./x` instead of `!raw-loader!./x` because the leading bang makes the specifier unresolvable and ESLint's extensions rule piles a second finding onto the same line"
+    },
+    "import/named": {
+        "fixture": "fixtures/importNativeBatchJs.js",
+        "oxlintRule": "import/named",
+        "expected": 1,
+        "why": "production scopes import/named to plain JS, so the .js fixture asks the .ts helper for an export that does not exist; it reports on neither tool unless ESLint has production's node-resolver extension list and oxlint has its import plugin enabled, which is the point of the row"
+    },
+    "import/no-named-as-default-member": {
+        "fixture": "fixtures/importNativeBatchJs.js",
+        "oxlintRule": "import/no-named-as-default-member",
+        "expected": 1,
+        "why": "root-on and switched off for TS in production, so the .js fixture reads a named export off the default import (the react-native-config shape); the ESLint-misses-what-oxlint-catches asymmetry needs a module ESLint cannot parse, and a plain local helper both tools can read reports on both sides, so this row is parity"
+    }
+}

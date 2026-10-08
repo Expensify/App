@@ -1,0 +1,50 @@
+{
+    "testing-library/await-async-queries": {
+        "fixture": "fixtures/tlBatchTest.tsx",
+        "oxlintRule": "testing-library/await-async-queries",
+        "expected": 1,
+        "why": "a findBy* call whose promise is dropped; the plugin is absent from oxlint's schema and its rules sit in an override where unknown ids fail silently, so this fixture is the only proof the rule runs on both tools"
+    },
+    "testing-library/await-async-utils": {
+        "fixture": "fixtures/tlBatchTest.tsx",
+        "oxlintRule": "testing-library/await-async-utils",
+        "expected": 1,
+        "why": "waitFor called without await; the awaited control two functions down proves the rule is not just reporting every waitFor"
+    },
+    "testing-library/no-manual-cleanup": {
+        "fixture": "fixtures/tlBatchTest.tsx",
+        "oxlintRule": "testing-library/no-manual-cleanup",
+        "expected": 1,
+        "why": "cleanup imported from @testing-library/react, which is what the rule reports on; both tools anchor on line 1 (the specifier), unlike the react-native fixture where no-debugging-utils reports a call"
+    },
+    "testing-library/no-unnecessary-act": {
+        "fixture": "fixtures/tlBatchTest.tsx",
+        "oxlintRule": "testing-library/no-unnecessary-act",
+        "expected": 1,
+        "why": "fireEvent inside act() at the rule's default isStrict; the sibling act() over a plain assignment stays silent on both tools, which is what separates this from a rule that flags every act"
+    },
+    "testing-library/prefer-find-by": {
+        "fixture": "fixtures/tlBatchTest.tsx",
+        "oxlintRule": "testing-library/prefer-find-by",
+        "expected": 1,
+        "why": "await waitFor(() => screen.getByText(...)) instead of findByText; needs the await on both sides because the rule only visits AwaitExpression > CallExpression"
+    },
+    "testing-library/prefer-presence-queries": {
+        "fixture": "fixtures/tlBatchTest.tsx",
+        "oxlintRule": "testing-library/prefer-presence-queries",
+        "expected": 1,
+        "why": "getBy used against a negated presence matcher (.not.toBeInTheDocument = absence assertion); the queryBy control on the same matcher proves the absence half is what fires"
+    },
+    "testing-library/prefer-screen-queries": {
+        "fixture": "fixtures/tlBatchTest.tsx",
+        "oxlintRule": "testing-library/prefer-screen-queries",
+        "expected": 1,
+        "why": "getByText destructured from render() and then called; every other query in the fixture goes through screen and stays clean, so the count cannot drift without the shape changing"
+    },
+    "lodash/import-scope": {
+        "fixture": "fixtures/tlBatchLodash.ts",
+        "oxlintRule": "lodash/import-scope",
+        "expected": 1,
+        "why": "production options are [error, method], so member imports off the full lodash module are the violation and lodash/mapValues default imports are valid; eslint-plugin-lodash ships no meta.name, yet oxlint still reports it as lodash(import-scope) from the jsPlugins specifier, and this plugin is wired only by this shard"
+    }
+}

@@ -1,0 +1,95 @@
+{
+    "overrides": [
+        {
+            "files": ["**/reactNativeRulesA.tsx"],
+            "plugins": ["react"],
+            "rules": {
+                "react/jsx-boolean-value": [
+                    "error",
+                    "never",
+                    {
+                        "always": []
+                    }
+                ],
+                "react/jsx-fragments": ["error", "syntax"],
+                "react/jsx-no-comment-textnodes": "error",
+                "react/jsx-no-script-url": [
+                    "error",
+                    [
+                        {
+                            "name": "Link",
+                            "props": ["to"]
+                        }
+                    ]
+                ],
+                "react/jsx-no-target-blank": [
+                    "error",
+                    {
+                        "enforceDynamicLinks": "always"
+                    }
+                ],
+                "react/jsx-no-useless-fragment": "error",
+                "react/jsx-pascal-case": [
+                    "error",
+                    {
+                        "allowAllCaps": true,
+                        "ignore": []
+                    }
+                ],
+                "react/no-array-index-key": "error",
+                "react/no-children-prop": "error",
+                "react/no-danger": "error",
+                "react/no-unescaped-entities": "error",
+                "react/self-closing-comp": "error",
+                "react/forbid-component-props": [
+                    "error",
+                    {
+                        "forbid": [
+                            {
+                                "propName": "fsClass",
+                                "allowedFor": ["View", "Animated.View", "Text", "Pressable"],
+                                "message": "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components."
+                            }
+                        ]
+                    }
+                ],
+                "react/rules-of-hooks": "error"
+            }
+        },
+        {
+            "files": ["**/reactNativeRulesB.tsx"],
+            "plugins": ["react"],
+            "rules": {
+                "react/no-did-update-set-state": "error",
+                "react/no-will-update-set-state": "error",
+                "react/no-redundant-should-component-update": "error",
+                "react/state-in-constructor": ["error", "always"],
+                "react/no-unsafe": [
+                    "error",
+                    {
+                        "checkAliases": true
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["**/reactNativeRulesC.jsx"],
+            "plugins": ["react"],
+            "rules": {
+                "react/jsx-no-duplicate-props": "error",
+                "react/jsx-no-undef": "error",
+                "react/no-namespace": "error",
+                "react/no-unknown-property": "error",
+                "react/no-string-refs": "error",
+                "react/no-this-in-sfc": "error",
+                "react/style-prop-object": "error",
+                "react/void-dom-elements-no-children": "error",
+                "react/prefer-es6-class": ["error", "always"],
+                "react/no-is-mounted": "error",
+                "react/require-render-return": "error",
+                "react/no-find-dom-node": "error",
+                "react/no-render-return-value": "error"
+            }
+        }
+    ]
+}

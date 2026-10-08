@@ -1,0 +1,341 @@
+From 74d50ad08121d8f1823201fe875c375f68f3817d Mon Sep 17 00:00:00 2001
+From: Lukasz Modzelewski <lukasz.modzelewski@callstack.com>
+Date: Thu, 10 Sep 2026 15:12:41 +0200
+Subject: [PATCH] Extract report-action message readers and type guards into
+ leaf modules
+
+---
+ src/libs/AgentRuleChangeLogUtils.ts           |  3 +-
+ src/libs/IOUUtils.ts                          |  3 +-
+ src/libs/ModifiedExpenseMessage.ts            |  3 +-
+ src/libs/NextStepUtils.ts                     |  3 +-
+ .../LocalNotification/BrowserNotifications.ts |  2 +-
+ src/libs/ReportActionMessageUtils.ts          | 51 ++++++++++++++++++
+ src/libs/ReportActionTypeGuards.ts            | 28 ++++++++++
+ src/libs/ReportActionsUtils.ts                | 53 ++-----------------
+ src/libs/SpendRuleChangeLogUtils.ts           |  3 +-
+ src/libs/TaskUtils.ts                         |  2 +-
+ src/libs/actions/Report/DeleteReport.ts       |  3 +-
+ 11 files changed, 96 insertions(+), 58 deletions(-)
+ create mode 100644 src/libs/ReportActionMessageUtils.ts
+ create mode 100644 src/libs/ReportActionTypeGuards.ts
+
+diff --git a/src/libs/AgentRuleChangeLogUtils.ts b/src/libs/AgentRuleChangeLogUtils.ts
+index 22a0b93f67dc..c8bb76720da6 100644
+--- a/src/libs/AgentRuleChangeLogUtils.ts
++++ b/src/libs/AgentRuleChangeLogUtils.ts
+@@ -5,7 +5,8 @@ import type ReportAction from '@src/types/onyx/ReportAction';
+ 
+ import type {OnyxEntry} from 'react-native-onyx';
+ 
+-import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
++import {getOriginalMessage} from './ReportActionMessageUtils';
++import {isActionOfType} from './ReportActionTypeGuards';
+ 
+ /**
+  * Builds the #admins system message shown when an agent rule is added. Includes the rule's title and
+diff --git a/src/libs/IOUUtils.ts b/src/libs/IOUUtils.ts
+index ac1dcdfbb5f7..bd38fa942ac8 100644
+--- a/src/libs/IOUUtils.ts
++++ b/src/libs/IOUUtils.ts
+@@ -15,7 +15,8 @@ import {SafeString} from 'expensify-common';
+ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+ import Navigation from './Navigation/Navigation';
+ import {isGroupPolicy} from './PolicyUtils';
+-import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
++import {getOriginalMessage} from './ReportActionMessageUtils';
++import {isMoneyRequestAction} from './ReportActionTypeGuards';
+ import {canAddTransaction, generateReportID, getChatByParticipants, isArchivedReport, isSelfDM} from './ReportUtils';
+ import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
+ import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
+diff --git a/src/libs/ModifiedExpenseMessage.ts b/src/libs/ModifiedExpenseMessage.ts
+index 576ab794ec80..aca2131cae64 100644
+--- a/src/libs/ModifiedExpenseMessage.ts
++++ b/src/libs/ModifiedExpenseMessage.ts
+@@ -27,7 +27,8 @@ import {
+     isPolicyAdmin,
+     isXeroActiveMatchingSource,
+ } from './PolicyUtils';
+-import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
++import {getOriginalMessage} from './ReportActionMessageUtils';
++import {isModifiedExpenseAction} from './ReportActionTypeGuards';
+ // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
+ // The functions imported here are pure utility functions that don't create initialization-time dependencies.
+ // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
+diff --git a/src/libs/NextStepUtils.ts b/src/libs/NextStepUtils.ts
+index fe8a6023c844..45303092decf 100644
+--- a/src/libs/NextStepUtils.ts
++++ b/src/libs/NextStepUtils.ts
+@@ -12,7 +12,8 @@ import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
+ import {Str} from 'expensify-common';
+ 
+ import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+-import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
++import {getOriginalMessage} from './ReportActionMessageUtils';
++import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
+ import {
+     getDisplayNameForParticipant,
+     getMoneyRequestSpendBreakdown,
+diff --git a/src/libs/Notification/LocalNotification/BrowserNotifications.ts b/src/libs/Notification/LocalNotification/BrowserNotifications.ts
+index 4547e3fa7b41..c131d816286d 100644
+--- a/src/libs/Notification/LocalNotification/BrowserNotifications.ts
++++ b/src/libs/Notification/LocalNotification/BrowserNotifications.ts
+@@ -9,7 +9,7 @@ import Log from '@libs/Log';
+ import {getForReportAction} from '@libs/ModifiedExpenseMessage';
+ import NotificationPermission from '@libs/Notification/notificationPermission';
+ import {format} from '@libs/NumberFormatUtils';
+-import {getTextFromHtml} from '@libs/ReportActionsUtils';
++import {getTextFromHtml} from '@libs/ReportActionMessageUtils';
+ import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+ import * as ReportUtils from '@libs/ReportUtils';
+ import playSound, {SOUNDS} from '@libs/Sound';
+diff --git a/src/libs/ReportActionMessageUtils.ts b/src/libs/ReportActionMessageUtils.ts
+new file mode 100644
+index 000000000000..ed484ffd413d
+--- /dev/null
++++ b/src/libs/ReportActionMessageUtils.ts
+@@ -0,0 +1,51 @@
++/**
++ * Readers for the message payload carried by a report action.
++ *
++ * They live outside `ReportActionsUtils` because that module imports `ReportUtils` and the action layer, so callers
++ * that only need to read an action's message would otherwise pull the whole graph in and close an import cycle.
++ */
++import type {OnyxInputOrEntry} from '@src/types/onyx';
++import type ReportAction from '@src/types/onyx/ReportAction';
++import type {OriginalMessage} from '@src/types/onyx/ReportAction';
++import type ReportActionName from '@src/types/onyx/ReportActionName';
++
++import Parser from './Parser';
++import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
++import type {PartialReportAction} from './ReportUtils';
++
++function getReportActionMessage(reportAction: PartialReportAction) {
++    return Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
++}
++
++function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
++    // This is the accessor that replaces direct `originalMessage` reads, so it has to touch the deprecated field itself.
++    // eslint-disable-next-line @typescript-eslint/no-deprecated
++    const candidate = !Array.isArray(reportAction?.message) ? (reportAction?.message ?? reportAction?.originalMessage) : reportAction?.originalMessage;
++
++    // Some legacy/OldDot report actions (e.g. card-imported expense updates) store a plain notification
++    // string in `message`/`originalMessage` instead of the object shape declared by `OriginalMessage<T>`.
++    // Downstream callers use the JS `in` operator on the result, which throws a TypeError on non-objects.
++    // Normalize non-object values to undefined so the runtime matches the declared TypeScript contract.
++    if (candidate === null || typeof candidate !== 'object') {
++        return undefined;
++    }
++    return candidate as OriginalMessage<T>;
++}
++
++function getReportActionHtml(reportAction: PartialReportAction): string {
++    return getReportActionMessage(reportAction)?.html ?? '';
++}
++
++function getReportActionText(reportAction: PartialReportAction): string {
++    const message = getReportActionMessage(reportAction);
++    // Sometime html can be an empty string
++    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
++    const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
++    return text ? Parser.htmlToText(text) : '';
++}
++
++function getTextFromHtml(html?: string): string {
++    return html ? Parser.htmlToText(html) : '';
++}
++
++export {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml};
+diff --git a/src/libs/ReportActionTypeGuards.ts b/src/libs/ReportActionTypeGuards.ts
+new file mode 100644
+index 000000000000..0602cb0339d5
+--- /dev/null
++++ b/src/libs/ReportActionTypeGuards.ts
+@@ -0,0 +1,28 @@
++/**
++ * Type guards that narrow a report action by its `actionName`.
++ *
++ * They live outside `ReportActionsUtils` because that module imports `ReportUtils` and the action layer, so callers
++ * that only need to narrow an action would otherwise pull the whole graph in and close an import cycle.
++ */
++import CONST from '@src/CONST';
++import type {OnyxInputOrEntry} from '@src/types/onyx';
++import type ReportAction from '@src/types/onyx/ReportAction';
++import type ReportActionName from '@src/types/onyx/ReportActionName';
++
++function isActionOfType<T extends ReportActionName>(action: OnyxInputOrEntry<ReportAction>, actionName: T): action is ReportAction<T> {
++    return action?.actionName === actionName;
++}
++
++function isMoneyRequestAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
++    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU);
++}
++
++function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
++    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
++}
++
++function isDynamicExternalWorkflowApproveFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> {
++    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
++}
++
++export {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction};
+diff --git a/src/libs/ReportActionsUtils.ts b/src/libs/ReportActionsUtils.ts
+index 725a39af0ba4..938230eb15dc 100644
+--- a/src/libs/ReportActionsUtils.ts
++++ b/src/libs/ReportActionsUtils.ts
+@@ -37,7 +37,7 @@ import type {
+ import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
+ import type Report from '@src/types/onyx/Report';
+ import type ReportAction from '@src/types/onyx/ReportAction';
+-import type {Message, OldDotReportAction, OriginalMessage, PolicyChangeLogCopyReportActionNames, ReportActions} from '@src/types/onyx/ReportAction';
++import type {Message, OldDotReportAction, PolicyChangeLogCopyReportActionNames, ReportActions} from '@src/types/onyx/ReportAction';
+ import type ReportActionName from '@src/types/onyx/ReportActionName';
+ import {isEmptyObject} from '@src/types/utils/EmptyObject';
+ 
+@@ -72,6 +72,8 @@ import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
+ import Parser from './Parser';
+ import {arePersonalDetailsMissing, getEffectiveDisplayName} from './PersonalDetailsUtils';
+ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
++import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
++import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
+ import StringUtils from './StringUtils';
+ import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
+ import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
+@@ -248,10 +250,6 @@ function getHtmlWithAttachmentID(html: string, reportActionID: string | undefine
+     });
+ }
+ 
+-function getReportActionMessage(reportAction: PartialReportAction) {
+-    return Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
+-}
+-
+ function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+     return (getReportActionMessage(reportAction)?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+ }
+@@ -281,10 +279,6 @@ function getModerationFlagState(reportAction: OnyxInputOrEntry<ReportAction>): {
+     return {latestDecision, hasBeenFlagged};
+ }
+ 
+-function isMoneyRequestAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU);
+-}
+-
+ function isExportedToIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION);
+ }
+@@ -366,10 +360,6 @@ function hasPendingDEWSubmit(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPol
+     return isDEWPolicy && reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT;
+ }
+ 
+-function isDynamicExternalWorkflowApproveFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> {
+-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
+-}
+-
+ /** Actions that clear a DEW_APPROVE_FAILED error (approval succeeded or report was retracted/reopened). */
+ function isActionThatSupersedesDEWApproveFailure(action: ReportAction): boolean {
+     return isApprovedAction(action) || isForwardedAction(action) || isRetractedAction(action) || isReopenedAction(action);
+@@ -407,10 +397,6 @@ function isDynamicExternalWorkflowForwardedAction(reportAction: OnyxInputOrEntry
+     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+ }
+ 
+-function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
+-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
+-}
+-
+ function isMovedTransactionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> {
+     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION);
+ }
+@@ -445,27 +431,10 @@ function isReimbursementDirectionInformationRequiredAction(
+     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED);
+ }
+ 
+-function isActionOfType<T extends ReportActionName>(action: OnyxInputOrEntry<ReportAction>, actionName: T): action is ReportAction<T> {
+-    return action?.actionName === actionName;
+-}
+-
+ function isCardBrokenConnectionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN> {
+     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN);
+ }
+ 
+-function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
+-    const candidate = !Array.isArray(reportAction?.message) ? (reportAction?.message ?? reportAction?.originalMessage) : reportAction?.originalMessage;
+-
+-    // Some legacy/OldDot report actions (e.g. card-imported expense updates) store a plain notification
+-    // string in `message`/`originalMessage` instead of the object shape declared by `OriginalMessage<T>`.
+-    // Downstream callers use the JS `in` operator on the result, which throws a TypeError on non-objects.
+-    // Normalize non-object values to undefined so the runtime matches the declared TypeScript contract.
+-    if (candidate === null || typeof candidate !== 'object') {
+-        return undefined;
+-    }
+-    return candidate as OriginalMessage<T>;
+-}
+-
+ function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
+     const personalCardName = originalCardName ?? card?.cardName ?? getBankName(card?.bank as CompanyCardFeed);
+     return translate('personalCard.conciergeBrokenConnection', personalCardName, connectionLink);
+@@ -2140,22 +2109,6 @@ function getMemberChangeMessageElements(
+     ];
+ }
+ 
+-function getReportActionHtml(reportAction: PartialReportAction): string {
+-    return getReportActionMessage(reportAction)?.html ?? '';
+-}
+-
+-function getReportActionText(reportAction: PartialReportAction): string {
+-    const message = getReportActionMessage(reportAction);
+-    // Sometime html can be an empty string
+-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+-    const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
+-    return text ? Parser.htmlToText(text) : '';
+-}
+-
+-function getTextFromHtml(html?: string): string {
+-    return html ? Parser.htmlToText(html) : '';
+-}
+-
+ function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction): action is PartialReportAction {
+     return [
+         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
+diff --git a/src/libs/SpendRuleChangeLogUtils.ts b/src/libs/SpendRuleChangeLogUtils.ts
+index 4feeff7ea05c..4a9cf658725d 100644
+--- a/src/libs/SpendRuleChangeLogUtils.ts
++++ b/src/libs/SpendRuleChangeLogUtils.ts
+@@ -12,7 +12,8 @@ import {convertAmountToDisplayString} from './CurrencyUtils';
+ import {formatList} from './Localize';
+ import Parser from './Parser';
+ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
+-import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
++import {getOriginalMessage} from './ReportActionMessageUtils';
++import {isActionOfType} from './ReportActionTypeGuards';
+ 
+ function getSpendRuleFallbackReportActionText(reportAction: OnyxEntry<ReportAction>): string {
+     const message = Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
+diff --git a/src/libs/TaskUtils.ts b/src/libs/TaskUtils.ts
+index 3b2d0ee5eaf0..a00f85282190 100644
+--- a/src/libs/TaskUtils.ts
++++ b/src/libs/TaskUtils.ts
+@@ -10,7 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
+ 
+ import Navigation from './Navigation/Navigation';
+ import Parser from './Parser';
+-import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
++import {getReportActionHtml, getReportActionText} from './ReportActionMessageUtils';
+ 
+ /**
+  * Check if the active route belongs to task edit flow.
+diff --git a/src/libs/actions/Report/DeleteReport.ts b/src/libs/actions/Report/DeleteReport.ts
+index af4c71de7595..8db7400e2cbf 100644
+--- a/src/libs/actions/Report/DeleteReport.ts
++++ b/src/libs/actions/Report/DeleteReport.ts
+@@ -1,5 +1,6 @@
+ import Log from '@libs/Log';
+-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
++import {getOriginalMessage} from '@libs/ReportActionMessageUtils';
++import {isMoneyRequestAction} from '@libs/ReportActionTypeGuards';
+ 
+ import type CONST from '@src/CONST';
+ import ONYXKEYS from '@src/ONYXKEYS';
+-- 
+2.50.1 (Apple Git-155)
+
