@@ -55,6 +55,10 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
+import type {PolicyFeature, PolicyFeatureAccess} from './permissions';
+
+import {ROLE_PERMISSION_BUNDLES, isControlPolicyOnlyRole} from './permissions';
+
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type PolicyWithTaxRates = {
@@ -64,8 +68,6 @@ type PolicyWithTaxRates = {
 };
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
-type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
-type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 type WorkspaceDetails = {
@@ -108,6 +110,14 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
  */
 function isArchivedPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return !!policy?.archivedDate;
+}
+
+/**
+ * Whether the current user can unarchive the workspace: only the owner of an archived workspace can, and only
+ * while the archive policies beta is enabled. Takes primitives so it works with both a Policy and a workspace row.
+ */
+function canUnarchivePolicy(isArchived: boolean, ownerAccountID: number | undefined, currentUserAccountID: number, isArchivePoliciesBetaEnabled: boolean): boolean {
+    return isArchivePoliciesBetaEnabled && isArchived && ownerAccountID === currentUserAccountID;
 }
 
 /**
@@ -208,56 +218,6 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
 const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean =>
     isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || isPolicyApprover(policy, login);
 
-const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
-    PolicyFeature,
-    PolicyFeatureAccess
->;
-
-const READ_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ])) as Record<
-    PolicyFeature,
-    PolicyFeatureAccess
->;
-
-const EDITOR_POLICY_FEATURES = Object.fromEntries(
-    Object.values(CONST.POLICY.POLICY_FEATURE)
-        .filter((feature) => feature !== CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)
-        .map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE]),
-) as Partial<Record<PolicyFeature, PolicyFeatureAccess>>;
-
-const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
-    [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
-    [CONST.POLICY.ROLE.EDITOR]: EDITOR_POLICY_FEATURES,
-    [CONST.POLICY.ROLE.AUDITOR]: READ_ALL_POLICY_FEATURES,
-    [CONST.POLICY.ROLE.USER]: {
-        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-    },
-    [CONST.POLICY.ROLE.CARD_ADMIN]: {
-        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-        [CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-    },
-    [CONST.POLICY.ROLE.PEOPLE_ADMIN]: {
-        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-    },
-    [CONST.POLICY.ROLE.PAYMENTS_ADMIN]: {
-        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-    },
-};
-
-const CONTROL_POLICY_ONLY_ROLES = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
-
-function isControlPolicyOnlyRole(role: string | undefined): boolean {
-    return CONTROL_POLICY_ONLY_ROLES.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === role);
-}
-
 function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
     const role = (login ? policy?.employeeList?.[login]?.role : undefined) ?? getPolicyRole(policy, login);
     if (isControlPolicyOnlyRole(role) && (!policy || !isControlPolicy(policy))) {
@@ -298,10 +258,10 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return true;
     }
 
-    // Reaching here: USER always, plus AUDITOR only on corporate policies (control-only roles are
-    // already filtered out on non-corporate policies above). Assigning USER/AUDITOR needs the
+    // Reaching here: USER always, plus GUEST/AUDITOR only on corporate policies (control-only roles are
+    // already filtered out on non-corporate policies above). Assigning USER/GUEST/AUDITOR needs the
     // MEMBERS permission, and only on corporate policies.
-    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR;
+    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.GUEST || role === CONST.POLICY.ROLE.AUDITOR;
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
 }
 
@@ -909,6 +869,20 @@ function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['t
  * Checks if the current user is of the role "user" on the policy.
  */
 const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.USER;
+
+/**
+ * Checks if the current user is a guest of the policy.
+ */
+const isPolicyGuest = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.GUEST;
+
+/**
+ * Get the active group policies where the current user can create policy rooms.
+ */
+function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePolicies(policies, currentUserLogin).filter(
+        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS),
+    );
+}
 
 /**
  * Checks if the current user is an auditor of the policy
@@ -2699,6 +2673,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
         policy?.connections?.campfire?.config?.export?.exporter,
+        policy?.connections?.businessCentral?.config?.export?.exporter,
     ];
 }
 
@@ -2831,6 +2806,7 @@ export {
     isPolicyAdmin,
     isRoomMemberProtectedByPolicyRole,
     isPolicyUser,
+    isPolicyGuest,
     isPolicyAuditor,
     isAdminOfCardEnabledPolicy,
     hasEligibleBankAccountShareRecipient,
@@ -2840,6 +2816,7 @@ export {
     isPolicyFieldListEmpty,
     isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
+    canUnarchivePolicy,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
@@ -2938,6 +2915,7 @@ export {
     hasDynamicExternalWorkflow,
     shouldHideDynamicExternalWorkflowPeople,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getPoliciesForRoomCreation,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,
     isInvoiceFieldsEnabled,

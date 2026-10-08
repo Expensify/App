@@ -67,6 +67,7 @@ import type {ComponentRef, RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isCollectingDepositAccountsSelector} from '@selectors/Policy';
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -88,6 +89,7 @@ function WalletPage() {
         selector: fundListSelector,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [isCollectingDepositAccounts = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isCollectingDepositAccountsSelector});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
@@ -117,7 +119,21 @@ function WalletPage() {
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, currentUserLogin).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const hasSinglePolicy = activeAdminPolicies.length === 1;
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'MoneySearch',
+        'Wallet',
+        'Transfer',
+        'Hourglass',
+        'Exclamation',
+        'Star',
+        'Trashcan',
+        'Globe',
+        'UserPlus',
+        'UserMinus',
+        'Table',
+        'Plus',
+        'Pencil',
+    ]);
     const illustrations = useMemoizedLazyIllustrations(['VerticalCreditCards']);
     const walletIllustration = useWalletSectionIllustration();
 
@@ -281,6 +297,10 @@ function WalletPage() {
             Navigation.navigate(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
             return;
         }
+        if (isCollectingDepositAccounts) {
+            Navigation.navigate(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute());
+            return;
+        }
         openPersonalBankAccountSetupView({});
     };
 
@@ -438,6 +458,8 @@ function WalletPage() {
         ) &&
         paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
+    const shouldShowEditNicknameButton = paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+
     const shouldShowEnableGlobalReimbursementsButton =
         paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
@@ -495,6 +517,21 @@ function WalletPage() {
                               makeDefaultPaymentMethod();
                           },
                           numberOfLinesTitle: 0,
+                      },
+                  ]
+                : []),
+            ...(shouldShowEditNicknameButton
+                ? [
+                      {
+                          text: translate('walletPage.editNickname'),
+                          icon: icons.Pencil,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                          },
                       },
                   ]
                 : []),
@@ -574,6 +611,8 @@ function WalletPage() {
             icons.UserMinus,
             icons.Trashcan,
             icons.Globe,
+            icons.Pencil,
+            shouldShowEditNicknameButton,
             shouldShowShareButton,
             hasEligibleShareRecipient,
             shouldShowUnshareButton,
