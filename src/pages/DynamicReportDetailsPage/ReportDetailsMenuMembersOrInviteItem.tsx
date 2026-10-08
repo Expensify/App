@@ -74,6 +74,7 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
     // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
     if (
+        !isGuestAnnounceRoom &&
         (isGroupChat ||
             (isDefaultRoom && isChatThread && isPolicyEmployee) ||
             (!isUserCreatedPolicyRoom && participants.length) ||
