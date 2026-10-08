@@ -193,7 +193,7 @@ function getWorkspaceMenuItems({
     };
     const highlightedPolicyFeature = getObjectKeys(policyFeatureStates).find((key) => policyFeatureStates[key] && !previousPendingFields?.[key] && policy?.pendingFields?.[key]);
 
-    const items: WorkspaceMenuItem[] = [
+    const defaultItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.profile',
             icon: icons.Building,
@@ -218,6 +218,15 @@ function getWorkspaceMenuItems({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
         },
     ];
+    const items = defaultItems.filter((item) => {
+        if (item.screenName !== SCREENS.WORKSPACE.MEMBERS) {
+            return true;
+        }
+        if (!policy) {
+            return true;
+        }
+        return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    });
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {

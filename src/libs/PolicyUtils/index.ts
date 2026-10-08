@@ -20,6 +20,7 @@ import {isApprovalWorkflowRule, isRuleFilterComparison} from '@libs/RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isPublicDomain, isValidAccountRoute} from '@libs/ValidationUtils';
+import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +33,7 @@ import type {
     Account,
     ApprovalRule,
     ConnectionLastSync,
+    CommuterExclusions,
     ConnectionName,
     Connections,
     CustomUnit,
@@ -99,6 +101,14 @@ type ApprovalWorkflowRuleMatch = {
  */
 function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
     return !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+}
+
+/**
+ * Whether the current user can unarchive the workspace: only the owner of an archived workspace can, and only
+ * while the archive policies beta is enabled. Takes primitives so it works with both a Policy and a workspace row.
+ */
+function canUnarchivePolicy(isArchived: boolean, ownerAccountID: number | undefined, currentUserAccountID: number, isArchivePoliciesBetaEnabled: boolean): boolean {
+    return isArchivePoliciesBetaEnabled && isArchived && ownerAccountID === currentUserAccountID;
 }
 
 /**
@@ -221,6 +231,13 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
  */
 function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+}
+
+/**
+ * The workspace-wide work arrangement, which members follow unless they were given one of their own.
+ */
+function hasOfficeWorkArrangement(commuterExclusions: CommuterExclusions | undefined): boolean {
+    return getEffectiveWorkArrangement(undefined, commuterExclusions?.isOfficeWorkArrangement);
 }
 
 /**
@@ -662,6 +679,15 @@ function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['t
         const bankAccountsText = count > 0 ? `${count} ${translate('common.bankAccounts').toLowerCase()}` : '';
         return [bankAccountsText, invoiceCompany].filter(Boolean).join(', ');
     };
+}
+
+/**
+ * Get the active group policies where the current user can create policy rooms.
+ */
+function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePolicies(policies, currentUserLogin).filter(
+        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS),
+    );
 }
 
 /**
@@ -2326,6 +2352,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
         policy?.connections?.campfire?.config?.export?.exporter,
+        policy?.connections?.businessCentral?.config?.export?.exporter,
     ];
 }
 
@@ -2447,6 +2474,7 @@ export {
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
+    canUnarchivePolicy,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyMember,
     isMemberInHomeAndOfficeWorkspace,
@@ -2479,6 +2507,7 @@ export {
     getSageIntacctBankAccounts,
     getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
+    hasOfficeWorkArrangement,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
@@ -2538,6 +2567,7 @@ export {
     hasDynamicExternalWorkflow,
     shouldHideDynamicExternalWorkflowPeople,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getPoliciesForRoomCreation,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,
     isInvoiceFieldsEnabled,
