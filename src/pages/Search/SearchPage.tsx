@@ -5,9 +5,9 @@ import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/Playbac
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
+import useHasFilterBars from '@hooks/useHasFilterBars';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useOnyx from '@hooks/useOnyx';
 import {PaymentContextProvider} from '@hooks/usePaymentContext';
 import usePrevious from '@hooks/usePrevious';
 import useReleaseOptionListCaches from '@hooks/useReleaseOptionListCaches';
@@ -26,9 +26,7 @@ import {getQueryHashWithoutFooterSelections} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {hasFilterBarsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
 
 import React, {useCallback, useEffect, useState} from 'react';
@@ -50,7 +48,7 @@ function SearchPage({route}: SearchPageProps) {
     const {setLastSearchType} = useSearchResultsActions();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
-    const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
+    const hasFilterBars = useHasFilterBars();
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
@@ -183,7 +181,7 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(true);
     }, []);
 
-    const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
+    const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
     const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
     const {searchOverlayContent, onSearchContentReady, isOverlayActive} = useSearchOverlay({
         searchResults,

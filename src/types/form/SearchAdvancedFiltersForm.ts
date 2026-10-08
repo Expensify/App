@@ -141,9 +141,6 @@ const FILTER_KEYS = {
     CATEGORY_NOT: 'categoryNot',
     CATEGORY: 'category',
 
-    VENDOR_NOT: 'vendorNot',
-    VENDOR: 'vendor',
-
     CARD_ID_NOT: 'cardIDNot',
     CARD_ID: 'cardID',
 
@@ -316,8 +313,6 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.CATEGORY_NOT,
         FILTER_KEYS.TAG,
         FILTER_KEYS.TAG_NOT,
-        FILTER_KEYS.VENDOR,
-        FILTER_KEYS.VENDOR_NOT,
         FILTER_KEYS.PAYER,
         FILTER_KEYS.PAYER_NOT,
         FILTER_KEYS.PAID_BY,
@@ -809,9 +804,6 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.CATEGORY_NOT]: string[];
-
-        [FILTER_KEYS.VENDOR]: string[];
-        [FILTER_KEYS.VENDOR_NOT]: string[];
 
         [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.POLICY_ID_NOT]: string[];

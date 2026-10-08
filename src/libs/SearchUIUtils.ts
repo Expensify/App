@@ -661,6 +661,7 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.FOOTER_COUNT,
     FILTER_KEYS.FOOTER_TOTAL,
     FILTER_KEYS.FOOTER_CURRENCY,
+    FILTER_KEYS.EXPORTER,
 ]);
 
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
@@ -4704,6 +4705,8 @@ const SPEND_INSIGHT_KEYS = [
     CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
 ] as const satisfies SearchKey[];
 
+const insightsPageMenuKeys = new Set<SearchKey>([...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]);
+
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
@@ -4914,6 +4917,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     }
 
     return typeMenuSections;
+}
+
+function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+    return sections.flatMap((section) => {
+        const menuItems = section.menuItems.filter((item) => !insightsPageMenuKeys.has(item.key));
+        if (menuItems.length === section.menuItems.length) {
+            return section;
+        }
+        return menuItems.length > 0 ? {...section, menuItems} : [];
+    });
 }
 
 /**
@@ -5655,10 +5668,6 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.tag',
         icon: 'Tag',
     },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: {
-        labelKey: 'common.vendor',
-        icon: 'Building',
-    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: {
         labelKey: 'workspace.taxes.taxRate',
         icon: 'Percent',
@@ -5890,13 +5899,6 @@ function getDisplayValue(
         return form[key]
             ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map(mapFn)
-            .join(', ');
-    }
-
-    if (key === FILTER_KEYS.VENDOR || key === FILTER_KEYS.VENDOR_NOT) {
-        return form[key]
-            ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
-            .map((value) => (value === CONST.SEARCH.VENDOR_EMPTY_VALUE ? translate('search.noVendor') : value))
             .join(', ');
     }
 
@@ -7338,6 +7340,7 @@ export {
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
+    omitInsightsPageMenuItems,
     SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,

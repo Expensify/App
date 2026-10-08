@@ -29,6 +29,7 @@ jest.mock('@hooks/usePermissions', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    openSearchCardFiltersPage: jest.fn(),
     getFooterConvertedAmounts: jest.fn(),
     search: jest.fn(),
 }));

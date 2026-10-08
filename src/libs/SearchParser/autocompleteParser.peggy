@@ -81,7 +81,6 @@ autocompleteKey "key"
       / total
       / tag
       / category
-      / vendor
       / to
       / taxRate
       / from

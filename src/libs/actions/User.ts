@@ -310,6 +310,38 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
 }
 
 /**
+ * Request to remove the current user's email from the suppression list.
+ * The backend derives the email from the session, so no params are sent. A backend failure still returns 200, so the
+ * caller decides success vs failure by re-reading `hasEmailDeliveryFailure` once `isUnblockingEmail` clears.
+ */
+function requestEmailUnblock() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isUnblockingEmail: true},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isUnblockingEmail: false},
+        },
+    ];
+    // The failure surface is the ConfirmModal driven by hasEmailDeliveryFailure, so we deliberately do not write to account.errors here.
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isUnblockingEmail: false},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.USER_UNBLOCK_EMAIL, null, {optimisticData, successData, failureData});
+}
+
+/**
  * Delete a specific contact method
  * @param contactMethod - the contact method being deleted
  * @param loginList
@@ -1961,6 +1993,7 @@ export {
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
+    requestEmailUnblock,
     deleteContactMethod,
     clearContactMethodErrors,
     clearContactMethod,
