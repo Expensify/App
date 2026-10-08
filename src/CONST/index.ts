@@ -4057,7 +4057,7 @@ const CONST = {
     },
 
     ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE: {
-        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+        EXPENSE: 'EXPENSE',
     },
 
     ZOHO_BOOKS_EXPORT_DATE: {
@@ -4066,25 +4066,18 @@ const CONST = {
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
+    // Zoho Books accounts have one account_type. These are the lowercase values the API returns.
     ZOHO_BOOKS_ACCOUNT_TYPE: {
-        OPERATING_EXPENSES: 'OPERATING_EXPENSES',
-        LIABILITY: 'LIABILITY',
-        ASSET: 'ASSET',
-    },
-
-    ZOHO_BOOKS_ACCOUNT_SUBTYPE: {
-        EXPENSE: 'EXPENSE',
-        LONG_TERM_LIABILITY: 'LONG_TERM_LIABILITY',
-        CREDIT_CARD: 'CREDIT_CARD',
-        BANK: 'BANK',
-        OTHER_CURRENT_ASSET: 'OTHER_CURRENT_ASSET',
-        OTHER_CURRENT_LIABILITY: 'OTHER_CURRENT_LIABILITY',
+        BANK: 'bank',
+        CREDIT_CARD: 'credit_card',
+        EXPENSE: 'expense',
+        COST_OF_GOODS_SOLD: 'cost_of_goods_sold',
+        OTHER_EXPENSE: 'other_expense',
     },
 
     ZOHO_BOOKS_VENDOR_TYPE: {
         VENDOR: 'vendor',
         CUSTOMER: 'customer',
-        EMPLOYEE: 'employee',
     },
 
     BUSINESS_CENTRAL_CONFIG: {

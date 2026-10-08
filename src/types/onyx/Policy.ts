@@ -2535,11 +2535,6 @@ type ZohoBooksOrganization = {
 type ZohoBooksAccountType = ValueOf<typeof CONST.ZOHO_BOOKS_ACCOUNT_TYPE>;
 
 /**
- * Available account subtypes.
- */
-type ZohoBooksAccountSubType = ValueOf<typeof CONST.ZOHO_BOOKS_ACCOUNT_SUBTYPE>;
-
-/**
  * Account retrieved from Zoho Books.
  */
 type ZohoBooksAccount = {
@@ -2552,11 +2547,8 @@ type ZohoBooksAccount = {
     /** Name of the account. */
     name: string;
 
-    /** Type of the account. */
+    /** Zoho Books account_type. */
     accountType: ZohoBooksAccountType;
-
-    /** Subtype of the account. */
-    accountSubtype: ZohoBooksAccountSubType;
 
     /** Currency associated with the account. */
     currency?: string;
@@ -4228,12 +4220,10 @@ export type {
     CampfireAutoSync,
     CampfireSync,
     ZohoBooksConnectionsConfig,
-    ZohoBooksOrganization,
     ZohoBooksCoding,
     ZohoBooksExportDate,
     ZohoBooksVendor,
     ZohoBooksAccount,
-    ZohoBooksReportingTag,
     ZohoBooksExport,
     ZohoBooksAutoSync,
     ZohoBooksSync,

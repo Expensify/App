@@ -44,7 +44,6 @@
                 "web/snippets/gib.js",
                 "src/libs/actions/connections/FinancialForce.ts",
                 "src/libs/actions/connections/ZohoBooks.ts",
-                "src/types/onyx/Policy.ts",
                 "src/setup/telemetry/noopExpoUpdates.ts"
             ],
             "eslint": {
