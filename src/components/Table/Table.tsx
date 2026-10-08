@@ -597,6 +597,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
                 scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
+                onScopeElement={columnResize?.setScopeElement}
             >
                 {renderedChildren}
             </TableSemanticContainer>
