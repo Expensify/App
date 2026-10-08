@@ -4019,6 +4019,63 @@ const CONST = {
         EMPLOYEE: 'employee',
     },
 
+    ZOHO_BOOKS_CONFIG: {
+        ORGANIZATION_ID: 'organizationID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        DEFAULT_VENDORID: 'defaultVendorID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_SYNC: 'autoSync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
+    },
+
+    ZOHO_BOOKS_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
+    },
+
+    ZOHO_BOOKS_EXPORT_REIMBURSABLE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE: {
+        EXPENSE: 'EXPENSE',
+    },
+
+    ZOHO_BOOKS_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    // Zoho Books accounts have one account_type. These are the lowercase values the API returns.
+    ZOHO_BOOKS_ACCOUNT_TYPE: {
+        BANK: 'bank',
+        CREDIT_CARD: 'credit_card',
+        EXPENSE: 'expense',
+        COST_OF_GOODS_SOLD: 'cost_of_goods_sold',
+        OTHER_EXPENSE: 'other_expense',
+    },
+
+    ZOHO_BOOKS_VENDOR_TYPE: {
+        VENDOR: 'vendor',
+        CUSTOMER: 'customer',
+    },
+
     BUSINESS_CENTRAL_CONFIG: {
         COMPANY_ID: 'companyID',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
@@ -4855,6 +4912,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualEntry',
                 CAMPFIRE: 'campfire',
+                ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
@@ -4875,6 +4933,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualentry',
                 CAMPFIRE: 'campfire',
+                ZOHO_BOOKS: 'zoho-books',
                 BUSINESS_CENTRAL: 'business-central',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
@@ -4891,6 +4950,7 @@ const CONST = {
                 rillet: 'Rillet',
                 dualEntry: 'DualEntry',
                 campfire: 'Campfire',
+                zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
@@ -5054,6 +5114,7 @@ const CONST = {
                 CAMPFIRE_SYNC_PAYMENTS: 'campfireSyncPayments',
                 CAMPFIRE_SYNC_CARD_SETTLEMENTS: 'campfireSyncCardSettlements',
                 CAMPFIRE_SYNC_TRAVEL_SETTLEMENTS: 'campfireSyncTravelSettlements',
+                ZOHO_BOOKS_SYNC_CONNECTION: 'zohoBooksSyncConnection',
                 BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
                 BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
                 BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',

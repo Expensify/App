@@ -7658,6 +7658,7 @@ const translations = {
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             businessCentral: 'Dynamics 365 Business Central',
             sap: 'SAP',
             oracle: 'Oracle',
@@ -7682,6 +7683,8 @@ const translations = {
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7912,6 +7915,8 @@ const translations = {
                             return 'Syncing Campfire data';
                         case 'campfireSyncConnection':
                             return 'Initializing connection to Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Initializing connection to Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Loading data';
                         case 'campfireSyncPayments':

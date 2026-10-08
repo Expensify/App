@@ -7460,6 +7460,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7688,6 +7690,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Γίνεται συγχρονισμός δεδομένων Campfire';
                         case 'campfireSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Φόρτωση δεδομένων';
                         case 'campfireSyncPayments':
@@ -7745,6 +7749,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Η συνεχής συμφωνία είναι ρυθμισμένη ανά ροή καρτών. Επιλέξτε μια ροή για να αλλάξετε ποια ρυθμίζετε.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',

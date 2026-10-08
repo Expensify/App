@@ -7279,6 +7279,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7506,6 +7508,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando dados do Campfire';
                         case 'campfireSyncConnection':
                             return 'Inicializando conexão com o Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Inicializando conexão com o Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Carregando dados';
                         case 'campfireSyncPayments':
@@ -7563,6 +7567,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>A Conciliação Contínua é configurada por feed de cartão. Selecione um feed para alterar qual você está configurando.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
