@@ -29,7 +29,7 @@ import {isRuleFilterNode} from '@libs/RuleUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 
-import CONST from '@src/CONST';
+import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
@@ -472,7 +472,17 @@ function buildRuleViolationMessage(
             }
 
             const attributes = values.map((value) => {
-                return value === CONST.SEARCH.HAS_VALUES.ATTACHMENT ? translate('violations.ruleViolation.attachment') : translate('violations.ruleViolation.attribute', value);
+                if (value === CONST.SEARCH.HAS_VALUES.ATTACHMENT) {
+                    return translate('violations.ruleViolation.attachment');
+                }
+
+                const translationKey = HAS_VALUE_TRANSLATION_KEYS[value];
+
+                if (translationKey) {
+                    return translate('violations.ruleViolation.attribute', translate(translationKey).toLowerCase());
+                }
+
+                return translate('violations.ruleViolation.attribute', value.toLowerCase());
             });
 
             const attributesTranslationKey = isNegated ? 'violations.ruleViolation.withoutAttributes' : 'violations.ruleViolation.withAttributes';

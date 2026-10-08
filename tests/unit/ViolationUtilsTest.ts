@@ -4150,6 +4150,11 @@ describe('getViolationTranslation', () => {
             expectedMessage: 'Expense without a receipt',
         },
         {
+            description: 'an expense with an attachment',
+            filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.HAS_VALUES.ATTACHMENT),
+            expectedMessage: 'Expense with an attachment',
+        },
+        {
             description: 'a vendor',
             filters: createComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'vendor-office-depot'),
             expectedMessage: 'Expense from vendor-office-depot',
