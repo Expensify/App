@@ -12,6 +12,7 @@ import type {
     ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
     ArchivePolicyParams,
+    UnarchivePolicyParams,
     CreateWorkspaceParams,
     DeletePolicyRulesDocumentParams,
     DeleteWorkspaceAvatarParams,
@@ -784,6 +785,58 @@ function archivePolicy(params: ArchivePolicyActionParams) {
     Log.info(`[ArchivePolicy] Archived policy ${policyName} (${policyID})`);
 }
 
+type UnarchivePolicyActionParams = {
+    policyID: string;
+    policyName?: string;
+
+    /** The policy's current archivedDate, restored if the request fails */
+    archivedDate: string | undefined;
+};
+
+function unarchivePolicy(params: UnarchivePolicyActionParams) {
+    const {policyID, policyName, archivedDate} = params;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                archivedDate: null,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                archivedDate: archivedDate ?? null,
+                pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const apiParams: UnarchivePolicyParams = {policyID};
+
+    API.write(WRITE_COMMANDS.UNARCHIVE_POLICY, apiParams, {optimisticData, failureData, successData});
+
+    Log.info(`[UnarchivePolicy] Unarchived policy ${policyName} (${policyID})`);
+}
+
 /* Set the auto harvesting on a workspace. This goes in tandem with auto reporting. so when you enable/disable
  * harvesting, you are enabling/disabling auto reporting too.
  */
@@ -1347,7 +1400,9 @@ function setWorkspaceReimbursement({
         return account?.accountData?.policyIDs?.includes(policyID);
     });
 
-    if (oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID) {
+    // A bank account can list the workspace in its policyIDs while the workspace itself points at another account,
+    // so the selection is only redundant when the workspace's own bank account is the selected one too.
+    if (oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID && currentAchAccount?.bankAccountID === bankAccountID) {
         return;
     }
 
@@ -7998,6 +8053,7 @@ export {
     addBillingCardAndRequestPolicyOwnerChange,
     deleteWorkspace,
     archivePolicy,
+    unarchivePolicy,
     updateAddress,
     updateLastAccessedWorkspace,
     dismissWorkspaceError,

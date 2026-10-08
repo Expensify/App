@@ -12,7 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
+import {canUnarchivePolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+
+import UnarchiveWorkspaceFlow from '@pages/workspace/archiveWorkspace/UnarchiveWorkspaceFlow';
 
 import {setNameValuePair} from '@userActions/User';
 
@@ -59,7 +62,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Box', 'Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Box', 'Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
     const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -170,6 +173,15 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         }
     }
 
+    if (canUnarchivePolicy(item.isArchived, item.ownerAccountID, currentUserPersonalDetails.accountID, canArchivePolicies)) {
+        menuItems.push({
+            icon: icons.ArrowCircleClockwise,
+            text: translate('workspace.common.unarchive'),
+            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE)),
+            shouldCallAfterModalHide: true,
+        });
+    }
+
     // Transferring ownership applies to both active and archived workspaces, so it lives outside the split above.
     if (isAdmin && !isOwner && canRenderTransferOwnerButton) {
         menuItems.push({
@@ -196,6 +208,12 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             />
             {activeAction === CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE && (
                 <LeaveWorkspaceFlow
+                    policyID={item.policyID}
+                    onDismiss={() => setActiveAction(undefined)}
+                />
+            )}
+            {activeAction === CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE && (
+                <UnarchiveWorkspaceFlow
                     policyID={item.policyID}
                     onDismiss={() => setActiveAction(undefined)}
                 />

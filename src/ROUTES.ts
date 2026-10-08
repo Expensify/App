@@ -1389,6 +1389,10 @@ const DYNAMIC_ROUTES = {
         path: 'travel-select-feed',
         entryScreens: [SCREENS.WORKSPACE.TRAVEL],
     },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_SELECT_FEED: {
+        path: 'reconciliation-select-feed',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
         path: 'add-card-feed',
         entryScreens: [SCREENS.WORKSPACE.COMPANY_CARDS, SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED],
@@ -2529,6 +2533,10 @@ const ROUTES = {
     SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
+    },
+    SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME: {
+        route: 'settings/wallet/:bankAccountID/edit-nickname',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/edit-nickname` as const,
     },
     SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW: 'settings/wallet/add-personal-card',
     SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION: {

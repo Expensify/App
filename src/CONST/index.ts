@@ -12,6 +12,7 @@ import {
 } from '@libs/Animation/animationTiming';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
+import type {TranslationPaths} from '@src/languages/types';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -1161,6 +1162,7 @@ const CONST = {
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
+        SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
     },
     BUTTON_STATES: {
@@ -1663,7 +1665,6 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1847,6 +1848,7 @@ const CONST = {
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
                 SUBMITTED_AND_CLOSED: 'SUBMITTEDCLOSED',
+                SUPPORT_SURVEY: 'SUPPORT_SURVEY',
                 ACTION_DELEGATE_SUBMIT: 'DELEGATESUBMIT',
                 TAKE_CONTROL: 'TAKECONTROL', // OldDot Action
                 TASK_CANCELLED: 'TASKCANCELLED',
@@ -2052,6 +2054,7 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
+            POLICY_ARCHIVED: 'policyArchived',
             INVOICE_RECEIVER_POLICY_DELETED: 'invoiceReceiverPolicyDeleted',
             BOOKING_END_DATE_HAS_PASSED: 'bookingEndDateHasPassed',
         },
@@ -2066,6 +2069,7 @@ const CONST = {
             EXPENSE: 'expense',
             IOU: 'iou',
             TASK: 'task',
+            SUPPORT_TICKET: 'supportTicket',
             INVOICE: 'invoice',
         },
         UNSUPPORTED_TYPE: {
@@ -2181,11 +2185,13 @@ const CONST = {
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
             REJECTED_REPORT: 'rejectedReport',
+            CHANGE_WORKSPACE: 'changeWorkspace',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
+            BOX: 'box',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',
@@ -2214,10 +2220,6 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
-        },
-        SINGLE_EXPENSE_REPORT_VIEW: {
-            EXPENSE: 'expense',
-            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -3530,8 +3532,8 @@ const CONST = {
 
     SAGE_INTACCT_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
-        EXPORTED: 'EXPORTED',
-        SUBMITTED: 'SUBMITTED',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
     NETSUITE_CONFIG: {
@@ -4023,6 +4025,63 @@ const CONST = {
         EMPLOYEE: 'employee',
     },
 
+    ZOHO_BOOKS_CONFIG: {
+        ORGANIZATION_ID: 'organizationID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        DEFAULT_VENDORID: 'defaultVendorID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_SYNC: 'autoSync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
+    },
+
+    ZOHO_BOOKS_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
+    },
+
+    ZOHO_BOOKS_EXPORT_REIMBURSABLE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE: {
+        EXPENSE: 'EXPENSE',
+    },
+
+    ZOHO_BOOKS_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    // Zoho Books accounts have one account_type. These are the lowercase values the API returns.
+    ZOHO_BOOKS_ACCOUNT_TYPE: {
+        BANK: 'bank',
+        CREDIT_CARD: 'credit_card',
+        EXPENSE: 'expense',
+        COST_OF_GOODS_SOLD: 'cost_of_goods_sold',
+        OTHER_EXPENSE: 'other_expense',
+    },
+
+    ZOHO_BOOKS_VENDOR_TYPE: {
+        VENDOR: 'vendor',
+        CUSTOMER: 'customer',
+    },
+
     BUSINESS_CENTRAL_CONFIG: {
         COMPANY_ID: 'companyID',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
@@ -4060,6 +4119,11 @@ const CONST = {
     BUSINESS_CENTRAL_MAPPING_VALUE: {
         NONE: 'NONE',
         TAG: 'TAG',
+    },
+
+    BUSINESS_CENTRAL_FIELD_MAPPING: {
+        CUSTOMERS: 'customers',
+        PROJECTS: 'projects',
     },
 
     /**
@@ -4157,6 +4221,8 @@ const CONST = {
         ADD_BANK_ACCOUNT_STEP: {
             SUB_PAGE_NAMES: {
                 PLAID: 'plaid',
+                LEGAL_NAME: 'legal-name',
+                ADDRESS: 'address',
                 CONFIRMATION: 'confirmation',
             },
         },
@@ -4229,6 +4295,8 @@ const CONST = {
         SUBSTEP_INDEXES: {
             BANK_ACCOUNT: {
                 ACCOUNT_NUMBERS: 0,
+                LEGAL_NAME: 1,
+                ADDRESS: 2,
             },
             PERSONAL_INFO: {
                 LEGAL_NAME: 0,
@@ -4539,6 +4607,7 @@ const CONST = {
             OWNER: 'owner',
             ADMIN: 'admin',
             AUDITOR: 'auditor',
+            GUEST: 'guest',
             USER: 'user',
             EDITOR: 'editor',
             CARD_ADMIN: 'cardAdmin',
@@ -4552,10 +4621,12 @@ const CONST = {
         THREE_DOT_MENU_ACTION: {
             LEAVE: 'leave',
             TRANSFER_OWNERSHIP: 'transferOwnership',
+            UNARCHIVE: 'unarchive',
         },
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
+            ROOMS: 'rooms',
             ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
             WORKFLOWS: 'workflows',
             WORKFLOWS_APPROVALS: 'workflowsApprovals',
@@ -4664,6 +4735,7 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
+            MAKE_GUEST: 'makeGuest',
             MAKE_CARD_ADMIN: 'makeCardAdmin',
             MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
             MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
@@ -4852,6 +4924,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualEntry',
                 CAMPFIRE: 'campfire',
+                ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
@@ -4872,6 +4945,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualentry',
                 CAMPFIRE: 'campfire',
+                ZOHO_BOOKS: 'zoho-books',
                 BUSINESS_CENTRAL: 'business-central',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
@@ -4888,6 +4962,7 @@ const CONST = {
                 rillet: 'Rillet',
                 dualEntry: 'DualEntry',
                 campfire: 'Campfire',
+                zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
@@ -5051,6 +5126,7 @@ const CONST = {
                 CAMPFIRE_SYNC_PAYMENTS: 'campfireSyncPayments',
                 CAMPFIRE_SYNC_CARD_SETTLEMENTS: 'campfireSyncCardSettlements',
                 CAMPFIRE_SYNC_TRAVEL_SETTLEMENTS: 'campfireSyncTravelSettlements',
+                ZOHO_BOOKS_SYNC_CONNECTION: 'zohoBooksSyncConnection',
                 BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
                 BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
                 BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',
@@ -5571,6 +5647,11 @@ const CONST = {
              * Name of Card NVP for Campfire custom export accounts
              */
             NVP_CAMPFIRE_EXPORT_ACCOUNT: 'campfire_export_account',
+
+            /**
+             * Name of Card NVP for Business Central custom vendors
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -5628,6 +5709,11 @@ const CONST = {
              * Name of Card NVP for Campfire custom export accounts
              */
             NVP_CAMPFIRE_EXPORT_ACCOUNT_POLICY_ID: 'campfire_export_account_policy_id',
+
+            /**
+             * Name of Card NVP for Business Central custom vendors
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_VENDOR_POLICY_ID: 'business_central_export_vendor_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -7169,6 +7255,7 @@ const CONST = {
         RECEIPT_REQUIRED: 'receiptRequired',
         ITEMIZED_RECEIPT_REQUIRED: 'itemizedReceiptRequired',
         CUSTOM_RULES: 'customRules',
+        RULE_VIOLATION: 'ruleViolation',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
         SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
@@ -7366,7 +7453,10 @@ const CONST = {
             WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
             SETTINGS_TAB: 'LAST_VISITED_PATH_SETTINGS_TAB',
         },
-        QA_AUTH_REDIRECT_FLOW: 'QA_AUTH_REDIRECT_FLOW',
+    },
+
+    LOCAL_STORAGE_KEYS: {
+        QA_AUTH_REDIRECT_FLOW_PREFIX: 'QA_AUTH_REDIRECT_FLOW:',
     },
 
     RESERVATION_TYPE,
@@ -8070,6 +8160,7 @@ const CONST = {
             OR: 'or',
             EQUAL_TO: 'eq',
             CONTAINS: 'contains',
+            NOT_CONTAINS: 'notContains',
             NOT_EQUAL_TO: 'neq',
             RANGE: 'range',
             GREATER_THAN: 'gt',
@@ -8117,6 +8208,8 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
+            VENDOR: 'vendor',
+            MCC: 'mcc',
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             FEED: 'feed',
@@ -9643,7 +9736,6 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
@@ -9725,6 +9817,11 @@ const CONST = {
             VIEW_DESCRIPTION: 'Task-ViewDescription',
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
+        },
+        SUPPORT_TICKET: {
+            PREVIEW_CARD: 'SupportTicket-PreviewCard',
+            PREVIEW_CHECKBOX: 'SupportTicket-PreviewCheckbox',
+            VIEW_CHECKBOX: 'SupportTicket-ViewCheckbox',
         },
         ACCOUNT: {
             PROFILE: 'Account-Profile',
@@ -10211,6 +10308,7 @@ const CONST = {
         SETTINGS_HELP: {
             CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
             HELP_DOCS: 'SettingsHelp-HelpDocs',
+            SUPPORT_TICKET: 'SettingsHelp-SupportTicket',
             ACCOUNT_MANAGER: 'SettingsHelp-AccountManager',
             PARTNER_MANAGER: 'SettingsHelp-PartnerManager',
             GUIDE: 'SettingsHelp-Guide',
@@ -10401,6 +10499,16 @@ const CONST = {
     },
 } as const;
 
+const HAS_VALUE_TRANSLATION_KEYS: Readonly<Record<string, TranslationPaths | undefined>> & Record<ValueOf<typeof CONST.SEARCH.HAS_VALUES>, TranslationPaths> = {
+    [CONST.SEARCH.HAS_VALUES.RECEIPT]: 'common.receipt',
+    [CONST.SEARCH.HAS_VALUES.ATTACHMENT]: 'common.attachment',
+    [CONST.SEARCH.HAS_VALUES.TAG]: 'common.tag',
+    [CONST.SEARCH.HAS_VALUES.CATEGORY]: 'common.category',
+    [CONST.SEARCH.HAS_VALUES.LINK]: 'common.link',
+    [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]: 'search.filters.has.submittedViolation',
+    [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]: 'search.filters.has.approvedViolation',
+} as const satisfies Record<ValueOf<typeof CONST.SEARCH.HAS_VALUES>, TranslationPaths>;
+
 /** Upgrade intro feature ids from UPGRADE_FEATURE_INTRO_MAPPING for Submit workspace */
 const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id,
@@ -10486,6 +10594,6 @@ export type {
     EnablePaymentsSubPageType,
 };
 
-export {FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
+export {FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, HAS_VALUE_TRANSLATION_KEYS, SUBMIT_FEATURE_IDS};
 
 export default CONST;

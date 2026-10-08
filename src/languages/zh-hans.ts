@@ -907,6 +907,7 @@ const translations: TranslationDeepObject<typeof en> = {
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou ? `此聊天已不再活跃，因为<strong>你</strong>已不再是 ${policyName} 工作区的成员。` : `此聊天已不再活动，因为${displayName}已不再是${policyName}工作区的成员。`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 是已归档的工作区。`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: '此预订已归档。',
     },
@@ -1148,6 +1149,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `哎呀！有一个必填字段（“${fieldName}”）尚未映射。请检查后重试。`,
         singleFieldMultipleColumns: (fieldName: string) => `哎呀！你已将单个字段（“${fieldName}”）映射到多个列。请检查后重试。`,
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
+        invalidApprovalLimit: '审批限额必须是工作区币种的有效金额。',
         fieldValueTooLong: (fieldName: string, limit: number) => `哎呀！字段（“${fieldName}”）包含一个或多个超过 ${limit} 个字符的值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
         importCategoriesNoneAddedOrUpdated: '尚未添加或更新任何类别。',
@@ -1965,6 +1967,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `无需执行其他操作！`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `请更改报告的工作区以执行进一步操作。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2326,9 +2334,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
+        talkToAHuman: '与人工客服联系',
         helpPage: {
             title: '帮助与支持',
             description: '我们全天候为您提供帮助。',
+            talkToAHumanDescription: '获取真人客服的帮助',
             helpSite: '帮助网站',
             helpSiteDescription: '文章、教程等',
             conciergeChat: 'Concierge',
@@ -2616,6 +2626,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: '已设置默认付款方式！',
         deleteAccount: '删除账户',
         deleteConfirmation: '确定要删除此账户吗？',
+        editNickname: '编辑昵称',
+        nickname: '昵称',
+        editNicknameInstruction: '为此银行账户起一个昵称，以便与其他账户区分开来。',
         deleteCard: '删除卡片',
         deleteCardConfirmation: '所有未提交的银行卡交易（包括在未关闭报表中的交易）都将被移除。确定要删除此银行卡吗？此操作无法撤销。',
         error: {
@@ -4651,6 +4664,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             archiveConfirmation: '确定要归档此工作区吗？',
             archiveWithThirdPartyCardsConfirmation: '确定要归档此工作区吗？这将取消所有用户的信用卡分配，并永久删除所有未提交的卡片报销。',
             archiveWithExpensifyCardsConfirmation: '确定要归档此工作区吗？这将把所有 Expensify 卡的限额设为 $0，并自动拒绝任何新的消费尝试。',
+            unarchive: '取消归档',
+            unarchiveWorkspace: '取消归档工作区',
+            unarchiveConfirmation: '确定要取消归档此工作区吗？',
             deleteWorkspaceTitle: (workspaceName: string) => `删除 ${workspaceName}？`,
             deleteConfirmation: '确定要删除此工作区吗？',
             deleteWithCardsConfirmation: '确定要删除此工作区吗？这将移除所有卡片数据源和已分配的卡片。',
@@ -4707,6 +4723,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             memberAlternateText: '提交并审批报销报告。',
             adminAlternateText: '管理报表和工作区设置。',
             auditorAlternateText: '查看并评论报表。',
+            guestAlternateText: '提交可见性受限的报表。',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4715,12 +4732,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return '访客';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑者';
+                        return '编辑';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return '卡片管理员';
+                        return '卡管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return '人员管理员';
+                        return '人员管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
@@ -5179,11 +5198,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         label: '上次报销日期',
                         description: '报表中最近一笔报销的日期。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: '导出日期',
                         description: '报表导出到 Sage Intacct 的日期。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: '提交日期',
                         description: '报表提交审批的日期。',
                     },
@@ -6615,7 +6634,17 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             invoiceFieldInitialValueRequiredError: '请选择发票字段的初始值',
             addField: '添加字段',
         },
-        vendors: {emptyTitle: '尚无供应商', emptySubtitle: '会计同步完成后，供应商将显示在此处。', findVendor: '查找供应商', managedInAccountingSoftware: '供应商在您的'},
+        vendors: {
+            emptyTitle: '尚无供应商',
+            emptySubtitle: '会计同步完成后，供应商将显示在此处。',
+            findVendor: '查找供应商',
+            managedInAccountingSoftware: '供应商在您的',
+            enableVendor: '启用供应商',
+            enableVendors: '启用供应商',
+            disableVendor: '停用供应商',
+            disableVendors: '禁用供应商',
+            updateFailureMessage: '更新供应商时出错，请重试',
+        },
         tags: {
             tagName: '标签名称',
             requiresTag: '成员必须为所有报销添加标签',
@@ -6858,6 +6887,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '设为审计员',
                 other: '创建审计员',
             }),
+            makeGuest: () => ({
+                one: '设为访客',
+                other: '设为访客',
+            }),
             makePeopleAdmin: () => ({
                 one: '设为人员管理员',
                 other: '设为人员管理员',
@@ -6890,6 +6923,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             admins: '工作区管理员',
             approvers: '审批人',
             auditors: '审计员',
+            guests: '访客',
             editors: '编辑者',
             emptyRoleFilter: {title: '没有成员符合此筛选条件', subtitle: '邀请成员或更改上方的筛选条件。'},
             configureHRSync: (providerName: string) => `配置 ${providerName} 同步。`,
@@ -7008,6 +7042,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7234,6 +7270,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在同步 Campfire 数据';
                         case 'campfireSyncConnection':
                             return '正在初始化与 Campfire 的连接';
+                        case 'zohoBooksSyncConnection':
+                            return '正在初始化与 Zoho Books 的连接';
                         case 'campfireSyncImportData':
                             return '正在加载数据';
                         case 'campfireSyncPayments':
@@ -7286,6 +7324,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
+            continuousReconciliationFeedSelection: '<muted-text-label>按卡片流水单独配置持续对账。选择一个流水以更改您正在配置的流水。</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `您的 QuickBooks Online 连接将于 ${date} 过期。`,
             qboConnectionExpired: ({date}: {date: string}) => `您与 QuickBooks Online 的连接已于 ${date} 过期。`,
@@ -8669,6 +8709,13 @@ ${reportName}`,
             noBankAccountsFoundDescription: '请在 Dynamics 365 Business Central 中添加银行账户，然后重新同步连接',
             noPaymentMethodsFound: '未找到付款方式',
             noPaymentMethodsFoundDescription: '请在 Dynamics 365 Business Central 中添加付款方式，然后重新同步连接',
+            accountsDescription: '您的 Dynamics 365 Business Central 账户将作为类别导入。',
+            dimensionsImportAsTags: '所有 Dynamics 365 Business Central 维度都会作为标签导入',
+            customers: '客户',
+            projects: '项目',
+            projectsAndCustomersCannotBeEnabled: '无法启用项目和客户',
+            projectsAndCustomersCannotBeEnabledDescription: '仅当导出选项为“采购发票”时，才能启用项目和客户',
+            enableNewCategoriesDescription: '新的 Dynamics 365 Business Central 科目将可作为类别使用。',
         },
     },
     getAssistancePage: {
@@ -9385,6 +9432,18 @@ ${reportName}`,
         deleteTask: '删除任务',
         deleteConfirmation: '确定要删除此任务吗？',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `支持工单，${date}：${customer} 与 ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `您好，我是 ${supportRep}，我会一直协助您，直到问题完全解决。如果您已经和我们分享了详细信息，我会在回复前先行查看，您无需重复说明。如果这是一个新问题，请告诉我您需要什么帮助。`,
+        checkboxTooltip: '问题解决后，您的客服代表会勾选此项。',
+        genericCreateSupportTicketFailureMessage: '我们无法创建此支持工单。请关闭此错误后重试。',
+        noSupportRepAvailable: '目前没有可用的支持代表。您仍可向 Concierge 发送消息以获取帮助。',
+        fallbackTitle: '支持工单',
+        resolved: '此支持工单已解决。',
+        surveyPrompt: '您对支持服务的体验如何？',
+        reopenTicket: '重新打开工单',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `${year}年${monthName}对账单`,
     },
@@ -9736,8 +9795,6 @@ ${reportName}`,
             category: '类别',
             tag: '标签',
         },
-        switchToTableView: '切换到表格视图',
-        switchToExpenseView: '切换到报销视图',
     },
     report: {
         newReport: {
@@ -10445,6 +10502,40 @@ ${reportName}`,
             taxOutOfPolicy: '税率已失效',
             taxRateChanged: '税率已修改',
             taxRequired: '缺少税率',
+        },
+        ruleViolation: {
+            fallback: '违反报销政策',
+            anyExpense: '任何报销费用',
+            expense: (adjectives: string) => (adjectives ? `${adjectives} 报销费用` : '报销费用'),
+            perDiem: '每日津贴',
+            notExpenseType: (expenseType: string) => `不是 ${expenseType}`,
+            billable: {enabled: '可计费', disabled: '不可计费'},
+            reimbursable: {enabled: '可报销', disabled: '不可报销'},
+            withoutCategory: '无类别',
+            fromMerchant: (merchant: string) => `来自 ${merchant}`,
+            notFromMerchant: (merchant: string) => `非来自 ${merchant}`,
+            fromMerchantsContaining: (merchant: string) => `来自包含 ${merchant} 的商家`,
+            notFromMerchantsContaining: (merchant: string) => `不来自包含 ${merchant} 的商家`,
+            withVendor: (vendor: string) => `与商家 ${vendor}`,
+            withoutVendor: (vendor: string) => `无供应商 ${vendor}`,
+            fromVendor: (vendor: string) => `来自 ${vendor}`,
+            notFromVendor: (vendor: string) => `非来自 ${vendor}`,
+            overAmount: (amount: string) => `超过 ${amount}`,
+            amountOrMore: (amount: string) => `${amount} 或更多`,
+            underAmount: (amount: string) => `低于 ${amount}`,
+            amountOrLess: (amount: string) => `${amount} 或以下`,
+            withoutTag: '没有标签',
+            tagged: (tag: string) => `已添加标签 ${tag}`,
+            inCurrency: (currency: string) => `以 ${currency} 计`,
+            notInCurrency: (currency: string) => `不是以 ${currency} 为单位`,
+            paidInCurrency: (currency: string) => `以 ${currency} 支付`,
+            notPaidInCurrency: (currency: string) => `未以 ${currency} 支付`,
+            attachment: '一个附件',
+            attribute: (attribute: string) => `一个 ${attribute}`,
+            withAttributes: (attributes: string) => `带有 ${attributes}`,
+            withoutAttributes: (attributes: string) => `不含 ${attributes}`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `在 ${merchantCode}`,
         },
     },
     reportViolations: {
