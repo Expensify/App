@@ -235,9 +235,6 @@ function SearchTransactionsChangeReport() {
             return;
         }
 
-        // Unlike the other consumers of this hook, this path *mutates* — it creates a report and moves the selected
-        // transactions into it. Falling through while the policy collection is still loading would create that report
-        // with an undefined policy, so wait instead. `useCreateReport` no-ops the same way.
         if (!arePoliciesLoaded) {
             return;
         }
