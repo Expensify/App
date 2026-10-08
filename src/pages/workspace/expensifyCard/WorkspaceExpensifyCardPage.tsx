@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
@@ -30,6 +31,7 @@ type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNa
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
@@ -70,7 +72,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
             );
         }
         if (isLoading) {
-            return <FullScreenLoadingIndicator />;
+            return <FullScreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
         }
         if (paymentBankAccountID) {
             return (

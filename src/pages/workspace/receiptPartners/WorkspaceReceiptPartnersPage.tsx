@@ -297,7 +297,10 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             {isLoading ? (
-                <FullScreenLoadingIndicator style={styles.flex1} />
+                <FullScreenLoadingIndicator
+                    style={styles.flex1}
+                    shouldUseGoBackButton={shouldUseNarrowLayout}
+                />
             ) : (
                 <ScreenWrapper
                     testID="WorkspaceReceiptPartnersPage"
