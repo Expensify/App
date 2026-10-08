@@ -1,8 +1,11 @@
+import RenderHTML from '@components/RenderHTML';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import {
     getActionableCard3DSTransactionApprovalMessage,
+    getAgentPromptUpdatedMessageHTML,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getMarkedReimbursedMessage,
@@ -27,6 +30,7 @@ type SimpleMessageContentProps = {
 };
 
 const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
+    CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
     CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
     CONST.REPORT.ACTIONS.TYPE.HOLD,
     CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT,
@@ -37,6 +41,7 @@ const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
     CONST.REPORT.ACTIONS.TYPE.REOPENED,
     CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
     CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
+    CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION,
     CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION,
     CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED,
     CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
@@ -54,6 +59,13 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        return (
+            <ReportActionItemBasicMessage>
+                <RenderHTML html={`<comment><muted-text>${getAgentPromptUpdatedMessageHTML(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
     }
@@ -83,6 +95,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
         return <ReportActionItemBasicMessage message={getDeletedTransactionMessage(translate, action, convertToDisplayString)} />;
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION)) {
+        return <ReportActionItemBasicMessage message={translate('iou.undeletedExpense')} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION)) {
         return <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
