@@ -9353,9 +9353,6 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** Widest drag width, so one drag can't push later columns out of reach. */
-            MAX_WIDTH: 1200,
-
             /** Width of the invisible drag strip centred on a column's edge. */
             HANDLE_HIT_WIDTH: 12,
 
