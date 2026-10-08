@@ -88,6 +88,12 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
+        animationTypeForReplace: 'push',
+    },
     [SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         animation: Animations.NONE,
     },
@@ -494,6 +500,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCards/upgrade/PersonalCardUpgradePage').default,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount').default,
+    [SCREENS.SETTINGS.COLLECT_DEPOSIT_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/CollectDepositAccount').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/subPages/AccountFlowEntryPoint').default,
@@ -1054,6 +1061,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/DynamicReconciliationAccountSettingsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_SELECT_FEED]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/DynamicReconciliationFeedSelectorPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsCurrencyConversionFeesPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default,

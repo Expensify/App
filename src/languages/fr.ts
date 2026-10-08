@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Veuillez choisir aujourd’hui ou une date future',
             invalidTimeShouldBeFuture: 'Veuillez choisir une heure au moins une minute plus tard',
             invalidCharacter: 'Caractère non valide',
+            invalidField: (fieldName) => `Champ invalide : ${fieldName}`,
             enterMerchant: 'Saisissez un nom de commerçant',
             enterAmount: 'Saisir un montant',
             missingMerchantName: 'Nom du commerçant manquant',
@@ -3406,8 +3407,9 @@ ${amount} pour ${merchant} - ${date}`,
         errorSelection: 'Sélectionnez une option pour continuer',
         purpose: {
             title: 'Que voulez-vous faire aujourd’hui ?',
-            errorContinue: 'Veuillez appuyer sur Continuer pour procéder à la configuration',
-            errorBackButton: 'Veuillez terminer les questions de configuration pour commencer à utiliser l’application',
+            errorContinue: 'Appuyez sur Continuer pour terminer la configuration',
+            errorBackButton: "Veuillez terminer les questions de configuration pour commencer à utiliser l'application",
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Rejoindre l’espace de travail de mon entreprise',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Soumettre des dépenses à mon employeur',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gérer les dépenses de mon équipe',
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Suivre les dépenses de mon entreprise',
@@ -3469,6 +3471,8 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Impossible d’ajouter l’adresse e-mail professionnelle',
             subtitle: (workEmail: string | undefined) =>
                 `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Nous n’avons pas pu ajouter ${workEmail}. Pour fusionner ces comptes, veuillez vous connecter en tant que ${workEmail} puis aller dans Compte > Sécurité > Fusionner les comptes pour terminer le processus.`,
             workAccountClosedSubtitle:
                 'Le compte professionnel associé à cet e-mail est fermé. Veuillez contacter l’administrateur de votre entreprise pour le réactiver, ou inscrivez-vous avec un autre e-mail.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} est un identifiant contrôlé par domaine pour un compte Expensify existant.`,
@@ -3707,6 +3711,34 @@ ${amount} pour ${merchant} - ${date}`,
                     Et voilà, c’est terminé !
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Ajoutez votre adresse e-mail professionnelle',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Ouvrez [Ajouter une adresse professionnelle](${workEmailLink}).
+                        2. Saisissez votre adresse e-mail professionnelle.
+                        3. Entrez le code que nous vous envoyons par e-mail.
+                        4. Choisissez un espace de travail à rejoindre, ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l'espace de travail.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Validez votre e-mail',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Ouvrez [Valider votre compte](${validateEmailLink}).
+                        2. Saisissez le code que nous avons envoyé à ${workEmail}.
+                        3. Choisissez un espace de travail à rejoindre ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l’espace de travail.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Rejoindre l’espace de travail de votre entreprise',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Ouvrez [Rejoindre un espace de travail](${joinWorkspaceLink}).
+                        2. Trouvez votre équipe dans la liste. Chaque équipe affiche son responsable et le nombre de personnes qu’elle compte, des plus grandes aux plus petites. Cliquez sur *Afficher plus* si vous ne voyez pas la vôtre.
+                        3. Cliquez sur *Rejoindre maintenant*, ou sur *Demander à rejoindre* si une approbation d’un administrateur est nécessaire.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Faites un [essai](${testDriveURL})` : 'Faites un essai'),
@@ -3729,6 +3761,14 @@ ${amount} pour ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Partager des notes de frais avec des amis est aussi simple que d’envoyer un message. Voici comment faire.',
             onboardingAdminMessage: 'Découvrez comment gérer l’espace de travail de votre équipe en tant qu’administrateur et soumettre vos propres dépenses.',
             onboardingTestDriveReceiverMessage: '*Vous bénéficiez de 3 mois gratuits ! Commencez ci-dessous.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Comme vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Ajoutez votre adresse e-mail professionnelle et je vérifierai à quels espaces de travail de votre entreprise vous pouvez vous joindre.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Puisque vous souhaitez rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Vérifiez votre adresse e-mail et je verrai quels espaces de travail sur ${companyDomain} vous pouvez rejoindre.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Comme vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Votre équipe sur ${companyDomain} est déjà sur Expensify. [Découvrez les espaces de travail que vous pouvez rejoindre.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Il ne semble pas que votre entreprise ait des espaces de travail auxquels vous pouvez vous joindre. Veuillez contacter votre administrateur et lui demander de vous inviter dans son espace de travail.',
         },
         workspace: {
             title: 'Restez organisé avec un espace de travail',
@@ -7581,6 +7621,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
             campfire: 'Campfire',
+            continuousReconciliationFeedSelection:
+                '<muted-text-label>Le rapprochement continu est configuré par flux de carte. Sélectionnez un flux pour changer celui que vous configurez.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Votre connexion QuickBooks Online expire le ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Votre connexion à QuickBooks Online a expiré le ${date}.`,
@@ -9064,6 +9106,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noBankAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
             noPaymentMethodsFound: 'Aucun mode de règlement trouvé',
             noPaymentMethodsFoundDescription: 'Veuillez ajouter des modes de règlement dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
+            accountsDescription: 'Vos comptes Dynamics 365 Business Central seront importés en tant que catégories.',
+            dimensionsImportAsTags: 'Toutes les dimensions Dynamics 365 Business Central sont importées en tant que tags',
+            customers: 'Clients',
+            projects: 'Projets',
+            projectsAndCustomersCannotBeEnabled: 'Les projets et les clients ne peuvent pas être activés',
+            projectsAndCustomersCannotBeEnabledDescription: 'Les projets et les clients peuvent uniquement être activés si l’option d’exportation est « Facture d’achat ».',
+            enableNewCategoriesDescription: 'Les nouveaux comptes Dynamics 365 Business Central seront disponibles en tant que catégories.',
         },
     },
     getAssistancePage: {
