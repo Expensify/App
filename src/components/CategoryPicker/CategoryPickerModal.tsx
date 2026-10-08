@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
@@ -75,6 +76,7 @@ function CategoryPickerModal({
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
+    const viewportOffsetTop = useViewportOffsetTop();
     const {top: safeAreaTop} = useSafeAreaInsets();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
@@ -100,6 +102,9 @@ function CategoryPickerModal({
     const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
     const resolvedHeight = isSmallScreenWidth ? bottomSheetHeight : popoverContentHeight;
     const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
+    // Mobile Safari ignores `interactive-widget=resizes-content`, leaving the sheet docked behind the keyboard, so on mobile browsers
+    // the sheet is sized and offset to the visual viewport, which the keyboard does shrink. Elsewhere this adds nothing.
+    const outerStyle = isSmallScreenWidth ? {...styles.w100, ...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)} : undefined;
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -129,7 +134,7 @@ function CategoryPickerModal({
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             enableEdgeToEdgeBottomSafeAreaPadding
             avoidKeyboard={isSmallScreenWidth}
-            outerStyle={isSmallScreenWidth ? styles.w100 : undefined}
+            outerStyle={outerStyle}
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, bottomSafeAreaPaddingStyle]}>
                 <CategoryPicker
