@@ -1376,52 +1376,6 @@ function openReimbursementAccountPage({stepToOpen = '', subStep = '', localCurre
 }
 
 /**
- * Opens the company address editor for an existing workspace bank account.
- * The form reads bankAccountID from REIMBURSEMENT_ACCOUNT, which is empty until OpenReimbursementAccountPage finishes,
- * so navigation waits for that account to load.
- */
-function openWorkspaceBankAccountAddress(policyID: string, bankAccountID: number) {
-    openReimbursementAccountPage({
-        policyID,
-        bankAccountID,
-        stepToOpen: CONST.BANK_ACCOUNT.STEP.COMPANY,
-    });
-
-    // connectWithoutView is justified: the address screen is not mounted yet, so there is no view to subscribe with useOnyx.
-    let hasSeenLoading = false;
-    const connection = Onyx.connectWithoutView({
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        callback: (reimbursementAccount) => {
-            if (reimbursementAccount?.isLoading) {
-                hasSeenLoading = true;
-                return;
-            }
-
-            // The first callback can still be the previously loaded account, before the optimistic loading flag lands.
-            if (!hasSeenLoading) {
-                return;
-            }
-
-            Onyx.disconnect(connection);
-
-            const loadedBankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
-            if (loadedBankAccountID !== bankAccountID || reimbursementAccount?.achData?.policyID !== policyID) {
-                return;
-            }
-
-            Navigation.navigate(
-                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
-                    policyID,
-                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY,
-                    subPage: CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES.ADDRESS,
-                    action: 'edit',
-                }),
-            );
-        },
-    });
-}
-
-/**
  * Updates the bank account in the database with the company step data
  * @param params - Business step form data
  * @param policyID - ID of the policy we're setting the bank account on
@@ -2014,7 +1968,6 @@ export {
     handlePlaidError,
     openPersonalBankAccountSetupView,
     openReimbursementAccountPage,
-    openWorkspaceBankAccountAddress,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
