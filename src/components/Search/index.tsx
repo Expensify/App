@@ -42,10 +42,11 @@ import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearc
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
+    getCustomColumns,
     getValidGroupBy,
     getWideAmountIndicators,
     isGroupedItemArray,
@@ -103,14 +104,15 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {SearchColumnMenuActions} from './SearchTableHeader';
 import type {CommonSearchViewProps} from './searchViewProps';
-import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
+import type {SearchColumnType, SearchCustomColumnIds, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
 
 import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
-import {orderColumnsByPin, useFrozenColumnState} from './FrozenColumnContext';
+import {orderColumnsByPin, useFrozenColumnActions, useFrozenColumnState} from './FrozenColumnContext';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
@@ -914,6 +916,7 @@ function Search({
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn
     // (e.g. opening a report bumps searchResults.data) that doesn't actually change the columns.
     const {pinnedColumns} = useFrozenColumnState();
+    const {unpinColumn} = useFrozenColumnActions();
     const currentColumns = useStableArrayReference(orderColumnsByPin(computedColumns, pinnedColumns));
 
     const opacity = useSharedValue(1);
@@ -1268,6 +1271,27 @@ function Search({
         [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
     );
 
+    // Only the columns offered on the Columns page can be saved to the query, so only those can be hidden.
+    const savableColumns = new Set<SearchColumnType>(getCustomColumns(type));
+    const isSavableColumn = (column: SearchColumnType): column is SearchCustomColumnIds => savableColumns.has(column);
+
+    // Saves the visible columns the same way the Columns page does, as the search's `columns`.
+    const saveColumns = (nextColumns: SearchColumnType[]) => {
+        const newQuery = buildSearchQueryString({...queryJSON, columns: nextColumns.filter(isSavableColumn)});
+        navigation.setParams({q: newQuery, rawQuery: undefined});
+    };
+
+    const columnMenuActions: SearchColumnMenuActions = {
+        // The Columns page keeps the total and, under a violations filter, the violations column, so the table always has
+        // a flexible column and shows what the filter is about.
+        canHideColumn: (column) =>
+            isSavableColumn(column) && column !== CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !(column === CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS && queryHasViolationFilter(queryJSON)),
+        onHideColumn: (column) => {
+            unpinColumn(column);
+            saveColumns(computedColumns.filter((visibleColumn) => visibleColumn !== column));
+        },
+    };
+
     // When heavy work is deferred (e.g. during the RHP dismiss animation after
     // submitting an expense), skip the expensive render below. The ancestor
     // SearchPage (via SearchPageNarrow / SearchPageWide) renders a SearchStaticList
@@ -1480,6 +1504,7 @@ function Search({
                 groupBy={validGroupBy}
                 isExpenseReportView={isExpenseReportType}
                 isActionColumnWide={isTask || hasDeletedTransaction}
+                columnMenuActions={columnMenuActions}
             />
         </View>
     );

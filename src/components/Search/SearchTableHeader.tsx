@@ -1,23 +1,31 @@
+import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import Navigation from '@libs/Navigation/Navigation';
 import {isCreatedDateType} from '@libs/SearchUIUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {AnchorPosition} from '@src/styles';
+import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
+import type {HeaderCellFrame} from './SortableHeaderText';
 import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
 
 import {isAnchoredLeftColumn, PIN_SIDE, useFrozenColumnActions, useFrozenColumnState} from './FrozenColumnContext';
@@ -545,6 +553,17 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
     }
 }
 
+/** Anchors the column menu below its header cell, at the cell's left edge or, when it opens leftward, its right edge. */
+function getColumnMenuAnchorPosition(cellFrame: HeaderCellFrame | undefined, isOnRight: boolean) {
+    if (!cellFrame) {
+        return {horizontal: 0, vertical: 0};
+    }
+    return {
+        horizontal: isOnRight ? cellFrame.x + cellFrame.width : cellFrame.x,
+        vertical: cellFrame.y + cellFrame.height,
+    };
+}
+
 type SearchTableHeaderProps = {
     columns: SearchColumnType[];
     type: SearchDataTypes;
@@ -568,6 +587,17 @@ type SearchTableHeaderProps = {
 
     /** True when the action column should render in its wider variant (e.g. tasks, deleted expenses). */
     isActionColumnWide?: boolean;
+
+    /** What the column menu can do to the search. The menu is only offered where columns can also be pinned. */
+    columnMenuActions?: SearchColumnMenuActions;
+};
+
+type SearchColumnMenuActions = {
+    /** Whether the column can be removed from the table. */
+    canHideColumn: (column: SearchColumnType) => boolean;
+
+    /** Removes the column from the table. */
+    onHideColumn: (column: SearchColumnType) => void;
 };
 
 function SearchTableHeader({
@@ -589,18 +619,20 @@ function SearchTableHeader({
     groupBy,
     isExpenseReportView,
     isActionColumnWide,
+    columnMenuActions,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {pinnedColumns, canPinColumns} = useFrozenColumnState();
     const {pinColumn, unpinColumn} = useFrozenColumnActions();
+    const theme = useTheme();
+    const {windowWidth} = useWindowDimensions();
+    const menuIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Pin', 'Columns', 'EyeDisabled', 'Checkmark']);
     const [columnMenu, setColumnMenu] = useState<{
         columnName: SearchColumnType;
-        anchorPosition: AnchorPosition;
+        cellFrame: HeaderCellFrame;
     } | null>(null);
     const columnMenuAnchorRef = useRef<View>(null);
-    const isMenuColumnPinnedLeft = !!columnMenu && pinnedColumns.left.includes(columnMenu.columnName);
-    const isMenuColumnPinnedRight = !!columnMenu && pinnedColumns.right.includes(columnMenu.columnName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
@@ -647,6 +679,92 @@ function SearchTableHeader({
         return orderedConfig;
     }, [columnConfig, columns]);
 
+    // A menu opened from a column on the right half of the window opens leftward, so it stays on screen.
+    const isColumnMenuOnRight = !!columnMenu && columnMenu.cellFrame.x + columnMenu.cellFrame.width / 2 > windowWidth / 2;
+
+    const getColumnMenuItems = (): PopoverMenuItem[] => {
+        if (!columnMenu || !columnMenuActions) {
+            return [];
+        }
+        const {columnName} = columnMenu;
+        const config = orderedColumnConfig?.find((columnConfigItem) => columnConfigItem.columnName === columnName);
+        const sortByColumnName = config?.sortColumnName ?? columnName;
+        // A column is sortable unless its config says otherwise, the same default the header itself uses.
+        const isSortable = !!config && shouldShowSorting && config.isColumnSortable !== false && columnName !== CONST.SEARCH.TABLE_COLUMNS.COMMENTS;
+        const activeSortOrder = sortBy === sortByColumnName ? sortOrder : undefined;
+        const isPinnedLeft = pinnedColumns.left.includes(columnName);
+        const isPinnedRight = pinnedColumns.right.includes(columnName);
+
+        // The current sort is marked with a checkmark on the right rather than a selected background, so both options
+        // read the same and stay pressable.
+        const getCurrentSortMarker = (isCurrent: boolean): Partial<PopoverMenuItem> =>
+            isCurrent
+                ? {
+                      shouldShowRightComponent: true,
+                      rightComponent: (
+                          <View style={styles.alignSelfCenter}>
+                              <Icon
+                                  src={menuIcons.Checkmark}
+                                  fill={theme.success}
+                                  width={variables.iconSizeNormal}
+                                  height={variables.iconSizeNormal}
+                              />
+                          </View>
+                      ),
+                  }
+                : {};
+
+        const sortItems: PopoverMenuItem[] = isSortable
+            ? [
+                  {
+                      text: translate('search.columnMenu.sortAscending'),
+                      icon: menuIcons.ArrowUpLong,
+                      ...getCurrentSortMarker(activeSortOrder === CONST.SEARCH.SORT_ORDER.ASC),
+                      onSelected: () => onSortPress(sortByColumnName, CONST.SEARCH.SORT_ORDER.ASC),
+                  },
+                  {
+                      text: translate('search.columnMenu.sortDescending'),
+                      icon: menuIcons.ArrowDownLong,
+                      ...getCurrentSortMarker(activeSortOrder === CONST.SEARCH.SORT_ORDER.DESC),
+                      onSelected: () => onSortPress(sortByColumnName, CONST.SEARCH.SORT_ORDER.DESC),
+                  },
+              ]
+            : [];
+
+        // Anchored columns lead the table like the checkbox, so they can't be pinned.
+        const pinItems: PopoverMenuItem[] = isAnchoredLeftColumn(columnName)
+            ? []
+            : [
+                  isPinnedLeft
+                      ? {text: translate('search.columnMenu.unpin'), icon: menuIcons.Pin, onSelected: () => unpinColumn(columnName)}
+                      : {text: translate('search.columnMenu.pinLeft'), icon: menuIcons.Pin, onSelected: () => pinColumn(columnName, PIN_SIDE.LEFT)},
+                  isPinnedRight
+                      ? {text: translate('search.columnMenu.unpin'), icon: menuIcons.Pin, onSelected: () => unpinColumn(columnName)}
+                      : {text: translate('search.columnMenu.pinRight'), icon: menuIcons.Pin, onSelected: () => pinColumn(columnName, PIN_SIDE.RIGHT)},
+              ];
+
+        const columnItems: PopoverMenuItem[] = [
+            {
+                text: translate('search.editColumns'),
+                icon: menuIcons.Columns,
+                // Opens the right-hand pane once the menu has closed, like Display's Edit columns.
+                shouldCallAfterModalHide: true,
+                onSelected: () => Navigation.navigate(ROUTES.SEARCH_COLUMNS),
+            },
+            {
+                text: translate('search.columnMenu.hideColumn'),
+                icon: menuIcons.EyeDisabled,
+                disabled: !columnMenuActions.canHideColumn(columnName),
+                onSelected: () => columnMenuActions.onHideColumn(columnName),
+            },
+        ];
+
+        // Each group after the first is set apart by a divider.
+        return [sortItems, pinItems, columnItems]
+            .filter((group) => group.length > 0)
+            .flatMap((group, groupIndex) => group.map((item, itemIndex) => ({...item, addSeparatorBefore: groupIndex > 0 && itemIndex === 0})));
+    };
+
     if (displayNarrowVersion) {
         return;
     }
@@ -682,18 +800,10 @@ function SearchTableHeader({
                     }
                     onSortPress(columnName, order);
                 }}
-                onColumnSecondaryInteraction={
-                    canPinColumns && !isExpenseReportView
-                        ? (columnName, event) => {
-                              // Anchored columns lead the table like the checkbox, so they can't be pinned.
-                              if (isAnchoredLeftColumn(columnName)) {
-                                  return;
-                              }
-                              const {pageX, pageY} = 'nativeEvent' in event ? event.nativeEvent : event;
-                              setColumnMenu({
-                                  columnName,
-                                  anchorPosition: {horizontal: pageX, vertical: pageY},
-                              });
+                onColumnMenuPress={
+                    canPinColumns && !isExpenseReportView && columnMenuActions
+                        ? (columnName, cellFrame) => {
+                              setColumnMenu({columnName, cellFrame});
                           }
                         : undefined
                 }
@@ -702,23 +812,13 @@ function SearchTableHeader({
                 isVisible={!!columnMenu}
                 onClose={() => setColumnMenu(null)}
                 onItemSelected={() => setColumnMenu(null)}
-                anchorPosition={columnMenu?.anchorPosition ?? {horizontal: 0, vertical: 0}}
+                anchorPosition={getColumnMenuAnchorPosition(columnMenu?.cellFrame, isColumnMenuOnRight)}
                 anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    horizontal: isColumnMenuOnRight ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 anchorRef={columnMenuAnchorRef}
-                menuItems={
-                    columnMenu
-                        ? [
-                              ...(isMenuColumnPinnedLeft ? [] : [{text: translate('search.pinColumn.pinLeft'), onSelected: () => pinColumn(columnMenu.columnName, PIN_SIDE.LEFT)}]),
-                              ...(isMenuColumnPinnedRight ? [] : [{text: translate('search.pinColumn.pinRight'), onSelected: () => pinColumn(columnMenu.columnName, PIN_SIDE.RIGHT)}]),
-                              ...(isMenuColumnPinnedLeft || isMenuColumnPinnedRight
-                                  ? [{text: translate('search.pinColumn.unpin'), onSelected: () => unpinColumn(columnMenu.columnName)}]
-                                  : []),
-                          ]
-                        : []
-                }
+                menuItems={getColumnMenuItems()}
             />
         </>
     );
@@ -726,3 +826,4 @@ function SearchTableHeader({
 
 export {getExpenseHeaders};
 export default SearchTableHeader;
+export type {SearchColumnMenuActions};

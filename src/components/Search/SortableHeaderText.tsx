@@ -10,9 +10,9 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {SortOrder} from './types';
@@ -33,8 +33,19 @@ type SearchTableHeaderColumnProps = WithSentryLabel & {
     /** Data attributes for the container, such as the marker the frozen edge overlay is measured from. */
     dataSet?: Record<string, boolean>;
 
-    /** Called when the header is right-clicked or long-pressed. */
-    onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
+    /**
+     * Opens the column's menu, given where the header cell sits in the window. When set, both a press and a right-click
+     * or long press open the menu instead of sorting.
+     */
+    onMenuPress?: (cellFrame: HeaderCellFrame) => void;
+};
+
+/** Where a header cell sits in the window, which its menu is anchored to. */
+type HeaderCellFrame = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
 };
 
 export default function SortableHeaderText({
@@ -47,15 +58,19 @@ export default function SortableHeaderText({
     innerContainerStyle,
     isSortable = true,
     onPress,
-    onSecondaryInteraction,
+    onMenuPress,
     sentryLabel,
     dataSet,
 }: SearchTableHeaderColumnProps) {
+    const containerRef = useRef<View>(null);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong']);
     const styles = useThemeStyles();
     const theme = useTheme();
     // The pressable stretches across the cell, so it carries the cell's own alignment to keep the content in place.
     const pressableStyle = [styles.searchTableHeaderPressable, {alignItems: StyleSheet.flatten(containerStyle)?.alignItems}];
+    const openMenu = () => {
+        containerRef.current?.measureInWindow((x, y, width, height) => onMenuPress?.({x, y, width, height}));
+    };
 
     if (!isSortable) {
         const content = (
@@ -81,15 +96,19 @@ export default function SortableHeaderText({
 
         return (
             <View
+                ref={containerRef}
                 style={containerStyle}
                 dataSet={dataSet}
             >
-                {onSecondaryInteraction ? (
+                {onMenuPress ? (
                     <PressableWithSecondaryInteraction
-                        onSecondaryInteraction={onSecondaryInteraction}
+                        onPress={openMenu}
+                        onSecondaryInteraction={openMenu}
                         wrapperStyle={styles.searchTableHeaderPressableWrapper}
-                        style={[pressableStyle, styles.cursorDefault]}
+                        style={pressableStyle}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={text}
+                        accessible
                         sentryLabel={sentryLabel}
                     >
                         {content}
@@ -109,12 +128,13 @@ export default function SortableHeaderText({
 
     return (
         <View
+            ref={containerRef}
             style={containerStyle}
             dataSet={dataSet}
         >
             <PressableWithSecondaryInteraction
-                onPress={() => onPress(nextSortOrder)}
-                onSecondaryInteraction={onSecondaryInteraction}
+                onPress={onMenuPress ? openMenu : () => onPress(nextSortOrder)}
+                onSecondaryInteraction={onMenuPress ? openMenu : undefined}
                 wrapperStyle={styles.searchTableHeaderPressableWrapper}
                 style={pressableStyle}
                 role={CONST.ROLE.BUTTON}
@@ -153,3 +173,5 @@ export default function SortableHeaderText({
         </View>
     );
 }
+
+export type {HeaderCellFrame};

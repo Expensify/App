@@ -10209,10 +10209,13 @@ const translations = {
             groupBy: 'Group by',
             limitResults: 'Limit results',
         },
-        pinColumn: {
+        columnMenu: {
+            sortAscending: 'Sort ascending',
+            sortDescending: 'Sort descending',
             pinLeft: 'Pin left',
             pinRight: 'Pin right',
             unpin: 'Unpin',
+            hideColumn: 'Hide column',
         },
         has: 'Has',
         view: {

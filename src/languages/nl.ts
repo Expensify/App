@@ -9906,10 +9906,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             groupBy: 'Groeperen op',
             limitResults: 'Resultaten beperken',
         },
-        pinColumn: {
+        columnMenu: {
+            sortAscending: 'Sort ascending',
+            sortDescending: 'Sort descending',
             pinLeft: 'Pin left',
             pinRight: 'Pin right',
             unpin: 'Unpin',
+            hideColumn: 'Hide column',
         },
         has: 'Heeft',
         view: {

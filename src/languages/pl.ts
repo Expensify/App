@@ -9922,10 +9922,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             groupBy: 'Grupuj według',
             limitResults: 'Ogranicz wyniki',
         },
-        pinColumn: {
+        columnMenu: {
+            sortAscending: 'Sort ascending',
+            sortDescending: 'Sort descending',
             pinLeft: 'Pin left',
             pinRight: 'Pin right',
             unpin: 'Unpin',
+            hideColumn: 'Hide column',
         },
         has: 'Ma',
         view: {

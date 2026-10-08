@@ -10195,10 +10195,13 @@ ${reportName}`,
             groupBy: 'Ομαδοποίηση κατά',
             limitResults: 'Περιορισμός αποτελεσμάτων',
         },
-        pinColumn: {
+        columnMenu: {
+            sortAscending: 'Sort ascending',
+            sortDescending: 'Sort descending',
             pinLeft: 'Pin left',
             pinRight: 'Pin right',
             unpin: 'Unpin',
+            hideColumn: 'Hide column',
         },
         has: 'Έχει',
         view: {

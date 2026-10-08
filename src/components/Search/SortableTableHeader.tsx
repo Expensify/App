@@ -9,11 +9,12 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
+import type {HeaderCellFrame} from './SortableHeaderText';
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
 
 import {getFrozenCellPosition, hasPinnedColumns, PIN_SIDE, useFrozenColumnState} from './FrozenColumnContext';
@@ -51,8 +52,8 @@ type SearchTableHeaderProps = {
     isActionColumnWide?: boolean;
     isDateColumnCreated?: boolean;
 
-    /** Called when a column header is right-clicked or long-pressed. */
-    onColumnSecondaryInteraction?: (columnName: SearchColumnType, event: GestureResponderEvent | MouseEvent) => void;
+    /** Opens a column's menu. When set, pressing a column header opens its menu instead of sorting by it. */
+    onColumnMenuPress?: (columnName: SearchColumnType, cellFrame: HeaderCellFrame) => void;
 };
 
 /** Marks a frozen header cell for the stylesheet that moves it, and the edge cell for the overlay measured from it. */
@@ -82,7 +83,7 @@ function SortableTableHeader({
     taxAmountColumnSize,
     shouldRemoveTotalColumnFlex,
     isActionColumnWide,
-    onColumnSecondaryInteraction,
+    onColumnMenuPress,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -152,7 +153,7 @@ function SortableTableHeader({
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
                             dataSet={frozenPosition ? getFrozenHeaderDataSet(frozenPosition.side === PIN_SIDE.LEFT, frozenPosition.isEdge) : undefined}
-                            onSecondaryInteraction={onColumnSecondaryInteraction ? (event) => onColumnSecondaryInteraction(columnName, event) : undefined}
+                            onMenuPress={onColumnMenuPress ? (cellFrame) => onColumnMenuPress(columnName, cellFrame) : undefined}
                         />
                     );
                 })}
