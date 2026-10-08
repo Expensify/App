@@ -3,6 +3,7 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {useSession} from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
@@ -127,13 +128,16 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                             We shouldn't introduce platform specific code in our codebase.
                             This is a temporary solution while Web is not supported for the QR code download feature */}
                             {shouldAllowDownloadQRCode && (
-                                <MenuItem
-                                    isAnonymousAction
-                                    title={translate('common.download')}
-                                    icon={icons.Download}
-                                    onPress={() => qrCodeRef.current?.download?.()}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                />
+                                <MenuItemSectionRoot onPress={() => qrCodeRef.current?.download?.()}>
+                                    <MenuItem.Row>
+                                        <MenuItem.Leading>
+                                            <MenuItem.Icon src={icons.Download} />
+                                        </MenuItem.Leading>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate('common.download')}</MenuItem.Title>
+                                        </MenuItem.Content>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             )}
                         </View>
                     </View>

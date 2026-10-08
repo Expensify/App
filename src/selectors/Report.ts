@@ -87,7 +87,7 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
         case CONST.REPORT.CHAT_TYPE.INVOICE:
             return CONST.REPORT_AVATAR_KIND.ROOM;
         default:
-            // DM, self-DM, system, trip room and anything unclassified
+            // DM, self-DM, system, a trip room without its parent fields and anything unclassified
             return CONST.REPORT_AVATAR_KIND.DEFAULT;
     }
 }
@@ -102,15 +102,19 @@ function groupChatAvatarReportSelector(report: OnyxEntry<Report>): GroupChatAvat
     return {reportID: report.reportID, avatarUrl: report.avatarUrl, reportName: report.reportName, participants: report.participants};
 }
 
-/** The report fields `ExpenseReportAvatar` renders from: the owner and the parent action (for a copilot) for the primary avatar plus the workspace-icon fallbacks. */
-type ExpenseReportAvatarReport = Pick<Report, 'ownerAccountID' | 'policyID' | 'policyAvatar' | 'policyName' | 'oldPolicyName' | 'chatReportID' | 'parentReportID' | 'parentReportActionID'>;
+/** The report fields the report-type avatar wrappers render from: the owner, the parent-action link, the chat type and the workspace-icon fallbacks. */
+type ReportAvatarFields = Pick<
+    Report,
+    'ownerAccountID' | 'chatType' | 'policyID' | 'policyAvatar' | 'policyName' | 'oldPolicyName' | 'chatReportID' | 'parentReportID' | 'parentReportActionID'
+>;
 
-function expenseReportAvatarSelector(report: OnyxEntry<Report>): ExpenseReportAvatarReport | undefined {
+function reportAvatarFieldsSelector(report: OnyxEntry<Report>): ReportAvatarFields | undefined {
     if (!report) {
         return undefined;
     }
     return {
         ownerAccountID: report.ownerAccountID,
+        chatType: report.chatType,
         policyID: report.policyID,
         policyAvatar: report.policyAvatar,
         policyName: report.policyName,
@@ -360,8 +364,22 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+/**
+ * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
+ * reports it needs doesn't re-render when any other report in the account changes.
+ */
+const reportsByIDsSelector =
+    (reportIDs: string[]) =>
+    (allReports: OnyxCollection<Report>): OnyxCollection<Report> => {
+        const result: OnyxCollection<Report> = {};
+        for (const reportID of reportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            result[key] = allReports?.[key];
+        }
+        return result;
+    };
+
 export {
-    expenseReportAvatarSelector,
     getArchiveReason,
     getReportChatType,
     groupChatAvatarReportSelector,
@@ -371,6 +389,7 @@ export {
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
+    reportAvatarFieldsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
     createMoveExpenseReportNVPSelector,
@@ -378,6 +397,7 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    reportsByIDsSelector,
 };
 
-export type {StableReport};
+export type {ReportAvatarFields, StableReport};

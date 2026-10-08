@@ -5,13 +5,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import type {AmountDisplay, CompactControls, DistanceData, ErrorState, ReceiptOptions, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
 
-type MoneyRequestConfirmationListFooterProps = {
-    /** Error message from the odometer receipt stitcher, rendered below the receipt */
-    receiptStitchError?: string | null;
-
-    /** Whether the compact scan layout is active */
-    isCompactMode: boolean;
-
+/** The footer props every expense type takes. The hook builds these once; a variant's footer adds only its own extras. */
+type SharedFooterProps = {
     /** Active policy read by sections. It may differ from the context `policyID` in track-expense flows where the user moves the expense to a different workspace. */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -20,9 +15,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Selected participants (drives ReportField + InvoiceSender presentation) */
     selectedParticipants: Participant[];
-
-    /** Distance-rate metadata */
-    distanceData: DistanceData;
 
     /** Pre-formatted amount values */
     amountDisplay: AmountDisplay;
@@ -35,32 +27,32 @@ type MoneyRequestConfirmationListFooterProps = {
     errorState: ErrorState;
     toggleHandlers?: ToggleHandlers;
     receiptOptions: ReceiptOptions;
+};
+
+type ManualFooterProps = SharedFooterProps;
+
+type TimeFooterProps = SharedFooterProps;
+
+type InvoiceFooterProps = SharedFooterProps;
+
+type PerDiemFooterProps = SharedFooterProps;
+
+type DistanceFooterProps = SharedFooterProps & {
+    /** Distance-rate metadata */
+    distanceData: DistanceData;
+};
+
+type DistanceOdometerFooterProps = DistanceFooterProps & {
+    /** Error message from the odometer receipt stitcher, rendered below the receipt */
+    receiptStitchError?: string | null;
+};
+
+type ScanFooterProps = SharedFooterProps & {
+    /** Whether the compact scan layout is active */
+    isCompactMode: boolean;
 
     /** Show-more state for the compact layout */
     compactControls: CompactControls;
 };
 
-type TimeFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
-
-type PerDiemFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'receiptOptions' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
-
-type DistanceFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls'>;
-
-type DistanceOdometerFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'isCompactMode' | 'compactControls'>;
-
-type ScanFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'distanceData'>;
-
-type ManualFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
-
-type InvoiceFooterProps = Omit<MoneyRequestConfirmationListFooterProps, 'receiptStitchError' | 'isCompactMode' | 'compactControls' | 'distanceData'>;
-
-export type {
-    MoneyRequestConfirmationListFooterProps,
-    TimeFooterProps,
-    PerDiemFooterProps,
-    DistanceFooterProps,
-    DistanceOdometerFooterProps,
-    ScanFooterProps,
-    ManualFooterProps,
-    InvoiceFooterProps,
-};
+export type {SharedFooterProps, TimeFooterProps, PerDiemFooterProps, DistanceFooterProps, DistanceOdometerFooterProps, ScanFooterProps, ManualFooterProps, InvoiceFooterProps};

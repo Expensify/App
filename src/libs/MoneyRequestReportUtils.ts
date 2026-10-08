@@ -9,7 +9,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {hasDeferredWriteForReport} from './deferredLayoutWrite';
+import {getLatestErrorField} from './ErrorUtils';
+import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -25,6 +26,33 @@ import {
     isReportTransactionThread,
 } from './ReportUtils';
 import {getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
+
+/**
+ * The key of a reject the backend recorded against an expense it has already moved. It reports those under the
+ * expense's own `reject` field rather than the generic `errors`, and it is what disables the row.
+ */
+function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): string | undefined {
+    return Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+}
+
+/** Whether a row can be selected. A click, Select All and a shift+click range all use this, so they agree on which rows are selectable. */
+function isSelectableReportTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return !isTransactionPendingDelete(transaction) && !getTransactionRejectErrorKey(transaction);
+}
+
+/**
+ * Whether every selectable transaction on the report is selected, which is when the report-level actions (Submit, Approve,
+ * Pay) are offered. Only selectable rows count: an expense the backend refused to reject stays on the report until its error
+ * is dismissed, and its checkbox is disabled, so counting it would hide those actions for good.
+ */
+function isEveryReportTransactionSelected(transactions: Transaction[], selectedTransactionIDs: string[]): boolean {
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
+    if (selectedTransactionIDs.length === 0 || selectableTransactions.length === 0) {
+        return false;
+    }
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    return selectableTransactions.every((transaction) => selectedTransactionIDSet.has(transaction.transactionID));
+}
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
@@ -138,10 +166,30 @@ function isSingleTransactionReport(report: OnyxEntry<Report>, transactions: Tran
  * Returns whether a "table" ReportView/MoneyRequestReportView should be used for the report.
  *
  * If report is a special "transaction thread" we want to use other Report views.
- * Likewise, if report has only 1 connected transaction, then we also use other views.
+ * Likewise, if report has only 1 connected transaction, then we also use other views,
+ * unless the user chose the table view for single-expense reports.
  */
-function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[]) {
-    return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
+function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[], shouldUseTableViewForSingleExpense = false) {
+    if (isReportTransactionThread(report)) {
+        return false;
+    }
+    return shouldUseTableViewForSingleExpense || !isSingleTransactionReport(report, transactions);
+}
+
+/**
+ * Returns whether the report shows its expenses in a table and so gets the multi-expense layout (super-wide RHP).
+ * A single-expense report counts too when the user chose the table view for single-expense reports.
+ */
+function shouldUseMultiExpenseReportLayout(transactionCount: number, shouldUseTableViewForSingleExpense: boolean) {
+    return transactionCount > 1 || (shouldUseTableViewForSingleExpense && transactionCount === 1);
+}
+
+/**
+ * Returns the transaction thread that report comments go to, or undefined when they go to the report itself.
+ * In the table view the thread's actions aren't shown in the report, so comments go to the report itself.
+ */
+function getEffectiveTransactionThreadReportID(transactionThreadReportID: string | undefined, isSentMoneyReport: boolean, shouldUseTableViewForSingleExpense: boolean) {
+    return isSentMoneyReport || shouldUseTableViewForSingleExpense ? undefined : transactionThreadReportID;
 }
 
 function shouldWaitForTransactions(
@@ -157,10 +205,10 @@ function shouldWaitForTransactions(
 
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
-    // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
-    const hasPendingDismissWrite = hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
-    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
+    // Scope the pending-submit-write check to *this* report so an unrelated submit flow that's
+    // mid-submit doesn't make every empty money-request/invoice report look like it's loading.
+    const hasPendingSubmitWrite = hasPendingSubmitWriteForReport(report?.reportID);
+    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingSubmitWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&
@@ -225,6 +273,11 @@ export {
     getAllNonDeletedTransactions,
     isSingleTransactionReport,
     shouldDisplayReportTableView,
+    shouldUseMultiExpenseReportLayout,
+    getEffectiveTransactionThreadReportID,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
+    getTransactionRejectErrorKey,
+    isSelectableReportTransaction,
+    isEveryReportTransactionSelected,
 };

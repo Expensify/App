@@ -98,16 +98,6 @@ jest.mock('@react-navigation/native');
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const RORY_EMAIL = 'rory@expensifail.com';
@@ -178,7 +168,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -386,7 +375,19 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                initialReport: expenseReport,
+                transactionReport: expenseReport,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -511,7 +512,19 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                initialReport: expenseReport,
+                transactionReport: expenseReport,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -621,7 +634,19 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold the only expense on the report
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                initialReport: expenseReport,
+                transactionReport: expenseReport,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -732,7 +757,19 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+            putOnHold({
+                transactionID: heldTransaction.transactionID,
+                transaction: heldTransaction,
+                comment: 'hold reason',
+                initialReportID: expenseReport.reportID,
+                initialReport: expenseReport,
+                transactionReport: expenseReport,
+                isOffline: false,
+                currentUserLogin: CARLOS_EMAIL,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
                 rules: undefined,
                 ancestors: [],
             });
@@ -806,7 +843,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -897,7 +933,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             currency: undefined,
                             isSelfTourViewed: false,
-                            betas: undefined,
                             hasActiveAdminPolicies: false,
                             hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
@@ -1045,8 +1080,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => Onyx.merge(ONYXKEYS.SESSION, {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL}))
                     .then(() => waitForBatchedUpdates())
                     .then(() => {
-                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(true);
-                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(true);
+                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true, false)).toBe(true);
+                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false, false)).toBe(true);
                     })
                     .then(
                         () =>
@@ -1062,8 +1097,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                         expect(expenseReport?.stateNum).toBe(0);
                                         expect(expenseReport?.statusNum).toBe(0);
 
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(false);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true, false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false, false)).toBe(false);
                                     },
                                 });
                             }),
@@ -1104,8 +1139,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                         expect(expenseReport?.stateNum).toBe(2);
                                         expect(expenseReport?.statusNum).toBe(2);
 
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(true);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(true);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true, false)).toBe(true);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false, false)).toBe(true);
                                     },
                                 });
                             }),
@@ -1168,8 +1203,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                         Onyx.disconnect(connection);
                                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(false);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true, false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false, false)).toBe(false);
                                         resolve();
                                     },
                                 });
@@ -1200,7 +1235,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             currency: undefined,
                             isSelfTourViewed: false,
-                            betas: undefined,
                             hasActiveAdminPolicies: false,
                             hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
@@ -1348,8 +1382,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => Onyx.merge(ONYXKEYS.SESSION, {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL}))
                     .then(() => waitForBatchedUpdates())
                     .then(() => {
-                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(true);
-                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(true);
+                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true, false)).toBe(true);
+                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false, false)).toBe(true);
                     })
                     .then(
                         () =>
@@ -1403,8 +1437,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                         // Report was submitted with some fail
                                         expect(expenseReport?.stateNum).toBe(0);
                                         expect(expenseReport?.statusNum).toBe(0);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(false);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true, false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false, false)).toBe(false);
                                         resolve();
                                     },
                                 });
@@ -1433,7 +1467,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1679,7 +1712,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -3278,8 +3310,6 @@ describe('actions/IOU/ReportWorkflow', () => {
         it('For invoices from archived workspaces', async () => {
             const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
 
-            const chatReportRNVP: ReportNameValuePairs = {private_isArchived: DateUtils.getDBTime()};
-
             const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
             expect(invoiceReceiverPolicyID).toBeDefined();
             if (!invoiceReceiverPolicyID) {
@@ -3294,12 +3324,40 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             };
 
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, undefined, invoiceReceiverPolicy)).toBe(true);
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined, invoiceReceiverPolicy)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false, invoiceReceiverPolicy)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, invoiceReceiverPolicy)).toBe(true);
 
             // When the invoice is archived
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, true, invoiceReceiverPolicy)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, true, invoiceReceiverPolicy)).toBe(false);
+        });
+
+        it('reads the archived state only from the isChatReportArchived parameter, not from Onyx', async () => {
+            // Given an invoice whose chat report is marked archived in Onyx while the parameter says it is not archived
+            const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+            const archivedRNVP: ReportNameValuePairs = {private_isArchived: DateUtils.getDBTime()};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`, archivedRNVP);
+            await waitForBatchedUpdates();
+
+            const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+            if (!invoiceReceiverPolicyID) {
+                throw new Error('Expected the invoice receiver to be a business policy.');
+            }
+            const iouReport = {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+            const invoiceReceiverPolicy = {
+                ...createRandomPolicy(Number(invoiceReceiverPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: invoiceReceiverPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            // When canIOUBePaid is called with isChatReportArchived=false
+            // Then it must not fall back to the module-level Onyx cache, so the invoice is still considered payable —
+            // callers are responsible for resolving the chat report's archived state and passing it explicitly
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, invoiceReceiverPolicy)).toBe(true);
+
+            // When the archived state is passed explicitly
+            // Then paying is blocked
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, true, invoiceReceiverPolicy)).toBe(false);
         });
     });
 
@@ -3656,8 +3714,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false)).toBeTruthy();
         });
 
         it('allows admins to mark report with only non-reimbursable expenses as paid (onlyShowPayElsewhere=true)', async () => {
@@ -3699,12 +3757,13 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, onlyNonReimbursableTransactions, false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, onlyNonReimbursableTransactions, true)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, onlyNonReimbursableTransactions, false, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, onlyNonReimbursableTransactions, true, false)).toBeTruthy();
         });
 
-        it('should return false for report with only non-reimbursable expenses when amount is 0 (onlyShowPayElsewhere=true)', async () => {
+        it('should only allow marking as paid for report with only non-reimbursable expenses when amount is 0', async () => {
+            // Given an approved $0 report whose only expense is non-reimbursable
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const reportID = '998';
 
@@ -3743,8 +3802,136 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, zeroAmountNonReimbursableTransactions, false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, zeroAmountNonReimbursableTransactions, true)).toBeFalsy();
+            // When checking whether it can be paid
+            // Then a real payment is not allowed, since no money moves, but it can be marked as paid to close it out, matching Expensify Classic
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, zeroAmountNonReimbursableTransactions, false, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, zeroAmountNonReimbursableTransactions, true, false)).toBeTruthy();
+        });
+
+        it('should only allow marking as paid for report whose reimbursable expenses cancel out to 0', async () => {
+            // Given an approved $0 report holding a $50 and a -$50 reimbursable expense
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const reportID = '998';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: 0,
+                nonReimbursableTotal: 0,
+            };
+
+            const cancellingTransactions: Transaction[] = [
+                {...createRandomTransaction(1), reportID, amount: -5000, currency: 'USD', reimbursable: true},
+                {...createRandomTransaction(2), reportID, amount: 5000, currency: 'USD', reimbursable: true},
+            ];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When checking whether it can be paid
+            // Then a real payment is not allowed, since nothing is owed, but it can be marked as paid to close it out
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, cancellingTransactions, false, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, cancellingTransactions, true, false)).toBeTruthy();
+        });
+
+        it('should not allow marking as paid for a $0 report without expenses', async () => {
+            // Given an approved $0 report that has no expenses
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const reportID = '998';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: 0,
+                nonReimbursableTotal: 0,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When checking whether it can be marked as paid
+            // Then it cannot, since a zero total here does not come from expenses that cancel out
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false)).toBeFalsy();
+        });
+
+        it('should not allow marking as paid for a $0 report while an expense failed to scan', async () => {
+            // Given an approved $0 report with a $50 and a -$50 reimbursable expense plus an expense whose SmartScan failed
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const reportID = '998';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: 0,
+                nonReimbursableTotal: 0,
+            };
+
+            const transactions: Transaction[] = [
+                {...createRandomTransaction(1), reportID, amount: -5000, currency: 'USD', reimbursable: true},
+                {...createRandomTransaction(2), reportID, amount: 5000, currency: 'USD', reimbursable: true},
+                {
+                    ...createRandomTransaction(3),
+                    reportID,
+                    amount: 0,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    modifiedMerchant: '',
+                    reimbursable: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                },
+            ];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When checking whether it can be marked as paid
+            // Then it cannot, because the failed scan's real amount is unknown, so the report may still owe money
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, transactions, true, false)).toBeFalsy();
         });
 
         it('allows non-reimburser admin to pay in manual reimbursement mode', async () => {
@@ -3781,7 +3968,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeTruthy();
         });
 
         it('allows non-reimburser payments admin to pay in manual reimbursement mode when owner is payer', async () => {
@@ -3823,7 +4010,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, paymentsAdminEmail, paymentsAdminAccountID, [], false)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, paymentsAdminEmail, paymentsAdminAccountID, [], false, false)).toBeTruthy();
             expect(isPayer(paymentsAdminAccountID, paymentsAdminEmail, fakeReport, {}, fakePolicy, false)).toBe(false);
         });
 
@@ -3857,7 +4044,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, chatReport, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, chatReport, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeFalsy();
             expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, fakeReport, {}, fakePolicy, false)).toBe(false);
         });
     });
@@ -4058,7 +4245,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             hasViolations: false,
             isTrackIntentUser: false,
             isASAPSubmitBetaEnabled: false,
-            betas: [CONST.BETAS.ALL],
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
@@ -6119,6 +6305,33 @@ describe('actions/IOU/ReportWorkflow', () => {
             const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined);
             expect(result).toBeUndefined();
         });
+
+        it('should not return PAY badge for an invoice when the chat report is archived', async () => {
+            // Given a submitted invoice in a chat whose business receiver policy the current user administers
+            const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+            const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+            if (!invoiceReceiverPolicyID) {
+                throw new Error('Expected the invoice receiver to be a business policy.');
+            }
+            const iouReport = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+            const invoiceReceiverPolicy = {
+                ...createRandomPolicy(Number(invoiceReceiverPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: invoiceReceiverPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            // When the chat report is not archived
+            // Then the invoice is payable, so the PAY badge is returned
+            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined)).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+
+            // When the chat report is archived in Onyx — getBadgeFromIOUReport resolves the archived state itself
+            // because its callers don't thread it down yet (see the TODO for issue 66518)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+            await waitForBatchedUpdates();
+
+            // Then no badge is returned because the archived chat blocks paying the invoice
+            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined)).toBeUndefined();
+        });
     });
     describe('canIOUBePaid with a deprecated reimbursement choice', () => {
         // A deprecated value means the same as its plain counterpart, so Pay has to behave identically for both.
@@ -6178,8 +6391,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Then they are the payer and Pay is offered, so a deprecated value cannot block payment on an approved report
             expect(isReportPayer).toBe(true);
-            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBe(true);
-            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBe(true);
+            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBe(true);
+            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false)).toBe(true);
         });
 
         it.each([
@@ -6199,8 +6412,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Then Pay stays hidden, so resolving the deprecated value does not hand out Pay where it was switched off
             expect(isReportPayer).toBe(false);
-            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBe(false);
-            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBe(false);
+            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBe(false);
+            expect(canIOUBePaid(expenseReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false)).toBe(false);
         });
     });
 });
