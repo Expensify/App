@@ -284,6 +284,7 @@ function DynamicIOURequestStepUpgrade({
         session?.accountID,
         session?.email,
         ownerPersonalDetails,
+        currentUserPersonalDetails,
         transactions,
         iouType,
         isTrack,
