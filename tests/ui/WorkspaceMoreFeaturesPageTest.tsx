@@ -589,6 +589,29 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
         });
 
+        it.each([
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Campfire Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Campfire connection whose configuration determines whether vendor matching is active
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured}}};
+
+            // When the More features page renders with the selected beta state
+            await renderWithVendorMatching(connections, isBetaEnabled);
+
+            // Then the locked row shows without the beta so admins can discover it, and is only on once Campfire is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
+            } else {
+                expect(vendorsSwitch).not.toBeChecked();
+            }
+        });
+
         // Business Central is still beta-gated, so it stays hidden when the beta is off.
         it('hides the Vendors row for a beta-gated integration (Business Central) when the beta is disabled', async () => {
             // Given a configured Business Central connection

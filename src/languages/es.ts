@@ -217,6 +217,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy',
             invalidTimeShouldBeFuture: 'Por favor, elige una hora al menos un minuto en el futuro',
             invalidCharacter: 'Carácter invalido',
+            invalidField: (fieldName) => `Campo no válido: ${fieldName}`,
             enterMerchant: 'Introduce un comerciante',
             enterAmount: 'Introduce un importe',
             enterDate: 'Introduce una fecha',
@@ -3300,12 +3301,13 @@ ${amount} para ${merchant} - ${date}`,
         errorSelection: 'Selecciona una opción para continuar',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
-            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta',
-            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empleador',
+            errorContinue: 'Pulsa continuar para configurarte',
+            errorBackButton: 'Por favor, completa las preguntas de configuración para empezar a usar la aplicación',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Únete al espacio de trabajo de mi empresa',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controlar gastos de mi negocio',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizar mis gastos personales',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controla los gastos de mi empresa',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organiza mis gastos personales',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
         personalTrackGoal: {
@@ -3362,6 +3364,8 @@ ${amount} para ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'No se pudo añadir el correo electrónico de trabajo',
             subtitle: (workEmail) => `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `No pudimos añadir ${workEmail}. Para fusionar estas cuentas, inicia sesión como ${workEmail} y ve a Cuenta > Seguridad > Fusionar cuentas para completar el proceso.`,
             workAccountClosedSubtitle:
                 'La cuenta de trabajo asociada a este correo electrónico está cerrada. Ponte en contacto con el administrador de tu empresa para reactivarla o regístrate con un correo electrónico diferente.',
             domainControlledSubtitle: (workEmail) => `${workEmail} es un inicio de sesión controlado por dominio de una cuenta de Expensify existente.`,
@@ -3608,6 +3612,34 @@ ${amount} para ${merchant} - ${date}`,
                     ¡Y listo!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Añade tu correo electrónico del trabajo',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Abre [Añadir correo electrónico del trabajo](${workEmailLink}).
+                        2. Introduce la dirección de correo electrónico de tu empresa.
+                        3. Introduce el código que te enviamos por correo electrónico.
+                        4. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Valida tu correo electrónico',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Abre [Valida tu cuenta](${validateEmailLink}).
+                        2. Introduce el código que enviamos a ${workEmail}.
+                        3. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Únete al espacio de trabajo de tu empresa',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Abre [Unirte a un espacio de trabajo](${joinWorkspaceLink}).
+                        2. Busca a tu equipo en la lista. Cada uno muestra a su propietario y cuántas personas hay en él, empezando por el más grande. Haz clic en *Mostrar más* si no ves el tuyo.
+                        3. Haz clic en *Unirte ahora* o en *Pedir unirse* si necesita aprobación de un administrador.
+                    `),
+            },
         },
         testDrive: {
             name: ({testDriveURL}) => (testDriveURL ? `Haz una [prueba](${testDriveURL})` : 'Haz una prueba'),
@@ -3630,6 +3662,14 @@ ${amount} para ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
             onboardingTestDriveReceiverMessage: '*¡Tienes 3 meses gratis! Empieza abajo.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Como estás intentando unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Añade tu correo electrónico del trabajo y comprobaré a qué espacios de trabajo de tu empresa puedes unirte.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Verifica tu correo electrónico y revisaré a qué espacios de trabajo en ${companyDomain} puedes unirte.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Tu equipo en ${companyDomain} ya está en Expensify. [Echa un vistazo a los espacios de trabajo a los que puedes unirte.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Parece que tu empresa no tiene ningún espacio de trabajo al que puedas unirte. Por favor, ponte en contacto con tu administrador y pídele que te invite a su espacio de trabajo.',
         },
         workspace: {
             title: 'Mantente organizado con un espacio de trabajo',
@@ -7396,6 +7436,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquearlo, configura una cuenta para tus exportaciones.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, habilita la sincronización automática.',
             campfire: 'Campfire',
+            continuousReconciliationFeedSelection:
+                '<muted-text-label>La conciliación continua se configura por cada fuente de tarjetas. Selecciona una fuente para cambiar cuál estás configurando.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Tu conexión con QuickBooks Online caduca el ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Tu conexión con QuickBooks Online caducó el ${date}.`,
@@ -7687,6 +7729,20 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     distanceMustBePositive: 'La distancia debe ser un número entero positivo.',
                     invalidAddress: 'Por favor, introduce una dirección válida',
                     distanceTooLarge: 'La distancia es demasiado grande.',
+                },
+                workArrangement: {
+                    title: 'Modalidad de trabajo predeterminada',
+                    officeBasedTitle: 'En oficina',
+                    officeBasedHelp: 'El miembro se desplaza a una oficina. Los desplazamientos habituales quedan excluidos del reembolso.',
+                    noRegularWorkplaceTitle: 'Remoto o móvil',
+                    noRegularWorkplaceHelp: 'El miembro trabaja desde casa o se desplaza entre ubicaciones sin una oficina fija, por lo que las normas de desplazamiento no se aplican.',
+                    startingPrompt: {
+                        title: 'Configura una modalidad de trabajo habitual',
+                        prompt: 'Elige la modalidad que se aplique a la mayoría de los miembros actuales. Más adelante podrás actualizar a los miembros individualmente o de forma masiva.',
+                        officeBasedHelp: 'La mayoría de los miembros se desplazan a una oficina. Los desplazamientos habituales están excluidos.',
+                        noRegularWorkplaceHelp: 'La mayoría de los miembros trabaja en remoto, así que las exclusiones de casa al trabajo normalmente no se aplican.',
+                        confirm: 'Aplicar',
+                    },
                 },
             },
             distance: 'Distancia',
@@ -8882,6 +8938,13 @@ ${reportName}`,
             noBankAccountsFoundDescription: 'Añade cuentas bancarias en Dynamics 365 Business Central y vuelve a sincronizar la conexión',
             noPaymentMethodsFound: 'No se encontraron formas de pago',
             noPaymentMethodsFoundDescription: 'Añade formas de pago en Dynamics 365 Business Central y vuelve a sincronizar la conexión',
+            accountsDescription: 'Tus cuentas de Dynamics 365 Business Central se importarán como categorías.',
+            dimensionsImportAsTags: 'Todas las dimensiones de Dynamics 365 Business Central se importan como etiquetas',
+            customers: 'Clientes',
+            projects: 'Proyectos',
+            projectsAndCustomersCannotBeEnabled: 'No se pueden habilitar Proyectos y Clientes',
+            projectsAndCustomersCannotBeEnabledDescription: 'Los proyectos y los clientes solo se pueden habilitar si la opción de exportación es «Factura de compra».',
+            enableNewCategoriesDescription: 'Las nuevas cuentas de Dynamics 365 Business Central estarán disponibles como categorías.',
         },
     },
     getAssistancePage: {
@@ -9310,6 +9373,11 @@ ${reportName}`,
         updatedTimeRate: (newRate, oldRate) => `cambió la tarifa por hora a "${newRate}" (anteriormente "${oldRate}")`,
         addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `establecer la modalidad de trabajo predeterminada en ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `cambió la modalidad de trabajo predeterminada a ${arrangement} (previamente ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `cambió “excluir desplazamientos” a una distancia fija por solicitud (previamente ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `cambió la exclusión de desplazamientos para calcular por casa y oficina (previamente ${previousMethod})`,
@@ -9934,6 +10002,8 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
         mergeReports: {title: 'Combinar informes', description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.'},
+        periodSoFar: ({period}: {period: string}) => `${period} hasta ahora`,
+        weekOf: ({date}: {date: string}) => `Semana del ${date}`,
         saveEdits: {
             title: 'Guardar cambios',
             prompt: ({name}: {name: string}) => `¿Actualizar los cambios en «${name}» o crear uno nuevo?`,
@@ -9988,6 +10058,8 @@ ${reportName}`,
             category: 'Categoría',
             tag: 'Etiqueta',
         },
+        switchToTableView: 'Cambiar a vista de tabla',
+        switchToExpenseView: 'Cambiar a vista de gasto',
     },
     report: {
         newReport: {
