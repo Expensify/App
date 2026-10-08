@@ -1242,6 +1242,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ουπς! Ένα υποχρεωτικό πεδίο («${fieldName}») δεν έχει αντιστοιχιστεί. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ωχ! Έχετε αντιστοιχίσει ένα μόνο πεδίο («${fieldName}») σε πολλές στήλες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         emptyMappedField: (fieldName: string) => `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες κενές τιμές. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        invalidApprovalLimit: 'Τα όρια έγκρισης πρέπει να είναι έγκυρα ποσά στο νόμισμα του χώρου εργασίας.',
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες τιμές μεγαλύτερες από ${limit} χαρακτήρες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         importSuccessfulTitle: 'Η εισαγωγή ήταν επιτυχής',
@@ -4954,6 +4955,7 @@ ${amount} για ${merchant} - ${date}`,
             memberAlternateText: 'Υποβάλετε και εγκρίνετε αναφορές.',
             adminAlternateText: 'Διαχειριστείτε αναφορές και ρυθμίσεις χώρου εργασίας.',
             auditorAlternateText: 'Προβολή και σχολιασμός αναφορών.',
+            guestAlternateText: 'Υποβάλετε αναφορές με περιορισμένη προβολή.',
             cardAdminAlternateText: 'Διαχειριστείτε τις κάρτες χώρου εργασίας.',
             peopleAdminAlternateText: 'Διαχειριστείτε μέλη και ροές έγκρισης.',
             paymentsAdminAlternateText: 'Διαχειριστείτε τις πληρωμές ροής εργασιών.',
@@ -4965,19 +4967,21 @@ ${amount} για ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
-                        return 'Κάτοχος';
+                        return 'Ιδιοκτήτης';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Διαχειριστής χώρου εργασίας';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Ελεγκτής';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Επισκέπτης';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Επεξεργαστής';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Διαχείριση κάρτας';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Διαχείριση προσώπων';
+                        return 'Διαχείριση χρηστών';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'διαχείριση πληρωμών';
+                        return 'Διαχείριση πληρωμών';
                     case CONST.POLICY.ROLE.USER:
                         return 'Μέλος';
                     default:
@@ -7288,6 +7292,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 one: 'Ορισμός ως ελεγκτής',
                 other: 'Δημιουργία ελεγκτών',
             }),
+            makeGuest: () => ({
+                one: 'Κάντε επισκέπτη',
+                other: 'Κάντε επισκέπτες',
+            }),
             makeCardAdmin: () => ({
                 one: 'Ορισμός διαχειριστή κάρτας',
                 other: 'Ορίστε διαχειριστές κάρτας',
@@ -7318,6 +7326,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             paymentsAdmins: 'Διαχειριστές πληρωμών',
             approvers: 'Εγκρίνοντες',
             auditors: 'Ελεγκτές',
+            guests: 'Επισκέπτες',
             editors: 'Συντάκτες',
             members: 'Μέλη',
             emptyRoleFilter: {
