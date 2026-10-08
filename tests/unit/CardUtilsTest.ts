@@ -2482,6 +2482,20 @@ describe('CardUtils', () => {
             expect(getCardNameError('\u200B')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
         });
 
+        it('flags an HTML-like name the Name page already rejects', () => {
+            // Given a card the admin is renaming from the table
+            // When the new name is an HTML-like token such as </>
+            // Then the name is invalid, because the Name page blocks it and the table must not save it
+            expect(getCardNameError('</>')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('allows a whitelisted angle-bracket token', () => {
+            // Given a card the admin is renaming
+            // When the new name is a harmless token the Name page already allows, such as <>
+            // Then the name is valid, so the table and the Name page stay in agreement
+            expect(getCardNameError('<>')).toBeUndefined();
+        });
+
         it('measures length after sanitizing so padding does not count', () => {
             const paddedName = `${'a'.repeat(CONST.STANDARD_LENGTH_LIMIT)}   `;
 

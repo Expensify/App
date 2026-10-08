@@ -557,4 +557,50 @@ describe('WorkspaceMembers', () => {
             unmount();
         });
     });
+
+    describe('Inline role editing', () => {
+        it('lets a just-invited member be role-edited before their account resolves', async () => {
+            // Given a member invited with optimistic personal details, which is how a new invite stays until the
+            // account resolves, including while the invite is still offline
+            const invitedEmail = 'invited@example.com';
+            const invitedAccountID = 424242;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                    [invitedAccountID]: {
+                        ...TestHelper.buildPersonalDetails(invitedEmail, invitedAccountID, 'Invited'),
+                        isOptimisticPersonalDetail: true,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {
+                        [invitedEmail]: {
+                            email: invitedEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    },
+                });
+            });
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+                createMock<ResponsiveLayoutResult>({
+                    isSmallScreenWidth: false,
+                    shouldUseNarrowLayout: false,
+                    isMediumScreenWidth: false,
+                    isLargeScreenWidth: true,
+                }),
+            );
+
+            // When the members table renders that invite on a wide layout, where the role cell can be edited inline
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            const invitedRow = await screen.findByLabelText(new RegExp(`^Invited User, ${invitedEmail}`));
+
+            // Then the role cell is editable, matching the member details pane, which does not wait for the account to resolve
+            await waitFor(() => {
+                expect(within(invitedRow).UNSAFE_getAllByProps({accessibilityLabel: TestHelper.translateLocal('common.edit')}).length).toBeGreaterThan(0);
+            });
+
+            unmount();
+        });
+    });
 });
