@@ -16,7 +16,7 @@ import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -71,6 +71,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
     const hasMultipleEligibleBankAccounts = eligibleBusinessBankAccounts.length > 1;
     const hasInvoiceDefaultBankAccount = transferBankAccountID !== CONST.DEFAULT_NUMBER_ID;
     const isInvoiceDefaultBankAccountMissing = hasInvoiceDefaultBankAccount && !eligibleBusinessBankAccounts.some((account) => account.accountData?.bankAccountID === transferBankAccountID);
+    const invoiceDefaultBankAccountID = hasInvoiceDefaultBankAccount ? transferBankAccountID : (eligibleBusinessBankAccounts.at(0)?.accountData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault && (hasMultipleEligibleBankAccounts || isInvoiceDefaultBankAccountMissing);
     const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
 
@@ -109,7 +110,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
                 };
             }
             setPaymentMethod({
-                isSelectedPaymentMethodDefault: transferBankAccountID === methodID,
+                isSelectedPaymentMethodDefault: invoiceDefaultBankAccountID === methodID,
                 selectedPaymentMethod: accountData ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
@@ -125,23 +126,19 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         }
 
         const remainingEligibleBankAccountID = eligibleBusinessBankAccounts.find((account) => account.accountData?.bankAccountID !== bankAccountID)?.accountData?.bankAccountID;
-        if (transferBankAccountID === bankAccountID && remainingEligibleBankAccountID) {
+        if (invoiceDefaultBankAccountID === bankAccountID && remainingEligibleBankAccountID) {
             setInvoicingTransferBankAccount(remainingEligibleBankAccountID, policyID, bankAccountID);
         }
 
         deletePaymentBankAccount(bankAccountID, personalPolicyID);
-    }, [eligibleBusinessBankAccounts, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, policyID, transferBankAccountID]);
+    }, [eligibleBusinessBankAccounts, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, policyID, invoiceDefaultBankAccountID]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
-        // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, {}, styles, translate);
-        const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
-        const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID, policyID, previousPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID);
+            setInvoicingTransferBankAccount(paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID, policyID, transferBankAccountID);
         }
         resetSelectedPaymentMethodData();
-    }, [bankAccountList, styles, translate, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID, resetSelectedPaymentMethodData]);
+    }, [paymentMethod.selectedPaymentMethodType, paymentMethod.selectedPaymentMethod.bankAccountID, policyID, transferBankAccountID, resetSelectedPaymentMethodData]);
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         const accountPolicyID = accountData?.additionalData?.policyID;
@@ -283,8 +280,8 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
                 onAddBankAccountPress={onAddBankAccountPress}
                 onThreeDotsMenuPress={paymentMethodPressed}
                 shouldSkipDefaultAccountValidation
-                invoiceTransferBankAccountID={transferBankAccountID}
-                activePaymentMethodID={transferBankAccountID}
+                invoiceTransferBankAccountID={invoiceDefaultBankAccountID}
+                activePaymentMethodID={invoiceDefaultBankAccountID}
                 threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
                 addBankAccountItemStyle={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                 style={[styles.mt5, cardEdgeToEdge]}
