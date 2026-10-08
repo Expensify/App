@@ -66,10 +66,16 @@ const mockSelectedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockExcludedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockSelectedReports: {current: SelectedReports[]} = {current: []};
 const mockAreAllMatchingItemsSelected = {current: false};
+// The loaded rows of each report, which is what tells a report excluded down to its last row from a part-excluded one.
+const mockTransactionsByReportID: {current: Map<string, Array<{transactionID: string}>>} = {current: new Map()};
 const mockShouldUseLiveData = {current: false};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockSearchQueryContext.current,
-    useSearchResultsContext: () => ({currentSearchResults: undefined, shouldUseLiveData: mockShouldUseLiveData.current}),
+    useSearchResultsContext: () => ({
+        currentSearchResults: undefined,
+        currentSearchTransactionsByReportID: mockTransactionsByReportID.current,
+        shouldUseLiveData: mockShouldUseLiveData.current,
+    }),
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions.current,
         excludedTransactions: mockExcludedTransactions.current,
@@ -200,6 +206,7 @@ describe('SearchSelectionFooter', () => {
         mockExcludedTransactions.current = {};
         mockSelectedReports.current = [];
         mockAreAllMatchingItemsSelected.current = false;
+        mockTransactionsByReportID.current = new Map();
         mockCapturedFooterProps.current = undefined;
         // Clear here rather than in afterEach: Onyx.clear() there re-renders the previous test's still-mounted
         // component (testing-library only unmounts it afterwards), and those renders can record mock calls.
@@ -240,6 +247,44 @@ describe('SearchSelectionFooter', () => {
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 8, total: 35800, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('takes a report the user unticked off the report count of a select-all', async () => {
+        // Given a select-all over more reports than are loaded, which is the only way the footer is on the server's count
+        setSearchQuery('type:expense-report footerCount:reports');
+        mockSelectedTransactions.current = {};
+        mockTransactionsByReportID.current = new Map([
+            ['report1', [{transactionID: 'transaction1'}, {transactionID: 'transaction2'}]],
+            ['report2', [{transactionID: 'transaction3'}]],
+        ]);
+        mockAreAllMatchingItemsSelected.current = true;
+
+        // When one report is unticked, which excludes every expense it holds
+        mockExcludedTransactions.current = {
+            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+        };
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
+        await waitForBatchedUpdates();
+
+        // Then it comes off the server's whole-search report count
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 86}));
+    });
+
+    it('keeps a part-unticked report in the report count, since the selection still covers it', async () => {
+        // Given the same select-all, with only one of a report's two expenses unticked
+        setSearchQuery('type:expense-report footerCount:reports');
+        mockSelectedTransactions.current = {};
+        mockTransactionsByReportID.current = new Map([['report1', [{transactionID: 'transaction1'}, {transactionID: 'transaction2'}]]]);
+        mockAreAllMatchingItemsSelected.current = true;
+        mockExcludedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1')};
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
+        await waitForBatchedUpdates();
+
+        // Then the report still counts, because the selection still holds its other expense
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 87}));
     });
 
     it('shows the authoritative expense count and total before every report page is loaded', async () => {

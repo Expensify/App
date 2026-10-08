@@ -110,7 +110,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
-    const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
+    const {currentSearchResults, currentSearchTransactionsByReportID, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
@@ -178,6 +178,23 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         () => (isExpenseType || isReportsSearch ? getTransactionCount(excludedTransactionsKeys, excludedTransactions, currentSearchResults?.data) : 0),
         [currentSearchResults?.data, excludedTransactions, excludedTransactionsKeys, isExpenseType, isReportsSearch],
     );
+
+    const excludedReportCount = useMemo(() => {
+        if (!isReportsSearch || excludedTransactionsKeys.length === 0) {
+            return 0;
+        }
+        const excludedKeys = new Set(excludedTransactionsKeys);
+        let count = 0;
+        for (const [reportID, reportTransactions] of currentSearchTransactionsByReportID ?? []) {
+            if (!reportID || reportTransactions.length === 0) {
+                continue;
+            }
+            if (reportTransactions.every((transaction) => excludedKeys.has(transaction.transactionID))) {
+                count += 1;
+            }
+        }
+        return count;
+    }, [currentSearchTransactionsByReportID, excludedTransactionsKeys, isReportsSearch]);
 
     // Individually-selected transactions (loose rows in a grouped view, or every row on a flat search).
     const selectedTransactionIDs = useMemo(
@@ -732,7 +749,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     // The count follows whatever the footer is describing: the selection's own reports when rows were hand-picked, the
     // server's report count otherwise. footerData.count already carries the expense side of both cases.
-    const footerReportCount = hasPartialSelection ? selectedReportCount : metadataReportCount;
+    const allMatchingReportCount = metadataReportCount === undefined ? undefined : Math.max(metadataReportCount - excludedReportCount, 0);
+    const footerReportCount = hasPartialSelection ? selectedReportCount : allMatchingReportCount;
     const footerCount = footerCountType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? footerReportCount : footerData.count;
     return (
         <SearchPageFooter
