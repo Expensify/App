@@ -21,9 +21,4 @@ function isLiveWideTabPreMountTabRouteKey(key: string | undefined): boolean {
     return !!key && key === liveTabRouteKey;
 }
 
-export {
-    setLiveWideTabPreMountRouteKey,
-    isLiveWideTabPreMountRouteKey,
-    setLiveWideTabPreMountTabRouteKey,
-    isLiveWideTabPreMountTabRouteKey,
-};
+export {setLiveWideTabPreMountRouteKey, isLiveWideTabPreMountRouteKey, setLiveWideTabPreMountTabRouteKey, isLiveWideTabPreMountTabRouteKey};
