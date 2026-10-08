@@ -255,7 +255,7 @@ describe('WorkspaceMemberDetailsPage', () => {
             employeeList,
         });
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, betaEnabled ? [CONST.BETAS.COMMUTER_EXCLUSIONS] : []);
+            await Onyx.set(ONYXKEYS.BETAS, betaEnabled ? [CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS] : [CONST.BETAS.COMMUTER_EXCLUSIONS]);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, officeLocationsPolicy);
         });
         const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
@@ -288,8 +288,8 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('hides the office location item when the beta is disabled', async () => {
-        // Given a workspace with offices but the commuter exclusions beta is disabled
+    it('hides the office location item without the commuter exclusions arrangements beta', async () => {
+        // Given a workspace with offices and the commuter exclusions beta, but not the arrangements beta that office assignments belong to
         const unmount = await setupOfficeLocations({betaEnabled: false});
 
         // Then the office location item is hidden

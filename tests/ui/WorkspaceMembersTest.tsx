@@ -760,7 +760,7 @@ describe('WorkspaceMembers', () => {
 
         beforeEach(async () => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.COMMUTER_EXCLUSIONS, CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS]);
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS]);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, officeLocationsPolicy);
             });
         });
@@ -832,6 +832,27 @@ describe('WorkspaceMembers', () => {
             await waitFor(() => {
                 expect(screen.queryByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).not.toBeOnTheScreen();
             });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should hide the office location column and bulk changes without the commuter exclusions arrangements beta', async () => {
+            // Given a workspace with offices, and an admin with the commuter exclusions beta but not the arrangements beta
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.COMMUTER_EXCLUSIONS]);
+            });
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When they open the bulk actions for a member
+            await openBulkActionsForMember();
+
+            // Then there is no office location column, and neither change is offered
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.officeLocation'))).not.toBeOnTheScreen();
+            expect(screen.queryByText('New Jersey Office')).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.changeOfficeLocation'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.changeWorkArrangement'))).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();

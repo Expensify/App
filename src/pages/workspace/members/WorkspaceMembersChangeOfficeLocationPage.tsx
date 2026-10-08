@@ -53,7 +53,7 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
 
     // The selection only lives in memory, so it is gone when the page is opened from a link or after a refresh
     const hasSelectedMembers = isLoadingOnyxValue(selectedAccountIDsMetadata) || !!selectedAccountIDs?.length;
-    const canChangeOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && isPolicyAdmin(policy, currentUserLogin) && hasOfficeLocations(policy);
+    const canChangeOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && isPolicyAdmin(policy, currentUserLogin) && hasOfficeLocations(policy);
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
 
     // The office the selected members share starts out selected, and none does while their offices differ

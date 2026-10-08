@@ -46,7 +46,7 @@ function WorkspaceMemberOfficeLocationPage({policy, personalDetails, route}: Wor
 
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
-    const canChangeOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && isPolicyAdmin(policy, currentUserLogin) && hasOfficeLocations(policy) && !!member;
+    const canChangeOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && isPolicyAdmin(policy, currentUserLogin) && hasOfficeLocations(policy) && !!member;
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const currentOfficeID = getMemberOfficeLocation(officeLocations, member?.officeID)?.officeID;
 
