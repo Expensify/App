@@ -147,8 +147,12 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
  */
 function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, translate: LocalizedTranslate): Participant & {keyForList: string} {
     // An optimistic accountID is dropped from personal details once the server assigns the real one, so a draft that
-    // still holds it would point at no one. Resolve it by login to the canonical account.
-    const canonicalDetail = participant.accountID && !personalDetails?.[participant.accountID] ? getPersonalDetailByEmail(participant.login) : undefined;
+    // still holds it would point at no one. Resolve it by login to the canonical account. A phone number typed into the
+    // participant search is stored without the SMS domain, but the canonical account's login has it.
+    const canonicalDetail =
+        participant.accountID && !personalDetails?.[participant.accountID] && participant.login
+            ? getPersonalDetailByEmail(addSMSDomainIfPhoneNumber(participant.login))
+            : undefined;
     const detail = canonicalDetail ?? (participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
