@@ -454,7 +454,7 @@ function CopilotPage() {
                 <>
                     <HeaderCentralPane
                         title={translate('delegate.copilot')}
-                        displaySearchRouter
+                        shouldDisplaySearchRouter
                     />
                     <ScrollView contentContainerStyle={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, safeAreaPaddingBottomStyle]}>

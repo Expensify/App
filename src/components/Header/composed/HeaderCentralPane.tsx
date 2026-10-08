@@ -2,7 +2,7 @@
  * Narrow preset over `<Header>` for a Central Pane root screen of a Split Navigator
  * (Workspace/Settings/Domain). Every such screen shares the same shape: a headline title,
  * a back button shown only on narrow layout (the sidebar covers "back" on wide layout),
- * and the Side Panel (help) button. Some account settings pages also use `displaySearchRouter`.
+ * and the Side Panel (help) button. Some account settings pages also use `shouldDisplaySearchRouter`.
  */
 import Header from '@components/Header/Header';
 import HeaderActions from '@components/Header/layout/HeaderActions';
@@ -28,7 +28,7 @@ type HeaderCentralPaneProps = Partial<ChildrenProps> & {
     shouldDisplaySearchRouter?: boolean;
 };
 
-function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, displaySearchRouter = false, children}: HeaderCentralPaneProps) {
+function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, shouldDisplaySearchRouter = false, children}: HeaderCentralPaneProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -42,7 +42,7 @@ function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, display
             <HeaderRight>
                 <HeaderActions>{children}</HeaderActions>
             </HeaderRight>
-            {displaySearchRouter && <SearchButton />}
+            {shouldDisplaySearchRouter && <SearchButton />}
             <SidePanelButton />
         </Header>
     );

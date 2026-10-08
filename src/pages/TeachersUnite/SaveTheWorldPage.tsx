@@ -145,7 +145,7 @@ function SaveTheWorldPage() {
         >
             <HeaderCentralPane
                 title={translate('sidebarScreen.saveTheWorld')}
-                displaySearchRouter
+                shouldDisplaySearchRouter
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

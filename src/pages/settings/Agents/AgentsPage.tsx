@@ -264,7 +264,7 @@ function AgentsPage() {
                     }}
                     isHeadline={!selectionModeHeader}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
-                    displaySearchRouter
+                    shouldDisplaySearchRouter
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderCentralPane>

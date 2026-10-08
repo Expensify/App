@@ -209,7 +209,7 @@ function TroubleshootPage() {
         >
             <HeaderCentralPane
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
-                displaySearchRouter
+                shouldDisplaySearchRouter
             />
             <View style={styles.flex1}>
                 <ScrollView contentContainerStyle={styles.pt3}>

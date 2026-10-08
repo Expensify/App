@@ -66,7 +66,7 @@ function PreferencesPage() {
         >
             <HeaderCentralPane
                 title={translate('common.preferences')}
-                displaySearchRouter
+                shouldDisplaySearchRouter
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

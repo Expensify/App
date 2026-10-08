@@ -71,7 +71,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                     }
                     Navigation.goBack();
                 }}
-                displaySearchRouter
+                shouldDisplaySearchRouter
             />
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

@@ -174,7 +174,7 @@ function AboutPage() {
         >
             <HeaderCentralPane
                 title={translate('initialSettingsPage.about')}
-                displaySearchRouter
+                shouldDisplaySearchRouter
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

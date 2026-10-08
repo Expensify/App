@@ -726,7 +726,7 @@ function WalletPage() {
             >
                 <HeaderCentralPane
                     title={translate('common.wallet')}
-                    displaySearchRouter
+                    shouldDisplaySearchRouter
                 />
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
@@ -742,7 +742,7 @@ function WalletPage() {
         >
             <HeaderCentralPane
                 title={translate('common.wallet')}
-                displaySearchRouter
+                shouldDisplaySearchRouter
             />
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

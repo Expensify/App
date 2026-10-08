@@ -221,7 +221,7 @@ function ProfilePage() {
                         }
                         Navigation.goBack();
                     }}
-                    displaySearchRouter
+                    shouldDisplaySearchRouter
                 />
             </CollapsibleHeaderOnKeyboard>
             <ScrollView
