@@ -1946,6 +1946,7 @@ function isValidReport(
         conciergeReportID,
         hasGuidesEmails,
         derivedIsEmptyReport,
+        transactionViolations,
     });
 
     if (!shouldBeInOptionList) {
