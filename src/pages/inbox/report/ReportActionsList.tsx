@@ -378,7 +378,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     useFollowActionBadgeTarget({
         reportID,
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
-        actionBadge: reportAttributes?.actionBadge,
         actionBadgeTargetIndex,
         renderedVisibleReportActions,
         scrollToActionBadgeTarget,

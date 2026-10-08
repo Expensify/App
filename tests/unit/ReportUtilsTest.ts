@@ -12735,32 +12735,6 @@ describe('ReportUtils', () => {
                 expect(result?.reportAction).toBeUndefined();
             });
 
-            it('should return the Mention badge when the unread mention is older than the outstanding task', async () => {
-                // Given a chat with an unread mention followed by a newer outstanding task assigned to the current user
-                const chat = {
-                    ...createPolicyExpenseChat(41012),
-                    hasOutstandingChildTask: true,
-                    lastReadTime: '2024-01-01 00:00:00',
-                    lastMentionedTime: '2024-01-02 00:00:00',
-                };
-                const mention = buildMentionAction('mention-before-task', '2024-01-02 00:00:00');
-                const task = buildTaskAction('task-after-mention', '2024-01-03 00:00:00');
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chat.reportID}`, chat);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.reportID}`, {
-                    [task.reportActionID]: task,
-                    [mention.reportActionID]: mention,
-                });
-                await waitForBatchedUpdates();
-
-                // When the reason is retrieved
-                const result = getReasonAndReportActionThatRequiresAttention(chat, currentUserEmail, currentUserAccountID, undefined, false);
-
-                // Then the mention wins because the badge is picked by the oldest report action
-                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
-                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.MENTION);
-                expect(result?.reportAction?.reportActionID).toBe(mention.reportActionID);
-            });
-
             it('should return the Task badge when the outstanding task is older than the unread mention', async () => {
                 // Given a chat with an outstanding task assigned to the current user followed by a newer unread mention
                 const chat = {
@@ -13293,7 +13267,7 @@ describe('ReportUtils', () => {
                 expect(result?.reportAction?.reportActionID).toBe('iou-action-with-mention');
             });
 
-            it('should link the green dot to the oldest unread mention when there is no action badge', async () => {
+            it('should link the Mention badge to the oldest unread mention when there is no other action badge', async () => {
                 // Given a chat with a read mention, two unread mentions and an unread comment without a mention
                 const readMention = buildMentionAction('read-mention', '2024-01-01 00:00:00.000');
                 const oldestUnreadMention = buildMentionAction('oldest-unread-mention', '2024-01-03 00:00:00.000');
@@ -13322,7 +13296,7 @@ describe('ReportUtils', () => {
 
                 // Then the mention reason is returned with the oldest unread mention, so the LHN can deep link to it
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
-                expect(result?.actionBadge).toBeUndefined();
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.MENTION);
                 expect(result?.reportAction?.reportActionID).toBe('oldest-unread-mention');
             });
 

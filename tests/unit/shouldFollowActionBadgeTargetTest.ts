@@ -1,13 +1,10 @@
 import shouldFollowActionBadgeTarget from '@pages/inbox/report/shouldFollowActionBadgeTarget';
 
-import CONST from '@src/CONST';
-
 const BASE_PARAMS = {
     actionTargetReportActionID: '200',
     prevActionTargetReportActionID: '100',
     actionBadgeTargetIndex: 2,
     prevActionBadgeTargetIndex: 5,
-    prevActionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
 };
 
 describe('shouldFollowActionBadgeTarget', () => {
@@ -41,12 +38,5 @@ describe('shouldFollowActionBadgeTarget', () => {
 
     it('does not follow when the previous target is no longer rendered', () => {
         expect(shouldFollowActionBadgeTarget({...BASE_PARAMS, prevActionBadgeTargetIndex: -1})).toBe(false);
-    });
-
-    it('does not follow when the previous badge was a mention', () => {
-        // Given a target that advanced to a newer action after the previous Mention badge went away
-        // When the chat is read, the mention target disappears without the user acting on it
-        // Then we do not follow, because scrolling would pull the user away from the bottom of the chat to the next task/expense
-        expect(shouldFollowActionBadgeTarget({...BASE_PARAMS, prevActionBadge: CONST.REPORT.ACTION_BADGE.MENTION})).toBe(false);
     });
 });
