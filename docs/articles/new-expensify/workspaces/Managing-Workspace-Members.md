@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, guest, invite users, filter members, role filter]
 ---
 
 
@@ -12,9 +12,10 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 - **Member** – Can submit and/or approve expenses.
 - **Workspace admin** – Can manage members, roles, workflows, and settings.
 - **Card admin** – Can manage the Expensify Card and Company cards, including issuing cards, setting limits, and assigning company cards. Has read-only access to Overview and Members, and all other workspace settings pages are hidden. (Control workspaces only)
-- **People admin** – Can manage workspace membership and configure approval workflows. People admins can add and remove Members and Auditors only, and cannot add or remove admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden. (Control workspaces only)
+- **People admin** – Can manage workspace membership and configure approval workflows. People admins can add and remove Members, Guests, and Auditors only, and cannot add or remove admins or other scoped admin roles. They have read-only access to the workspace overview and edit access to Members and the Approvals section of Workflows. All other workspace editor pages are hidden. (Control workspaces only)
 - **Payments admin** – Can manage workspace payment settings in the **Payments** section of **Workflows**, including business bank accounts, the authorized expense payer, and payment methods. Payment permissions are otherwise unchanged, so paying a report still depends on the relevant bank account being shared with the payer. Has read-only access to the workspace overview and Members, and all other workspace editor pages are hidden. (Control workspaces only)
 - **Auditor** – Can view and comment on reports and has read-only access to all workspace editor pages (such as Categories, Tags, Rules, Workflows, and Accounting). Auditors cannot change any workspace settings or take workflow actions such as approving, paying, or taking control. (Control workspaces only)
+- **Guest** – Can submit reports with limited visibility. Guests can’t view the workspace member list or create rooms. (Control workspaces only)
 - **Editor** – Can edit workspace settings, but cannot see all expenses associated with the workspace. They cannot add admins to the workspace or change other members' roles. (Submit workspaces only)
 
 ---
@@ -32,7 +33,7 @@ To invite someone to your workspace:
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
-**Note:** Workspace admins and People admins can invite members. People admins can only invite members as **Members** or **Auditors** — they cannot assign admin roles.
+**Note:** Workspace admins and People admins can invite members. People admins can only invite members as **Members**, **Guests**, or **Auditors** — they cannot assign admin roles.
 
 ---
 
@@ -49,6 +50,7 @@ You can filter the member list by role to quickly find specific groups of member
    - **People Admins** – Members with the People Admin role (Control workspaces only).
    - **Payments admins** – Shows only members with the Payments admin role (Control workspaces only).
    - **Auditors** – Members with the Auditor role (Control workspaces only).
+   - **Guests** – Members with the Guest role (Control workspaces only).
    - **Editors** – Members with the Editor role (Submit workspaces only).
    - **Members** – Members with the Member role.
 
@@ -64,7 +66,7 @@ If no members match the selected filters, an empty state is displayed with the m
 
 If someone no longer needs access to your workspace, you can remove them individually or in bulk to keep your member list up to date.
 
-**Note:** Workspace admins and People admins can remove members. People admins can only remove **Members** and **Auditors** — they cannot remove admins or other scoped admin roles.
+**Note:** Workspace admins and People admins can remove members. People admins can only remove **Members**, **Guests**, and **Auditors** — they cannot remove admins or other scoped admin roles.
 
 **Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
 
@@ -92,7 +94,7 @@ If someone no longer needs access to your workspace, you can remove them individ
 3. In the right-hand panel, click **Roles**.
 4. Select the new role and confirm.
 
-**Note:** People admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
+**Note:** People admins can change a member’s role between **Member**, **Guest**, and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
 
 **Note:** You can’t change the role of the member set as the workspace’s authorized payer. Their **Role** can’t be edited and role-change options are hidden until you assign a different payer. To change their role, first go to **Workspaces > Workflows**, open **Payments**, and set a different admin as the **Payer**.
 
