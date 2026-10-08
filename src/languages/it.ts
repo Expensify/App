@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Scegli una data di oggi o futura',
             invalidTimeShouldBeFuture: 'Scegli un orario almeno un minuto nel futuro',
             invalidCharacter: 'Carattere non valido',
+            invalidField: (fieldName) => `Campo non valido: ${fieldName}`,
             enterMerchant: 'Inserisci il nome di un esercente',
             enterAmount: 'Inserisci un importo',
             missingMerchantName: 'Nome esercente mancante',
@@ -1016,6 +1017,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `L’abbonamento termina il ${date}`,
                 cta: 'Gestisci',
             },
+            emailDeliveryFailure: {title: 'Non possiamo inviarti notifiche via email', subtitle: 'Account'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -3014,7 +3016,7 @@ ${amount} per ${merchant} - ${date}`,
             `${memberName} è già in un flusso di approvazione che invia a ${approverName}. Aggiungendolo qui lo sposterà in questo flusso di lavoro.`,
         moveEveryoneToThisWorkflowTitle: 'Sposta tutti in questo flusso di lavoro',
         moveEveryoneToThisWorkflowPrompt:
-            'Stai per spostare tutti a questo flusso di approvazione. Questo eliminerà tutti gli altri flussi di approvazione e sposterà tutti su questo. Questa azione non può essere annullata.',
+            'Stai per spostare tutti in questo nuovo flusso di approvazione. Salvandolo, tutti gli altri flussi di approvazione verranno eliminati. Questa azione non può essere annullata.',
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
@@ -3385,9 +3387,10 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Cosa vuoi fare oggi?',
             errorContinue: 'Premi Continua per completare la configurazione',
             errorBackButton: 'Completa le domande di configurazione per iniziare a usare l’app',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Inviare le spese al mio datore di lavoro',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Unisciti allo spazio di lavoro della mia azienda',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Invia le spese al mio datore di lavoro',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestisci le spese del mio team',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Tieni traccia delle spese aziendali',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Tieni traccia delle spese per la mia attività',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizza le mie spese personali',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Altro',
         },
@@ -3446,6 +3449,8 @@ ${amount} per ${merchant} - ${date}`,
             title: "Impossibile aggiungere l'email di lavoro",
             subtitle: (workEmail: string | undefined) =>
                 `Non è stato possibile aggiungere ${workEmail}. Riprova più tardi in Impostazioni oppure chatta con Concierge per ricevere assistenza.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Non siamo riusciti ad aggiungere ${workEmail}. Per unire questi account, accedi come ${workEmail} e vai su Account > Sicurezza > Unisci account per completare la procedura.`,
             workAccountClosedSubtitle:
                 'L’account di lavoro associato a questa email è chiuso. Contatta l’amministratore della tua azienda per riattivarlo oppure registrati con un’altra email.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} è un accesso controllato dal dominio per un account Expensify esistente.`,
@@ -3684,6 +3689,34 @@ ${amount} per ${merchant} - ${date}`,
                     E hai finito!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Aggiungi la tua email di lavoro',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Apri [Aggiungi email di lavoro](${workEmailLink}).
+                        2. Inserisci l’indirizzo email della tua azienda.
+                        3. Inserisci il codice che ti abbiamo inviato via email.
+                        4. Scegli uno spazio di lavoro a cui unirti oppure fai clic su *Chiedi di unirti* per inviare una richiesta al proprietario dello spazio di lavoro.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Conferma la tua email',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Apri [Conferma il tuo account](${validateEmailLink}).
+                        2. Inserisci il codice che abbiamo inviato a ${workEmail}.
+                        3. Scegli uno spazio di lavoro a cui unirti oppure fai clic su *Chiedi di unirti* per inviare una richiesta al proprietario dello spazio di lavoro.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Unisciti allo spazio di lavoro della tua azienda',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Apri [Partecipa a uno spazio di lavoro](${joinWorkspaceLink}).
+                        2. Trova il tuo team nell'elenco. Ogni voce mostra il proprietario e quante persone ne fanno parte, dalle più numerose alle più piccole. Clicca su *Mostra di più* se non vedi il tuo.
+                        3. Clicca su *Partecipa ora* o su *Chiedi di partecipare* se è necessaria l’approvazione di un amministratore.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Fai un [giro di prova](${testDriveURL})` : 'Fai un giro di prova'),
@@ -3706,6 +3739,14 @@ ${amount} per ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come fare.',
             onboardingAdminMessage: 'Scopri come gestire lo spazio di lavoro del tuo team come amministratore e inviare le tue spese.',
             onboardingTestDriveReceiverMessage: '*Hai 3 mesi gratis! Inizia qui sotto.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Dato che stai cercando di unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Aggiungi la tua email di lavoro e verificherò a quali spazi di lavoro della tua azienda puoi unirti.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Dato che vuoi unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Verifica la tua email e controllerò a quali spazi di lavoro su ${companyDomain} puoi unirti.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Dato che vuoi entrare nello spazio di lavoro della tua azienda, non ne ho creato uno per te. Il tuo team su ${companyDomain} è già su Expensify. [Dai un'occhiata agli spazi di lavoro a cui puoi unirti.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Sembra che la tua azienda non abbia nessuna workspace a cui puoi unirti. Contatta il tuo amministratore e chiedigli di invitarti nella sua workspace.',
         },
         workspace: {
             title: 'Resta organizzato con uno spazio di lavoro',
@@ -4751,6 +4792,12 @@ ${amount} per ${merchant} - ${date}`,
             settlementFrequency: 'Frequenza di regolamento',
             setAsDefault: 'Imposta come spazio di lavoro predefinito',
             defaultNote: `Le ricevute inviate a ${CONST.EMAIL.RECEIPTS} verranno visualizzate in questo workspace.`,
+            archive: 'Archivia spazio di lavoro',
+            archiveConfirmation: 'Sei sicuro di voler archiviare questo spazio di lavoro?',
+            archiveWithThirdPartyCardsConfirmation:
+                'Sei sicuro di voler archiviare questo spazio di lavoro? Questa azione annullerà l’assegnazione di tutte le carte di credito agli utenti ed eliminerà definitivamente le spese con carta non inviate.',
+            archiveWithExpensifyCardsConfirmation:
+                'Sei sicuro di voler archiviare questo spazio di lavoro? Questa azione imposterà tutti i limiti delle Expensify Card a 0 $ e rifiuterà automaticamente qualsiasi nuovo tentativo di acquisto.',
             deleteWorkspaceTitle: (workspaceName: string) => `Eliminare ${workspaceName}?`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
@@ -5987,6 +6034,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     return `${customAccountsCount} carte con conti personalizzati`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Conto commissioni conversione valuta Rillet',
+                description:
+                    'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo tale costo su questo conto in Rillet come registrazione contabile.',
+            },
         },
         dualEntry: {
             dualEntrySetup: 'Configurazione DualEntry',
@@ -7093,6 +7145,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 `${memberName} ha note spese in sospeso da approvare. Chiedi loro di approvarle o di prendere il controllo delle loro note spese prima di rimuoverli dallo spazio di lavoro.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Non puoi rimuovere ${memberName} da questo workspace. Imposta un nuovo rimborsatore in Flussi di lavoro > Effettua o tieni traccia dei pagamenti, quindi riprova.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Non puoi rimuovere ${memberName} da questo spazio di lavoro finché ha una Carta Expensify. Disattiva prima la sua carta in Spazio di lavoro > Carta Expensify, quindi riprova.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Se rimuovi ${memberName} da questo spazio di lavoro, lo sostituiremo come esportatore preferito con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -7582,6 +7636,20 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     distanceMustBePositive: 'La distanza deve essere un numero intero positivo.',
                     invalidAddress: 'Inserisci un indirizzo valido',
                     distanceTooLarge: 'La distanza è troppo grande.',
+                },
+                workArrangement: {
+                    title: 'Impostazione di lavoro predefinita',
+                    officeBasedTitle: 'In ufficio',
+                    officeBasedHelp: 'Il membro si reca in ufficio per il tragitto casa-lavoro. I normali spostamenti casa-lavoro sono esclusi dal rimborso.',
+                    noRegularWorkplaceTitle: 'In remoto o da mobile',
+                    noRegularWorkplaceHelp: 'La persona lavora da casa o si sposta tra diverse sedi senza un ufficio fisso, quindi le regole sul pendolarismo non si applicano.',
+                    startingPrompt: {
+                        title: 'Imposta un tipico accordo di lavoro',
+                        prompt: 'Scegli la disposizione che si applica alla maggior parte dei membri attuali. Potrai aggiornare i membri singolarmente o in blocco in un secondo momento.',
+                        officeBasedHelp: 'La maggior parte dei membri si reca in ufficio. I tragitti ordinari casa-lavoro sono esclusi.',
+                        noRegularWorkplaceHelp: 'La maggior parte dei membri lavora da remoto, quindi di solito le esclusioni casa-lavoro non si applicano.',
+                        confirm: 'Applica',
+                    },
                 },
             },
             distance: 'Distanza',
@@ -8792,6 +8860,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             approvalModeWarningTitle: 'Cambiare modalità di approvazione?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Sei sicuro di voler cambiare la modalità di approvazione per questo spazio di lavoro? Scopri di più sulle diverse modalità di flusso di lavoro abilitate per ${providerName} nel nostro <a href="${helpSiteURL}">sito di assistenza</a>.`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `La modifica della modalità di approvazione eliminerà tutti i flussi di approvazione esistenti. Scopri di più sulle diverse modalità di flusso di lavoro abilitate da ${providerName} nel nostro <a href="${helpSiteURL}">sito di assistenza</a>.`,
             approvalModeWarningConfirm: 'Cambia modalità di approvazione',
             syncingModalTitle: 'La tua connessione è in sincronizzazione',
             syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
@@ -8957,6 +9027,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             noBankAccountsFoundDescription: 'Aggiungi conti bancari in Dynamics 365 Business Central e sincronizza di nuovo la connessione',
             noPaymentMethodsFound: 'Nessun metodo di pagamento trovato',
             noPaymentMethodsFoundDescription: 'Aggiungi metodi di pagamento in Dynamics 365 Business Central e sincronizza di nuovo la connessione',
+            accountsDescription: 'I tuoi conti Dynamics 365 Business Central verranno importati come categorie.',
+            dimensionsImportAsTags: 'Tutte le dimensioni di Dynamics 365 Business Central vengono importate come tag',
+            customers: 'Clienti',
+            projects: 'Progetti',
+            projectsAndCustomersCannotBeEnabled: 'Impossibile abilitare Progetti e Clienti',
+            projectsAndCustomersCannotBeEnabledDescription: 'Progetti e clienti possono essere abilitati solo se l’opzione di esportazione è “Fattura di acquisto”',
+            enableNewCategoriesDescription: 'I nuovi account Dynamics 365 Business Central saranno disponibili come categorie.',
         },
     },
     getAssistancePage: {
@@ -9438,6 +9515,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha aggiunto "${prohibitedExpense}" alle spese vietate`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `imposta la modalità di lavoro predefinita su ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `ha modificato l’accordo di lavoro predefinito in ${arrangement} (in precedenza ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
                 `ha modificato l’esclusione tragitti casa-lavoro a una distanza fissa per richiesta (in precedenza ${previousMethod})`,
@@ -9964,7 +10046,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         noCategory: 'Nessuna categoria',
         noMerchant: 'Nessun esercente',
         noTag: 'Nessun tag',
-        noVendor: 'Nessun fornitore',
         expenseType: 'Tipo di spesa',
         receiptType: 'Tipo di ricevuta',
         receiptTypeValues: {
@@ -10031,7 +10112,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             exportedWarning: 'Uno o più report selezionati sono già stati esportati in un’integrazione contabile. Unirli potrebbe causare dati duplicati se vengono esportati di nuovo.',
             reportFieldsMismatch: 'Questi report hanno valori dei campi diversi. Per unirli, fai prima in modo che i campi corrispondano in ogni report.',
         },
-        percentOfSpend: ({percent}: {percent: string}) => `${percent} della spesa`,
+        periodSoFar: ({period}: {period: string}) => `${period} finora`,
+        weekOf: ({date}: {date: string}) => `Settimana del ${date}`,
+        saveEdits: {
+            title: 'Salva modifiche',
+            prompt: ({name}: {name: string}) => `Aggiornare le modifiche a "${name}" o crearne una nuova?`,
+            createNew: 'Crea nuovo',
+            updateExisting: 'Aggiorna esistente',
+        },
     },
     genericErrorPage: {
         title: 'Oops, qualcosa è andato storto!',
@@ -10080,6 +10168,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             category: 'Categoria',
             tag: 'Etichetta',
         },
+        switchToTableView: 'Passa alla vista tabella',
+        switchToExpenseView: 'Passa alla vista spesa',
     },
     report: {
         newReport: {
@@ -10394,6 +10484,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     distance: {
         addStop: 'Aggiungi fermata',
         address: 'Indirizzo',
+        reuseRoute: 'Riusa percorso',
+        reusePriorRoute: 'Riusa percorso precedente',
+        choosePreviousRoute: 'Scegli un percorso precedente qui sotto:',
+        findARoute: 'Trova un percorso',
+        lastUsed: ({date}: {date: string}) => `Ultimo utilizzo ${date}`,
+        end: 'Fine',
         waypointDescription: {
             start: 'Avvia',
             stop: 'Interrompi',
@@ -11668,12 +11764,45 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             description: `<muted-text>Crea agenti personalizzati per verificare, approvare e instradare le spese in base alle regole che imposti. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Scopri di più</a>.</muted-text>`,
         },
     },
+    emailIssuePage: {
+        title: 'Problema email',
+        intro: (login: string) => `Il nostro provider di posta elettronica ha sospeso l’invio a <strong>${login}</strong> a causa di problemi di consegna. Per risolvere questo problema:`,
+        confirmEmailTitle: 'Conferma il tuo indirizzo email',
+        confirmEmailDescription: (login: string) =>
+            `Assicurati che <strong>${login}</strong> sia scritto correttamente e che sia una casella di posta reale. Gli alias come "expenses@domain.com" devono avere una propria casella di posta funzionante per accedere a Expensify.`,
+        allowlistTitle: 'Metti expensify.com nella allowlist',
+        allowlistDescription: `Aggiungi <strong>expensify.com</strong> alla allowlist del tuo client di posta elettronica. Potresti aver bisogno dell’IT per modificare le impostazioni del server seguendo <a href="${CONST.SET_NOTIFICATION_LINK}">queste istruzioni</a>.`,
+        getHelpFromConcierge: 'Ottieni aiuto da Concierge',
+        completedSteps: 'Ho completato i passaggi sopra',
+        errorTitle: 'Qualcosa è andato storto. Riprova per favore',
+        errorPrompt: 'Sembra che qualcosa non abbia funzionato. Riprova. Se il problema persiste, contatta Concierge.',
+    },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Rinnova il tuo abbonamento per un periodo di 12 mesi, dal ${startDate} al ${endDate}.`,
         title: 'Rinnova il tuo abbonamento Expensify',
         subtitle: 'Una cosa in meno da fare prima del nuovo anno.',
         confirmTitle: 'Conferma rinnovo',
         renew: 'Rinnova',
+        incentivizedTitle: 'Rinnova in anticipo, ottieni fino a 2 mesi gratis',
+        incentivizedSubtitle: 'Richiedi uno sconto sul tuo abbonamento annuale.',
+        claim: 'Richiesta',
+        offer: {
+            heading: 'Scegli il tuo sconto',
+            subtitle: 'Due offerte imperdibili tra cui scegliere per te:',
+            oneYear: 'Rinnova per 1 anno,  \nottieni 1 mese gratis',
+            twoYears: 'Rinnova per 2 anni,  \nottieni 2 mesi gratis',
+            bestDeal: 'Offerta migliore',
+            disclaimer: 'L’offerta sopra verrà applicata come sconto del 9% al tuo abbonamento annuale. Le spese di eccedenza non sono incluse.',
+            renewAndClaim: 'Rinnova e richiedi lo sconto',
+            chooseOptionError: "Scegli un'opzione.",
+        },
+        adminTitle: 'Chiedi al tuo responsabile di fatturazione di rinnovare in anticipo',
+        adminSubtitle: 'Possono ottenere fino a 2 mesi gratis con il tuo abbonamento annuale.',
+        adminCTA: 'Promemoria',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}, puoi rinnovare in anticipo il nostro abbonamento Expensify? Otterremmo fino a 2 mesi gratis. Richiedilo qui: [pagina dell’abbonamento](${subscriptionURL})`,
+        mobileRenewPrompt: 'Visita Expensify nel browser web per rinnovare in anticipo.',
+        mobileClaimPrompt: 'Visita Expensify nel tuo browser web per richiedere lo sconto di rinnovo.',
     },
 };
 export default translations;
