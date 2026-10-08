@@ -77,12 +77,16 @@ describe('Image recyclingKey', () => {
 
     describe('BaseImage on native', () => {
         it('keys the view on the source URI when no recyclingKey is given', () => {
+            // Given an image with no explicit key, the behaviour every existing caller relies on
+            // When it renders
             render(<BaseImageNative source={{uri: PICKER_URI}} />);
 
+            // Then the URI stays the key, so nothing outside the attachment path changes
             expect(lastExpoImageProps().recyclingKey).toBe(PICKER_URI);
         });
 
         it('keeps the given recyclingKey while the same picture moves from the picker path to the cache copy to the remote URL', () => {
+            // Given a freshly sent attachment keyed on its ID, which goes through all three URIs in one session
             const {rerender} = render(
                 <BaseImageNative
                     source={{uri: PICKER_URI}}
@@ -102,12 +106,17 @@ describe('Image recyclingKey', () => {
                 />,
             );
 
+            // When the source has changed twice
             const rendered = expoImageProps();
             expect(rendered.map(sourceUri)).toEqual([PICKER_URI, CACHE_URI, REMOTE_URI]);
+
+            // Then expo-image saw one key throughout, so it never cleared the view between sources
             expect(new Set(rendered.map((props) => props.recyclingKey))).toEqual(new Set([ATTACHMENT_ID]));
         });
 
         it('falls back to the source URI when recyclingKey is passed as undefined', () => {
+            // Given a caller that passes the prop through without a value, as ThumbnailImage does for non-attachments
+            // When it renders
             render(
                 <BaseImageNative
                     source={{uri: PICKER_URI}}
@@ -115,12 +124,15 @@ describe('Image recyclingKey', () => {
                 />,
             );
 
+            // Then the explicit undefined does not wipe the derived key
             expect(lastExpoImageProps().recyclingKey).toBe(PICKER_URI);
         });
     });
 
     describe('BaseImage on web', () => {
         it('ignores recyclingKey and keeps the key derived from the source', () => {
+            // Given the web image gets the same prop, because the renderer does not know the platform
+            // When it renders
             render(
                 <BaseImageWeb
                     source={{uri: REMOTE_URI}}
@@ -128,12 +140,14 @@ describe('Image recyclingKey', () => {
                 />,
             );
 
+            // Then web keeps its URI key, so this change stays native only
             expect(lastExpoImageProps().recyclingKey).toBe(REMOTE_URI);
         });
     });
 
     describe('Image', () => {
         it('re-renders the view when only recyclingKey changes and the source object is reused', () => {
+            // Given Image is memoised on its source, so a key change alone could be skipped
             const source = {uri: PICKER_URI};
             const {rerender} = renderWithProviders(
                 // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
@@ -142,6 +156,7 @@ describe('Image recyclingKey', () => {
                     recyclingKey="first"
                 />,
             );
+            // When only the key changes
             rerender(
                 <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
                     {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
@@ -152,12 +167,15 @@ describe('Image recyclingKey', () => {
                 </ComposeProviders>,
             );
 
+            // Then the new key reaches the view
             expect(lastExpoImageProps().recyclingKey).toBe('second');
         });
     });
 
     describe('ThumbnailImage', () => {
         it('passes recyclingKey down to the image view', () => {
+            // Given the renderer hands ThumbnailImage a key for an attachment
+            // When it renders
             renderWithProviders(
                 <ThumbnailImage
                     previewSourceURL={PICKER_URI}
@@ -166,6 +184,7 @@ describe('Image recyclingKey', () => {
                 />,
             );
 
+            // Then the key arrives at the view with the source untouched
             expect(lastExpoImageProps().recyclingKey).toBe(ATTACHMENT_ID);
             expect(sourceUri(lastExpoImageProps())).toBe(PICKER_URI);
         });
@@ -196,39 +215,50 @@ describe('Image recyclingKey', () => {
         }
 
         it('keys an attachment thumbnail on its attachment ID', () => {
+            // Given an uploaded attachment, which carries the source attribute and its ID
+            // When it renders
             renderImage({
                 src: PICKER_URI,
                 [CONST.ATTACHMENT_SOURCE_ATTRIBUTE]: PICKER_URI,
                 [CONST.ATTACHMENT_ID_ATTRIBUTE]: ATTACHMENT_ID,
             });
 
+            // Then the ID is the key, so the three URI swaps after send share one view
             expect(lastExpoImageProps().recyclingKey).toBe(ATTACHMENT_ID);
         });
 
         it('keeps the URI key for an image with no attachment ID', () => {
+            // Given a plain markdown image
+            // When it renders
             renderImage({src: MARKDOWN_URI});
 
+            // Then nothing changes for it
             expect(lastExpoImageProps().recyclingKey).toBe(MARKDOWN_URI);
         });
 
         it('keeps the URI key for a markdown image that only carries a positional attachment ID', () => {
-            // getHtmlWithAttachmentID gives every image without an ID a `<reportActionID>_<n>` one, and an edit can put a
-            // different picture at the same position, so that ID is not a picture identity
+            // Given a markdown image with the `<reportActionID>_<n>` ID getHtmlWithAttachmentID adds, which an edit can
+            // reuse for a different picture, so it is not a picture identity
+            // When it renders
             renderImage({
                 src: MARKDOWN_URI,
                 [CONST.ATTACHMENT_ID_ATTRIBUTE]: '4321_1',
             });
 
+            // Then the URI stays the key, so an edit still clears the old picture
             expect(lastExpoImageProps().recyclingKey).toBe(MARKDOWN_URI);
         });
 
         it('keeps the URI key for an Expensify-hosted markdown image that only carries a positional attachment ID', () => {
-            // The receipt URL makes the renderer treat the image as an attachment for auth, but the ID is still positional
+            // Given a markdown image whose receipt URL makes the renderer treat it as an attachment for auth, while its ID
+            // is still positional
+            // When it renders
             renderImage({
                 src: 'https://www.expensify.com/receipts/A.jpg',
                 [CONST.ATTACHMENT_ID_ATTRIBUTE]: '4321_1',
             });
 
+            // Then auth alone does not earn the ID key
             const props = lastExpoImageProps();
             expect(props.recyclingKey).not.toBe('4321_1');
             expect(props.recyclingKey).toBe(sourceUri(props));
