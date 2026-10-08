@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Veuillez choisir aujourd’hui ou une date future',
             invalidTimeShouldBeFuture: 'Veuillez choisir une heure au moins une minute plus tard',
             invalidCharacter: 'Caractère non valide',
+            invalidField: (fieldName) => `Champ invalide : ${fieldName}`,
             enterMerchant: 'Saisissez un nom de commerçant',
             enterAmount: 'Saisir un montant',
             missingMerchantName: 'Nom du commerçant manquant',
@@ -1201,6 +1202,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Oups ! Un champ obligatoire (« ${fieldName} ») n’a pas été associé. Veuillez examiner et réessayer.`,
         singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
+        invalidApprovalLimit: 'Les limites d’approbation doivent être des montants valides dans la devise de l’espace de travail.',
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs de plus de ${limit} caractères. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
@@ -2718,6 +2720,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Mode de paiement par défaut défini !',
         deleteAccount: 'Supprimer le compte',
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce compte ?',
+        editNickname: 'Modifier le pseudo',
+        nickname: 'Pseudo',
+        editNicknameInstruction: 'Donnez à ce compte bancaire un surnom qui le distingue des autres.',
         deleteCard: 'Supprimer la carte',
         deleteCardConfirmation:
             'Toutes les transactions de carte non soumises, y compris celles figurant sur les notes de frais ouvertes, seront supprimées. Êtes-vous sûr de vouloir supprimer cette carte ? Cette action est irréversible.',
@@ -3407,8 +3412,9 @@ ${amount} pour ${merchant} - ${date}`,
         errorSelection: 'Sélectionnez une option pour continuer',
         purpose: {
             title: 'Que voulez-vous faire aujourd’hui ?',
-            errorContinue: 'Veuillez appuyer sur Continuer pour procéder à la configuration',
-            errorBackButton: 'Veuillez terminer les questions de configuration pour commencer à utiliser l’application',
+            errorContinue: 'Appuyez sur Continuer pour terminer la configuration',
+            errorBackButton: "Veuillez terminer les questions de configuration pour commencer à utiliser l'application",
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Rejoindre l’espace de travail de mon entreprise',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Soumettre des dépenses à mon employeur',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gérer les dépenses de mon équipe',
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Suivre les dépenses de mon entreprise',
@@ -3470,6 +3476,8 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Impossible d’ajouter l’adresse e-mail professionnelle',
             subtitle: (workEmail: string | undefined) =>
                 `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Nous n’avons pas pu ajouter ${workEmail}. Pour fusionner ces comptes, veuillez vous connecter en tant que ${workEmail} puis aller dans Compte > Sécurité > Fusionner les comptes pour terminer le processus.`,
             workAccountClosedSubtitle:
                 'Le compte professionnel associé à cet e-mail est fermé. Veuillez contacter l’administrateur de votre entreprise pour le réactiver, ou inscrivez-vous avec un autre e-mail.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} est un identifiant contrôlé par domaine pour un compte Expensify existant.`,
@@ -3708,6 +3716,34 @@ ${amount} pour ${merchant} - ${date}`,
                     Et voilà, c’est terminé !
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Ajoutez votre adresse e-mail professionnelle',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Ouvrez [Ajouter une adresse professionnelle](${workEmailLink}).
+                        2. Saisissez votre adresse e-mail professionnelle.
+                        3. Entrez le code que nous vous envoyons par e-mail.
+                        4. Choisissez un espace de travail à rejoindre, ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l'espace de travail.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Validez votre e-mail',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Ouvrez [Valider votre compte](${validateEmailLink}).
+                        2. Saisissez le code que nous avons envoyé à ${workEmail}.
+                        3. Choisissez un espace de travail à rejoindre ou cliquez sur *Demander à rejoindre* pour envoyer une demande au responsable de l’espace de travail.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Rejoindre l’espace de travail de votre entreprise',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Ouvrez [Rejoindre un espace de travail](${joinWorkspaceLink}).
+                        2. Trouvez votre équipe dans la liste. Chaque équipe affiche son responsable et le nombre de personnes qu’elle compte, des plus grandes aux plus petites. Cliquez sur *Afficher plus* si vous ne voyez pas la vôtre.
+                        3. Cliquez sur *Rejoindre maintenant*, ou sur *Demander à rejoindre* si une approbation d’un administrateur est nécessaire.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Faites un [essai](${testDriveURL})` : 'Faites un essai'),
@@ -3730,6 +3766,14 @@ ${amount} pour ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Partager des notes de frais avec des amis est aussi simple que d’envoyer un message. Voici comment faire.',
             onboardingAdminMessage: 'Découvrez comment gérer l’espace de travail de votre équipe en tant qu’administrateur et soumettre vos propres dépenses.',
             onboardingTestDriveReceiverMessage: '*Vous bénéficiez de 3 mois gratuits ! Commencez ci-dessous.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Comme vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Ajoutez votre adresse e-mail professionnelle et je vérifierai à quels espaces de travail de votre entreprise vous pouvez vous joindre.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Puisque vous souhaitez rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Vérifiez votre adresse e-mail et je verrai quels espaces de travail sur ${companyDomain} vous pouvez rejoindre.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Comme vous cherchez à rejoindre l’espace de travail de votre entreprise, je n’en ai pas créé pour vous. Votre équipe sur ${companyDomain} est déjà sur Expensify. [Découvrez les espaces de travail que vous pouvez rejoindre.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Il ne semble pas que votre entreprise ait des espaces de travail auxquels vous pouvez vous joindre. Veuillez contacter votre administrateur et lui demander de vous inviter dans son espace de travail.',
         },
         workspace: {
             title: 'Restez organisé avec un espace de travail',
@@ -4853,6 +4897,7 @@ ${amount} pour ${merchant} - ${date}`,
             memberAlternateText: 'Soumettre et approuver des notes de frais.',
             adminAlternateText: 'Gérer les notes de frais et les paramètres de l’espace de travail.',
             auditorAlternateText: 'Afficher et commenter les notes de frais.',
+            guestAlternateText: 'Soumettre des notes de frais avec une visibilité limitée.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4861,12 +4906,14 @@ ${amount} pour ${merchant} - ${date}`,
                         return 'Administrateur de l’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Invité';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Éditeur';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administration des personnes';
+                        return 'Administrateur des personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
@@ -7141,6 +7188,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 one: 'Nommer auditeur',
                 other: 'Créer des auditeurs',
             }),
+            makeGuest: () => ({
+                one: 'Rendre invité',
+                other: 'Rendre invités',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Nommer administrateur des personnes',
                 other: 'Nommer des administrateurs des personnes',
@@ -7177,6 +7228,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             admins: 'Administrateurs de l’espace de travail',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
+            guests: 'Invités',
             editors: 'Éditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
             configureHRSync: (providerName: string) => `Configurer la synchronisation ${providerName}.`,
@@ -7582,6 +7634,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
             campfire: 'Campfire',
+            continuousReconciliationFeedSelection:
+                '<muted-text-label>Le rapprochement continu est configuré par flux de carte. Sélectionnez un flux pour changer celui que vous configurez.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Votre connexion QuickBooks Online expire le ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Votre connexion à QuickBooks Online a expiré le ${date}.`,
@@ -7660,6 +7714,21 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     distanceMustBePositive: 'La distance doit être un nombre entier positif.',
                     invalidAddress: 'Veuillez saisir une adresse valide',
                     distanceTooLarge: 'La distance est trop grande.',
+                },
+                workArrangement: {
+                    title: 'Organisation de travail par défaut',
+                    officeBasedTitle: 'Au bureau',
+                    officeBasedHelp: 'Le membre se rend au bureau pour ses trajets domicile-travail. Les trajets habituels sont exclus du remboursement.',
+                    noRegularWorkplaceTitle: 'À distance ou mobile',
+                    noRegularWorkplaceHelp:
+                        "Le membre travaille à domicile ou se déplace entre différents sites sans bureau fixe, donc les règles de trajet domicile-travail ne s'appliquent pas.",
+                    startingPrompt: {
+                        title: 'Définir une organisation de travail type',
+                        prompt: 'Choisissez la disposition qui s’applique à la plupart des membres actuels. Vous pourrez mettre à jour les membres individuellement ou en masse plus tard.',
+                        officeBasedHelp: 'La plupart des membres se rendent au bureau. Les trajets domicile-travail habituels sont exclus.',
+                        noRegularWorkplaceHelp: 'La plupart des membres travaillent à distance, donc les exclusions domicile-travail ne s’appliquent généralement pas.',
+                        confirm: 'Appliquer',
+                    },
                 },
             },
             distance: 'Distance',
@@ -9050,6 +9119,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noBankAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
             noPaymentMethodsFound: 'Aucun mode de règlement trouvé',
             noPaymentMethodsFoundDescription: 'Veuillez ajouter des modes de règlement dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
+            accountsDescription: 'Vos comptes Dynamics 365 Business Central seront importés en tant que catégories.',
+            dimensionsImportAsTags: 'Toutes les dimensions Dynamics 365 Business Central sont importées en tant que tags',
+            customers: 'Clients',
+            projects: 'Projets',
+            projectsAndCustomersCannotBeEnabled: 'Les projets et les clients ne peuvent pas être activés',
+            projectsAndCustomersCannotBeEnabledDescription: 'Les projets et les clients peuvent uniquement être activés si l’option d’exportation est « Facture d’achat ».',
+            enableNewCategoriesDescription: 'Les nouveaux comptes Dynamics 365 Business Central seront disponibles en tant que catégories.',
         },
     },
     getAssistancePage: {
@@ -9527,6 +9603,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `définir l’organisation de travail par défaut sur ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `a modifié l’aménagement de travail par défaut en ${arrangement} (auparavant ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
                 `modification de l’exclusion des trajets domicile-travail en une distance fixe par demande (auparavant ${previousMethod})`,
@@ -10115,6 +10196,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
         },
+        periodSoFar: ({period}: {period: string}) => `${period} jusqu’à présent`,
+        weekOf: ({date}: {date: string}) => `Semaine du ${date}`,
         saveEdits: {
             title: 'Enregistrer les modifications',
             prompt: ({name}: {name: string}) => `Mettre à jour les modifications de « ${name} » ou en créer une nouvelle ?`,
@@ -10894,6 +10977,40 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             taxOutOfPolicy: 'Taux de taxe n’est plus valide',
             taxRateChanged: 'Taux d’imposition modifié',
             taxRequired: 'Taux de taxe manquant',
+        },
+        ruleViolation: {
+            fallback: 'Viole la politique de dépenses',
+            anyExpense: "N'importe quelle dépense",
+            expense: (adjectives: string) => (adjectives ? `Dépense ${adjectives}` : 'Dépense'),
+            perDiem: 'indemnité journalière',
+            notExpenseType: (expenseType: string) => `pas une ${expenseType}`,
+            billable: {enabled: 'Facturable', disabled: 'Non refacturable'},
+            reimbursable: {enabled: 'Remboursable', disabled: 'Non remboursable'},
+            withoutCategory: 'sans catégorie',
+            fromMerchant: (merchant: string) => `de la part de ${merchant}`,
+            notFromMerchant: (merchant: string) => `pas de ${merchant}`,
+            fromMerchantsContaining: (merchant: string) => `des marchands contenant ${merchant}`,
+            notFromMerchantsContaining: (merchant: string) => `ne provenant pas de marchands contenant ${merchant}`,
+            withVendor: (vendor: string) => `avec le fournisseur ${vendor}`,
+            withoutVendor: (vendor: string) => `sans fournisseur ${vendor}`,
+            fromVendor: (vendor: string) => `de ${vendor}`,
+            notFromVendor: (vendor: string) => `pas de ${vendor}`,
+            overAmount: (amount: string) => `plus de ${amount}`,
+            amountOrMore: (amount: string) => `${amount} ou plus`,
+            underAmount: (amount: string) => `inférieur à ${amount}`,
+            amountOrLess: (amount: string) => `${amount} ou moins`,
+            withoutTag: 'sans tag',
+            tagged: (tag: string) => `tagué ${tag}`,
+            inCurrency: (currency: string) => `en ${currency}`,
+            notInCurrency: (currency: string) => `pas en ${currency}`,
+            paidInCurrency: (currency: string) => `payé en ${currency}`,
+            notPaidInCurrency: (currency: string) => `non payé en ${currency}`,
+            attachment: 'une pièce jointe',
+            attribute: (attribute: string) => `un(e) ${attribute}`,
+            withAttributes: (attributes: string) => `avec ${attributes}`,
+            withoutAttributes: (attributes: string) => `sans ${attributes}`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `chez ${merchantCode}`,
         },
     },
     reportViolations: {

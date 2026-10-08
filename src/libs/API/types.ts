@@ -123,7 +123,9 @@ const WRITE_COMMANDS = {
     ADD_TEXT_AND_ATTACHMENT: 'AddTextAndAttachment',
     CONNECT_BANK_ACCOUNT_WITH_PLAID: 'ConnectBankAccountWithPlaid',
     ADD_PERSONAL_BANK_ACCOUNT: 'AddPersonalBankAccount',
+    CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT: 'CreateCollectOnlyDepositAccount',
     UPDATE_PERSONAL_BANK_ACCOUNT_INFO: 'UpdatePersonalBankAccountInfo',
+    UPDATE_BANK_ACCOUNT: 'UpdateBankAccount',
     RESTART_BANK_ACCOUNT_SETUP: 'RestartBankAccountSetup',
     RESEND_VALIDATE_CODE: 'ResendValidateCode',
     READ_NEWEST_ACTION: 'ReadNewestAction',
@@ -296,6 +298,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_EXPENSE_MAX_AMOUNT: 'SetPolicyExpenseMaxAmount',
     SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
     SET_POLICY_COMMUTER_EXCLUSIONS: 'SetPolicyCommuterExclusions',
+    SET_POLICY_WORK_ARRANGEMENT: 'SetPolicyWorkArrangement',
     SET_EMPLOYEE_WORK_ARRANGEMENT: 'SetEmployeeWorkArrangement',
     DISABLE_POLICY_COMMUTER_EXCLUSIONS: 'DisablePolicyCommuterExclusions',
     SET_POLICY_REQUIRE_MAP_OR_GPS: 'SetPolicyRequireMapOrGPS',
@@ -579,6 +582,7 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateDualEntryTravelInvoicingPayableAccount',
     CONNECT_POLICY_TO_BUSINESS_CENTRAL: 'ConnectPolicyToBusinessCentral',
     UPDATE_BUSINESS_CENTRAL_COMPANY: 'UpdateBusinessCentralCompany',
+    UPDATE_BUSINESS_CENTRAL_CUSTOMERS_MAPPING: 'UpdateBusinessCentralCustomersMapping',
     UPDATE_BUSINESS_CENTRAL_ENABLE_NEW_CATEGORIES: 'UpdateBusinessCentralEnableNewCategories',
     UPDATE_BUSINESS_CENTRAL_FIELD_MAPPING: 'UpdateBusinessCentralFieldMapping',
     UPDATE_BUSINESS_CENTRAL_SYNC_TAX_RATES: 'UpdateBusinessCentralSyncTaxRates',
@@ -591,6 +595,7 @@ const WRITE_COMMANDS = {
     UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT: 'UpdateBusinessCentralNonreimbursableAccount',
     UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR: 'UpdateBusinessCentralDefaultVendor',
     UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD: 'UpdateBusinessCentralPaymentMethod',
+    UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING: 'UpdateBusinessCentralProjectsMapping',
     CONNECT_POLICY_TO_CAMPFIRE: 'ConnectPolicyToCampfire',
     UPDATE_CAMPFIRE_SUBSIDIARY: 'UpdateCampfireSubsidiary',
     UPDATE_CAMPFIRE_FIELD_MAPPING: 'UpdateCampfireFieldMapping',
@@ -754,6 +759,7 @@ const WRITE_COMMANDS = {
     UPGRADE_SUBMIT: 'UpgradeSubmit',
     UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
     JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
+    CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT: 'CreateJoinWorkspacePostOnboardingContent',
 } as const;
 
 /** `payMoneyRequest` sends the wallet command for Expensify Wallet payments and the plain one for everything else, both built from the same params. */
@@ -863,6 +869,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: Parameters.ConnectBankAccountParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
+    [WRITE_COMMANDS.CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT]: Parameters.CreateCollectOnlyDepositAccountParams;
     [WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO]: Parameters.UpdatePersonalBankAccountInfoParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
     [WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK]: Parameters.InitiateBankAccountUnlockParams;
@@ -1172,6 +1179,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.MERGE_TRANSACTION]: Parameters.MergeTransactionParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE]: Parameters.UpdateSubscriptionTypeParams;
     [WRITE_COMMANDS.UNSHARE_BANK_ACCOUNT]: Parameters.UnshareBankAccountParams;
+    [WRITE_COMMANDS.UPDATE_BANK_ACCOUNT]: Parameters.UpdateBankAccountParams;
     [WRITE_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.ACCEPT_EARLY_RENEWAL_OFFER]: Parameters.AcceptEarlyRenewalOfferParams;
@@ -1200,6 +1208,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
     [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
     [WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS]: Parameters.SetPolicyCommuterExclusionsParams;
+    [WRITE_COMMANDS.SET_POLICY_WORK_ARRANGEMENT]: Parameters.SetPolicyWorkArrangementParams;
     [WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT]: Parameters.SetEmployeeWorkArrangementParams;
     [WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS]: Parameters.DisablePolicyCommuterExclusionsParams;
     [WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS]: Parameters.SetPolicyRequireMapOrGPSParams;
@@ -1212,6 +1221,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
     [WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS]: Parameters.UploadUserKYBDocsParams;
     [WRITE_COMMANDS.JOIN_REPORT_VIA_SECURE_LINK]: Parameters.JoinReportViaSecureLinkParams;
+    [WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT]: Parameters.CreateJoinWorkspaceOnboardingContentParams;
 
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
     [WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
@@ -1300,6 +1310,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateDualEntryTravelInvoicingPayableAccountParams;
     [WRITE_COMMANDS.CONNECT_POLICY_TO_BUSINESS_CENTRAL]: Parameters.ConnectPolicyToBusinessCentralParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_COMPANY]: Parameters.UpdateBusinessCentralCompanyParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CUSTOMERS_MAPPING]: Parameters.UpdateBusinessCentralCustomerMappingParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ENABLE_NEW_CATEGORIES]: Parameters.UpdateBusinessCentralEnableNewCategoriesParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_FIELD_MAPPING]: Parameters.UpdateBusinessCentralFieldMappingParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_TAX_RATES]: Parameters.UpdateBusinessCentralSyncTaxRatesParams;
@@ -1312,6 +1323,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT]: Parameters.UpdateBusinessCentralNonreimbursableAccountParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR]: Parameters.UpdateBusinessCentralDefaultVendorParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD]: Parameters.UpdateBusinessCentralPaymentMethodParams;
+    [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING]: Parameters.UpdateBusinessCentralCustomerMappingParams;
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_CAMPFIRE]: Parameters.ConnectPolicyToCampfireParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_SUBSIDIARY]: Parameters.UpdateCampfireSubsidiaryParams;
@@ -1557,6 +1569,7 @@ const READ_COMMANDS = {
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
+    OPEN_DEPOSIT_ACCOUNT_SETUP: 'OpenDepositAccountSetup',
     OPEN_PAYMENTS_PAGE: 'OpenPaymentsPage',
     GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL: 'GetExpensifyCardPendingWalletApproval',
     OPEN_BANK_ACCOUNT_SHARE_PAGE: 'OpenBankAccountSharePage',
@@ -1677,6 +1690,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
+    [READ_COMMANDS.OPEN_DEPOSIT_ACCOUNT_SETUP]: null;
     [READ_COMMANDS.OPEN_PAYMENTS_PAGE]: Parameters.OpenPaymentsPageParams | null;
     [READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL]: null;
     [READ_COMMANDS.OPEN_BANK_ACCOUNT_SHARE_PAGE]: null;

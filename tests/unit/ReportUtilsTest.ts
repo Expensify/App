@@ -193,6 +193,7 @@ import {
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
     isPayer,
+    isPayOptional,
     isPolicyRelatedReport,
     isReportManager,
     isReportOutstanding,
@@ -961,6 +962,103 @@ describe('ReportUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
                 }),
+            );
+        });
+
+        it('provides the Concierge report as the base for a join-workspace validation task link', () => {
+            const description = jest.fn(() => '');
+
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
+                },
+                companySize: undefined,
+                conciergeChat: {reportID: REPORT_ID},
+                delegateAccountID: undefined,
+            });
+
+            expect(description).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    validateEmailLink: expect.stringContaining(`/r/${REPORT_ID}/verify-account?isJoinWorkspaceTask=true`),
+                }),
+            );
+        });
+
+        it('provides the merge-code screen for an account-merge validation task link', () => {
+            const description = jest.fn(() => '');
+
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
+                },
+                companySize: undefined,
+                conciergeChat: {reportID: REPORT_ID},
+                delegateAccountID: undefined,
+                shouldResumeAccountMerge: true,
+            });
+
+            expect(description).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    validateEmailLink: expect.stringContaining('/onboarding/work-email-validation?isJoinWorkspaceTask=true'),
+                }),
+            );
+        });
+
+        it('persists and rolls back only incremental join-workspace task IDs', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE, createWorkspace: 'existing-task'},
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: {
+                    message: '',
+                    tasks: [
+                        {type: CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL, title: 'Add work email', description: '', autoCompleted: false},
+                        {type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: 'Validate email', description: '', autoCompleted: false},
+                        {type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE, title: 'Join workspace', description: '', autoCompleted: false},
+                    ],
+                },
+                companySize: undefined,
+                conciergeChat: conciergeChatReport,
+                delegateAccountID: undefined,
+                isIncremental: true,
+            });
+
+            const optimisticTaskIDs = result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(optimisticTaskIDs).toEqual(
+                expect.objectContaining({
+                    value: expect.objectContaining({
+                        choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        addWorkEmail: expect.any(String),
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        validateEmail: expect.any(String),
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        joinWorkspace: expect.any(String),
+                    }),
+                }),
+            );
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            expect(optimisticTaskIDs).not.toEqual(expect.objectContaining({value: expect.objectContaining({createWorkspace: expect.anything()})}));
+
+            const rollbackTaskIDs = result?.failureData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(rollbackTaskIDs).toEqual(
+                expect.objectContaining({
+                    value: {
+                        addWorkEmail: null,
+                        validateEmail: null,
+                        joinWorkspace: null,
+                    },
+                }),
+            );
+            expect(result?.failureData).not.toEqual(
+                expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.NVP_ONBOARDING, value: expect.objectContaining({hasCompletedGuidedSetupFlow: false})})]),
             );
         });
 
@@ -5887,6 +5985,8 @@ describe('ReportUtils', () => {
                 transaction: expenseTransaction,
                 comment: 'hold',
                 initialReportID: transactionThreadReport.reportID,
+                initialReport: transactionThreadReport,
+                transactionReport: expenseReport,
                 isOffline: false,
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
@@ -6141,18 +6241,19 @@ describe('ReportUtils', () => {
             changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(
+            expect(unholdRequestSpy).toHaveBeenCalledWith({
                 transactionID,
-                childReportID,
-                expect.objectContaining({id: policyID}),
-                false,
-                currentUserEmail,
+                transaction: iouTransaction,
+                reportID: childReportID,
+                policy: expect.objectContaining({id: policyID}),
+                isOffline: false,
+                currentUserLogin: currentUserEmail,
                 currentUserAccountID,
-                undefined,
-                false,
-                undefined,
-                undefined,
-            );
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -7125,7 +7226,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('it should return false for a money request action with a failed transaction', () => {
@@ -7159,7 +7260,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return true for a money request action with a valid linkedTransaction', async () => {
@@ -7194,7 +7295,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('it should return false for a report action by another user', () => {
@@ -7213,7 +7314,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return false for a deleted report action', () => {
@@ -7234,7 +7335,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return false for a report action with pending DELETE', () => {
@@ -7254,7 +7355,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return false for a CREATED action type', () => {
@@ -7273,7 +7374,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for a money request action on a settled expense report', async () => {
@@ -7309,7 +7410,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for a money request action on an approved expense report', async () => {
@@ -7346,7 +7447,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for a money request action on a closed expense report', async () => {
@@ -7382,7 +7483,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for an optimistic attachment-only action (still uploading)', () => {
@@ -7403,7 +7504,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return true for an optimistic attachment+text action (text is editable while uploading)', () => {
@@ -7424,7 +7525,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('should return true for a synced attachment-only action (optimistic flags cleared)', () => {
@@ -7446,7 +7547,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('should return true for a synced attachment+text action', () => {
@@ -7467,7 +7568,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('should return true for an optimistic plain-text comment (no attachment)', () => {
@@ -7487,7 +7588,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
     });
 
@@ -10643,6 +10744,28 @@ describe('ReportUtils', () => {
             // the function should filter it out and return the normal report
             expect(result?.reportID).toBe(normalReport.reportID);
             expect(result?.reportID).not.toBe(archivedReport.reportID);
+        });
+
+        it('should prefer a visited report over an unvisited one, and fall back to lastReadTime when no visited report is eligible', () => {
+            // Given an unvisited report that was read more recently than the visited one
+            const unvisitedReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1003',
+                lastReadTime: '2025-01-01 04:56:47.233',
+                lastVisibleActionCreated: '2025-01-01 04:56:47.233',
+            };
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`]: normalReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${unvisitedReport.reportID}`]: unvisitedReport,
+            };
+
+            // When resolving with visit data present
+            // Then the visited report wins, because any visit time outranks a lastReadTime-only report
+            expect(findLastAccessedReport(false, undefined, false, undefined, undefined, reports)?.reportID).toBe(normalReport.reportID);
+
+            // When the only visited report is excluded
+            // Then the lookup falls back to the most recently read eligible report
+            expect(findLastAccessedReport(false, undefined, false, normalReport.reportID, undefined, reports)?.reportID).toBe(unvisitedReport.reportID);
         });
     });
     describe('findLastAccessedReport should return owned report if no reports was accessed before', () => {
@@ -26978,6 +27101,67 @@ describe('getPendingChatMembers', () => {
         const result = getPendingChatMembers(accountIDs, previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
         expect(result).toEqual(previousPendingChatMembers);
+    });
+});
+
+describe('isPayOptional', () => {
+    const reportID = '9001';
+    const expenseReport: Report = {
+        ...createRandomReport(Number(reportID), undefined),
+        reportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        total: 0,
+        nonReimbursableTotal: 0,
+        reimbursableTotal: undefined,
+        pendingFields: undefined,
+    };
+    const buildTransaction = (transactionID: number, amount: number, reimbursable: boolean): Transaction => ({
+        ...createRandomTransaction(transactionID),
+        reportID,
+        amount,
+        reimbursable,
+        bank: '',
+        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        receipt: undefined,
+    });
+
+    it('returns true when the reimbursable expenses cancel out to $0', () => {
+        // Given an approved $0 report with a $50 and a -$50 reimbursable expense, so nothing is owed
+        const transactions = [buildTransaction(1, -5000, true), buildTransaction(2, 5000, true)];
+
+        // When checking whether paying it is optional
+        // Then it is, so it is kept out of the LHN badge, the Search row action and the Pay to-do like a non-reimbursable-only report
+        expect(isPayOptional(expenseReport, transactions)).toBe(true);
+    });
+
+    it('returns true when every expense is non-reimbursable', () => {
+        // Given a report whose only expense is non-reimbursable, so nothing is owed
+        const report: Report = {...expenseReport, total: -5000, nonReimbursableTotal: -5000};
+        const transactions = [buildTransaction(1, -5000, false)];
+
+        // When checking whether paying it is optional
+        // Then it is, matching the existing non-reimbursable-only behavior
+        expect(isPayOptional(report, transactions)).toBe(true);
+    });
+
+    it('returns false when there is reimbursable spend to pay', () => {
+        // Given a report with a $50 reimbursable expense, so money is owed
+        const report: Report = {...expenseReport, total: -5000};
+        const transactions = [buildTransaction(1, -5000, true)];
+
+        // When checking whether paying it is optional
+        // Then it is not, so it keeps its PAY badge, Search row Pay and Pay to-do
+        expect(isPayOptional(report, transactions)).toBe(false);
+    });
+
+    it('returns false for a $0 report without expenses', () => {
+        // Given a $0 report with no expenses, where a zero total does not come from expenses that cancel out
+
+        // When checking whether paying it is optional
+        // Then it is not, since the report can't be paid at all
+        expect(isPayOptional(expenseReport, [])).toBe(false);
     });
 });
 
