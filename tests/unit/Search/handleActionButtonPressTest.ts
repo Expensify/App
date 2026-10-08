@@ -362,7 +362,6 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
-            bankAccountList: undefined,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -392,7 +391,6 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
-            bankAccountList: undefined,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -422,7 +420,6 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
-            bankAccountList: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -460,7 +457,6 @@ describe('handleActionButtonPress', () => {
             rules: undefined,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
-            bankAccountList: undefined,
         });
 
         // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,
