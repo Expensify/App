@@ -1,8 +1,6 @@
-import type {BankAccount, BankAccountList, Policy} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, PersonalDetailsList, Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
-
-import {getKnownAccountIDByLogin} from './PersonalDetailsUtils';
 
 /**
  * The policy fields that identify the workspace bank account and who pays from it. Components that only attribute a
@@ -37,7 +35,7 @@ function canAccessPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>,
  * Whether a payment made by `payerAccountID` can be assumed to have been funded by the workspace's connected bank
  * account.
  */
-function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>, payerAccountID: number | undefined): boolean {
+function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>, payerAccountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): boolean {
     const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser;
 
     // Without a designated payer, any admin pays from the workspace account, so it is the right guess.
@@ -45,7 +43,7 @@ function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution
         return true;
     }
 
-    const reimburserAccountID = getKnownAccountIDByLogin(reimburserEmail);
+    const reimburserAccountID = Object.values(personalDetails ?? {}).find((details) => details?.login === reimburserEmail)?.accountID;
 
     // The viewer may not have the payer's personal details loaded. We can't rule the payer out, so keep the workspace
     // account instead of hiding it for everyone who hasn't interacted with the payer.

@@ -3710,9 +3710,9 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
 
         it('allows a non-payer admin to pay when a bank account is connected (reimburseYes)', async () => {
-            // Given an approved report and an admin outside the designated payer role.
-            // When payment eligibility is evaluated for the workspace reimbursement configuration.
-            // Then the action follows payment permissions while payer-only prompting remains separate.
+            // Given an approved expense report on a workspace with bank reimbursement enabled.
+            // When an admin who is not the designated payer checks payment eligibility.
+            // Then Pay is available through admin permission without making that admin the payer.
             const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const fakePolicy: Policy = {
@@ -3752,9 +3752,9 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
 
         it('does not allow a non-payer admin to pay when reimbursementChoice is not configured', async () => {
-            // Given an approved report and an admin outside the designated payer role.
-            // When payment eligibility is evaluated for the workspace reimbursement configuration.
-            // Then the action follows payment permissions while payer-only prompting remains separate.
+            // Given an approved expense report on a workspace without a configured reimbursement choice.
+            // When a non-payer admin checks payment eligibility.
+            // Then admin permission alone cannot enable payment before reimbursement is configured.
             const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const fakePolicy: Policy = {

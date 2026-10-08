@@ -1769,6 +1769,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
 
                     payInvoice({
+                        bankAccountList,
                         isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                         getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
@@ -1798,6 +1799,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 payMoneyRequest({
+                    bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
@@ -1861,6 +1863,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             allTransactions,
             policyIDsWithVBBA,
             clearSelectedTransactions,
+            bankAccountList,
             accountID,
             email,
             currentUserLogin,

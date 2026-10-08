@@ -3,6 +3,7 @@ import RenderHTML from '@components/RenderHTML';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import getBankAccountLastFourDigits from '@libs/getBankAccountLastFourDigits';
 import {getCrossBorderReimbursedMessage, getElsewherePaymentReportActionMessage, getOriginalMessage, getPaymentMessageWithExpectedDate} from '@libs/ReportActionsUtils';
@@ -23,6 +24,7 @@ type PaymentContentProps = {
 };
 
 function PaymentContent({action, expectedDate, policyID}: PaymentContentProps) {
+    const [personalDetails] = useAllPersonalDetails();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policyPaymentAttribution] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyPaymentAttributionSelector});
     const {translate, dateFnsLocale} = useLocalize();
@@ -47,6 +49,7 @@ function PaymentContent({action, expectedDate, policyID}: PaymentContentProps) {
             policy: policyPaymentAttribution,
             accountNumber: originalMessage.accountNumber,
             payerAccountID: action.actorAccountID,
+            personalDetails,
         });
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
         const paymentMessage = crossBorderMessage ?? translate(wasAutoPaid ? 'iou.automaticallyPaidWithBusinessBankAccount' : 'iou.businessBankAccount', '', last4Digits);

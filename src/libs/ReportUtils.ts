@@ -6440,6 +6440,7 @@ type GetReportPreviewMessageBaseParams = {
     originalReportAction?: OnyxInputOrEntry<ReportAction>;
     /** The current user's bank accounts, used to name the account a report was paid with. */
     bankAccountList?: OnyxEntry<BankAccountList>;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 };
 
 /**
@@ -6482,6 +6483,7 @@ function getReportPreviewMessage(
         policy,
         isForListPreview = false,
         bankAccountList,
+        personalDetails,
     } = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
@@ -6643,6 +6645,7 @@ function getReportPreviewMessage(
                 policy: policy ?? undefined,
                 accountNumber: originalMessage?.accountNumber,
                 payerAccountID,
+                personalDetails,
             });
             const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
@@ -6742,6 +6745,7 @@ function getReportPreviewReportActionMessage(
         policy,
         isForListPreview = false,
         bankAccountList,
+        personalDetails,
     } = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
@@ -6891,6 +6895,7 @@ function getReportPreviewReportActionMessage(
                 policy: reportPolicy,
                 accountNumber: originalMessage?.accountNumber,
                 payerAccountID,
+                personalDetails,
             });
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
@@ -12129,6 +12134,7 @@ function getIOUReportActionDisplayMessage(
     policy: OnyxEntry<PolicyPaymentAttribution>,
     transaction?: OnyxEntry<Transaction>,
     bankAccountList?: OnyxEntry<BankAccountList>,
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ): string {
     if (!isMoneyRequestAction(reportAction)) {
         return '';
@@ -12147,6 +12153,7 @@ function getIOUReportActionDisplayMessage(
             policy,
             accountNumber: originalMessage?.accountNumber,
             payerAccountID: reportAction?.actorAccountID,
+            personalDetails,
         });
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 

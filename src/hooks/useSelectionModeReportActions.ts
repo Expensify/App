@@ -31,7 +31,7 @@ import useLifecycleActions from './useLifecycleActions';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import {usePersonalDetail} from './usePersonalDetails';
+import {useAllPersonalDetails, usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSelectionModePayment from './useSelectionModePayment';
 
@@ -62,6 +62,7 @@ function useSelectionModeReportActions({
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
+    const [paymentPersonalDetails] = useAllPersonalDetails();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -170,6 +171,7 @@ function useSelectionModeReportActions({
             return [];
         }
         return getSecondaryReportActions({
+            personalDetails: paymentPersonalDetails,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
             submitterLogin,

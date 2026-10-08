@@ -1033,9 +1033,9 @@ describe('getReportPreviewAction', () => {
     }
 
     it('canPay should return PAY for non-payer admin when a bank account is connected (reimburseYes)', async () => {
-        // Given an approved expense preview and a workspace member with a particular payment role.
-        // When the preview action is resolved.
-        // Then Pay is offered only when the role and reimbursement configuration allow it.
+        // Given an approved expense preview on a workspace with bank reimbursement enabled.
+        // When an admin who is not the designated payer opens the preview.
+        // Then the preview offers Pay using admin payment permission.
         const {policy, report, transaction} = await setUpNonPayerAdminScenario(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
@@ -1060,9 +1060,9 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canPay should not return PAY for non-payer admin when reimbursementChoice is not configured', async () => {
-        // Given an approved expense preview and a workspace member with a particular payment role.
-        // When the preview action is resolved.
-        // Then Pay is offered only when the role and reimbursement configuration allow it.
+        // Given an approved expense preview on a workspace without a reimbursement choice.
+        // When a non-payer admin opens the preview.
+        // Then Pay is unavailable because workspace reimbursement has not been configured.
         const {policy, report, transaction} = await setUpNonPayerAdminScenario(undefined);
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));

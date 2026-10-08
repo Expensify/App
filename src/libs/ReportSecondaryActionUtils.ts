@@ -4,6 +4,7 @@ import type {
     BankAccountList,
     CardList,
     OutstandingReportsByPolicyIDDerivedValue,
+    PersonalDetailsList,
     Policy,
     Report,
     ReportAction,
@@ -451,7 +452,7 @@ function getPayActionPaymentType(action: ReportAction | undefined): string | und
 
 // The bank account a payment was funded from. A paying admin picks the account and the pay action records it as
 // `bankAccountID`. Automatic and older payments don't name one.
-function getPayActionBankAccountID(action: ReportAction | undefined, policy: OnyxEntry<Policy>): number | undefined {
+function getPayActionBankAccountID(action: ReportAction | undefined, policy: OnyxEntry<Policy>, personalDetails: OnyxEntry<PersonalDetailsList>): number | undefined {
     const originalMessage = action ? getOriginalMessage(action) : undefined;
     const actionBankAccountID = originalMessage && 'bankAccountID' in originalMessage ? originalMessage.bankAccountID : undefined;
 
@@ -460,7 +461,7 @@ function getPayActionBankAccountID(action: ReportAction | undefined, policy: Ony
     }
 
     // Only assume the workspace account for a payment the designated payer made, same rule as the paid-with messages.
-    return wasPaidWithPolicyBankAccount(policy, action?.actorAccountID) ? policy?.achAccount?.bankAccountID : undefined;
+    return wasPaidWithPolicyBankAccount(policy, action?.actorAccountID, personalDetails) ? policy?.achAccount?.bankAccountID : undefined;
 }
 
 function isCancelPaymentAction(
@@ -470,6 +471,7 @@ function isCancelPaymentAction(
     reportTransactions: Transaction[],
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
@@ -505,8 +507,8 @@ function isCancelPaymentAction(
 
     // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
     // A non-payer admin can always cancel a manual (paid elsewhere) payment, but a bank payment only when the account
-    // it was funded from is shared with them. This matches Classic, since cancelling reverses a debit on that account.
-    const paymentBankAccountID = isPaidViaBankAccount ? getPayActionBankAccountID(latestPayAction, policy) : undefined;
+    // it was funded from is shared with them. The designated payer retains the existing cancellation permission.
+    const paymentBankAccountID = isPaidViaBankAccount ? getPayActionBankAccountID(latestPayAction, policy, personalDetails) : undefined;
     const canAccessPaymentBankAccount = !!paymentBankAccountID && !!bankAccountList?.[paymentBankAccountID];
     const canCancelPayment = isPayer || (canAdminPayReport(policy, currentUserEmail) && (!isPaidViaBankAccount || canAccessPaymentBankAccount));
 
@@ -1033,6 +1035,7 @@ function getSecondaryReportActions({
     isOffline,
     rules,
     cardList,
+    personalDetails,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1056,6 +1059,7 @@ function getSecondaryReportActions({
     isOffline?: boolean;
     rules: OnyxCollection<Rule>;
     cardList: OnyxEntry<CardList>;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
     const reportNameValuePairs = moveExpenseReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
@@ -1135,7 +1139,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(currentUserAccountID, currentUserLogin, report, reportTransactions, bankAccountList, policy)) {
+    if (isCancelPaymentAction(currentUserAccountID, currentUserLogin, report, reportTransactions, bankAccountList, policy, personalDetails)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 

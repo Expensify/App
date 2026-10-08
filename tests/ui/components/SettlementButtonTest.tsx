@@ -635,32 +635,35 @@ describe('SettlementButton', () => {
             await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(policy.achAccount)});
         });
 
-        it('does not connect an unrelated partially configured account to the workspace', async () => {
+        it('resumes the admin’s partially configured business account without linking it to the workspace', async () => {
             // Given an existing workspace account and another bank account that the admin has not finished setting up.
             const policy = createTestPolicy({achAccount: workspaceBankAccount});
             const bankAccountList = createBankAccountList();
             bankAccountList[BANK_ACCOUNT_ID].accountData = {...bankAccountList[BANK_ACCOUNT_ID].accountData, state: CONST.BANK_ACCOUNT.STATE.SETUP};
 
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {accountNumber: '5678'});
+
             // When business-bank payment would otherwise open connect-existing setup.
             await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
 
-            // Then the new funding source is set up independently of the workspace account.
-            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ''});
+            // Then the admin resumes their account and the workspace keeps its existing account.
+            await getOnyxData({key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, callback: (draft) => expect(draft?.accountNumber).toBe('5678')});
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, backTo: ''});
             expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(POLICY_ID));
             await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount)});
         });
 
-        it('resumes an accessible partially configured workspace account by its bank account ID', async () => {
+        it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.PENDING])('resumes an accessible workspace account in %s with policy context', async (state) => {
             // Given the workspace account itself is shared with the admin and still needs setup.
             const bankAccountList = createBankAccountList();
-            bankAccountList[BANK_ACCOUNT_ID].accountData = {...bankAccountList[BANK_ACCOUNT_ID].accountData, state: CONST.BANK_ACCOUNT.STATE.SETUP};
-            const policy = createTestPolicy({achAccount: {...workspaceBankAccount, bankAccountID: BANK_ACCOUNT_ID, state: CONST.BANK_ACCOUNT.STATE.SETUP}});
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {...bankAccountList[BANK_ACCOUNT_ID].accountData, state};
+            const policy = createTestPolicy({achAccount: {...workspaceBankAccount, bankAccountID: BANK_ACCOUNT_ID, state}});
 
             // When the admin chooses business-bank payment.
             await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
 
             // Then continue this account rather than creating or connecting a replacement.
-            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, backTo: ''});
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({policyID: POLICY_ID, backTo: ''});
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 

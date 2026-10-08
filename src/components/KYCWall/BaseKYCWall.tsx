@@ -11,12 +11,11 @@ import useReportTransactions from '@hooks/useReportTransactions';
 
 import {openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
-import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@libs/actions/ReimbursementAccount';
+import {navigateToBankAccountRoute, prepareStandaloneBankAccountSetup} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {doesPolicyHavePartiallySetupBankAccount, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
-import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
@@ -254,14 +253,20 @@ function KYCWall({
                 if (isExpenseReportReportUtils(iouReport) && expenseReportPolicy?.achAccount?.bankAccountID) {
                     const workspaceBankAccount = getAccessiblePolicyBankAccount(expenseReportPolicy, bankAccountList);
                     if (workspaceBankAccount && isBankAccountPartiallySetup(workspaceBankAccount.accountData?.state)) {
-                        navigateToBankAccountRoute({bankAccountID: expenseReportPolicy.achAccount.bankAccountID, backTo: Navigation.getActiveRoute()});
+                        navigateToBankAccountRoute({policyID: expenseReportPolicy.id, backTo: Navigation.getActiveRoute()});
+                        return;
+                    }
+
+                    const partialBusinessBankAccount = Object.values(bankAccountList).find(
+                        (bankAccount) => bankAccount.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && isBankAccountPartiallySetup(bankAccount.accountData?.state),
+                    );
+                    if (partialBusinessBankAccount?.accountData?.bankAccountID) {
+                        navigateToBankAccountRoute({bankAccountID: partialBusinessBankAccount.accountData.bankAccountID, backTo: Navigation.getActiveRoute()});
                         return;
                     }
 
                     const currency = expenseReportPolicy.outputCurrency ?? iouReport?.currency ?? CONST.CURRENCY.USD;
-                    clearReimbursementAccount();
-                    clearReimbursementAccountDraft();
-                    updateReimbursementAccountDraft({country: mapCurrencyToCountry(currency), currency});
+                    prepareStandaloneBankAccountSetup(currency);
                     navigateToBankAccountRoute({backTo: Navigation.getActiveRoute()});
                     return;
                 }

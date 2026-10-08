@@ -761,9 +761,11 @@ describe('ReportUtils', () => {
             const nonPayerAdminAction = {...reportAction, actorAccountID: reimburserAccountID + 1};
 
             // Then the message does not guess the workspace account, since the admin paid from an account of their own
-            expect(getIOUReportActionDisplayMessage(translateLocal, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined)).toBe(
-                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', ''),
-            );
+            expect(
+                getIOUReportActionDisplayMessage(translateLocal, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined, undefined, {
+                    [reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail},
+                }),
+            ).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', ''));
         });
 
         it('should keep the workspace bank account when the reimburser is not in personal details', () => {
@@ -20738,9 +20740,9 @@ describe('ReportUtils', () => {
                 };
 
                 it('keeps the bank account wording in the localized preview', () => {
-                    // Given a payment action and the workspace payment configuration.
-                    // When the payment message or preview is generated.
-                    // Then the funding account is attributed consistently for different viewers.
+                    // Given a workspace payment that records the selected account ID and masked number.
+                    // When the localized preview is generated.
+                    // Then it uses workspace payment wording and the selected account’s digits.
                     const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
                     const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
@@ -20754,9 +20756,9 @@ describe('ReportUtils', () => {
                 });
 
                 it('keeps the bank account wording in the stored report action message', () => {
-                    // Given a payment action and the workspace payment configuration.
-                    // When the payment message or preview is generated.
-                    // Then the funding account is attributed consistently for different viewers.
+                    // Given a workspace payment that names the admin’s selected bank account.
+                    // When the stored English report action message is generated.
+                    // Then it retains workspace payment wording rather than invoice wording.
                     const result = getReportPreviewReportActionMessage(
                         {reportOrID: settledReport, iouReportAction: actionNamingAccount, originalReportAction: actionNamingAccount, policy: settledPolicy},
                         getCurrencyDecimalsLocal,

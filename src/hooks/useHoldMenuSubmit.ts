@@ -40,6 +40,7 @@ type UseHoldMenuSubmitParams = {
 };
 
 function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -106,6 +107,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
+                bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentType,

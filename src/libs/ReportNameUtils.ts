@@ -885,7 +885,7 @@ function computeReportNameBasedOnReportAction({
         // Prefer the account stored on the action: the payer is not always the workspace payer, so the policy's
         // ACH account can belong to a different bank account than the one the report was actually paid with, and
         // attributing it to a non-payer admin's payment shows a different account to every other viewer.
-        const policyAccountNumber = wasPaidWithPolicyBankAccount(reportPolicy, parentReportAction?.actorAccountID) ? reportPolicy?.achAccount?.accountNumber : undefined;
+        const policyAccountNumber = wasPaidWithPolicyBankAccount(reportPolicy, parentReportAction?.actorAccountID, personalDetailsList) ? reportPolicy?.achAccount?.accountNumber : undefined;
         const last4Digits = (originalMessage?.accountNumber ?? policyAccountNumber)?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {

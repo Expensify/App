@@ -691,6 +691,7 @@ function getPayActionCallback({
     const chatReportPolicyForPayment = chatReportPolicy ?? getPolicyFromSearchSnapshot(chatReportForPayment.policyID, searchData, undefined);
 
     payMoneyRequest({
+        bankAccountList,
         paymentType: lastPolicyPaymentMethod,
         chatReport: chatReportForPayment,
         iouReport: snapshotReport,
