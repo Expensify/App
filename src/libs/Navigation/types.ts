@@ -833,6 +833,8 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.DISTANCE_RATES_WORK_ARRANGEMENT]: {
         policyID: string;
     };
