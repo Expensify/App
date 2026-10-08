@@ -11656,10 +11656,6 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived =
         return true;
     }
 
-    if (isWorkspaceTaskReport(report)) {
-        return true;
-    }
-
     if (isWorkspaceThread(report)) {
         return true;
     }
