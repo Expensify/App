@@ -170,6 +170,7 @@ function useOnboardingFlowRouter() {
     return {
         // Treat the flow as completed for secure-link visitors so the onboarding modal is not mounted over the report.
         isOnboardingCompleted: isVisitingSecureLink ? true : hasCompletedGuidedSetupFlowSelector(onboardingValues),
+        isVisitingSecureLink,
         isHybridAppOnboardingCompleted,
         isOnboardingLoading: !!onboardingValues?.isLoading,
     };
