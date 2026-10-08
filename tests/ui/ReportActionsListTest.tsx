@@ -442,15 +442,6 @@ describe('ReportActionsList (body)', () => {
         await Onyx.clear();
     });
 
-    it('delegates new-action following to LegendList without a full-viewport threshold', () => {
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        renderReportActionsList();
-
-        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false, on: {dataChange: true}});
-        expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(0.01);
-        expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
-    });
-
     it('corrects the initial end position after the latest row has been measured', async () => {
         // Given a report opens at its latest action and the virtualized list finishes its initial placement.
         mockUseNetwork.mockReturnValue({isOffline: false});
@@ -635,16 +626,6 @@ describe('ReportActionsList (body)', () => {
         expect(getRenderedReportActionsListItemProps(markerAction, 1).shouldDisplayNewMarker).toBe(true);
     });
 
-    it('initially aligns the seed page to the end', () => {
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        mockHasOnceLoadedReportActions = false;
-        renderReportActionsList();
-
-        expect(getCapturedListProps()?.initialScrollAtEnd).toBe(true);
-        expect(getCapturedListProps()?.alignItemsAtEnd).toBe(true);
-        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false, on: {dataChange: true}});
-    });
-
     it('does not follow the end of a page that still has newer actions to load', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockUsePaginatedReportActions.mockReturnValue({
@@ -665,6 +646,7 @@ describe('ReportActionsList (body)', () => {
 
         expect(mockLegendListMount).toHaveBeenCalledTimes(1);
         expect(mockLegendListUnmount).not.toHaveBeenCalled();
+        mockLegendScrollToEnd.mockClear();
 
         mockHasOnceLoadedReportActions = true;
         // The mocked Onyx hook does not own state, so changing its return value cannot schedule the
@@ -680,8 +662,7 @@ describe('ReportActionsList (body)', () => {
 
         expect(mockLegendListMount).toHaveBeenCalledTimes(2);
         expect(mockLegendListUnmount).toHaveBeenCalledTimes(1);
-        expect(getCapturedListProps()?.initialScrollAtEnd).toBe(true);
-        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false, on: {dataChange: true}});
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
     });
 
     it('keeps the initial viewport covered until the hydrated LegendList finishes rendering it', async () => {

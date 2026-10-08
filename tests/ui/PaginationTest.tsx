@@ -344,8 +344,8 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 
-        // Scrolling here should trigger a new network request.
-        scrollToOffset(0);
+        // Reaching the list start must load older history without relying on the onScroll fallback.
+        fireEvent(within(getReportScreen()).getByLabelText(TestHelper.translateLocal('sidebarScreen.listOfChatMessages')), 'onStartReached');
         await waitForBatchedUpdatesWithAct();
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
