@@ -70,8 +70,12 @@ function RecentlyAddedSection() {
         };
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
+        // A pending-delete row keeps its ID but gets no descriptor. The carousel hides it while the delete is
+        // pending and re-adds it if the delete rolls back, both from its live transaction. A descriptor would keep
+        // it in the arrows after the delete syncs and its live copy is gone, landing the arrow on "not here".
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
-        const siblingDescriptorsByTransactionID = transactions.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
+        const navigableSiblings = transactions.filter((sibling) => sibling.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const siblingDescriptorsByTransactionID = navigableSiblings.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
             // eslint-disable-next-line no-param-reassign
             map[sibling.transactionID] = {
                 reportID: sibling.reportID,
