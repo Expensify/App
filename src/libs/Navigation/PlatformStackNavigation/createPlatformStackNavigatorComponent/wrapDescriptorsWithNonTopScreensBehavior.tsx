@@ -51,6 +51,9 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
         // A wide submit pre-mount keeps its wrapper, so the reveal does not remount it, but must render while covered.
         const isLivePreMount = isLiveWideTabPreMountRouteKey(key);
         const isScreenBlurred = topRouteKey !== undefined && key !== topRouteKey && !isLivePreMount;
+
+        // Only covers a pre-mount under the focused tab's top screen. In another tab it is the top route, and the
+        // preloaded-tab flag holds it instead.
         const isHiddenPreMount = isLivePreMount && key !== topRouteKey;
         result[key] = {
             ...descriptor,
