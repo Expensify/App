@@ -15,7 +15,7 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, useTapGesture} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -277,9 +277,9 @@ function ValidateCodeInput({
      * Tap gesture configuration, updates the indexes of the
      * currently focused input.
      */
-    const tapGesture = Gesture.Tap()
-        .runOnJS(true)
-        .onBegin((event) => {
+    const tapGesture = useTapGesture({
+        runOnJS: true,
+        onBegin: (event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;
             // TapGestureHandler works differently on mobile web and native app
@@ -289,7 +289,8 @@ function ValidateCodeInput({
             }
             setInputAndIndex(index);
             lastFocusedIndex.current = index;
-        });
+        },
+    });
 
     /**
      * Updates the validateCode inputs with the contents written in the

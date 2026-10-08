@@ -17,7 +17,7 @@ import type {SvgProps} from 'react-native-svg';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {Directions, GestureDetector, useFlingGesture} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -125,10 +125,11 @@ function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDi
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
     // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
-    const flingGesture = Gesture.Fling()
-        .direction(useBottomPosition ? Directions.DOWN : Directions.UP)
-        .runOnJS(true)
-        .onStart(triggerDismiss);
+    const flingGesture = useFlingGesture({
+        direction: useBottomPosition ? Directions.DOWN : Directions.UP,
+        runOnJS: true,
+        onActivate: triggerDismiss,
+    });
 
     return (
         <GrowlNotificationPortal>
