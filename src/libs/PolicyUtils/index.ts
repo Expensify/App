@@ -20,6 +20,7 @@ import {isApprovalWorkflowRule, isRuleFilterComparison} from '@libs/RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isPublicDomain, isValidAccountRoute} from '@libs/ValidationUtils';
+import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +33,7 @@ import type {
     Account,
     ApprovalRule,
     ConnectionLastSync,
+    CommuterExclusions,
     ConnectionName,
     Connections,
     CustomUnit,
@@ -392,6 +394,13 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
  */
 function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+}
+
+/**
+ * The workspace-wide work arrangement, which members follow unless they were given one of their own.
+ */
+function hasOfficeWorkArrangement(commuterExclusions: CommuterExclusions | undefined): boolean {
+    return getEffectiveWorkArrangement(undefined, commuterExclusions?.isOfficeWorkArrangement);
 }
 
 /**
@@ -2690,6 +2699,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
         policy?.connections?.campfire?.config?.export?.exporter,
+        policy?.connections?.businessCentral?.config?.export?.exporter,
     ];
 }
 
@@ -2866,6 +2876,7 @@ export {
     getSageIntacctBankAccounts,
     getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
+    hasOfficeWorkArrangement,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
