@@ -71,6 +71,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const {cardRules} = useExpensifyCardRules(policyID);
     const [policyCategoriesOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTagsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const arePolicyCategoriesLoading = !!policy?.areCategoriesEnabled && policyCategoriesOnyx === undefined;
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
@@ -159,6 +160,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         rules,
         // Unlike the tables below, the raw value: a category pending deletion is exactly what marks its rule deleting.
         policyCategories: policyCategoriesOnyx,
+        policyTags: policyTagsOnyx,
         translate,
         isOffline,
         onNavigate: Navigation.navigate,
