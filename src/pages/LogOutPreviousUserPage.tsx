@@ -97,9 +97,23 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
             const linkEmail = getEmailFromTransitionURL(transitionURL);
 
+            if (!linkEmail) {
+                showConfirmModal({
+                    title: translate('deeplinkWrapper.notValid'),
+                    prompt: translate('deeplinkWrapper.sessionMismatch'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                }).then(() => {
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.goBack(ROUTES.HOME);
+                    });
+                });
+                return;
+            }
+
             showConfirmModal({
                 title: translate('deeplinkWrapper.switchAccount.title'),
-                prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: linkEmail ?? '', currentEmail: sessionEmail ?? ''}),
+                prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: linkEmail, currentEmail: sessionEmail ?? ''}),
                 confirmText: translate('deeplinkWrapper.switchAccount.confirm'),
                 cancelText: translate('deeplinkWrapper.switchAccount.staySignedIn'),
             }).then((result) => {
