@@ -103,6 +103,7 @@ export type {default as UpdateCampfireTravelInvoicingSettlementsAccountParams} f
 export type {default as UpdateCampfireTravelInvoicingPayableAccountParams} from './UpdateCampfireTravelInvoicingPayableAccountParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
+export type {default as UpdateBusinessCentralCustomerMappingParams} from './UpdateBusinessCentralCustomerMappingParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
 export type {default as UpdateBusinessCentralFieldMappingParams} from './UpdateBusinessCentralFieldMappingParams';
 export type {default as UpdateBusinessCentralSyncTaxRatesParams} from './UpdateBusinessCentralSyncTaxRatesParams';
@@ -251,6 +252,7 @@ export type {default as DeleteWorkspaceParams} from './DeleteWorkspaceParams';
 export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
+export type {default as CreateJoinWorkspaceOnboardingContentParams} from './CreateJoinWorkspaceOnboardingContentParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';

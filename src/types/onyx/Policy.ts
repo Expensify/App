@@ -2659,11 +2659,22 @@ type BusinessCentralCoding = {
      */
     fieldMappings?: Record<string, ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>>;
 
+    /** How Business Central customers and projects are imported into Expensify */
+    customerMappings?: BusinessCentralCustomerMappings;
+
     /** Whether VAT posting setups are imported as tax rates */
     syncTaxRates: boolean;
 
     /** Whether items are imported */
     syncItems: boolean;
+};
+
+/**
+ * How Business Central customers and projects are imported into Expensify.
+ */
+type BusinessCentralCustomerMappings = {
+    customers?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
+    projects?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
 };
 
 /** Offline feedback key for field mapping */
@@ -2672,7 +2683,10 @@ type BusinessCentralCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.BUSI
 /**
  * Offline feedback keys for `BusinessCentralCoding`
  */
-type BusinessCentralCodingOfflineFeedbackKeys = keyof Omit<BusinessCentralCoding, 'fieldMappings'> | BusinessCentralCodingFieldMappingsOfflineFeedbackKey;
+type BusinessCentralCodingOfflineFeedbackKeys =
+    | keyof Omit<BusinessCentralCoding, 'fieldMappings' | 'customerMappings'>
+    | BusinessCentralCodingFieldMappingsOfflineFeedbackKey
+    | keyof BusinessCentralCustomerMappings;
 
 /**
  * Export configuration for Business Central.
@@ -3919,6 +3933,7 @@ export type {
     CampfireSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
+    BusinessCentralCustomerMappings,
     BusinessCentralExport,
     BusinessCentralCodingOfflineFeedbackKeys,
 };
