@@ -1020,6 +1020,7 @@ const translations = {
                 ? `This chat is no longer active because <strong>you</strong> are no longer a member of the ${policyName} workspace.`
                 : `This chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `This chat is no longer active because ${policyName} is no longer an active workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `This chat is no longer active because ${policyName} is an archived workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `This chat is no longer active because ${policyName} is no longer an active workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'This booking is archived.',
@@ -1329,6 +1330,7 @@ const translations = {
         fieldNotMapped: (fieldName: string) => `Oops! A required field ("${fieldName}") hasn't been mapped. Please review and try again.`,
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         emptyMappedField: (fieldName: string) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
+        invalidApprovalLimit: 'Approval limits must be valid amounts for the workspace currency.',
         fieldValueTooLong: (fieldName: string, limit: number) => `Oops! The field ("${fieldName}") contains one or more values longer than ${limit} characters. Please review and try again.`,
         importSuccessfulTitle: 'Import successful',
         importCategoriesNoneAddedOrUpdated: 'No categories have been added or updated.',
@@ -2174,6 +2176,12 @@ const translations = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `No further action required!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Change the report's workspace for further actions.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2554,9 +2562,11 @@ const translations = {
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
+        talkToAHuman: 'Talk to a human',
         helpPage: {
             title: 'Help and support',
             description: 'We are here to help you 24/7.',
+            talkToAHumanDescription: 'Get help from a real person',
             helpSite: 'Help site',
             helpSiteDescription: 'Articles, tutorials, and more',
             conciergeChat: 'Concierge',
@@ -2857,6 +2867,9 @@ const translations = {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure you want to delete this account?',
+        editNickname: 'Edit nickname',
+        nickname: 'Nickname',
+        editNicknameInstruction: 'Give the bank account a nickname that sets it apart from others.',
         deleteCard: 'Delete card',
         deleteCardConfirmation:
             'All unsubmitted card transactions, including those on open reports, will be removed. Are you sure you want to delete this card? You cannot undo this action.',
@@ -5002,6 +5015,9 @@ const translations = {
                 'Are you sure you want to archive this workspace? This will unassign all credit cards from users and permanently delete any unsubmitted card expenses.',
             archiveWithExpensifyCardsConfirmation:
                 'Are you sure you want to archive this workspace? This will set all Expensify Card limits to $0 and automatically decline any new purchase attempts.',
+            unarchive: 'Unarchive',
+            unarchiveWorkspace: 'Unarchive workspace',
+            unarchiveConfirmation: 'Are you sure you want to unarchive this workspace?',
             deleteWorkspaceTitle: (workspaceName: string) => `Delete ${workspaceName}?`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
@@ -5063,6 +5079,7 @@ const translations = {
             memberAlternateText: 'Submit and approve reports.',
             adminAlternateText: 'Manage reports and workspace settings.',
             auditorAlternateText: 'View and comment on reports.',
+            guestAlternateText: 'Submit reports with limited visibility.',
             cardAdminAlternateText: 'Manage workspace cards.',
             peopleAdminAlternateText: 'Manage members and approval workflows.',
             paymentsAdminAlternateText: 'Manage workflow payments.',
@@ -5079,6 +5096,8 @@ const translations = {
                         return 'Workspace admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Guest';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -5588,11 +5607,11 @@ const translations = {
                         label: 'Date of last expense',
                         description: 'Date of the most recent expense on the report.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
                         description: 'Date the report was exported to Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Submitted date',
                         description: 'Date the report was submitted for approval.',
                     },
@@ -7282,6 +7301,11 @@ const translations = {
             emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
             findVendor: 'Find vendor',
             managedInAccountingSoftware: 'Vendors are managed in your',
+            enableVendor: 'Enable vendor',
+            enableVendors: 'Enable vendors',
+            disableVendor: 'Disable vendor',
+            disableVendors: 'Disable vendors',
+            updateFailureMessage: 'An error occurred while updating the vendor, please try again',
         },
         tags: {
             tagName: 'Tag name',
@@ -7540,6 +7564,10 @@ const translations = {
                 one: 'Make auditor',
                 other: 'Make auditors',
             }),
+            makeGuest: () => ({
+                one: 'Make guest',
+                other: 'Make guests',
+            }),
             makeCardAdmin: () => ({
                 one: 'Make card admin',
                 other: 'Make card admins',
@@ -7570,6 +7598,7 @@ const translations = {
             paymentsAdmins: 'Payments Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
+            guests: 'Guests',
             editors: 'Editors',
             members: 'Members',
             emptyRoleFilter: {
@@ -7669,6 +7698,7 @@ const translations = {
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             businessCentral: 'Dynamics 365 Business Central',
             sap: 'SAP',
             oracle: 'Oracle',
@@ -7693,6 +7723,8 @@ const translations = {
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7923,6 +7955,8 @@ const translations = {
                             return 'Syncing Campfire data';
                         case 'campfireSyncConnection':
                             return 'Initializing connection to Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Initializing connection to Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Loading data';
                         case 'campfireSyncPayments':
@@ -10070,6 +10104,18 @@ const translations = {
         deleteTask: 'Delete task',
         deleteConfirmation: 'Are you sure you want to delete this task?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Support ticket, ${date}: ${customer} and ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Hi, I'm ${supportRep}, and I'll work with you until this is fully resolved. If you've already shared details with us, I'll review them before responding so you don't need to repeat yourself. If this is a new issue, let me know what you need help with.`,
+        checkboxTooltip: 'Your support rep will check this when it is resolved.',
+        genericCreateSupportTicketFailureMessage: "We couldn't create this support ticket. Please dismiss this error and try again.",
+        noSupportRepAvailable: 'No support reps are available right now. You can still message Concierge for help.',
+        fallbackTitle: 'Support ticket',
+        resolved: 'This support ticket is resolved.',
+        surveyPrompt: 'How was your support experience?',
+        reopenTicket: 'Reopen ticket',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `${monthName} ${year} statement`,
     },
@@ -10478,8 +10524,6 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
-        switchToTableView: 'Switch to table view',
-        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {
@@ -11073,6 +11117,46 @@ const translations = {
             return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: (message: string) => message,
+        ruleViolation: {
+            fallback: 'Violates expense policy',
+            anyExpense: 'Any expense',
+            expense: (adjectives: string) => (adjectives ? `${adjectives} expense` : 'Expense'),
+            perDiem: 'per diem',
+            notExpenseType: (expenseType: string) => `not a ${expenseType}`,
+            billable: {
+                enabled: 'Billable',
+                disabled: 'Non-billable',
+            },
+            reimbursable: {
+                enabled: 'Reimbursable',
+                disabled: 'Non-reimbursable',
+            },
+            withoutCategory: 'without a category',
+            fromMerchant: (merchant: string) => `from ${merchant}`,
+            notFromMerchant: (merchant: string) => `not from ${merchant}`,
+            fromMerchantsContaining: (merchant: string) => `from merchants containing ${merchant}`,
+            notFromMerchantsContaining: (merchant: string) => `not from merchants containing ${merchant}`,
+            withVendor: (vendor: string) => `with vendor ${vendor}`,
+            withoutVendor: (vendor: string) => `without vendor ${vendor}`,
+            fromVendor: (vendor: string) => `from ${vendor}`,
+            notFromVendor: (vendor: string) => `not from ${vendor}`,
+            overAmount: (amount: string) => `over ${amount}`,
+            amountOrMore: (amount: string) => `${amount} or more`,
+            underAmount: (amount: string) => `under ${amount}`,
+            amountOrLess: (amount: string) => `${amount} or less`,
+            withoutTag: 'without a tag',
+            tagged: (tag: string) => `tagged ${tag}`,
+            inCurrency: (currency: string) => `in ${currency}`,
+            notInCurrency: (currency: string) => `not in ${currency}`,
+            paidInCurrency: (currency: string) => `paid in ${currency}`,
+            notPaidInCurrency: (currency: string) => `not paid in ${currency}`,
+            attachment: 'an attachment',
+            attribute: (attribute: string) => `a ${attribute}`,
+            withAttributes: (attributes: string) => `with ${attributes}`,
+            withoutAttributes: (attributes: string) => `without ${attributes}`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `at ${merchantCode}`,
+        },
         reviewRequired: 'Review required',
         rter: (
             brokenBankConnection: boolean,
