@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.2-0",
+  "version": "9.5.6-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -166,11 +166,11 @@
     "htmlparser2": "10.0.0",
     "idb-keyval": "^6.2.1",
     "json5": "2.2.2",
-    "lodash-es": "4.17.21",
+    "lodash-es": "4.18.1",
     "lottie-react-native": "7.3.8",
     "mapbox-gl": "^3.24.0",
-    "metro": "0.84.4",
-    "metro-transform-plugins": "0.84.4",
+    "metro": "0.84.5",
+    "metro-transform-plugins": "0.84.5",
     "onfido-sdk-ui": "14.53.1",
     "pako": "^2.1.0",
     "process": "^0.11.10",
@@ -203,7 +203,7 @@
     "react-native-nitro-fetch": "1.6.2",
     "react-native-nitro-modules": "0.37.1",
     "react-native-nitro-sqlite": "9.8.3",
-    "react-native-onyx": "3.0.113",
+    "react-native-onyx": "3.0.116",
     "react-native-pager-view": "9.0.4",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
@@ -230,7 +230,7 @@
     "react-webcam": "^7.1.1",
     "scheduler": "0.27.0",
     "victory-native": "^41.21.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@aaroon/workbox-rspack-plugin": "^1.0.1",
@@ -242,7 +242,6 @@
     "@babel/plugin-proposal-private-methods": "^7.18.6",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@babel/plugin-transform-export-namespace-from": "^7.27.1",
-    "@babel/traverse": "^7.22.20",
     "@callstack/reassure-compare": "^1.0.0-rc.4",
     "@callstack/repack": "5.3.0",
     "@callstack/repack-plugin-expo-modules": "5.3.0",
@@ -390,10 +389,11 @@
     "json5": "2.2.2",
     "loader-utils": "2.0.4",
     "follow-redirects": "1.15.6",
-    "fast-xml-parser": "4.4.1",
+    "fast-xml-parser": "5.11.1",
     "express": "4.20.0",
     "elliptic": "6.5.7",
     "fast-json-patch": "3.1.1",
+    "image-size": "2.0.4",
     "hermes-compiler": "250829098.0.14",
     "webpack": "^5.108.4",
     "esbuild": "^0.28.1",
@@ -402,6 +402,7 @@
     "path-to-regexp": "0.1.10",
     "send": "0.19.0",
     "regexpu-core": "6.4.0",
+    "adm-zip": "0.6.1",
     "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260507",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -414,15 +415,12 @@
       "eslint": "^9.36.0"
     },
     "node-abi": "^3.78.0",
-    "pdfjs-dist": "^5.5.207",
+    "pdfjs-dist": "5.5.207",
     "lightningcss": "1.30.1",
     "@fullstory/react-native": {
       "expo": "57.0.8"
     },
     "@react-native-firebase/app": {
-      "expo": "57.0.8"
-    },
-    "@react-native-firebase/perf": {
       "expo": "57.0.8"
     },
     "@react-native-google-signin/google-signin": {

@@ -16,6 +16,8 @@ const SENSITIVE_KEYS = new Set([
     'apiKey',
     'currentAuthToken',
     'clientSecret',
+    'cardNumber',
+    'cardCVV',
 ]);
 
 const REDACTED = '<redacted>';
