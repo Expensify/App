@@ -56,7 +56,7 @@ function AddressBusiness({onNext, onMove, isEditing, onAddressSubmit}: AddressBu
     });
     const handleSubmit = onAddressSubmit ?? handleStepSubmit;
     const isSavingAddress = !!onAddressSubmit && (reimbursementAccount?.isLoading ?? false);
-    const addressSaveError = onAddressSubmit ? getLatestErrorMessage(reimbursementAccount ?? {}) : undefined;
+    const addressSaveError = onAddressSubmit ? getLatestErrorMessage(reimbursementAccount ?? {}) || undefined : undefined;
 
     if (isLoadingReimbursementAccount) {
         return (

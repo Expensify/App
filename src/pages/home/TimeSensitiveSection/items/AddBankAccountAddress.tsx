@@ -51,6 +51,8 @@ type WidgetCopyProps = {
     isCtaLoading?: boolean;
 };
 
+type WidgetCopyPropsWithoutCta = Omit<WidgetCopyProps, 'onCtaPress' | 'isCtaLoading'>;
+
 function BankAccountAddressWidgetItem({title, subtitle, ctaText, onCtaPress, isCtaLoading}: WidgetCopyProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
@@ -67,7 +69,7 @@ function BankAccountAddressWidgetItem({title, subtitle, ctaText, onCtaPress, isC
     );
 }
 
-function AddPersonalBankAccountAddress({bankAccountID, additionalData, title, subtitle, ctaText}: AddBankAccountAddressProps & WidgetCopyProps) {
+function AddPersonalBankAccountAddress({bankAccountID, additionalData, title, subtitle, ctaText}: AddBankAccountAddressProps & WidgetCopyPropsWithoutCta) {
     const handleCtaPress = () => {
         const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
         resetPersonalBankAccountForUpdate(
@@ -104,7 +106,7 @@ function AddPersonalBankAccountAddress({bankAccountID, additionalData, title, su
     );
 }
 
-function AddWorkspaceBankAccountAddress({bankAccountID, policyID, title, subtitle, ctaText}: AddBankAccountAddressProps & WidgetCopyProps) {
+function AddWorkspaceBankAccountAddress({bankAccountID, policyID, title, subtitle, ctaText}: AddBankAccountAddressProps & WidgetCopyPropsWithoutCta) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
@@ -233,18 +235,10 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
     };
 
     if (isPersonalAccount) {
-        return (
-            <AddPersonalBankAccountAddress
-                {...sharedProps}
-            />
-        );
+        return <AddPersonalBankAccountAddress {...sharedProps} />;
     }
 
-    return (
-        <AddWorkspaceBankAccountAddress
-            {...sharedProps}
-        />
-    );
+    return <AddWorkspaceBankAccountAddress {...sharedProps} />;
 }
 
 export default AddBankAccountAddress;

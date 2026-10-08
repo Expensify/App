@@ -184,7 +184,7 @@ function FormProvider({
     useEffect(() => () => blurTransitionHandle.current?.cancel(), []);
 
     const formServerErrorMessage = formState && !shouldHideServerError ? getLatestErrorMessage(formState) : undefined;
-    const errorMessage = additionalServerErrorMessage || formServerErrorMessage;
+    const errorMessage = additionalServerErrorMessage ?? formServerErrorMessage;
     const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
     const firstFieldErrorMessage = useMemo(() => {
         for (const errorMsg of Object.values(errors)) {
