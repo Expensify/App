@@ -123,15 +123,16 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
  * that can change across renders (e.g. a dynamic illustration name), remount the consumer with a
  * `key` tied to that value so a new importFn is captured.
  */
-function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} | Promise<{default: T}>, fallback?: T): {asset: T} {
+function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} | Promise<{default: T}>, fallback?: T): {asset: T; isLoading: boolean} {
     // Capture the first importFn only. Callers pass inline loaders that close over constant asset
     // names; re-binding every render would invalidate useLazyAsset's effect and loop on setState.
     // useState's initializer runs once, which avoids writing a ref during render (OXC bailout).
     const [stableImportFn] = useState(() => importFn);
-    const {asset, isLoaded} = useLazyAsset(stableImportFn, fallback);
+    const {asset, isLoaded, isLoading} = useLazyAsset(stableImportFn, fallback);
 
     return {
         asset: (isLoaded ? resolveIconComponent(asset, fallback ?? PlaceholderIcon) : PlaceholderIcon) as T,
+        isLoading: !!isLoading,
     };
 }
 
