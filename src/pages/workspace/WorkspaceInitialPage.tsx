@@ -211,7 +211,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const triggerScrollEvent = useScrollEventEmitter();
     const {shouldShowProductTrainingTooltip: shouldShowConnectionsTooltip, hideProductTrainingTooltip: hideConnectionsTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED,
-        isWorkspacesTabFocused && !hasPolicyCreationError && workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
+        // New workspaces never used the old integration pages, so only point this out where something is already connected.
+        isWorkspacesTabFocused && !hasPolicyCreationError && !isEmptyObject(policy?.connections) && workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
     );
     // Route the Connections tooltip was first shown on, so leaving that page counts as dismissing it
     const connectionsTooltipRouteRef = useRef<string | undefined>(undefined);
