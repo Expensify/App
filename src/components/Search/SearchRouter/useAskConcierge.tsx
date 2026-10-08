@@ -2,7 +2,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
-import usePermissions from '@hooks/usePermissions';
 import useSidePanelReportID from '@hooks/useSidePanelReportID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -33,10 +32,9 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const {timezone, accountID: currentUserAccountID} = currentUserPersonalDetails;
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
-    const shouldRespondInThread = targetReportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+    const shouldRespondInThread = targetReportID === conciergeReportID;
 
     const askConcierge = (searchQuery: string) => {
         const trimmedQuery = searchQuery.trim();
