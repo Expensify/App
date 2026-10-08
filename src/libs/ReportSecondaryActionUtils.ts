@@ -400,7 +400,7 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === currentUserAccountID;
 
-    if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing) {
+    if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing || report.isWaitingForCancelledReimbursement) {
         return false;
     }
 

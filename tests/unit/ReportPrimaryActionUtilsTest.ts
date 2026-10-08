@@ -1089,6 +1089,43 @@ describe('getPrimaryAction', () => {
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
+    it('should not return PAY for expense report waiting for the cancelled payment to finish processing', async () => {
+        // Given a closed expense report whose cancelled payment is still being sent back to the payer
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -300,
+            isWaitingForCancelledReimbursement: true,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        // When the primary action is calculated for the admin
+        const primaryAction = getReportPrimaryAction({
+            rules: undefined,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            ownerLogin: '',
+            chatReport,
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isChatReportArchived: false,
+        });
+
+        // Then PAY is not offered because the backend rejects paying until that money posts
+        expect(primaryAction).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
     it('should return PAY for non-reimburser payments admin in manual reimbursement mode when owner is payer', async () => {
         const ownerEmail = 'owner@manual-test.com';
         const report = createMock<Report>({
