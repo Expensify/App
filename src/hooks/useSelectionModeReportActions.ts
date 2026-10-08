@@ -76,6 +76,7 @@ function useSelectionModeReportActions({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
@@ -188,6 +189,7 @@ function useSelectionModeReportActions({
             isChatReportArchived,
             isOffline,
             rules,
+            cardList,
         });
     })();
 
@@ -248,7 +250,7 @@ function useSelectionModeReportActions({
 
     // Build report-level action menu
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText'>> = [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'rightIcon'>> = [];
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
