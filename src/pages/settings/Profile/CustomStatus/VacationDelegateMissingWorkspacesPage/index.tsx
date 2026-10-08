@@ -97,7 +97,7 @@ function VacationDelegateMissingWorkspacesPage() {
     });
 
     if (!submittedInput && isLoadingOnyxValue(vacationDelegateMetadata)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (!policyDiff) {
