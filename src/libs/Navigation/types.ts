@@ -288,7 +288,7 @@ type SettingsNavigatorParamList = {
         policyID?: string;
     };
     [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: undefined;
-    [SCREENS.SETTINGS.AGENTS.EDIT]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
         accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {

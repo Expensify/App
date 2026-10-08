@@ -11,13 +11,14 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateAgentName} from '@libs/actions/Agent';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentNameForm';
 
@@ -35,7 +36,7 @@ function EditNamePage({route}: EditNamePageProps) {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM>) => {
         updateAgentName(accountID, values[INPUT_IDS.FIRST_NAME].trim(), personalDetails?.displayName ?? '');
-        Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID)));
     };
 
     return (
@@ -47,7 +48,7 @@ function EditNamePage({route}: EditNamePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('editAgentNamePage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
+                onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID)))}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM}

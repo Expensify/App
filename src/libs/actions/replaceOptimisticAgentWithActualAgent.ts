@@ -27,7 +27,12 @@ import Onyx from 'react-native-onyx';
  * rewrites the queued requests themselves.
  */
 
-const AGENT_SETTINGS_SCREENS = new Set<string>([SCREENS.SETTINGS.AGENTS.EDIT, SCREENS.SETTINGS.AGENTS.EDIT_NAME, SCREENS.SETTINGS.AGENTS.EDIT_PROMPT, SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]);
+const AGENT_SETTINGS_SCREENS = new Set<string>([
+    SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT,
+    SCREENS.SETTINGS.AGENTS.EDIT_NAME,
+    SCREENS.SETTINGS.AGENTS.EDIT_PROMPT,
+    SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,
+]);
 
 // Reports are only read inside the mapping callback, so connectWithoutView() is used. On app start the mapping can
 // arrive before this collection is hydrated, so consumers wait for this promise. Onyx always fires the callback at

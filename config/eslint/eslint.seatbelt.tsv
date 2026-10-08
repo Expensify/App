@@ -1191,7 +1191,7 @@
 "../../src/pages/settings/AboutPage/AboutPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/settings/Agents/AddAgentPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/AgentsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Agents/EditAgentPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/settings/Agents/DynamicEditAgentPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/EditAgentAvatarPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/EditNamePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/EditPromptPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

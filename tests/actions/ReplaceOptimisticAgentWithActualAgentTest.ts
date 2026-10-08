@@ -56,7 +56,7 @@ function buildAgentEditNavigationState(accountID: number): PartialState<Navigati
                 state: {
                     key: 'agent-settings-stack-key',
                     index: 0,
-                    routes: [{key: 'agents-edit-route-key', name: SCREENS.SETTINGS.AGENTS.EDIT, params: {accountID: String(accountID)}}],
+                    routes: [{key: 'agents-edit-route-key', name: SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT, params: {accountID: String(accountID)}}],
                 },
             },
         ],
@@ -264,7 +264,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
                         key: 'agent-settings-stack-key',
                         index: 1,
                         routes: [
-                            {key: 'agents-edit-route-key', name: SCREENS.SETTINGS.AGENTS.EDIT, params: {accountID: String(optimisticAccountID)}},
+                            {key: 'agents-edit-route-key', name: SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT, params: {accountID: String(optimisticAccountID)}},
                             {key: 'agents-edit-name-route-key', name: SCREENS.SETTINGS.AGENTS.EDIT_NAME, params: {accountID: String(optimisticAccountID)}},
                         ],
                     },

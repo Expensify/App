@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 
 import useChatWithAgent from '@hooks/useChatWithAgent';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,16 +32,16 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>;
+type DynamicEditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>;
 
-function EditAgentPage({route}: EditAgentPageProps) {
+function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
@@ -57,7 +58,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const shouldShowNotFoundPage = isLoadingApp === false && isOnyxLoaded && !agent && !personalDetails;
 
     const agentLogin = personalDetails?.login ?? '';
-    const handleBackPress = () => Navigation.goBack();
+    const handleBackPress = () => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT.path));
     const handleEditAvatarPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.getRoute(accountID));
     const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(accountID));
     const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID));
@@ -111,7 +112,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
 
     return (
         <ScreenWrapper
-            testID={EditAgentPage.displayName}
+            testID={DynamicEditAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
         >
@@ -187,6 +188,6 @@ function EditAgentPage({route}: EditAgentPageProps) {
     );
 }
 
-EditAgentPage.displayName = 'EditAgentPage';
+DynamicEditAgentPage.displayName = 'DynamicEditAgentPage';
 
-export default EditAgentPage;
+export default DynamicEditAgentPage;

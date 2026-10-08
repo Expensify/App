@@ -143,7 +143,7 @@ const SCREENS = {
             NEW: 'Settings_Agents_New',
             ADD: 'Settings_Agents_Add',
             ADD_AVATAR: 'Settings_Agents_Add_Avatar',
-            EDIT: 'Settings_Agents_Edit',
+            DYNAMIC_EDIT: 'Dynamic_Settings_Agents_Edit',
             EDIT_NAME: 'Settings_Agents_Edit_Name',
             EDIT_PROMPT: 'Settings_Agents_Edit_Prompt',
             EDIT_AVATAR: 'Settings_Agents_Edit_Avatar',

@@ -8,7 +8,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
-import EditAgentPage from '@pages/settings/Agents/EditAgentPage';
+import DynamicEditAgentPage from '@pages/settings/Agents/DynamicEditAgentPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -148,13 +148,13 @@ const mockUseOnyx = jest.mocked(useOnyx);
 
 const TEST_ACCOUNT_ID = 12345;
 
-type EditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['route'];
-type EditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['navigation'];
+type DynamicEditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>['route'];
+type DynamicEditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>['navigation'];
 
-const mockRoute = createMock<EditAgentPageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
-const mockNavigation = createMock<EditAgentPageNavigation>({});
+const mockRoute = createMock<DynamicEditAgentPageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
+const mockNavigation = createMock<DynamicEditAgentPageNavigation>({});
 
-describe('EditAgentPage', () => {
+describe('DynamicEditAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseOnyx.mockImplementation((key, options) => {
@@ -177,7 +177,7 @@ describe('EditAgentPage', () => {
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -195,7 +195,7 @@ describe('EditAgentPage', () => {
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -206,7 +206,7 @@ describe('EditAgentPage', () => {
 
     it('renders delete agent menu item', () => {
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -224,7 +224,7 @@ describe('EditAgentPage', () => {
         });
 
         render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -248,7 +248,7 @@ describe('EditAgentPage', () => {
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -266,7 +266,7 @@ describe('EditAgentPage', () => {
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -284,7 +284,7 @@ describe('EditAgentPage', () => {
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -299,7 +299,7 @@ describe('EditAgentPage', () => {
         mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,

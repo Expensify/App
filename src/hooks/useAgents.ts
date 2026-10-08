@@ -6,11 +6,12 @@ import {AgentRowData, AgentsTableColumnKey} from '@components/Tables/AgentsTable
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent, openAgentsPage} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {getLatestError} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import {useEffect, useRef, useState} from 'react';
@@ -82,7 +83,7 @@ function useAgents() {
                 pendingAction,
                 errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
                 disabled: isPendingDeletion,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)),
+                action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID))),
                 onChatPress: () => chatWithAgent(accountID),
                 onCopilotPress: () => switchToDelegator(details.login ?? ''),
                 dismissError: () => handleErrorClose(pendingAction, accountID),

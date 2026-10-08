@@ -2091,6 +2091,11 @@ const DYNAMIC_ROUTES = {
         },
         queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath'],
     },
+    AGENT_EDIT: {
+        path: ':accountID/edit',
+        getRoute: (accountID: number) => `${accountID}/edit` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -2626,10 +2631,6 @@ const ROUTES = {
         },
     },
     SETTINGS_AGENTS_ADD_AVATAR: 'settings/agents/new/custom/avatar',
-    SETTINGS_AGENTS_EDIT: {
-        route: 'settings/agents/:accountID/edit',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit` as const,
-    },
     SETTINGS_AGENTS_EDIT_NAME: {
         route: 'settings/agents/:accountID/edit/name',
         getRoute: (accountID: number) => `settings/agents/${accountID}/edit/name` as const,
