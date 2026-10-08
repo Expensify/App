@@ -47,6 +47,9 @@ const cursor: CursorStyles = {
     cursorEwResize: {
         cursor: 'ew-resize' as ViewStyle['cursor'],
     },
+    cursorColResize: {
+        cursor: 'col-resize' as ViewStyle['cursor'],
+    },
     cursorNsResize: {
         cursor: 'ns-resize' as ViewStyle['cursor'],
     },

@@ -9358,9 +9358,6 @@ const CONST = {
 
             /** Width of the line shown while a column's edge is dragged. */
             INDICATOR_WIDTH: 2,
-
-            /** Shown on the handle, and on the whole page mid-drag so it doesn't flicker once the pointer outruns the handle. */
-            CURSOR: 'col-resize',
         },
     },
 
