@@ -66,6 +66,9 @@ Auto Sync performs daily updates to your coding and automatically exports report
 - **Non-Reimbursable expenses**: Export occurs immediately after final approval.  
 - **Reimbursable expenses**: Export occurs when the report is reimbursed or marked as reimbursed.  
 
+## Currency Conversion Fee Account (FFA)
+If your company covers currency conversion costs on cross-border reimbursements, select the account in **Currency Conversion Fee Account**. Expensify adds the conversion cost to the Payable Invoice as a separate line coded to this account.
+
 ## Export Tax as Non-Billable  
 Decide whether tax amounts should be billed to clients when exporting billable expenses.  
 
