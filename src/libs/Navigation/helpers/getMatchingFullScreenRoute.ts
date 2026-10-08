@@ -1,3 +1,8 @@
+/**
+ * Finds the full screen route to render under a given route.
+ * Split from getAdaptedStateFromPath so linkTo and Navigation can import it without pulling in ReportUtils.
+ * Do not import ReportUtils or anything that imports Navigation here, or Navigation rejoins the import/no-cycle graph.
+ */
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {
     RHP_TO_DOMAIN,
