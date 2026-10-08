@@ -954,6 +954,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Αυτή η συνομιλία δεν είναι πλέον ενεργή επειδή <strong>εσείς</strong> δεν είστε πλέον μέλος του χώρου εργασίας ${policyName}.`
                 : `Αυτή η συνομιλία δεν είναι πλέον ενεργή επειδή ο/η ${displayName} δεν είναι πλέον μέλος του χώρου εργασίας ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Αυτή η συνομιλία δεν είναι πλέον ενεργή, επειδή το ${policyName} δεν είναι πλέον ενεργό χώρο εργασίας.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}) => `Αυτή η συνομιλία δεν είναι πλέον ενεργή, επειδή το ${policyName} είναι αρχειοθετημένος χώρος εργασίας.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}) =>
             `Αυτή η συνομιλία δεν είναι πλέον ενεργή, επειδή το ${policyName} δεν είναι πλέον ενεργό χώρο εργασίας.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Αυτή η κράτηση έχει αρχειοθετηθεί.',
@@ -2103,6 +2104,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Δεν απαιτείται καμία περαιτέρω ενέργεια!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Αλλάξτε τον χώρο εργασίας της αναφοράς για περαιτέρω ενέργειες.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -4907,6 +4914,9 @@ ${amount} για ${merchant} - ${date}`,
                 'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας; Θα καταργηθεί η ανάθεση όλων των πιστωτικών καρτών από τους χρήστες και θα διαγραφούν οριστικά όσες δαπάνες καρτών δεν έχουν υποβληθεί.',
             archiveWithExpensifyCardsConfirmation:
                 'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας; Όλα τα όρια των Expensify Card θα οριστούν σε $0 και κάθε νέα απόπειρα αγοράς θα απορρίπτεται αυτόματα.',
+            unarchive: 'Αναίρεση αρχειοθέτησης',
+            unarchiveWorkspace: 'Αναίρεση αρχειοθέτησης χώρου εργασίας',
+            unarchiveConfirmation: 'Είστε βέβαιοι ότι θέλετε να αναιρέσετε την αρχειοθέτηση αυτού του χώρου εργασίας;',
             deleteWorkspaceTitle: (workspaceName: string) => `Διαγραφή του ${workspaceName};`,
             deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας;',
             deleteWithCardsConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον χώρο εργασίας; Θα αφαιρεθούν όλες οι ροές καρτών και οι ανατεθειμένες κάρτες.',
@@ -7467,6 +7477,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7695,6 +7707,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Γίνεται συγχρονισμός δεδομένων Campfire';
                         case 'campfireSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Φόρτωση δεδομένων';
                         case 'campfireSyncPayments':
@@ -7752,6 +7766,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Η συνεχής συμφωνία είναι ρυθμισμένη ανά ροή καρτών. Επιλέξτε μια ροή για να αλλάξετε ποια ρυθμίζετε.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
@@ -9115,6 +9130,11 @@ ${reportName}`,
             emptySubtitle: 'Οι προμηθευτές θα εμφανιστούν εδώ μετά την ολοκλήρωση του συγχρονισμού λογιστικής σας.',
             findVendor: 'Εύρεση προμηθευτή',
             managedInAccountingSoftware: 'Οι προμηθευτές διαχειρίζονται στο',
+            enableVendor: 'Ενεργοποίηση προμηθευτή',
+            enableVendors: 'Ενεργοποίηση προμηθευτών',
+            disableVendor: 'Απενεργοποίηση προμηθευτή',
+            disableVendors: 'Απενεργοποίηση προμηθευτών',
+            updateFailureMessage: 'Προέκυψε σφάλμα κατά την ενημέρωση του προμηθευτή, δοκιμάστε ξανά',
         },
         campfire: {
             campfireSetup: 'Ρύθμιση campfire',

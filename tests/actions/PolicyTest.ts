@@ -2256,6 +2256,65 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('unarchivePolicy', () => {
+        const archivedDate = '2026-08-01 00:00:00';
+
+        it('should call UnarchivePolicy with the policyID', async () => {
+            // Given an archived workspace
+            const policy = {...createRandomPolicy(0), archivedDate};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            // When unarchiving the workspace
+            Policy.unarchivePolicy({policyID: policy.id, policyName: policy.name, archivedDate});
+
+            // Then the UnarchivePolicy command should be called with only the policyID, since the backend does the rest
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UNARCHIVE_POLICY, {policyID: policy.id}, expect.anything());
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should clear archivedDate optimistically and succeed', async () => {
+            // Given an archived workspace
+            const policy = {...createRandomPolicy(0), archivedDate};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When unarchiving the workspace
+            Policy.unarchivePolicy({policyID: policy.id, policyName: policy.name, archivedDate});
+            await waitForBatchedUpdates();
+
+            // Then archivedDate should be cleared right away so the workspace shows as active and editable, with a pending update
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.archivedDate).toBeUndefined();
+            expect(updatedPolicy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the request succeeds
+            await mockFetch.resume();
+
+            // Then the pending action should be cleared and the workspace stays unarchived
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingAction).toBeUndefined();
+            expect(updatedPolicy?.archivedDate).toBeUndefined();
+        });
+
+        it('should restore archivedDate when the request fails', async () => {
+            // Given an archived workspace
+            const policy = {...createRandomPolicy(0), archivedDate};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When unarchiving the workspace fails
+            mockFetch.fail();
+            Policy.unarchivePolicy({policyID: policy.id, policyName: policy.name, archivedDate});
+            await waitForBatchedUpdates();
+
+            // Then the workspace should be archived again with its original archivedDate, and an error shown to the user
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.archivedDate).toBe(archivedDate);
+            expect(updatedPolicy?.pendingAction).toBeUndefined();
+            expect(updatedPolicy?.errors).not.toBeUndefined();
+        });
+    });
+
     describe('updateGeneralSettings', () => {
         const NEW_NAME = 'New Workspace Name';
         const NEW_CURRENCY = CONST.CURRENCY.EUR;
