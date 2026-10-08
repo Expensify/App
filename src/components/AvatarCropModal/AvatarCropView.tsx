@@ -21,11 +21,11 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {LayoutChangeEvent} from 'react-native';
-import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+import type {PanGestureActiveEvent} from 'react-native-gesture-handler';
 
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
+import {GestureHandlerRootView, usePanGesture} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
 import {interpolate, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
@@ -189,11 +189,13 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
      */
-    const panGesture = Gesture.Pan().onChange((event) => {
-        const newX = translateX.get() + event.changeX;
-        const newY = translateY.get() + event.changeY;
+    const panGesture = usePanGesture({
+        onUpdate: (event) => {
+            const newX = translateX.get() + event.changeX;
+            const newY = translateY.get() + event.changeY;
 
-        updateImageOffset(newX, newY);
+            updateImageOffset(newX, newY);
+        },
     });
 
     // This effect is needed to recalculate the maximum offset values
@@ -230,7 +232,7 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
 
             isPressableEnabled.set(false);
         },
-        onChange: (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
+        onUpdate: (event: PanGestureActiveEvent) => {
             'worklet';
 
             const newSliderValue = clamp(translateSlider.get() + event.changeX, [0, sliderContainerSize]);
