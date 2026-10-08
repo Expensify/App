@@ -30,6 +30,7 @@ import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, MarketingAttribution, Session} from '@src/types/onyx';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -1455,21 +1456,37 @@ describe('Session', () => {
     describe('signUpUser', () => {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         const googleAdAttribution: MarketingAttribution = {utm_source: 'google', device: 'm', network: 'g', gclid: 'testGclid', wbraid: 'testWbraid'};
+        const storedAttribution: StoredMarketingAttribution = {...googleAdAttribution, capturedAt: Date.now()};
 
         test('sends the captured marketing attribution and clears it on success', async () => {
             // Given marketing attribution captured from a Google ad
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
             // When the user signs up with it
-            SessionUtil.signUpUser('new.user@example.com', CONST.LOCALES.EN, undefined, googleAdAttribution);
+            SessionUtil.signUpUser('new.user@example.com', CONST.LOCALES.EN, undefined, storedAttribution);
             await waitForBatchedUpdates();
 
             // Then the attribution is sent with the request params
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SIGN_UP_USER, expect.objectContaining({email: 'new.user@example.com', ...googleAdAttribution}), expect.anything());
+            expect(writeSpy.mock.calls.at(0)?.[1]).not.toHaveProperty('capturedAt');
 
             // And the success data clears it so it isn't sent again
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
             expect(onyxData?.successData).toContainEqual({onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.MARKETING_ATTRIBUTION, value: null});
+            writeSpy.mockRestore();
+        });
+
+        test('sends no attribution params when the stored attribution is expired or has no capture time', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            SessionUtil.signUpUser('a@example.com', CONST.LOCALES.EN, undefined, {...googleAdAttribution, capturedAt: Date.now() - 91 * 24 * 60 * 60 * 1000});
+            SessionUtil.signUpUser('b@example.com', CONST.LOCALES.EN, undefined, googleAdAttribution);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledTimes(2);
+            for (const [, params] of writeSpy.mock.calls) {
+                expect(Object.keys(params).sort()).toEqual(['deviceInfo', 'email', 'preferredLocale']);
+            }
             writeSpy.mockRestore();
         });
 
@@ -1500,11 +1517,12 @@ describe('Session', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
             // When the user signs in with the third party, which can create a new account
-            beginSignIn('testToken', CONST.LOCALES.EN, googleAdAttribution);
+            beginSignIn('testToken', CONST.LOCALES.EN, {...googleAdAttribution, capturedAt: Date.now()});
             await waitForBatchedUpdates();
 
             // Then the attribution is sent with the request params
             expect(writeSpy).toHaveBeenCalledWith(command, expect.objectContaining({[tokenParam]: 'testToken', ...googleAdAttribution}), expect.anything());
+            expect(writeSpy.mock.calls.at(0)?.[1]).not.toHaveProperty('capturedAt');
 
             // And the success data clears it, while keeping the usual sign in success data
             const onyxData = writeSpy.mock.calls.at(0)?.[2];

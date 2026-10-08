@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
 import type Locale from '@src/types/onyx/Locale';
-import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 
 import type {NativeConfig} from 'react-native-config';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -55,7 +55,7 @@ const config = {
  * Apple Sign In success and failure listeners.
  */
 
-const successListener = (event: AppleIDSignInOnSuccessEvent, preferredLocale?: Locale, marketingAttribution?: OnyxEntry<MarketingAttribution>) => {
+const successListener = (event: AppleIDSignInOnSuccessEvent, preferredLocale?: Locale, marketingAttribution?: OnyxEntry<StoredMarketingAttribution>) => {
     const token = event.detail.authorization.id_token;
     beginAppleSignIn(token, preferredLocale, marketingAttribution);
 };

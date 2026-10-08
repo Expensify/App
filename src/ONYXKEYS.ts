@@ -1654,7 +1654,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
-    [ONYXKEYS.MARKETING_ATTRIBUTION]: OnyxTypes.MarketingAttribution;
+    [ONYXKEYS.MARKETING_ATTRIBUTION]: OnyxTypes.StoredMarketingAttribution;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;

@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/modules/google';
 import type Locale from '@src/types/onyx/Locale';
-import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -27,7 +27,7 @@ type GoogleSignInProps = {
 const mainId = 'google-sign-in-main';
 const desktopId = 'google-sign-in-desktop';
 
-const signIn = (response: Response, preferredLocale?: Locale, marketingAttribution?: OnyxEntry<MarketingAttribution>) => {
+const signIn = (response: Response, preferredLocale?: Locale, marketingAttribution?: OnyxEntry<StoredMarketingAttribution>) => {
     beginGoogleSignIn(response.credential, preferredLocale, marketingAttribution);
 };
 

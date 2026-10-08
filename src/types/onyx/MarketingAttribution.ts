@@ -36,4 +36,11 @@ type MarketingAttribution = {
     wbraid?: string;
 };
 
+/** The attribution as persisted in Onyx. The capture time is only used locally to expire it and is never sent to the server. */
+type StoredMarketingAttribution = MarketingAttribution & {
+    /** When the attribution was captured from the landing URL, in ms since epoch */
+    capturedAt?: number;
+};
+
 export default MarketingAttribution;
+export type {StoredMarketingAttribution};

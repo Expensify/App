@@ -1,3 +1,4 @@
+import {getFreshMarketingAttribution} from '@libs/actions/MarketingAttribution';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {
@@ -73,7 +74,7 @@ import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
-import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
@@ -666,7 +667,7 @@ function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
  * Creates an account for the new user and signs them into the application with the newly created account.
  * The marketing attribution captured from the landing URL is sent with the request and cleared once signup succeeds.
  */
-function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean, marketingAttribution?: OnyxEntry<MarketingAttribution>) {
+function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -708,7 +709,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo, ...marketingAttribution};
+        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
         if (hasSMSMarketingConsent !== undefined) {
             params.hasSMSMarketingConsent = hasSMSMarketingConsent;
         }
@@ -887,11 +888,11 @@ function getThirdPartySignInOnyxData(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeo
  * exists for that email address and signs the user in if so.
  * The marketing attribution captured from the landing URL is sent along, since this can create a new account.
  */
-function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: Locale | undefined, marketingAttribution?: OnyxEntry<MarketingAttribution>) {
+function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: Locale | undefined, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo, ...marketingAttribution};
+        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, onyxData);
     });
 }
@@ -901,11 +902,11 @@ function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: L
  * passes the token on to the Expensify API to sign in with.
  * The marketing attribution captured from the landing URL is sent along, since this can create a new account.
  */
-function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undefined, marketingAttribution?: OnyxEntry<MarketingAttribution>) {
+function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undefined, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo, ...marketingAttribution};
+        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, onyxData);
     });
 }

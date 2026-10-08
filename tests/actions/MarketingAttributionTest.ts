@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useSaveMarketingAttribution from '@hooks/useSaveMarketingAttribution';
 
-import {captureMarketingAttributionFromURL, saveMarketingAttribution} from '@libs/actions/MarketingAttribution';
+import {captureMarketingAttributionFromURL, getFreshMarketingAttribution, saveMarketingAttribution} from '@libs/actions/MarketingAttribution';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,6 +16,8 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const anyNumber: unknown = expect.any(Number);
 
 function setLandingURL(search: string) {
     window.history.replaceState({}, '', `/${search}`);
@@ -108,7 +110,7 @@ describe('MarketingAttribution', () => {
             await waitForBatchedUpdates();
 
             // Then only the Reddit values are kept, so values from the two clicks are not combined
-            expect(await getStoredAttribution()).toEqual({utm_source: 'reddit', utm_campaign: 'spring'});
+            expect(await getStoredAttribution()).toEqual({utm_source: 'reddit', utm_campaign: 'spring', capturedAt: anyNumber});
         });
 
         it('keeps the stored attribution when nothing was captured', async () => {
@@ -123,6 +125,15 @@ describe('MarketingAttribution', () => {
             expect(await getStoredAttribution()).toEqual({utm_source: 'google', gclid: 'testGclid'});
         });
 
+        it('stamps the capture time on the saved attribution', async () => {
+            const before = Date.now();
+            saveMarketingAttribution({utm_source: 'google'}, false);
+            await waitForBatchedUpdates();
+
+            const stored = await getStoredAttribution();
+            expect(stored?.capturedAt).toBeGreaterThanOrEqual(before);
+        });
+
         it('does nothing when the user has a session', async () => {
             // When attribution is saved for a signed-in user
             saveMarketingAttribution({utm_source: 'google'}, true);
@@ -130,6 +141,42 @@ describe('MarketingAttribution', () => {
 
             // Then the key stays unset
             expect(await getStoredAttribution()).toBeUndefined();
+        });
+    });
+
+    describe('getFreshMarketingAttribution', () => {
+        const day = 24 * 60 * 60 * 1000;
+
+        it('returns fresh attribution without the capture time', async () => {
+            // Given attribution captured 89 days ago
+            await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, {utm_source: 'google', gclid: 'testGclid', capturedAt: Date.now() - 89 * day});
+
+            // Then it is returned for the request, without capturedAt, and stays stored
+            expect(getFreshMarketingAttribution(await getStoredAttribution())).toEqual({utm_source: 'google', gclid: 'testGclid'});
+            await waitForBatchedUpdates();
+            expect(await getStoredAttribution()).toBeDefined();
+        });
+
+        it('ignores and clears attribution older than 90 days', async () => {
+            // Given attribution captured 91 days ago
+            await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, {utm_source: 'google', gclid: 'testGclid', capturedAt: Date.now() - 91 * day});
+
+            // Then nothing is returned and the key is cleared
+            expect(getFreshMarketingAttribution(await getStoredAttribution())).toBeUndefined();
+            await waitForBatchedUpdates();
+            expect(await getStoredAttribution()).toBeUndefined();
+        });
+
+        it('treats legacy attribution stored without a capture time as expired', async () => {
+            await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, {utm_source: 'google', gclid: 'testGclid'});
+
+            expect(getFreshMarketingAttribution(await getStoredAttribution())).toBeUndefined();
+            await waitForBatchedUpdates();
+            expect(await getStoredAttribution()).toBeUndefined();
+        });
+
+        it('returns undefined when nothing is stored', () => {
+            expect(getFreshMarketingAttribution(undefined)).toBeUndefined();
         });
     });
 
@@ -143,7 +190,7 @@ describe('MarketingAttribution', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the attribution is written
-            expect(await getStoredAttribution()).toEqual({utm_source: 'google', utm_medium: 'cpc'});
+            expect(await getStoredAttribution()).toEqual({utm_source: 'google', utm_medium: 'cpc', capturedAt: anyNumber});
         });
 
         it('does not store the attribution when the user already has a session', async () => {
@@ -169,7 +216,7 @@ describe('MarketingAttribution', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the attribution is written, since the anonymous user can still sign up from the room
-            expect(await getStoredAttribution()).toEqual({gclid: 'testGclid', utm_source: 'google'});
+            expect(await getStoredAttribution()).toEqual({gclid: 'testGclid', utm_source: 'google', capturedAt: anyNumber});
         });
 
         it('reads the URL on the first render only', async () => {
@@ -181,7 +228,7 @@ describe('MarketingAttribution', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the attribution from the landing URL is stored
-            expect(await getStoredAttribution()).toEqual({utm_source: 'google'});
+            expect(await getStoredAttribution()).toEqual({utm_source: 'google', capturedAt: anyNumber});
         });
 
         it('saves the attribution only once, even after the session changes', async () => {
@@ -213,7 +260,7 @@ describe('MarketingAttribution', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the attribution is stored
-            expect(await getStoredAttribution()).toEqual({utm_source: 'google', gclid: 'testGclid'});
+            expect(await getStoredAttribution()).toEqual({utm_source: 'google', gclid: 'testGclid', capturedAt: anyNumber});
         });
     });
 });

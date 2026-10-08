@@ -1,7 +1,9 @@
 import {getSearchParamFromUrl} from '@libs/Url';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 
 import Onyx from 'react-native-onyx';
 
@@ -45,7 +47,27 @@ function saveMarketingAttribution(captured: MarketingAttribution | undefined, ha
         return;
     }
 
-    Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, captured);
+    Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, {...captured, capturedAt: Date.now()});
 }
 
-export {captureMarketingAttributionFromURL, saveMarketingAttribution};
+/**
+ * Returns the stored attribution to send with a signup request, without the local capture time.
+ * Google Ads only accepts click ID conversions for 90 days, so attribution older than that is cleared and ignored.
+ * Values stored without a capture time are treated as expired, because we can't tell how old they are and crediting a
+ * signup to a stale ad is worse than missing one.
+ */
+function getFreshMarketingAttribution(stored: StoredMarketingAttribution | undefined | null): MarketingAttribution | undefined {
+    if (!stored) {
+        return undefined;
+    }
+
+    const {capturedAt, ...attribution} = stored;
+    if (typeof capturedAt !== 'number' || Date.now() - capturedAt > CONST.MARKETING_ATTRIBUTION_MAX_AGE_MS) {
+        Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, null);
+        return undefined;
+    }
+
+    return Object.keys(attribution).length > 0 ? attribution : undefined;
+}
+
+export {captureMarketingAttributionFromURL, saveMarketingAttribution, getFreshMarketingAttribution};
