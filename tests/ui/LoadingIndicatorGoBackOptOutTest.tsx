@@ -67,6 +67,7 @@ jest.mock('@userActions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
     setAccountError: jest.fn(),
     handleExitToNavigation: jest.fn(),
+    isDelegateSession: jest.fn(() => false),
 }));
 
 jest.mock('@components/InitialURLContextProvider', () => ({
