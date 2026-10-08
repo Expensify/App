@@ -55,7 +55,7 @@ Purpose: Admins report not knowing where the Vendor field lives on an expense, a
 2. Select **Vendors**.
 3. Use **Find vendor** to search the list by name.
 
-Vendors are managed in Rillet, so the list is read-only in Expensify and refreshes when the connection syncs.
+Vendors are managed in Rillet, and the list refreshes when the connection syncs. To stop a vendor from appearing in the **Vendor** field on expenses, turn off its **Enabled** toggle.
 
 ## How to set a default company card vendor for Rillet
 
