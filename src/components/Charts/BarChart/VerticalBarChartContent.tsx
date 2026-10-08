@@ -1,6 +1,6 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import BAR_INNER_PADDING, {VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
+import ChartReveal from '@components/Charts/components/ChartReveal';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -33,14 +33,13 @@ import variables from '@styles/variables';
 
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
-import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {Bar, CartesianChart} from 'victory-native';
 
 import type {BarChartBodyProps} from './types';
 
-function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color, onBarPress, chartWidth}: BarChartBodyProps) {
+function VerticalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxisUnitPosition = 'left', color, onBarPress, chartWidth}: BarChartBodyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -214,75 +213,74 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: chartPaddingRight};
 
-    if (isLoading || !fontManager) {
-        return (
-            <View style={[styles.chartActivityIndicator, StyleUtils.getHeight(getCartesianChartHeight())]}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    }
+    const isChartLoading = isLoading || !fontManager;
 
-    if (data.length === 0) {
+    if (!isChartLoading && data.length === 0) {
         return null;
     }
 
     return (
-        <GestureDetector
-            gesture={customGestures}
-            touchAction="pan-y"
+        <ChartReveal
+            isLoading={isChartLoading}
+            loadingHeight={getCartesianChartHeight()}
         >
-            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
-                {!!chartSize && (
-                    <CartesianChart
-                        explicitSize={chartSize}
-                        xKey="x"
-                        padding={chartPadding}
-                        yKeys={['y']}
-                        domainPadding={domainPadding}
-                        onScaleChange={handleScaleChange}
-                        renderOutside={renderOutside}
-                        xAxis={{
-                            tickCount: data.length,
-                            lineWidth: VictoryTheme.axis.xLineWidth,
-                            // "outset" makes victory-native reserve 2 * yAxis.labelOffset below the plot for labels it
-                            // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
-                            labelPosition: 'inset',
-                        }}
-                        yAxis={[
-                            {
-                                tickCount: VictoryTheme.axis.tickCount,
-                                axisSide: 'right',
-                                lineWidth: 0,
-                                labelOffset: VictoryTheme.axis.labelGap,
-                                domain: yAxisDomain,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {({points, chartBounds, yScale, yTicks}) => (
-                            <>
-                                <ChartGridLines
-                                    yTicks={yTicks}
-                                    yScale={yScale}
-                                    chartBounds={chartBounds}
-                                    color={theme.border}
-                                />
-                                {points.y.map((point) => renderBar(point, chartBounds, points.y.length))}
-                            </>
-                        )}
-                    </CartesianChart>
-                )}
-                <ChartTooltipLayer
-                    matchedIndex={matchedIndex}
-                    isTooltipActive={isTooltipActive}
-                    data={data}
-                    formatValue={formatValue}
-                    chartWidth={chartWidth}
-                    initialTooltipPosition={initialTooltipPosition}
-                />
-            </Animated.View>
-        </GestureDetector>
+            <GestureDetector
+                gesture={customGestures}
+                touchAction="pan-y"
+            >
+                <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
+                    {!!chartSize && (
+                        <CartesianChart
+                            explicitSize={chartSize}
+                            xKey="x"
+                            padding={chartPadding}
+                            yKeys={['y']}
+                            domainPadding={domainPadding}
+                            onScaleChange={handleScaleChange}
+                            renderOutside={renderOutside}
+                            xAxis={{
+                                tickCount: data.length,
+                                lineWidth: VictoryTheme.axis.xLineWidth,
+                                // "outset" makes victory-native reserve 2 * yAxis.labelOffset below the plot for labels it
+                                // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
+                                labelPosition: 'inset',
+                            }}
+                            yAxis={[
+                                {
+                                    tickCount: VictoryTheme.axis.tickCount,
+                                    axisSide: 'right',
+                                    lineWidth: 0,
+                                    labelOffset: VictoryTheme.axis.labelGap,
+                                    domain: yAxisDomain,
+                                },
+                            ]}
+                            frame={{lineWidth: 0}}
+                            data={chartData}
+                        >
+                            {({points, chartBounds, yScale, yTicks}) => (
+                                <>
+                                    <ChartGridLines
+                                        yTicks={yTicks}
+                                        yScale={yScale}
+                                        chartBounds={chartBounds}
+                                        color={theme.border}
+                                    />
+                                    {points.y.map((point) => renderBar(point, chartBounds, points.y.length))}
+                                </>
+                            )}
+                        </CartesianChart>
+                    )}
+                    <ChartTooltipLayer
+                        matchedIndex={matchedIndex}
+                        isTooltipActive={isTooltipActive}
+                        data={data}
+                        formatValue={formatValue}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
+                </Animated.View>
+            </GestureDetector>
+        </ChartReveal>
     );
 }
 

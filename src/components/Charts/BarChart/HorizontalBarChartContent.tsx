@@ -1,5 +1,5 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import {HORIZONTAL_BAR_DOMAIN_PADDING, MIN_BAR_ROW_HEIGHT} from '@components/Charts/barChartConstants';
+import ChartReveal from '@components/Charts/components/ChartReveal';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
@@ -19,7 +19,6 @@ import type {NonUniformRRect, SkTypefaceFontProvider} from '@shopify/react-nativ
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import {Paragraph, Path, Skia} from '@shopify/react-native-skia';
-import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {CartesianChart} from 'victory-native';
@@ -149,7 +148,7 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
     });
 }
 
-function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress, chartWidth}: BarChartBodyProps) {
+function HorizontalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress, chartWidth}: BarChartBodyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -382,62 +381,61 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         });
     };
 
-    if (isLoading || !fontManager) {
-        return (
-            <View style={[styles.chartActivityIndicator, StyleUtils.getHeight(minChartHeight)]}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    }
+    const isChartLoading = isLoading || !fontManager;
 
-    if (data.length === 0) {
+    if (!isChartLoading && data.length === 0) {
         return null;
     }
 
     return (
-        <GestureDetector
-            gesture={customGestures}
-            touchAction="pan-y"
+        <ChartReveal
+            isLoading={isChartLoading}
+            loadingHeight={minChartHeight}
         >
-            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
-                {!!chartSize && (
-                    <CartesianChart
-                        explicitSize={chartSize}
-                        xKey="x"
-                        padding={chartPadding}
-                        yKeys={['y']}
-                        domain={valueDomain ? {x: valueDomain} : undefined}
-                        domainPadding={HORIZONTAL_BAR_DOMAIN_PADDING}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        onScaleChange={handleScaleChange}
-                        renderOutside={renderOutside}
-                        xAxis={{
-                            tickCount: VictoryTheme.axis.tickCount,
-                            lineWidth: VictoryTheme.axis.yLineWidth,
-                            lineColor: theme.border,
-                        }}
-                        yAxis={[
-                            {
-                                tickCount: data.length,
-                                lineWidth: 0,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {renderBars}
-                    </CartesianChart>
-                )}
-                <ChartTooltipLayer
-                    matchedIndex={matchedIndex}
-                    isTooltipActive={isTooltipActive}
-                    data={data}
-                    formatValue={formatValue}
-                    chartWidth={chartWidth}
-                    initialTooltipPosition={initialTooltipPosition}
-                />
-            </Animated.View>
-        </GestureDetector>
+            <GestureDetector
+                gesture={customGestures}
+                touchAction="pan-y"
+            >
+                <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
+                    {!!chartSize && (
+                        <CartesianChart
+                            explicitSize={chartSize}
+                            xKey="x"
+                            padding={chartPadding}
+                            yKeys={['y']}
+                            domain={valueDomain ? {x: valueDomain} : undefined}
+                            domainPadding={HORIZONTAL_BAR_DOMAIN_PADDING}
+                            onChartBoundsChange={handleChartBoundsChange}
+                            onScaleChange={handleScaleChange}
+                            renderOutside={renderOutside}
+                            xAxis={{
+                                tickCount: VictoryTheme.axis.tickCount,
+                                lineWidth: VictoryTheme.axis.yLineWidth,
+                                lineColor: theme.border,
+                            }}
+                            yAxis={[
+                                {
+                                    tickCount: data.length,
+                                    lineWidth: 0,
+                                },
+                            ]}
+                            frame={{lineWidth: 0}}
+                            data={chartData}
+                        >
+                            {renderBars}
+                        </CartesianChart>
+                    )}
+                    <ChartTooltipLayer
+                        matchedIndex={matchedIndex}
+                        isTooltipActive={isTooltipActive}
+                        data={data}
+                        formatValue={formatValue}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
+                </Animated.View>
+            </GestureDetector>
+        </ChartReveal>
     );
 }
 

@@ -2,12 +2,11 @@ import {afterAll, beforeAll, describe, expect, test} from 'bun:test';
 
 import type {ChartBounds} from 'victory-native';
 
-import assertBuildSuccess from '@server/libs/assertBuildSuccess';
-import createRnStubPlugin from '@server/plugins/rnStubPlugin';
+import bundleWithRnStubs from '@server/libs/bundleWithRnStubs';
 import {spawnSync} from 'node:child_process';
 import {mkdtempSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {basename, join, resolve} from 'node:path';
+import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 import {packageRoot} from './testUtils';
@@ -40,25 +39,11 @@ let probeOutput: ProbeOutput;
 
 describe('cartesian plot bounds', () => {
     beforeAll(async () => {
-        const buildResult = await Bun.build({
-            entrypoints: [fileURLToPath(import.meta.resolve('./probes/plotBoundsProbe.tsx'))],
-            target: 'bun',
-            packages: 'bundle',
-            conditions: ['react-native'],
-            tsconfig: join(packageRoot, 'tsconfig.json'),
-            plugins: [createRnStubPlugin(resolve(packageRoot, '../stubs'))],
+        await bundleWithRnStubs({
+            packageRoot,
+            entrypoint: fileURLToPath(import.meta.resolve('./probes/plotBoundsProbe.tsx')),
+            outFile: bundlePath,
         });
-
-        assertBuildSuccess(buildResult, 'Failed to bundle the plot bounds probe');
-
-        if (buildResult.outputs.length === 0) {
-            throw new Error('Bundled plot bounds probe output is missing');
-        }
-
-        // The bundle loads CanvasKit's wasm from beside itself, so every output has to land in the run directory.
-        for (const output of buildResult.outputs) {
-            await Bun.write(output.kind === 'entry-point' ? bundlePath : join(runDir, basename(output.path)), output);
-        }
 
         const runResult = spawnSync(process.execPath, [bundlePath], {
             cwd: resolve(packageRoot, '../..'),

@@ -1,4 +1,4 @@
-import ActivityIndicator from '@components/ActivityIndicator';
+import ChartReveal from '@components/Charts/components/ChartReveal';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
@@ -38,7 +38,7 @@ type PieChartContentProps = PieChartProps & {
     chartWidth: number;
 };
 
-function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, chartWidth}: PieChartContentProps) {
+function PieChartContent({data, isLoading = false, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, chartWidth}: PieChartContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -134,6 +134,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     // Combined gestures - Race allows both hover and tap to work independently
     const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
 
+    // The loading box reserves one row of this height in `legendFirstRowHeight`, so anything that changes the row's height has to be mirrored there.
     const renderLegendItem = (slice: PieSlice) => {
         return (
             <View
@@ -156,20 +157,15 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     // The legend container's top margin plus one line of its `textNormal` labels, which are taller than the legend dot.
     const legendFirstRowHeight = shouldShowLegend ? styles.pieChartLegendContainer.marginTop + variables.fontSizeNormalHeight : 0;
 
-    if (isLoading) {
-        return (
-            <View style={[styles.chartActivityIndicator, StyleUtils.getHeight(CHART_CONTENT_MIN_HEIGHT + legendFirstRowHeight)]}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    }
-
-    if (data.length === 0) {
+    if (!isLoading && data.length === 0) {
         return null;
     }
 
     return (
-        <>
+        <ChartReveal
+            isLoading={isLoading}
+            loadingHeight={CHART_CONTENT_MIN_HEIGHT + legendFirstRowHeight}
+        >
             <GestureDetector
                 gesture={combinedGesture}
                 touchAction="pan-y"
@@ -226,7 +222,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                 </Animated.View>
             </GestureDetector>
             {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>}
-        </>
+        </ChartReveal>
     );
 }
 
