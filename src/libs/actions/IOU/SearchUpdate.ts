@@ -1,6 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
+import {getTransactionDisplayAmount, isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchSuggestionUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
@@ -239,7 +239,8 @@ function getSearchOnyxUpdate({
             snapshotData[groupKey] = {
                 accountID: fromAccountID,
                 count: (existingGroup?.count ?? 0) + 1,
-                total: (existingGroup?.total ?? 0) + (transaction.amount ?? 0),
+                // Group totals use the displayed sign, while expense report transactions are stored with the opposite sign
+                total: (existingGroup?.total ?? 0) + getTransactionDisplayAmount(transaction, iouReport, policy),
                 currency: existingGroup?.currency ?? transaction.currency ?? CONST.CURRENCY.USD,
             };
         }
