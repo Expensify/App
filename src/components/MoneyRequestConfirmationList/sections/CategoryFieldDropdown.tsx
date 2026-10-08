@@ -2,7 +2,6 @@ import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal'
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
@@ -10,7 +9,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {canCreateCategoryInSitu} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +30,9 @@ type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
 
     /** Category the expense already holds, so the list can mark it */
     selectedCategory: string;
+
+    /** Whether the user can add a category to the workspace from the list */
+    canAddCategory: boolean;
 };
 
 /**
@@ -39,9 +40,8 @@ type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
  * opened, keeping its Onyx subscriptions off the form's first render, and saves through the same hook the
  * full-page selector uses so both leave the expense in the same state.
  */
-function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
-    const {reportID, isEditingSplitBill, action} = useConfirmationFields();
-    const currentUserLogin = useCurrentUserPersonalDetails().login;
+function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
+    const {reportID, isEditingSplitBill, action, iouType} = useConfirmationFields();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -61,7 +61,7 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose
     const openAddCategory = () => {
         onClose();
         TransitionTracker.runAfterTransitions({
-            callback: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path)),
+            callback: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute({action, iouType, transactionID, reportID}))),
             waitForUpcomingTransition: true,
         });
     };
@@ -79,7 +79,8 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, onClose
             policyID={policy?.id}
             selectedCategory={selectedCategory}
             onSelected={handleSelected}
-            onAddCategory={canCreateCategoryInSitu(policy, currentUserLogin) ? openAddCategory : undefined}
+            onAddCategory={canAddCategory ? openAddCategory : undefined}
+            addCategorySentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ADD_CATEGORY_BUTTON}
         />
     );
 }

@@ -43,12 +43,12 @@ describe('CategoryPickerModal', () => {
         // Given a user who can add categories to the workspace, as the full-page selector's "+" allows
         const onAddCategory = jest.fn();
         renderModal(onAddCategory);
+        expect(screen.getByText('common.category')).toBeOnTheScreen();
 
         // When they press the add button in the pop-over's header
         fireEvent.press(screen.getByLabelText('workspace.categories.addCategory'));
 
         // Then the pop-over hands over to the add-category flow, so the pop-over offers the same action the full page does
-        expect(screen.getByText('common.category')).toBeOnTheScreen();
         expect(onAddCategory).toHaveBeenCalledTimes(1);
     });
 

@@ -59,6 +59,9 @@ type CategoryPickerModalProps = {
     /** Shows a header with an add button, for users who can add a category to the workspace */
     onAddCategory?: () => void;
 
+    /** Sentry label for the add button, so each caller's presses are attributed to it */
+    addCategorySentryLabel?: string;
+
     /** Whether the pop-over may flip to the other side of the anchor when it overflows. It shifts by a whole pop-over height, so a caller that already picked the side turns this off. */
     shouldSwitchPositionIfOverflow?: boolean;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
@@ -77,6 +80,7 @@ function CategoryPickerModal({
     shouldFitContentHeight = false,
     shouldSwitchPositionIfOverflow = true,
     onAddCategory,
+    addCategorySentryLabel,
 }: CategoryPickerModalProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -136,7 +140,8 @@ function CategoryPickerModal({
                                 accessibilityLabel={translate('workspace.categories.addCategory')}
                                 role={CONST.ROLE.BUTTON}
                                 onPress={onAddCategory}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ADD_CATEGORY_BUTTON}
+                                style={styles.touchableButtonImage}
+                                sentryLabel={addCategorySentryLabel}
                             >
                                 <Icon
                                     src={icons.Plus}

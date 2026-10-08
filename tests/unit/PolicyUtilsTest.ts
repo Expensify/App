@@ -459,6 +459,15 @@ describe('PolicyUtils', () => {
             // Then it cannot, because a new category would have nowhere to show
             expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN, false))).toBe(false);
         });
+
+        it('does not offer to add a category when the workspace syncs with an accounting integration', () => {
+            // Given an admin of a workspace whose categories come from an accounting integration
+            const policy = {...categoriesPolicy(CONST.POLICY.ROLE.ADMIN), connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}})};
+
+            // When we check whether the category picker can offer to add one
+            // Then it cannot, because new categories have to be created in the integration
+            expect(canCreateCategoryInSitu(policy)).toBe(false);
+        });
     });
 
     describe('isArchivedPolicy', () => {

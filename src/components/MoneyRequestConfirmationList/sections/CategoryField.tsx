@@ -1,6 +1,7 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,6 +13,9 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {canCreateCategoryInSitu} from '@libs/PolicyUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -67,6 +71,7 @@ function CategoryField({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
+    const currentUserLogin = useCurrentUserPersonalDetails().login;
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
     const [hasEnabledCategories = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policy?.id)}`, {selector: hasEnabledCategoriesSelector});
@@ -155,6 +160,7 @@ function CategoryField({
     const canUseAnchoredFieldDropdowns = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS);
     const shouldOpenInDropdown =
         canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && hasEnabledCategories && canSaveFromThisForm;
+    const canAddCategory = canCreateCategoryInSitu(policy, currentUserLogin);
 
     if (shouldUseDropdownRows) {
         return (
@@ -171,6 +177,7 @@ function CategoryField({
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
                 shouldOpenInDropdown={shouldOpenInDropdown && !isReadOnly && !didConfirm}
+                listHeaderHeight={canAddCategory ? variables.componentSizeNormal : 0}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (
                         <CategoryFieldDropdown
@@ -178,6 +185,7 @@ function CategoryField({
                             transactionID={transactionID}
                             policy={policy}
                             selectedCategory={selectedCategory}
+                            canAddCategory={canAddCategory}
                         />
                     )
                 }
