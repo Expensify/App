@@ -75,6 +75,7 @@ function buildContext(transaction: Transaction, receiptErrorOverrides: Partial<R
         transactionThreadReport: undefined,
         transactionViolations: undefined,
         currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@example.com'},
+        introSelected: undefined,
     };
 }
 
