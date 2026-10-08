@@ -19,6 +19,8 @@ Ask one of your company's Expensify workspace admins to send you an invite using
 
 Now, check your email inbox for the invite to join your company's workspace. If you don't see it, check your **Spam** and **Archive** folders.
 
+If you're signing up without an invite, select **Join my company workspace** when asked **What do you want to do today?** After you add and verify your work email, Expensify shows the workspaces at your company that you can join. Click **Join now**, or **Ask to join** if the workspace needs admin approval.
+
 ---
 
 # Step 1: Access Expensify
