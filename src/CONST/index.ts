@@ -3448,16 +3448,6 @@ const CONST = {
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
-    /**
-     * Values NewDot used to write for the Sage Intacct export date before it was aligned with the backend's REPORT_* names.
-     * A workspace configured back then still holds one of these, so reads go through `getSageIntacctExportDate` to
-     * resolve them onto the current value.
-     */
-    SAGE_INTACCT_EXPORT_DATE_LEGACY: {
-        EXPORTED: 'EXPORTED',
-        SUBMITTED: 'SUBMITTED',
-    },
-
     NETSUITE_CONFIG: {
         SUBSIDIARY: 'subsidiary',
         EXPORTER: 'exporter',

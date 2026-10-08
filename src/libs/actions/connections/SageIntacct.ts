@@ -12,7 +12,6 @@ import type {
     SageIntacctConnectionsConfig,
     SageIntacctDimension,
     SageIntacctExportConfig,
-    SageIntacctExportDate,
     SageIntacctMappingName,
     SageIntacctMappingType,
     SageIntacctMappingValue,
@@ -535,8 +534,7 @@ function updateSageIntacctExporter(policyID: string, exporter: string, oldExport
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORTER, parameters, {optimisticData, failureData, successData});
 }
 
-// `oldDate` is whatever is currently stored, so it can still be a legacy value, but `date` is always a current one — NewDot never writes the legacy names.
-function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>, oldDate?: SageIntacctExportDate) {
+function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>, oldDate?: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>) {
     const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE, date, oldDate);
     const parameters = {
         policyID,
