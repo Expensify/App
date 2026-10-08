@@ -82,10 +82,10 @@ If a report was already exported, Expensify shows a **Careful!** message before 
 
 ## How to fix a failed export to Campfire
 
-When an export fails, the report history shows **failed to export this report to Campfire** with the reason. The most common reasons are:
+When an export fails, the report history shows **failed to export this report to Campfire**, followed by the reason. Common errors include:
 
-- **No matching vendor** – Reimbursable expenses export as vendor bills to the Campfire vendor whose email matches the report submitter's email. Add the submitter as a vendor in Campfire with the same email, then export the report again.
-- **No company card account** – Company card expenses need a Campfire account. Choose a **Company card account** in your Campfire export settings, then export the report again.
+- **No Campfire vendor found for** – Reimbursable expenses export as vendor bills to the Campfire vendor whose email matches the report submitter’s email. Add the submitter as a vendor in Campfire using that email, then export the report again.
+- **Please select a Campfire company card account** – Company card expenses need a Campfire account. Choose a **Company card account** in your Campfire export settings, then export the report again.
 
 Learn how to [configure Campfire export settings](/articles/new-expensify/connections/campfire/Configure-Campfire).
 
@@ -104,3 +104,11 @@ When **Auto-sync** is on, Expensify exports reports automatically, so the button
 ## Can I export individual expenses to Campfire?
 
 No. You export whole reports to Campfire. Reimbursable expenses become vendor bills and company card expenses become journal entries.
+
+## Why does my report say “No Campfire vendor found for” when exporting to Campfire?
+
+Campfire couldn’t find a vendor with the same email address as the person who submitted the report. Add that person as a vendor in Campfire, make sure the email addresses match, and try the export again.
+
+## Why does my report say “Please select a Campfire company card account” when exporting to Campfire?
+
+A **Company card account** hasn’t been selected for Campfire exports. Choose one in your Campfire export settings, then try the export again.
