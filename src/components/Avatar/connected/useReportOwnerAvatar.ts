@@ -23,7 +23,7 @@ import {useSeededAccountIcons} from './useAccountIcons';
 function useReportOwnerAvatar(report: ReportAvatarFields | undefined): AvatarIcon {
     const parentReportActionID = report?.parentReportActionID;
     const delegateAccountIDSelector = (reportActions: OnyxEntry<ReportActions>) => getDelegateAccountIDFromReportAction(getReportActionByIDSelector(reportActions, parentReportActionID));
-    // An optimistic expense report links its workspace chat only through chatReportID.
+    // An optimistic expense report links its chat only through chatReportID, an optimistic task only through parentReportID.
     const parentChatReportID = getNonEmptyStringOnyxID(report?.chatReportID) ?? getNonEmptyStringOnyxID(report?.parentReportID);
     const [delegateAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`, {selector: delegateAccountIDSelector});
     const ownerAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;

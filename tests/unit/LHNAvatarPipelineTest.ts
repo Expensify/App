@@ -1,7 +1,7 @@
 import type {AvatarIcon} from '@components/Avatar/types';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, shouldReportShowSubscript} from '@libs/ReportUtils';
+import {getIcons, isChatThread, isExpenseRequest, isTripRoom, shouldReportShowSubscript} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,7 +93,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const isWorkspaceExpenseRequest = isExpenseRequest(report) && !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isWorkspaceExpenseRequest;
-    const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !isTaskReport(report);
+    const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
 
     const formatPhoneNumber = (s: string) => s;
     let icons: AvatarIcon[] = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived, undefined, conciergeReportID);
@@ -535,8 +535,7 @@ describe('LHN Avatar Pipeline', () => {
     });
 
     // ── Case 19: Policy Expense Chat + Task (no parent PEC in Onyx) ─────
-    // shouldReportShowSubscript excludes tasks from PEC path (lines 9987/9991),
-    // and isWorkspaceTaskReport needs a parent PEC in Onyx (which this report lacks).
+    // shouldReportShowSubscript never shows a subscript for a task.
     // Header also shows SINGLE for this edge case — both pipelines agree.
     it('Policy Expense Chat Task (no parent PEC) → single (matches header)', () => {
         const report = {
