@@ -132,6 +132,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -206,6 +208,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: undefined,
+                        initialReport: undefined,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -295,6 +299,11 @@ describe('actions/IOU/Hold', () => {
                     // When multiple transactions are put on hold
                     putTransactionsOnHold({
                         transactionsID: [transaction1.transactionID, transaction2.transactionID],
+                        allReports: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
+                        },
                         comment,
                         reportID: iouReport.reportID,
                         isOffline: false,
@@ -401,6 +410,11 @@ describe('actions/IOU/Hold', () => {
                     // When transactions are put on hold while offline (isOffline: true)
                     putTransactionsOnHold({
                         transactionsID: [transaction1.transactionID, transaction2.transactionID],
+                        allReports: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
+                        },
                         comment,
                         reportID: iouReport.reportID,
                         isOffline: true,
@@ -482,6 +496,11 @@ describe('actions/IOU/Hold', () => {
                     // When one of the two transaction IDs has no matching entry in the transactions list
                     putTransactionsOnHold({
                         transactionsID: [transaction1.transactionID, transaction2.transactionID],
+                        allReports: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread1.reportID}`]: transactionThread1,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread2.reportID}`]: transactionThread2,
+                        },
                         comment,
                         reportID: iouReport.reportID,
                         isOffline: false,
@@ -553,6 +572,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -573,6 +594,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: true,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -638,6 +661,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -650,18 +675,19 @@ describe('actions/IOU/Hold', () => {
                 })
                 .then(() => {
                     // When an expense is unhold
-                    unholdRequest(
-                        transaction.transactionID,
-                        transactionThread.reportID,
+                    unholdRequest({
+                        transactionID: transaction.transactionID,
+                        transaction,
+                        reportID: transactionThread.reportID,
                         policy,
-                        false,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
-                        false,
-                        undefined,
-                        undefined,
-                    );
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -735,6 +761,8 @@ describe('actions/IOU/Hold', () => {
                         transaction,
                         comment,
                         initialReportID: transactionThread.reportID,
+                        initialReport: transactionThread,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -745,39 +773,32 @@ describe('actions/IOU/Hold', () => {
                     });
                     return waitForBatchedUpdates();
                 })
-                .then(() => {
+                .then(async () => {
                     mockFetch.fail();
                     mockFetch.resume();
-                    unholdRequest(
-                        transaction.transactionID,
-                        transactionThread.reportID,
+                    const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                    unholdRequest({
+                        transactionID: transaction.transactionID,
+                        transaction: updatedTransaction,
+                        reportID: transactionThread.reportID,
                         policy,
-                        false,
-                        RORY_EMAIL,
-                        RORY_ACCOUNT_ID,
-                        [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
-                        false,
-                        undefined,
-                        undefined,
-                    );
+                        isOffline: false,
+                        currentUserLogin: RORY_EMAIL,
+                        currentUserAccountID: RORY_ACCOUNT_ID,
+                        transactionViolations: [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                        isTrackIntentUser: false,
+                        delegateAccountID: undefined,
+                        rules: undefined,
+                    });
                     return waitForBatchedUpdates();
                 })
-                .then(() => {
-                    return new Promise<void>((resolve) => {
-                        const connection = Onyx.connect({
-                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                            callback: (updatedTransaction) => {
-                                Onyx.disconnect(connection);
-                                expect(updatedTransaction?.pendingAction).toBeFalsy();
-                                expect(updatedTransaction?.comment?.hold).toBeTruthy();
-                                expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
-                                    Object.values(getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage') ?? {}),
-                                );
-
-                                resolve();
-                            },
-                        });
-                    });
+                .then(async () => {
+                    const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                    expect(updatedTransaction?.pendingAction).toBeFalsy();
+                    expect(updatedTransaction?.comment?.hold).toBeTruthy();
+                    expect(Object.values(updatedTransaction?.errors ?? {})).toEqual(
+                        Object.values(getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage') ?? {}),
+                    );
                 });
         });
     });
