@@ -6701,7 +6701,7 @@ describe('ReportActionsUtils', () => {
             expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: actions, isReversed})).toEqual(['older', isReversed ? 0 : 2]);
         });
 
-        it('advances a filtered offline boundary to the oldest eligible action', () => {
+        it('does not substitute a newer action for the supplied offline boundary', () => {
             const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
             const exportAction = makeAction({
                 actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
@@ -6714,7 +6714,7 @@ describe('ReportActionsUtils', () => {
                     visibleReportActions: [comment, exportAction],
                     earliestReceivedOfflineMessageIndex: 1,
                 }),
-            ).toEqual(['comment', 0]);
+            ).toEqual([null, -1]);
         });
 
         it.each([

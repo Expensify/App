@@ -110,7 +110,11 @@ function useUnreadMarker({
     let earliestReceivedOfflineMessageIndex: number | undefined;
     for (let i = sortedReportActions.length - 1; i >= 0; i--) {
         const message = sortedReportActions.at(i);
-        if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)) {
+        if (
+            message &&
+            canReportActionTriggerUnreadMarker(message, currentUserAccountID) &&
+            wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)
+        ) {
             earliestReceivedOfflineMessageIndex = i;
             break;
         }

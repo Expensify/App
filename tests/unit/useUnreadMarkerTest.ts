@@ -194,6 +194,69 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(1);
     });
 
+    it.each([
+        ['export', 'own'],
+        ['export', 'pending'],
+        ['export', 'live'],
+        ['reimbursement', 'own'],
+        ['reimbursement', 'pending'],
+        ['reimbursement', 'live'],
+    ])('does not transfer a filtered offline %s boundary to a subsequent %s message', (filteredType, incomingType) => {
+        jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID === 'filtered');
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const {result, rerender} = renderHook(
+            (actions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [readAction]},
+        );
+        const filteredAction =
+            filteredType === 'export'
+                ? makeAction('filtered', {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2023-01-01 12:00:00.000'})
+                : makeAction('filtered', {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, created: '2023-01-01 12:00:00.000', originalMessage: {actionableForAccountIDs: [2]}});
+        rerender([filteredAction, readAction]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const incomingAction = makeAction('incoming', {
+            created: '2023-01-01 13:00:00.000',
+            actorAccountID: incomingType === 'live' ? OTHER_USER_ACCOUNT_ID : CURRENT_USER_ACCOUNT_ID,
+            pendingAction: incomingType === 'pending' ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null,
+        });
+        rerender([incomingAction, filteredAction, readAction]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        rerender([incomingAction, filteredAction, readAction]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+    });
+
+    it('advances a filtered offline boundary to the oldest eligible action actually received offline', () => {
+        jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID !== 'read');
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const {result, rerender} = renderHook(
+            (actions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions: actions,
+                    sortedReportActions: actions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [readAction]},
+        );
+        const filteredAction = makeAction('export', {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2023-01-01 12:00:00.000'});
+        const offlineAction = makeAction('offline-comment', {created: '2023-01-01 13:00:00.000'});
+        rerender([offlineAction, filteredAction, readAction]);
+
+        expect(result.current.unreadMarkerReportActionID).toBe('offline-comment');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
     it('shows the marker for a new message received while scrolled up', () => {
         const oldMessage = makeAction('old', {created: '2023-01-01 09:00:00.000'});
         const {result, rerender} = renderHook(

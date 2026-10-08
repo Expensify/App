@@ -207,14 +207,8 @@ const getUnreadMarkerReportAction = ({
         }
     }
     const scanIndexes = isReversed ? eligibleIndexes.toReversed() : eligibleIndexes;
-    // Newest-first chats start at the oldest eligible offline action. If none exists, keep scanning older unread activity.
-    const earliestEligibleReceivedOfflineMessageIndex =
-        !isReversed && earliestReceivedOfflineMessageIndex !== undefined
-            ? (eligibleIndexes.findLast((index) => index <= earliestReceivedOfflineMessageIndex) ?? earliestReceivedOfflineMessageIndex)
-            : earliestReceivedOfflineMessageIndex;
-
     for (const [position, index] of scanIndexes.entries()) {
-        if (earliestEligibleReceivedOfflineMessageIndex !== undefined && index < earliestEligibleReceivedOfflineMessageIndex) {
+        if (earliestReceivedOfflineMessageIndex !== undefined && index < earliestReceivedOfflineMessageIndex) {
             continue;
         }
         const reportAction = visibleReportActions.at(index);
@@ -224,7 +218,7 @@ const getUnreadMarkerReportAction = ({
         const nextIndex = scanIndexes.at(position + 1);
         const nextAction = nextIndex === undefined ? undefined : visibleReportActions.at(nextIndex);
 
-        const isEarliestReceivedOfflineMessage = index === earliestEligibleReceivedOfflineMessageIndex;
+        const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
         const shouldShowMarker = shouldDisplayNewMarkerOnReportAction({
             message: reportAction,
