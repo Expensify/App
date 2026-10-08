@@ -112,7 +112,6 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         if (isOffline) {
             return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
         }
-        // This step only renders inside the Per Diem tab, so the header and tab bar stay visible above the loader
         return (
             <View style={[styles.flex1, styles.fullScreenLoading]}>
                 <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
