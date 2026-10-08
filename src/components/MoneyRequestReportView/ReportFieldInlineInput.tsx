@@ -75,11 +75,6 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     const [previousValue, setPreviousValue] = useState(value);
     const [validationError, setValidationError] = useState('');
 
-    // A field violation such as "Field is required" is derived from the value being empty, so it is already true when
-    // the report opens. Holding it back until the user has left the field keeps a report full of empty fields from
-    // opening as a wall of red.
-    const [hasBeenBlurred, setHasBeenBlurred] = useState(false);
-
     // Tracks the value that was last sent to the server so a second save attempt for the same value, for example when
     // the input is blurred right after it was submitted, is skipped while the update is still in flight.
     const [lastSavedValue, setLastSavedValue] = useState(value);
@@ -96,16 +91,10 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         setDraftValue(value);
         setValidationError('');
         setLastSavedValue(value);
-        // When the new value is the one this input just saved, the user has already left the field, so a violation
-        // the save caused, such as "Field is required" after clearing a required field, stays visible.
-        if (value !== lastSavedValue) {
-            setHasBeenBlurred(false);
-        }
     }
 
     const label = Str.UCFirst(reportField.name);
     const isReadOnly = isDisabled || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
-    const violationError = hasBeenBlurred ? errorText : undefined;
 
     const saveDraftValue = () => {
         const valueToSave = StringUtils.lineBreaksToSpaces(draftValue);
@@ -186,11 +175,10 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 label={label}
                 accessibilityLabel={label}
                 value={value}
-                errorText={violationError}
+                errorText={errorText}
                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                 onInputChange={(selectedDate) => saveSelectedOption(selectedDate)}
-                onBlur={() => setHasBeenBlurred(true)}
                 // The grid puts its own gap between the fields, so the default vertical margin would push a date
                 // input below the plain text inputs sharing its row.
                 wrapperStyle={styles.mv0}
@@ -273,23 +261,19 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                                 role={CONST.ROLE.COMBOBOX}
                                 accessibilityState={{expanded: isExpanded}}
                                 value={value}
-                                errorText={violationError}
+                                errorText={errorText}
                                 inputStyle={styles.pointerEventsNone}
                                 icon={icons.DownArrow}
                                 // `pr0` makes the icon container's padding asymmetric, so it has to flip in place.
                                 // `flipUpsideDown` would rotate that padding too and shift the caret left when open.
                                 iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDownInPlace]}
                                 onPress={openOptions}
-                                onBlur={() => setHasBeenBlurred(true)}
                                 onSubmitEditing={onPress}
                                 disableKeyboard
                                 // The field is focused so it stays keyboard reachable, but it holds a value picked from a
                                 // list rather than typed text, so the caret would be a caret you cannot type into.
                                 // `disableKeyboard` only suppresses the software keyboard, it does not hide the caret.
                                 caretHidden
-                                // Keeps the label raised like the date field's, so a value that goes empty and back while
-                                // the next report loads does not drop the label into the field and animate it back up.
-                                forceActiveLabel
                                 textInputContainerStyles={textInputContainerStyles}
                             />
                         </View>
@@ -306,17 +290,11 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
             value={isReadOnly ? value : draftValue}
-            errorText={validationError || violationError}
+            errorText={validationError || errorText}
             disabled={isReadOnly}
             onChangeText={setDraftValue}
-            onBlur={() => {
-                setHasBeenBlurred(true);
-                saveDraftValue();
-            }}
+            onBlur={saveDraftValue}
             onSubmitEditing={saveDraftValue}
-            // Keeps the label raised like the date field's, so a value that goes empty and back while the next report
-            // loads does not drop the label into the field and animate it back up.
-            forceActiveLabel
             textInputContainerStyles={textInputContainerStyles}
         />,
     );

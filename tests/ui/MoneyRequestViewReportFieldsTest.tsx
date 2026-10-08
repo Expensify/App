@@ -347,8 +347,7 @@ describe('MoneyRequestViewReportFields', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the required violation shows right away, because the user already left the field and the save is what
-        // emptied it, so waiting for a second blur would hide the problem the save just created
+        // Then the required violation shows, so the empty value the save created is flagged instead of blocked
         expect(screen.getByText('RequiredField is required')).toBeOnTheScreen();
     });
 
@@ -410,19 +409,13 @@ describe('MoneyRequestViewReportFields', () => {
         expect(screen.getAllByTestId('reportFieldsRow').at(0)).toHaveStyle({alignItems: 'flex-start'});
     });
 
-    it('holds back a field violation until the field has been left', async () => {
+    it('shows a field violation as soon as the report opens', async () => {
         // Given a required field that is already empty when the report opens, so its violation is true from the start
         await renderReportFields(1, [buildEmptyField()]);
 
-        // Then the error is not shown yet, because a report full of empty required fields would otherwise open as a
-        // wall of red before the user has touched anything
-        expect(screen.queryByText('EmptyField is required')).toBeNull();
-
-        // When the user focuses the field and leaves it without filling it in
-        fireEvent(screen.getByLabelText('EmptyField'), 'blur');
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the error appears, because by now the user has had their chance to fill it in
+        // When the report is shown, before the user has touched the field
+        // Then the error is already visible, like the report field rows before inline editing, so a report with empty
+        // required fields tells the user what still needs filling in
         expect(screen.getByText('EmptyField is required')).toBeOnTheScreen();
     });
 
@@ -508,7 +501,7 @@ describe('MoneyRequestViewReportFields', () => {
         expect(expandedStyles).not.toEqual(expect.arrayContaining([expect.objectContaining({transform: [{rotate: '180deg'}]})]));
     });
 
-    it('keeps the label of text and list fields raised so it does not jump while the next report loads', async () => {
+    it('does not pin the label of text and list fields in the raised position', async () => {
         // Given a report holding both a text field and a list field
         await renderReportFields(1, [buildListField()]);
 
@@ -518,10 +511,10 @@ describe('MoneyRequestViewReportFields', () => {
             raisedLabels.push(node.props.label);
         }
 
-        // Then both labels are pinned in the raised position like the date field's. The next/previous arrows keep
-        // these inputs mounted, and the next report's value can briefly resolve to empty before it loads, so an
-        // unpinned label would drop into the field and animate back up
-        expect(raisedLabels).toEqual(expect.arrayContaining(['Field1', 'ListField']));
+        // Then neither label is pinned, so an empty field shows its label inside the input like a placeholder and
+        // reads as empty instead of looking like a filled field
+        expect(raisedLabels).not.toEqual(expect.arrayContaining(['Field1']));
+        expect(raisedLabels).not.toEqual(expect.arrayContaining(['ListField']));
     });
 
     it('does not carry an unsaved edit into the next report', async () => {
