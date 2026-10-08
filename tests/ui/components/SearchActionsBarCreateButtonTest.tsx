@@ -248,6 +248,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: false,
+            arePoliciesLoaded: true,
         });
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
