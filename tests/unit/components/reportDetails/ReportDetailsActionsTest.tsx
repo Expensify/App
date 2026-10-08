@@ -9,7 +9,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ReportDetailsActions from '@pages/DynamicReportDetailsPage/ReportDetailsActions';
-import type {ReportDetailsRequestData} from '@pages/DynamicReportDetailsPage/types';
+import ReportDetailsMenuItems from '@pages/DynamicReportDetailsPage/ReportDetailsMenuItems';
 import useReportDetailsRequestData from '@pages/DynamicReportDetailsPage/useReportDetailsRequestData';
 
 import CONST from '@src/CONST';
@@ -30,6 +30,7 @@ jest.mock('@hooks/usePaginatedReportActions', () => {
     const actual = jest.requireActual<{default: typeof usePaginatedReportActions}>('@hooks/usePaginatedReportActions');
     return {__esModule: true, default: jest.fn(actual.default)};
 });
+jest.mock('@pages/DynamicReportDetailsPage/ReportDetailsMenuItems', () => ({__esModule: true, default: jest.fn(() => null)}));
 jest.mock('@pages/DynamicReportDetailsPage/useReportDetailsRequestData', () => {
     const actual = jest.requireActual<{default: typeof useReportDetailsRequestData}>('@pages/DynamicReportDetailsPage/useReportDetailsRequestData');
     return {__esModule: true, default: jest.fn(actual.default)};
@@ -38,14 +39,14 @@ jest.mock('@pages/DynamicReportDetailsPage/useReportDetailsRequestData', () => {
 const mockUseOnyx = jest.mocked(useOnyx);
 const mockUsePaginatedReportActions = jest.mocked(usePaginatedReportActions);
 const mockUseReportDetailsRequestData = jest.mocked(useReportDetailsRequestData);
+const mockReportDetailsMenuItems = jest.mocked(ReportDetailsMenuItems);
 
-function renderActions(reportID: string, renderMenu: (requestData?: ReportDetailsRequestData) => null) {
+function renderActions(reportID: string) {
     return render(
         <OnyxListItemProvider>
             <LocaleContextProvider>
                 <ReportDetailsActions
                     reportID={reportID}
-                    renderMenu={renderMenu}
                     showDeleteModal={jest.fn(() => Promise.resolve())}
                     deleteTransaction={jest.fn()}
                 />
@@ -67,6 +68,7 @@ describe('ReportDetailsActions', () => {
         mockUseOnyx.mockClear();
         mockUsePaginatedReportActions.mockClear();
         mockUseReportDetailsRequestData.mockClear();
+        mockReportDetailsMenuItems.mockClear();
         jest.spyOn(Navigation, 'getTopmostSearchReportRouteParams').mockReturnValue(undefined);
     });
 
@@ -89,16 +91,15 @@ describe('ReportDetailsActions', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, room);
         });
-        const renderMenu = jest.fn<null, [ReportDetailsRequestData?]>(() => null);
 
         // When the actions render for it
-        renderActions(reportID, renderMenu);
+        renderActions(reportID);
         await waitForBatchedUpdatesWithAct();
 
         // Then the menu gets no request data, and none of the money subscriptions are opened, because a room has no
         // expense to delete or track
-        expect(renderMenu).toHaveBeenCalled();
-        expect(renderMenu.mock.calls.every(([requestData]) => requestData === undefined)).toBe(true);
+        expect(mockReportDetailsMenuItems).toHaveBeenCalled();
+        expect(mockReportDetailsMenuItems.mock.calls.every(([props]) => props.requestData === undefined)).toBe(true);
         expect(mockUseReportDetailsRequestData).not.toHaveBeenCalled();
         expect(mockUsePaginatedReportActions).not.toHaveBeenCalled();
         expect(getSubscribedKeys().some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))).toBe(false);
@@ -116,15 +117,14 @@ describe('ReportDetailsActions', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, expenseReport);
         });
-        const renderMenu = jest.fn<null, [ReportDetailsRequestData?]>(() => null);
 
         // When the actions render for it
-        renderActions(reportID, renderMenu);
+        renderActions(reportID);
         await waitForBatchedUpdatesWithAct();
 
         // Then the request data is read for that report and handed to the menu, so the money rows can be built
         expect(mockUseReportDetailsRequestData).toHaveBeenCalledWith(reportID);
         expect(mockUsePaginatedReportActions).toHaveBeenCalled();
-        expect(renderMenu).toHaveBeenLastCalledWith(expect.objectContaining({isSingleTransactionView: false}));
+        expect(mockReportDetailsMenuItems.mock.lastCall?.[0].requestData).toEqual(expect.objectContaining({isSingleTransactionView: false}));
     });
 });
