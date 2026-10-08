@@ -43,6 +43,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
@@ -58,6 +59,7 @@ import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} fro
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
+    canIOUBePaid,
     canMergeReports,
     getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
@@ -84,6 +86,7 @@ import {
     getColumnsToShow,
     getSearchColumnTranslationKey,
     getSelectedGroupFilterEntry,
+    getTransactionsByReportID,
     getValidGroupBy,
     insertColumnBeforeTotalAmount,
     isGroupEntry,
@@ -116,7 +119,6 @@ import variables from '@styles/variables';
 
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
-import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -146,6 +148,7 @@ import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useIsVendorColumnAvailable from './useIsVendorColumnAvailable';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
+import useLoadSearchCardData from './useLoadSearchCardData';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -155,6 +158,7 @@ import usePermissions from './usePermissions';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
@@ -664,13 +668,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
-    const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
     const [isExpensifyCardStatementPDFModalVisible, setIsExpensifyCardStatementPDFModalVisible] = useState(false);
     const [expensifyCardStatementPDFParams, setExpensifyCardStatementPDFParams] = useState<ExpensifyCardStatementParams | undefined>(undefined);
     const [isExpensifyCardStatementMultiFeedAlertVisible, setIsExpensifyCardStatementMultiFeedAlertVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
+    const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -683,6 +686,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    // "Auto report" cannot read a card's absence as no access until every card has arrived.
+    const {areCardsLoaded: isSearchCardListComplete} = useLoadSearchCardData();
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -835,13 +841,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstPolicyID = payScopedPolicyIDs.at(0);
         const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
-        return (selectedTransactionReportIDs ?? payScopedReportIDs).some((reportID) => {
+        const transactionsByReportID = getTransactionsByReportID(currentSearchResults?.data ?? {});
+        // Bulk pay pays whole reports, and a selection can hold reports, single expenses or both, so every report behind it has to agree on the payment type
+        const reportIDsToCheck = [...new Set([...payScopedReportIDs, ...selectedTransactionReportIDs])];
+        return reportIDsToCheck.some((reportID) => {
             const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReportID = report?.chatReportID;
             const chatReport = chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
             const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
             const invoiceReceiverPolicy = invoiceReceiverPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
             const isChatReportArchived = isArchivedReport(chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportID}`] : undefined);
+            // The snapshot can hold a row whose expenses never reached Onyx, where an empty list reads as a report that can't be paid, so prefer the snapshot and fall back to Onyx
+            const reportTransactions = transactionsByReportID.get(reportID);
             return (
                 report &&
                 !canIOUBePaid(
@@ -851,7 +862,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     currentUserPersonalDetails?.login ?? '',
                     currentUserPersonalDetails.accountID,
-                    undefined,
+                    reportTransactions,
                     false,
                     isChatReportArchived,
                     invoiceReceiverPolicy,
@@ -863,7 +874,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     currentUserPersonalDetails?.login ?? '',
                     currentUserPersonalDetails.accountID,
-                    undefined,
+                    reportTransactions,
                     true,
                     isChatReportArchived,
                     invoiceReceiverPolicy,
@@ -2492,14 +2503,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         const moveHasMultipleOwners = moveOwnerAccountIDs.size > 1 || (moveHasUnknownOwner && (moveOwnerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
 
-        // For selections across submitters, offer only Auto report when every expense has a resolved owner,
-        // is on a managed card, and does not depend on the destination workspace. Otherwise hide the flow.
+        // For selections across submitters, offer only Auto report when every expense has a resolved owner, is on a
+        // card the mover can resolve, and does not depend on the destination workspace. Otherwise hide the flow.
+        // The backend resolves each destination through the card. No card, or a feed they do not administer, fails
+        // the whole request.
         const canAutoReportAcrossSubmitters =
             moveOwnerAccountIDs.size > 1 &&
             !moveHasUnknownOwner &&
             selectedTransactionsKeys.every((id) => {
                 const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (!transaction || !isManagedCardTransaction(transaction)) {
+                if (!canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards, isSearchCardListComplete)) {
                     return false;
                 }
                 return !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
@@ -2575,8 +2588,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     await exportReportToPDF({reportID: reportIDForPDF});
-                    setPdfReportID(reportIDForPDF);
-                    setIsPdfModalVisible(true);
+                    showReportPDFDownloadModal({reportID: reportIDForPDF});
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
                     return;
                 }
                 exportReportsToPDF(selectedReportIDs);
@@ -3054,18 +3068,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                        unholdRequest(
+                        unholdRequest({
                             transactionID,
-                            selectedTransactions[transactionID].reportAction?.childReportID,
-                            policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
+                            transaction: allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? selectedTransactions[transactionID].transaction,
+                            reportID: selectedTransactions[transactionID].reportAction?.childReportID,
+                            policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
                             isOffline,
-                            currentUserLogin ?? '',
-                            accountID,
+                            currentUserLogin: currentUserLogin ?? '',
+                            currentUserAccountID: accountID,
                             transactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }
                     clearSelectedTransactions();
                 },
@@ -3210,6 +3225,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         selectedTransactions,
         excludedTransactions,
+        nonPersonalAndWorkspaceCards,
+        isSearchCardListComplete,
         queryJSON,
         expensifyIcons,
         translate,
@@ -3297,6 +3314,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
         rules,
+        showReportPDFDownloadModal,
     ]);
 
     // When the dropdown surfaces the export options directly there is no "Export" row above them, so on its own the
@@ -3313,11 +3331,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const handleDownloadErrorModalClose = useCallback(() => {
         setIsDownloadErrorModalVisible(false);
     }, [setIsDownloadErrorModalVisible]);
-
-    const handlePdfModalHide = useCallback(() => {
-        setPdfReportID(undefined);
-        clearSelectedTransactions();
-    }, [clearSelectedTransactions]);
 
     const handleExpensifyCardStatementPDFModalHide = useCallback(() => {
         setExpensifyCardStatementPDFParams(undefined);
@@ -3369,10 +3382,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        isPdfModalVisible,
-        setIsPdfModalVisible,
-        pdfReportID,
-        handlePdfModalHide,
         isExpensifyCardStatementPDFModalVisible,
         setIsExpensifyCardStatementPDFModalVisible,
         expensifyCardStatementPDFParams,

@@ -101,6 +101,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getPolicyWorkArrangementMessage,
     getReimbursedMessage,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
@@ -581,7 +582,8 @@ function getLastMessageTextForReport({
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
-            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED: {
                 lastMessageTextFromReport = translate(`reportArchiveReasons.${archiveReason}`, {
                     displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
                     policyName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
@@ -858,6 +860,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
         lastMessageTextFromReport = getUpdatedAutoHarvestingMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT)) {
+        lastMessageTextFromReport = getPolicyWorkArrangementMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
         lastMessageTextFromReport = getUpdatedMemberWorkArrangementMessage(translate, lastReportAction);

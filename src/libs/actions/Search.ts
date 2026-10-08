@@ -1049,7 +1049,16 @@ function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: numb
 }
 
 function openSearchCardFiltersPage() {
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA,
+            value: true,
+        },
+    ];
+
+    // Set on success only. On `finallyData` a failed request would pass for a complete list.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED,
@@ -1057,7 +1066,15 @@ function openSearchCardFiltersPage() {
         },
     ];
 
-    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
 function openSearchCategoryFiltersPage() {

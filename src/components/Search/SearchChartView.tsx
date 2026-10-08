@@ -6,12 +6,14 @@ import useLocalize from '@hooks/useLocalize';
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
+import {getDateFilterRange} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -20,6 +22,7 @@ import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQu
 import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
+import getInProgressBucketLabel from './getInProgressBucketLabel';
 import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
@@ -51,13 +54,22 @@ type SearchChartViewProps = {
  * and handles navigation/drill-down logic
  */
 function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowGroupLabels = true, renderDetails, chartContainerStyle}: SearchChartViewProps) {
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals});
+    const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const rows = buildChartSeries({
+        data,
+        view,
+        getLabel,
+        getShortLabel,
+        getCurrencyDecimals,
+        getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
+    });
     const points = rows.map((row) => row.point);
 
     const handleItemPress = (index: number) => {

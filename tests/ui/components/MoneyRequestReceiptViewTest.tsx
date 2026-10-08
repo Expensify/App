@@ -424,6 +424,25 @@ describe('MoneyRequestReceiptView', () => {
 
             expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
         });
+
+        it('does not show the page count for a settled map distance receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+        });
     });
 
     describe('receipt action buttons visibility', () => {
