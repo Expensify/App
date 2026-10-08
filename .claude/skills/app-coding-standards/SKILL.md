@@ -57,6 +57,8 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CONSISTENCY-15](rules/consistency-15-plain-comment-style.md) — Write comments as plain, natural sentences
 - [CONSISTENCY-16](rules/consistency-16-no-ai-jargon.md) — No AI-generated jargon in code or comments
 - [CONSISTENCY-17](rules/consistency-17-plural-form.md) — Pluralize with PluralForm, not ternaries on a count
+- [CONSISTENCY-18](rules/consistency-18-comment-non-obvious-code.md) — Comment code that is not self-explanatory
+- [CONSISTENCY-19](rules/consistency-19-copy-grammar-and-case.md) — User-facing copy is grammatical and sentence case
 
 ### Clean React Patterns
 - [CLEAN-REACT-PATTERNS-0](rules/clean-react-0-compiler.md) — React Compiler compliance
@@ -75,6 +77,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [UI-2](rules/ui-2-new-page-scrollview.md) — New pages must be scrollable
 - [UI-3](rules/ui-3-no-inline-styles.md) — Do not use inline style objects
 - [UI-4](rules/ui-4-layout-spacing-tokens.md) — Type and responsive insets come from tokens
+- [UI-5](rules/ui-5-reuse-existing-styles.md) — Reuse an existing style or StyleUtils helper instead of adding a new one
 
 ## Usage
 
