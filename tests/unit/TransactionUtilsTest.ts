@@ -515,6 +515,65 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxValue).toBe('5%');
         });
 
+        it('should keep the existing tax when clearing the category on a server backed edit', () => {
+            // Given an expense carrying the tax of a category that has its own rule
+            const category = 'Advertising';
+            const taxCode = 'id_TAX_RATE_1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
+            };
+            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
+
+            // When the category is cleared
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                policy: fakePolicy,
+                transactionChanges: {category: ''},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the tax is left untouched, because the API is not told to change it and the server keeps its own
+            expect(updatedTransaction.category).toBe('');
+            expect(updatedTransaction.taxCode).toBe(taxCode);
+            expect(updatedTransaction.taxAmount).toBe(5);
+            expect(updatedTransaction.taxValue).toBe('5%');
+        });
+
+        it('should reset to the workspace default tax when clearing the category on a split draft', () => {
+            // Given a split draft carrying the tax of a category that has its own rule
+            const category = 'Advertising';
+            const taxCode = 'id_TAX_RATE_1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
+            };
+            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
+
+            // When the category is cleared on the draft
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                isSplitTransaction: true,
+                policy: fakePolicy,
+                transactionChanges: {category: ''},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the draft falls back to the workspace default, since the draft tax is what gets sent
+            expect(updatedTransaction.category).toBe('');
+            expect(updatedTransaction.taxCode).toBe('id_TAX_EXEMPT');
+            expect(updatedTransaction.taxAmount).toBe(0);
+            expect(updatedTransaction.taxValue).toBe('0%');
+        });
+
         it('should update transaction when distance is changed', () => {
             // Given: a policy with a mileage rate
             const fakePolicy: Policy = {
@@ -6345,6 +6404,33 @@ describe('getSelectedRouteDistance', () => {
         const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {selectedRouteKey: 'route1'}, routes});
         expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
         expect(TransactionUtils.getSelectedRouteDistance(undefined)).toBeUndefined();
+    });
+
+    it('returns the route distance a reused route was taken with, since it is not routed again', () => {
+        // Given a draft seeded from a reused route, which carries the route distance of the expense it was reused from
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, isReusedRoute: true, comment: {customUnit: {routeDistanceMeters: 1500}}});
+
+        // When getting the distance to send for the selected route
+        // Then it is the reused route's, so the backend takes the same route alternative
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+    });
+
+    it('selects the alternative a reused route was taken with when its routes are fetched', () => {
+        // Given a reused route draft whose routes were fetched anyway, with the source expense on the longer alternative
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, isReusedRoute: true, comment: {customUnit: {routeDistanceMeters: 1500}}, routes});
+
+        // When getting the distance to send for the selected route
+        // Then it is the alternative closest to the reused route's distance, not the primary route
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+    });
+
+    it('ignores the stored route distance of an expense that was not reused', () => {
+        // Given a saved expense being moved, which carries its route distance but has no routes and wasn't reused
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {customUnit: {routeDistanceMeters: 1500}}});
+
+        // When getting the distance to send for the selected route
+        // Then there is none, as before, so moving the expense doesn't change how its route is picked
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
     });
 });
 
