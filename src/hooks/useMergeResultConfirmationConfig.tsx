@@ -1,3 +1,6 @@
+/**
+ * Builds the ConfirmationPage config (heading, description, CTA, buttons, illustration) for each merge-account result.
+ */
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import RenderHTML from '@components/RenderHTML';
