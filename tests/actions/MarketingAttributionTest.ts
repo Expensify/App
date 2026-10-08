@@ -6,7 +6,7 @@ import {captureMarketingAttributionFromURL, getFreshMarketingAttribution, saveMa
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MarketingAttribution} from '@src/types/onyx';
+import type {StoredMarketingAttribution} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -23,7 +23,7 @@ function setLandingURL(search: string) {
     window.history.replaceState({}, '', `/${search}`);
 }
 
-function getStoredAttribution(): Promise<OnyxEntry<MarketingAttribution>> {
+function getStoredAttribution(): Promise<OnyxEntry<StoredMarketingAttribution>> {
     return new Promise((resolve) => {
         const connection = Onyx.connect({
             key: ONYXKEYS.MARKETING_ATTRIBUTION,

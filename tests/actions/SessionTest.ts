@@ -1485,7 +1485,7 @@ describe('Session', () => {
 
             expect(writeSpy).toHaveBeenCalledTimes(2);
             for (const [, params] of writeSpy.mock.calls) {
-                expect(Object.keys(params).sort()).toEqual(['deviceInfo', 'email', 'preferredLocale']);
+                expect(Object.keys(params ?? {}).sort()).toEqual(['deviceInfo', 'email', 'preferredLocale']);
             }
             writeSpy.mockRestore();
         });
