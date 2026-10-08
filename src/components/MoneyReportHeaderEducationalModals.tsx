@@ -56,6 +56,8 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const {iouTransactionID, requestParentReportAction} = useMoneyReportTransactionThread();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -69,17 +71,19 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(
-                requestParentReportAction,
-                transaction,
+            changeMoneyRequestHoldStatus({
+                reportAction: requestParentReportAction,
+                iouTransaction: transaction,
+                iouTransactionReport: transactionReport,
+                reportActionChildReport: requestParentReportActionChildReport,
                 isOffline,
-                currentUserLogin ?? '',
+                currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID,
                 transactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         }
     };
 
@@ -87,17 +91,19 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(
-                    requestParentReportAction,
-                    transaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: requestParentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: requestParentReportActionChildReport,
                     isOffline,
-                    currentUserLogin ?? '',
+                    currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
                     transactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();

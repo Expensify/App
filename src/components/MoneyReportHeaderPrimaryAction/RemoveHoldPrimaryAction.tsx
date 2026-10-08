@@ -32,6 +32,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID, isDisabled}: SimpleAct
     const {moneyRequestReport, isOffline, reportActions, transactionThreadReportID, requestParentReportAction} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -55,17 +56,19 @@ function RemoveHoldPrimaryAction({reportID, chatReportID, isDisabled}: SimpleAct
                     for (const action of IOUActions) {
                         const linkedTransaction = getLinkedIOUTransaction(action, transactions);
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
-                        changeMoneyRequestHoldStatus(
-                            action,
-                            linkedTransaction,
+                        changeMoneyRequestHoldStatus({
+                            reportAction: action,
+                            iouTransaction: linkedTransaction,
+                            iouTransactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction?.reportID}`],
+                            reportActionChildReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`],
                             isOffline,
-                            currentUserLogin ?? '',
+                            currentUserLogin: currentUserLogin ?? '',
                             currentUserAccountID,
                             transactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }
                     return;
                 }
@@ -77,17 +80,19 @@ function RemoveHoldPrimaryAction({reportID, chatReportID, isDisabled}: SimpleAct
 
                 const linkedTransaction = getLinkedIOUTransaction(moneyRequestAction, transactions);
                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
-                changeMoneyRequestHoldStatus(
-                    moneyRequestAction,
-                    linkedTransaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: moneyRequestAction,
+                    iouTransaction: linkedTransaction,
+                    iouTransactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction?.reportID}`],
+                    reportActionChildReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestAction?.childReportID}`],
                     isOffline,
-                    currentUserLogin ?? '',
+                    currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
                     transactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             }}
         >
             <Button.Text>{translate('iou.unhold')}</Button.Text>

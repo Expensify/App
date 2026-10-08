@@ -5869,17 +5869,31 @@ function canHoldUnholdReportAction(
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (
-    reportAction: OnyxEntry<ReportAction>,
-    iouTransaction: OnyxEntry<Transaction>,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    transactionViolations: OnyxEntry<TransactionViolations>,
-    isTrackIntentUser: boolean | undefined,
-    delegateAccountID: number | undefined,
-    rules: OnyxCollection<Rule>,
-): void => {
+const changeMoneyRequestHoldStatus = ({
+    reportAction,
+    iouTransaction,
+    iouTransactionReport,
+    reportActionChildReport,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    transactionViolations,
+    isTrackIntentUser,
+    delegateAccountID,
+    rules,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    iouTransaction: OnyxEntry<Transaction>;
+    iouTransactionReport: OnyxEntry<Report>;
+    reportActionChildReport: OnyxEntry<Report>;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    transactionViolations: OnyxEntry<TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
+    delegateAccountID: number | undefined;
+    rules: OnyxCollection<Rule>;
+}): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -5904,8 +5918,10 @@ const changeMoneyRequestHoldStatus = (
         if (reportAction.childReportID) {
             unholdRequest({
                 transactionID,
-                transaction: iouTransaction,
                 reportID: reportAction.childReportID,
+                transactionReport: iouTransactionReport,
+                report: reportActionChildReport,
+                transaction: iouTransaction,
                 policy,
                 isOffline,
                 currentUserLogin,

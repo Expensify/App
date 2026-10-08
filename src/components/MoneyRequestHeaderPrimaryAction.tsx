@@ -77,6 +77,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         : CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -100,17 +101,19 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                             showDelegateNoAccessModal();
                             return;
                         }
-                        changeMoneyRequestHoldStatus(
-                            parentReportAction,
-                            transaction,
+                        changeMoneyRequestHoldStatus({
+                            reportAction: parentReportAction,
+                            iouTransaction: transaction,
+                            iouTransactionReport: transactionReport,
+                            reportActionChildReport: parentReportActionChildReport,
                             isOffline,
-                            currentUserLogin ?? '',
-                            accountID,
-                            rawTransactionViolations,
+                            currentUserLogin: currentUserLogin ?? '',
+                            currentUserAccountID: accountID,
+                            transactionViolations: rawTransactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }}
                 >
                     <Button.Text>{translate('iou.unhold')}</Button.Text>

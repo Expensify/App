@@ -3058,15 +3058,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     for (const transactionID of selectedTransactionsKeys) {
-                        if (!selectedTransactions[transactionID].reportAction?.childReportID) {
+                        const childReportID = selectedTransactions[transactionID].reportAction?.childReportID;
+                        if (!childReportID) {
                             Log.info('[BulkUnhold] Skipping transaction: report action has no childReportID', false, {transactionID});
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? selectedTransactions[transactionID].transaction;
                         unholdRequest({
                             transactionID,
-                            transaction: allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? selectedTransactions[transactionID].transaction,
-                            reportID: selectedTransactions[transactionID].reportAction?.childReportID,
+                            reportID: childReportID,
+                            transaction,
+                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`],
                             policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
                             isOffline,
                             currentUserLogin: currentUserLogin ?? '',

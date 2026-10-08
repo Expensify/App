@@ -365,10 +365,13 @@ function useSelectedTransactionsActions({
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                         unholdRequest({
                             transactionID,
-                            transaction: allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
                             reportID: action.childReportID,
+                            transaction,
+                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`],
                             policy,
                             isOffline,
                             currentUserLogin: login ?? '',
