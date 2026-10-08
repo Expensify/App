@@ -3,7 +3,7 @@ import {waitFor} from '@testing-library/react-native';
 
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {detachReceipt, replaceReceipt} from '@libs/actions/IOU/Receipt';
+import {detachReceipt, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -15,6 +15,7 @@ import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, SearchResults} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -580,6 +581,38 @@ describe('actions/IOU/Receipt', () => {
             }
         });
 
+        it('should store isSameReceipt and receiptState in the receipt error retry params', async () => {
+            const writeSpy = mockApiWrite();
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+
+            try {
+                replaceReceipt({
+                    isVendorMatchingBetaEnabled: false,
+                    transaction,
+                    file: createFile(),
+                    source,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                    transactionPolicy: undefined,
+                    transactionReport: undefined,
+                    isSameReceipt: true,
+                    delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
+                const receiptError: Partial<ReceiptError> | undefined = Object.values(transactionFailure.value.errors ?? {}).at(0);
+                expect(receiptError?.action).toBe(CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT);
+                expect(JSON.parse(typeof receiptError?.retryParams === 'string' ? receiptError.retryParams : '')).toEqual(
+                    expect.objectContaining({transactionID, isSameReceipt: true, state: CONST.IOU.RECEIPT_STATE.SCAN_READY}),
+                );
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
         it('should rollback transaction violations in failure data when policy is paid group', async () => {
             // Given a transaction with existing violations linked to a paid group policy
             const reportID = 'replaceReceiptViolationsRollbackReportID';
@@ -629,6 +662,42 @@ describe('actions/IOU/Receipt', () => {
                 const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
                 const violationsFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, Onyx.METHOD.MERGE);
                 expect(violationsFailure.value).toEqual(existingViolations);
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should reuse the failed "added a receipt" action on retry and clear its error', async () => {
+            const failedActionID = '1234567890';
+            const threadReport = {...createRandomReport(2, undefined), reportID: 'replaceReceiptRetryThreadReportID'};
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+            const writeSpy = mockApiWrite();
+
+            try {
+                replaceReceipt({
+                    isVendorMatchingBetaEnabled: false,
+                    transaction,
+                    file: createFile(),
+                    source,
+                    transactionPolicy: undefined,
+                    transactionReport: undefined,
+                    delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: threadReport,
+                    receiptAddedReportActionID: failedActionID,
+                });
+                await waitForBatchedUpdates();
+
+                const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.reportID}`, Onyx.METHOD.MERGE, true);
+                const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
+                const receiptError: Partial<ReceiptError> | undefined = Object.values(transactionFailure.value.errors ?? {}).at(0);
+                expect(parameters.reportActionID).toBe(failedActionID);
+                expect(Object.keys(threadActionsUpdate.value)).toEqual([failedActionID]);
+                expect(threadActionsUpdate.value[failedActionID]).toEqual(expect.objectContaining({errors: null}));
+                expect(JSON.parse(typeof receiptError?.retryParams === 'string' ? receiptError.retryParams : '')).toEqual(
+                    expect.objectContaining({receiptAddedReportActionID: failedActionID}),
+                );
             } finally {
                 writeSpy.mockRestore();
             }
@@ -815,6 +884,28 @@ describe('actions/IOU/Receipt', () => {
             const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             expect(violations).toBeDefined();
             expect(Array.isArray(violations)).toBe(true);
+        });
+    });
+
+    describe('setMoneyRequestReceipt', () => {
+        it('should clear the previous receipt page count when a new receipt is set', async () => {
+            // Given a draft transaction whose current receipt has a server-provided page count
+            const transactionID = 'setReceiptTransactionID';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                ...createRandomTransaction(1),
+                transactionID,
+                receipt: {source: 'old-receipt.pdf', filename: 'old-receipt.pdf', pageCount: 3},
+            });
+            await waitForBatchedUpdates();
+
+            // When the receipt is replaced with a different file
+            setMoneyRequestReceipt(transactionID, 'new-receipt.pdf', 'new-receipt.pdf', true, 'application/pdf');
+            await waitForBatchedUpdates();
+
+            // Then the old page count is dropped because it described the previous file, not the new one
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.receipt?.source).toBe('new-receipt.pdf');
+            expect(transaction?.receipt?.pageCount).toBeUndefined();
         });
     });
 });

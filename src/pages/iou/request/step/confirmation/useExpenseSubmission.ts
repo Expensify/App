@@ -8,6 +8,7 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import {isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
+import {getSpan} from '@libs/telemetry/activeSpans';
 import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -414,6 +415,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     };
 
     function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams): boolean {
+        getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
         if (blockDistanceRequestIfNeeded()) {
             return false;
         }

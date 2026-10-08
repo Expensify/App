@@ -324,7 +324,7 @@ type ReceiptError = {
     action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
 
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };
@@ -352,10 +352,10 @@ type Reservation = {
     company?: Company;
 
     /** In car and hotel reservations, this represents the cancellation policy */
-    cancellationPolicy?: string;
+    cancellationPolicy?: string | null;
 
     /** In car and hotel reservations, this represents the cancellation deadline */
-    cancellationDeadline?: string;
+    cancellationDeadline?: string | null;
 
     /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
