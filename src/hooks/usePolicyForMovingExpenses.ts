@@ -22,10 +22,7 @@ function checkForUserPendingDelete(login: string, policy: OnyxEntry<Policy>) {
     return isPolicyMemberWithoutPendingDelete(login, policy);
 }
 
-// `policy.role` is only populated on the user's default/active policy, so fall back to the member's role in
-// `employeeList` via `getPolicyRole`. Without the login-aware lookup, a workspace the user is genuinely a member
-// of is rejected here while `getGroupPoliciesWhereReportCanBeCreated` (which uses `getPolicyRole`) accepts it,
-// and the two disagree about whether the user has a workspace at all.
+// `policy.role` is only set on the active policy, so fall back to `getPolicyRole` (matches `getGroupPoliciesWhereReportCanBeCreated`).
 function isPolicyMemberByRole(policy: OnyxEntry<Policy>, login: string) {
     const role = getPolicyRole(policy, login);
     return !!role && (Object.values(CONST.POLICY.ROLE) as string[]).includes(role);
@@ -96,10 +93,8 @@ type PolicyForMovingExpenses = {
     shouldSelectPolicy: boolean;
     shouldNavigateToUpgradePath: boolean;
     /**
-     * False while the policy collection is still being read from Onyx. Callers that *act* on the result — creating
-     * a report, moving transactions — must no-op until this is true, because `shouldNavigateToUpgradePath: false`
-     * during the read is "we don't know yet", not "this user has an eligible policy". `useCreateReport` gates the
-     * same way. Callers that only navigate to a picker can ignore it; they already handle an unresolved policy.
+     * False while policies are still loading from Onyx. Callers that act on the result (create report, move
+     * transactions) must no-op until true, as with `useCreateReport`. Picker-only callers can ignore it.
      */
     arePoliciesLoaded: boolean;
 };
@@ -137,9 +132,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
 
     // User has no eligible policy
     if (!resolvedPolicyID) {
-        // The active workspace can still be a valid destination even when the qualification pass came back
-        // empty, so check it before giving up. This has to run ahead of the upgrade path below, otherwise a
-        // perfectly valid active workspace can never rescue the user.
+        // The active workspace may still be valid when qualification finds nothing, so check it before the upgrade path.
         if (isPolicyValidForMovingExpenses(activePolicy, login, isPerDiemRequest, isTimeRequest)) {
             return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
         }
@@ -152,12 +145,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
         return {policyForMovingExpensesID: validExpensePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
     }
 
-    if (
-        activePolicy &&
-        !isTeachersUnitePolicyID(activePolicy.id) &&
-        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy)) &&
-        (!isTimeRequest || isTimeTrackingEnabled(activePolicy))
-    ) {
+    if (isPolicyValidForMovingExpenses(activePolicy, login, isPerDiemRequest, isTimeRequest)) {
         return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
     }
 
