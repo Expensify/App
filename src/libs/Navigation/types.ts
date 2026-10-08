@@ -353,6 +353,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
+    [SCREENS.WORKSPACE.TIMEZONE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
         shouldStartExpensifyCardEnrollment?: boolean;
@@ -3297,6 +3300,13 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET]: {
+        policyID: string;
+        submission: ValueOf<typeof CONST.POLICY.SEMI_MONTHLY_SUBMISSIONS>;
     };
     [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;

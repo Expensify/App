@@ -65,6 +65,7 @@ import type {
     SetWorkspaceAutoReportingFrequencyParams,
     SetGlobalReimbursementFXPreferenceParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
+    SetWorkspaceTimezoneParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
     TogglePolicyReceiptPartnersParams,
@@ -1011,11 +1012,14 @@ function setWorkspaceCurrencyConversionFeesPreference(policyID: string, shouldPr
 
 function setWorkspaceAutoReportingMonthlyOffset(
     policyID: string,
-    autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>,
+    autoReportingOffset: AutoReportingOffset,
     currentAutoReportingOffset: AutoReportingOffset | undefined,
     reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+    autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset,
+    currentAutoReportingOffsetSecondSemiMonthly?: AutoReportingOffset,
 ) {
-    const value = JSON.stringify({autoReportingOffset});
+    const hasSecondOffset = autoReportingOffsetSecondSemiMonthly !== undefined;
+    const value = JSON.stringify({autoReportingOffset, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly})});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -1023,7 +1027,11 @@ function setWorkspaceAutoReportingMonthlyOffset(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReportingOffset,
-                pendingFields: {autoReportingOffset: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly}),
+                pendingFields: {
+                    autoReportingOffset: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
             },
         },
     ];
@@ -1034,7 +1042,8 @@ function setWorkspaceAutoReportingMonthlyOffset(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReportingOffset: currentAutoReportingOffset ?? null,
-                pendingFields: {autoReportingOffset: null},
+                ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: currentAutoReportingOffsetSecondSemiMonthly ?? null}),
+                pendingFields: {autoReportingOffset: null, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: null})},
                 errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
             },
         },
@@ -1045,7 +1054,7 @@ function setWorkspaceAutoReportingMonthlyOffset(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {autoReportingOffset: null},
+                pendingFields: {autoReportingOffset: null, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: null})},
             },
         },
     ];
@@ -1056,6 +1065,48 @@ function setWorkspaceAutoReportingMonthlyOffset(
         params,
         withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData),
     );
+}
+
+function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZone: Policy['timeZone']) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                timeZone,
+                pendingFields: {timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {timeZone: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                timeZone: currentTimeZone ?? null,
+                pendingFields: {timeZone: null},
+                errorFields: {timeZone: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.timezoneErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {timeZone: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceTimezoneParams = {policyID, timeZone};
+
+    // TODO: Replace with API.write once the command from https://github.com/Expensify/Web-Expensify/pull/56864 is deployed. Until then the change only applies locally.
+    Log.info('[setWorkspaceTimezone] Command not available yet', false, {params, failureData});
+    Onyx.update([...optimisticData, ...successData]);
 }
 
 function setWorkspaceApprovalMode(
@@ -8134,6 +8185,7 @@ export {
     setWorkspaceAutoReportingFrequency,
     setWorkspaceCurrencyConversionFeesPreference,
     setWorkspaceAutoReportingMonthlyOffset,
+    setWorkspaceTimezone,
     updateWorkspaceDescription,
     updateWorkspaceClientID,
     setWorkspacePayer,

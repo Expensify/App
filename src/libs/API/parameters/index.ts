@@ -348,6 +348,7 @@ export type {default as SetWorkspaceAutoHarvestingParams} from './SetWorkspaceAu
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetGlobalReimbursementFXPreferenceParams} from './SetGlobalReimbursementFXPreferenceParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
+export type {default as SetWorkspaceTimezoneParams} from './SetWorkspaceTimezoneParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
 export type {default as DisablePolicyApprovalsParams} from './DisablePolicyApprovalsParams';
 export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';

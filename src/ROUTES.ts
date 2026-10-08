@@ -3103,6 +3103,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting` as const,
     },
+    WORKSPACE_OVERVIEW_TIMEZONE: {
+        route: 'workspaces/:policyID/overview/timezone',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/timezone` as const,
+    },
     WORKSPACE_OVERVIEW_CURRENCY: {
         route: 'workspaces/:policyID/overview/currency',
         getRoute: (
@@ -3407,6 +3411,24 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET route');
             }
             return `workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const;
+        },
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_WEEKLY_OFFSET: {
+        route: 'workspaces/:policyID/workflows/auto-reporting-frequency/weekly-offset',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_WEEKLY_OFFSET route');
+            }
+            return `workspaces/${policyID}/workflows/auto-reporting-frequency/weekly-offset` as const;
+        },
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_SEMI_MONTHLY_OFFSET: {
+        route: 'workspaces/:policyID/workflows/auto-reporting-frequency/semi-monthly-offset/:submission',
+        getRoute: (policyID: string | undefined, submission: ValueOf<typeof CONST.POLICY.SEMI_MONTHLY_SUBMISSIONS>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_SEMI_MONTHLY_OFFSET route');
+            }
+            return `workspaces/${policyID}/workflows/auto-reporting-frequency/semi-monthly-offset/${submission}` as const;
         },
     },
     WORKSPACE_INVOICES: {

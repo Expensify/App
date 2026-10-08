@@ -1260,6 +1260,8 @@ const ONYXKEYS = {
         POLICY_TAG_NAME_FORM_DRAFT: 'policyTagNameFormDraft',
         WORKSPACE_NEW_TAX_FORM: 'workspaceNewTaxForm',
         WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
+        WORKSPACE_SUBMISSION_FREQUENCY_FORM: 'workspaceSubmissionFrequencyForm',
+        WORKSPACE_SUBMISSION_FREQUENCY_FORM_DRAFT: 'workspaceSubmissionFrequencyFormDraft',
         WORKSPACE_TAX_NAME_FORM: 'workspaceTaxNameForm',
         WORKSPACE_TAX_CODE_FORM: 'workspaceTaxCodeForm',
         WORKSPACE_TAX_CODE_FORM_DRAFT: 'workspaceTaxCodeFormDraft',
@@ -1485,6 +1487,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS]: FormTypes.AdditionalDetailStepForm;
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM]: FormTypes.WorkspaceNewTaxForm;
+    [ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM]: FormTypes.WorkspaceSubmissionFrequencyForm;
     [ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM]: FormTypes.PolicyCreateDistanceRateForm;
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM]: FormTypes.PolicyDistanceRateEditForm;
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM]: FormTypes.PolicyDistanceRateNameEditForm;
