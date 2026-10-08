@@ -966,7 +966,6 @@
 "../../src/pages/DynamicNewReportWorkspaceSelectionPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/DynamicReportDetailsPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/DynamicReportDetailsPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"no-restricted-imports"	1
