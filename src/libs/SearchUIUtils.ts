@@ -3476,15 +3476,10 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
 
 /** Whether the date groups fall in more than one year. `getYears` returns the years a group covers, or none for other group types. */
 function doGroupsSpanMultipleYears(data: OnyxTypes.SearchResults['data'], getYears: (group: OnyxTypes.SearchResults['data'][SearchGroupKey]) => number[]): boolean {
-    const years = new Set<number>();
-    for (const key in data) {
-        if (isGroupEntry(key)) {
-            for (const year of getYears(data[key])) {
-                years.add(year);
-            }
-        }
-    }
-    return years.size > 1;
+    const years = Object.keys(data)
+        .filter(isGroupEntry)
+        .flatMap((key) => getYears(data[key]));
+    return new Set(years).size > 1;
 }
 
 function getYearOfDate(date: string): number {
@@ -3500,7 +3495,7 @@ function getDaySections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionDayGroupListItemType[], number, boolean] {
     const daySections: Record<string, TransactionDayGroupListItemType> = {};
-    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('day' in group && typeof group.day === 'string' ? [getYearOfDate(group.day)] : []));
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('day' in group ? [getYearOfDate(group.day)] : []));
     for (const key in data) {
         if (!isGroupEntry(key)) {
             continue;
@@ -3539,7 +3534,7 @@ function getMonthSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionMonthGroupListItemType[], number, boolean] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
-    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('year' in group && 'month' in group ? [group.year] : []));
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('month' in group ? [group.year] : []));
     for (const key in data) {
         if (isGroupEntry(key)) {
             const monthGroup = data[key];
@@ -3577,15 +3572,7 @@ function getWeekSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionWeekGroupListItemType[], number, boolean] {
     const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
-    // Years come from the week as trimmed to the date filter, so a filter starting Jan 1 doesn't count the days before it
-    const dateFilters = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => {
-        if (!('week' in group)) {
-            return [];
-        }
-        const {start, end} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(group.week), dateFilters);
-        return [getYearOfDate(start), getYearOfDate(end)];
-    });
+    const weeks: Record<string, {weekGroup: SearchWeekGroup; weekStart: string; weekEnd: string; transactionsQueryJSON: SearchQueryJSON | undefined}> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
             const weekGroup = data[key];
@@ -3594,22 +3581,30 @@ function getWeekSections(
             }
             const rawRange = DateUtils.getWeekDateRange(weekGroup.week);
             const dateResult = queryJSON && weekGroup.week ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
-            const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
-            const weekStart = dateResult?.start ?? rawRange.start;
-            const weekEnd = dateResult?.end ?? rawRange.end;
-            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
-            const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale, shouldShowShortLabelYear);
-
-            weekSections[key] = {
-                groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                transactions: [],
-                transactionsQueryJSON,
-                ...weekGroup,
-                formattedWeek,
-                shortFormattedWeek,
-                keyForList: key,
+            weeks[key] = {
+                weekGroup,
+                weekStart: dateResult?.start ?? rawRange.start,
+                weekEnd: dateResult?.end ?? rawRange.end,
+                transactionsQueryJSON: dateResult?.transactionsQueryJSON,
             };
         }
+    }
+
+    // Years come from the week as trimmed to the date filter, so a filter starting Jan 1 doesn't count the days before it
+    const shouldShowShortLabelYear = new Set(Object.values(weeks).flatMap(({weekStart, weekEnd}) => [getYearOfDate(weekStart), getYearOfDate(weekEnd)])).size > 1;
+    for (const [key, {weekGroup, weekStart, weekEnd, transactionsQueryJSON}] of Object.entries(weeks)) {
+        const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
+        const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale, shouldShowShortLabelYear);
+
+        weekSections[key] = {
+            groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+            transactions: [],
+            transactionsQueryJSON,
+            ...weekGroup,
+            formattedWeek,
+            shortFormattedWeek,
+            keyForList: key,
+        };
     }
 
     const weekSectionsValues = Object.values(weekSections);
@@ -3654,7 +3649,7 @@ function getQuarterSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionQuarterGroupListItemType[], number, boolean] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
-    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('year' in group && 'quarter' in group ? [group.year] : []));
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('quarter' in group ? [group.year] : []));
     for (const key in data) {
         if (isGroupEntry(key)) {
             const quarterGroup = data[key];

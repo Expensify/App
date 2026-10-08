@@ -4056,6 +4056,43 @@ describe('SearchUIUtils', () => {
             expect(result.map((item) => item.shortFormattedWeek)).toEqual(['Jan 25 - 31', 'Feb 1 - 7']);
         });
 
+        it('should leave the year out of short week labels when the date filter trims the first week to the new year', () => {
+            // Given a search starting Jan 1, whose first week starts in December but only shows its 2026 days
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:week date>=2026-01-01');
+            if (!parsedQuery) {
+                throw new Error('Expected a parsed query');
+            }
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2025-12-28` as const]: {week: '2025-12-28', count: 5, currency: 'USD', total: 250},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-01-04` as const]: {week: '2026-01-04', count: 3, currency: 'USD', total: 75},
+            };
+
+            // When the week sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: parsedQuery,
+                }),
+                SearchUIUtils.isTransactionWeekGroupListItemType,
+            );
+
+            // Then the December days don't count, so no label shows the year
+            expect(result.map((item) => item.shortFormattedWeek)).toEqual(['Jan 1 - 3', 'Jan 4 - 10']);
+        });
+
         it('should calculate sortKey correctly for month groups', () => {
             const [result] = getSectionsByType(
                 SearchUIUtils.getSections({
