@@ -16,7 +16,7 @@ const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 
 const policy: Policy = {...createRandomPolicy(0), id: 'policy1'};
 
-/** A single-level tag list. `Tag 1` is omitted to model it having been deleted from the workspace. */
+/** A single-level tag list, holding only the tags a test keeps in the workspace. */
 const buildPolicyTags = (tags: PolicyTagLists[string]['tags']): PolicyTagLists => ({
     Tag: {name: 'Tag', orderWeight: 0, required: false, tags},
 });
@@ -29,7 +29,7 @@ const buildRule = (actions: ExpenseDefaultAction[]): Rule => ({
     actions: toIndexMap(actions),
 });
 
-const setTag: ExpenseDefaultAction = {name: ACTION.SET, field: FIELD.TAG, value: 'Tag 1'};
+const setTag: ExpenseDefaultAction = {name: ACTION.SET, field: FIELD.TAG, value: 'Engineering'};
 const setCategory: ExpenseDefaultAction = {name: ACTION.SET, field: FIELD.CATEGORY, value: 'Travel'};
 const setMerchant: ExpenseDefaultAction = {name: ACTION.SET, field: FIELD.MERCHANT, value: 'Apple Inc'};
 
@@ -52,19 +52,19 @@ describe('Merchant rule tag summary', () => {
 
     it('shows the tag while it still exists in the workspace', () => {
         // Given a rule that sets a tag the workspace still has
-        const policyTags = buildPolicyTags({'Tag 1': {name: 'Tag 1', enabled: true}});
+        const policyTags = buildPolicyTags({Engineering: {name: 'Engineering', enabled: true}});
 
         // When the rules table summarizes it
         const row = getRow(buildRule([setTag]), policyTags);
 
         // Then the tag is part of the summary
-        expect(row?.ruleDescription).toBe('Update tag to "Tag 1"');
+        expect(row?.ruleDescription).toBe('Update tag to "Engineering"');
     });
 
     it("hides a deleted tag but keeps the rule's other defaults", () => {
         // Given a rule that sets a category and a tag, and the tag has since been deleted. The backend keeps the
         // tag on the rule so it applies again if the tag is recreated, so only the summary can hide it.
-        const policyTags = buildPolicyTags({'Tag 2': {name: 'Tag 2', enabled: true}});
+        const policyTags = buildPolicyTags({Marketing: {name: 'Marketing', enabled: true}});
 
         // When the rules table summarizes it
         const row = getRow(buildRule([setCategory, setTag]), policyTags);
@@ -75,7 +75,7 @@ describe('Merchant rule tag summary', () => {
 
     it('hides a tag that is pending deletion', () => {
         // Given the tag was deleted offline, so it is still in the list but marked for deletion
-        const policyTags = buildPolicyTags({'Tag 1': {name: 'Tag 1', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}});
+        const policyTags = buildPolicyTags({Engineering: {name: 'Engineering', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}});
 
         // When the rules table summarizes the rule
         const row = getRow(buildRule([setCategory, setTag]), policyTags);
@@ -92,7 +92,7 @@ describe('Merchant rule tag summary', () => {
         const row = getRow(buildRule([setTag]), policyTags);
 
         // Then the tag is still shown, so it doesn't flicker out and back once the tags load
-        expect(row?.ruleDescription).toBe('Update tag to "Tag 1"');
+        expect(row?.ruleDescription).toBe('Update tag to "Engineering"');
     });
 
     it('labels a rule as a rename once its deleted tag leaves only the merchant rename', () => {

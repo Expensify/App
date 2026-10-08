@@ -10,6 +10,7 @@ import {getCleanedTagName, getTagLists, matchesParentTagPath} from '@libs/Policy
 import {trimTag} from '@libs/TagUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -41,6 +42,10 @@ function AddTagPage({route}: AddTagPageProps) {
     const tagItems = useMemo(() => {
         const tags: Array<{name: string; value: string}> = [];
         for (const tag of Object.values(tagList?.tags ?? {})) {
+            // The rule keeps its own tag even once disabled, but not one being deleted, matching the rule page's tag row.
+            if (tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
+            }
             if (tag.name !== formTag && !tag.enabled) {
                 continue;
             }
