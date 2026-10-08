@@ -2629,6 +2629,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Método de pago configurado',
         deleteAccount: 'Eliminar cuenta',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
+        editNickname: 'Editar alias',
+        nickname: 'Alias',
+        editNicknameInstruction: 'Ponle a la cuenta bancaria un nombre que la distinga de las demás.',
         deleteCard: 'Eliminar tarjeta',
         deleteCardConfirmation:
             'Todas las transacciones no enviadas, incluidas las de informes abiertos, serán eliminadas. ¿Estás seguro de que quieres eliminar esta tarjeta? Esta acción no se puede deshacer.',

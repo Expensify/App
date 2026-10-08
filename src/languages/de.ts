@@ -2714,6 +2714,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Standard-Zahlungsmethode festgelegt!',
         deleteAccount: 'Konto löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie dieses Konto löschen möchten?',
+        editNickname: 'Spitznamen bearbeiten',
+        nickname: 'Spitzname',
+        editNicknameInstruction: 'Geben Sie dem Bankkonto einen Spitznamen, der es von anderen unterscheidet.',
         deleteCard: 'Karte löschen',
         deleteCardConfirmation:
             'Alle nicht eingereichten Kartenumsätze, einschließlich der auf offenen Berichten, werden entfernt. Möchtest du diese Karte wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
