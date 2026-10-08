@@ -17,7 +17,7 @@ import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 
-import {addPersonalBankAccount, clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {addPersonalBankAccount, clearPersonalBankAccount, clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import {continueSetup} from '@userActions/PaymentMethods';
 
@@ -71,6 +71,9 @@ function AddPersonalBankAccountPage() {
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || urlSubPage === SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
     const error = getLatestErrorMessage(fullPersonalBankAccount ?? DEFAULT_OBJECT);
     const hasRefreshedExitReport = useRef(false);
+
+    // Each substep is a separate screen, so on the magic code screen this tracks whether a code was submitted from it
+    const hasSubmittedValidateCode = useRef(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
@@ -199,6 +202,8 @@ function AddPersonalBankAccountPage() {
         if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
             const {accountData, hasPersonalDetailsChanges} = getAccountData();
             if (hasPersonalDetailsChanges) {
+                // The error belongs to the previous submission, so the magic code page doesn't show it
+                clearPersonalBankAccountErrors();
                 nextPage();
                 return;
             }
@@ -207,6 +212,7 @@ function AddPersonalBankAccountPage() {
         }
         if (currentPageName === SUB_PAGE_NAMES.VALIDATE_CODE) {
             if (typeof data === 'string') {
+                hasSubmittedValidateCode.current = true;
                 addPersonalBankAccount(getAccountData().accountData, personalPolicyID, {validateCode: data});
             }
             return;
@@ -256,14 +262,21 @@ function AddPersonalBankAccountPage() {
         openReport({reportID: exitReportID, hasReportActions: hasExitReportActions, shouldMarkAsRead: false});
     }, [shouldShowSuccess, exitReportID, currentPageName, openReport, hasExitReportActions]);
 
-    // Once the backend reports an account ownership mismatch, the next submission confirms the details as entered. Each substep is a separate screen, and the magic code step clears
-    // the error when the user types or goes back, so the confirmation is kept in the form draft, where every substep and later retry reads it.
+    // Once the backend reports an account ownership mismatch, the next submission confirms the details as entered. Each substep is a separate screen, and the error is cleared before
+    // the magic code step, so the confirmation is kept in the form draft, where every substep and later retry reads it.
+    // The magic code page doesn't show the details being confirmed, so a code submitted from it that gets this error sends the user back to the confirmation step, which shows them
+    // next to the error. An error already there when the page opens is from an earlier submission and is being cleared.
     useEffect(() => {
         if (!error?.includes(ACCOUNT_OWNERSHIP_ERROR_SUBSTRING)) {
             return;
         }
         setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {confirmedOwnershipDetails: true});
-    }, [error]);
+        if (currentPageName !== SUB_PAGE_NAMES.VALIDATE_CODE || !hasSubmittedValidateCode.current) {
+            return;
+        }
+        hasSubmittedValidateCode.current = false;
+        prevPage();
+    }, [error, currentPageName, prevPage]);
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;

@@ -12,7 +12,7 @@ import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamL
 
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
-import {addPersonalBankAccount} from '@userActions/BankAccounts';
+import {addPersonalBankAccount, clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
 import {openReport} from '@userActions/Report';
 import {requestValidateCodeAction} from '@userActions/User';
 
@@ -387,7 +387,7 @@ describe('AddPersonalBankAccountPage', () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
             });
 
-            // When they go back, which clears the error, and Confirm opens a new magic code screen where they submit a code
+            // When they are sent back to Confirm, which clears the error and opens a new magic code screen where they submit a code
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
             });
@@ -401,6 +401,85 @@ describe('AddPersonalBankAccountPage', () => {
             // Then the retry confirms the ownership details, so the backend doesn't return the same error again
             const [accountData] = jest.mocked(addPersonalBankAccount).mock.lastCall ?? [];
             expect(accountData).toEqual(expect.objectContaining({confirmedOwnershipDetails: true}));
+        });
+
+        it('sends the user back to the confirmation step when the magic code step gets the account ownership error', async () => {
+            // Given a user on the magic code step after changing their legal name
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
+
+            // When they submit a code and the submission fails the account ownership check
+            act(() => {
+                jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0]?.handleSubmitForm('123456');
+            });
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {isLoading: false, errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
+            });
+
+            // And a later update re-renders the step before it is popped
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {plaidAccountID: ''});
+            });
+
+            // Then they go back once to the confirmation step with the error kept, so they confirm the ownership details while seeing them
+            expect(goBackSpy).toHaveBeenCalledTimes(1);
+            expect(goBackSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.CONFIRMATION, undefined));
+            expect(clearPersonalBankAccountErrors).not.toHaveBeenCalled();
+        });
+
+        it('keeps the user on the magic code step when the account ownership error is from an earlier submission', async () => {
+            // Given the account ownership error from a submission on the confirmation step, still in Onyx while it's being cleared
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
+            });
+
+            // When the magic code step opens
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
+
+            // Then it stays open, since no code was submitted from it yet
+            expect(goBackSpy).not.toHaveBeenCalled();
+        });
+
+        it('keeps the user on the magic code step for other errors', async () => {
+            // Given a user on the magic code step after changing their legal name
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
+
+            // When they submit a code and the submission fails because of the magic code
+            act(() => {
+                jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0]?.handleSubmitForm('123456');
+            });
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Incorrect or invalid magic code. Please try again or request a new code.'}});
+            });
+
+            // Then they stay on the magic code step to try another code
+            expect(goBackSpy).not.toHaveBeenCalled();
+        });
+
+        it('clears the previous error before opening the magic code step', async () => {
+            // Given a user back on the confirmation step with the account ownership error from their previous submission
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+                await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+
+            // When they confirm the bank account
+            fireEvent.press(screen.getByText('Confirm'));
+
+            // Then the error is cleared, so the magic code step doesn't show it
+            expect(clearPersonalBankAccountErrors).toHaveBeenCalledTimes(1);
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.VALIDATE_CODE, undefined));
         });
 
         it('asks to confirm the ownership details again after a details step is submitted', async () => {
