@@ -100,14 +100,14 @@ function DynamicNewAgentPage({route}: DynamicNewAgentPageProps) {
     const handleBuildCustomAgent = () => {
         // Start from scratch — drop any previously stashed template and avatar draft.
         Promise.all([clearNewAgentTemplate(), clearNewAgentAvatarDraft()]).then(() => {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute(policyID ? {policyID} : undefined)));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute(policyID ? {policyID} : undefined)), {skipMatchingFullScreenRoute: true});
         });
     };
 
     const handleAddTemplate = (template: SuggestedAgent, avatarID: AgentAvatarID) => {
         // Stash the template in Onyx (persists across refresh) and drop any stale avatar draft.
         Promise.all([setNewAgentTemplate({name: template.name, prompt: template.prompt, avatarID}), clearNewAgentAvatarDraft()]).then(() => {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute(policyID ? {policyID} : undefined)));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute(policyID ? {policyID} : undefined)), {skipMatchingFullScreenRoute: true});
         });
     };
 

@@ -230,7 +230,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                         <AvatarButtonWithIcon
                             text={translate('addAgentPage.editAvatar')}
                             avatar={agentAvatar}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()))}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()), {skipMatchingFullScreenRoute: true})}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
