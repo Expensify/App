@@ -15,7 +15,7 @@ describe('CSVDateUtils', () => {
 
         it('parses two-digit years as 19xx or 20xx', () => {
             // Given dates with a two-digit year, which is Excel's default short-date format on US locales.
-            // date-fns's `yyyy` token matches 1-4 digits, so these must not reach the format list before native parsing.
+            // date-fns's `yyyy` token matches 1-4 digits, so these must match a `yy` format before any `yyyy` format.
             // When they are parsed
             // Then the year is in this century and the month and day are not swapped
             expect(parseCSVDate('01/20/24')).toBe('2024-01-20');
@@ -23,6 +23,25 @@ describe('CSVDateUtils', () => {
             expect(parseCSVDate('11-02-25')).toBe('2025-11-02');
             expect(parseCSVDate('Nov 2, 25')).toBe('2025-11-02');
             expect(parseCSVDate('2 Nov 25')).toBe('2025-11-02');
+            expect(parseCSVDate('20/01/24')).toBe('2024-01-20');
+        });
+
+        it('parses two-digit years when native Date parsing rejects them, as Hermes does', () => {
+            // Given a Date constructor that rejects every string, like Hermes does for strings that are not ISO 8601
+            const NativeDate = Date;
+            const dateSpy = jest.spyOn(global, 'Date').mockImplementation((value?: string | number | Date) => {
+                if (typeof value === 'string') {
+                    return new NativeDate(Number.NaN);
+                }
+                return value === undefined ? new NativeDate() : new NativeDate(value);
+            });
+
+            // When dates with a two-digit year are parsed, along with a three-digit year that only a `yyyy` format matches
+            const results = ['01/20/24', '11-02-25', 'Nov 2, 25', '2 Nov 25', '20/01/24', '01/20/24 10:30', 'Nov 2, 025'].map(parseCSVDate);
+            dateSpy.mockRestore();
+
+            // Then the date-fns formats give the right year without native parsing, and a year below 1000 is rejected instead of saved
+            expect(results).toEqual(['2024-01-20', '2025-11-02', '2025-11-02', '2025-11-02', '2024-01-20', '2024-01-20', null]);
         });
 
         it('handles out-of-range ISO dates the same way as native parsing', () => {
