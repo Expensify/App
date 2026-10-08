@@ -1,5 +1,4 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -197,11 +196,9 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
                             )}
                         </MenuItem.Row>
                         {!!categoryError && (
-                            <FormHelpMessage
+                            <MenuItem.HelpText
                                 isError
-                                shouldShowRedDotIndicator={false}
                                 message={categoryError}
-                                style={styles.menuItemError}
                             />
                         )}
                     </MenuItem.Root>

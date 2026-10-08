@@ -1,9 +1,7 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
@@ -35,7 +33,6 @@ type BusinessTypePickerProps = {
 };
 
 function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputChange, label, onBlur}: BusinessTypePickerProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -73,11 +70,9 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
                     <MenuItem.Chevron />
                 </MenuItemField.Row>
                 {!!errorText && (
-                    <FormHelpMessage
+                    <MenuItem.HelpText
                         isError
-                        shouldShowRedDotIndicator={false}
                         message={errorText}
-                        style={styles.menuItemError}
                     />
                 )}
             </MenuItem.Root>

@@ -1,5 +1,4 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormHelpMessage from '@components/FormHelpMessage';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
@@ -483,11 +482,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                             )}
                         </MenuItem.Row>
                         {!!categoryError && (
-                            <FormHelpMessage
+                            <MenuItem.HelpText
                                 isError
-                                shouldShowRedDotIndicator={false}
                                 message={categoryError}
-                                style={styles.menuItemError}
                             />
                         )}
                     </MenuItem.Root>

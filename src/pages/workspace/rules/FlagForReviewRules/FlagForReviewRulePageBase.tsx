@@ -1,5 +1,4 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormHelpMessage from '@components/FormHelpMessage';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
@@ -260,11 +259,9 @@ function FlagForReviewRulePageBase({
                             )}
                         </MenuItem.Row>
                         {!!categoryError && (
-                            <FormHelpMessage
+                            <MenuItem.HelpText
                                 isError
-                                shouldShowRedDotIndicator={false}
                                 message={categoryError}
-                                style={styles.menuItemError}
                             />
                         )}
                     </MenuItem.Root>
@@ -296,11 +293,9 @@ function FlagForReviewRulePageBase({
                             )}
                         </MenuItem.Row>
                         {!!amountError && (
-                            <FormHelpMessage
+                            <MenuItem.HelpText
                                 isError
-                                shouldShowRedDotIndicator={false}
                                 message={amountError}
-                                style={styles.menuItemError}
                             />
                         )}
                     </MenuItem.Root>
