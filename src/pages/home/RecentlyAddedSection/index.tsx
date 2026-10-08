@@ -5,6 +5,7 @@ import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -36,6 +37,7 @@ function RecentlyAddedSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     // The hovered receipt preview is a portal on document.body, so it isn't dismissed by navigation alone.
     // Once the screen blurs (e.g. after opening an expense), we hide the preview instead of leaving it floating over the RHP.
     const isFocused = useIsFocused();
@@ -68,8 +70,12 @@ function RecentlyAddedSection() {
         };
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
+        // A pending-delete row keeps its ID but gets no descriptor. The carousel hides it while the delete is
+        // pending and re-adds it if the delete rolls back, both from its live transaction. A descriptor would keep
+        // it in the arrows after the delete syncs and its live copy is gone, landing the arrow on "not here".
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
-        const siblingDescriptorsByTransactionID = transactions.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
+        const navigableSiblings = transactions.filter((sibling) => sibling.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const siblingDescriptorsByTransactionID = navigableSiblings.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
             // eslint-disable-next-line no-param-reassign
             map[sibling.transactionID] = {
                 reportID: sibling.reportID,
@@ -138,7 +144,7 @@ function RecentlyAddedSection() {
                         onPress={() => openExpense(expense)}
                         shouldShowSeparator={index < transactions.length - 1}
                         shouldShowReceiptPreview={isFocused}
-                        rowStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        rowStyle={cardPaddingHorizontal}
                     />
                 ))
             ) : (

@@ -1,10 +1,12 @@
 import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -839,6 +841,10 @@ describe('actions/IOU', () => {
             const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
             expect(pendingNewTransactionIDs?.['new-tx-1']).toBeUndefined();
             expect(pendingNewTransactionIDs?.['new-tx-2']).toBeUndefined();
+
+            // Then the user stays on Search: the super-wide RHP is popped instead of dismissing to the expense report
+            expect(jest.mocked(Navigation.navigateBackToLastSuperWideRHPScreen)).toHaveBeenCalled();
+            expect(jest.mocked(Navigation.dismissModalWithReport)).not.toHaveBeenCalled();
         });
 
         it('writes pendingNewTransactionIDs into report metadata when splitting from the expense report', async () => {
