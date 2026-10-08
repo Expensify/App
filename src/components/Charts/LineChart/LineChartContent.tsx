@@ -193,11 +193,36 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     }));
 
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-        const chartBoundsBottom = args.yScale(Math.min(...args.yTicks));
+        const chartBoundsBottom = args.chartBounds.bottom;
         chartBottom.set(chartBoundsBottom);
+        const completePoints = shouldDashLastSegment ? args.points.y.slice(0, -1) : args.points.y;
 
         return (
             <>
+                <AreaGradient
+                    points={completePoints}
+                    baselineY={chartBoundsBottom}
+                    color={VictoryTheme.colors.default}
+                />
+                <Line
+                    points={completePoints}
+                    color={VictoryTheme.colors.default}
+                    strokeWidth={VictoryTheme.line.strokeWidth}
+                    strokeCap="round"
+                    strokeJoin="round"
+                    curveType="linear"
+                />
+                {shouldDashLastSegment && (
+                    <Line
+                        points={args.points.y.slice(-2)}
+                        color={VictoryTheme.colors.default}
+                        strokeWidth={VictoryTheme.line.strokeWidth}
+                        strokeCap="round"
+                        curveType="linear"
+                    >
+                        <DashPathEffect intervals={DASH_INTERVALS} />
+                    </Line>
+                )}
                 {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
                         labels={originalLabels}
@@ -298,43 +323,14 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points, yScale, yTicks, chartBounds}) => {
-                            const completePoints = shouldDashLastSegment ? points.y.slice(0, -1) : points.y;
-                            return (
-                                <>
-                                    <ChartGridLines
-                                        yTicks={yTicks}
-                                        yScale={yScale}
-                                        chartBounds={chartBounds}
-                                        color={theme.border}
-                                    />
-                                    <AreaGradient
-                                        points={completePoints}
-                                        baselineY={yScale(Math.min(...yTicks))}
-                                        color={VictoryTheme.colors.default}
-                                    />
-                                    <Line
-                                        points={completePoints}
-                                        color={VictoryTheme.colors.default}
-                                        strokeWidth={VictoryTheme.line.strokeWidth}
-                                        strokeCap="round"
-                                        strokeJoin="round"
-                                        curveType="linear"
-                                    />
-                                    {shouldDashLastSegment && (
-                                        <Line
-                                            points={points.y.slice(-2)}
-                                            color={VictoryTheme.colors.default}
-                                            strokeWidth={VictoryTheme.line.strokeWidth}
-                                            strokeCap="round"
-                                            curveType="linear"
-                                        >
-                                            <DashPathEffect intervals={DASH_INTERVALS} />
-                                        </Line>
-                                    )}
-                                </>
-                            );
-                        }}
+                        {({yScale, yTicks, chartBounds}) => (
+                            <ChartGridLines
+                                yTicks={yTicks}
+                                yScale={yScale}
+                                chartBounds={chartBounds}
+                                color={theme.border}
+                            />
+                        )}
                     </CartesianChart>
                 )}
                 <ChartTooltipLayer
