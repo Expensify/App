@@ -244,8 +244,10 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
-    it('Should offer a "Go back" button once the sign-in loader outlives its timeout', async () => {
-        // Given a magic link whose sign-in is still completing, so the page shows its loader
+    it('Should never offer a "Go back" button, however long the loader stays up', async () => {
+        // Given a magic link whose sign-in is still completing, so the page shows its loader.
+        // /v/ is a cold deep-link entry point, so there is usually no history to pop and a "Go back"
+        // button would be dead. The page opts out of the loader's default recovery UI for that reason.
         await act(async () => {
             await Onyx.set(ONYXKEYS.CREDENTIALS, {accountID: 1, validateCode: '123456'});
         });
@@ -269,11 +271,10 @@ describe('ValidateLoginPage', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // Then the user is offered a way out. With nothing to pop, goBack() resets to the sign-in page,
-            // which is better than a spinner that never ends.
+            // Then the loader is still up and no "Go back" is drawn
             expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('common.goBack'))).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('common.thisIsTakingLongerThanExpected'))).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('common.goBack'))).toBeNull();
+            expect(screen.queryByText(translateLocal('common.thisIsTakingLongerThanExpected'))).toBeNull();
         } finally {
             jest.useRealTimers();
         }

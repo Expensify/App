@@ -1,6 +1,5 @@
 import {act, render, screen} from '@testing-library/react-native';
 
-import FullScreenLoaderContextProvider, {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Text from '@components/Text';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -20,7 +19,7 @@ import SCREENS from '@src/SCREENS';
 import type isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {NavigationContainer} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ActivityIndicator} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -114,21 +113,7 @@ function expectNoGoBackButton() {
     expect(screen.queryByText('common.thisIsTakingLongerThanExpected')).toBeNull();
 }
 
-function expectGoBackButton() {
-    expect(screen.getByText('common.goBack')).toBeOnTheScreen();
-    expect(screen.getByText('common.thisIsTakingLongerThanExpected')).toBeOnTheScreen();
-}
-
-/** Turns the global overlay loader on as soon as it mounts, like the attachment picker does. */
-function ShowGlobalLoader() {
-    const {setIsLoaderVisible} = useFullScreenLoaderActions();
-    useEffect(() => {
-        setIsLoaderVisible(true);
-    }, [setIsLoaderVisible]);
-    return null;
-}
-
-describe('FullScreenLoadingIndicator "Go Back" on auth, transition and overlay loaders', () => {
+describe('FullScreenLoadingIndicator "Go Back" opt-outs', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -150,7 +135,7 @@ describe('FullScreenLoadingIndicator "Go Back" on auth, transition and overlay l
     });
 
     describe('deep-link auth entry points', () => {
-        it('ValidateLoginPage (magic link) offers a way back once the loader is slow', async () => {
+        it('ValidateLoginPage (magic link) never offers a way back', async () => {
             // Given a cold magic-link deep link, where the loader is the whole screen
             render(
                 <NavigationContainer>
@@ -167,11 +152,11 @@ describe('FullScreenLoadingIndicator "Go Back" on auth, transition and overlay l
             // When the sign-in takes longer than the loader timeout
             await waitPastLoaderTimeout();
 
-            // Then "Go Back" is drawn. With nothing to pop, goBack() resets to the sign-in page, so it is a real escape
-            expectGoBackButton();
+            // Then no "Go Back" is drawn — there is no history to pop on a cold deep link
+            expectNoGoBackButton();
         });
 
-        it('UnlinkLoginPage offers a way back once the loader is slow', async () => {
+        it('UnlinkLoginPage never offers a way back', async () => {
             // Given the unlink-login email link opened in a fresh tab
             render(
                 <NavigationContainer>
@@ -188,13 +173,13 @@ describe('FullScreenLoadingIndicator "Go Back" on auth, transition and overlay l
             // When the unlink request outlives the loader timeout
             await waitPastLoaderTimeout();
 
-            // Then "Go Back" is drawn, so a hung request doesn't trap the user
-            expectGoBackButton();
+            // Then no "Go Back" is drawn
+            expectNoGoBackButton();
         });
     });
 
     describe('OldDot <-> NewDot transition screens', () => {
-        it('LogInWithShortLivedAuthTokenPage (public transition) offers a way back once the loader is slow', async () => {
+        it('LogInWithShortLivedAuthTokenPage (public transition) never offers a way back', async () => {
             // Given a transition from OldDot that is still authenticating
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
@@ -212,11 +197,11 @@ describe('FullScreenLoadingIndicator "Go Back" on auth, transition and overlay l
                 </NavigationContainer>,
             );
 
-            // When the hand-off takes longer than the loader timeout, for example a sign-in dropped while offline
+            // When the hand-off takes longer than the loader timeout
             await waitPastLoaderTimeout();
 
-            // Then "Go Back" is drawn, so the user isn't stuck on a spinner that never ends
-            expectGoBackButton();
+            // Then no "Go Back" is drawn — /transition is a deep-link entry point with nothing behind it
+            expectNoGoBackButton();
         });
 
         it('LogOutPreviousUserPage (authenticated transition) never offers a way back', async () => {
@@ -258,23 +243,6 @@ describe('FullScreenLoadingIndicator "Go Back" on auth, transition and overlay l
             // Then the fallback shows no "Go Back", because the whole navigator is suspended behind it, and the children are still suspended
             expectNoGoBackButton();
             expect(screen.queryByText('connected')).toBeNull();
-        });
-    });
-
-    describe('global overlay', () => {
-        it('FullScreenLoaderContext never offers a way back', async () => {
-            // Given the app-wide overlay loader is turned on over whatever screen is showing
-            render(
-                <FullScreenLoaderContextProvider>
-                    <ShowGlobalLoader />
-                </FullScreenLoaderContextProvider>,
-            );
-
-            // When it stays up past the loader timeout, for example while the user browses the attachment picker
-            await waitPastLoaderTimeout();
-
-            // Then no "Go Back" is drawn — it would pop the screen underneath and leave the overlay up
-            expectNoGoBackButton();
         });
     });
 

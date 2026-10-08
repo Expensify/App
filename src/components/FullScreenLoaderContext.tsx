@@ -49,8 +49,7 @@ function FullScreenLoaderContextProvider({children}: FullScreenLoaderContextProv
         <FullScreenLoaderActionsContext.Provider value={actionsContextValue}>
             <FullScreenLoaderStateContext.Provider value={stateContextValue}>
                 {children}
-                {/* No "Go Back" button: this is a global overlay, not a screen, so going back would pop an unrelated screen and leave the overlay up. */}
-                {isLoaderVisible && <FullScreenLoadingIndicator shouldUseGoBackButton={false} />}
+                {isLoaderVisible && <FullScreenLoadingIndicator />}
             </FullScreenLoaderStateContext.Provider>
         </FullScreenLoaderActionsContext.Provider>
     );
