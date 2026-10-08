@@ -12,6 +12,7 @@ import {
 } from '@libs/Animation/animationTiming';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
+import type {TranslationPaths} from '@src/languages/types';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -7181,6 +7182,7 @@ const CONST = {
         RECEIPT_REQUIRED: 'receiptRequired',
         ITEMIZED_RECEIPT_REQUIRED: 'itemizedReceiptRequired',
         CUSTOM_RULES: 'customRules',
+        RULE_VIOLATION: 'ruleViolation',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
         SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
@@ -8082,6 +8084,7 @@ const CONST = {
             OR: 'or',
             EQUAL_TO: 'eq',
             CONTAINS: 'contains',
+            NOT_CONTAINS: 'notContains',
             NOT_EQUAL_TO: 'neq',
             RANGE: 'range',
             GREATER_THAN: 'gt',
@@ -8129,6 +8132,8 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
+            VENDOR: 'vendor',
+            MCC: 'mcc',
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
             FEED: 'feed',
@@ -10412,6 +10417,16 @@ const CONST = {
     },
 } as const;
 
+const HAS_VALUE_TRANSLATION_KEYS: Readonly<Record<string, TranslationPaths | undefined>> & Record<ValueOf<typeof CONST.SEARCH.HAS_VALUES>, TranslationPaths> = {
+    [CONST.SEARCH.HAS_VALUES.RECEIPT]: 'common.receipt',
+    [CONST.SEARCH.HAS_VALUES.ATTACHMENT]: 'common.attachment',
+    [CONST.SEARCH.HAS_VALUES.TAG]: 'common.tag',
+    [CONST.SEARCH.HAS_VALUES.CATEGORY]: 'common.category',
+    [CONST.SEARCH.HAS_VALUES.LINK]: 'common.link',
+    [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]: 'search.filters.has.submittedViolation',
+    [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]: 'search.filters.has.approvedViolation',
+} as const satisfies Record<ValueOf<typeof CONST.SEARCH.HAS_VALUES>, TranslationPaths>;
+
 /** Upgrade intro feature ids from UPGRADE_FEATURE_INTRO_MAPPING for Submit workspace */
 const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id,
@@ -10497,6 +10512,6 @@ export type {
     EnablePaymentsSubPageType,
 };
 
-export {FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
+export {FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, HAS_VALUE_TRANSLATION_KEYS, SUBMIT_FEATURE_IDS};
 
 export default CONST;
