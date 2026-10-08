@@ -19,7 +19,7 @@ jest.mock('@hooks/useActiveElementRole', () => ({__esModule: true, default: () =
 jest.mock('@hooks/useKeyboardShortcut', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: false})}));
 
-function renderConfirmModalWrapper(onBackdropPress?: () => void) {
+function renderConfirmModalWrapper(onBackdropPress?: () => void, shouldHideOnBackdropPress = true) {
     const closeModal = jest.fn();
 
     render(
@@ -29,6 +29,7 @@ function renderConfirmModalWrapper(onBackdropPress?: () => void) {
             title="Allow location access"
             prompt="Location access helps us keep your timezone and currency accurate"
             onBackdropPress={onBackdropPress}
+            shouldHideOnBackdropPress={shouldHideOnBackdropPress}
         />,
     );
 
@@ -41,7 +42,7 @@ describe('ConfirmModalWrapper backdrop press', () => {
     });
 
     it('runs the caller backdrop handler and hides the modal without removing it from the stack mid-tap', () => {
-        // Given a caller that passes a backdrop handler because it treats a tap outside differently from the cancel button
+        // Given a caller that passes a backdrop handler and opts in to hiding, because it treats a tap outside differently from the cancel button
         const onBackdropPress = jest.fn();
         const {closeModal} = renderConfirmModalWrapper(onBackdropPress);
 
@@ -70,6 +71,22 @@ describe('ConfirmModalWrapper backdrop press', () => {
 
         // Then the modal leaves the stack with a close action, so the caller's promise resolves the same way as after the cancel button
         expect(closeModal).toHaveBeenCalledWith({action: 'CLOSE'});
+    });
+
+    it('keeps the modal open when the caller passes a backdrop handler without opting in to hiding', () => {
+        // Given a caller that passes a no-op backdrop handler so a tap outside can't dismiss a modal that needs an explicit choice
+        const onBackdropPress = jest.fn();
+        const {closeModal} = renderConfirmModalWrapper(onBackdropPress, false);
+
+        // When the user taps outside the modal
+        act(() => {
+            mockConfirmModalProps?.onBackdropPress?.();
+        });
+
+        // Then only the caller handler runs and the modal stays visible, so the caller keeps control of the backdrop
+        expect(onBackdropPress).toHaveBeenCalledTimes(1);
+        expect(mockConfirmModalProps?.isVisible).toBe(true);
+        expect(closeModal).not.toHaveBeenCalled();
     });
 
     it('keeps the default backdrop behavior when the caller passes no backdrop handler', () => {
