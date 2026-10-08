@@ -135,7 +135,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const getOnlyAvailableOnPlanHTML = () => {
         const planParams = {formattedPrice, hasTeam2025Pricing};
-        if (feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports') {
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id || feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id) {
             return translate('workspace.upgrade.approvals.onlyAvailableOnPlan', planParams);
         }
         if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id) {
