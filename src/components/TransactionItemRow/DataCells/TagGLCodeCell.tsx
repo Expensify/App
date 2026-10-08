@@ -25,7 +25,7 @@ type TagGLCodeCellProps = TransactionDataCellProps &
 /**
  * Same shape as `CategoryGLCodeCell`: the code lives on the workspace tag, so editing picks the tag that owns the
  * code rather than rewriting the code. Multi-level tags produce one code per level joined into a single string, so
- * there is no single value to pick — `canEditTag` already refuses them and the cell stays read-only there. Like the
+ * there is no single value to pick. `canEditTag` already refuses them, so the cell stays read-only there. Like the
  * category cell, the picker always shows each tag's GL code, regardless of the workspace's tag GL code setting, and
  * the cell stays read-only when no tag on the workspace has a GL code.
  */
