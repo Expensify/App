@@ -679,6 +679,24 @@ describe('getHRCards', () => {
         expect(getRow(bamboo, 'finalApprover')?.route).toBe(ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(POLICY_ID));
     });
 
+    it('hides the final approver in custom approval, where the connection sets no approvers', () => {
+        const cases = [
+            {key: 'gusto', connections: {[GUSTO]: makeGustoConnection({config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM, finalApprover: 'admin@test.com'}})}},
+            {key: 'zenefits', connections: {[ZENEFITS]: makeZenefitsConnection({config: {approvalMode: CONST.ZENEFITS.APPROVAL_MODE.CUSTOM, finalApprover: 'admin@test.com'}})}},
+            {
+                key: 'merge_bamboohr',
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, finalApprover: 'admin@test.com'}})},
+            },
+        ];
+
+        for (const {key, connections} of cases) {
+            const cards = getHRCards(makeGetHRCardsParams({policy: makePolicy({connections})}));
+            const card = cards.find((c) => c.key === key);
+            expect(getRow(card, 'approvalMode')).toBeDefined();
+            expect(getRow(card, 'finalApprover')).toBeUndefined();
+        }
+    });
+
     it('returns the connected Zenefits card even when the Zenefits beta is disabled', () => {
         const policy = makePolicy({
             connections: {
