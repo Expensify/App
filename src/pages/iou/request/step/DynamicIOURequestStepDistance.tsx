@@ -528,7 +528,7 @@ function DynamicIOURequestStepDistance({
 
             Promise.all([
                 removeWaypoint(currentTransaction, emptyWaypointIndex.toString(), shouldUseTransactionDraft(action), shouldPassSplitDraft ? splitDraftTransaction : undefined),
-                updateWaypointsUtil(transactionID, newWaypoints, transactionState),
+                updateWaypointsUtil(transactionID, newWaypoints, transactionState, waypoints),
             ]).then(() => {
                 setOptimisticWaypoints(null);
             });

@@ -988,7 +988,9 @@ jobs:
         run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+          SLACK_RETEST_USER_TOKEN: ${{ secrets.SLACK_RETEST_USER_TOKEN }}
           SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -1151,18 +1153,19 @@ jobs:
   iosUploadSentry:
     name: Upload iOS build to Sentry for size analysis
     needs: [prep, iosBuild, checkDeploymentSuccess]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # sentry-cli only supports IPA uploads when running on Apple Silicon macOS
+    runs-on: blacksmith-6vcpu-macos-latest
     if: >-
       ${{ always()
           && needs.prep.outputs.DEPLOY_ENV == 'production'
           && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     continue-on-error: true
-    timeout-minutes: 10
+    timeout-minutes: 20
     outputs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
