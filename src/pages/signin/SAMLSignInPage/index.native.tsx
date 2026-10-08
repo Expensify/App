@@ -61,7 +61,7 @@ function SAMLSignInPage() {
     const hasExitedSAMLFlow = useRef(false);
     const authSessionOpenedAt = useRef<number | null>(null);
     const backgroundedAt = useRef<number | null>(null);
-    const lastBackgroundMs = useRef<number | null>(null);
+    const lastBackgroundMs = useRef<number | undefined>(undefined);
 
     useAppState({
         onAppStateChange: (nextAppState: AppStateStatus) => {
@@ -102,7 +102,7 @@ function SAMLSignInPage() {
             // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
             setIsAuthenticatingWithShortLivedToken(false);
             Navigation.isNavigationReady().then(() => {
-                addBreadcrumb('goBack', {reason, openForMs: msSince(authSessionOpenedAt.current), lastBackgroundMs: lastBackgroundMs.current ?? undefined});
+                addBreadcrumb('goBack', {reason, openForMs: msSince(authSessionOpenedAt.current), lastBackgroundMs: lastBackgroundMs.current});
                 Navigation.goBack();
                 clearSignInData();
             });
@@ -191,12 +191,12 @@ function SAMLSignInPage() {
         isAuthSessionOpen.current = true;
         authSessionOpenedAt.current = Date.now();
         // A background that ended before the sheet opened says nothing about the sheet, so it must not leak into the result/goBack crumbs.
-        lastBackgroundMs.current = null;
+        lastBackgroundMs.current = undefined;
         addBreadcrumb('open');
         openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL)
             .then((response: WebBrowserAuthSessionResult) => {
                 isAuthSessionOpen.current = false;
-                addBreadcrumb('result', {type: response.type, openForMs: msSince(authSessionOpenedAt.current), lastBackgroundMs: lastBackgroundMs.current ?? undefined});
+                addBreadcrumb('result', {type: response.type, openForMs: msSince(authSessionOpenedAt.current), lastBackgroundMs: lastBackgroundMs.current});
                 if (response.type !== 'success') {
                     // The auth session closed without handing a callback URL back to the app (e.g. the in-app browser
                     // was dismissed/cancelled, or the redirect to the custom scheme never fired). Log the result type so
