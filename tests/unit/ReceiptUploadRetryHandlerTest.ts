@@ -115,7 +115,7 @@ describe('buildRetryPayload', () => {
         // When the retry payload is rebuilt from what the failure left in Onyx
         const payload = buildRetryPayload(context, receiptFile);
 
-        // Then it keeps the transaction ID, so a re-send that already reached the server gets "Transaction already created" instead of a second expense
+        // Then the original transaction ID is kept, because that's what lets the server recognize a re-send it already processed
         expect(payload?.optimisticTransactionID).toBe(TRANSACTION_ID);
     });
 
@@ -137,7 +137,7 @@ describe('buildRetryPayload', () => {
         // When the retry payload is rebuilt
         const payload = buildRetryPayload(context, receiptFile);
 
-        // Then it reuses both, so the retry overwrites them instead of adding a second expense to the report
+        // Then both IDs are reused, which lets requestMoney overwrite the failed records instead of adding a second expense
         expect(payload?.currentReportActionID).toBe(IOU_ACTION_ID);
         expect(payload?.existingTransactionThreadReportID).toBe(THREAD_REPORT_ID);
     });
@@ -284,7 +284,7 @@ describe('buildRetryPayload', () => {
             // When the retry payload is rebuilt
             const payload = buildReplaceReceiptRetryPayload(context, receiptFile);
 
-            // Then the crop stays a same-receipt update, the failed action is reused, and violations use the current policy
+            // Then the payload keeps the crop state and action ID, and takes the current policy and violations, not the stored ones
             expect(payload).toEqual(
                 expect.objectContaining({
                     file: receiptFile,

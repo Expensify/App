@@ -603,7 +603,7 @@ describe('actions/IOU/Receipt', () => {
                 });
                 await waitForBatchedUpdates();
 
-                // Then the receipt error stores both, so a retry stays a same-receipt update and doesn't post "added a receipt"
+                // Then the receipt error stores both, which a retry needs to stay a same-receipt update
                 const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
                 const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
                 const receiptError: Partial<ReceiptError> | undefined = Object.values(transactionFailure.value.errors ?? {}).at(0);
