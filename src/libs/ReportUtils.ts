@@ -2567,15 +2567,21 @@ function findLastAccessedReport(
     };
     const isVisible = (report: OnyxEntry<Report>) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession());
 
-    // Any visited report outranks every unvisited one, so walk the visit times newest-first instead of scanning all reports.
-    const visits = Object.entries(allReportLastVisitTimes)
-        .filter(([, visitTime]) => !!visitTime)
-        .sort(([, a], [, b]) => (a < b ? 1 : -1));
-    for (const [reportID] of visits) {
+    // Any visited report outranks every unvisited one, so pick the newest eligible visit instead of scanning all reports.
+    let newestVisitTime = '';
+    let newestVisitedReport: OnyxEntry<Report>;
+    for (const [reportID, visitTime] of Object.entries(allReportLastVisitTimes)) {
+        if (!visitTime || visitTime <= newestVisitTime) {
+            continue;
+        }
         const report = reportsCollection[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         if (report?.reportID && isEligible(report) && isVisible(report)) {
-            return toLastAccessedReport(report);
+            newestVisitTime = visitTime;
+            newestVisitedReport = report;
         }
+    }
+    if (newestVisitedReport) {
+        return toLastAccessedReport(newestVisitedReport);
     }
 
     const reportsValues = Object.values(reportsCollection).filter(isEligible);
