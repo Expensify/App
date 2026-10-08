@@ -55,6 +55,9 @@ type SearchPageFooterProps = {
     /** Currency code used when the footer currency is reset */
     defaultCurrency: string | undefined;
 
+    /** Whether the display menu offers the total selector. The label follows `totalType` either way. */
+    shouldShowTotalSelector: boolean;
+
     /** Whether the footer total is currently refreshing */
     isTotalLoading: boolean;
 
@@ -74,6 +77,7 @@ function SearchPageFooter({
     defaultCountType,
     total,
     totalType,
+    shouldShowTotalSelector,
     currency,
     defaultCurrency,
     isTotalLoading,
@@ -211,6 +215,7 @@ function SearchPageFooter({
             countType={countType}
             defaultCountType={defaultCountType}
             totalType={totalType}
+            shouldShowTotalSelector={shouldShowTotalSelector}
             isTotalLoading={isTotalLoading}
             currency={currency}
             defaultCurrency={defaultCurrency}

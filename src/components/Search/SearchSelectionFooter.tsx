@@ -362,7 +362,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // search hash, so writing it would re-run the search and clear the very selection the footer is describing. The
     // override lives only while the client is summing. Once the selection goes, the footer is back on the query's total.
     const footerTotalOverride = hasPartialSelection && footerTotalState.searchHash === currentSearchHash ? footerTotalState.selectedTotal : undefined;
-    const footerTotalType = shouldShowTotalSelector ? (footerTotalOverride ?? footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
+    const shouldNameQueryBreakdown = isFooterSelectorsEnabled && (shouldShowTotalSelector || !shouldUseClientTotal);
+    const footerTotalType = shouldNameQueryBreakdown ? (footerTotalOverride ?? footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
     // No selector means no breakdown, which is the plain total, so the sums below never have to special-case it.
     const footerTotalBreakdown = footerTotalType ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
@@ -762,6 +763,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             currency={footerData.currency}
             defaultCurrency={searchTargetCurrency}
             isTotalLoading={isFooterTotalLoading}
+            shouldShowTotalSelector={shouldShowTotalSelector}
             onCurrencyChange={handleFooterCurrencyChange}
             onCountChange={handleFooterCountChange}
             onTotalChange={handleFooterTotalChange}

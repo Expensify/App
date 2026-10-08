@@ -32,6 +32,9 @@ type SearchFooterPopupProps = {
     /** The total the footer is currently displaying. Undefined hides the total row, e.g. on an empty result set. */
     totalType: SearchFooterTotal | undefined;
 
+    /** Whether the Total row is offered. A whole-group selection has no breakdown to pick, but still names its figure. */
+    shouldShowTotalSelector: boolean;
+
     /** Whether the total and currency rows are waiting on a search, which recomputes both server-side */
     isTotalLoading: boolean;
 
@@ -65,6 +68,7 @@ function SearchFooterPopup({
     countType,
     defaultCountType,
     totalType,
+    shouldShowTotalSelector,
     isTotalLoading,
     currency,
     defaultCurrency,
@@ -96,7 +100,7 @@ function SearchFooterPopup({
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_COUNT}
                     />
                 )}
-                {!!totalType && (
+                {shouldShowTotalSelector && !!totalType && (
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         // Both rows re-run the search, so they are inert until the one in flight lands. The count row

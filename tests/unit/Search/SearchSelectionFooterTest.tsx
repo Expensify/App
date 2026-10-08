@@ -91,6 +91,7 @@ type CapturedFooterProps = {
     total?: number;
     totalType?: SearchFooterTotal;
     isTotalLoading?: boolean;
+    shouldShowTotalSelector?: boolean;
     defaultCurrency?: string;
     currency?: string;
     onCurrencyChange?: (currency: string) => void;
@@ -852,6 +853,31 @@ describe('SearchSelectionFooter', () => {
 
             expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
             expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
+        });
+
+        it('names the breakdown the figure is, even where a group selection hides the selector', async () => {
+            // Given a select-all on a billable total, with one group taken off it
+            setSearchQuery('type:expense groupBy:category footerTotal:billable');
+            mockSelectedTransactions.current = {};
+            mockExcludedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -100)};
+            mockAreAllMatchingItemsSelected.current = true;
+
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
+            await waitForBatchedUpdates();
+
+            // Then the figure is the backend's billable aggregate, so that is what the label says — with no selector to
+            // change it, since a whole group has no breakdown of its own yet.
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, shouldShowTotalSelector: false, countType: undefined}));
+        });
+
+        it('keeps the plain total over a group selection the client sums itself, which has no breakdown to apply', async () => {
+            setSearchQuery('type:expense groupBy:category footerTotal:billable');
+            mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -100)};
+
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: undefined, shouldShowTotalSelector: false}));
         });
 
         it('offers neither selector while a group row is selected through its header, which stores its expenses', async () => {
