@@ -83,8 +83,6 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
         return <FullScreenLoadingIndicator />;
     }
 
-    console.log('XDD');
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
