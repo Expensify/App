@@ -545,6 +545,14 @@ function flagReportNavigatedAway(reportID: string | undefined) {
     reportsNavigatedAwayFrom.add(reportID);
 }
 
+/** Ends the return trip without clearing the marker, for a pre-mounted report the user sees only now, on its reveal. */
+function clearReportNavigatedAway(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    reportsNavigatedAwayFrom.delete(reportID);
+}
+
 /**
  * Builds a partial PersonalDetailsList containing only the records passed in. Skips entries with no accountID.
  */
@@ -9033,6 +9041,7 @@ export {
     markAsManuallyExported,
     markCommentAsUnread,
     flagReportNavigatedAway,
+    clearReportNavigatedAway,
     navigateToAndOpenChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,

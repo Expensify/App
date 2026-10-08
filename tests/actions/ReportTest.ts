@@ -6246,6 +6246,24 @@ describe('actions/Report', () => {
             // Then it counts as a return trip and the mark is cleared, like on any return to a report
             expect(await getManualUnreadMark(REPORT_ID)).toBeFalsy();
         });
+
+        it('keeps the manual unread mark through the visit that starts on the reveal', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkRevealedPreMount';
+            // Given a report the user left with a manual unread mark, loaded by a hidden pre-mount
+            await givenAManualUnreadMark(REPORT_ID);
+            Report.flagReportNavigatedAway(REPORT_ID);
+            openReportFor(REPORT_ID, true);
+            await waitForBatchedUpdates();
+
+            // When the pre-mount is revealed and another fetch runs during that visit
+            Report.clearReportNavigatedAway(REPORT_ID);
+            openReportFor(REPORT_ID, false);
+            await waitForBatchedUpdates();
+
+            // Then the reveal already ended the return trip, so the mark stays while the user is in the report
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+        });
     });
 
     describe('openReport with participants', () => {

@@ -46,6 +46,7 @@ jest.mock('@hooks/useNetwork', () => ({
 
 const mockOpenReport = jest.fn<void, Parameters<typeof UserActionsReport.openReport>>();
 const mockFlagReportNavigatedAway = jest.fn<void, Parameters<typeof UserActionsReport.flagReportNavigatedAway>>();
+const mockClearReportNavigatedAway = jest.fn<void, Parameters<typeof UserActionsReport.clearReportNavigatedAway>>();
 const mockUpdateLastVisitTime = jest.fn<void, Parameters<typeof UserActionsReport.updateLastVisitTime>>();
 const mockReadNewestAction = jest.fn<void, Parameters<typeof UserActionsReport.readNewestAction>>();
 jest.mock('@userActions/Report', () => ({
@@ -55,6 +56,9 @@ jest.mock('@userActions/Report', () => ({
     },
     flagReportNavigatedAway: (...args: Parameters<typeof UserActionsReport.flagReportNavigatedAway>) => {
         mockFlagReportNavigatedAway(...args);
+    },
+    clearReportNavigatedAway: (...args: Parameters<typeof UserActionsReport.clearReportNavigatedAway>) => {
+        mockClearReportNavigatedAway(...args);
     },
     updateLastVisitTime: (...args: Parameters<typeof UserActionsReport.updateLastVisitTime>) => {
         mockUpdateLastVisitTime(...args);
@@ -90,6 +94,7 @@ describe('ReportFetchHandler', () => {
     beforeEach(async () => {
         mockOpenReport.mockClear();
         mockFlagReportNavigatedAway.mockClear();
+        mockClearReportNavigatedAway.mockClear();
         mockUpdateLastVisitTime.mockClear();
         mockReadNewestAction.mockClear();
         mockSetParams.mockClear();
@@ -275,6 +280,41 @@ describe('ReportFetchHandler', () => {
 
         // Then the skip was spent on the reveal, so this navigation fetches like any other
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: true}));
+    });
+
+    it('ends the return trip of a hidden wide submit pre-mount when it is revealed', async () => {
+        // Given a report mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+        expect(mockClearReportNavigatedAway).not.toHaveBeenCalled();
+
+        // When it is revealed
+        rerender(
+            <HandlerTree
+                isInPreloadedTab={false}
+                isHiddenPreMount={false}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        // Then the visit starts now, so later fetches in it do not clear a manual unread marker as a return trip
+        expect(mockClearReportNavigatedAway).toHaveBeenCalledWith(REPORT_ID);
+    });
+
+    it('keeps the return trip of a hidden wide submit pre-mount that unmounts unseen', async () => {
+        // Given a report mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {unmount} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+
+        // When the submit is cancelled and the hidden screen unmounts
+        unmount();
+
+        // Then the next real open still counts as a return trip and clears a marker the user left
+        expect(mockClearReportNavigatedAway).not.toHaveBeenCalled();
     });
 
     it('records the visit of a hidden wide submit pre-mount only once it is revealed', async () => {

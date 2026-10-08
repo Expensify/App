@@ -41,6 +41,7 @@ import {
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 
 import {
+    clearReportNavigatedAway,
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
     flagReportNavigatedAway,
@@ -233,12 +234,8 @@ function ReportFetchHandler() {
             return;
         }
 
-        // The reveal rebuilds the route with the same key and params, which re-runs this fetch. Skip it once, or it would
-        // run as a return trip that clears the manual unread marker and jumps to the last unread page.
-        const hiddenPreMountFetchedRoute = hiddenPreMountFetchedRouteRef.current;
-        hiddenPreMountFetchedRouteRef.current = isHiddenPreMount ? {key: route.key, params: route.params} : undefined;
-        if (!isHiddenPreMount && hiddenPreMountFetchedRoute?.key === route.key && deepEqual(hiddenPreMountFetchedRoute.params, route.params)) {
-            return;
+        if (isHiddenPreMount) {
+            hiddenPreMountFetchedRouteRef.current = {key: route.key, params: route.params};
         }
 
         // For a cached 1:1 DM, pass the other participant so the server can resolve a stale/optimistic
@@ -255,7 +252,7 @@ function ReportFetchHandler() {
             // Falsy means a page refresh / cold start, which is when openReport clears a manual unread marker.
             // This screen opens the report the user is looking at, so it is the only caller that passes it.
             hasOnceLoadedReportActions: reportLoadingState.hasOnceLoadedReportActions,
-            // The reveal skips the next fetch (see above), so the newest page with the new expense and a manual unread marker stay.
+            // The reveal skips the route fetch and ends the return trip (see below), so the newest page and the marker stay.
             shouldMarkAsRead: !isHiddenPreMount,
             shouldKeepManualUnreadMarker: isHiddenPreMount,
             currentUserAccountID,
@@ -314,6 +311,27 @@ function ReportFetchHandler() {
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
         });
+    });
+
+    // The user sees a revealed pre-mount only now, so this visit is not a return trip. Declared before the fetch
+    // effects, so a fetch in the reveal commit does not clear the manual unread marker.
+    const prevIsHiddenPreMount = usePrevious(isHiddenPreMount);
+    useEffect(() => {
+        if (!prevIsHiddenPreMount || isHiddenPreMount) {
+            return;
+        }
+        clearReportNavigatedAway(reportIDFromRoute);
+    }, [prevIsHiddenPreMount, isHiddenPreMount, reportIDFromRoute]);
+
+    // The reveal rebuilds the route with the same key and params, which re-runs the route fetch. Skip it once, or it
+    // would jump to the last unread page instead of the newest one with the new expense.
+    const shouldSkipRevealRouteFetch = useEffectEvent(() => {
+        const hiddenPreMountFetchedRoute = hiddenPreMountFetchedRouteRef.current;
+        if (isHiddenPreMount || !hiddenPreMountFetchedRoute) {
+            return false;
+        }
+        hiddenPreMountFetchedRouteRef.current = undefined;
+        return hiddenPreMountFetchedRoute.key === route.key && deepEqual(hiddenPreMountFetchedRoute.params, route.params);
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.
@@ -567,7 +585,7 @@ function ReportFetchHandler() {
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // Usually this triggers one openReport execution per page start or navigation. If guided setup is deferred while app data loads,
         // rerun once the defer signal clears so openReport includes the loaded onboarding data.
-        if (isInPreloadedTab) {
+        if (isInPreloadedTab || shouldSkipRevealRouteFetch()) {
             return;
         }
         fetchReport();
