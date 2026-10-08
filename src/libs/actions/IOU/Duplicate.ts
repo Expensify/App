@@ -210,12 +210,13 @@ function mergeDuplicates({
     ...params
 }: MergeDuplicatesFuncParams) {
     const {transaction: originalSelectedTransaction, transactionList, ...restParams} = params;
-    const transactionIDList = transactionList.map((txn) => txn.transactionID);
-    const allParams: MergeDuplicatesParams = {...restParams, transactionID: originalSelectedTransaction?.transactionID, transactionIDList};
 
     if (!originalSelectedTransaction?.transactionID) {
         return;
     }
+
+    const transactionIDList = transactionList.map((txn) => txn.transactionID);
+    const allParams: MergeDuplicatesParams = {...restParams, transactionID: originalSelectedTransaction.transactionID, transactionIDList};
 
     const optimisticTransactionData = buildOptimisticTransactionData({
         transactionID: originalSelectedTransaction.transactionID,
@@ -461,8 +462,17 @@ function mergeDuplicates({
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates({taxAmount, taxValue, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList, delegateAccountID, ...params}: ResolveDuplicatesFuncParams) {
-    const {transaction: originalSelectedTransaction, transactionList} = params;
+function resolveDuplicates({
+    taxAmount,
+    taxValue,
+    transactionThreadReportIDMap,
+    allTransactionViolations,
+    allReportActionsList,
+    delegateAccountID,
+    transaction: originalSelectedTransaction,
+    transactionList,
+    ...params
+}: ResolveDuplicatesFuncParams) {
     if (!originalSelectedTransaction?.transactionID) {
         return;
     }
@@ -516,10 +526,6 @@ function resolveDuplicates({taxAmount, taxValue, transactionThreadReportIDMap, a
     const failureHoldTransactionActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
 
     for (const transaction of transactionList) {
-        if (!transaction) {
-            continue;
-        }
-
         const iouAction = getIOUActionForTransactions([transaction.transactionID], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`]).at(0);
         if (!iouAction) {
             continue;
@@ -1519,7 +1525,7 @@ async function bulkDuplicateReports({
 }: BulkDuplicateReportsParams) {
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
 
-    const allTransactionSources = Object.values(allTransactions ?? {}) as OnyxTypes.Transaction[];
+    const allTransactionSources = Object.values(allTransactions ?? {}).filter((transaction): transaction is OnyxTypes.Transaction => !!transaction);
     if (searchData) {
         for (const [key, value] of Object.entries(searchData)) {
             if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && value && typeof value === 'object' && 'transactionID' in value) {

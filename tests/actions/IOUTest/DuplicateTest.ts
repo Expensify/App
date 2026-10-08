@@ -559,6 +559,39 @@ describe('actions/Duplicate', () => {
             expect(updatedReport?.total).toBe(150);
         });
 
+        it('should return early when transactionID is undefined', async () => {
+            // Given: Params with undefined transaction
+            const mergeParams: MergeDuplicatesTransactionParams = {
+                transaction: undefined,
+                transactionList: [],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID: 'report123',
+            };
+
+            // When: Call mergeDuplicates with undefined transaction
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {},
+                allReportsList: {},
+                allReportActionsList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then: Verify API was not called
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
         it('should handle missing expense report gracefully', async () => {
             // Given: Set up test data without expense report
             const reportID = 'report123';
@@ -1260,6 +1293,10 @@ describe('actions/Duplicate', () => {
                     failureData: expect.arrayContaining([]),
                 }),
             );
+
+            // Then: Verify the full transaction objects were not spread into the API payload
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('transaction');
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('transactionList');
         });
 
         it('should return early when transactionID is undefined', async () => {

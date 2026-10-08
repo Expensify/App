@@ -7,7 +7,7 @@ import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -25,10 +25,11 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 type UseBulkDuplicateReportActionParams = {
     selectedReports: SelectedReports[];
     allReports: OnyxCollection<Report> | undefined;
+    allTransactions: OnyxCollection<Transaction>;
     searchData: Record<string, unknown> | undefined;
 };
 
-function useBulkDuplicateReportAction({selectedReports, allReports, searchData}: UseBulkDuplicateReportActionParams) {
+function useBulkDuplicateReportAction({selectedReports, allReports, allTransactions, searchData}: UseBulkDuplicateReportActionParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -46,7 +47,6 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});

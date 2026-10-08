@@ -216,6 +216,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 <BulkDuplicateReportHandler
                     selectedReports={selectedReports}
                     allReports={allReports}
+                    allTransactions={allTransactions}
                     searchData={searchData}
                     onHandlerReady={setDuplicateReportHandler}
                 />
