@@ -15,7 +15,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
-import {isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {isOneTransactionReport, isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isBrokenConnectionViolation,
@@ -100,7 +100,10 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const reportID = report?.reportID;
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const isFromReviewDuplicates = !!route.params.backTo && /\/duplicates\/review\/[^/]+$/.test(route.params.backTo.replaceAll(/\?.*/g, ''));
-    const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
+    // A one-expense report *is* that expense's view (Spend opens it directly and the carousel lives in its header),
+    // so its transaction thread is a step deeper than the carousel, e.g. a thread started from the report's "paid" action.
+    // Paging from there would swap the thread for an unrelated expense, so only show the carousel on the expense view itself.
+    const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP) && !isOneTransactionReport(parentReport);
     // `transaction` is resolved through this thread's parent report action, which isn't necessarily loaded yet on
     // a cold open (e.g. opening an expense from the Spend page right after clearing the cache). The route carries
     // the expense the screen was opened for, so fall back to it rather than hiding the carousel until data lands.
