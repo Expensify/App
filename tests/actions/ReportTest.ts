@@ -12,7 +12,7 @@ import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
@@ -29,6 +29,7 @@ import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import * as Policy from '@src/libs/actions/Policy/Policy';
 import {initReconnect} from '@src/libs/actions/Reconnect';
 import * as Report from '@src/libs/actions/Report';
 import * as User from '@src/libs/actions/User';
@@ -43,6 +44,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -220,6 +222,19 @@ const isTransactionMergeUpdate = (value: unknown): value is Extract<OnyxUpdate<t
         value.onyxMethod === Onyx.METHOD.MERGE &&
         typeof value.key === 'string' &&
         value.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
+        (value.value === null || typeof value.value === 'object')
+    );
+};
+
+const isReportMergeUpdate = (value: unknown): value is Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>, {onyxMethod: typeof Onyx.METHOD.MERGE}> => {
+    if (typeof value !== 'object' || value === null || !('onyxMethod' in value) || !('key' in value) || !('value' in value)) {
+        return false;
+    }
+
+    return (
+        value.onyxMethod === Onyx.METHOD.MERGE &&
+        typeof value.key === 'string' &&
+        value.key.startsWith(ONYXKEYS.COLLECTION.REPORT) &&
         (value.value === null || typeof value.value === 'object')
     );
 };
@@ -3549,6 +3564,165 @@ describe('actions/Report', () => {
             expect(formEntries.userReportedIntegrationName).toBeUndefined();
         });
 
+        // TRACK_WORKSPACE posts the onboarding messages to the Concierge chat
+        const rhpVariantConciergeChat: OnyxTypes.Report = {
+            reportID: '9988776656',
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {
+                [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+
+        // Completes onboarding the way the web Track flow does, asking to wait for the RHP variant
+        const completeTrackOnboardingWaitingForRHPVariant = () => {
+            const engagementChoice = CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
+            const {onboardingMessages} = getOnboardingMessages();
+            return Report.completeOnboarding({
+                conciergeChat: rhpVariantConciergeChat,
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                adminsChatReportID: '7957055873634071',
+                onboardingPolicyID: 'A70D00C752416811',
+                shouldWaitForRHPVariantInitialization: true,
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+        };
+
+        it('should queue CompleteGuidedSetup and keep the optimistic onboarding state when offline, even if waiting for the RHP variant', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+
+            // Given the user is offline, where any request that reaches the network fails right away,
+            // so a side-effect request (which is never queued or retried) would apply its failure data
+            setHasRadio(false);
+            global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+            await waitForBatchedUpdates();
+
+            // When the web Track flow completes onboarding and asks to wait for the RHP variant
+            completeTrackOnboardingWaitingForRHPVariant();
+            await waitForNetworkPromises();
+
+            // Then the request goes through API.write instead of the side-effect request
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, expect.anything(), expect.anything());
+
+            // And it is persisted in the queue, so it is replayed once the user is back online
+            expect(PersistedRequests.getAll().map((request) => request.command)).toContain(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
+
+            // And the optimistic data is not rolled back, so the onboarding modal does not reappear
+            const onboarding = await getOnyxValue(ONYXKEYS.NVP_ONBOARDING);
+            expect(onboarding?.hasCompletedGuidedSetupFlow).toBe(true);
+
+            // And no onboarding message in the Concierge chat gets an "Unexpected error" from the failure data
+            const conciergeReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rhpVariantConciergeChat.reportID}`);
+            expect(Object.keys(conciergeReportActions ?? {}).length).toBeGreaterThan(0);
+            const conciergeReportActionsWithErrors = Object.values(conciergeReportActions ?? {}).filter((reportAction) => !isEmptyObject(reportAction?.errors));
+            expect(conciergeReportActionsWithErrors).toHaveLength(0);
+
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(true);
+            await waitForBatchedUpdates();
+        });
+
+        it('should queue CompleteGuidedSetup when the app goes offline while waiting for CreateWorkspace, even if waiting for the RHP variant', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            // Given the user is online and CreateWorkspace is still in flight, so completeOnboarding has to wait for it.
+            // The in-flight request fails once the connection drops, and so does every request after it.
+            let rejectCreateWorkspace: ((error: Error) => void) | undefined;
+            global.fetch = jest
+                .fn()
+                .mockImplementationOnce(
+                    () =>
+                        new Promise((_resolve, reject) => {
+                            rejectCreateWorkspace = reject;
+                        }),
+                )
+                .mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+            Policy.createWorkspace({
+                conciergeChat: rhpVariantConciergeChat,
+                policyOwner: {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID},
+                makeMeAdmin: true,
+                policyName: 'Test workspace',
+                policyID: 'A70D00C752416811',
+                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                currency: CONST.CURRENCY.USD,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
+                activePolicy: undefined,
+                delegateAccountID: undefined,
+            });
+            await waitForBatchedUpdates();
+            expect(rejectCreateWorkspace).toBeDefined();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const makeRequestWithSideEffectsSpy = jest.spyOn(API, 'makeRequestWithSideEffects');
+
+            // When the web Track flow completes onboarding and asks to wait for the RHP variant
+            const completeOnboardingPromise = completeTrackOnboardingWaitingForRHPVariant();
+            await waitForBatchedUpdates();
+
+            // And the app goes offline while completeOnboarding is still waiting for CreateWorkspace, which resolves the wait
+            // even though CreateWorkspace is still queued
+            setHasRadio(false);
+            rejectCreateWorkspace?.(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+            await completeOnboardingPromise;
+            await waitForNetworkPromises();
+
+            // Then the request goes through API.write instead of the side-effect request, which would fail right away offline
+            expect(makeRequestWithSideEffectsSpy).not.toHaveBeenCalled();
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, expect.anything(), expect.anything());
+
+            // And it is persisted in the queue behind CreateWorkspace, so both are replayed once the user is back online
+            const persistedCommands = PersistedRequests.getAll().map((request) => request.command);
+            expect(persistedCommands).toContain(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
+
+            // And the optimistic data is not rolled back, so the onboarding modal does not reappear
+            const onboarding = await getOnyxValue(ONYXKEYS.NVP_ONBOARDING);
+            expect(onboarding?.hasCompletedGuidedSetupFlow).toBe(true);
+
+            // And no onboarding message in the Concierge chat gets an "Unexpected error" from the failure data
+            const conciergeReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rhpVariantConciergeChat.reportID}`);
+            expect(Object.keys(conciergeReportActions ?? {}).length).toBeGreaterThan(0);
+            const conciergeReportActionsWithErrors = Object.values(conciergeReportActions ?? {}).filter((reportAction) => !isEmptyObject(reportAction?.errors));
+            expect(conciergeReportActionsWithErrors).toHaveLength(0);
+
+            makeRequestWithSideEffectsSpy.mockRestore();
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(true);
+            await waitForBatchedUpdates();
+        });
+
+        it('should send CompleteGuidedSetup as a side-effect request when online and waiting for the RHP variant', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+            // Spying on the method keeps the real implementation, so the side-effect request still runs against the
+            // mocked fetch. The spy only lets us check which API method completeOnboarding used.
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const makeRequestWithSideEffectsSpy = jest.spyOn(API, 'makeRequestWithSideEffects');
+
+            // Given the user is online, so the response can carry the server-assigned nvp_onboardingRHPVariant
+            // When the web Track flow completes onboarding and asks to wait for the RHP variant
+            await completeTrackOnboardingWaitingForRHPVariant();
+            await waitForBatchedUpdates();
+
+            // Then the request goes through makeRequestWithSideEffects so the caller can read the RHP variant off the response
+            expect(makeRequestWithSideEffectsSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, expect.anything(), expect.anything());
+
+            // And it does not go through API.write, which would not return the response to the caller
+            expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, expect.anything(), expect.anything());
+
+            makeRequestWithSideEffectsSpy.mockRestore();
+        });
+
         it('should post onboarding tasks to the existing Concierge chat', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
@@ -5148,6 +5322,141 @@ describe('actions/Report', () => {
                 const reportName = reportUpdate?.value && typeof reportUpdate.value === 'object' && 'reportName' in reportUpdate.value ? reportUpdate.value.reportName : undefined;
                 expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
             });
+
+            it('should negate every total column so the displayed Total stays positive', async () => {
+                // Given an IOU report whose totals are all stored positive
+                const policyID = '302';
+                const policy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(3, undefined),
+                    reportID: 'iouReport302',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 3,
+                    total: 10000,
+                    reimbursableTotal: 10000,
+                    nonReimbursableTotal: 0,
+                    unheldTotal: 10000,
+                    unheldReimbursableTotal: 10000,
+                    unheldNonReimbursableTotal: 0,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+                // When converting the IOU report to an expense report
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat302', undefined, TestHelper.getCurrencyDecimalsLocal, undefined, []);
+
+                // Then every total column flips sign together with `total`
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const expenseReport = isReportMergeUpdate(reportUpdate) ? reportUpdate.value : undefined;
+                expect(expenseReport?.total).toBe(-10000);
+                expect(expenseReport?.reimbursableTotal).toBe(-10000);
+                expect(expenseReport?.unheldTotal).toBe(-10000);
+                expect(expenseReport?.unheldReimbursableTotal).toBe(-10000);
+
+                // The columns that are already zero flip to -0 rather than being dropped, so they keep overwriting the
+                // stale positive values in Onyx (`toBe` is `Object.is`, so -0 does not match 0 here).
+                expect(expenseReport?.nonReimbursableTotal).toBe(-0);
+                expect(expenseReport?.unheldNonReimbursableTotal).toBe(-0);
+
+                // Apply the optimistic update and assert against that converted report, not a report rebuilt with the
+                // helper. The Total rendered for the converted report is positive rather than -$100.00.
+                await Onyx.update(result.optimisticData);
+                const convertedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                expect(ReportUtils.getMoneyRequestSpendBreakdown(convertedReport).totalDisplaySpend).toBe(10000);
+            });
+
+            it('should leave absent total columns absent so they keep being derived from `total`', async () => {
+                // Given an IOU report that only carries `total`, with none of the sibling total columns set
+                const policyID = '303';
+                const policy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(4, undefined),
+                    reportID: 'iouReport303',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 4,
+                    total: 10000,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+                // When converting the IOU report to an expense report
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat303', undefined, TestHelper.getCurrencyDecimalsLocal, undefined, []);
+
+                // Then only `total` is negated. Writing the missing siblings as -0 would make `getReimbursableTotal`
+                // return -0 instead of falling back to `total`, and the Total would render as $0.00.
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const expenseReport = isReportMergeUpdate(reportUpdate) ? reportUpdate.value : undefined;
+                expect(expenseReport?.total).toBe(-10000);
+                expect(expenseReport).not.toHaveProperty('reimbursableTotal');
+                expect(expenseReport).not.toHaveProperty('nonReimbursableTotal');
+                expect(expenseReport).not.toHaveProperty('unheldTotal');
+                expect(expenseReport).not.toHaveProperty('unheldReimbursableTotal');
+                expect(expenseReport).not.toHaveProperty('unheldNonReimbursableTotal');
+
+                // And the Total rendered for the converted report is still positive
+                await Onyx.update(result.optimisticData);
+                const convertedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                expect(ReportUtils.getMoneyRequestSpendBreakdown(convertedReport).totalDisplaySpend).toBe(10000);
+            });
+
+            it('should flip the unheld columns independently of `total` when an expense is on hold', async () => {
+                // Given an IOU report with a held expense, so the unheld columns are smaller than `total`
+                const policyID = '304';
+                const policy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(5, undefined),
+                    reportID: 'iouReport304',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 5,
+                    currency: CONST.CURRENCY.USD,
+                    total: 10000,
+                    reimbursableTotal: 10000,
+                    nonReimbursableTotal: 0,
+                    unheldTotal: 6000,
+                    unheldReimbursableTotal: 6000,
+                    unheldNonReimbursableTotal: 0,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+                // When converting the IOU report to an expense report
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat304', undefined, TestHelper.getCurrencyDecimalsLocal, undefined, []);
+
+                // Then the unheld columns flip on their own value rather than tracking `total`
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const expenseReport = isReportMergeUpdate(reportUpdate) ? reportUpdate.value : undefined;
+                expect(expenseReport?.total).toBe(-10000);
+                expect(expenseReport?.unheldTotal).toBe(-6000);
+                expect(expenseReport?.unheldReimbursableTotal).toBe(-6000);
+
+                // And the hold amounts stay positive, with the non-held amount still below the full amount
+                await Onyx.update(result.optimisticData);
+                const convertedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const {nonHeldAmount, fullAmount} = ReportUtils.getNonHeldAndFullAmount(convertedReport, false, [], TestHelper.convertToDisplayString);
+                expect(nonHeldAmount).toContain('60.00');
+                expect(fullAmount).toContain('100.00');
+            });
         });
     });
 
@@ -5796,6 +6105,92 @@ describe('actions/Report', () => {
             const revertedOriginalMessage = revertedAction ? getOriginalMessage(revertedAction) : undefined;
             expect(revertedOriginalMessage && 'deleted' in revertedOriginalMessage && revertedOriginalMessage.deleted).toBeNull();
         });
+
+        it('should recompute unheldTotal from the unheld destination-currency transactions', async () => {
+            const reportID = 'reportWithHeldExpense';
+            const unheldTransactionID = 'unheldTransactionForPolicyChange';
+            const heldTransactionID = 'heldTransactionForPolicyChange';
+
+            // Expense reports store amounts with the opposite sign, so a $100 expense is stored as -10000.
+            const unheldTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: unheldTransactionID,
+                reportID,
+                amount: -10000,
+                currency: CONST.CURRENCY.USD,
+                reimbursable: true,
+            };
+
+            const heldTransaction = {
+                ...createRandomTransaction(2),
+                transactionID: heldTransactionID,
+                reportID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                reimbursable: true,
+                comment: {...createRandomTransaction(2).comment, hold: 'holdReportActionID'},
+            };
+
+            // The report's totals are still in the source currency, including a stale unheldTotal.
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: 'AUD',
+                total: -99999,
+                unheldTotal: -88888,
+            };
+
+            const policy = {
+                ...createRandomPolicy(Number(1)),
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransactionID}`, unheldTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransactionID}`, heldTransaction);
+            await waitForBatchedUpdates();
+
+            const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
+                report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                ownerLogin: undefined,
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
+                isTrackIntentUser: false,
+                reportTransactions: [unheldTransaction, heldTransaction],
+                delegateAccountID: undefined,
+            });
+
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            const optimisticTotals = optimisticData.find((update) => update.key === reportKey && isReportMergeUpdate(update) && !!update.value && 'total' in update.value);
+            const failureTotals = failureData.find((update) => update.key === reportKey && isReportMergeUpdate(update) && !!update.value && 'total' in update.value);
+            const optimisticReport = isReportMergeUpdate(optimisticTotals) ? optimisticTotals.value : undefined;
+
+            // The recomputed unheldTotal covers only the unheld expense, so it is not simply equal to total
+            expect(optimisticReport?.total).toBe(-15000);
+            expect(optimisticReport?.unheldTotal).toBe(-10000);
+
+            // And the hold amounts are read from the destination currency rather than the stale AUD value
+            await Onyx.update(optimisticData);
+            const mergedReport = await getOnyxValue(reportKey);
+            const {nonHeldAmount, fullAmount} = ReportUtils.getNonHeldAndFullAmount(mergedReport, false, [unheldTransaction, heldTransaction], TestHelper.convertToDisplayString);
+            expect(nonHeldAmount).toContain('100.00');
+            expect(fullAmount).toContain('150.00');
+
+            // A failed request puts the original unheldTotal back alongside the other totals
+            const failureReport = isReportMergeUpdate(failureTotals) ? failureTotals.value : undefined;
+            expect(failureReport?.unheldTotal).toBe(-88888);
+        });
     });
 
     describe('searchInServer', () => {
@@ -5806,6 +6201,34 @@ describe('actions/Report', () => {
             const lowerCaseRequest = PersistedRequests.getAll().at(1);
             expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
         });
+
+        it("clears the previous search's result order so a new query does not reuse it", async () => {
+            // Given an ordered result list from a previous report search
+            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['1', '2', '3']);
+            await waitForBatchedUpdates();
+
+            // When a new report search starts
+            Report.searchInServer('new query');
+            await waitForBatchedUpdates();
+
+            // Then the previous result order is cleared
+            const orderedReportIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
+            expect(orderedReportIDs).toBeUndefined();
+        });
+
+        it('keeps report search ordering when searching rooms to mention', async () => {
+            // Given an ordered result list from a report search
+            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['1', '2', '3']);
+            await waitForBatchedUpdates();
+
+            // When a room mention search starts
+            Report.searchInServer('room', 'policyID');
+            await waitForBatchedUpdates();
+
+            // Then the report search order remains available
+            const orderedReportIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
+            expect(orderedReportIDs).toEqual(['1', '2', '3']);
+        });
     });
 
     describe('searchUserInServer', () => {
@@ -5815,6 +6238,20 @@ describe('actions/Report', () => {
             const upperCaseRequest = PersistedRequests.getAll().at(0);
             const lowerCaseRequest = PersistedRequests.getAll().at(1);
             expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
+        });
+
+        it('keeps report search ordering', async () => {
+            // Given an ordered result list from a report search
+            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['1', '2', '3']);
+            await waitForBatchedUpdates();
+
+            // When a user search starts
+            Report.searchUserInServer('user');
+            await waitForBatchedUpdates();
+
+            // Then the report search order remains available
+            const orderedReportIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
+            expect(orderedReportIDs).toEqual(['1', '2', '3']);
         });
 
         it('tracks user searches separately from report searches', () => {
@@ -5954,6 +6391,70 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('openReport with shouldKeepManualUnreadMarker', () => {
+        async function givenAManualUnreadMark(reportID: string) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, manuallyMarkedUnreadReportActionID: 'marked-action-id'});
+            await waitForBatchedUpdates();
+        }
+
+        async function getManualUnreadMark(reportID: string) {
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            return report?.manuallyMarkedUnreadReportActionID;
+        }
+
+        function openReportFor(reportID: string, shouldKeepManualUnreadMarker: boolean) {
+            Report.openReport({
+                conciergeChat: undefined,
+                reportID,
+                introSelected: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+                hasOnceLoadedReportActions: true,
+                shouldKeepManualUnreadMarker,
+            });
+        }
+
+        it('keeps the manual unread mark of a report the user left, and still treats the next real open as a return trip', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkHiddenPreMount';
+            // Given a report the user marked as unread and then navigated away from
+            await givenAManualUnreadMark(REPORT_ID);
+            Report.flagReportNavigatedAway(REPORT_ID);
+
+            // When it is loaded for a screen the user does not see yet (a hidden wide submit pre-mount)
+            openReportFor(REPORT_ID, true);
+            await waitForBatchedUpdates();
+
+            // Then the mark stays, so the user still sees the New line when they open the report
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+
+            // When the user really opens it later
+            openReportFor(REPORT_ID, false);
+            await waitForBatchedUpdates();
+
+            // Then it counts as a return trip and the mark is cleared, like on any return to a report
+            expect(await getManualUnreadMark(REPORT_ID)).toBeFalsy();
+        });
+
+        it('keeps the manual unread mark through the visit that starts on the reveal', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkRevealedPreMount';
+            // Given a report the user left with a manual unread mark, loaded by a hidden pre-mount
+            await givenAManualUnreadMark(REPORT_ID);
+            Report.flagReportNavigatedAway(REPORT_ID);
+            openReportFor(REPORT_ID, true);
+            await waitForBatchedUpdates();
+
+            // When the pre-mount is revealed and another fetch runs during that visit
+            Report.clearReportNavigatedAway(REPORT_ID);
+            openReportFor(REPORT_ID, false);
+            await waitForBatchedUpdates();
+
+            // Then the reveal already ended the return trip, so the mark stays while the user is in the report
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+        });
+    });
+
     describe('openReport with participants', () => {
         it('should send passed participants as emailList/accountIDList so the server can resolve a stale optimistic reportID', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
@@ -6072,6 +6573,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
 
@@ -6089,6 +6591,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
             });
 
@@ -6110,6 +6613,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6125,6 +6629,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
                 reportActionID,
             });
@@ -6147,6 +6652,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 linkToOptions,
             });
@@ -6168,6 +6674,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
             });
@@ -6190,6 +6697,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6206,6 +6714,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6224,6 +6733,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
                 checkIfCurrentPageActive,
                 linkToOptions,
@@ -6250,6 +6760,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
 
@@ -6278,11 +6789,66 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+
+        describe('personalDetails', () => {
+            const TEST_USER_LOGIN = 'test@user.com';
+            const CONCIERGE_PERSONAL_DETAIL: OnyxTypes.PersonalDetails = {
+                accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                login: CONST.EMAIL.CONCIERGE,
+                displayName: 'Concierge',
+            };
+
+            beforeEach(async () => {
+                await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+                await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+                // Concierge is a known account in Onyx, so its login resolves to CONST.ACCOUNT_ID.CONCIERGE when the chat is created.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL});
+                await waitForBatchedUpdates();
+            });
+
+            it('should not create an optimistic personal detail for Concierge when it is in the personal details passed in', async () => {
+                // Given no Concierge chat exists yet and the personal details passed in already contain Concierge
+                Report.navigateToConciergeChat({
+                    conciergeReportID: undefined,
+                    introSelected: testIntroSelected,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed: undefined,
+                    conciergePersonalDetails: {[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL},
+                    shouldDismissModal: false,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the Concierge chat is created without touching Concierge's personal detail
+                TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+                const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
+            });
+
+            it('should not create an optimistic personal detail for Concierge when the personal details passed in are stale', async () => {
+                // Given no Concierge chat exists yet and the personal details passed in were captured before OpenApp loaded Concierge,
+                // so they do not contain Concierge even though Onyx does by the time the server data is ready
+                Report.navigateToConciergeChat({
+                    conciergeReportID: undefined,
+                    introSelected: testIntroSelected,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed: undefined,
+                    conciergePersonalDetails: {},
+                    shouldDismissModal: false,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the Concierge chat is created and the real Concierge personal detail is not overwritten by an optimistic one
+                TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+                const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
+            });
         });
 
         it('should not throw with any isSelfTourViewed value when conciergeReportID is undefined', async () => {
@@ -6295,6 +6861,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: true,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6305,6 +6872,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: false,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6315,6 +6883,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
             }).not.toThrow();
@@ -6328,6 +6897,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
             });
@@ -6348,6 +6918,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
             });
@@ -6367,6 +6938,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
 
@@ -6385,6 +6957,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
 
@@ -6403,6 +6976,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
+                conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
             });
 
@@ -7884,7 +8458,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_GROUP_CHAT, 1);
@@ -7903,7 +8477,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`, groupChatReport);
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             // After success, the report should be removed from Onyx (set to null)
@@ -7928,7 +8502,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, true, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, true, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -7955,7 +8529,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, quickActionValue);
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -7977,7 +8551,7 @@ describe('actions/Report', () => {
 
             // Should not throw an error with undefined conciergeReportID
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8009,7 +8583,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_ROOM, 1);
@@ -8028,7 +8602,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, true);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, true);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
@@ -8052,7 +8626,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             // After success, the report should only have reportName (all other fields removed)
@@ -8086,7 +8660,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             const updatedParentReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}` as const);
@@ -8108,7 +8682,7 @@ describe('actions/Report', () => {
 
             // Should not throw an error with undefined conciergeReportID
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8133,7 +8707,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, threadReport);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
@@ -8156,7 +8730,7 @@ describe('actions/Report', () => {
 
             // Should not throw when introSelected is provided
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8187,7 +8761,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Should not throw and should call the API
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_GROUP_CHAT, 1);
@@ -8210,7 +8784,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8232,7 +8806,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8264,7 +8838,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8285,7 +8859,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8306,7 +8880,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, {}, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, {}, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8337,7 +8911,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, isSelfTourViewed);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, isSelfTourViewed, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8367,7 +8941,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, isSelfTourViewed, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, isSelfTourViewed, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -8412,7 +8986,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_CURRENT_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             // Should navigate via goBack since there's another report to navigate to
@@ -8441,7 +9015,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Chat thread with no other report → navigateToMostRecentReport calls navigateToConciergeChat without goBack
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, false);
             await waitForBatchedUpdates();
 
             // For chat threads, goBack should NOT be called before navigating to concierge (the isChatThread branch)
@@ -8484,7 +9058,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_CURRENT_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -8505,7 +9079,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_CURRENT_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined);
             await waitForBatchedUpdates();
 
             // With no other reports, navigateToMostRecentReport calls goBack (not a chat thread) then navigateToConciergeChat
@@ -8539,7 +9113,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // isWorkspaceMemberLeavingWorkspaceRoom=true and report is NOT a chat thread → should dismissModal
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, true);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, true);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.dismissModal).toHaveBeenCalled();
@@ -8570,7 +9144,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // isWorkspaceMemberLeavingWorkspaceRoom=true but report IS a chat thread → should NOT dismissModal, should navigateToMostRecentReport instead
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, true);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, undefined, true);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.dismissModal).not.toHaveBeenCalled();
@@ -9000,7 +9574,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             // No error should be thrown, function should return early
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined, undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -9008,7 +9582,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, 'invalidType', undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, 'invalidType', undefined);
             }).not.toThrow();
         });
 
@@ -9019,7 +9593,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
 
-            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
 
             await waitForBatchedUpdates();
 
@@ -9030,7 +9604,7 @@ describe('actions/Report', () => {
         it('should not throw with undefined introSelected', () => {
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
 
@@ -9051,7 +9625,7 @@ describe('actions/Report', () => {
             const isSelfTourViewed = true;
 
             expect(() => {
-                localHandleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                localHandleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
 
@@ -9061,7 +9635,7 @@ describe('actions/Report', () => {
             const isSelfTourViewed = false;
 
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
     });
@@ -11073,6 +11647,72 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('buildOptimisticModifiedExpenseReportAction failed-scan amount placeholder', () => {
+        const placeholderTransaction = createMock<OnyxTypes.Transaction>({
+            transactionID: '1',
+            reportID: '2',
+            amount: 0,
+            currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+        });
+
+        it('omits oldAmount/oldCurrency when confirming the same placeholder value, matching the backend', () => {
+            // Re-entering 0 to clear the scan error isn't a real change — the backend doesn't persist
+            // oldAmount/oldCurrency in this action's originalMessage either (see #98783), so the optimistic message
+            // must match, rendering "set the amount to X" consistently instead of flipping after a refresh.
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, placeholderTransaction, {amount: 0, currency: 'USD'}, false, undefined, undefined);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.amount).toBe(0);
+            expect(originalMessage?.currency).toBe('USD');
+            expect(originalMessage?.oldAmount).toBeUndefined();
+            expect(originalMessage?.oldCurrency).toBeUndefined();
+        });
+
+        it('omits oldAmount/oldCurrency when the user provides the first real amount', () => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, placeholderTransaction, {amount: 1550, currency: 'USD'}, false, undefined, undefined);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.amount).toBe(1550);
+            expect(originalMessage?.oldAmount).toBeUndefined();
+            expect(originalMessage?.currency).toBe('USD');
+            expect(originalMessage?.oldCurrency).toBeUndefined();
+        });
+
+        it('records oldAmount/oldCurrency for subsequent edits after the failed-scan amount is confirmed', () => {
+            const confirmedTransaction = createMock<OnyxTypes.Transaction>({
+                ...placeholderTransaction,
+                modifiedAmount: -1550,
+                modifiedCurrency: 'USD',
+            });
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, confirmedTransaction, {amount: 2500, currency: 'USD'}, false, undefined, undefined);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.amount).toBe(2500);
+            expect(originalMessage?.oldAmount).toBe(1550);
+            expect(originalMessage?.currency).toBe('USD');
+            expect(originalMessage?.oldCurrency).toBe('USD');
+        });
+
+        it('still records oldAmount/oldCurrency for a normal (non-scan) transaction confirming the same amount', () => {
+            const manualTransaction = createMock<OnyxTypes.Transaction>({
+                transactionID: '1',
+                reportID: '2',
+                amount: 0,
+                currency: 'USD',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            });
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, manualTransaction, {amount: 0, currency: 'USD'}, false, undefined, undefined);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.amount).toBe(0);
+            expect(originalMessage?.oldAmount).toBe(0);
+            expect(originalMessage?.currency).toBe('USD');
+            expect(originalMessage?.oldCurrency).toBe('USD');
+        });
+    });
+
     describe('buildOptimisticIOUReportAction delegateAccountID forwarding', () => {
         const DELEGATE_ACCOUNT_ID = 998;
 
@@ -11181,6 +11821,7 @@ describe('actions/Report', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             currency: CONST.CURRENCY.USD,
             total: 0,
+            unheldTotal: 0,
             transactionCount: 0,
         });
 
@@ -11307,6 +11948,7 @@ describe('actions/Report', () => {
             Report.mergeReports({
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
+                cardList: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
                 isASAPSubmitBetaEnabled: false,
@@ -11376,6 +12018,7 @@ describe('actions/Report', () => {
             Report.mergeReports({
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
+                cardList: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
                 isASAPSubmitBetaEnabled: false,
@@ -11443,6 +12086,7 @@ describe('actions/Report', () => {
             Report.mergeReports({
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
+                cardList: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
                 isASAPSubmitBetaEnabled: false,
@@ -11467,6 +12111,8 @@ describe('actions/Report', () => {
             const snapshotOptimistic = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`);
             expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.total).toBe(-3000);
+            // Both moved expenses are unheld, so the destination snapshot has to carry the recomputed unheldTotal too
+            expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.unheldTotal).toBe(-3000);
             expect(snapshotOptimistic?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(2);
             expect(snapshotOptimistic?.data?.[transaction1Key]?.reportID).toBe(DESTINATION_REPORT_ID);
             expect(snapshotOptimistic?.data?.[transaction2Key]?.reportID).toBe(DESTINATION_REPORT_ID);
@@ -11479,6 +12125,7 @@ describe('actions/Report', () => {
             const snapshotFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`);
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]?.reportID).toBe(SOURCE_REPORT_1_ID);
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.total).toBe(0);
+            expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.unheldTotal).toBe(0);
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(0);
             expect(snapshotFailure?.data?.[transaction1Key]?.reportID).toBe(SOURCE_REPORT_1_ID);
             expect(snapshotFailure?.data?.[transaction2Key]?.reportID).toBe(SOURCE_REPORT_2_ID);

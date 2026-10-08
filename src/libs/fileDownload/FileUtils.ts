@@ -689,10 +689,13 @@ const createFile = (file: File): FileObject => {
             type: file.type,
         };
     }
-    return new File([file], file.name, {
+    const clonedFile = new File([file], file.name, {
         type: file.type,
         lastModified: file.lastModified,
     });
+    // `uri` is a custom property that the File constructor doesn't copy, and attachment previews need it
+    clonedFile.uri = file.uri;
+    return clonedFile;
 };
 
 const resizeImageIfNeeded = (file: FileObject) => {

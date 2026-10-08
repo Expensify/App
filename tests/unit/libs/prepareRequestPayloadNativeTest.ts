@@ -82,9 +82,11 @@ describe('prepareRequestPayload (native)', () => {
             transactionID: 'txn-456',
             command: 'RequestMoney',
             source: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
+            localUri: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
             fileName: 'receipt.jpg',
             // The errno separates a deleted file from one that is there but unreadable
             statError: {message: 'ENOENT: no such file', code: 'ENOENT'},
+            receiptsFolder: {exists: false},
         });
     });
 
