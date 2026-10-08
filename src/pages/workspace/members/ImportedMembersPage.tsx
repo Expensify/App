@@ -4,6 +4,7 @@ import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -13,11 +14,13 @@ import usePolicy from '@hooks/usePolicy';
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import Tab from '@libs/actions/Tab';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import {findDuplicate, generateColumnNames, normalizeImportedAmount} from '@libs/importSpreadsheetUtils';
+import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicyOnlyRole} from '@libs/PolicyUtils/permissions';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -28,24 +31,6 @@ import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useCallback, useState} from 'react';
-
-/**
- * The spreadsheet holds the approval limit as a display amount (e.g. "200.00" or "$1,000"), but the backend stores it in cents,
- * so it has to be converted the same way the manual approval limit page does.
- * Blank cells are kept as an empty string, and cells that are not a valid amount are dropped so we never send NaN.
- */
-function parseCsvApprovalLimit(raw: string | undefined): string | undefined {
-    const trimmed = (raw ?? '').trim();
-    if (!trimmed) {
-        return '';
-    }
-    const amountString = trimmed.replaceAll(',', '').replaceAll(/^[^\d.]+|[^\d.]+$/g, '');
-    const amount = Number(amountString);
-    if (!amountString || !Number.isFinite(amount) || amount < 0) {
-        return undefined;
-    }
-    return String(convertToBackendAmount(amount));
-}
 
 type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED>;
 
@@ -58,8 +43,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
+    const currency = policy?.outputCurrency;
+    const currencySymbol = getCurrencySymbol(currency ?? '');
 
     // The same mapping screen is reused for the Members importer and the Workflows importer. When it is reached from the
     // Workflows page we keep the user in the Workflows context (title + back + return + confirmation navigation).
@@ -100,12 +88,23 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             if (duplicate) {
                 errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
-                errors = {};
+                const approvalLimitColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD);
+                if (approvalLimitColumn !== -1) {
+                    const decimals = getCurrencyDecimals(currency);
+                    const hasInvalidApprovalLimit = spreadsheet?.data?.[approvalLimitColumn]?.some((value, index) => {
+                        if (containsHeader && index === 0) {
+                            return false;
+                        }
+                        const normalizedValue = normalizeImportedAmount(String(value), currencySymbol, currency);
+                        return !validateAmount(normalizedValue, decimals);
+                    });
+                    errors = hasInvalidApprovalLimit ? {approvalLimit: translate('spreadsheet.invalidApprovalLimit')} : {};
+                }
             }
         }
 
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate]);
+    }, [containsHeader, currency, currencySymbol, getCurrencyDecimals, requiredColumns, spreadsheet?.columns, spreadsheet?.data, translate]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
@@ -137,12 +136,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
 
-        const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
         const hasControlPolicyOnlyRole =
             membersRolesColumn !== -1 &&
             spreadsheet?.data?.at(membersRolesColumn)?.some((role, index) => {
                 const memberRole = containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '');
-                return controlPolicyOnlyRoles.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === memberRole);
+                return isControlPolicyOnlyRole(memberRole);
             });
         const controlPolicyColumns = [
             CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO,
@@ -214,7 +212,15 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             }
             const customField1 = membersCustomField1Column !== -1 ? (membersCustomField1?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             const customField2 = membersCustomField2Column !== -1 ? (membersCustomField2?.[containsHeader ? index + 1 : index] ?? '') : undefined;
-            const approvalLimit = membersApprovalLimitColumn !== -1 ? parseCsvApprovalLimit(membersApprovalLimit?.[containsHeader ? index + 1 : index]) : undefined;
+            let approvalLimit: string | undefined;
+            if (membersApprovalLimitColumn !== -1) {
+                const approvalLimitValue = membersApprovalLimit?.[containsHeader ? index + 1 : index] ?? '';
+                const normalizedApprovalLimit = normalizeImportedAmount(approvalLimitValue, currencySymbol, currency);
+                approvalLimit = normalizedApprovalLimit;
+                if (normalizedApprovalLimit !== '') {
+                    approvalLimit = String(convertToBackendAmount(Number.parseFloat(normalizedApprovalLimit)));
+                }
+            }
             const overLimitForwardsTo = membersOverLimitForwardsToColumn !== -1 ? (membersOverLimitForwardsTo?.[containsHeader ? index + 1 : index] ?? '') : undefined;
 
             return {

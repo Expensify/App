@@ -234,8 +234,8 @@ describe('ImportedMembersPage', () => {
             buildSpreadsheet(
                 [CONST.CSV_IMPORT_COLUMNS.EMAIL, CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD],
                 [
-                    ['Email', 'one@example.com', 'two@example.com', 'three@example.com', 'four@example.com', 'five@example.com'],
-                    ['Approval limit', '200.00', '$1,000.50', '16.4', '', 'abc'],
+                    ['Email', 'one@example.com', 'two@example.com', 'three@example.com', 'four@example.com'],
+                    ['Approval limit', '200.00', '$1,000.50', '16.4', ''],
                 ],
             ),
             {...buildSubmitPolicy(), type: CONST.POLICY.TYPE.CORPORATE} as Policy,
@@ -243,7 +243,7 @@ describe('ImportedMembersPage', () => {
         const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers').mockResolvedValue({
             titleKey: 'spreadsheet.importSuccessfulTitle',
             promptKey: 'spreadsheet.importMembersAdded',
-            promptKeyParams: {count: 5},
+            promptKeyParams: {count: 4},
         });
 
         renderImportedMembersPage();
@@ -253,8 +253,7 @@ describe('ImportedMembersPage', () => {
         fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the backend receives the limits in cents (like the manual approval limit page sends them), blank cells stay blank,
-        // and a cell that is not an amount is dropped instead of being sent as NaN
+        // Then the backend receives the limits in cents (like the manual approval limit page sends them) and blank cells stay blank
         expect(importPolicyMembersSpy).toHaveBeenCalledWith(
             expect.objectContaining({id: POLICY_ID}),
             [
@@ -262,7 +261,6 @@ describe('ImportedMembersPage', () => {
                 expect.objectContaining({email: 'two@example.com', approvalLimit: '100050'}),
                 expect.objectContaining({email: 'three@example.com', approvalLimit: '1640'}),
                 expect.objectContaining({email: 'four@example.com', approvalLimit: ''}),
-                expect.objectContaining({email: 'five@example.com', approvalLimit: undefined}),
             ],
             false,
         );
