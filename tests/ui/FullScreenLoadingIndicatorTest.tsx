@@ -90,17 +90,17 @@ describe('FullScreenLoadingIndicator', () => {
             expect(Navigation.goBack).toHaveBeenCalledTimes(1);
         });
 
-        it('does not update state after unmount', () => {
-            // Given a loader that is unmounted before its timer fires
+        it('clears its timer on unmount', () => {
+            // Given a loader that has armed its recovery timer
             const {unmount} = render(<FullScreenLoadingIndicator />);
+            expect(jest.getTimerCount()).toBeGreaterThan(0);
+
+            // When it unmounts before the timer fires
             unmount();
 
-            // When the timeout would have fired
-            // Then no "update on an unmounted component" warning is produced, i.e. the timer was cleared
-            const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-            elapse(TIMEOUT);
-            expect(errorSpy).not.toHaveBeenCalled();
-            errorSpy.mockRestore();
+            // Then no timer is left pending. React 18 no longer warns about setState after unmount,
+            // so counting timers is the only way to catch a missing clearTimeout.
+            expect(jest.getTimerCount()).toBe(0);
         });
     });
 

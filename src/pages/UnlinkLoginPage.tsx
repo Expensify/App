@@ -62,8 +62,7 @@ function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
         };
     }, [prevIsLoading, account?.isLoading]);
 
-    // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
-    return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
+    return <FullScreenLoadingIndicator />;
 }
 
 export default UnlinkLoginPage;

@@ -244,33 +244,39 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
-    it('Should never offer a "Go back" button, however long the loader stays up', async () => {
-        // /v/ is a cold deep-link entry point, so there is usually no history to pop and a "Go back"
-        // button would be dead. The page opts out of the loader's default recovery UI for that reason.
+    it('Should offer a "Go back" button once the sign-in loader outlives its timeout', async () => {
+        // Given a magic link whose sign-in is still completing, so the page shows its loader
         await act(async () => {
             await Onyx.set(ONYXKEYS.CREDENTIALS, {accountID: 1, validateCode: '123456'});
         });
 
-        renderPage({accountID: '1', validateCode: '123456'});
-        await waitForBatchedUpdatesWithAct();
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, {autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN});
-        });
-        await waitForBatchedUpdatesWithAct();
-        expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
-
-        // setupAfterEnv installs real timers globally; the loader timeout is only reachable on fake ones.
+        // setupAfterEnv installs real timers globally. The loader arms its timeout on mount, so fake timers
+        // must be installed before rendering or advancing them would never reach it.
         jest.useFakeTimers();
-        act(() => {
-            jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT * 2);
-        });
-        await waitForBatchedUpdatesWithAct();
+        try {
+            renderPage({accountID: '1', validateCode: '123456'});
+            await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
-        expect(screen.queryByText(translateLocal('common.goBack'))).toBeNull();
-        expect(screen.queryByText(translateLocal('common.thisIsTakingLongerThanExpected'))).toBeNull();
-        jest.useRealTimers();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN});
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
+
+            // When the sign-in takes longer than the loader timeout
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT * 2);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the user is offered a way out. With nothing to pop, goBack() resets to the sign-in page,
+            // which is better than a spinner that never ends.
+            expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.goBack'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.thisIsTakingLongerThanExpected'))).toBeOnTheScreen();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it('Should show the 2FA-required prompt (not an infinite loader) when 2FA is needed and no validate code is cached', async () => {

@@ -21,7 +21,7 @@ type FullScreenLoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
-    /** Whether the "Go Back" button appears after a timeout. Defaults to true, pass false on screens where going back is dead or harmful (e.g. cold deep-link auth/transition screens). */
+    /** Whether the "Go Back" button appears after a timeout. Defaults to true, pass false where going back is dead or harmful (e.g. global overlays, or a transition that is mid sign-out). */
     shouldUseGoBackButton?: boolean;
 
     onGoBack?: () => void;

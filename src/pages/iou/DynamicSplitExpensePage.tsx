@@ -622,7 +622,12 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     };
 
     if (isLoadingDraftTransaction) {
-        return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
+        return (
+            <FullScreenLoadingIndicator
+                style={[styles.opacity1]}
+                onGoBack={() => Navigation.goBack(backPath)}
+            />
+        );
     }
 
     const collapsibleHeaderOffset = isInitialSplit ? TAB_NAVIGATOR_HEIGHT_LANDSCAPE : 0;

@@ -89,8 +89,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
     }, [route, isLoadingSignInData]);
 
     if (account?.isLoading || isLoadingSignInData) {
-        // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
-        return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return <SessionExpiredPage />;

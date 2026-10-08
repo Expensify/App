@@ -97,7 +97,7 @@ function VacationDelegateMissingWorkspacesPage() {
     });
 
     if (!submittedInput && isLoadingOnyxValue(vacationDelegateMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(ROUTES.SETTINGS_VACATION_DELEGATE)} />;
     }
 
     if (!policyDiff) {
