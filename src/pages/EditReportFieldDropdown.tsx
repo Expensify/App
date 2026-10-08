@@ -66,7 +66,7 @@ function EditReportFieldDropdown({
     // The live value still drives the checkmark, so tapping a row marks it without reordering the list. The reorder happens only on reopen.
     const initialFieldValue = useInitialSelection(fieldValue, {resetOnFocus: true});
 
-    const sections = getReportFieldOptionsSection({
+    const optionSections = getReportFieldOptionsSection({
         searchValue: debouncedSearchValue,
         // Live value drives the checkmark, so tapping a row marks it immediately.
         selectedOptions: [
@@ -85,6 +85,13 @@ function EditReportFieldDropdown({
         shouldShowSectionTitles,
     });
 
+    // Same override the Spend single-select dropdowns use to shorten the default 64px option row. It also makes the rows
+    // match the 52px `getSelectionListPopoverHeight` already assumes, so the popover stops being sized for less content
+    // than it holds.
+    const sections = shouldUseCompactRows
+        ? optionSections.map((section) => ({...section, data: section.data.map((option) => ({...option, itemStyle: styles.optionRowCompactMinHeight}))}))
+        : optionSections;
+
     const policyReportFieldData = sections.at(0)?.data ?? [];
 
     const textInputOptions = {
@@ -100,10 +107,6 @@ function EditReportFieldDropdown({
         <SelectionListWithSections
             sections={sections ?? []}
             ListItem={SingleSelectListItem}
-            // Same override the Spend single-select dropdowns use to shorten the default 64px option row. It also makes
-            // the rows match the 52px `getSelectionListPopoverHeight` already assumes, so the popover stops being sized
-            // for less content than it holds.
-            style={shouldUseCompactRows ? {listItemWrapperStyle: styles.optionRowCompactMinHeight} : undefined}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             // Re-selecting the value the field already holds submits that same value rather than an empty string.
