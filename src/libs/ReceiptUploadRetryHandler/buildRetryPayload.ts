@@ -3,7 +3,7 @@ import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
-import {getAllPersonalDetails, getAllReports, getAllTransactionViolations, getCurrentUserAccountIDFromSession, getCurrentUserPersonalDetails} from '@userActions/IOU';
+import {getAllPersonalDetails, getAllReports, getAllTransactionViolations} from '@userActions/IOU';
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import type {RequestMoneyInformation} from '@userActions/IOU/MoneyRequestBuilder';
 
@@ -41,12 +41,8 @@ function isRetryableFlow(context: ReceiptRetryContext): boolean {
     return !transaction.receipt?.isTestReceipt && !transaction.receipt?.isTestDriveReceipt;
 }
 
-function getCurrentUserAccountID(): number {
-    return getCurrentUserPersonalDetails()?.accountID ?? getCurrentUserAccountIDFromSession();
-}
-
-function resolveParticipant(iouReport: OnyxEntry<Report>): Participant | undefined {
-    const participants = getMoneyRequestParticipantsFromReport(iouReport, getCurrentUserAccountID());
+function resolveParticipant(iouReport: OnyxEntry<Report>, currentUserAccountID: number): Participant | undefined {
+    const participants = getMoneyRequestParticipantsFromReport(iouReport, currentUserAccountID);
     if (participants.length !== 1) {
         return undefined;
     }
@@ -69,11 +65,11 @@ function getMerchantForRetry(merchant: string | undefined): string {
 
 /** Checks the action here too, not only in `retryReceiptUpload`, so the button is hidden instead of doing nothing. */
 function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
-    const {transaction, iouReport, receiptError} = context;
+    const {transaction, iouReport, receiptError, currentUserPersonalDetails} = context;
     if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST) {
         return false;
     }
-    return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport);
+    return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport, currentUserPersonalDetails.accountID);
 }
 
 /** Rebuilds the `RequestMoney` call behind a failed receipt upload from the records the failure left in Onyx. */
@@ -93,13 +89,13 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         delegateAccountID,
         formatPhoneNumber,
         getCurrencyDecimals,
+        currentUserPersonalDetails: currentUser,
     } = context;
-    const participant = resolveParticipant(iouReport);
+    const participant = resolveParticipant(iouReport, currentUser.accountID);
     if (!canBuildRetryPayload(context) || !transaction || !iouReport || !participant) {
         return undefined;
     }
 
-    const currentUser = getCurrentUserPersonalDetails();
     const details = getTransactionDetails(transaction);
     if (!details) {
         return undefined;
@@ -110,7 +106,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         report: iouReport,
         participantParams: {
             payeeEmail: currentUser?.login,
-            payeeAccountID: getCurrentUserAccountID(),
+            payeeAccountID: currentUser.accountID,
             participant,
         },
         policyParams,
@@ -152,7 +148,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         delegateAccountID,
-        currentUserAccountIDParam: getCurrentUserAccountID(),
+        currentUserAccountIDParam: currentUser.accountID,
         currentUserEmailParam: currentUser?.login ?? '',
         quickAction: undefined,
         policyRecentlyUsedCurrencies: [],
