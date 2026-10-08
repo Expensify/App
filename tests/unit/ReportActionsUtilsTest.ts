@@ -2829,6 +2829,38 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it('should return true for MARKED_REIMBURSED when the passed collection only has a PAY action from an earlier payment attempt', () => {
+            // Given a MARKED_REIMBURSED action on a report whose actions are not in the Onyx collection
+            const reportID = 'reportWithEarlierPayInSearchSnapshot';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-02 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            // And a filtered Search snapshot with a PAY from a day earlier, where the cancellation between the two attempts didn't match the query
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const snapshotReportActions = {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should stay visible, because a partial collection can't prove both actions belong to the same payment
+            expect(actual).toBe(true);
+        });
+
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
             const reportAction = buildTakeControlActionFixture(
                 {

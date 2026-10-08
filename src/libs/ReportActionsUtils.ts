@@ -107,6 +107,9 @@ function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): bo
 
 const paySiblingCache = new WeakMap<ReportActions, Set<string>>();
 
+// The backend writes a MARKED_REIMBURSED and its PAY sibling in the same payment operation.
+const PARTIAL_HISTORY_PAY_SIBLING_MAX_GAP_MS = 60000;
+
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -1928,11 +1931,10 @@ function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>, report
         return false;
     }
 
-    const loadedReportActions = getAllReportActions(reportID);
-    const reportActions = loadedReportActions[reportAction.reportActionID] ? loadedReportActions : fallbackReportActions;
-    // An action absent from loaded history cannot be matched. Avoid caching the empty fallback for unknown reports.
-    if (!reportActions?.[reportAction.reportActionID]) {
-        return false;
+    const reportActions = getAllReportActions(reportID);
+    // Fall back to the partial collection when the action is absent from loaded history. Avoid caching the empty collection for unknown reports.
+    if (!reportActions[reportAction.reportActionID]) {
+        return !!fallbackReportActions?.[reportAction.reportActionID] && hasConcurrentPayReportAction(reportAction, fallbackReportActions);
     }
 
     const cachedSiblings = paySiblingCache.get(reportActions);
@@ -1968,6 +1970,16 @@ function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>, report
     // change if an intervening cancellation arrives later. Weak keys release obsolete snapshots.
     paySiblingCache.set(reportActions, siblings);
     return siblings.has(reportAction.reportActionID);
+}
+
+/**
+ * A filtered or paginated collection such as a Search snapshot can omit the cancellation or reset that
+ * separates two payment attempts, so it can't be split into attempts. Only treat a PAY written at
+ * nearly the same time as the MARKED_REIMBURSED as its sibling.
+ */
+function hasConcurrentPayReportAction(reportAction: ReportAction, reportActions: ReportActions): boolean {
+    const created = new Date(reportAction.created).getTime();
+    return Object.values(reportActions).some((action) => isPayAction(action) && Math.abs(new Date(action.created).getTime() - created) <= PARTIAL_HISTORY_PAY_SIBLING_MAX_GAP_MS);
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
