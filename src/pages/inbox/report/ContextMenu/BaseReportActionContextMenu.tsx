@@ -238,6 +238,7 @@ function BaseReportActionContextMenu({
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
+    const [moneyRequestChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -443,6 +444,7 @@ function BaseReportActionContextMenu({
                                 encryptedAuthToken,
                                 iouTransaction,
                                 iouTransactionViolations,
+                                moneyRequestChatReport,
                                 bankAccountList,
                                 isOffline,
                                 conciergeReportID,

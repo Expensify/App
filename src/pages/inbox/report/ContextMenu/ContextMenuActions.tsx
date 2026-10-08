@@ -262,7 +262,7 @@ import React from 'react';
 
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {handleHoldEducationalModal, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -378,6 +378,7 @@ type ContextMenuActionPayload = {
     encryptedAuthToken: string;
     iouTransaction: OnyxEntry<Transaction>;
     iouTransactionViolations: OnyxEntry<TransactionViolations>;
+    moneyRequestChatReport: OnyxEntry<ReportType>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -781,6 +782,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 moneyRequestAction,
                 iouTransaction,
                 iouTransactionViolations,
+                moneyRequestChatReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -795,35 +797,25 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
 
-            if (closePopover) {
-                hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(
-                        moneyRequestAction,
-                        iouTransaction,
-                        isOffline,
-                        currentUserPersonalDetails?.login ?? '',
-                        currentUserPersonalDetails.accountID,
-                        iouTransactionViolations,
-                        isTrackIntentUser,
-                        delegateAccountID,
-                        rules,
-                    ),
+            const performHold = () =>
+                changeMoneyRequestHoldStatus(
+                    moneyRequestAction,
+                    iouTransaction,
+                    isOffline,
+                    currentUserPersonalDetails?.login ?? '',
+                    currentUserPersonalDetails.accountID,
+                    iouTransactionViolations,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                    rules,
                 );
+
+            if (closePopover) {
+                hideContextMenu(false, () => handleHoldEducationalModal(performHold, moneyRequestChatReport));
                 return;
             }
 
-            // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(
-                moneyRequestAction,
-                iouTransaction,
-                isOffline,
-                currentUserPersonalDetails?.login ?? '',
-                currentUserPersonalDetails.accountID,
-                iouTransactionViolations,
-                isTrackIntentUser,
-                delegateAccountID,
-                rules,
-            );
+            handleHoldEducationalModal(performHold, moneyRequestChatReport);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
