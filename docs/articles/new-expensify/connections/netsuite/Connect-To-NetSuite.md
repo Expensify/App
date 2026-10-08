@@ -245,12 +245,6 @@ If you're connecting to a Sandbox environment, capitalize the "s" and "b" in the
 
 ---
 
-## How existing NetSuite connections are affected
-
-Workspaces that already connect to NetSuite using token-based authentication keep working exactly as they do today. You don't need to reinstall the bundle, create new tokens, or reconnect. Expensify will let you know before anything changes for existing connections.
-
----
-
 # FAQ
 
 ## Why do I need two-factor authentication to connect NetSuite?
@@ -260,6 +254,10 @@ NetSuite requires two-factor authentication to authorize an OAuth 2.0 connection
 ## Do I still need to create access tokens in NetSuite?
 
 Not if you connect with OAuth 2.0. You approve access on a NetSuite consent screen instead, so there are no token IDs or token secrets to create, copy, or store. You only create access tokens if you connect with token-based authentication, which we're deprecating.
+
+## How are existing NetSuite connections affected by the new OAuth connection option?
+
+Workspaces that already connect to NetSuite using token-based authentication keep working exactly as they do today. You don't need to reinstall the bundle, create new tokens, or reconnect. Expensify will let you know before anything changes for existing connections.
 
 ## When is token-based authentication going away?
 
