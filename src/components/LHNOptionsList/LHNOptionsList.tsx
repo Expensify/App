@@ -1,4 +1,5 @@
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import SwipeableList from '@components/SwipeableRow/SwipeableList';
 
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -160,25 +161,27 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     return (
         <View style={style ?? styles.flex1}>
             <LHNTooltipContextProvider data={data}>
-                <FlashList
-                    ref={flashListRef}
-                    indicatorStyle="white"
-                    keyboardShouldPersistTaps="always"
-                    CellRendererComponent={OptionRowRendererComponent}
-                    contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
-                    data={data}
-                    testID="lhn-options-list"
-                    keyExtractor={keyExtractor}
-                    renderItem={renderItem}
-                    extraData={extraData}
-                    showsVerticalScrollIndicator={false}
-                    onLayout={onLayout}
-                    onScroll={onScroll}
-                    initialScrollIndex={initialScrollIndex}
-                    maintainVisibleContentPosition={{disabled: true}}
-                    drawDistance={250}
-                    removeClippedSubviews
-                />
+                <SwipeableList>
+                    <FlashList
+                        ref={flashListRef}
+                        indicatorStyle="white"
+                        keyboardShouldPersistTaps="always"
+                        CellRendererComponent={OptionRowRendererComponent}
+                        contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
+                        data={data}
+                        testID="lhn-options-list"
+                        keyExtractor={keyExtractor}
+                        renderItem={renderItem}
+                        extraData={extraData}
+                        showsVerticalScrollIndicator={false}
+                        onLayout={onLayout}
+                        onScroll={onScroll}
+                        initialScrollIndex={initialScrollIndex}
+                        maintainVisibleContentPosition={{disabled: true}}
+                        drawDistance={250}
+                        removeClippedSubviews
+                    />
+                </SwipeableList>
             </LHNTooltipContextProvider>
         </View>
     );

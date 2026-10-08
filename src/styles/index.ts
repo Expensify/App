@@ -2407,6 +2407,77 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 52,
         },
 
+        swipeableRowActions: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            flexDirection: 'row',
+            overflow: 'hidden',
+            backgroundColor: theme.highlightBG,
+        },
+
+        swipeableRowActionsLeading: {
+            left: 0,
+        },
+
+        swipeableRowActionsTrailing: {
+            right: 0,
+        },
+
+        swipeableRowAction: {
+            flexBasis: 0,
+            flexDirection: 'row',
+            overflow: 'hidden',
+        },
+
+        swipeableRowActionContent: {
+            width: variables.swipeableRowActionWidth,
+            height: '100%',
+            minHeight: variables.componentSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+        },
+
+        swipeableRowCloseOverlay: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+        },
+
+        swipeToReplyIndicatorContainer: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            right: 0,
+            width: variables.swipeToReplyThreshold,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        swipeActionIndicator: {
+            width: variables.swipeActionIndicatorSize,
+            height: variables.swipeActionIndicatorSize,
+            borderRadius: variables.swipeActionIndicatorSize / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
+        swipeActionIndicatorArmed: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            borderRadius: variables.swipeActionIndicatorSize / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.success,
+        },
+
         // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
         // Make sure you run the following tests against any changes: #12669
         textInputCompose: addOutlineWidth(

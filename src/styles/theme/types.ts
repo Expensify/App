@@ -136,6 +136,15 @@ type ThemeColors = {
         }
     >;
 
+    /** Icon tints for swipe actions on list rows, so each action is recognizable at a glance */
+    swipeActionTint: Record<
+        'blue' | 'tangerine' | 'ice',
+        {
+            backgroundColor: Color;
+            iconColor: Color;
+        }
+    >;
+
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 
     // Status bar and scroll bars need to adapt their theme based on the active user theme for good contrast

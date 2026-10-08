@@ -107,6 +107,7 @@ import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemFrame from './ReportActionItemFrame';
 import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
+import SwipeToReply from './SwipeToReply';
 import TripSummary from './TripSummary';
 import WhisperBanner from './WhisperBanner';
 
@@ -541,167 +542,173 @@ function ReportActionItem({
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
                     )}
-                    <PressableWithSecondaryInteraction
-                        ref={popoverAnchorRef}
-                        accessible={shouldBreakGrouping && isScreenReaderActive && isCreatedTaskReportAction(action) ? false : undefined}
-                        onPress={() => {
-                            if (!hasDraft) {
-                                onPress?.();
-                            }
-                            if (!Keyboard.isVisible()) {
-                                return;
-                            }
-                            Keyboard.dismiss();
-                        }}
-                        style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
-                        onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
-                        onPressOut={() => ControlSelection.unblock()}
-                        onSecondaryInteraction={showPopover}
-                        preventDefaultContextMenu={!isContextMenuDisabled}
-                        withoutFocusOnSecondaryInteraction
-                        accessibilityLabel={accessibilityLabel}
-                        accessibilityHint={translate('accessibilityHints.chatMessage')}
-                        accessibilityRole={isSafari() && hasHoverSupport() ? undefined : CONST.ROLE.BUTTON}
-                        sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM}
+                    <SwipeToReply
+                        action={action}
+                        isThreadReportParentAction={isThreadReportParentAction}
+                        isDisabled={!shouldUseNarrowLayout || isOnSearch || hasDraft || hasActionErrors || !shouldDisplayContextMenuValue}
                     >
-                        <Hoverable
-                            shouldHandleScroll
-                            isDisabled={hasDraft}
-                            shouldFreezeCapture={isPaymentMethodPopoverActive}
-                            onHoverIn={() => {
-                                setIsReportActionActive(false);
+                        <PressableWithSecondaryInteraction
+                            ref={popoverAnchorRef}
+                            accessible={shouldBreakGrouping && isScreenReaderActive && isCreatedTaskReportAction(action) ? false : undefined}
+                            onPress={() => {
+                                if (!hasDraft) {
+                                    onPress?.();
+                                }
+                                if (!Keyboard.isVisible()) {
+                                    return;
+                                }
+                                Keyboard.dismiss();
                             }}
-                            onHoverOut={() => {
-                                setIsReportActionActive(!!isReportActionLinked);
-                            }}
+                            style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
+                            onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                            onPressOut={() => ControlSelection.unblock()}
+                            onSecondaryInteraction={showPopover}
+                            preventDefaultContextMenu={!isContextMenuDisabled}
+                            withoutFocusOnSecondaryInteraction
+                            accessibilityLabel={accessibilityLabel}
+                            accessibilityHint={translate('accessibilityHints.chatMessage')}
+                            accessibilityRole={isSafari() && hasHoverSupport() ? undefined : CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM}
                         >
-                            {(hovered) => {
-                                const isHoveredOrActive = !!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive;
+                            <Hoverable
+                                shouldHandleScroll
+                                isDisabled={hasDraft}
+                                shouldFreezeCapture={isPaymentMethodPopoverActive}
+                                onHoverIn={() => {
+                                    setIsReportActionActive(false);
+                                }}
+                                onHoverOut={() => {
+                                    setIsReportActionActive(!!isReportActionLinked);
+                                }}
+                            >
+                                {(hovered) => {
+                                    const isHoveredOrActive = !!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive;
 
-                                return (
-                                    <View style={highlightedBackgroundColorIfNeeded}>
-                                        {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && (
-                                            <UnreadActionIndicator reportActionID={action.reportActionID} />
-                                        )}
-                                        {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && !hasDraft && !hasActionErrors && (
-                                            <MiniReportActionContextMenu
-                                                reportID={reportID}
-                                                reportActionID={action.reportActionID}
-                                                anchor={popoverAnchorRef}
-                                                originalReportID={originalReportID}
-                                                displayAsGroup={displayAsGroup}
-                                                disabledActions={disabledActions}
-                                                isVisible={hovered}
-                                                isThreadReportParentAction={isThreadReportParentAction}
-                                                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                                                setIsEmojiPickerActive={setIsEmojiPickerActive}
-                                            />
-                                        )}
-                                        <View
-                                            style={[
-                                                StyleUtils.getReportActionItemStyle(
-                                                    hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || hasDraft || isPaymentMethodPopoverActive,
-                                                    !hasDraft && !!onPress,
-                                                ),
-                                                // The Pressable above renders as a role=button, whose UA text-align:center is inherited by
-                                                // bare inline content (e.g. an auto-linked URL with no wrapping Text). Reset it to left here.
-                                                styles.textAlignLeft,
-                                            ]}
-                                        >
-                                            <OfflineWithFeedback
-                                                onClose={onClose}
-                                                dismissError={dismissError}
-                                                pendingAction={
-                                                    hasDraft ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
-                                                }
-                                                shouldHideOnDelete={!isDeletedParentAction}
-                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
-                                                errorRowStyles={[styles.ml10, styles.mr2]}
-                                                needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
-                                                shouldDisableStrikeThrough
+                                    return (
+                                        <View style={highlightedBackgroundColorIfNeeded}>
+                                            {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && (
+                                                <UnreadActionIndicator reportActionID={action.reportActionID} />
+                                            )}
+                                            {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && !hasDraft && !hasActionErrors && (
+                                                <MiniReportActionContextMenu
+                                                    reportID={reportID}
+                                                    reportActionID={action.reportActionID}
+                                                    anchor={popoverAnchorRef}
+                                                    originalReportID={originalReportID}
+                                                    displayAsGroup={displayAsGroup}
+                                                    disabledActions={disabledActions}
+                                                    isVisible={hovered}
+                                                    isThreadReportParentAction={isThreadReportParentAction}
+                                                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                                                    setIsEmojiPickerActive={setIsEmojiPickerActive}
+                                                />
+                                            )}
+                                            <View
+                                                style={[
+                                                    StyleUtils.getReportActionItemStyle(
+                                                        hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || hasDraft || isPaymentMethodPopoverActive,
+                                                        !hasDraft && !!onPress,
+                                                    ),
+                                                    // The Pressable above renders as a role=button, whose UA text-align:center is inherited by
+                                                    // bare inline content (e.g. an auto-linked URL with no wrapping Text). Reset it to left here.
+                                                    styles.textAlignLeft,
+                                                ]}
                                             >
-                                                <SearchActionHeader
-                                                    action={action}
-                                                    report={report}
-                                                    isWhisper={isWhisper}
-                                                    onPress={onPress}
+                                                <OfflineWithFeedback
+                                                    onClose={onClose}
+                                                    dismissError={dismissError}
+                                                    pendingAction={
+                                                        hasDraft ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
+                                                    }
+                                                    shouldHideOnDelete={!isDeletedParentAction}
+                                                    errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
+                                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                                    needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
+                                                    shouldDisableStrikeThrough
                                                 >
-                                                    {isWhisper && <WhisperBanner whisperedTo={whisperedTo} />}
-                                                    {isEmpty ? (
-                                                        <RenderHTML html="" />
-                                                    ) : (
-                                                        <ReportActionItemFrame
-                                                            action={action}
-                                                            report={report}
-                                                            iouReport={iouReport}
-                                                            displayAsGroup={displayAsGroup}
-                                                            isEditingInline={isEditingInline}
-                                                            isWhisper={isWhisper}
-                                                            isOnSearch={isOnSearch}
-                                                            hovered={isHoveredOrActive}
-                                                            isActive={isReportActionActive && !isContextMenuActive}
-                                                        >
-                                                            <ActionContentRouter
+                                                    <SearchActionHeader
+                                                        action={action}
+                                                        report={report}
+                                                        isWhisper={isWhisper}
+                                                        onPress={onPress}
+                                                    >
+                                                        {isWhisper && <WhisperBanner whisperedTo={whisperedTo} />}
+                                                        {isEmpty ? (
+                                                            <RenderHTML html="" />
+                                                        ) : (
+                                                            <ReportActionItemFrame
                                                                 action={action}
                                                                 report={report}
-                                                                chatReport={chatReport}
-                                                                reportID={reportID}
-                                                                originalReportID={originalReportID}
                                                                 iouReport={iouReport}
                                                                 displayAsGroup={displayAsGroup}
-                                                                draftMessage={draftMessage}
+                                                                isEditingInline={isEditingInline}
                                                                 isWhisper={isWhisper}
-                                                                hovered={isHoveredOrActive}
-                                                                isHidden={isHidden}
-                                                                updateHiddenState={updateHiddenState}
-                                                                isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
-                                                                isTrackIntentUser={isTrackIntentUser}
-                                                                paymentExpectedDate={paymentExpectedDate}
-                                                                isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
-                                                                shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}
-                                                                setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
-                                                                isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
-                                                            />
-                                                            {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
-                                                                <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
-                                                                    <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
-                                                                </View>
-                                                            )}
-                                                            {!isOnSearch && !isMessageDeleted(action) && (
-                                                                <ReportActionItemEmojiReactions
-                                                                    reportAction={action}
-                                                                    reportID={reportID}
-                                                                    shouldBlockReactions={hasActionErrors}
-                                                                    setIsEmojiPickerActive={setIsEmojiPickerActive}
-                                                                    isEditingInline={isEditingInline}
-                                                                />
-                                                            )}
-                                                            {shouldDisplayThreadReplies && (
-                                                                <ReportActionItemThread
-                                                                    reportAction={action}
+                                                                hovered={isHoveredOrActive}
+                                                                isActive={isReportActionActive && !isContextMenuActive}
+                                                            >
+                                                                <ActionContentRouter
+                                                                    action={action}
                                                                     report={report}
-                                                                    isHovered={isHoveredOrActive}
-                                                                    onSecondaryInteraction={showPopover}
-                                                                    isActive={isReportActionActive && !isContextMenuActive}
-                                                                    isEditingInline={isEditingInline}
+                                                                    chatReport={chatReport}
+                                                                    reportID={reportID}
+                                                                    originalReportID={originalReportID}
+                                                                    iouReport={iouReport}
+                                                                    displayAsGroup={displayAsGroup}
+                                                                    draftMessage={draftMessage}
+                                                                    isWhisper={isWhisper}
+                                                                    hovered={isHoveredOrActive}
+                                                                    isHidden={isHidden}
+                                                                    updateHiddenState={updateHiddenState}
+                                                                    isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
+                                                                    isTrackIntentUser={isTrackIntentUser}
+                                                                    paymentExpectedDate={paymentExpectedDate}
+                                                                    isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
+                                                                    shouldShowBorder={shouldShowBorder}
+                                                                    isOnSearch={isOnSearch}
+                                                                    setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
+                                                                    isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
                                                                 />
-                                                            )}
-                                                        </ReportActionItemFrame>
-                                                    )}
-                                                </SearchActionHeader>
-                                            </OfflineWithFeedback>
+                                                                {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
+                                                                    <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
+                                                                        <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
+                                                                    </View>
+                                                                )}
+                                                                {!isOnSearch && !isMessageDeleted(action) && (
+                                                                    <ReportActionItemEmojiReactions
+                                                                        reportAction={action}
+                                                                        reportID={reportID}
+                                                                        shouldBlockReactions={hasActionErrors}
+                                                                        setIsEmojiPickerActive={setIsEmojiPickerActive}
+                                                                        isEditingInline={isEditingInline}
+                                                                    />
+                                                                )}
+                                                                {shouldDisplayThreadReplies && (
+                                                                    <ReportActionItemThread
+                                                                        reportAction={action}
+                                                                        report={report}
+                                                                        isHovered={isHoveredOrActive}
+                                                                        onSecondaryInteraction={showPopover}
+                                                                        isActive={isReportActionActive && !isContextMenuActive}
+                                                                        isEditingInline={isEditingInline}
+                                                                    />
+                                                                )}
+                                                            </ReportActionItemFrame>
+                                                        )}
+                                                    </SearchActionHeader>
+                                                </OfflineWithFeedback>
+                                            </View>
                                         </View>
-                                    </View>
-                                );
-                            }}
-                        </Hoverable>
-                        {!!action.error && (
-                            <View style={styles.reportActionSystemMessageContainer}>
-                                <InlineSystemMessage message={action.error} />
-                            </View>
-                        )}
-                    </PressableWithSecondaryInteraction>
+                                    );
+                                }}
+                            </Hoverable>
+                            {!!action.error && (
+                                <View style={styles.reportActionSystemMessageContainer}>
+                                    <InlineSystemMessage message={action.error} />
+                                </View>
+                            )}
+                        </PressableWithSecondaryInteraction>
+                    </SwipeToReply>
                 </View>
             </ShowContextMenuActionsContext.Provider>
         </ShowContextMenuStateContext.Provider>

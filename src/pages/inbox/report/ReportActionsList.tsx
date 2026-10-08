@@ -74,6 +74,7 @@ import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
+import ReplyInThreadProvider from './SwipeToReply/ReplyInThreadProvider';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
 
 type ReportActionsListContentProps = {
@@ -492,46 +493,51 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 report={report}
                 isReportArchived={isReportArchived}
             >
-                <InvertedFlashList
-                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={listRef}
-                    testID="report-actions-list"
-                    style={styles.overscrollBehaviorContain}
-                    data={renderedVisibleReportActions}
-                    renderItem={renderItem}
-                    keyExtractor={keyExtractor}
-                    drawDistance={1500}
-                    renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
-                    onEndReached={loadOlderChatsOnEndReached}
-                    onEndReachedThreshold={0.75}
-                    onStartReached={loadNewerChatsAfterTransitions}
-                    onStartReachedThreshold={0.75}
-                    ListHeaderComponent={listHeaderComponent}
-                    ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
-                    ListFooterComponent={listFooterComponent}
-                    keyboardShouldPersistTaps="handled"
-                    onLayout={(event) => {
-                        recordTimeToMeasureItemLayout(event);
-                        flushPendingScrollToBottom();
-                    }}
-                    onScroll={trackScrollPositionAndThreshold}
-                    onViewableItemsChanged={onViewableItemsChanged}
-                    extraData={extraData}
-                    key={listID}
-                    overrideProps={{
-                        isInvertedVirtualizedList: true,
-                        contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
-                    }}
-                    getItemType={(item) => item.actionName}
-                    initialScrollIndex={initialScrollIndex}
-                    initialScrollIndexParams={initialScrollIndexParams}
-                    maintainVisibleContentPosition={maintainVisibleContentPosition}
-                    onLoad={onLoad}
-                    onContentSizeChange={() => {
-                        trackVerticalScrolling(undefined);
-                    }}
-                />
+                <ReplyInThreadProvider
+                    report={report}
+                    isReportArchived={isReportArchived}
+                >
+                    <InvertedFlashList
+                        accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                        ref={listRef}
+                        testID="report-actions-list"
+                        style={styles.overscrollBehaviorContain}
+                        data={renderedVisibleReportActions}
+                        renderItem={renderItem}
+                        keyExtractor={keyExtractor}
+                        drawDistance={1500}
+                        renderScrollComponent={renderActionSheetAwareScrollView}
+                        contentContainerStyle={styles.chatContentScrollView}
+                        onEndReached={loadOlderChatsOnEndReached}
+                        onEndReachedThreshold={0.75}
+                        onStartReached={loadNewerChatsAfterTransitions}
+                        onStartReachedThreshold={0.75}
+                        ListHeaderComponent={listHeaderComponent}
+                        ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
+                        ListFooterComponent={listFooterComponent}
+                        keyboardShouldPersistTaps="handled"
+                        onLayout={(event) => {
+                            recordTimeToMeasureItemLayout(event);
+                            flushPendingScrollToBottom();
+                        }}
+                        onScroll={trackScrollPositionAndThreshold}
+                        onViewableItemsChanged={onViewableItemsChanged}
+                        extraData={extraData}
+                        key={listID}
+                        overrideProps={{
+                            isInvertedVirtualizedList: true,
+                            contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
+                        }}
+                        getItemType={(item) => item.actionName}
+                        initialScrollIndex={initialScrollIndex}
+                        initialScrollIndexParams={initialScrollIndexParams}
+                        maintainVisibleContentPosition={maintainVisibleContentPosition}
+                        onLoad={onLoad}
+                        onContentSizeChange={() => {
+                            trackVerticalScrolling(undefined);
+                        }}
+                    />
+                </ReplyInThreadProvider>
             </ReportActionsListPaddingView>
         </>
     );

@@ -2846,6 +2846,17 @@ function navigateToAndOpenReportWithAccountIDs(
  * @param parentReport The parent report
  * @param currentUserAccountID the account ID of the current user, used for creating optimistic report if needed
  */
+/**
+ * Reads a message's thread from the in-memory reports, for callers that open threads on demand and should not
+ * subscribe to every message's thread while idle (swipe-to-reply).
+ */
+function getChildReport(parentReportAction: ReportAction): OnyxEntry<Report> {
+    if (!parentReportAction.childReportID) {
+        return undefined;
+    }
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportAction.childReportID}`];
+}
+
 function navigateToAndOpenChildReport(
     childReport: OnyxEntry<Report>,
     parentReportAction: ReportAction,
@@ -3205,7 +3216,7 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
 /**
  * Sets the last read time on a report
  */
-function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEntry<ReportActions>, reportAction: ReportAction, currentUserAccountID: number, isOffline: boolean) {
+function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEntry<ReportActions>, reportAction: OnyxEntry<ReportAction>, currentUserAccountID: number, isOffline: boolean) {
     if (!reportID) {
         Log.warn('7339cd6c-3263-4f89-98e5-730f0be15784 Invalid report passed to MarkCommentAsUnread. Not calling the API because it wil fail.');
         return;
@@ -8998,6 +9009,7 @@ function saveConciergePromptDraft(draft: string | null) {
 export type {Video, GuidedSetupData, GuidedSetupTask, TaskForParameters, IntroSelected, OpenReportActionParams};
 
 export {
+    getChildReport,
     addAttachmentWithComment,
     addComment,
     addPolicyReport,

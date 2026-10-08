@@ -175,6 +175,21 @@ const darkTheme = {
         },
     },
 
+    swipeActionTint: {
+        blue: {
+            backgroundColor: colors.blue700,
+            iconColor: colors.blue200,
+        },
+        tangerine: {
+            backgroundColor: colors.tangerine700,
+            iconColor: colors.tangerine200,
+        },
+        ice: {
+            backgroundColor: colors.ice700,
+            iconColor: colors.ice200,
+        },
+    },
+
     reportStatusBadge: {
         draft: {
             backgroundColor: colors.blue700,

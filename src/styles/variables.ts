@@ -568,4 +568,9 @@ export default {
     editableCellEditButtonWidth: 28 + 4,
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
+
+    // How far a chat message has to be swiped left before releasing it opens "Reply in thread".
+    swipeToReplyThreshold: 64,
+    swipeActionIndicatorSize: 32,
+    swipeableRowActionWidth: 72,
 } as const;

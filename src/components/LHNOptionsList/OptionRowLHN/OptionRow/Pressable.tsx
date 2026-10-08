@@ -2,17 +2,24 @@ import Hoverable from '@components/Hoverable';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import SwipeableRow from '@components/SwipeableRow';
+import getSwipeableRowAccessibilityProps from '@components/SwipeableRow/getSwipeableRowAccessibilityProps';
+import SwipeableListContext from '@components/SwipeableRow/SwipeableListContext';
+import type {SwipeableRowAction, SwipeableRowActions} from '@components/SwipeableRow/types';
 import getActionBadgeText from '@components/utils/getActionBadgeText';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {markCommentAsUnread, readNewestAction, togglePinnedState} from '@libs/actions/Report';
 import DomUtils from '@libs/DomUtils';
+import {getIsOffline} from '@libs/NetworkState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -26,7 +33,9 @@ import CONST from '@src/CONST';
 import type {ComponentRef, ReactNode} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, View} from 'react-native';
 
-import React, {useRef, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
+
+const NO_SWIPE_ACCESSIBILITY_PROPS: ReturnType<typeof getSwipeableRowAccessibilityProps> = {};
 
 type PressableProps = {
     /** Option data for the row. Source of accessibility text and the report ID used by press/context-menu actions. */
@@ -61,6 +70,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
     const {isScreenFocused} = useLHNTooltipContext();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -131,55 +141,124 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
         });
     };
 
+    // Swipe right toggles read state, swipe left pins; the same actions the long-press menu offers for a chat.
+    // Built on demand: only a touched or swiped row, or a screen reader, needs them
+    const getReadStateAction = (): SwipeableRowAction =>
+        optionItem.isUnread
+            ? {
+                  key: 'markAsRead',
+                  icon: 'Mail',
+                  tint: 'blue',
+                  label: translate('common.read'),
+                  accessibilityLabel: translate('reportActionContextMenu.markAsRead'),
+                  sentryLabel: CONST.SENTRY_LABEL.LHN.SWIPE_MARK_AS_READ,
+                  onPress: () => readNewestAction(reportID, true, true),
+              }
+            : {
+                  key: 'markAsUnread',
+                  icon: 'ChatBubbleUnread',
+                  tint: 'blue',
+                  label: translate('common.unread'),
+                  accessibilityLabel: translate('reportActionContextMenu.markAsUnread'),
+                  sentryLabel: CONST.SENTRY_LABEL.LHN.SWIPE_MARK_AS_UNREAD,
+                  // Read at press time instead of subscribing every row to the network state
+                  onPress: () => markCommentAsUnread(reportID, undefined, undefined, currentUserAccountID, getIsOffline()),
+              };
+    const getPinAction = (): SwipeableRowAction => {
+        const pinLabel = translate(optionItem.isPinned ? 'common.unPin' : 'common.pin');
+        return {
+            key: 'pin',
+            icon: 'Pin',
+            tint: 'tangerine',
+            label: pinLabel,
+            accessibilityLabel: pinLabel,
+            sentryLabel: optionItem.isPinned ? CONST.SENTRY_LABEL.LHN.SWIPE_UNPIN : CONST.SENTRY_LABEL.LHN.SWIPE_PIN,
+            onPress: () => togglePinnedState(reportID, !!optionItem.isPinned),
+        };
+    };
+    const getSwipeActions = (): SwipeableRowActions => ({
+        leading: [getReadStateAction()],
+        trailing: [
+            getPinAction(),
+            {
+                key: 'more',
+                icon: 'ThreeDots',
+                tint: 'ice',
+                label: translate('common.more'),
+                accessibilityLabel: translate('common.more'),
+                sentryLabel: CONST.SENTRY_LABEL.LHN.SWIPE_MORE,
+                onPress: (event) => {
+                    if (!event) {
+                        return;
+                    }
+                    showPopover(event);
+                },
+            },
+        ],
+    });
+
+    // Screen readers get the same actions from the row's actions menu. "More" is left out: it is the long-press menu,
+    // which screen readers already reach
+    const isScreenReaderEnabled = !!useContext(SwipeableListContext)?.isScreenReaderEnabled;
+    const swipeAccessibilityProps = isScreenReaderEnabled ? getSwipeableRowAccessibilityProps([getReadStateAction(), getPinAction()]) : NO_SWIPE_ACCESSIBILITY_PROPS;
+
     return (
-        <Hoverable
-            onHoverIn={onHoverIn}
-            onHoverOut={onHoverOut}
+        <SwipeableRow
+            rowKey={reportID}
+            getActions={getSwipeActions}
+            isDisabled={!shouldUseNarrowLayout}
         >
-            {(hovered) => (
-                <PressableWithSecondaryInteraction
-                    ref={popoverAnchor}
-                    onPress={onPress}
-                    onMouseDown={(event) => {
-                        // Allow composer blur on right click
-                        if (!event) {
-                            return;
-                        }
-                        // Prevent composer blur on left click
-                        event.preventDefault();
-                    }}
-                    testID={testID}
-                    onSecondaryInteraction={(event) => {
-                        showPopover(event);
-                        // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
-                        if (DomUtils.getActiveElement()) {
-                            (DomUtils.getActiveElement() as HTMLElement | null)?.blur();
-                        }
-                    }}
-                    withoutFocusOnSecondaryInteraction
-                    activeOpacity={variables.pressDimValue}
-                    opacityAnimationDuration={variables.instantAnimationDuration}
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentBetween,
-                        styles.sidebarLink,
-                        styles.sidebarLinkInnerLHN,
-                        StyleUtils.getBackgroundColorStyle(theme.sidebar),
-                        isOptionFocused ? styles.sidebarLinkActive : null,
-                        (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
-                    ]}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={accessibilityLabelWithContextMenuHint}
-                    accessibilityHint={accessibilityHint}
-                    onLayout={onLayout}
-                    needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
-                    sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
-                >
-                    {children}
-                </PressableWithSecondaryInteraction>
-            )}
-        </Hoverable>
+            <Hoverable
+                onHoverIn={onHoverIn}
+                onHoverOut={onHoverOut}
+            >
+                {(hovered) => (
+                    <PressableWithSecondaryInteraction
+                        ref={popoverAnchor}
+                        onPress={onPress}
+                        onMouseDown={(event) => {
+                            // Allow composer blur on right click
+                            if (!event) {
+                                return;
+                            }
+                            // Prevent composer blur on left click
+                            event.preventDefault();
+                        }}
+                        testID={testID}
+                        onSecondaryInteraction={(event) => {
+                            showPopover(event);
+                            // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
+                            if (DomUtils.getActiveElement()) {
+                                (DomUtils.getActiveElement() as HTMLElement | null)?.blur();
+                            }
+                        }}
+                        withoutFocusOnSecondaryInteraction
+                        activeOpacity={variables.pressDimValue}
+                        opacityAnimationDuration={variables.instantAnimationDuration}
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                            styles.sidebarLink,
+                            styles.sidebarLinkInnerLHN,
+                            StyleUtils.getBackgroundColorStyle(theme.sidebar),
+                            isOptionFocused ? styles.sidebarLinkActive : null,
+                            (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
+                        ]}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={accessibilityLabelWithContextMenuHint}
+                        accessibilityHint={accessibilityHint}
+                        onLayout={onLayout}
+                        needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
+                        sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
+                        accessibilityActions={swipeAccessibilityProps.accessibilityActions}
+                        onAccessibilityAction={swipeAccessibilityProps.onAccessibilityAction}
+                    >
+                        {children}
+                    </PressableWithSecondaryInteraction>
+                )}
+            </Hoverable>
+        </SwipeableRow>
     );
 }
 

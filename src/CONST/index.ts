@@ -280,6 +280,13 @@ const editRequestFields = {
 } as const;
 
 const CONST = {
+    // POC switches for swipe actions. Off renders the rows exactly as without the feature, to measure what each part
+    // costs (for example ManualOpenReport) against the same build.
+    IS_CHAT_SWIPE_TO_REPLY_ENABLED: true,
+    IS_INBOX_SWIPE_ACTIONS_ENABLED: true,
+    // Measurement only: the Inbox list-wide gesture on its own; without it Inbox rows can't be swiped
+    IS_INBOX_SWIPE_LIST_ENABLED: true,
+
     HEIC_SIGNATURES: [
         '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
         '6674797068656978', // 'ftypheix' - Indicates a variation of HEIC
@@ -9517,6 +9524,14 @@ const CONST = {
         },
         LHN: {
             OPTION_ROW: 'LHN-OptionRow',
+            SWIPE_MARK_AS_READ: 'LHN-SwipeMarkAsRead',
+            SWIPE_MARK_AS_UNREAD: 'LHN-SwipeMarkAsUnread',
+            SWIPE_PIN: 'LHN-SwipePin',
+            SWIPE_UNPIN: 'LHN-SwipeUnpin',
+            SWIPE_MORE: 'LHN-SwipeMore',
+        },
+        SWIPEABLE_ROW: {
+            CLOSE: 'SwipeableRow-Close',
         },
         OPTION_ROW: {
             BASE_LIST_ITEM: 'OptionRow-BaseListItem',
