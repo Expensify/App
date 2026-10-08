@@ -2,6 +2,7 @@ import {write} from '@libs/API';
 import type {
     ConnectPolicyToBusinessCentralParams,
     UpdateBusinessCentralCompanyParams,
+    UpdateBusinessCentralCustomerMappingParams,
     UpdateBusinessCentralDefaultVendorParams,
     UpdateBusinessCentralEnableNewCategoriesParams,
     UpdateBusinessCentralExportDateParams,
@@ -20,7 +21,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BusinessCentralCoding, BusinessCentralCodingOfflineFeedbackKeys, BusinessCentralExport} from '@src/types/onyx/Policy';
+import type {BusinessCentralCoding, BusinessCentralCodingOfflineFeedbackKeys, BusinessCentralCustomerMappings, BusinessCentralExport} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -28,12 +29,14 @@ import type {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 type BusinessCentralMappingValue = ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
+type BusinessCentralCustomerMappingName = ValueOf<typeof CONST.BUSINESS_CENTRAL_FIELD_MAPPING>;
 
 /** Coding values a single update writes. `null` clears a value that did not exist before the update when the request is rolled back. */
 type BusinessCentralCodingUpdate = {
-    [TSetting in keyof Omit<BusinessCentralCoding, 'fieldMappings'>]?: BusinessCentralCoding[TSetting] | null;
+    [TSetting in keyof Omit<BusinessCentralCoding, 'fieldMappings' | 'customerMappings'>]?: BusinessCentralCoding[TSetting] | null;
 } & {
     fieldMappings?: Record<string, BusinessCentralMappingValue | null>;
+    customerMappings?: Partial<Record<keyof BusinessCentralCustomerMappings, BusinessCentralMappingValue | null>>;
 };
 
 function connectToBusinessCentral(policyID: string, credentials: Omit<ConnectPolicyToBusinessCentralParams, 'policyID'>) {
@@ -307,6 +310,20 @@ function updateBusinessCentralFieldMapping(policyID: string, dimensionCode: stri
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_FIELD_MAPPING, parameters, onyxData);
 }
 
+function updateBusinessCentralCustomerMapping(
+    policyID: string,
+    mappingName: BusinessCentralCustomerMappingName,
+    mapping: BusinessCentralMappingValue,
+    oldMapping?: BusinessCentralMappingValue,
+) {
+    const pendingField = mappingName;
+    const onyxData = prepareBusinessCentralCodingOnyxData(policyID, pendingField, {customerMappings: {[mappingName]: mapping}}, {customerMappings: {[mappingName]: oldMapping ?? null}});
+    const parameters: UpdateBusinessCentralCustomerMappingParams = {policyID, mapping};
+    const command =
+        mappingName === CONST.BUSINESS_CENTRAL_FIELD_MAPPING.CUSTOMERS ? WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CUSTOMERS_MAPPING : WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING;
+    write(command, parameters, onyxData);
+}
+
 /**
  * Builds the Onyx updates for a change to one export setting. The pending and error state lives under the setting's own key.
  */
@@ -458,6 +475,7 @@ export {
     updateBusinessCentralSyncTaxRates,
     updateBusinessCentralSyncItems,
     updateBusinessCentralFieldMapping,
+    updateBusinessCentralCustomerMapping,
     updateBusinessCentralExporter,
     updateBusinessCentralExportDate,
     updateBusinessCentralReimbursableExpensesExportDestination,

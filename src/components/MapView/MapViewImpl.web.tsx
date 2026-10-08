@@ -318,7 +318,7 @@ function MapViewImpl({
         >
             <div
                 ref={containerRef}
-                style={{width: '100%', height: '100%'}}
+                style={{position: 'relative', width: '100%', height: '100%', zIndex: -1}}
             >
                 {hasValidContainerSize && (
                     <Map
@@ -326,7 +326,7 @@ function MapViewImpl({
                         ref={setRef}
                         mapboxAccessToken={accessToken}
                         initialViewState={initialViewState}
-                        style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
+                        style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
                         mapStyle={styleURL}
                         interactive={interactive}
                         interactiveLayerIds={interactiveLayerIds}

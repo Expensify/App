@@ -12,6 +12,8 @@ declare module 'scheduler' {
 
     export const unstable_IdlePriority: number;
 
+    export const unstable_LowPriority: number;
+
     export function unstable_scheduleCallback(priorityLevel: number, callback: SchedulerCallback, options?: {delay?: number}): CallbackNode;
 
     export function unstable_cancelCallback(task: CallbackNode): void;

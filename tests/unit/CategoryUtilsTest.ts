@@ -514,6 +514,20 @@ describe('getCategoryNameError', () => {
         expect(getCategoryNameError(categories, 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
         expect(getCategoryNameError(categories, 'Food', 'Food')).toBeUndefined();
     });
+
+    it('flags an HTML-like name the Name page already rejects', () => {
+        // Given a category the admin is renaming from the table
+        // When the new name is an HTML-like token such as </>
+        // Then the name is invalid, because the Name page blocks it and the table must not save it
+        expect(getCategoryNameError(categories, '</>', 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+    });
+
+    it('allows a whitelisted angle-bracket token', () => {
+        // Given a category the admin is renaming
+        // When the new name is a harmless token the Name page already allows, such as <>
+        // Then the name is valid, so the table and the Name page stay in agreement
+        expect(getCategoryNameError(categories, '<>', 'Food')).toBeUndefined();
+    });
 });
 
 describe('getCategoryDefaultTaxRate', () => {

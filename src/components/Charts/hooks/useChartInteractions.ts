@@ -397,6 +397,12 @@ function useChartInteractions({
         };
     });
 
+    /** Canvas position of the matched data point, for drawing hover indicators inside the chart canvas */
+    const activePointPosition = useDerivedValue(() => ({
+        x: chartInteractionState.x.position.get(),
+        y: chartInteractionState.y.y.position.get(),
+    }));
+
     const customGestures = Gesture.Race(hoverGesture(), tapGesture());
 
     return {
@@ -415,6 +421,8 @@ function useChartInteractions({
         isCursorOverClickable,
         /** Raw tooltip positioning data */
         initialTooltipPosition,
+        /** Canvas position of the matched data point */
+        activePointPosition,
     };
 }
 

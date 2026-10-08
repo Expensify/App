@@ -613,6 +613,7 @@ type GetReportOptionParams = {
     localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']};
     rules: OnyxCollection<Rule>;
     policyTags?: OnyxCollection<PolicyTagLists>;
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 /**
@@ -630,6 +631,7 @@ function getReportOption({
     localize,
     rules,
     policyTags,
+    pendingDeleteMemberAccountIDs,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
@@ -657,6 +659,7 @@ function getReportOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -701,6 +704,7 @@ type GetReportDisplayOptionParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 /**
@@ -721,6 +725,7 @@ function getReportDisplayOption({
     reportAttributesDerived,
     policyTags,
     visibleReportActionsData = {},
+    pendingDeleteMemberAccountIDs,
 }: GetReportDisplayOptionParams): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
@@ -745,6 +750,7 @@ function getReportDisplayOption({
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
         currentUserAccountID,
+        pendingDeleteMemberAccountIDs,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1428,6 +1434,7 @@ type CreateOptionFromReportParams = {
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
+    pendingDeleteMemberAccountIDs: string[] | undefined;
 };
 
 function createOptionFromReport({
@@ -1450,6 +1457,7 @@ function createOptionFromReport({
     isTrackIntentUser,
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    pendingDeleteMemberAccountIDs,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -1476,6 +1484,7 @@ function createOptionFromReport({
             currentUserAccountID,
             currentUserLogin,
             isTrackIntentUser,
+            pendingDeleteMemberAccountIDs,
         }),
     };
 }
@@ -2878,28 +2887,35 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
+function getHeaderMessage(
+    translate: LocalizedTranslate,
+    hasSelectableOptions: boolean,
+    hasUserToInvite: boolean,
+    searchValue: string,
+    countryCode: number,
+    hasMatchedParticipant = false,
+): string {
     const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
-        return translateLocal('messages.errorMessageInvalidPhone');
+        return translate('messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
-            return translateLocal('messages.errorMessageInvalidPhone');
+            return translate('messages.errorMessageInvalidPhone');
         }
         if (/@/.test(searchValue) && !isValidEmail) {
-            return translateLocal('messages.errorMessageInvalidEmail');
+            return translate('messages.errorMessageInvalidEmail');
         }
         if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
             return '';
         }
-        return translateLocal('common.noResultsFound');
+        return translate('common.noResultsFound');
     }
 
     return '';
@@ -2908,9 +2924,9 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
 /**
  * Helper method for non-user lists (eg. categories and tags) that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchValue: string): string {
+function getHeaderMessageForNonUserList(translate: LocalizedTranslate, hasSelectableOptions: boolean, searchValue: string): string {
     if (searchValue && !hasSelectableOptions) {
-        return translateLocal('common.noResultsFound');
+        return translate('common.noResultsFound');
     }
     return '';
 }
