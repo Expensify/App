@@ -1487,4 +1487,45 @@ describe('Session', () => {
             writeSpy.mockRestore();
         });
     });
+
+    describe.each([
+        {name: 'beginGoogleSignIn', command: WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, beginSignIn: SessionUtil.beginGoogleSignIn, tokenParam: 'token'},
+        {name: 'beginAppleSignIn', command: WRITE_COMMANDS.SIGN_IN_WITH_APPLE, beginSignIn: SessionUtil.beginAppleSignIn, tokenParam: 'idToken'},
+    ])('$name', ({command, beginSignIn, tokenParam}) => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const googleAdAttribution: MarketingAttribution = {utm_source: 'google', gclid: 'testGclid'};
+
+        test('sends the captured marketing attribution and clears it on success', async () => {
+            // Given marketing attribution captured from a Google ad
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the user signs in with the third party, which can create a new account
+            beginSignIn('testToken', CONST.LOCALES.EN, googleAdAttribution);
+            await waitForBatchedUpdates();
+
+            // Then the attribution is sent with the request params
+            expect(writeSpy).toHaveBeenCalledWith(command, expect.objectContaining({[tokenParam]: 'testToken', ...googleAdAttribution}), expect.anything());
+
+            // And the success data clears it, while keeping the usual sign in success data
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.successData).toContainEqual({onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.MARKETING_ATTRIBUTION, value: null});
+            expect(onyxData?.successData).toContainEqual(expect.objectContaining({key: ONYXKEYS.ACCOUNT}));
+            expect(onyxData?.failureData).not.toContainEqual(expect.objectContaining({key: ONYXKEYS.MARKETING_ATTRIBUTION}));
+            writeSpy.mockRestore();
+        });
+
+        test('sends no attribution params when none were captured', async () => {
+            // Given no captured marketing attribution
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the user signs in with the third party
+            beginSignIn('testToken', CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+
+            // Then the request carries only the sign in params
+            const params = writeSpy.mock.calls.at(0)?.[1] ?? {};
+            expect(Object.keys(params).sort()).toEqual(['deviceInfo', 'preferredLocale', tokenParam].sort());
+            writeSpy.mockRestore();
+        });
+    });
 });

@@ -870,28 +870,43 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
 }
 
 /**
+ * Builds the Onyx data for a Google or Apple sign in. These can create a new account, so on success we clear the marketing
+ * attribution sent with the request, the same way signUpUser does, so it isn't sent again on a later signup.
+ */
+function getThirdPartySignInOnyxData(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.MARKETING_ATTRIBUTION> {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    return {
+        optimisticData,
+        successData: [...(successData ?? []), {onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.MARKETING_ATTRIBUTION, value: null}],
+        failureData,
+    };
+}
+
+/**
  * Given an idToken from Sign in with Apple, checks the API to see if an account
  * exists for that email address and signs the user in if so.
+ * The marketing attribution captured from the landing URL is sent along, since this can create a new account.
  */
-function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: Locale | undefined) {
-    const {optimisticData, successData, failureData} = signInAttemptState();
+function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: Locale | undefined, marketingAttribution?: OnyxEntry<MarketingAttribution>) {
+    const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo};
-        API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, {optimisticData, successData, failureData});
+        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo, ...marketingAttribution};
+        API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, onyxData);
     });
 }
 
 /**
  * Shows Google sign-in process, and if an auth token is successfully obtained,
- * passes the token on to the Expensify API to sign in with
+ * passes the token on to the Expensify API to sign in with.
+ * The marketing attribution captured from the landing URL is sent along, since this can create a new account.
  */
-function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undefined) {
-    const {optimisticData, successData, failureData} = signInAttemptState();
+function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undefined, marketingAttribution?: OnyxEntry<MarketingAttribution>) {
+    const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo};
-        API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, {optimisticData, successData, failureData});
+        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo, ...marketingAttribution};
+        API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, onyxData);
     });
 }
 
