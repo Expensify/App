@@ -1,7 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
@@ -220,7 +220,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
 
     const hasCards = listData.length > 0;
     const hasEligibleCards = eligibleCards.length > 0;
-    const headerMessage = hasEligibleCards ? getHeaderMessage(hasCards, false, inputValue, countryCode, false) : '';
+    const headerMessage = hasEligibleCards ? getHeaderMessage(translate, hasCards, false, inputValue, countryCode, false) : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -238,7 +238,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                     offlineIndicatorStyle={styles.mtAuto}
                     includeSafeAreaPaddingBottom
                 >
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('workspace.rules.spendRules.cardPageTitle')}
                         onBackButtonPress={goBack}
                     />

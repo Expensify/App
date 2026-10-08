@@ -2,8 +2,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import EnableGlobalReimbursementsPayModal from '@components/EnableGlobalReimbursementsPayModal';
 import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
-import GPSInProgressModal from '@components/GPSInProgressModal';
-import GPSTripStateChecker from '@components/GPSTripStateChecker';
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
@@ -23,6 +21,8 @@ import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/V
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
 import WideRHPContextProvider from '@components/WideRHPContextProvider';
 
+import useGPSInProgressModal from '@hooks/useGPSInProgressModal';
+import useGPSTripStateChecker from '@hooks/useGPSTripStateChecker';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
@@ -135,8 +135,10 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const {isVisitingSecureLink} = useOnboardingFlowRouter();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    useGPSTripStateChecker();
+    useGPSInProgressModal();
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -349,7 +351,12 @@ function AuthScreens() {
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
-                        {isOnboardingCompleted === false && !shouldSuppressPromotionalUI && !Navigation.isValidateLoginFlow() && (
+                        {/*
+                         * Always registered, like the other modal navigators below, so entering onboarding never toggles this
+                         * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
+                         * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
+                         */}
+                        {!shouldSuppressPromotionalUI && !isVisitingSecureLink && !Navigation.isValidateLoginFlow() && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
@@ -403,8 +410,6 @@ function AuthScreens() {
                     <RequireTwoFactorAuthenticationOverlay />
                     <MultifactorAuthenticationModalNavigator />
                     <SearchRouterModal />
-                    <GPSTripStateChecker />
-                    <GPSInProgressModal />
                     <OpenAppFailureModal />
                     <EnableGlobalReimbursementsPayModal />
                     <PriorityModeController />

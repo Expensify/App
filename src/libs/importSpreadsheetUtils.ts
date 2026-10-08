@@ -2,6 +2,9 @@ import type {ColumnRole} from '@components/ImportColumn';
 
 import CONST from '@src/CONST';
 
+import {stripCommaFromAmount, stripSpacesFromAmount} from './MoneyRequestUtils';
+import StringUtils from './StringUtils';
+
 // cspell:disable
 /**
  * Maps a spreadsheet header string to the CSV import column role it most likely represents, or an empty string when
@@ -59,6 +62,7 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
         case 'payrollid':
         case 'payrolls':
         case 'payrol':
+        case 'payrollcode':
         case 'customfield2':
             attribute = CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2;
             break;
@@ -191,9 +195,30 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
 
         case 'itemisedreceiptrequirement':
         case 'itemizedreceiptrequirement':
+        case 'itemisedreceiptsrequired':
+        case 'itemizedreceiptsrequired':
         case 'requireitemizedreceiptsover':
         case 'maxamountnoitemizedreceipt':
             attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_ITEMIZED_RECEIPT;
+            break;
+
+        case 'comments':
+        case 'requiredescription':
+            attribute = CONST.CSV_IMPORT_COLUMNS.ARE_COMMENTS_REQUIRED;
+            break;
+
+        case 'commenthint':
+        case 'descriptionhint':
+            attribute = CONST.CSV_IMPORT_COLUMNS.COMMENT_HINT;
+            break;
+
+        case 'maxexpenseamount':
+        case 'flagamountsover':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_EXPENSE_AMOUNT;
+            break;
+
+        case 'expenselimittype':
+            attribute = CONST.CSV_IMPORT_COLUMNS.EXPENSE_LIMIT_TYPE;
             break;
 
         default:
@@ -218,6 +243,10 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             }
             if (attribute === CONST.CSV_IMPORT_COLUMNS.MERCHANT && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT)) {
                 return CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT;
+            }
+            // Payroll headers map to the members-import CUSTOM_FIELD_2 role, but the categories import offers PAYROLL_CODE instead.
+            if (attribute === CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2 && columnRoles.some((role) => role.value === CONST.CSV_IMPORT_COLUMNS.PAYROLL_CODE)) {
+                return CONST.CSV_IMPORT_COLUMNS.PAYROLL_CODE;
             }
             // Only tag-like headers remap from NAME to TAG, so headers like "Name" or "Customer" stay
             // unmapped in contexts without a NAME role instead of silently becoming a tag column.
@@ -335,4 +364,13 @@ function generateColumnNames(length: number) {
     return Array.from({length}, (_, i) => numberToColumn(i));
 }
 
-export {findColumnName, findDuplicate, generateColumnNames, getCompanyCardColumnMappings};
+/**
+ * Normalizes an amount cell from an imported spreadsheet by removing its currency marker, grouping separators, and whitespace.
+ */
+function normalizeImportedAmount(value: string, currencySymbol?: string, currencyCode?: string): string {
+    const tokens = [currencySymbol, currencyCode].filter((token): token is string => !!token).map((token) => StringUtils.escapeRegExp(token));
+    const withoutCurrency = tokens.length > 0 ? value.trim().replace(new RegExp(`^(?:${tokens.join('|')})\\s*|\\s*(?:${tokens.join('|')})$`, 'i'), '') : value;
+    return stripCommaFromAmount(stripSpacesFromAmount(withoutCurrency.replaceAll(/\p{Sc}/gu, '')));
+}
+
+export {findColumnName, findDuplicate, generateColumnNames, getCompanyCardColumnMappings, normalizeImportedAmount};

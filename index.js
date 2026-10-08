@@ -5,6 +5,7 @@
 import './src/polyfills/NitroFetch';
 import './src/polyfills/PromiseWithResolvers';
 import './src/polyfills/requestIdleCallback';
+import './src/polyfills/SymbolDispose';
 import {AppRegistry} from 'react-native';
 // Must precede the app import: it rewrites the QA auth callback URL
 import './src/setup/captureCloudflareAuthCallbackURL';
