@@ -18,10 +18,11 @@ import {changePolicyUberBillingAccount} from '@libs/actions/Policy/Policy';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -122,7 +123,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     };
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const headerMessage = getHeaderMessage(data.length !== 0, false, searchValue, countryCode);
+    const headerMessage = getHeaderMessage(translate, data.length !== 0, false, searchValue, countryCode);
 
     const textInputOptions = {
         label: textInputLabel,

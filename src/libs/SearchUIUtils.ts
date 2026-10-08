@@ -92,7 +92,6 @@ import type {
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import arraysEqual from '@src/utils/arraysEqual';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
@@ -181,7 +180,6 @@ import {
     getTransactionDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
-    hasOnlyNonReimbursableTransactions,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -193,6 +191,7 @@ import {
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
+    isPayOptional,
     isProcessingReport,
     isSettled,
     shouldReportShowSubscript,
@@ -657,6 +656,7 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
     FILTER_KEYS.KEYWORD,
+    FILTER_KEYS.EXPORTER,
 ]);
 
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
@@ -857,9 +857,6 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-/**
- * @private
- */
 function isReportEntry(key: string): key is ReportKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
@@ -882,9 +879,6 @@ function isReportActionEntry(key: string): key is ReportActionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 }
 
-/**
- * @private
- */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
 }
@@ -2320,7 +2314,7 @@ function getPrimaryAction(
     const submitExclusion = getSubmitExclusion(report?.ownerAccountID, currentAccountID);
     if (isReportEntry(key) && report) {
         const allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
-        const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(report.reportID, allReportTransactions);
+        const shouldHidePayAsPrimaryAction = isPayOptional(report, allReportTransactions);
         return getAction(allActions, [...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []), ...submitExclusion]);
     }
     return getAction(allActions, submitExclusion);
@@ -2453,6 +2447,8 @@ type CreateAndOpenSearchTransactionThreadParams = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
 
+    delegateAccountID: number | undefined;
+
     /** Existing transaction thread report ID (childReportID), if any */
     IOUTransactionID?: string;
 
@@ -2476,6 +2472,7 @@ function createAndOpenSearchTransactionThread({
     personalDetails,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    delegateAccountID,
     IOUTransactionID,
     transactionPreviewData,
     shouldNavigate = true,
@@ -2495,7 +2492,7 @@ function createAndOpenSearchTransactionThread({
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, IOUTransactionID);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, delegateAccountID, IOUTransactionID);
 
     const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
@@ -2865,7 +2862,7 @@ function getReportSections({
                 const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived, conciergeReportID);
 
                 const isRejectedReport = reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN && reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
-                const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
+                const shouldHidePayAsPrimaryAction = isPayOptional(reportItem, allReportTransactions);
                 const primaryActionExclusions: SearchTransactionAction[] = [
                     ...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []),
                     ...getSubmitExclusion(reportItem.ownerAccountID, currentAccountID),
@@ -4682,6 +4679,8 @@ const SPEND_INSIGHT_KEYS = [
     CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
 ] as const satisfies SearchKey[];
 
+const insightsPageMenuKeys = new Set<SearchKey>([...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]);
+
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
@@ -4894,6 +4893,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     return typeMenuSections;
 }
 
+function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+    return sections.flatMap((section) => {
+        const menuItems = section.menuItems.filter((item) => !insightsPageMenuKeys.has(item.key));
+        if (menuItems.length === section.menuItems.length) {
+            return section;
+        }
+        return menuItems.length > 0 ? {...section, menuItems} : [];
+    });
+}
+
 /**
  * Icons used for each saved-search data type. Each asset already has the bookmark subscript baked in,
  * so it can be rendered directly with the standard Expensicons component.
@@ -4983,7 +4992,7 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
     const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
     const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
-    // finallyData stores the requested hash when the request settles, so it remains authoritative even when cached data or old sort metadata remain.
+    // Search's finallyData and GetInsights' successData store the requested hash on response, so it remains authoritative even when cached data or old sort metadata remain.
     const canUseRequestedHash = isTerminal || !hasResponseSortMetadata;
     const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
@@ -6568,8 +6577,11 @@ function getColumnsToShow({
     const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
     // The saved list outlives the vendor feature, so Vendor is dropped once no workspace has the feature anymore.
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR));
-    const isDefaultExpenseColumnSelection = arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns);
-    const shouldUseCustomResult = !isDefaultExpenseColumnSelection && filteredVisibleColumns.length > 0;
+
+    // An explicit selection always wins, even when it happens to match the default set. Treating a
+    // default-looking selection as "no selection" would hand control back to the data-driven fallback
+    // below, which re-adds columns the user just turned off (e.g. Description on any expense that has one).
+    const shouldUseCustomResult = filteredVisibleColumns.length > 0;
 
     let customResult: SearchColumnType[] | undefined;
 
@@ -7112,6 +7124,7 @@ function shouldShowDeleteOption(
     currentSearchResults: SearchResults['data'] | undefined,
     currentUserAccountID: number,
     rules: OnyxCollection<OnyxTypes.Rule>,
+    cardList: OnyxEntry<OnyxTypes.CardList>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7137,7 +7150,7 @@ function shouldShowDeleteOption(
                   }
               }
               const reportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`];
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules, reportPolicy, true);
+              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules, reportPolicy, cardList, true);
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -7152,7 +7165,7 @@ function shouldShowDeleteOption(
                   selectedTransactions[id].reportAction;
 
               const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules, parentReportPolicy);
+              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules, parentReportPolicy, cardList);
           });
 }
 
@@ -7270,6 +7283,8 @@ export {
     isTransactionQuarterGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
+    isReportEntry,
+    isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
@@ -7282,6 +7297,7 @@ export {
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
+    omitInsightsPageMenuItems,
     SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,

@@ -43,7 +43,8 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
-import retryReceiptUpload, {canBuildRetryPayload} from '@libs/ReceiptUploadRetryHandler';
+import ReceiptStorage from '@libs/ReceiptStorage';
+import retryReceiptUpload, {canRetryReceiptUpload} from '@libs/ReceiptUploadRetryHandler';
 import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
@@ -237,7 +238,7 @@ function MoneyRequestReceiptView({
         }
     }, [isLoading, hoverBind]);
 
-    const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
+    const displayedReceiptSource = ReceiptStorage.resolve(transaction?.receipt?.localSource) ?? transaction?.receipt?.source;
     const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
     useEffect(() => {
@@ -448,10 +449,14 @@ function MoneyRequestReceiptView({
               delegateAccountID,
               formatPhoneNumber,
               getCurrencyDecimals,
+              transactionReport,
+              transactionThreadReport,
+              transactionViolations: rawTransactionViolations,
+              currentUserPersonalDetails: currentUserPersonalDetail,
           }
         : undefined;
 
-    const canRetryUpload = !!receiptRetryContext && canBuildRetryPayload(receiptRetryContext);
+    const canRetryUpload = !!receiptRetryContext && canRetryReceiptUpload(receiptRetryContext);
 
     const retryReceiptUploadAndClearError = () => {
         if (!receiptRetryContext) {

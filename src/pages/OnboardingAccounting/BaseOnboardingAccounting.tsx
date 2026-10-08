@@ -175,18 +175,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 // Keep the selected fill on hover.
                 hoverStyle={isSelected ? undefined : styles.hoveredComponentBG}
                 style={[
-                    styles.onboardingAccountingItem,
-                    isSmallScreenWidth && !isInLandscapeMode ? styles.onboardingAccountingItemNarrow : styles.onboardingAccountingItemWide,
-                    isSelected && styles.onboardingAccountingItemSelected,
+                    styles.onboardingTile,
+                    isSmallScreenWidth && !isInLandscapeMode ? styles.onboardingTileNarrow : styles.onboardingAccountingItemWide,
+                    isSelected && styles.onboardingTileSelected,
                 ]}
             >
-                {/* Square to match the mocks, but a radio because only one option can be picked. */}
                 <RadioButton
                     isChecked={isSelected}
                     onPress={() => handleIntegrationSelect(optionKey)}
                     accessibilityLabel={label}
-                    containerBorderRadius={variables.componentBorderRadiusSmall}
-                    wrapperStyle={styles.onboardingAccountingItemSelectionButton}
+                    wrapperStyle={styles.onboardingTileSelectionButton}
                 />
                 <Icon
                     src={isOtherOption ? illustrations.Pencil : expensifyIcons[accountingIntegrationDetails[optionKey].iconName]}

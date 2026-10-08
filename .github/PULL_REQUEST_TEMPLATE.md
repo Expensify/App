@@ -99,6 +99,11 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] If the PR modifies the UI (e.g. new buttons, new UI components, changing the padding/spacing/sizing, moving components, etc) or modifies the form input styles:
     - [ ] I verified that all the inputs inside a form are aligned with each other.
     - [ ] I added `Design` label and/or tagged `@Expensify/design` so the design team can review the changes.
+- [ ] If the PR adds or modifies the UI:
+    - [ ] I asked an AI agent to review the changes for accessibility issues and addressed its findings.
+    - [ ] I tested with a screen reader (VoiceOver on macOS) and verified all new/changed elements are reachable with a logical focus order.
+    - [ ] I verified all new/changed elements have meaningful accessible names and roles.
+    - [ ] I verified state changes are announced (e.g. checked/unchecked, expanded/collapsed, selected).
 - [ ] I added [unit tests](https://github.com/Expensify/App/blob/main/tests/README.md) for any new feature or bug fix in this PR to help automatically prevent regressions in this user flow.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 

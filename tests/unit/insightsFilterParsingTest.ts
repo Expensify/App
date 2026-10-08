@@ -32,6 +32,17 @@ describe('insightsFilterParsing', () => {
             expect(parsed).toEqual(filters);
         });
 
+        it.each(Object.values(CONST.SEARCH.COMPARE))('reads back a dashboard compared against %s', (compare) => {
+            // Given a dashboard drawn against a comparison
+            const filters: InsightsFilters = {...FILTERS, compare};
+
+            // When its stored query is read back
+            const parsed = parseInsightsFilters(buildInsightsQueryString(filters));
+
+            // Then the comparison survives the round trip, so the page reopens with it still drawn
+            expect(parsed.compare).toBe(compare);
+        });
+
         it('tells a preset apart from a day that happens to be stored the same way', () => {
             // Given two dashboards, one on a preset and one on a literal day, which the query writes with the same `date:` operator
             const preset = parseInsightsFilters(buildInsightsQueryString({...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}}));
@@ -59,6 +70,17 @@ describe('insightsFilterParsing', () => {
 
             // Then no date is read back, so the caller's default stays in place
             expect(parsed.date).toBeUndefined();
+        });
+
+        it('reads back a dashboard grouped by day', () => {
+            // Given a dashboard grouped by day, the finest time bucket the headline chart offers
+            const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.DAY};
+
+            // When its stored query is read back
+            const parsed = parseInsightsFilters(buildInsightsQueryString(filters));
+
+            // Then the daily grouping survives the round trip instead of falling back to the default
+            expect(parsed.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
         });
 
         it('ignores a group-by no Insights chart offers', () => {
