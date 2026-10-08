@@ -13,9 +13,9 @@ import {
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
+    canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
-    getVendorFeaturePolicyIDs,
     getVendorDisplayName,
     hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
@@ -24,6 +24,7 @@ import {
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getConnectedIntegration,
+    getConnectionExporters,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
@@ -44,8 +45,10 @@ import {
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getPolicyApproverLogins,
+    hasActiveExpensifyCard,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
+    getPolicyForAssignedCard,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
     getOwnerChangePayerSuccessData,
@@ -61,6 +64,10 @@ import {
     findPolicyTagAtLevel,
     findPolicyTagEntryByParentFilter,
     getTagGLCode,
+    getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
+    getTagLists,
+    isMultiLevelTags,
     isTagInPolicy,
     matchesParentTagPath,
     matchesParentTagsFilter,
@@ -106,6 +113,7 @@ import {
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
+    getDefaultVendorID,
     sortVendors,
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -375,11 +383,20 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
         });
 
-        it('allows auditors to read but not write every policy feature', () => {
+        it('allows auditors to read every policy feature but write only rooms', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 
             for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
                 expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS);
+            }
+        });
+
+        it('allows guests to read only the workspace overview', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.GUEST);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW);
                 expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
             }
         });
@@ -391,15 +408,24 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
         });
 
-        it('limits People Admin member role management to members and auditors', () => {
+        it('limits People Admin member role management to guests, members, and auditors', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+        });
+
+        it('allows Guest assignment only on Control workspaces', () => {
+            const controlPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+            const collectPolicy = {...controlPolicy, type: CONST.POLICY.TYPE.TEAM};
+
+            expect(canMemberAssignRole(controlPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
+            expect(canMemberAssignRole(collectPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
         });
 
         it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
@@ -440,6 +466,28 @@ describe('PolicyUtils', () => {
 
         it('returns false for an undefined policy', () => {
             expect(isArchivedPolicy(undefined)).toBe(false);
+        });
+    });
+
+    describe('canUnarchivePolicy', () => {
+        it('returns true for the owner of an archived workspace when the beta is enabled', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, true)).toBe(true);
+        });
+
+        it('returns false when the beta is disabled', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, false)).toBe(false);
+        });
+
+        it('returns false when the workspace is not archived', () => {
+            expect(canUnarchivePolicy(false, ownerAccountID, ownerAccountID, true)).toBe(false);
+        });
+
+        it('returns false when the current user is not the owner', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID + 1, true)).toBe(false);
+        });
+
+        it('returns false when the owner is unknown', () => {
+            expect(canUnarchivePolicy(true, undefined, ownerAccountID, true)).toBe(false);
         });
     });
 
@@ -1945,92 +1993,316 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getTagList', () => {
-        it.each([
-            ['when index is 0', 0, policyTags.TagListTest0.name],
-            ['when index is 1', 1, policyTags.TagListTest2.name],
-            ['when index is out of range', 2, ''],
-        ])('%s', (_description, index, expected) => {
-            const tagList = getTagList(policyTags, index);
-            expect(tagList.name).toEqual(expected);
+    describe('tag', () => {
+        describe('getTagList', () => {
+            it.each([
+                ['when index is 0', 0, policyTags.TagListTest0.name],
+                ['when index is 1', 1, policyTags.TagListTest2.name],
+                ['when index is out of range', 2, ''],
+            ])('%s', (_description, index, expected) => {
+                const tagList = getTagList(policyTags, index);
+                expect(tagList.name).toEqual(expected);
+            });
         });
-    });
-    describe('getTagListByOrderWeight', () => {
-        it.each([
-            ['when orderWeight is 0', 0, policyTags.TagListTest0.name],
-            ['when orderWeight is 2', 2, policyTags.TagListTest2.name],
-            ['when orderWeight is out of range', 1, ''],
-        ])('%s', (_description, orderWeight, expected) => {
-            const tagList = getTagListByOrderWeight(policyTags, orderWeight);
-            expect(tagList.name).toEqual(expected);
+        describe('getTagListByOrderWeight', () => {
+            it.each([
+                ['when orderWeight is 0', 0, policyTags.TagListTest0.name],
+                ['when orderWeight is 2', 2, policyTags.TagListTest2.name],
+                ['when orderWeight is out of range', 1, ''],
+            ])('%s', (_description, orderWeight, expected) => {
+                const tagList = getTagListByOrderWeight(policyTags, orderWeight);
+                expect(tagList.name).toEqual(expected);
+            });
         });
-    });
-    describe('getTagGLCode', () => {
-        // Tag lists are intentionally declared out of orderWeight order to verify levels resolve by orderWeight
-        const glCodePolicyTagLists: PolicyTagLists = {
-            Project: {
-                name: 'Project',
-                orderWeight: 1,
-                required: false,
-                tags: {
-                    Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '5678'},
-                    Internal: {name: 'Internal', enabled: true},
+        describe('getTagGLCode', () => {
+            // Tag lists are intentionally declared out of orderWeight order to verify levels resolve by orderWeight
+            const glCodePolicyTagLists: PolicyTagLists = {
+                Project: {
+                    name: 'Project',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '5678'},
+                        Internal: {name: 'Internal', enabled: true},
+                    },
                 },
-            },
-            Department: {
-                name: 'Department',
-                orderWeight: 0,
-                required: false,
-                tags: {
-                    Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
-                    Marketing: {name: 'Marketing', enabled: true},
-                    'Sales\\:EMEA': {name: 'Sales\\:EMEA', enabled: true, 'GL Code': '"4321"'},
-                },
-            },
-        };
-
-        it('returns empty string when policy tags are undefined or empty', () => {
-            expect(getTagGLCode(undefined, 'Engineering')).toBe('');
-            expect(getTagGLCode({}, 'Engineering')).toBe('');
-        });
-
-        it('returns empty string when the transaction tag is undefined or empty', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, undefined)).toBe('');
-            expect(getTagGLCode(glCodePolicyTagLists, '')).toBe('');
-        });
-
-        it('returns empty string when the tag is missing from the policy or has no GL code', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Nonexistent')).toBe('');
-            expect(getTagGLCode(glCodePolicyTagLists, 'Marketing')).toBe('');
-        });
-
-        it('returns the GL code of a single-level tag', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Engineering')).toBe('1234');
-        });
-
-        it('joins the GL codes of multi-level tags in tag list order', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 5678');
-        });
-
-        it('skips multi-level tag levels without a GL code', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Marketing:Roadshow')).toBe('5678');
-            expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Internal')).toBe('1234');
-        });
-
-        it('resolves tags with escaped colons against the matching tag list level and strips double quotes', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Sales\\:EMEA:Roadshow')).toBe('4321, 5678');
-        });
-
-        it('resolves dependent tags by name and parent filter when same-named children exist under different parents', () => {
-            // Same-named child tags of dependent lists are stored under unique record keys,
-            // so they can only be told apart by their parentTagsFilter
-            const dependentPolicyTagLists: PolicyTagLists = {
                 Department: {
                     name: 'Department',
                     orderWeight: 0,
                     required: false,
                     tags: {
                         Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                        Marketing: {name: 'Marketing', enabled: true},
+                        'Sales\\:EMEA': {name: 'Sales\\:EMEA', enabled: true, 'GL Code': '"4321"'},
+                    },
+                },
+            };
+
+            it('returns empty string when policy tags are undefined or empty', () => {
+                expect(getTagGLCode(undefined, 'Engineering')).toBe('');
+                expect(getTagGLCode({}, 'Engineering')).toBe('');
+            });
+
+            it('returns empty string when the transaction tag is undefined or empty', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, undefined)).toBe('');
+                expect(getTagGLCode(glCodePolicyTagLists, '')).toBe('');
+            });
+
+            it('returns empty string when the tag is missing from the policy or has no GL code', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Nonexistent')).toBe('');
+                expect(getTagGLCode(glCodePolicyTagLists, 'Marketing')).toBe('');
+            });
+
+            it('returns the GL code of a single-level tag', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Engineering')).toBe('1234');
+            });
+
+            it('joins the GL codes of multi-level tags in tag list order', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 5678');
+            });
+
+            it('skips multi-level tag levels without a GL code', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Marketing:Roadshow')).toBe('5678');
+                expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Internal')).toBe('1234');
+            });
+
+            it('resolves tags with escaped colons against the matching tag list level and strips double quotes', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Sales\\:EMEA:Roadshow')).toBe('4321, 5678');
+            });
+
+            it('resolves dependent tags by name and parent filter when same-named children exist under different parents', () => {
+                // Same-named child tags of dependent lists are stored under unique record keys,
+                // so they can only be told apart by their parentTagsFilter
+                const dependentPolicyTagLists: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                            Marketing: {name: 'Marketing', enabled: true},
+                        },
+                    },
+                    Project: {
+                        name: 'Project',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                            'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+                        },
+                    },
+                };
+
+                expect(getTagGLCode(dependentPolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 2222');
+                expect(getTagGLCode(dependentPolicyTagLists, 'Marketing:Roadshow')).toBe('1111');
+            });
+
+            it('matches a dependent tag deeper in the hierarchy against the accumulated parent tag path', () => {
+                const deepDependentPolicyTagLists: PolicyTagLists = {
+                    State: {
+                        name: 'State',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            California: {name: 'California', enabled: true},
+                        },
+                    },
+                    City: {
+                        name: 'City',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            'San Francisco': {name: 'San Francisco', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                        },
+                    },
+                    District: {
+                        name: 'District',
+                        orderWeight: 2,
+                        required: false,
+                        tags: {
+                            Mission: {name: 'Mission', enabled: true, 'GL Code': '9000', rules: {parentTagsFilter: '^California:San Francisco$'}},
+                            'Mission-1': {name: 'Mission', enabled: true, 'GL Code': '9999', rules: {parentTagsFilter: '^Texas:Austin$'}},
+                        },
+                    },
+                };
+
+                expect(getTagGLCode(deepDependentPolicyTagLists, 'California:San Francisco:Mission')).toBe('9000');
+            });
+
+            it('returns the GL code as a string when malformed Onyx data stores it as a number', () => {
+                const tagListsWithNumberGLCode: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            // @ts-expect-error - Defensively handles malformed Onyx data that violates the string type.
+                            Engineering: {name: 'Engineering', enabled: true, 'GL Code': 1234},
+                        },
+                    },
+                };
+                expect(getTagGLCode(tagListsWithNumberGLCode, 'Engineering')).toBe('1234');
+            });
+        });
+
+        describe('matchesParentTagPath', () => {
+            it('matches any parent tag path when the tag has no parent filter', () => {
+                expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, '')).toBe(true);
+                expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, 'California:100:South')).toBe(true);
+            });
+
+            it('matches only the parent tag path allowed by the parent filter', () => {
+                const tag = {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}};
+                expect(matchesParentTagPath(tag, 'California:100:North')).toBe(true);
+                expect(matchesParentTagPath(tag, 'California:100:South')).toBe(false);
+            });
+
+            it('reads the parent filter off the tag root when it is not nested under rules', () => {
+                expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Marketing')).toBe(true);
+                expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Engineering')).toBe(false);
+            });
+
+            it('prefers the parent filter nested under rules over the one on the tag root', () => {
+                const tag = {name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$', rules: {parentTagsFilter: '^Engineering$'}};
+                expect(matchesParentTagPath(tag, 'Engineering')).toBe(true);
+                expect(matchesParentTagPath(tag, 'Marketing')).toBe(false);
+            });
+        });
+
+        describe('matchesParentTagsFilter', () => {
+            it('matches an escaped literal filter against the exact parent tag path', () => {
+                // Given literal filters with escaped characters, as the backend writes them
+                const filter = '^TW Strategic Initiative \\- AI Workforce Design$';
+                const colonFilter = '^Sales\\\\:EMEA$';
+
+                // When matching them against parent tag paths
+                // Then only the unescaped path matches, not a prefix or a longer path
+                expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design')).toBe(true);
+                expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative')).toBe(false);
+                expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design:Team')).toBe(false);
+                expect(matchesParentTagsFilter(colonFilter, 'Sales\\:EMEA')).toBe(true);
+                expect(matchesParentTagsFilter(colonFilter, 'Sales:EMEA')).toBe(false);
+            });
+
+            it('unescapes an escaped line terminator like RegExp does', () => {
+                // Given a literal filter with a backslash before a newline, which RegExp reads as a literal newline
+                const filter = '^Line\\\nBreak$';
+
+                // When matching it against a parent tag path containing that newline
+                // Then the literal fast path agrees with RegExp
+                expect(new RegExp(filter).test('Line\nBreak')).toBe(true);
+                expect(matchesParentTagsFilter(filter, 'Line\nBreak')).toBe(true);
+            });
+
+            it('evaluates filters with regex operators as regular expressions', () => {
+                // Given filters that are not plain anchored literals
+                // When matching them against parent tag paths
+                // Then they keep regex semantics - character classes, alternation and unanchored matches
+                expect(matchesParentTagsFilter('^Region\\d$', 'Region7')).toBe(true);
+                expect(matchesParentTagsFilter('^Region\\d$', 'RegionX')).toBe(false);
+                expect(matchesParentTagsFilter('^(Sales|Marketing)$', 'Marketing')).toBe(true);
+                expect(matchesParentTagsFilter('Sales', 'EMEA Sales')).toBe(true);
+            });
+        });
+
+        describe('findPolicyTagAtLevel', () => {
+            // Dependent tag lists key their tags by the full tag path, so the tag name alone is never a record key
+            const dependentLevelTags: PolicyTags = {
+                'California:100:North:20': {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}},
+                'California:100:South:30': {name: '30', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:South$'}},
+            };
+
+            // Independent tag lists key their tags by name and carry no parent filter
+            const independentLevelTags: PolicyTags = {
+                Engineering: {name: 'Engineering', enabled: true},
+                Marketing: {name: 'Marketing', enabled: true},
+            };
+
+            it('returns undefined when no tag of the level carries the name', () => {
+                expect(findPolicyTagAtLevel(dependentLevelTags, 'Nonexistent', 'California:100:North')).toBeUndefined();
+            });
+
+            it('returns the tag matching the record key when the level has no parent filters', () => {
+                expect(findPolicyTagAtLevel(independentLevelTags, 'Engineering', '')?.name).toBe('Engineering');
+            });
+
+            it('resolves a dependent tag by name when the record key is the full tag path', () => {
+                expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:North')?.name).toBe('20');
+                expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:South')?.name).toBe('30');
+            });
+
+            it('returns undefined when the name exists at the level but under a different parent', () => {
+                expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:South')).toBeUndefined();
+                expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:North')).toBeUndefined();
+            });
+
+            it('tells same-named children of different parents apart', () => {
+                const sameNamedChildren: PolicyTags = {
+                    Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                    'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+                };
+
+                expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Marketing')?.['GL Code']).toBe('1111');
+                expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
+                expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Sales')).toBeUndefined();
+            });
+
+            it('skips a record key that collides with the name but fails the parent filter', () => {
+                // The record key equals the name here, so the direct key lookup must still be parent filtered
+                const collidingKey: PolicyTags = {
+                    Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                    'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+                };
+
+                expect(findPolicyTagAtLevel(collidingKey, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
+            });
+
+            it('matches a parent tag path holding escaped colons', () => {
+                // Parent tag paths keep the escaped colons of getTagArrayFromName, so a parent filter of a tag
+                // nested under a colon holding parent has to escape the backslash to match
+                const escapedParentTags: PolicyTags = {
+                    'Sales\\:EMEA:Roadshow': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Sales\\\\:EMEA$'}},
+                };
+
+                expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales\\:EMEA')?.name).toBe('Roadshow');
+                expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales')).toBeUndefined();
+            });
+        });
+
+        describe('findPolicyTagEntryByParentFilter', () => {
+            const dependentTags: PolicyTags = {
+                Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+                'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+            };
+
+            it('returns the tag and storage key when parentTagsFilter matches', () => {
+                expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Engineering$')).toEqual({
+                    tag: dependentTags['Roadshow-1'],
+                    tagKey: 'Roadshow-1',
+                });
+            });
+
+            it('returns the tag by name when parentTagsFilter is not provided', () => {
+                expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow')).toEqual({
+                    tag: dependentTags.Roadshow,
+                    tagKey: 'Roadshow',
+                });
+            });
+
+            it('returns undefined when parentTagsFilter does not match any tag', () => {
+                expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Sales$')).toBeUndefined();
+            });
+        });
+
+        describe('isTagInPolicy', () => {
+            const dependentPolicyTagLists: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
                         Marketing: {name: 'Marketing', enabled: true},
                     },
                 },
@@ -2039,296 +2311,381 @@ describe('PolicyUtils', () => {
                     orderWeight: 1,
                     required: false,
                     tags: {
-                        Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
-                        'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
-                    },
-                },
-            };
-
-            expect(getTagGLCode(dependentPolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 2222');
-            expect(getTagGLCode(dependentPolicyTagLists, 'Marketing:Roadshow')).toBe('1111');
-        });
-
-        it('matches a dependent tag deeper in the hierarchy against the accumulated parent tag path', () => {
-            const deepDependentPolicyTagLists: PolicyTagLists = {
-                State: {
-                    name: 'State',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        California: {name: 'California', enabled: true},
-                    },
-                },
-                City: {
-                    name: 'City',
-                    orderWeight: 1,
-                    required: false,
-                    tags: {
-                        'San Francisco': {name: 'San Francisco', enabled: true, rules: {parentTagsFilter: '^California$'}},
-                    },
-                },
-                District: {
-                    name: 'District',
-                    orderWeight: 2,
-                    required: false,
-                    tags: {
-                        Mission: {name: 'Mission', enabled: true, 'GL Code': '9000', rules: {parentTagsFilter: '^California:San Francisco$'}},
-                        'Mission-1': {name: 'Mission', enabled: true, 'GL Code': '9999', rules: {parentTagsFilter: '^Texas:Austin$'}},
-                    },
-                },
-            };
-
-            expect(getTagGLCode(deepDependentPolicyTagLists, 'California:San Francisco:Mission')).toBe('9000');
-        });
-
-        it('returns the GL code as a string when malformed Onyx data stores it as a number', () => {
-            const tagListsWithNumberGLCode: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        // @ts-expect-error - Defensively handles malformed Onyx data that violates the string type.
-                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': 1234},
-                    },
-                },
-            };
-            expect(getTagGLCode(tagListsWithNumberGLCode, 'Engineering')).toBe('1234');
-        });
-    });
-
-    describe('matchesParentTagPath', () => {
-        it('matches any parent tag path when the tag has no parent filter', () => {
-            expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, '')).toBe(true);
-            expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, 'California:100:South')).toBe(true);
-        });
-
-        it('matches only the parent tag path allowed by the parent filter', () => {
-            const tag = {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}};
-            expect(matchesParentTagPath(tag, 'California:100:North')).toBe(true);
-            expect(matchesParentTagPath(tag, 'California:100:South')).toBe(false);
-        });
-
-        it('reads the parent filter off the tag root when it is not nested under rules', () => {
-            expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Marketing')).toBe(true);
-            expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Engineering')).toBe(false);
-        });
-
-        it('prefers the parent filter nested under rules over the one on the tag root', () => {
-            const tag = {name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$', rules: {parentTagsFilter: '^Engineering$'}};
-            expect(matchesParentTagPath(tag, 'Engineering')).toBe(true);
-            expect(matchesParentTagPath(tag, 'Marketing')).toBe(false);
-        });
-    });
-
-    describe('matchesParentTagsFilter', () => {
-        it('matches an escaped literal filter against the exact parent tag path', () => {
-            // Given literal filters with escaped characters, as the backend writes them
-            const filter = '^TW Strategic Initiative \\- AI Workforce Design$';
-            const colonFilter = '^Sales\\\\:EMEA$';
-
-            // When matching them against parent tag paths
-            // Then only the unescaped path matches, not a prefix or a longer path
-            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design')).toBe(true);
-            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative')).toBe(false);
-            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design:Team')).toBe(false);
-            expect(matchesParentTagsFilter(colonFilter, 'Sales\\:EMEA')).toBe(true);
-            expect(matchesParentTagsFilter(colonFilter, 'Sales:EMEA')).toBe(false);
-        });
-
-        it('unescapes an escaped line terminator like RegExp does', () => {
-            // Given a literal filter with a backslash before a newline, which RegExp reads as a literal newline
-            const filter = '^Line\\\nBreak$';
-
-            // When matching it against a parent tag path containing that newline
-            // Then the literal fast path agrees with RegExp
-            expect(new RegExp(filter).test('Line\nBreak')).toBe(true);
-            expect(matchesParentTagsFilter(filter, 'Line\nBreak')).toBe(true);
-        });
-
-        it('evaluates filters with regex operators as regular expressions', () => {
-            // Given filters that are not plain anchored literals
-            // When matching them against parent tag paths
-            // Then they keep regex semantics - character classes, alternation and unanchored matches
-            expect(matchesParentTagsFilter('^Region\\d$', 'Region7')).toBe(true);
-            expect(matchesParentTagsFilter('^Region\\d$', 'RegionX')).toBe(false);
-            expect(matchesParentTagsFilter('^(Sales|Marketing)$', 'Marketing')).toBe(true);
-            expect(matchesParentTagsFilter('Sales', 'EMEA Sales')).toBe(true);
-        });
-    });
-
-    describe('findPolicyTagAtLevel', () => {
-        // Dependent tag lists key their tags by the full tag path, so the tag name alone is never a record key
-        const dependentLevelTags: PolicyTags = {
-            'California:100:North:20': {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}},
-            'California:100:South:30': {name: '30', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:South$'}},
-        };
-
-        // Independent tag lists key their tags by name and carry no parent filter
-        const independentLevelTags: PolicyTags = {
-            Engineering: {name: 'Engineering', enabled: true},
-            Marketing: {name: 'Marketing', enabled: true},
-        };
-
-        it('returns undefined when no tag of the level carries the name', () => {
-            expect(findPolicyTagAtLevel(dependentLevelTags, 'Nonexistent', 'California:100:North')).toBeUndefined();
-        });
-
-        it('returns the tag matching the record key when the level has no parent filters', () => {
-            expect(findPolicyTagAtLevel(independentLevelTags, 'Engineering', '')?.name).toBe('Engineering');
-        });
-
-        it('resolves a dependent tag by name when the record key is the full tag path', () => {
-            expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:North')?.name).toBe('20');
-            expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:South')?.name).toBe('30');
-        });
-
-        it('returns undefined when the name exists at the level but under a different parent', () => {
-            expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:South')).toBeUndefined();
-            expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:North')).toBeUndefined();
-        });
-
-        it('tells same-named children of different parents apart', () => {
-            const sameNamedChildren: PolicyTags = {
-                Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
-                'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
-            };
-
-            expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Marketing')?.['GL Code']).toBe('1111');
-            expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
-            expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Sales')).toBeUndefined();
-        });
-
-        it('skips a record key that collides with the name but fails the parent filter', () => {
-            // The record key equals the name here, so the direct key lookup must still be parent filtered
-            const collidingKey: PolicyTags = {
-                Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
-                'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
-            };
-
-            expect(findPolicyTagAtLevel(collidingKey, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
-        });
-
-        it('matches a parent tag path holding escaped colons', () => {
-            // Parent tag paths keep the escaped colons of getTagArrayFromName, so a parent filter of a tag
-            // nested under a colon holding parent has to escape the backslash to match
-            const escapedParentTags: PolicyTags = {
-                'Sales\\:EMEA:Roadshow': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Sales\\\\:EMEA$'}},
-            };
-
-            expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales\\:EMEA')?.name).toBe('Roadshow');
-            expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales')).toBeUndefined();
-        });
-    });
-
-    describe('findPolicyTagEntryByParentFilter', () => {
-        const dependentTags: PolicyTags = {
-            Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
-            'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
-        };
-
-        it('returns the tag and storage key when parentTagsFilter matches', () => {
-            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Engineering$')).toEqual({
-                tag: dependentTags['Roadshow-1'],
-                tagKey: 'Roadshow-1',
-            });
-        });
-
-        it('returns the tag by name when parentTagsFilter is not provided', () => {
-            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow')).toEqual({
-                tag: dependentTags.Roadshow,
-                tagKey: 'Roadshow',
-            });
-        });
-
-        it('returns undefined when parentTagsFilter does not match any tag', () => {
-            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Sales$')).toBeUndefined();
-        });
-    });
-
-    describe('isTagInPolicy', () => {
-        const dependentPolicyTagLists: PolicyTagLists = {
-            Department: {
-                name: 'Department',
-                orderWeight: 0,
-                required: false,
-                tags: {
-                    Engineering: {name: 'Engineering', enabled: true},
-                    Marketing: {name: 'Marketing', enabled: true},
-                },
-            },
-            Project: {
-                name: 'Project',
-                orderWeight: 1,
-                required: false,
-                tags: {
-                    Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
-                    'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}},
-                },
-            },
-        };
-
-        it('returns false when policy tags are undefined', () => {
-            expect(isTagInPolicy('Engineering', undefined)).toBe(false);
-        });
-
-        it('returns false when the tag list level is missing', () => {
-            expect(isTagInPolicy('Engineering:Roadshow:Extra', dependentPolicyTagLists)).toBe(false);
-        });
-
-        it('returns false when the tag is not in the policy', () => {
-            expect(isTagInPolicy('Nonexistent', dependentPolicyTagLists)).toBe(false);
-        });
-
-        it('returns true for every level of an existing multi-level tag', () => {
-            expect(isTagInPolicy('Engineering:Roadshow', dependentPolicyTagLists)).toBe(true);
-            expect(isTagInPolicy('Marketing:Roadshow', dependentPolicyTagLists)).toBe(true);
-        });
-
-        it('returns false when the dependent child matching the parent tag path is pending deletion', () => {
-            // Only the Engineering child is deleted, so the same-named Marketing child must not keep the tag alive
-            const tagListsWithDeletedChild: PolicyTagLists = {
-                ...dependentPolicyTagLists,
-                Project: {
-                    ...dependentPolicyTagLists.Project,
-                    tags: {
                         Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
-                        'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}},
                     },
                 },
             };
 
-            expect(isTagInPolicy('Engineering:Roadshow', tagListsWithDeletedChild)).toBe(false);
-            expect(isTagInPolicy('Marketing:Roadshow', tagListsWithDeletedChild)).toBe(true);
-        });
+            it('returns false when policy tags are undefined', () => {
+                expect(isTagInPolicy('Engineering', undefined)).toBe(false);
+            });
 
-        it('returns false when a non-dependent tag is pending deletion', () => {
-            const tagListsWithDeletedTag: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            it('returns false when the tag list level is missing', () => {
+                expect(isTagInPolicy('Engineering:Roadshow:Extra', dependentPolicyTagLists)).toBe(false);
+            });
+
+            it('returns false when the tag is not in the policy', () => {
+                expect(isTagInPolicy('Nonexistent', dependentPolicyTagLists)).toBe(false);
+            });
+
+            it('returns true for every level of an existing multi-level tag', () => {
+                expect(isTagInPolicy('Engineering:Roadshow', dependentPolicyTagLists)).toBe(true);
+                expect(isTagInPolicy('Marketing:Roadshow', dependentPolicyTagLists)).toBe(true);
+            });
+
+            it('returns false when the dependent child matching the parent tag path is pending deletion', () => {
+                // Only the Engineering child is deleted, so the same-named Marketing child must not keep the tag alive
+                const tagListsWithDeletedChild: PolicyTagLists = {
+                    ...dependentPolicyTagLists,
+                    Project: {
+                        ...dependentPolicyTagLists.Project,
+                        tags: {
+                            Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+                            'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        },
                     },
-                },
-            };
+                };
 
-            expect(isTagInPolicy('Engineering', tagListsWithDeletedTag)).toBe(false);
+                expect(isTagInPolicy('Engineering:Roadshow', tagListsWithDeletedChild)).toBe(false);
+                expect(isTagInPolicy('Marketing:Roadshow', tagListsWithDeletedChild)).toBe(true);
+            });
+
+            it('returns false when a non-dependent tag is pending deletion', () => {
+                const tagListsWithDeletedTag: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        },
+                    },
+                };
+
+                expect(isTagInPolicy('Engineering', tagListsWithDeletedTag)).toBe(false);
+            });
         });
-    });
 
-    describe('getGLCodeFromPolicyTag', () => {
-        it('returns empty string when tag is undefined', () => {
-            expect(getGLCodeFromPolicyTag(undefined)).toBe('');
+        describe('getGLCodeFromPolicyTag', () => {
+            it('returns empty string when tag is undefined', () => {
+                expect(getGLCodeFromPolicyTag(undefined)).toBe('');
+            });
+
+            it('returns empty string when tag has no GL code', () => {
+                expect(getGLCodeFromPolicyTag({})).toBe('');
+            });
+
+            it('returns stripped GL code from tag', () => {
+                expect(getGLCodeFromPolicyTag({'GL Code': '"1234"'})).toBe('1234');
+            });
         });
 
-        it('returns empty string when tag has no GL code', () => {
-            expect(getGLCodeFromPolicyTag({})).toBe('');
+        describe('hasDependentTags', () => {
+            it('returns false when policy has no multiple tag lists', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: false});
+                const policyTagList: PolicyTagLists = {};
+                expect(hasDependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(hasDependentTags(undefined, {})).toBe(false);
+            });
+
+            it('returns false when tags have no parentTagsFilter', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasDependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns true when a tag has rules.parentTagsFilter', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasDependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns true when a tag has parentTagsFilter at the top level', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, parentTagsFilter: '^California$'},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasDependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns true when a later tag list has a dependent tag', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList: PolicyTagLists = {
+                    Company: {name: 'Company', required: false, orderWeight: 0, tags: {acme: {name: 'Acme Corp', enabled: true}}},
+                    Department: {name: 'Department', required: false, orderWeight: 1, tags: {admin: {name: 'Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}}}},
+                };
+
+                expect(hasDependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('skips a tag list left as null or without tags by an Onyx merge', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                // An Onyx merge leaves a deleted tag list as null, and an empty one without the `tags` key
+                const mergedTagLists = {
+                    Company: {name: 'Company', required: false, orderWeight: 0},
+                    Department: null,
+                    GLCode: {name: 'GL code', required: false, orderWeight: 2, tags: {gl100: {name: 'GL-100', enabled: true, parentTagsFilter: '^Acme Corp:Admin$'}}},
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+                expect(hasDependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns false when every tag list is empty or missing its tags', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                // A tag list arrives without the `tags` key when it holds no tags
+                const mergedTagLists = {
+                    Company: {name: 'Company', required: false, orderWeight: 0, tags: {}},
+                    Department: {name: 'Department', required: false, orderWeight: 1},
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+                expect(hasDependentTags(policy, policyTagList)).toBe(false);
+            });
         });
 
-        it('returns stripped GL code from tag', () => {
-            expect(getGLCodeFromPolicyTag({'GL Code': '"1234"'})).toBe('1234');
+        describe('hasIndependentTags', () => {
+            it('returns false when policy has no multiple tag lists', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: false});
+                const policyTagList: PolicyTagLists = {};
+                expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(hasIndependentTags(undefined, {})).toBe(false);
+            });
+
+            it('returns false when tags are dependent (have parentTagsFilter)', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns false when all tag lists are empty', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {},
+                        required: false,
+                        orderWeight: 0,
+                    },
+                    Location: {
+                        name: 'Location',
+                        tags: {},
+                        required: false,
+                        orderWeight: 1,
+                    },
+                });
+                expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns true when tags are independent and at least one tag exists', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns true when at least one tag list has tags and others are empty', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {},
+                        required: false,
+                        orderWeight: 0,
+                    },
+                    Location: {
+                        name: 'Location',
+                        tags: {
+                            'New York': {name: 'New York', enabled: true},
+                        },
+                        required: false,
+                        orderWeight: 1,
+                    },
+                });
+                expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns false when policyTagList is undefined', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                expect(hasIndependentTags(policy, undefined)).toBe(false);
+            });
+        });
+
+        describe('getCleanedTagName', () => {
+            it.each([
+                ['unescapes colons used to build multi-level tags', 'Parent\\: Child', 'Parent: Child'],
+                ['HTML-decodes encoded entities', 'R&amp;D', 'R&D'],
+                ['unescapes colons and decodes entities together', 'R&amp;D\\: Lab', 'R&D: Lab'],
+                ['returns a plain tag unchanged', 'Engineering', 'Engineering'],
+                ['returns an empty string for an empty tag', '', ''],
+            ])('%s', (_description, tag, expected) => {
+                // Given a raw tag name as stored on a transaction or policy
+                // When it is cleaned for display
+                const result = getCleanedTagName(tag);
+
+                // Then escaped colons are restored and HTML entities are decoded so the user sees the readable name
+                expect(result).toBe(expected);
+            });
+        });
+
+        describe('getTagLists', () => {
+            it('returns an empty array when the policy tag lists are undefined', () => {
+                // Given a policy whose tag lists have not loaded
+                // When the tag lists are read
+                const result = getTagLists(undefined);
+
+                // Then no tag lists are returned
+                expect(result).toEqual([]);
+            });
+
+            it('returns an empty array when the policy has no tag lists', () => {
+                // Given a policy with an empty tag lists object
+                // When the tag lists are read
+                const result = getTagLists({});
+
+                // Then no tag lists are returned
+                expect(result).toEqual([]);
+            });
+
+            it('returns the tag lists sorted by orderWeight', () => {
+                // Given tag lists stored out of orderWeight order, as they can arrive from Onyx
+                const policyTagLists = createMock<PolicyTagLists>({
+                    Project: {name: 'Project', orderWeight: 2, required: false, tags: {}},
+                    Department: {name: 'Department', orderWeight: 0, required: false, tags: {}},
+                    Location: {name: 'Location', orderWeight: 1, required: false, tags: {}},
+                });
+
+                // When the tag lists are read
+                const result = getTagLists(policyTagLists);
+
+                // Then they come back in level order so index N maps to the Nth tag level
+                expect(result.map((tagList) => tagList.name)).toEqual(['Department', 'Location', 'Project']);
+            });
+
+            it('skips a tag list left as null by an Onyx merge', () => {
+                // Given tag lists where an Onyx merge left a deleted list as null
+                const mergedTagLists = {
+                    Location: {name: 'Location', orderWeight: 1, required: false, tags: {}},
+                    Project: null,
+                    Department: {name: 'Department', orderWeight: 0, required: false, tags: {}},
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const policyTagLists = mergedTagLists as unknown as PolicyTagLists;
+
+                // When the tag lists are read
+                const result = getTagLists(policyTagLists);
+
+                // Then the null list is dropped instead of crashing the orderWeight sort
+                expect(result.map((tagList) => tagList.name)).toEqual(['Department', 'Location']);
+            });
+        });
+
+        describe('getCommaSeparatedTagNameWithSanitizedColons', () => {
+            it.each([
+                ['joins each tag level with a comma', 'Department:Engineering:Backend', 'Department, Engineering, Backend'],
+                ['skips empty tag levels', 'Department::Backend', 'Department, Backend'],
+                ['keeps escaped colons inside a single level', 'Parent\\: Child:Engineering', 'Parent: Child, Engineering'],
+                ['HTML-decodes each level', 'R&amp;D:Engineering', 'R&D, Engineering'],
+                ['returns a single-level tag unchanged', 'Engineering', 'Engineering'],
+                ['returns an empty string for an empty tag', '', ''],
+            ])('%s', (_description, tag, expected) => {
+                // Given a colon-delimited multi-level tag
+                // When it is converted for display
+                const result = getCommaSeparatedTagNameWithSanitizedColons(tag);
+
+                // Then each non-empty level is cleaned and the levels are joined with commas
+                expect(result).toBe(expected);
+            });
+        });
+
+        describe('isMultiLevelTags', () => {
+            it('returns false when the policy tag lists are undefined', () => {
+                // Given a policy whose tag lists have not loaded
+                // When checking for multi-level tags
+                // Then it is not treated as multi-level
+                expect(isMultiLevelTags(undefined)).toBe(false);
+            });
+
+            it('returns false when the policy has no tag lists', () => {
+                // Given a policy with no tag lists
+                // When checking for multi-level tags
+                // Then it is not treated as multi-level
+                expect(isMultiLevelTags({})).toBe(false);
+            });
+
+            it('returns false when the policy has a single tag list', () => {
+                // Given a policy with only one tag list
+                const policyTagLists = createMock<PolicyTagLists>({
+                    Department: {name: 'Department', orderWeight: 0, required: false, tags: {}},
+                });
+
+                // When checking for multi-level tags
+                // Then a single list is not multi-level
+                expect(isMultiLevelTags(policyTagLists)).toBe(false);
+            });
+
+            it('returns true when the policy has more than one tag list', () => {
+                // Given a policy with two tag lists
+                const policyTagLists = createMock<PolicyTagLists>({
+                    Department: {name: 'Department', orderWeight: 0, required: false, tags: {}},
+                    Location: {name: 'Location', orderWeight: 1, required: false, tags: {}},
+                });
+
+                // When checking for multi-level tags
+                // Then more than one list means the policy uses multi-level tags
+                expect(isMultiLevelTags(policyTagLists)).toBe(true);
+            });
         });
     });
 
@@ -4230,6 +4587,171 @@ describe('PolicyUtils', () => {
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
         });
+
+        it('breaks name ties using externalID when id is absent', () => {
+            const vendors = [
+                {externalID: 'vendor_b', name: 'Acme'},
+                {externalID: 'vendor_a', name: 'Acme'},
+            ];
+
+            const result = sortVendors(vendors, localeCompare);
+            expect(result.map((v) => v.externalID)).toEqual(['vendor_a', 'vendor_b']);
+        });
+    });
+
+    describe('getDefaultVendorID', () => {
+        it('resolves QBO credit card default vendor when destination is credit_card', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                            nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('qbo_vendor_1');
+        });
+
+        it('returns undefined for QBO when destination is not credit_card', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+                            nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
+        });
+
+        it('resolves Sage Intacct credit card charge default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        config: {
+                            export: {
+                                nonReimbursableCreditCardChargeDefaultVendor: 'intacct_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('intacct_vendor_1');
+        });
+
+        it('resolves Xero default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                        config: {
+                            defaultVendor: 'xero_contact_1',
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.XERO)).toBe('xero_contact_1');
+        });
+
+        it('resolves Rillet default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'rillet_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET)).toBe('rillet_vendor_1');
+        });
+
+        it('resolves DualEntry default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'dualentry_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY)).toBe('dualentry_vendor_1');
+        });
+
+        it('resolves Campfire default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'campfire_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+        });
+
+        it('resolves Business Central default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'bc_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBe('bc_vendor_1');
+        });
+
+        it('resolves Certinia default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            export: {
+                                vendorAccount: 'certinia_acc_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA)).toBe('certinia_acc_1');
+        });
+
+        it('returns undefined when policy has no connections', () => {
+            expect(getDefaultVendorID(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
+        });
     });
 
     describe('getSageIntacctVendors', () => {
@@ -4288,187 +4810,6 @@ describe('PolicyUtils', () => {
 
             const result = getSageIntacctVendors(policy, undefined);
             expect(result.map((v) => v.text)).toEqual(['Zebra', 'Apple']);
-        });
-    });
-
-    describe('hasDependentTags', () => {
-        it('returns false when policy has no multiple tag lists', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: false});
-            const policyTagList: PolicyTagLists = {};
-            expect(hasDependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns false when policy is undefined', () => {
-            expect(hasDependentTags(undefined, {})).toBe(false);
-        });
-
-        it('returns false when tags have no parentTagsFilter', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasDependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns true when a tag has rules.parentTagsFilter', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasDependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns true when a tag has parentTagsFilter at the top level', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true, parentTagsFilter: '^California$'},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasDependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns true when a later tag list has a dependent tag', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList: PolicyTagLists = {
-                Company: {name: 'Company', required: false, orderWeight: 0, tags: {acme: {name: 'Acme Corp', enabled: true}}},
-                Department: {name: 'Department', required: false, orderWeight: 1, tags: {admin: {name: 'Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}}}},
-            };
-
-            expect(hasDependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('skips a tag list left as null or without tags by an Onyx merge', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            // An Onyx merge leaves a deleted tag list as null, and an empty one without the `tags` key
-            const mergedTagLists = {
-                Company: {name: 'Company', required: false, orderWeight: 0},
-                Department: null,
-                GLCode: {name: 'GL code', required: false, orderWeight: 2, tags: {gl100: {name: 'GL-100', enabled: true, parentTagsFilter: '^Acme Corp:Admin$'}}},
-            };
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
-
-            expect(hasDependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns false when every tag list is empty or missing its tags', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            // A tag list arrives without the `tags` key when it holds no tags
-            const mergedTagLists = {
-                Company: {name: 'Company', required: false, orderWeight: 0, tags: {}},
-                Department: {name: 'Department', required: false, orderWeight: 1},
-            };
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
-
-            expect(hasDependentTags(policy, policyTagList)).toBe(false);
-        });
-    });
-
-    describe('hasIndependentTags', () => {
-        it('returns false when policy has no multiple tag lists', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: false});
-            const policyTagList: PolicyTagLists = {};
-            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns false when policy is undefined', () => {
-            expect(hasIndependentTags(undefined, {})).toBe(false);
-        });
-
-        it('returns false when tags are dependent (have parentTagsFilter)', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns false when all tag lists are empty', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {},
-                    required: false,
-                    orderWeight: 0,
-                },
-                Location: {
-                    name: 'Location',
-                    tags: {},
-                    required: false,
-                    orderWeight: 1,
-                },
-            });
-            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns true when tags are independent and at least one tag exists', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns true when at least one tag list has tags and others are empty', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {},
-                    required: false,
-                    orderWeight: 0,
-                },
-                Location: {
-                    name: 'Location',
-                    tags: {
-                        'New York': {name: 'New York', enabled: true},
-                    },
-                    required: false,
-                    orderWeight: 1,
-                },
-            });
-            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns false when policyTagList is undefined', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            expect(hasIndependentTags(policy, undefined)).toBe(false);
         });
     });
 
@@ -4808,7 +5149,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('Vendor matching helpers', () => {
+    describe('vendor', () => {
         const buildQBOPolicy = (
             exportDestination: QBONonReimbursableExportAccountType | undefined,
             vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
@@ -4918,6 +5259,26 @@ describe('PolicyUtils', () => {
                 expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toBe(false);
                 expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy([]))).toBe(true);
                 expect(getMatchingVendors(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toEqual([]);
+            });
+
+            it('uses Campfire vendors when Campfire and Business Central are both configured', () => {
+                // Given a workspace configured with both Business Central and Campfire connections
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = createMock<Connections>({
+                    ...policy.connections,
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {isConfigured: true},
+                        data: {vendors: [{id: 'cf-1', name: 'Campfire vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR}]},
+                    },
+                });
+
+                // When resolving the vendor source without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then Campfire is the source, so the vendor field never shows the beta-gated Business Central list
+                expect(isVendorFeatureAvailable).toBe(true);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['cf-1']);
             });
 
             it('uses the Business Central empty state when the synced list has no vendors', () => {
@@ -5243,6 +5604,25 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(true);
             });
 
+            it.each([
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Campfire vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Campfire workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: connection}});
+
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
+
+                // Then only a configured connection enables Campfire vendor matching
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
+            });
+
             it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
                 expect(hasVendorFeature(buildRilletPolicy(undefined, {isConfigured: false}), false)).toBe(false);
             });
@@ -5446,13 +5826,15 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
+        describe('hasVendorFeatureOnAnyPolicy', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const campfirePolicy = createMock<Policy>({id: 'campfire', connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured: true}}}});
             const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
             const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
             const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
             const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const campfireKey = `${ONYXKEYS.COLLECTION.POLICY}campfire`;
             const businessCentralKey = `${ONYXKEYS.COLLECTION.POLICY}businessCentral`;
             const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
 
@@ -5472,6 +5854,17 @@ describe('PolicyUtils', () => {
                 const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
 
                 // Then the feature is available because Xero is generally available
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('is true for a Campfire workspace without the beta', () => {
+                // Given a configured Campfire workspace and a workspace with no accounting connection
+                const policies = {[campfireKey]: campfirePolicy, [plainKey]: plainPolicy};
+
+                // When Search checks vendor availability without beta enrollment
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then Campfire makes vendor filtering available
                 expect(isVendorFeatureAvailable).toBe(true);
             });
 
@@ -5495,19 +5888,6 @@ describe('PolicyUtils', () => {
 
                 // Then the feature is not available on any workspace because Business Central still depends on the beta
                 expect(isVendorFeatureAvailable).toBe(false);
-            });
-
-            it('lists the workspaces that have the vendor feature', () => {
-                // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
-                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
-
-                // When the workspace IDs are listed with and without the vendorMatching beta
-                const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
-                const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
-
-                // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
-                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
-                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
             });
         });
 
@@ -5736,36 +6116,6 @@ describe('PolicyUtils', () => {
 
             it('returns undefined when Xero contacts have not synced yet', () => {
                 expect(getXeroSupplierByID(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), 'xc1')).toBeUndefined();
-            });
-        });
-
-        describe('getXeroExpenseAccounts', () => {
-            const XERO_EXPENSE_ACCOUNTS = [
-                {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
-                {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
-            ];
-
-            it('maps the expense accounts to selector options', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
-                    {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
-                    {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
-                ]);
-            });
-
-            it('marks only the selected account as selected', () => {
-                const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
-                expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
-                    {keyForList: 'acc1', isSelected: false},
-                    {keyForList: 'acc2', isSelected: true},
-                ]);
-            });
-
-            it('selects nothing when the stored account is no longer in the synced list', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
-            });
-
-            it('returns an empty array when Xero expense accounts have not synced yet', () => {
-                expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
             });
         });
 
@@ -6025,6 +6375,83 @@ describe('PolicyUtils', () => {
                     subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
                 });
             });
+        });
+
+        describe('sortVendors', () => {
+            const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+            it('sorts vendors alphabetically by name using localeCompare', () => {
+                const vendors = [
+                    {id: '1', name: 'Zebra'},
+                    {id: '2', name: 'Apple'},
+                    {id: '3', name: 'Banana'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
+            });
+
+            it('breaks name ties using vendor id', () => {
+                const vendors = [
+                    {id: 'vendor_b', name: 'Acme'},
+                    {id: 'vendor_a', name: 'Acme'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
+            });
+
+            it('does not sort the input array in place', () => {
+                const vendors = [
+                    {id: '2', name: 'Zebra'},
+                    {id: '1', name: 'Alpha'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).not.toBe(vendors);
+                expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
+            });
+
+            it('returns empty array for empty input', () => {
+                expect(sortVendors([], localeCompare)).toEqual([]);
+            });
+
+            it('returns single-element array as-is', () => {
+                const vendors = [{id: '1', name: 'Only'}];
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.name).toBe('Only');
+            });
+        });
+    });
+
+    describe('getXeroExpenseAccounts', () => {
+        const XERO_EXPENSE_ACCOUNTS = [
+            {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
+            {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
+        ];
+
+        it('maps the expense accounts to selector options', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
+                {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
+                {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
+            ]);
+        });
+
+        it('marks only the selected account as selected', () => {
+            const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
+            expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
+                {keyForList: 'acc1', isSelected: false},
+                {keyForList: 'acc2', isSelected: true},
+            ]);
+        });
+
+        it('selects nothing when the stored account is no longer in the synced list', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
+        });
+
+        it('returns an empty array when Xero expense accounts have not synced yet', () => {
+            expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
         });
     });
 
@@ -6332,6 +6759,43 @@ describe('getPolicyIDFromDomainName', () => {
     });
 });
 
+describe('getPolicyForAssignedCard', () => {
+    const policy: Policy = {...createRandomPolicy(0), id: 'A1B2C3', policyAccountID: 88801};
+    const policies = {[`${ONYXKEYS.COLLECTION.POLICY}A1B2C3`]: policy};
+
+    // The workspace is what decides whether the cardholder is shown the fix link or told to ask an admin, so a card
+    // has to find it whatever the company named their domain.
+    it('finds the workspace for a card on a domain that is not a workspace feed', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('finds the workspace for a card on a workspace-feed domain', () => {
+        const card = {domainName: 'expensify-policyA1B2C3.exfy', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('falls back to the domain name for a card that has no fundID', () => {
+        const card = {domainName: 'expensify-policyA1B2C3.exfy'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('returns undefined when no workspace matches the card', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '99999'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toBeUndefined();
+    });
+
+    it('returns undefined when there are no policies', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, {})).toBeUndefined();
+    });
+});
+
 describe('getDefaultWorkspacePlanType', () => {
     const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
     const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
@@ -6422,6 +6886,56 @@ describe('getPolicyApproverLogins', () => {
     });
 });
 
+describe('hasActiveExpensifyCard', () => {
+    it('returns false when policy is undefined', () => {
+        expect(hasActiveExpensifyCard(undefined, 'cardholder@test.com')).toBe(false);
+    });
+
+    it('returns true when the backend flags the member as holding an active Expensify Card', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'cardholder@test.com')).toBe(true);
+    });
+
+    it('returns false when the flag is false or missing', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'former-cardholder@test.com': {email: 'former-cardholder@test.com', hasActiveExpensifyCard: false},
+                'employee@test.com': {email: 'employee@test.com'},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'former-cardholder@test.com')).toBe(false);
+        expect(hasActiveExpensifyCard(policy, 'employee@test.com')).toBe(false);
+    });
+
+    it('returns false when the member is not in the employeeList', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            employeeList: {
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'someone-else@test.com')).toBe(false);
+    });
+
+    it('returns true when the secondary login is checked and the backend flags its paired primary login', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            primaryLoginsInvited: {'secondary@test.com': 'primary@test.com'},
+            employeeList: {
+                'secondary@test.com': {email: 'secondary@test.com'},
+                'primary@test.com': {email: 'primary@test.com', hasActiveExpensifyCard: true},
+            },
+        };
+        expect(hasActiveExpensifyCard(policy, 'secondary@test.com')).toBe(true);
+    });
+});
+
 describe('getConnectedIntegration', () => {
     it('returns the connected accounting integration when present on the policy', () => {
         const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
@@ -6480,5 +6994,25 @@ describe('shouldHideDynamicExternalWorkflowPeople', () => {
     it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
         const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
         expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+});
+
+describe('getConnectionExporters', () => {
+    it('includes the Business Central preferred exporter', () => {
+        // Given a workspace connected to Business Central with a preferred exporter
+        const policy = createMock<Policy>({
+            ...createRandomPolicy(0),
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                    config: {export: {exporter: 'exporter@example.com'}},
+                },
+            },
+        });
+
+        // When the workspace's connection exporters are read
+        const exporters = getConnectionExporters(policy);
+
+        // Then the Business Central exporter is listed, so that member can export reports to Business Central
+        expect(exporters).toContain('exporter@example.com');
     });
 });
