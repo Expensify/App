@@ -187,7 +187,7 @@ describe('Transaction', () => {
         ...createPersonalDetails(CURRENT_USER_ID),
         login: 'test@example.com',
         email: 'test@example.com',
-        displayName: 'test@example.com',
+        displayName: 'Current User',
         avatar: 'https://example.com/avatar.jpg',
     };
     beforeAll(() => {
