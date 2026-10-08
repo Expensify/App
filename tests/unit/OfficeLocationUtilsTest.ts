@@ -23,16 +23,18 @@ describe('OfficeLocationUtils', () => {
     beforeAll(() => IntlStore.load(CONST.LOCALES.DEFAULT));
 
     describe('hasOfficeLocations', () => {
-        it('only counts offices that are not being deleted', () => {
-            // Given workspaces with no offices, with an office pending deletion, and with an office
-            const withoutOffices = buildPolicy({address: companyAddress});
+        it('counts the company address and the offices that are not being deleted', () => {
+            // Given workspaces with no office at all, with only an office pending deletion, with only a company address, and with an office
+            const withoutOffices = buildPolicy({});
             const withDeletedOffice = buildPolicy({officeLocations: {OFFICE1: {...headquarters, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}});
+            const withCompanyAddress = buildPolicy({address: companyAddress});
             const withOffice = buildPolicy({officeLocations: {OFFICE1: headquarters}});
 
             // When checking whether members can be assigned to an office
-            // Then only the workspace with a remaining office qualifies, since the company address alone leaves no choice
+            // Then the company address counts as an office, the same as on the workspace overview
             expect(hasOfficeLocations(withoutOffices)).toBe(false);
             expect(hasOfficeLocations(withDeletedOffice)).toBe(false);
+            expect(hasOfficeLocations(withCompanyAddress)).toBe(true);
             expect(hasOfficeLocations(withOffice)).toBe(true);
         });
     });

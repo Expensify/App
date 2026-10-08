@@ -23,10 +23,11 @@ type AssignableOfficeLocation = {
 };
 
 /**
- * Whether the workspace has offices besides its company address, which is when its members can be assigned to one
+ * Whether the workspace has an office its members can be assigned to. The company address counts as one, as it does on
+ * the workspace overview.
  */
 function hasOfficeLocations(policy: OnyxEntry<Policy>): boolean {
-    return Object.values(policy?.officeLocations ?? {}).some((officeLocation) => officeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return hasCompanyAddress(policy) || Object.values(policy?.officeLocations ?? {}).some((officeLocation) => officeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**

@@ -784,6 +784,27 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
+        it('should show the company address for every member when the workspace has no other office', async () => {
+            // Given a workspace whose only office is its company address
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    address: {addressStreet: '1 Market St', city: 'San Francisco', state: 'CA', zipCode: '94105', country: 'US'},
+                    officeLocations: null,
+                    employeeList: {[userEmail]: {officeID: null}},
+                });
+            });
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await screen.findByText(USER_OPTION);
+
+            // Then the office location column shows the company address for every member, as it counts as an office
+            expect(screen.getByText(TestHelper.translateLocal('workspace.people.officeLocation'))).toBeOnTheScreen();
+            expect(screen.getAllByText(TestHelper.translateLocal('common.companyAddress'))).toHaveLength(Object.keys(policy.employeeList).length);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
         it('should hand the selected members to the office location picker', async () => {
             // Given an admin who selected a member
             const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});

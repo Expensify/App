@@ -237,7 +237,17 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    const setupOfficeLocations = async ({memberOfficeID, hasOffices = true, betaEnabled = true}: {memberOfficeID?: string; hasOffices?: boolean; betaEnabled?: boolean}) => {
+    const setupOfficeLocations = async ({
+        memberOfficeID,
+        hasOffices = true,
+        hasCompanyAddress = true,
+        betaEnabled = true,
+    }: {
+        memberOfficeID?: string;
+        hasOffices?: boolean;
+        hasCompanyAddress?: boolean;
+        betaEnabled?: boolean;
+    }) => {
         const typedPolicy = createMock<Policy>(policy);
         const employeeList = {
             ...typedPolicy.employeeList,
@@ -250,7 +260,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         const companyAddress: CompanyAddress = {addressStreet: '1 Market St', city: 'San Francisco', state: 'CA', zipCode: '94105', country: 'US'};
         const officeLocationsPolicy = createMock<Policy>({
             ...typedPolicy,
-            address: companyAddress,
+            address: hasCompanyAddress ? companyAddress : undefined,
             officeLocations: hasOffices ? officeLocations : undefined,
             employeeList,
         });
@@ -278,11 +288,24 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('hides the office location item when the workspace has no offices besides its company address', async () => {
+    it('shows the company address as the office location when the workspace has no other office', async () => {
         // Given a workspace whose only office is its company address
         const unmount = await setupOfficeLocations({hasOffices: false});
 
-        // Then there is nothing to choose between, so the office location item is hidden
+        // Then the office location item shows the company address, which counts as an office as it does on the workspace overview
+        const row = await screen.findByTestId('member-office-location-menu-item');
+        expect(
+            within(row).getByText(TestHelper.translateLocal('workspace.people.officeLocationWithAddress', {name: 'Company address', address: '1 Market St, San Francisco, CA 94105'})),
+        ).toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('hides the office location item when the workspace has neither an office nor a company address', async () => {
+        // Given a workspace without any office to assign members to
+        const unmount = await setupOfficeLocations({hasOffices: false, hasCompanyAddress: false});
+
+        // Then the office location item is hidden
         expect(screen.queryByTestId('member-office-location-menu-item')).not.toBeOnTheScreen();
         unmount();
         await waitForBatchedUpdatesWithAct();
