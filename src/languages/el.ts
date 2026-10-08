@@ -1702,6 +1702,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: 'Αποθήκευση απόδειξης',
             genericDeleteFailureMessage: 'Παρουσιάστηκε απρόσμενο σφάλμα κατά τη διαγραφή αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericEditFailureMessage: 'Παρουσιάστηκε απροσδόκητο σφάλμα κατά την επεξεργασία αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
+            genericSplitFailureMessage: 'Παρουσιάστηκε απροσδόκητο σφάλμα κατά τη διαίρεση αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericSmartscanFailureMessage: 'Λείπουν πεδία από τη συναλλαγή',
             duplicateWaypointsErrorMessage: 'Παρακαλώ αφαιρέστε τα διπλά σημεία πορείας',
             atLeastTwoDifferentWaypoints: 'Παρακαλούμε εισαγάγετε τουλάχιστον δύο διαφορετικές διευθύνσεις',

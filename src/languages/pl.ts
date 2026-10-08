@@ -1663,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: 'Zapisz paragon',
             genericDeleteFailureMessage: 'Nieoczekiwany błąd podczas usuwania tego wydatku. Spróbuj ponownie później.',
             genericEditFailureMessage: 'Nieoczekiwany błąd podczas edycji tego wydatku. Spróbuj ponownie później.',
+            genericSplitFailureMessage: 'Nieoczekiwany błąd podczas dzielenia tego wydatku. Spróbuj ponownie później.',
             genericSmartscanFailureMessage: 'W transakcji brakuje pól',
             duplicateWaypointsErrorMessage: 'Usuń zduplikowane punkty trasy',
             atLeastTwoDifferentWaypoints: 'Wprowadź co najmniej dwa różne adresy',

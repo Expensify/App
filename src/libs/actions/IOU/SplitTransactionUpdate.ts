@@ -2048,7 +2048,7 @@ function updateSplitTransactions({
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
-            value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
+            value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSplitFailureMessage')},
         });
     }
 

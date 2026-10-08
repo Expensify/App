@@ -6149,7 +6149,7 @@ describe('updateSplitTransactions', () => {
         // And the original expense is back on its report with the failure surfaced on it
         const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
         expect(originalTransaction?.reportID).toBe(expenseReport.reportID);
-        expect(Object.values(originalTransaction?.errors ?? {})).toContain(translateLocal('iou.error.genericEditFailureMessage'));
+        expect(Object.values(originalTransaction?.errors ?? {})).toContain(translateLocal('iou.error.genericSplitFailureMessage'));
 
         // And the report totals match what they were before the split
         const reportAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
