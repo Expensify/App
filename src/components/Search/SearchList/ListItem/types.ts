@@ -55,12 +55,17 @@ type SearchListActionProps = {
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     report?: Report;
+    /** Called on long press of the row (opens the hold menu) */
+    onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
         /** The visible columns for the report */
         columns?: SearchColumnType[];
+
+        /** Called on long press of the row (opens the hold menu) */
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
         /** Whether the item's action is loading */
         isLoading?: boolean;
@@ -347,6 +352,9 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
 
+    /** Called on long press of the row (opens the hold menu) */
+    onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+
     allReports?: OnyxCollection<Report>;
 };
 
@@ -485,6 +493,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** Whether the item's action is loading */
         isLoading?: boolean;
         columns?: SearchColumnType[];
+        /** Called on long press of the row (opens the hold menu) */
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** All policies' tag lists, drilled from the list level so each row can resolve its policy's tags without an Onyx subscription per row */
@@ -494,6 +504,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
+        /** Called on long press of the row (opens the hold menu) */
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
         groupBy?: SearchGroupBy;
         searchType?: SearchDataTypes;
         accountID?: number;
@@ -506,8 +518,10 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onSelectionButtonPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
+    'showTooltip' | 'canSelectMultiple' | 'onSelectionButtonPress' | 'columns' | 'groupBy' | 'accountID' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
 > & {
+    /** Whether the network is offline */
+    isOffline?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
@@ -569,7 +583,7 @@ type GroupChildrenContentProps = {
     columns?: SearchColumnType[];
     canSelectMultiple: boolean;
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;

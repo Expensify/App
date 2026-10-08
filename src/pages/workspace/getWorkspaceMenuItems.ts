@@ -20,6 +20,7 @@ import {
     isMCPEnabled,
     isPerDiemEnabled,
     isPolicyAdmin,
+    isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -100,6 +101,8 @@ type GetWorkspaceMenuItemsParams = {
     isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
+    /** Whether any of the policy's merchant rules failed to save, used to surface a red dot on the Rules row. */
+    hasMerchantRuleErrors?: boolean;
     /** Previous pending fields used to identify the most recently enabled feature. */
     previousPendingFields?: OnyxTypes.Policy['pendingFields'];
     /** Whether receipt partner credentials require attention. */
@@ -121,6 +124,7 @@ function getWorkspaceMenuItems({
     icons,
     isConnectionInProgress = false,
     policyCategories,
+    hasMerchantRuleErrors,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
     shouldShowRBR = false,
@@ -189,7 +193,7 @@ function getWorkspaceMenuItems({
     };
     const highlightedPolicyFeature = getObjectKeys(policyFeatureStates).find((key) => policyFeatureStates[key] && !previousPendingFields?.[key] && policy?.pendingFields?.[key]);
 
-    const items: WorkspaceMenuItem[] = [
+    const defaultItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.profile',
             icon: icons.Building,
@@ -214,6 +218,15 @@ function getWorkspaceMenuItems({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
         },
     ];
+    const items = defaultItems.filter((item) => {
+        if (item.screenName !== SCREENS.WORKSPACE.MEMBERS) {
+            return true;
+        }
+        if (!policy) {
+            return true;
+        }
+        return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    });
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {
@@ -227,11 +240,17 @@ function getWorkspaceMenuItems({
         }
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.ACCOUNTING)) {
+            let accountingBrickRoadIndicator;
+            if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy)) {
+                accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            } else if (isQBORefreshTokenExpiringSoonSelector(policy)) {
+                accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+            }
             items.push({
                 translationKey: 'workspace.common.accounting',
                 icon: icons.Sync,
                 getRoute: () => ROUTES.POLICY_ACCOUNTING.getRoute(policyID),
-                brickRoadIndicator: hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: accountingBrickRoadIndicator,
                 screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ACCOUNTING,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
@@ -346,7 +365,7 @@ function getWorkspaceMenuItems({
                 translationKey: 'workspace.common.rules',
                 icon: icons.Bolt,
                 getRoute: () => ROUTES.WORKSPACE_RULES.getRoute(policyID),
-                brickRoadIndicator: hasPolicyRulesError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasPolicyRulesError(policy, hasMerchantRuleErrors ?? false) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.RULES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RULES,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,

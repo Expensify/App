@@ -9407,6 +9407,52 @@ describe('SearchUIUtils', () => {
             expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
         });
 
+        it('should hide Violations by submitter from Spend menus once the Insights page replaces those entries', () => {
+            // Given a Control admin who still gets Violations by submitter from the Spend Insights section
+            const mockPolicies = {
+                policy1: {
+                    id: policyID,
+                    name: 'Control Workspace',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    areRulesEnabled: true,
+                    areCategoriesEnabled: true,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const menuKeysBeforeInsightsPage = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+            expect(menuKeysBeforeInsightsPage).toContain(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+
+            // When Spend menus hide the entries the Insights page takes over
+            const menuSections = SearchUIUtils.omitInsightsPageMenuItems(sections);
+            const menuKeys = menuSections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+            // Then Violations by submitter leaves the Spend menu, while the suggested search definition remains
+            expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+            expect(menuKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            expect(menuSections.find((section) => section.translationPath === 'search.tabs.insights')).toBeUndefined();
+            expect(SearchUIUtils.getSuggestedSearches(adminAccountID)[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER].key).toBe(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+        });
+
         it('should not show Needs approval for a Submit workspace member who is not an approver', () => {
             const mockPolicies = {
                 policy1: {
@@ -12114,6 +12160,33 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
         });
 
+        test('Should honor an explicit column selection that matches the default set', () => {
+            // Given a transaction that has a description, which the data-driven fallback would turn the Description column on for
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const descriptionTransaction = {
+                ...baseTransaction,
+                transactionID: 'description',
+                merchant: '',
+                modifiedMerchant: '',
+                comment: {comment: 'Business meeting lunch'},
+                category: '',
+                tag: '',
+                managerID: submitterAccountID,
+            };
+
+            // When the user has explicitly saved a selection that happens to be element-for-element the default set,
+            // which is what unchecking Description leaves behind
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [descriptionTransaction],
+                visibleColumns: Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE),
+            });
+
+            // Then the selection wins and Description stays hidden instead of being re-added from the data
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+        });
+
         test('Should respect isExpenseReportView flag and not show From/To columns', () => {
             // Create transaction with different users using existing transaction as base
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
@@ -12847,6 +12920,7 @@ describe('SearchUIUtils', () => {
             personalDetails,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: true,
+            delegateAccountID: undefined,
             IOUTransactionID: threadReportID,
         };
 
@@ -12998,7 +13072,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -13010,7 +13084,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -13020,9 +13094,26 @@ describe('SearchUIUtils', () => {
             expect(parentReportAction).toBeTruthy();
         });
 
+        it('Should set delegateAccountID on the optimistic parent report action', async () => {
+            // Given a transaction opened from Search by a copilot
+            const transactionListItem = getTransactionListItem(0);
+            const delegateAccountID = 99;
+
+            // When the optimistic parent report action is built
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal, delegateAccountID);
+
+            await waitForBatchedUpdates();
+
+            // Then it carries the copilot so the "on behalf of" label renders before the API responds
+            const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
+            const parentReportAction = transactionListItem?.reportAction?.reportActionID && parentReport?.[transactionListItem?.reportAction?.reportActionID];
+
+            expect(parentReportAction).toMatchObject({delegateAccountID});
+        });
+
         it('Should create an optimistic transaction if the hasTransaction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal, undefined);
 
             await waitForBatchedUpdates();
 
@@ -13033,7 +13124,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, '456');
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, undefined, '456');
 
             await waitForBatchedUpdates();
 
@@ -13241,7 +13332,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -13427,7 +13518,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {

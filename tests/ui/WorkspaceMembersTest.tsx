@@ -175,6 +175,11 @@ describe('WorkspaceMembers', () => {
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
+            // Find and verify "Make guest" dropdown menu item
+            const makeGuestText = TestHelper.translateLocal('workspace.people.makeGuest', {count: 1});
+            const makeGuestMenuItem = screen.getByTestId(`PopoverMenuItem-${makeGuestText}`);
+            expect(makeGuestMenuItem).toBeOnTheScreen();
+
             // Find and verify "Make card admin" dropdown menu item
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
             const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
@@ -640,6 +645,35 @@ describe('WorkspaceMembers', () => {
         });
     });
 
+    describe('Secondary login invite', () => {
+        it('hides an empty employeeList entry and still shows a member whose personal details are missing', async () => {
+            // Given a secondary login left as an empty object after the backend nulls it and successData clears pendingAction,
+            // plus a real member who has no personal details
+            const secondaryEmail = 'secondary@example.com';
+            const memberWithoutDetails = 'nodetails@example.com';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {
+                        [secondaryEmail]: {},
+                        [memberWithoutDetails]: {email: memberWithoutDetails, role: CONST.POLICY.ROLE.USER},
+                    },
+                });
+            });
+
+            // When the members page renders
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the empty secondary entry is not a row, and the member without personal details still is
+            await waitFor(() => {
+                expect(screen.getAllByText(memberWithoutDetails).length).toBeGreaterThan(0);
+            });
+            expect(screen.queryAllByText(secondaryEmail)).toHaveLength(0);
+
+            unmount();
+        });
+    });
+
     describe('Role display on Submit workspaces', () => {
         it('should show the workspace owner as Editor instead of Owner', async () => {
             // Given a Submit workspace, where every member (including the owner) uses the flat Editor role
@@ -698,6 +732,52 @@ describe('WorkspaceMembers', () => {
             expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             expect(screen.queryByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).not.toBeOnTheScreen();
             expect(getSelectAllCheckbox()).not.toBeChecked();
+
+            unmount();
+        });
+    });
+
+    describe('Inline role editing', () => {
+        it('lets a just-invited member be role-edited before their account resolves', async () => {
+            // Given a member invited with optimistic personal details, which is how a new invite stays until the
+            // account resolves, including while the invite is still offline
+            const invitedEmail = 'invited@example.com';
+            const invitedAccountID = 424242;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                    [invitedAccountID]: {
+                        ...TestHelper.buildPersonalDetails(invitedEmail, invitedAccountID, 'Invited'),
+                        isOptimisticPersonalDetail: true,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {
+                        [invitedEmail]: {
+                            email: invitedEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    },
+                });
+            });
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+                createMock<ResponsiveLayoutResult>({
+                    isSmallScreenWidth: false,
+                    shouldUseNarrowLayout: false,
+                    isMediumScreenWidth: false,
+                    isLargeScreenWidth: true,
+                }),
+            );
+
+            // When the members table renders that invite on a wide layout, where the role cell can be edited inline
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            const invitedRow = await screen.findByLabelText(new RegExp(`^Invited User, ${invitedEmail}`));
+
+            // Then the role cell is editable, matching the member details pane, which does not wait for the account to resolve
+            await waitFor(() => {
+                expect(within(invitedRow).UNSAFE_getAllByProps({accessibilityLabel: TestHelper.translateLocal('common.edit')}).length).toBeGreaterThan(0);
+            });
 
             unmount();
         });

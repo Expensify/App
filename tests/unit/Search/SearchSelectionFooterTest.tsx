@@ -19,6 +19,7 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => jest.fn(() => true));
 
 jest.mock('@libs/actions/Search', () => ({
+    openSearchCardFiltersPage: jest.fn(),
     getFooterConvertedAmounts: jest.fn(),
 }));
 

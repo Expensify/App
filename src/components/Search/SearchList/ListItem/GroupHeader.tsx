@@ -9,11 +9,11 @@ import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/typ
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -105,6 +105,7 @@ function GroupHeader({
 }: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
@@ -190,12 +191,6 @@ function GroupHeader({
     const withOriginalKey = <T extends SearchListItem>(rowItem: T): T => ({
         ...rowItem,
         keyForList: item.groupKeyForList,
-    });
-
-    const animatedHighlightStyle = useRowHighlightAnimation({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected: isItemSelected,
-        shouldApplyOtherStyles: false,
     });
 
     const handleSelectionButtonPress = () => {
@@ -406,8 +401,8 @@ function GroupHeader({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 wrapperStyle={[
-                    styles.mh5,
-                    animatedHighlightStyle,
+                    pageGutterMargin,
+                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItemCollapsed, isItemSelected), isLastItemCollapsed && styles.overflowHidden]
