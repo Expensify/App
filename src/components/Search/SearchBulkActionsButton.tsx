@@ -13,6 +13,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +49,7 @@ type SearchBulkActionsButtonProps = {
 
 function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
@@ -251,7 +253,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 isSplitButton={false}
-                                style={[styles.w100, styles.ph5]}
+                                style={[styles.w100, pageGutter]}
                                 anchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,

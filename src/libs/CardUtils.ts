@@ -341,6 +341,32 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
 }
 
 /**
+ * Whether the viewer can resolve the card an expense sits on: their own cards, plus the feeds of workspaces they
+ * administer. "Auto report" needs it because the backend resolves each destination through the card, and one
+ * unresolvable card fails the whole batched move. The `managedCard` flag cannot answer it, carrying no feed or
+ * workspace identity.
+ *
+ * Search opens with only a subset of those cards, so a missing card proves nothing until `isCardListComplete` and
+ * fails closed: a move the backend refuses costs the whole batch, while waiting for the list costs a moment.
+ */
+function canResolveTransactionCard(
+    transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'cardID'>>,
+    nonPersonalAndWorkspaceCards: OnyxEntry<CardList>,
+    isCardListComplete: boolean,
+): boolean {
+    // Inlined rather than calling isManagedCardTransaction: TransactionUtils already imports this file.
+    if (!transaction?.managedCard || !transaction.cardID) {
+        return false;
+    }
+
+    if (!isCardListComplete) {
+        return false;
+    }
+
+    return !!nonPersonalAndWorkspaceCards?.[transaction.cardID];
+}
+
+/**
  * @returns string with a year in YY or YYYY format
  */
 function getYearFromExpirationDateString(expirationDateString: string) {
@@ -2500,6 +2526,7 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
 }
 
 export {
+    canResolveTransactionCard,
     getAssignedCardSortKey,
     getCardFeedBackgroundColor,
     getCardFeedTextColor,

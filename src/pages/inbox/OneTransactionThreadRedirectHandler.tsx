@@ -1,5 +1,6 @@
 import useIsOneTransactionThread from '@hooks/useIsOneTransactionThread';
 import useOnyx from '@hooks/useOnyx';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -85,10 +86,15 @@ function OneTransactionThreadRedirectHandler() {
     // A message deep link points at an action inside the thread, so dropping the thread route would drop its anchor.
     const hasLinkedReportAction = !!route.params?.reportActionID;
 
+    // In the table view the expense is a row in the report, so its thread is a real destination. Wait for the saved
+    // preference to load so a deep link doesn't redirect before we know which view the user picked.
+    const {shouldUseTableViewForSingleExpense, isLoading: isSingleExpenseReportViewLoading} = useSingleExpenseReportView();
+
     const referrer = route.name === SCREENS.REPORT ? route.params?.referrer : undefined;
     const backTo = route.params?.backTo;
 
-    const shouldRedirectToParentReport = !!parentReportID && isOneTransactionThread && !isSteppingThroughExpenses && !hasLinkedReportAction;
+    const shouldRedirectToParentReport =
+        !!parentReportID && isOneTransactionThread && !isSteppingThroughExpenses && !hasLinkedReportAction && !isSingleExpenseReportViewLoading && !shouldUseTableViewForSingleExpense;
 
     useEffect(() => {
         if (!isFocused || !shouldRedirectToParentReport || !parentReportID) {

@@ -3741,7 +3741,8 @@ describe('getViolationsOnyxData', () => {
                 },
             });
 
-        const resolveVendorMatchingBeta = (betas: Beta[], betaOverrides: BetaOverrides) => Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, betas, undefined, betaOverrides);
+        const resolveVendorMatchingBeta = (betas: Beta[], betaOverrides: BetaOverrides) =>
+            Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, betas, undefined, betaOverrides, CONST.ENVIRONMENT.DEV);
 
         const getViolationsForMissingVendor = (isVendorMatchingBetaEnabled: boolean | undefined) =>
             ViolationsUtils.getViolationsOnyxData({

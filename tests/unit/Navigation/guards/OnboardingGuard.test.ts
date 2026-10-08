@@ -109,6 +109,11 @@ describe('OnboardingGuard', () => {
 
         it('should BLOCK RESET action when user is on onboarding and tries to reset to non-onboarding screen', async () => {
             // Given a user who is currently on the onboarding purpose screen and has not yet completed onboarding
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await waitForBatchedUpdates();
+
             const onboardingState: NavigationState = {
                 key: 'root',
                 index: 0,
@@ -138,6 +143,35 @@ describe('OnboardingGuard', () => {
             if (result.type === 'BLOCK') {
                 expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
             }
+        });
+
+        it('should allow a completed user to reset away from a post-onboarding task screen', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await waitForBatchedUpdates();
+
+            const onboardingState: NavigationState = {
+                key: 'root',
+                index: 0,
+                routeNames: [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION],
+                routes: [{key: 'work-email-validation', name: SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}],
+                stale: false,
+                type: 'root',
+            };
+            const resetAction: NavigationAction = {
+                type: CONST.NAVIGATION_ACTIONS.RESET,
+                payload: {
+                    key: 'root',
+                    index: 0,
+                    routeNames: [SCREENS.HOME],
+                    routes: [{key: 'home', name: SCREENS.HOME}],
+                    stale: false,
+                    type: 'root',
+                },
+            };
+
+            expect(OnboardingGuard.evaluate(onboardingState, resetAction, authenticatedContext).type).toBe('ALLOW');
         });
     });
 
@@ -262,6 +296,50 @@ describe('OnboardingGuard', () => {
             }
         });
 
+        it('should allow a completed join-workspace user to navigate to a task screen', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+            });
+            await waitForBatchedUpdates();
+
+            const navigateToWorkEmailTaskAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+                payload: {
+                    name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+                    params: {screen: SCREENS.ONBOARDING.WORK_EMAIL, params: {isJoinWorkspaceTask: 'true'}},
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, navigateToWorkEmailTaskAction, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should redirect a completed join-workspace user away from non-task onboarding screens', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+            });
+            await waitForBatchedUpdates();
+
+            const navigateToPurposeAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+                payload: {
+                    name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+                    params: {screen: SCREENS.ONBOARDING.PURPOSE},
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, navigateToPurposeAction, authenticatedContext);
+
+            expect(result.type).toBe('REDIRECT');
+        });
+
         it('should ALLOW when completed user navigates to a non-onboarding route', async () => {
             // Given a user who has completed the guided setup flow
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -307,7 +385,7 @@ describe('OnboardingGuard', () => {
             expect(result.type).toBe('ALLOW');
         });
 
-        it('should NOT redirect completed user for RESET actions containing onboarding routes', async () => {
+        it('should redirect completed users for RESET actions containing unmarked onboarding routes', async () => {
             // Given a user who has completed the guided setup flow
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: true,
@@ -332,8 +410,8 @@ describe('OnboardingGuard', () => {
 
             const result = OnboardingGuard.evaluate(mockState, resetWithOnboardingAction, authenticatedContext);
 
-            // Then navigation should be allowed because isNavigatingToOnboardingFlow only checks NAVIGATE/PUSH actions, not RESET — RESET with onboarding routes does not reach the completed-user redirect
-            expect(result.type).toBe('ALLOW');
+            // Then navigation should be redirected because a RESET must not bypass the completed-onboarding guard.
+            expect(result.type).toBe('REDIRECT');
         });
 
         it('should NOT redirect completed user for REPLACE actions targeting onboarding', async () => {

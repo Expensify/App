@@ -7,6 +7,7 @@ import type {
     AddPersonalBankAccountParams,
     BankAccountHandlePlaidErrorParams,
     ConnectBankAccountParams,
+    CreateCollectOnlyDepositAccountParams,
     DeletePaymentBankAccountParams,
     EnableGlobalReimbursementsForUSDBankAccountParams,
     FinishCorpayBankAccountOnboardingParams,
@@ -52,6 +53,62 @@ import Onyx from 'react-native-onyx';
 
 import {getMakeDefaultPaymentOnyxData} from './PaymentMethods';
 import {setBankAccountSubStep} from './ReimbursementAccount';
+
+/** Loads the reimbursement countries of the user's policies, which decide whether to collect local or wire details. */
+function openDepositAccountSetup() {
+    API.read(READ_COMMANDS.OPEN_DEPOSIT_ACCOUNT_SETUP, null, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
+                value: true,
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
+                value: false,
+            },
+        ],
+    });
+}
+
+/** Creates a deposit account Expensify never pays to - the employer exports the details and reimburses elsewhere. */
+function createCollectOnlyDepositAccount(parameters: CreateCollectOnlyDepositAccountParams) {
+    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {isLoading: true, errors: null, shouldShowSuccess: false},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {shouldShowSuccess: true},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure')},
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {isLoading: false},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT, parameters, onyxData);
+}
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -1956,4 +2013,6 @@ export {
     initiateBankAccountUnlock,
     pressLockedBankAccount,
     uploadUserKYBDocs,
+    createCollectOnlyDepositAccount,
+    openDepositAccountSetup,
 };

@@ -2,6 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 
+import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import {
     changeTransactionsReport as changeTransactionsReportAction,
     dismissDuplicateTransactionViolation,
@@ -38,7 +39,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {createCashCard} from 'tests/utils/collections/card';
 
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
-import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, ReusableDistanceRoute, Transaction} from '../../src/types/onyx';
 import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -2888,6 +2889,36 @@ describe('Transaction', () => {
 
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(transaction?.isReusedRoute ?? null).toBeNull();
+        });
+    });
+
+    describe('selectReusableRoute', () => {
+        it('keeps the route alternative the reused route was taken with', async () => {
+            // Given a prior trip of 3.5 that took the longer of two route alternatives
+            const transactionID = 'txn-select-reusable-route';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, generateTransaction({transactionID, reportID: '1'}));
+            const route: ReusableDistanceRoute = {
+                transactionID: 'source-transaction',
+                inserted: '2026-10-01 12:00:00',
+                distance: 3.5,
+                routeDistanceMeters: 200,
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                },
+            };
+
+            // When the trip is reused
+            await selectReusableRoute(transactionID, route);
+            await waitForBatchedUpdates();
+
+            // Then the draft keeps the trip's distance without routing its waypoints again
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.isReusedRoute).toBe(true);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(3.5);
+
+            // And the new expense is sent with the trip's route alternative
+            expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(200);
         });
     });
 

@@ -5260,11 +5260,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // Put the expense on hold
         if (originalTransactionID && transactionThreadReportID) {
             const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+            const transactionThreadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+            const transactionReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${originalTransaction?.reportID}`);
             putOnHold({
                 transactionID: originalTransactionID,
                 transaction: originalTransaction,
                 comment: 'Test hold reason',
                 initialReportID: transactionThreadReportID,
+                initialReport: transactionThreadReport,
+                transactionReport,
                 isOffline: false,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -6216,12 +6220,15 @@ describe('updateSplitTransactions', () => {
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
         const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        const transactionReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${originalTransaction?.reportID}`);
 
         putOnHold({
             transactionID: originalTransactionID,
             transaction: originalTransaction,
             comment: 'Test hold reason',
             initialReportID: transactionThreadReportID,
+            initialReport: transactionThreadReport,
+            transactionReport,
             isOffline: false,
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -6406,12 +6413,15 @@ describe('updateSplitTransactions', () => {
         const {allReports: allReports2, allReportActions: allReportActions2} = await getCollections();
         const ancestors2 = getAncestors(split1ThreadReport, allReports2, {}, allReportActions2);
         const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
+        const transactionReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${originalTransaction?.reportID}`);
 
         putOnHold({
             transactionID: splitTransactionID1,
             transaction: originalTransaction,
             comment: 'Test hold reason',
             initialReportID: split1ThreadReportID,
+            initialReport: split1ThreadReport,
+            transactionReport,
             isOffline: false,
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,

@@ -1,21 +1,26 @@
-import retryReceiptUpload from '@libs/ReceiptUploadRetryHandler';
+import retryReceiptUpload, {canRetryReceiptUpload} from '@libs/ReceiptUploadRetryHandler';
+import buildReplaceReceiptRetryPayload from '@libs/ReceiptUploadRetryHandler/buildReplaceReceiptRetryPayload';
 import buildRetryPayload, {canBuildRetryPayload} from '@libs/ReceiptUploadRetryHandler/buildRetryPayload';
 import resolveReceiptFile from '@libs/ReceiptUploadRetryHandler/resolveReceiptFile';
 import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
 
+import {replaceReceipt} from '@userActions/IOU/Receipt';
+import type {ReplaceReceiptRetryParams} from '@userActions/IOU/Receipt';
 import {requestMoney} from '@userActions/IOU/TrackExpense';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/ReceiptUploadRetryHandler/resolveReceiptFile', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@userActions/IOU/Receipt', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/IOU/Receipt'), replaceReceipt: jest.fn()}));
 jest.mock('@userActions/IOU/TrackExpense', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/IOU/TrackExpense'), requestMoney: jest.fn()}));
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -66,7 +71,24 @@ function buildContext(transaction: Transaction, receiptErrorOverrides: Partial<R
         delegateAccountID: undefined,
         formatPhoneNumber: (phone) => phone,
         getCurrencyDecimals: () => 2,
+        transactionReport: undefined,
+        transactionThreadReport: undefined,
+        transactionViolations: undefined,
+        currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@example.com'},
     };
+}
+
+function buildReplaceReceiptContext(retryParamsOverrides: Partial<ReplaceReceiptRetryParams> = {}, receiptErrorOverrides: Partial<ReceiptError> = {}): ReceiptRetryContext {
+    const transaction = buildFailedTransaction({receipt: undefined, merchant: 'Coffee', amount: -1200});
+    const retryParams: ReplaceReceiptRetryParams = {
+        transactionID: TRANSACTION_ID,
+        file: undefined,
+        source: 'file:///receipts/receipt.jpg',
+        transactionPolicy: undefined,
+        isVendorMatchingBetaEnabled: false,
+        ...retryParamsOverrides,
+    };
+    return buildContext(transaction, {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams: JSON.stringify(retryParams), ...receiptErrorOverrides});
 }
 
 describe('buildRetryPayload', () => {
@@ -106,7 +128,7 @@ describe('buildRetryPayload', () => {
         expect(canBuildRetryPayload(buildContext(transaction))).toBe(false);
     });
 
-    it('offers no retry for a replaceReceipt failure, which is not the create call the handler rebuilds', () => {
+    it('does not rebuild a replaceReceipt failure as a RequestMoney call, because replace has its own builder', () => {
         expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT}))).toBe(false);
     });
 
@@ -148,6 +170,68 @@ describe('buildRetryPayload', () => {
             expect(outcome).toBe('dispatched');
             expect(clearReceiptError).toHaveBeenCalledTimes(1);
             expect(jest.mocked(requestMoney).mock.invocationCallOrder.at(0)).toBeLessThan(clearReceiptError.mock.invocationCallOrder.at(0) ?? 0);
+        });
+    });
+
+    describe('replaceReceipt retry', () => {
+        beforeEach(() => {
+            jest.mocked(resolveReceiptFile).mockResolvedValue(receiptFile);
+            jest.mocked(replaceReceipt).mockReset();
+            jest.mocked(requestMoney).mockReset();
+        });
+
+        it('offers a retry for a failed replaceReceipt, including on a distance expense', () => {
+            const distanceContext = buildReplaceReceiptContext();
+            distanceContext.transaction = buildFailedTransaction({receipt: undefined, comment: {waypoints: {waypoint0: {address: 'Berlin'}}}});
+
+            expect(canRetryReceiptUpload(buildReplaceReceiptContext())).toBe(true);
+            expect(canRetryReceiptUpload(distanceContext)).toBe(true);
+        });
+
+        it.each([
+            ['the source is not a local file', buildReplaceReceiptContext({}, {source: 'https://example.com/receipt.jpg'})],
+            ['the retry params belong to another transaction', buildReplaceReceiptContext({transactionID: '7000000000000999'})],
+            ['the retry params are not valid JSON', buildReplaceReceiptContext({}, {retryParams: '{not json'})],
+            ['there are no retry params', buildReplaceReceiptContext({}, {retryParams: undefined})],
+        ])('offers no retry when %s', (_, context) => {
+            expect(canRetryReceiptUpload(context)).toBe(false);
+        });
+
+        it('rebuilds the payload from the stored crop state and action ID, and the current policy and violations', () => {
+            const context = buildReplaceReceiptContext({
+                isSameReceipt: true,
+                state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                receiptAddedReportActionID: '1234567890',
+                transactionPolicy: createMock<Policy>({id: POLICY_ID, name: 'Old name'}),
+            });
+            const currentPolicy = createMock<Policy>({id: POLICY_ID, name: 'New name'});
+            context.policyParams = {policy: currentPolicy};
+            context.transactionViolations = [];
+
+            const payload = buildReplaceReceiptRetryPayload(context, receiptFile);
+
+            expect(payload).toEqual(
+                expect.objectContaining({
+                    file: receiptFile,
+                    source: 'file:///receipts/receipt.jpg',
+                    isSameReceipt: true,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                    receiptAddedReportActionID: '1234567890',
+                    transactionPolicy: currentPolicy,
+                    transactionViolations: [],
+                }),
+            );
+        });
+
+        it('dispatches replaceReceipt and clears the error after it', async () => {
+            const clearReceiptError = jest.fn(() => Promise.resolve());
+
+            const outcome = await retryReceiptUpload(buildReplaceReceiptContext(), clearReceiptError);
+
+            expect(outcome).toBe('dispatched');
+            expect(jest.mocked(replaceReceipt)).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(requestMoney)).not.toHaveBeenCalled();
+            expect(jest.mocked(replaceReceipt).mock.invocationCallOrder.at(0)).toBeLessThan(clearReceiptError.mock.invocationCallOrder.at(0) ?? 0);
         });
     });
 });
