@@ -1,0 +1,52 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index 0b730ec..9e14f1d 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -6097,4 +6097,12 @@ function useFreshDataTransitionVisibility(readyToRender, transitionEpoch) {
+ // src/components/Containers.native.tsx
++// Fabric positions and the MVCP anchor update through React. Commit the content
++// size with them so an imperative Animated update cannot clamp the old viewport.
++var useContainersSize = IsNewArchitecture ? function useContainersSizeState() {
++  const [size = 0] = useArr$(["totalSize"]);
++  return size;
++} : function useContainersSizeAnimated() {
++  return useValue$("totalSize");
++};
+ var ContainersLayer = typedMemo(function ContainersLayer2({
+   children,
+   freshDataTransitionEpoch,
+@@ -6102,7 +6110,7 @@ var ContainersLayer = typedMemo(function ContainersLayer2({
+ }) {
+   const ctx = useStateContext();
+   const columnWrapperStyle = ctx.columnWrapperStyle;
+-  const animSize = useValue$("totalSize");
++  const animSize = useContainersSize();
+   const [readyToRender, numColumns, otherAxisSize = 0] = useArr$(["readyToRender", "numColumns", "otherAxisSize"]);
+   const isVisible = useFreshDataTransitionVisibility(!!readyToRender, freshDataTransitionEpoch);
+   const style = horizontal ? {
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index a3d8d9a..1f2bcf9 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -6076,4 +6076,12 @@ function useFreshDataTransitionVisibility(readyToRender, transitionEpoch) {
+ // src/components/Containers.native.tsx
++// Fabric positions and the MVCP anchor update through React. Commit the content
++// size with them so an imperative Animated update cannot clamp the old viewport.
++var useContainersSize = IsNewArchitecture ? function useContainersSizeState() {
++  const [size = 0] = useArr$(["totalSize"]);
++  return size;
++} : function useContainersSizeAnimated() {
++  return useValue$("totalSize");
++};
+ var ContainersLayer = typedMemo(function ContainersLayer2({
+   children,
+   freshDataTransitionEpoch,
+@@ -6081,7 +6089,7 @@ var ContainersLayer = typedMemo(function ContainersLayer2({
+ }) {
+   const ctx = useStateContext();
+   const columnWrapperStyle = ctx.columnWrapperStyle;
+-  const animSize = useValue$("totalSize");
++  const animSize = useContainersSize();
+   const [readyToRender, numColumns, otherAxisSize = 0] = useArr$(["readyToRender", "numColumns", "otherAxisSize"]);
+   const isVisible = useFreshDataTransitionVisibility(!!readyToRender, freshDataTransitionEpoch);
+   const style = horizontal ? {
