@@ -4,7 +4,7 @@ import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmat
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
 type MockBeforeRemoveEvent = {
-    data: {action: {type: string}};
+    data: {action: {type: string; payload?: unknown}};
     defaultPrevented: boolean;
     preventDefault: () => void;
 };
@@ -75,9 +75,9 @@ const dispatchPopstate = () => {
     });
 };
 
-const createBeforeRemoveEvent = (type: string): MockBeforeRemoveEvent => {
+const createBeforeRemoveEvent = (type: string, payload?: unknown): MockBeforeRemoveEvent => {
     const event: MockBeforeRemoveEvent = {
-        data: {action: {type}},
+        data: {action: {type, payload}},
         defaultPrevented: false,
         preventDefault: () => {
             event.defaultPrevented = true;
@@ -86,8 +86,8 @@ const createBeforeRemoveEvent = (type: string): MockBeforeRemoveEvent => {
     return event;
 };
 
-const invokeBeforeRemove = (type: string): MockBeforeRemoveEvent => {
-    const event = createBeforeRemoveEvent(type);
+const invokeBeforeRemove = (type: string, payload?: unknown): MockBeforeRemoveEvent => {
+    const event = createBeforeRemoveEvent(type, payload);
     act(() => {
         mockBeforeRemoveCallback?.(event);
     });
@@ -98,7 +98,8 @@ describe('useDiscardChangesConfirmation (web)', () => {
     let historyGoSpy: jest.SpyInstance;
     let resolveModal: ((result: {action: string}) => void) | undefined;
 
-    const renderDiscardHook = (getHasUnsavedChanges: () => boolean) => renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges}));
+    const renderDiscardHook = (getHasUnsavedChanges: () => boolean, options?: Partial<UseDiscardChangesConfirmationOptions>) =>
+        renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges, ...options}));
 
     const resolveModalWith = async (action: string) => {
         await act(async () => {
@@ -129,6 +130,16 @@ describe('useDiscardChangesConfirmation (web)', () => {
     });
 
     describe('browser back prevented through beforeRemove', () => {
+        it('allows a caller-designated internal reset without opening the discard modal', () => {
+            renderDiscardHook(() => true, {shouldPromptForNavigationAction: (action) => action.type !== 'RESET'});
+
+            const event = invokeBeforeRemove('RESET');
+
+            expect(event.defaultPrevented).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(historyGoSpy).not.toHaveBeenCalled();
+        });
+
         it('prevents the reset, restores the URL once, and shows a single history-inert modal', () => {
             renderDiscardHook(() => true);
 
@@ -288,7 +299,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
-        it('allows navigation when the screen is not focused, even with a dirty predicate', () => {
+        it('does not prevent removal or prompt discard when the screen is unfocused by default', () => {
             mockIsFocused = false;
             renderDiscardHook(() => true);
 
@@ -296,6 +307,28 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
             expect(event.defaultPrevented).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('prevents removal and prompts discard when unfocused if shouldPromptWhenUnfocused is true (e.g. child screen was opened on top)', () => {
+            mockIsFocused = false;
+            renderDiscardHook(() => true, {shouldPromptWhenUnfocused: true});
+
+            const event = invokeBeforeRemove('RESET');
+
+            expect(event.defaultPrevented).toBe(true);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('uses the flow-specific confirmation handler instead of replaying child navigation when unfocused', async () => {
+            mockIsFocused = false;
+            const onConfirmWhenUnfocused = jest.fn();
+            renderDiscardHook(() => true, {shouldPromptWhenUnfocused: true, onConfirmWhenUnfocused});
+
+            invokeBeforeRemove('POP');
+            await resolveModalWith('CONFIRM');
+
+            expect(onConfirmWhenUnfocused).toHaveBeenCalledTimes(1);
+            expect(mockNavigationDispatch).not.toHaveBeenCalled();
         });
 
         it('suppresses the prompt while a save is in progress, and re-arms when notified it ended', () => {

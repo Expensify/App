@@ -491,6 +491,9 @@ describe('actions/IOU', () => {
         };
         const transactionResult: Transaction = {
             amount: 0,
+            initialAmount: 0,
+            isAmountSet: false,
+            initialIsAmountSet: false,
             comment: {},
             created: '2025-04-01',
             currency: 'USD',
