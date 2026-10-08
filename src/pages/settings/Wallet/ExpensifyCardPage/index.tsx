@@ -30,6 +30,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
@@ -42,6 +43,7 @@ import {
     getDomainCards,
     getTranslationKeyForLimitType,
     isCardFrozen,
+    isCardPendingDigitalWalletApproval,
     isOfflinePINMarket,
     isTravelCard,
     isUkEuExpensifyCard,
@@ -68,6 +70,7 @@ import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUti
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
 import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
+import PendingDigitalWalletApprovalRow from '@pages/settings/Wallet/PendingDigitalWalletApprovalRow';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
 
@@ -145,6 +148,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
+
+    // Any of the domain's cards can be the one awaiting approval, and the CTA has to open that card's flow.
+    const cardPendingDigitalWalletApproval = useMemo(() => cardsToShow?.find((card) => isCardPendingDigitalWalletApproval(card)), [cardsToShow]);
+    useRefreshPendingDigitalWalletApproval();
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !isTravelCard(card)), [cardsToShow]);
     const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && isTravelCard(card)), [cardsToShow]);
@@ -403,6 +410,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 </CardDetailsActionButton>
                             </CardDetailsActionButtons>
                         )}
+                        {!!cardPendingDigitalWalletApproval && (
+                            <PendingDigitalWalletApprovalRow
+                                cardID={cardPendingDigitalWalletApproval.cardID}
+                                walletProvider={cardPendingDigitalWalletApproval.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider}
+                                style={[styles.ph5, styles.mt6, styles.mb5]}
+                            />
+                        )}
                         {cardToAdd !== undefined && (
                             <AddToWalletButton
                                 card={cardToAdd}
@@ -462,34 +476,28 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         </MenuItem.Root>
                         {shouldShowReportLostCardButton && (
                             <>
-                                <MenuItemWithTopDescription
-                                    description={translate('cardPage.physicalCardNumber')}
-                                    title={maskCard(currentPhysicalCard?.lastFourPAN)}
-                                    interactive={false}
-                                    titleStyle={styles.walletCardNumber}
+                                <MenuItemField
+                                    name={translate('cardPage.physicalCardNumber')}
+                                    value={maskCard(currentPhysicalCard?.lastFourPAN)}
                                 />
                                 {shouldShowPIN && (
-                                    <MenuItemWithTopDescription
-                                        description={translate('cardPage.physicalCardPin')}
-                                        title={maskPin(revealedPIN)}
-                                        interactive={false}
-                                        titleStyle={styles.walletCardNumber}
-                                        shouldShowRightComponent={canRevealPIN}
-                                        rightComponent={
-                                            canRevealPIN ? (
-                                                <ButtonDisabledWhenOffline
-                                                    onPress={() => {
-                                                        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
-                                                            cardID: String(currentPhysicalCard?.cardID),
-                                                        });
-                                                    }}
-                                                >
-                                                    <Button.Icon src={expensifyIcons.Eye} />
-                                                    <Button.Text>{translate('cardPage.revealPin')}</Button.Text>
-                                                </ButtonDisabledWhenOffline>
-                                            ) : undefined
-                                        }
-                                    />
+                                    <MenuItemField
+                                        name={translate('cardPage.physicalCardPin')}
+                                        value={maskPin(revealedPIN)}
+                                    >
+                                        {canRevealPIN && (
+                                            <ButtonDisabledWhenOffline
+                                                onPress={() => {
+                                                    executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
+                                                        cardID: String(currentPhysicalCard?.cardID),
+                                                    });
+                                                }}
+                                            >
+                                                <Button.Icon src={expensifyIcons.Eye} />
+                                                <Button.Text>{translate('cardPage.revealPin')}</Button.Text>
+                                            </ButtonDisabledWhenOffline>
+                                        )}
+                                    </MenuItemField>
                                 )}
                             </>
                         )}
@@ -630,12 +638,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <>
                                         {shouldShowReportVirtualCardFraudRows &&
                                             virtualCards.map((card) => (
-                                                <MenuItemWithTopDescription
+                                                <MenuItemNavigation
                                                     key={`virtual-fraud-${card.cardID}`}
                                                     title={translate('cardPage.reportFraud')}
-                                                    titleStyle={styles.walletCardMenuItem}
                                                     icon={expensifyIcons.Flag}
-                                                    shouldShowRightIcon
                                                     onPress={() => {
                                                         if (isAccountLocked) {
                                                             showLockedAccountModal();
@@ -651,12 +657,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             ))}
                                         {shouldShowReportTravelCardFraudRows &&
                                             travelCards.map((card) => (
-                                                <MenuItemWithTopDescription
+                                                <MenuItemNavigation
                                                     key={`travel-fraud-${card.cardID}`}
                                                     title={translate('cardPage.reportTravelFraud')}
-                                                    titleStyle={styles.walletCardMenuItem}
                                                     icon={expensifyIcons.Flag}
-                                                    shouldShowRightIcon
                                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                                 />
                                             ))}

@@ -46,6 +46,7 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    openSearchCardFiltersPage: jest.fn(),
     getReportFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
@@ -416,17 +417,15 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         });
     });
 
-    it('does NOT call deleteMoneyRequest when the IOU action is absent from both snapshot and Onyx REPORT_ACTIONS', async () => {
+    it('calls deleteMoneyRequest without a report action when the IOU action is absent from both snapshot and Onyx REPORT_ACTIONS', async () => {
         /**
          * Given: an unreported expense with no IOU action anywhere (neither in the
          *        search snapshot nor in the real Onyx REPORT_ACTIONS collection).
          *
          * When: the user confirms bulk delete.
          *
-         * Then: deleteMoneyRequest is NOT called — the transaction is silently skipped.
-         *
-         * This is a known graceful no-op: without the action there is no IOUReportID
-         * and nothing to delete server-side.
+         * Then: deleteMoneyRequest is still called for the transaction, without a report action,
+         *       because the API deletes the expense by transactionID alone.
          */
 
         // No snapshot data at all.
@@ -462,11 +461,14 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         });
 
         await waitFor(() => {
-            expect(mockShowConfirmModal).toHaveBeenCalled();
+            expect(deleteMoneyRequest).toHaveBeenCalledTimes(1);
+            expect(deleteMoneyRequest).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: TRANSACTION_ID,
+                    reportAction: undefined,
+                }),
+            );
         });
-
-        // No deleteMoneyRequest call — no action was found.
-        expect(deleteMoneyRequest).not.toHaveBeenCalled();
     });
 
     it('passes the report and reportActions from the search snapshot to deleteAppReport when the report is not in Onyx', async () => {

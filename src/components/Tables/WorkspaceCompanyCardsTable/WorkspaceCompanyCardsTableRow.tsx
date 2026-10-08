@@ -1,5 +1,6 @@
 import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Button from '@components/Button';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
@@ -31,6 +32,13 @@ type WorkspaceCompanyCardTableRowData = TableData &
         isCardDeleted: boolean;
         isAssigned: boolean;
         assignedCard?: Card;
+
+        /** Whether the card name can be edited inline from the table. Only assigned cards opt in. */
+        canEditName?: boolean;
+
+        /** Provided only when `canEditName` is supported. */
+        onRenameName?: (newName: string) => void;
+
         exportAccountTitle?: string;
         onDismissError?: () => void;
     };
@@ -73,7 +81,7 @@ function WorkspaceCompanyCardTableRow({
 }: WorkspaceCompanyCardTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -83,10 +91,12 @@ function WorkspaceCompanyCardTableRow({
     const formattedCardDetails = formatMaskedCardName(cardName);
     const formattedCustomCardNameSuffix = formattedCustomCardName ? ` • ${formattedCustomCardName}` : '';
 
-    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
+    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? formatPhoneNumber(cardholder?.login ?? '') : undefined;
     const narrowWidthCardName = isAssigned ? `${formattedCardDetails}${formattedCustomCardNameSuffix}` : cardName;
 
-    const memberColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const cardholderDisplayName = cardholder?.displayName ?? '';
+    const formattedCardholderDisplayName = Str.isSMSLogin(cardholderDisplayName) ? formatPhoneNumber(cardholderDisplayName) : cardholderDisplayName;
+    const memberColumnTitle = isAssigned ? formattedCardholderDisplayName : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const memberCardSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
@@ -182,11 +192,12 @@ function WorkspaceCompanyCardTableRow({
                             style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={customCardName ?? ''}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            <InlineTextEditCell
+                                value={customCardName ?? ''}
+                                accessibilityLabel={translate('workspace.companyCards.cardName')}
+                                canEdit={!!item.canEditName && !item.isCardDeleted}
+                                onSave={item.onRenameName}
+                                displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
                     )}

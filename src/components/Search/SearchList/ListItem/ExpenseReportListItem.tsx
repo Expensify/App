@@ -12,11 +12,11 @@ import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -99,6 +99,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     /*
@@ -244,7 +245,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         currentUserAccountID,
         currentUserLogin,
         introSelected,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         activePolicy,
@@ -309,7 +309,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             currentUserAccountID,
             currentUserLogin,
             introSelected,
-            betas,
             isSelfTourViewed,
             activePolicy,
             chatReport,
@@ -359,7 +358,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         currentUserAccountID,
         currentUserLogin,
         introSelected,
-        betas,
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
@@ -373,16 +371,16 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         shouldShowMarkAsDoneCopy,
     ]);
 
-    const handleSelectionButtonPress = useCallback(() => {
-        onSelectionButtonPress?.(reportItem as unknown as TItem);
-    }, [onSelectionButtonPress, reportItem]);
+    const handleSelectionButtonPress = (shiftKey?: boolean) => {
+        onSelectionButtonPress?.(item, undefined, shiftKey);
+    };
 
     const listItemPressableStyle = useMemo(
         () => [
             styles.selectionListPressableItemWrapper,
             isLargeScreenWidth && styles.pv3,
             isLargeScreenWidth && styles.ph3,
-            // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+            // Background is applied on the parent wrapper, so keep this transparent
             styles.bgTransparent,
             isSelected && styles.activeComponentBG,
             styles.mh0,
@@ -393,18 +391,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         ],
         [styles, isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
     );
-
-    // The animated style is applied inline, so the `borderRadius: 0` it carries wins over the static
-    // `tableTopRadius`/`tableBottomRadius` below and squares off the list's outer corners. Skip it for the first
-    // and last rows only, so every other row keeps its existing (already square) behavior.
-    const shouldApplyAnimatedBorderRadius = !isLargeScreenWidth && !isFirstItem && !isLastItem;
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: shouldApplyAnimatedBorderRadius,
-    });
 
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
 
@@ -441,7 +427,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         width={12}
                         height={12}
                     />
-                    <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
+                    <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, {color: theme.textError}]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
                 </View>
             );
         }
@@ -457,7 +443,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                     width={12}
                     height={12}
                 />
-                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>
+                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, {color: theme.textError}]}>
                     {translate('reportViolations.reportContainsExpensesWithViolations')}
                 </Text>
             </View>
@@ -472,10 +458,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         styles.mr1,
         styles.textMicro,
         styles.mutedNormalTextLabel,
-        styles.textDanger,
         isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
+        theme.textError,
         translate,
     ]);
 
@@ -501,8 +487,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
-                animatedHighlightStyle,
+                pageGutterMargin,
+                StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                !isLargeScreenWidth && styles.br0,
                 isPendingDelete && styles.cursorDisabled,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,

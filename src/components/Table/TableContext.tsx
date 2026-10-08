@@ -1,5 +1,7 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {ScrollableNodeHolder} from '@hooks/useVerticalScrollbarWidth/types';
+
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
@@ -40,6 +42,12 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
 
+    /** Width the list's vertical scrollbar takes from the rows, so the sticky header can stop short of it. 0 when the bar overlays. */
+    scrollbarWidth: number;
+
+    /** Attached to the list alongside `listRef` so `scrollbarWidth` tracks the element that scrolls. */
+    measureScrollbarRef: (instance: ScrollableNodeHolder | null) => void;
+
     /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
     listContainerRef: React.RefObject<ComponentRef<typeof View> | null>;
 
@@ -72,6 +80,12 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
      * `undefined` means the columns keep their static tracks (fixed widths and equal `1fr` shares).
      */
     dynamicGridTemplateColumns: string[] | undefined;
+
+    /** The width the rows need when the columns don't fit, which makes the list scroll horizontally too. `undefined` means they fit. */
+    scrollWidth: number | undefined;
+
+    /** Width the rows are really given, so the measured area less any vertical scrollbar. `0` until the first layout. */
+    tableWidth: number;
 
     /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig<FilterKey> | undefined;
@@ -125,6 +139,8 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
     listRef: React.createRef(),
+    scrollbarWidth: 0,
+    measureScrollbarRef: () => {},
     listContainerRef: React.createRef(),
     trackScrollOffset: () => {},
     scrollInputIntoView: () => {},
@@ -132,6 +148,8 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     originalDataLength: 0,
     columns: [],
     dynamicGridTemplateColumns: undefined,
+    scrollWidth: undefined,
+    tableWidth: 0,
     activeFilters: {},
     activeSorting: {
         columnKey: undefined,
@@ -148,7 +166,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasSearchString: false,
     tableListMetadata: {
         hasPageHeader: false,
-        shouldRenderStickyHeader: false,
+        columnHeaderPlacement: CONST.TABLES.COLUMN_HEADER_PLACEMENT.NONE,
         syntheticRowsBeforeData: 0,
         stickyTableHeaderIndex: 0,
         listDataRowOffset: 0,
