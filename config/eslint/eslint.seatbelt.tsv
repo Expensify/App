@@ -1009,9 +1009,17 @@
 "../../src/pages/DynamicReferralDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/DynamicReportDetailsPage/index.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/DynamicReportDetailsPage/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/DynamicReportDetailsPage/index.tsx"	"no-restricted-imports"	1
+"../../src/pages/DynamicReportDetailsPage/ReportDetailsMenuDebugItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
+"../../src/pages/DynamicReportDetailsPage/ReportDetailsMenuGoToRoomItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
+"../../src/pages/DynamicReportDetailsPage/ReportDetailsMenuGoToWorkspaceItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
+"../../src/pages/DynamicReportDetailsPage/ReportDetailsMenuItems.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	4
+"../../src/pages/DynamicReportDetailsPage/ReportDetailsMenuLeaveItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
+"../../src/pages/DynamicReportDetailsPage/ReportDetailsMenuMarkAsIncompleteItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
+"../../src/pages/DynamicReportDetailsPage/ReportDetailsMenuMembersOrInviteItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
+"../../src/pages/DynamicReportDetailsPage/ReportDetailsMenuPrivateNotesItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
+"../../src/pages/DynamicReportDetailsPage/ReportDetailsMenuSettingsItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/DynamicReportDetailsPage/ReportDetailsNameSection.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/DynamicReportDetailsPage/ReportDetailsTitleSection.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1667,6 +1675,7 @@
 "../../src/pages/workspace/copyPolicySettings/CopyPolicySettingsSelectWorkspacesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/copyPolicySettings/CopyPolicySettingsUpgradePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/CreateDistanceRatePage.tsx"	"no-restricted-imports"	1
+"../../src/pages/workspace/distanceRates/PolicyCommuterExclusionsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/distanceRates/PolicyCommuterExclusionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateDateEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	5
