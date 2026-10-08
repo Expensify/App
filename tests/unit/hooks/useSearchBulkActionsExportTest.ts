@@ -50,6 +50,7 @@ jest.mock('@libs/actions/SplitExpenses.ts', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({
         customTemplates: [{name: 'Custom template', templateName: 'customTemplate', type: 'in-app', policyID: undefined, description: ''}],
         defaultTemplates: [

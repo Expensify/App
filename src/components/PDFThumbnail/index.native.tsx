@@ -36,11 +36,11 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, fitPolicy = 0, o
                             }
                             setFailedToLoad(true);
                         }}
-                        onLoadComplete={() => {
+                        onLoadComplete={(numberOfPages) => {
                             if (!onLoadSuccess) {
                                 return;
                             }
-                            onLoadSuccess();
+                            onLoadSuccess(numberOfPages);
                         }}
                     />
                 )}
