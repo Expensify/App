@@ -8,6 +8,9 @@ import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
+// Static part of ROUTES.SEARCH_REPORT ('search/view/:reportID/:reportActionID?'), i.e. an expense opened in the search RHP
+const SEARCH_REPORT_ROUTE_PREFIX = ROUTES.SEARCH_REPORT.route.slice(0, ROUTES.SEARCH_REPORT.route.indexOf(':'));
+
 /**
  * Generates a URL for a report that respects the current navigation context.
  * When in a search context, includes backTo parameter to preserve search state.
@@ -48,6 +51,13 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
                 // Prefer the backTo param when present; it points to the exact search state we left.
                 backToRoute = normalizeRoute(isAlreadyDecoded ? backTo : decodeURIComponent(backTo));
             }
+        }
+
+        // Paging through expenses with the carousel arrows stores the expense just left as backTo, so on an expense RHP
+        // a backTo pointing to another expense is a sibling, not where the user came from. Return to the current
+        // expense instead, otherwise going back from the linked report lands on that sibling.
+        if (backToRoute?.startsWith(SEARCH_REPORT_ROUTE_PREFIX) && activeRoute.startsWith(SEARCH_REPORT_ROUTE_PREFIX)) {
+            backToRoute = activeRoute;
         }
 
         if (!backToRoute && activeRoute.startsWith(ROUTES.SEARCH_ROOT.route)) {
