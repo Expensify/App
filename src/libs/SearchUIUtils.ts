@@ -3490,7 +3490,7 @@ function doGroupsSpanMultipleYears(data: OnyxTypes.SearchResults['data']): boole
 }
 
 function getYearOfDate(date: string): number {
-    return getYear(parse(date, 'yyyy-MM-dd', new Date()));
+    return getYear(parse(date, CONST.DATE.FNS_FORMAT_STRING, new Date()));
 }
 
 /**
