@@ -6,12 +6,14 @@ import type {ValueOf} from 'type-fest';
 
 import {
     arePaymentsEnabled,
-    canAdminPayReport,
+    canMemberWrite,
+    getReimbursementChoice,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
     isArchivedOrPendingDeletePolicy,
+    isGroupPolicy,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
@@ -22,6 +24,7 @@ import {
     getParentReport,
     hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
+    hasSettledZeroReimbursableSpend,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -137,7 +140,11 @@ function canPay(
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
 
     // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
-    const canPayReport = isReportPayer || canAdminPayReport(policy, currentUserLogin);
+    const canPayReport =
+        isReportPayer ||
+        (isGroupPolicy(policy) &&
+            getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
@@ -145,7 +152,8 @@ function canPay(
     const isApproved = isReportApproved({report}) || isSubmittedWithoutApprovalsEnabled;
     const isClosed = isClosedReport(report);
     const isReportFinished = (isApproved || isClosed) && !report.isWaitingOnBankAccount;
-    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const spendBreakdown = getMoneyRequestSpendBreakdown(report);
+    const {reimbursableSpend, nonReimbursableSpend} = spendBreakdown;
     const isReimbursed = isSettled(report);
 
     const isExported = report.isExportedToIntegration ?? false;
@@ -157,7 +165,9 @@ function canPay(
         canPayReport &&
         isPaymentsEnabled &&
         isReportFinished &&
-        (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
+        (reimbursableSpend !== 0 ||
+            hasSettledZeroReimbursableSpend(spendBreakdown, report, transactions) ||
+            (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
     ) {
         return !didExportFail;
     }

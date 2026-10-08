@@ -14,6 +14,7 @@ import DateUtils from '@libs/DateUtils';
 import type {HydratedPersonalDetailOption, OptionList, Options, PersonalDetailOptionOrShell, SearchOption, SearchOptionData} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
+    clearAlternateTextCache,
     clearFilteredOptionListCache,
     createFilteredOptionList,
     createOption,
@@ -867,6 +868,10 @@ describe('OptionsListUtils', () => {
 
         // createFilteredOptionList caches results at module level; clear it so tests stay order-independent.
         clearFilteredOptionListCache();
+
+        // The chat-preview cache is also module level, and its guarded inputs can survive Onyx.clear(),
+        // so reset it the same way to keep cases order-independent.
+        clearAlternateTextCache();
 
         // Onyx.clear() models sign-out and empties PERSONAL_DETAILS_LIST. Report-holder option text
         // resolves via ReportUtils.allPersonalDetails (the live connect), so restore the list the
@@ -5874,9 +5879,10 @@ describe('OptionsListUtils', () => {
     describe('Alternative text', () => {
         it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
             renderLocaleContextProvider();
-            // When we set the preferred locale to English and create an ADD_COMMENT report action
+            // Given the English locale, report 10 in Onyx (the preview reads it from there) and an ADD_COMMENT report action
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
+                [`${ONYXKEYS.COLLECTION.REPORT}10` as const]: REPORTS?.['10'],
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}10` as const]: {
                     '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
                 },
@@ -5903,9 +5909,25 @@ describe('OptionsListUtils', () => {
                 undefined,
             ).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
+            const alternateText = archivedReport
+                ? getAlternateText(
+                      archivedReport,
+                      {showChatPreviewLine: true},
+                      {
+                          isReportArchived: true,
+                          personalDetails: PERSONAL_DETAILS,
+                          dateFnsLocale: undefined,
+                          convertToDisplayString,
+                          conciergeReportID: undefined,
+                          translate: translateLocal,
+                          currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                          rules: undefined,
+                      },
+                  )
+                : undefined;
 
-            // Then the returned report should contain default archived reason
-            expect(archivedReport?.lastMessageText).toBe('This chat room has been archived.');
+            // Then the chat preview shows the default archived reason without an actor prefix
+            expect(alternateText).toBe('This chat room has been archived.');
         });
     });
 
@@ -5946,11 +5968,30 @@ describe('OptionsListUtils', () => {
             ...overrides,
         });
 
-        const buildAction = (actionName: Parameters<typeof getFakeAdvancedReportAction>[0], actorAccountID = 3, originalMessage?: Record<string, unknown>): ReportAction =>
+        const buildAction = (
+            actionName: Parameters<typeof getFakeAdvancedReportAction>[0],
+            actorAccountID = 3,
+            originalMessage?: Record<string, unknown>,
+            messageText?: string,
+        ): ReportAction =>
             ({
                 ...getFakeAdvancedReportAction(actionName),
                 actorAccountID,
                 ...(originalMessage === undefined ? {} : {originalMessage}),
+                ...(messageText === undefined
+                    ? {}
+                    : {
+                          message: [
+                              {
+                                  type: 'COMMENT',
+                                  html: messageText,
+                                  text: messageText,
+                                  isEdited: false,
+                                  whisperedTo: [],
+                                  isDeletedParentAction: false,
+                              },
+                          ],
+                      }),
             }) as ReportAction;
 
         const setReport = async (report: Report) => {
@@ -5960,7 +6001,7 @@ describe('OptionsListUtils', () => {
 
         type AlternateTextConfig = Parameters<typeof getAlternateText>[2];
 
-        const buildConfig = (lastAction?: ReportAction, reportID: string = ROOM_REPORT_ID, overrides: Partial<AlternateTextConfig> = {}): AlternateTextConfig => ({
+        const buildConfig = (overrides: Partial<AlternateTextConfig> = {}): AlternateTextConfig => ({
             isReportArchived: false,
             personalDetails: PERSONAL_DETAILS,
             dateFnsLocale: undefined,
@@ -5969,209 +6010,386 @@ describe('OptionsListUtils', () => {
             translate: translateLocal,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             rules: undefined,
-            ...(lastAction ? {sortedActions: {[reportID]: [lastAction]}} : {}),
             ...overrides,
         });
+
+        const seedActions = async (reportID: string, ...actions: ReportAction[]) => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, Object.fromEntries(actions.map((action) => [action.reportActionID, action])));
+            await waitForBatchedUpdates();
+        };
 
         it('should keep the raw comment text when the last action is ADD_COMMENT', async () => {
             // Given a DM whose last action is a plain comment containing markup typed by the user
             const report = buildDMReport({lastMessageText: '<b>test</b>'});
             await setReport(report);
-            const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
+            const option: OptionData = {
+                reportID: DM_REPORT_ID,
+                keyForList: '',
+                lastMessageText: '<b>test</b>',
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             // Then the markup is preserved as typed (https://github.com/Expensify/App/issues/82036)
             expect(result).toBe('<b>test</b>');
         });
 
-        it('should strip HTML from the last message when the last action is not ADD_COMMENT', async () => {
-            // Given a DM whose last action is not a comment, so the last message is server-built HTML
-            const report = buildDMReport({lastMessageText: '<b>test</b>', lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED});
+        it('should fall back to the raw report lastMessageText when no last action is available', async () => {
+            // Given a report whose actions are not loaded, so only report.lastMessageText is available
+            const report = buildDMReport({
+                lastMessageText: '<b>test</b>',
+                lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+            });
             await setReport(report);
-            const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
+            const option: OptionData = {
+                reportID: DM_REPORT_ID,
+                keyForList: '',
+                lastMessageText: '<b>test</b>',
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
+            // Then the stored text is returned untouched, which is what the LHN shows for the same report
+            expect(result).toBe('<b>test</b>');
+        });
+
+        it('should strip HTML from the last message when the last action is not ADD_COMMENT', async () => {
+            // Given a report whose last action is not a comment and carries HTML in its message
+            const reportID = '9251';
+            await setReport(
+                buildDMReport({
+                    reportID,
+                    lastMessageText: '<b>test</b>',
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                }),
+            );
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.HOLD, 3, undefined, '<b>test</b>'));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+            };
+
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+
+            // Then the markup is stripped (https://github.com/Expensify/App/issues/82036)
             expect(result).toBe('test');
         });
 
         it('should prefix the room preview with the last actor display name', async () => {
-            await setReport(buildRoomReport());
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+            const reportID = '9351';
+            await setReport(buildRoomReport({reportID}));
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'hello',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('Spider-Man: hello');
         });
 
         it('should use "You" as the prefix when the current user sent the last message', async () => {
-            await setReport(buildRoomReport({lastActorAccountID: CURRENT_USER_ACCOUNT_ID}));
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CURRENT_USER_ACCOUNT_ID);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+            const reportID = '9352';
+            await setReport(
+                buildRoomReport({
+                    reportID,
+                    lastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+                }),
+            );
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CURRENT_USER_ACCOUNT_ID, undefined, 'hello'));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'hello',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('You: hello');
         });
 
-        it('should omit the actor prefix when the report is archived', async () => {
-            await setReport(buildRoomReport());
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+        it('should show the archive reason without an actor prefix when the report is archived', async () => {
+            const reportID = '9353';
+            await setReport(buildRoomReport({reportID}));
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: '',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {isReportArchived: true}));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({isReportArchived: true}));
 
-            expect(result).toBe('hello');
+            expect(result).toBe('This chat room has been archived.');
         });
 
-        it('should omit the actor prefix when currentUserAccountID is undefined', async () => {
-            await setReport(buildRoomReport());
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+        it('should keep the actor prefix when currentUserAccountID is undefined', async () => {
+            const reportID = '9354';
+            await setReport(buildRoomReport({reportID}));
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'hello',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {currentUserAccountID: undefined}));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({currentUserAccountID: undefined}));
 
-            expect(result).toBe('hello');
+            expect(result).toBe('Spider-Man: hello');
         });
 
         it('should omit the actor prefix when the last action is a report preview', async () => {
-            await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, lastMessageText: 'owes $10'}));
-            const preview = buildAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, 3);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'owes $10', isChatRoom: true};
+            const reportID = '9355';
+            await setReport(
+                buildRoomReport({
+                    reportID,
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    lastMessageText: 'owes $10',
+                }),
+            );
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, 3, undefined, 'owes $10'));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'owes $10',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(preview));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('owes $10');
         });
 
         it('should fall back to the report action person text when the actor is missing from personal details', async () => {
-            await setReport(buildRoomReport({lastActorAccountID: 999}));
+            const reportID = '9356';
+            await setReport(buildRoomReport({reportID, lastActorAccountID: 999}));
             // The fake action carries person: [{text: 'Email One'}] and account 999 is not in PERSONAL_DETAILS
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 999);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 999, undefined, 'hello'));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'hello',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('Email One: hello');
         });
 
         it('should replace the preview with the rename message for a RENAMED last action', async () => {
-            await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED, lastMessageText: 'renamed this room'}));
-            const renamed = buildAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, 3, {oldName: 'Old Room', newName: 'New Room'});
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'renamed this room', isChatRoom: true};
+            const reportID = '9357';
+            await setReport(
+                buildRoomReport({
+                    reportID,
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                    lastMessageText: 'renamed this room',
+                }),
+            );
+            await seedActions(
+                reportID,
+                buildAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, 3, {
+                    oldName: 'Old Room',
+                    newName: 'New Room',
+                }),
+            );
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'renamed this room',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(renamed));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('Spider-Man renamed this room to "New Room" (previously "Old Room")');
         });
 
         it('should replace the preview with the leave message for a room LEAVE_ROOM last action', async () => {
-            await setReport(buildRoomReport({lastMessageText: 'left the chat'}));
-            const leave = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM, 3);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'left the chat', isChatRoom: true};
+            const reportID = '9358';
+            await setReport(buildRoomReport({reportID, lastMessageText: 'left the chat'}));
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM, 3));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'left the chat',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(leave));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('Spider-Man: left the chat');
         });
 
         it('should prefix the action message with the actor for a policy LEAVE_ROOM last action', async () => {
-            await setReport(buildRoomReport({lastMessageText: 'left the workspace'}));
+            const reportID = '9359';
+            await setReport(buildRoomReport({reportID, lastMessageText: 'left the workspace'}));
             // The fake action's message text is 'hey'
-            const leave = buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM, 3);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'left the workspace', isChatRoom: true};
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM, 3));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'left the workspace',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(leave));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('Spider-Man: hey');
         });
 
         it('should build the invite message with member count and room name', async () => {
-            await setReport(buildRoomReport({lastMessageText: 'invited'}));
-            const invite = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: [4, 5], roomName: '#galaxy'});
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'invited', isChatRoom: true};
+            const reportID = '9360';
+            await setReport(buildRoomReport({reportID, lastMessageText: 'invited'}));
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: [4, 5], roomName: '#galaxy'}));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'invited',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(invite));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('Spider-Man: invited 2 members to #galaxy');
         });
 
         it('should build the remove message with a singular member and room name', async () => {
-            await setReport(buildRoomReport({lastMessageText: 'removed'}));
-            const remove = buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM, 3, {targetAccountIDs: [4], roomName: '#galaxy'});
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'removed', isChatRoom: true};
+            const reportID = '9361';
+            await setReport(buildRoomReport({reportID, lastMessageText: 'removed'}));
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM, 3, {targetAccountIDs: [4], roomName: '#galaxy'}));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'removed',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(remove));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('Spider-Man: removed 1 member from #galaxy');
         });
 
         it('should count invited members from lastMessageHtml mentions when targetAccountIDs is empty', async () => {
+            const reportID = '9362';
             await setReport(
                 buildRoomReport({
+                    reportID,
                     lastMessageText: 'invited',
                     lastMessageHtml: '<mention-user accountID="4"></mention-user> <mention-user accountID="5"></mention-user>',
                 }),
             );
-            const invite = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: []});
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'invited', isChatRoom: true};
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: []}));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'invited',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(invite));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('Spider-Man: invited 2 members');
         });
 
-        it.each([CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.RETRACTED])(
-            'should suppress the actor prefix for %s because its text already embeds the actor',
-            async (actionName) => {
-                await setReport(buildRoomReport({lastActionType: actionName, lastMessageText: 'issued a new card'}));
-                const action = buildAction(actionName, 3);
-                const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'issued a new card', isChatRoom: true};
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, 'issued @Hidden an Expensify Card! The card will arrive in 2-3 business days.'],
+            [CONST.REPORT.ACTIONS.TYPE.RETRACTED, 'retracted'],
+        ])('should suppress the actor prefix for %s because its text already embeds the actor', async (actionName, expectedText) => {
+            const reportID = actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED ? '9363' : '9364';
+            await setReport(
+                buildRoomReport({
+                    reportID,
+                    lastActionType: actionName,
+                    lastMessageText: 'issued a new card',
+                }),
+            );
+            await seedActions(reportID, buildAction(actionName, 3));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'issued a new card',
+                isChatRoom: true,
+            };
 
-                const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
-                expect(result).toBe('issued a new card');
-            },
-        );
+            expect(result).toBe(expectedText);
+        });
 
-        it('should skip whisper actions when picking the last visible action from sortedActions', async () => {
-            await setReport(buildRoomReport());
+        it('should skip whisper actions when picking the last visible action', async () => {
+            const reportID = '9365';
+            await setReport(buildRoomReport({reportID}));
             // getWhisperedTo prefers message.whisperedTo over originalMessage, so mark the whisper there
             const whisper = {
                 ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 4),
-                message: [{type: 'COMMENT', html: 'psst', text: 'psst', isEdited: false, whisperedTo: [999], isDeletedParentAction: false}],
+                reportActionID: '2',
+                created: '2024-01-02 10:00:00.000',
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'psst',
+                        text: 'psst',
+                        isEdited: false,
+                        whisperedTo: [999],
+                        isDeletedParentAction: false,
+                    },
+                ],
             } as ReportAction;
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+            const comment = {
+                ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'),
+                reportActionID: '1',
+                created: '2024-01-01 10:00:00.000',
+            } as ReportAction;
+            await seedActions(reportID, whisper, comment);
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'hello',
+                isChatRoom: true,
+            };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, ROOM_REPORT_ID, {sortedActions: {[ROOM_REPORT_ID]: [whisper, comment]}}));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(result).toBe('Spider-Man: hello');
         });
 
-        it('should resolve the same last action from Onyx when sortedActions is not provided', async () => {
-            // Dedicated reportID: module-level report-action caches survive Onyx.clear(), so writing
-            // REPORT_ACTIONS for the shared room would poison later tests that reuse its reportID.
-            const onyxRoomReportID = '9150';
-            await setReport(buildRoomReport({reportID: onyxRoomReportID}));
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onyxRoomReportID}`, {[comment.reportActionID]: comment});
-            await waitForBatchedUpdates();
-            const option: OptionData = {reportID: onyxRoomReportID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
+        it('should resolve the last action from the live report-action collection', async () => {
+            const reportID = '9150';
+            await setReport(buildRoomReport({reportID}));
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'hello',
+                isChatRoom: true,
+            };
 
-            const withSortedActions = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, onyxRoomReportID));
-            const fromOnyx = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, onyxRoomReportID));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
-            expect(fromOnyx).toBe('Spider-Man: hello');
-            expect(fromOnyx).toBe(withSortedActions);
+            expect(result).toBe('Spider-Man: hello');
         });
 
         it('should fall back to type subtitles when showChatPreviewLine is false', async () => {
             await setReport(buildRoomReport());
-            const roomOption: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true, subtitle: 'Custom subtitle'};
-            const threadOption: OptionData = {reportID: '', keyForList: '', isThread: true};
+            const roomOption: OptionData = {
+                reportID: ROOM_REPORT_ID,
+                keyForList: '',
+                lastMessageText: 'hello',
+                isChatRoom: true,
+                subtitle: 'Custom subtitle',
+            };
+            const threadOption: OptionData = {
+                reportID: '',
+                keyForList: '',
+                isThread: true,
+            };
 
             expect(getAlternateText(roomOption, {showChatPreviewLine: false}, buildConfig())).toBe('Custom subtitle');
             expect(getAlternateText(threadOption, {showChatPreviewLine: false}, buildConfig())).toBe(translateLocal('threads.thread'));
@@ -6179,13 +6397,14 @@ describe('OptionsListUtils', () => {
 
         it('should thread currentUserAccountID through getValidOptions to build the actor prefix', async () => {
             // Given a room whose last visible action is a comment from another user
-            const report = buildRoomReport();
+            const reportID = '9366';
+            const report = buildRoomReport({reportID});
             await setReport(report);
-            const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
+            await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
 
             const optionList = createFilteredOptionList(
                 PERSONAL_DETAILS,
-                {[ROOM_REPORT_ID]: report},
+                {[reportID]: report},
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
@@ -6214,25 +6433,35 @@ describe('OptionsListUtils', () => {
                     showChatPreviewLine: true,
                     includeMultipleParticipantReports: true,
                     personalDetails: PERSONAL_DETAILS,
-                    sortedActions: {[ROOM_REPORT_ID]: [comment]},
                 },
                 translateLocal,
                 undefined,
             );
 
             // Then the search option preview matches the LHN format: `Name: message`
-            const roomOption = options.recentReports.find((option) => option.reportID === ROOM_REPORT_ID);
+            const roomOption = options.recentReports.find((option) => option.reportID === reportID);
             expect(roomOption?.alternateText).toBe('Spider-Man: hello');
         });
 
         it('should match the LHN alternate text from SidebarUtils.getOptionData for the same room and last action', async () => {
-            const report = buildRoomReport();
+            const reportID = '9367';
+            const report = buildRoomReport({reportID});
             await setReport(report);
             // Align the action's own message with report.lastMessageText — the LHN reads the former, search options the latter
             const comment = {
                 ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3),
-                message: [{type: 'COMMENT', html: 'hello', text: 'hello', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hello',
+                        text: 'hello',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
             } as ReportAction;
+            await seedActions(reportID, comment);
 
             const lhnOption = SidebarUtils.getOptionData({
                 rules: undefined,
@@ -6259,8 +6488,13 @@ describe('OptionsListUtils', () => {
                 formatPhoneNumber,
             });
 
-            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
-            const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+                lastMessageText: 'hello',
+                isChatRoom: true,
+            };
+            const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             expect(lhnOption?.alternateText).toBe('Spider-Man: hello');
             expect(searchAlternateText).toBe(lhnOption?.alternateText);
@@ -6271,12 +6505,26 @@ describe('OptionsListUtils', () => {
             async (actionName) => {
                 // Given a room whose last action is a policy change log action that has no custom
                 // alternate text branch in SidebarUtils.getOptionData, so the LHN shows `Name: message`
-                const report = buildRoomReport({lastMessageText: 'updated a custom unit'});
+                const reportID = actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT ? '9368' : '9369';
+                const report = buildRoomReport({
+                    reportID,
+                    lastMessageText: 'updated a custom unit',
+                });
                 await setReport(report);
                 const action = {
                     ...buildAction(actionName, 3),
-                    message: [{type: 'COMMENT', html: 'updated a custom unit', text: 'updated a custom unit', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'updated a custom unit',
+                            text: 'updated a custom unit',
+                            isEdited: false,
+                            whisperedTo: [],
+                            isDeletedParentAction: false,
+                        },
+                    ],
                 } as ReportAction;
+                await seedActions(reportID, action);
 
                 const lhnOption = SidebarUtils.getOptionData({
                     rules: undefined,
@@ -6303,8 +6551,13 @@ describe('OptionsListUtils', () => {
                     formatPhoneNumber,
                 });
 
-                const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'updated a custom unit', isChatRoom: true};
-                const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
+                const option: OptionData = {
+                    reportID,
+                    keyForList: '',
+                    lastMessageText: 'updated a custom unit',
+                    isChatRoom: true,
+                };
+                const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
                 expect(lhnOption?.alternateText).toBe('Spider-Man: updated a custom unit');
                 expect(searchAlternateText).toBe(lhnOption?.alternateText);
@@ -6356,22 +6609,37 @@ describe('OptionsListUtils', () => {
                 reportActionID: '9402',
                 reportID: TRANSACTION_THREAD_REPORT_ID,
                 created: '2024-01-02 10:00:00.000',
-                message: [{type: 'COMMENT', html: 'thread comment', text: 'thread comment', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'thread comment',
+                        text: 'thread comment',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
             };
 
             // Reports must exist before the report actions merge so the one-transaction thread caches resolve the thread ID
             await setReport(expenseReport);
             await setReport(transactionThreadReport);
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`]: {[iouAction.reportActionID]: iouAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`]: {
+                    [iouAction.reportActionID]: iouAction,
+                },
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TRANSACTION_THREAD_REPORT_ID}`]: {[threadComment.reportActionID]: threadComment},
             });
             await waitForBatchedUpdates();
 
-            const option: OptionData = {reportID: EXPENSE_REPORT_ID, keyForList: '', lastMessageText: 'thread comment', isMoneyRequestReport: true};
+            const option: OptionData = {
+                reportID: EXPENSE_REPORT_ID,
+                keyForList: '',
+                lastMessageText: 'thread comment',
+                isMoneyRequestReport: true,
+            };
 
-            // When the alternate text is built without sortedActions, forcing the fallback last-action lookup
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, EXPENSE_REPORT_ID));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
 
             // Then the actor prefix comes from the transaction thread comment, not from the parent report's IOU action
             expect(result).toBe('Spider-Man: thread comment');
@@ -7668,6 +7936,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with isSelfDM and alternateText set
@@ -7700,6 +7969,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with invoice room text and alternateText
@@ -7734,6 +8004,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with unknownUserDetails data
@@ -7767,6 +8038,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with workspace name
@@ -7808,6 +8080,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should use the custom personalDetails parameter
@@ -7837,6 +8110,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should not throw and return a valid option
@@ -7861,6 +8135,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return a valid option (createOption handles undefined)
@@ -8049,6 +8324,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe('Test Workspace');
@@ -8091,6 +8367,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: ownerAccountID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
@@ -8156,6 +8433,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe('Test Workspace with Submit');
@@ -8190,6 +8468,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -8242,6 +8521,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // The option.isSelfDM is set by createOption based on the report type
@@ -8288,6 +8568,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isInvoiceRoom).toBe(true);
@@ -8341,6 +8622,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe(POLICY.name);
@@ -8395,6 +8677,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -8425,6 +8708,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBeFalsy();
@@ -8452,6 +8736,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -8483,6 +8768,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBeFalsy();
@@ -8517,6 +8803,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8552,6 +8839,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8584,6 +8872,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8620,6 +8909,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8656,6 +8946,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8690,6 +8981,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isSelected).toBe(true);
@@ -8722,6 +9014,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8755,6 +9048,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8802,6 +9096,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8875,6 +9170,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8911,6 +9207,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8944,6 +9241,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9005,6 +9303,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9038,6 +9337,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9068,6 +9368,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9116,6 +9417,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9147,6 +9449,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             const optionWithoutConcierge = getReportOption({
                 participant,
@@ -9159,6 +9462,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Both should produce the same result since the IDs don't match
@@ -10706,6 +11010,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then the option should be created successfully using the reports collection
@@ -10791,6 +11096,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions: undefined,
                 conciergeReportID: report.reportID,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(conciergeOption.subtitle).toBe(translateLocal('reportActionsView.conciergeSupport'));
 
@@ -10806,6 +11112,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions: undefined,
                 conciergeReportID: 'a-different-report-id',
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(regularOption.subtitle).not.toBe(translateLocal('reportActionsView.conciergeSupport'));
         });
@@ -10838,6 +11145,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -10873,6 +11181,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -10907,6 +11216,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -10941,6 +11251,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -10977,6 +11288,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 config,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -11016,6 +11328,7 @@ describe('OptionsListUtils', () => {
                 policy: POLICY,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             const personalDetailsOption = createOptionFromReport({
                 dateFnsLocale: undefined,
@@ -11029,6 +11342,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 config: {showPersonalDetails: true},
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(roomOption.text).toBe('#admins');
@@ -11079,6 +11393,7 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     config: {showChatPreviewLine: true},
                     convertToDisplayString,
+                    pendingDeleteMemberAccountIDs: undefined,
                 };
             };
 
@@ -11858,6 +12173,7 @@ describe('OptionsListUtils', () => {
                 policy: POLICY,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
@@ -11891,6 +12207,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
@@ -12804,6 +13121,42 @@ describe('OptionsListUtils', () => {
             // The non-search path caches its result, so the pending deletions have to be part of the cache inputs.
             expect(buildGroupChatOption(undefined, false)?.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
             expect(buildGroupChatOption({[GROUP_CHAT_REPORT_ID]: ['4']}, false)?.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
+        });
+    });
+
+    describe('single report options with members pending removal', () => {
+        it('leaves the members pending removal out of the group chat icon', () => {
+            // Given a group chat with no custom name, so its avatar label is built from the participants,
+            // and one of those members is pending removal
+            const groupChatReport: Report = {
+                reportID: '9002',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                reportName: '',
+                participants: {
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            // When the option is built with that member passed as pending removal
+            const option = createOptionFromReport({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                report: groupChatReport,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                rules: undefined,
+                policy: undefined,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                pendingDeleteMemberAccountIDs: ['4'],
+            });
+
+            // Then the avatar label names only the members that are staying
+            expect(option.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
         });
     });
 });
