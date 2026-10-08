@@ -95,7 +95,7 @@ Learn how to [configure Campfire export settings](/articles/new-expensify/connec
 
 ## Why don't I see Export to Campfire on a report?
 
-The report may not be approved, paid, or closed yet, or it may already be exported. You also need to be a workspace admin or the preferred exporter.
+The report may not be approved, paid, or closed yet. You also need to be a workspace admin or the preferred exporter. If the report was already exported, you can still select **Export to Campfire** from **More > Export**, and Expensify asks you to confirm before exporting it again.
 
 ## Why don't I see Export to Campfire at the top of a report?
 
