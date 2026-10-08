@@ -632,7 +632,7 @@ describe('MoneyRequestView edit fields', () => {
 
         // Then the tax amount keeps the negative sign instead of being shown as an absolute value
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-title-iou.taxAmount')).toHaveTextContent('USD-95');
+            expect(screen.getByLabelText('iou.taxAmount, USD-95')).toBeOnTheScreen();
         });
     });
 
