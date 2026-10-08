@@ -82,8 +82,10 @@ function BulkActionBarContent<TValueType>({
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
+    const isFocused = useIsFocused();
+
     const barElementRef = useRef<ComponentRef<typeof View> | null>(null);
-    const {suppressStrayFocusRing, isFocusInsideBar} = useBulkActionBarFocus(barElementRef);
+    const {suppressStrayFocusRing, isFocusInsideBar} = useBulkActionBarFocus(barElementRef, isFocused);
 
     const moreAnchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
@@ -99,7 +101,6 @@ function BulkActionBarContent<TValueType>({
     // reports itself visible too, and is told apart by the screen still being focused. The type is not worth reading
     // here, because a popover opened and closed over an RHP leaves it stale at `popover`.
     const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const isFocused = useIsFocused();
     const isCoveredByModal = !!modal?.isVisible && !isFocused;
 
     const canOwnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;

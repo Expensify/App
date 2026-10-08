@@ -1,5 +1,6 @@
 import isHTMLElement from '@libs/isHTMLElement';
 import markProgrammaticFocus from '@libs/programmaticFocus';
+import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
@@ -18,7 +19,7 @@ function isShowingFocusRing(element: HTMLElement): boolean {
 }
 
 /** Tracks where focus is relative to the bar, and hands it back when the bar goes away holding it. */
-const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef) => {
+const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isScreenFocused) => {
     // Where focus was before the bar took it. The bar goes away with the selection, so focus has to be handed back.
     const lastFocusedOutsideRef = useRef<HTMLElement | null>(null);
 
@@ -38,6 +39,13 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef) => {
             }
 
             setIsFocusInsideBar(false);
+
+            // A screen opened over this one, such as the role screen, takes focus to controls that leave with it.
+            // Remembering one of those would leave the bar holding a target that is already gone when it needs one.
+            if (!isScreenFocused) {
+                return;
+            }
+
             lastFocusedOutsideRef.current = target;
         };
 
@@ -57,7 +65,7 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef) => {
             document.removeEventListener('focusin', handleFocusIn);
             document.removeEventListener('focusout', handleFocusOut);
         };
-    }, [barRef]);
+    }, [barRef, isScreenFocused]);
 
     // Most of the bar's actions clear the selection themselves, so the bar is torn out from under the button that was
     // just pressed and focus would fall to the document. Handing it back here covers every one of those actions,
@@ -66,7 +74,13 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef) => {
     useLayoutEffect(
         () => () => {
             const bar = barRef.current;
-            if (!isHTMLElement(bar) || !bar.contains(document.activeElement)) {
+            const active = document.activeElement;
+
+            // An action run from a screen opened over the table clears the selection from there, so the bar is gone
+            // before that screen hands its own focus back and there is nothing left for it to hand back to. Focus has
+            // already fallen to the document by then, which is the same loss as the bar being torn out from under it.
+            const hasFocusFallenToDocument = !active || active === document.body;
+            if (!hasFocusFallenToDocument && !(isHTMLElement(bar) && bar.contains(active))) {
                 return;
             }
 
@@ -75,9 +89,9 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef) => {
                 return;
             }
 
-            // Focus is being put back where the user left it rather than moved somewhere new, so it arrives without a ring.
-            markProgrammaticFocus(previous);
-            previous.focus();
+            // The screen that cleared the selection may still be unwinding its focus trap, which would otherwise pull
+            // focus straight back into the container it is closing.
+            restoreFocusWithModality(previous);
         },
         [barRef],
     );

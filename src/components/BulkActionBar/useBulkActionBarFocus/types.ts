@@ -11,6 +11,10 @@ type BulkActionBarFocus = {
     isFocusInsideBar: boolean;
 };
 
-type UseBulkActionBarFocus = (barRef: RefObject<unknown>) => BulkActionBarFocus;
+/**
+ * `isScreenFocused` is false while a screen is open over the one the bar is on, which is how focus taken by that
+ * screen is told apart from focus still on the table behind it.
+ */
+type UseBulkActionBarFocus = (barRef: RefObject<unknown>, isScreenFocused: boolean) => BulkActionBarFocus;
 
 export default UseBulkActionBarFocus;
