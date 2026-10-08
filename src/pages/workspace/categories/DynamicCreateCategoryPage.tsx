@@ -13,6 +13,7 @@ import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasTags} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -61,7 +62,7 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             createPolicyCategory({
                 policyID: route.params.policyID,
-                categoryName: values.categoryName.trim(),
+                categoryName: StringUtils.sanitizeName(values.categoryName),
                 isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
