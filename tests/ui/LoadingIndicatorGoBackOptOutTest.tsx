@@ -152,7 +152,7 @@ describe('FullScreenLoadingIndicator "Go Back" opt-outs', () => {
             // When the sign-in takes longer than the loader timeout
             await waitPastLoaderTimeout();
 
-            // Then no "Go Back" is drawn — there is no history to pop on a cold deep link
+            // Then no "Go Back" is drawn. There is no history to pop on a cold deep link.
             expectNoGoBackButton();
         });
 
@@ -200,7 +200,7 @@ describe('FullScreenLoadingIndicator "Go Back" opt-outs', () => {
             // When the hand-off takes longer than the loader timeout
             await waitPastLoaderTimeout();
 
-            // Then no "Go Back" is drawn — /transition is a deep-link entry point with nothing behind it
+            // Then no "Go Back" is drawn. /transition is a deep-link entry point with nothing behind it.
             expectNoGoBackButton();
         });
 
@@ -221,7 +221,7 @@ describe('FullScreenLoadingIndicator "Go Back" opt-outs', () => {
             // When the sign-out takes longer than the loader timeout
             await waitPastLoaderTimeout();
 
-            // Then no "Go Back" is drawn — popping /transition mid sign-out would land in the outgoing session
+            // Then no "Go Back" is drawn. Popping /transition mid sign-out would land in the outgoing session.
             expectNoGoBackButton();
         });
 
