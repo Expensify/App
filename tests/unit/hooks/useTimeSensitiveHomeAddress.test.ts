@@ -17,6 +17,7 @@ const POLICY_ID = '1';
 function makeHomeAndOfficePolicy(isOfficeWorkArrangement?: boolean, hasOfficeWorkArrangement?: boolean): Policy {
     return {
         ...createRandomPolicy(Number(POLICY_ID)),
+        areDistanceRatesEnabled: true,
         commuterExclusions: {
             method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
             ...(isOfficeWorkArrangement === undefined ? {} : {isOfficeWorkArrangement}),
