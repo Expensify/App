@@ -57,11 +57,6 @@ jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     payMoneyRequest: jest.fn(),
 }));
 
-jest.mock('@userActions/IOU/ReportWorkflow', () => ({
-    __esModule: true,
-    canIOUBePaid: jest.fn(() => true),
-}));
-
 const mockLogInfo = jest.fn();
 jest.mock('@libs/Log', () => ({
     __esModule: true,
@@ -86,6 +81,7 @@ jest.mock('@libs/ReportUtils', () => {
     return {
         ...actual,
         __esModule: true,
+        canIOUBePaid: jest.fn(() => true),
         isInvoiceReport: jest.fn(() => true),
         isIndividualInvoiceRoom: jest.fn(() => false),
         getReimbursableTotal: jest.fn(() => 5000),
@@ -105,7 +101,6 @@ jest.mock('@hooks/usePaymentContext', () => ({
         email: 'payer@test.com',
         localCurrencyCode: 'USD',
         introSelected: undefined,
-        betas: [],
         isASAPSubmitBetaEnabled: false,
         isSelfTourViewed: false,
         userBillingGracePeriodEnds: undefined,

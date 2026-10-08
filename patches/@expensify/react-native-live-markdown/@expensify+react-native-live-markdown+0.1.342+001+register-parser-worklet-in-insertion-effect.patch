@@ -1,0 +1,861 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp b/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp
+index 4edd28e..c98baa7 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp
+@@ -11,11 +11,15 @@ namespace livemarkdown {
+       jni::alias_ref<jhybridobject> jThis,
+       jni::alias_ref<jni::JString> text,
+       const int parserId) {
++    const auto markdownWorklet = expensify::livemarkdown::findMarkdownWorklet(parserId);
++    if (markdownWorklet == nullptr) {
++      // Null tells the Java side apart from a parser that returned no ranges.
++      return nullptr;
++    }
++
+     const auto markdownRuntime = expensify::livemarkdown::getMarkdownRuntime();
+     jsi::Runtime &rt = markdownRuntime->getJSIRuntime();
+ 
+-    const auto markdownWorklet = expensify::livemarkdown::getMarkdownWorklet(parserId);
+-
+     const auto input = jsi::String::createFromUtf8(rt, text->toStdString());
+     const auto output = markdownRuntime->runGuarded(markdownWorklet, input);
+ 
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownParser.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownParser.java
+index 3e108db..260925b 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownParser.java
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownParser.java
+@@ -1,6 +1,7 @@
+ package com.expensify.livemarkdown;
+ 
+ import androidx.annotation.NonNull;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.ReactContext;
+ import com.facebook.react.util.RNLog;
+@@ -29,7 +30,8 @@ public class MarkdownParser {
+     mReactContext = reactContext;
+   }
+ 
+-  private native String nativeParse(@NonNull String text, int parserId);
++  // Returns null when no parser is registered under `parserId`.
++  private native @Nullable String nativeParse(@NonNull String text, int parserId);
+ 
+   public synchronized List<MarkdownRange> parse(@NonNull String text, int parserId) {
+     try {
+@@ -53,6 +55,13 @@ public class MarkdownParser {
+         Systrace.endSection(0);
+       }
+ 
++      if (json == null) {
++        // The parser is registered before the view is committed, so this points at a broken registration. Leave the
++        // cache alone so the next parse picks the parser up once it is registered.
++        RNLog.w(mReactContext, "[react-native-live-markdown] No parser registered for parserId " + parserId);
++        return Collections.emptyList();
++      }
++
+       List<MarkdownRange> markdownRanges = new LinkedList<>();
+       try {
+         Systrace.beginSection(0, "markdownRanges");
+diff --git a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.h b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.h
+index 1d73622..f506f5f 100644
+--- a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.h
++++ b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.h
+@@ -23,7 +23,9 @@ NS_ASSUME_NONNULL_BEGIN
+ // is parsed as soon as it finishes.
+ //
+ // `completion` runs on the background queue once the text is cached. It is
+-// skipped if a newer call replaced this one, since that call reports instead.
++// skipped if a newer call replaced this one, since that call reports instead,
++// and if no parser is registered under `parserId`, since nothing was cached
++// and a new measure would find nothing either.
+ - (void)warmCacheAsyncForText:(nonnull NSString *)text
+                  withParserId:(nonnull NSNumber *)parserId
+                    completion:(nullable void (^)(void))completion;
+diff --git a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm
+index 89bb209..3c438f7 100644
+--- a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm
++++ b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm
+@@ -171,13 +171,13 @@ - (void)drainPendingWarmups
+       _pendingCompletion = nil;
+     }
+ 
+-    [self parse:text withParserId:parserId];
++    BOOL cached = [self parseIfRegistered:text withParserId:parserId] != nil;
+ 
+     BOOL superseded;
+     @synchronized (self) {
+       superseded = _pendingText != nil;
+     }
+-    if (completion != nil && !superseded) {
++    if (completion != nil && !superseded && cached) {
+       completion();
+     }
+   }
+@@ -185,6 +185,14 @@ - (void)drainPendingWarmups
+ 
+ - (NSArray<MarkdownRange *> *)parse:(nonnull NSString *)text
+                        withParserId:(nonnull NSNumber *)parserId
++{
++  return [self parseIfRegistered:text withParserId:parserId] ?: @[];
++}
++
++// Returns nil when no parser is registered under `parserId`. Nothing is cached
++// then, so the next parse picks the parser up once it is registered.
++- (nullable NSArray<MarkdownRange *> *)parseIfRegistered:(nonnull NSString *)text
++                                            withParserId:(nonnull NSNumber *)parserId
+ {
+   NSArray<MarkdownRange *> *cached = [self cachedRangesForText:text withParserId:parserId];
+   if (cached != nil) {
+@@ -200,25 +208,29 @@ - (void)drainPendingWarmups
+   // Two threads may end up parsing the same text at the same time. That is
+   // fine: they run one after the other and produce the same result.
+   NSArray<MarkdownRange *> *markdownRanges = [self parseUncached:text withParserId:parserId];
++  if (markdownRanges == nil) {
++    return nil;
++  }
+ 
+   [self cacheMarkdownRanges:markdownRanges forText:text withParserId:parserId];
+ 
+   return markdownRanges;
+ }
+ 
+-- (NSArray<MarkdownRange *> *)parseUncached:(nonnull NSString *)text
+-                               withParserId:(nonnull NSNumber *)parserId
++- (nullable NSArray<MarkdownRange *> *)parseUncached:(nonnull NSString *)text
++                                        withParserId:(nonnull NSNumber *)parserId
+ {
++  const auto markdownWorklet = expensify::livemarkdown::findMarkdownWorklet([parserId intValue]);
++  if (markdownWorklet == nullptr) {
++    // The parser is registered before the view is committed, but a queued
++    // warmup may run after it is unregistered on unmount or a parser change.
++    RCTLogWarn(@"[react-native-live-markdown] No parser registered for parserId %@", parserId);
++    return nil;
++  }
++
+   const auto &markdownRuntime = expensify::livemarkdown::getMarkdownRuntime();
+   jsi::Runtime &rt = markdownRuntime->getJSIRuntime();
+ 
+-  std::shared_ptr<SerializableWorklet> markdownWorklet;
+-  try {
+-    markdownWorklet = expensify::livemarkdown::getMarkdownWorklet([parserId intValue]);
+-  } catch (const std::out_of_range &error) {
+-    return @[];
+-  }
+-
+   const auto &input = jsi::String::createFromUtf8(rt, [text UTF8String]);
+ 
+   jsi::Value output;
+diff --git a/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.cpp b/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.cpp
+index 67f93eb..cd16586 100644
+--- a/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.cpp
++++ b/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.cpp
+@@ -19,14 +19,11 @@ std::shared_ptr<WorkletRuntime> getMarkdownRuntime() {
+ 
+ std::unordered_map<int, std::shared_ptr<SerializableWorklet>> globalMarkdownShareableWorklets;
+ std::mutex globalMarkdownShareableWorkletsMutex;
+-int nextParserId = 1;
+ 
+-const int registerMarkdownWorklet(const std::shared_ptr<SerializableWorklet> &markdownWorklet) {
++void registerMarkdownWorklet(const int parserId, const std::shared_ptr<SerializableWorklet> &markdownWorklet) {
+   assert(markdownWorklet != nullptr);
+-  auto parserId = nextParserId++;
+   std::unique_lock<std::mutex> lock(globalMarkdownShareableWorkletsMutex);
+   globalMarkdownShareableWorklets[parserId] = markdownWorklet;
+-  return parserId;
+ }
+ 
+ void unregisterMarkdownWorklet(const int parserId) {
+@@ -34,9 +31,10 @@ void unregisterMarkdownWorklet(const int parserId) {
+   globalMarkdownShareableWorklets.erase(parserId);
+ }
+ 
+-std::shared_ptr<SerializableWorklet> getMarkdownWorklet(const int parserId) {
++std::shared_ptr<SerializableWorklet> findMarkdownWorklet(const int parserId) {
+   std::unique_lock<std::mutex> lock(globalMarkdownShareableWorkletsMutex);
+-  return globalMarkdownShareableWorklets.at(parserId);
++  const auto it = globalMarkdownShareableWorklets.find(parserId);
++  return it == globalMarkdownShareableWorklets.end() ? nullptr : it->second;
+ }
+ 
+ } // namespace livemarkdown
+diff --git a/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.h b/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.h
+index e181726..739d7b6 100644
+--- a/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.h
++++ b/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.h
+@@ -14,11 +14,14 @@ void setMarkdownRuntime(const std::shared_ptr<WorkletRuntime> &markdownWorkletRu
+ 
+ std::shared_ptr<WorkletRuntime> getMarkdownRuntime();
+ 
+-const int registerMarkdownWorklet(const std::shared_ptr<SerializableWorklet> &markdownWorklet);
++// JS picks the id, one per mounted input, so the decorator view can carry it
++// in the same commit that registers the worklet.
++void registerMarkdownWorklet(const int parserId, const std::shared_ptr<SerializableWorklet> &markdownWorklet);
+ 
+ void unregisterMarkdownWorklet(const int parserId);
+ 
+-std::shared_ptr<SerializableWorklet> getMarkdownWorklet(const int parserId);
++// Returns nullptr when nothing is registered under `parserId`.
++std::shared_ptr<SerializableWorklet> findMarkdownWorklet(const int parserId);
+ 
+ } // namespace livemarkdown
+ } // namespace expensify
+diff --git a/node_modules/@expensify/react-native-live-markdown/cpp/RuntimeDecorator.cpp b/node_modules/@expensify/react-native-live-markdown/cpp/RuntimeDecorator.cpp
+index f7ed5f9..211b286 100644
+--- a/node_modules/@expensify/react-native-live-markdown/cpp/RuntimeDecorator.cpp
++++ b/node_modules/@expensify/react-native-live-markdown/cpp/RuntimeDecorator.cpp
+@@ -21,10 +21,11 @@ void injectJSIBindings(jsi::Runtime &rt) {
+   rt.global().setProperty(rt, "jsi_registerMarkdownWorklet", jsi::Function::createFromHostFunction(
+       rt,
+       jsi::PropNameID::forAscii(rt, "jsi_registerMarkdownWorklet"),
+-      1,
++      2,
+       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+-        const auto parserId = registerMarkdownWorklet(extractSerializableOrThrow<SerializableWorklet>(rt, args[0]));
+-        return jsi::Value(parserId);
++        const auto parserId = static_cast<int>(args[0].asNumber());
++        registerMarkdownWorklet(parserId, extractSerializableOrThrow<SerializableWorklet>(rt, args[1]));
++        return jsi::Value::undefined();
+       }));
+ 
+   rt.global().setProperty(rt, "jsi_unregisterMarkdownWorklet", jsi::Function::createFromHostFunction(
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js
+index c582b47..d73a03b 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js
+@@ -4,48 +4,20 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = void 0;
+-exports.getWorkletRuntime = getWorkletRuntime;
++Object.defineProperty(exports, "getWorkletRuntime", {
++  enumerable: true,
++  get: function () {
++    return _workletRuntime.getWorkletRuntime;
++  }
++});
+ var _reactNative = require("react-native");
+ var _react = _interopRequireDefault(require("react"));
+-var _reactNativeWorklets = require("react-native-worklets");
+ var _MarkdownTextInputDecoratorViewNativeComponent = _interopRequireDefault(require("./MarkdownTextInputDecoratorViewNativeComponent.js"));
+-var _NativeLiveMarkdownModule = _interopRequireDefault(require("./NativeLiveMarkdownModule.js"));
+ var _styleUtils = require("./styleUtils.js");
++var _useParserId = _interopRequireDefault(require("./useParserId.js"));
++var _workletRuntime = require("./workletRuntime.js");
+ var _jsxRuntime = require("react/jsx-runtime");
+ function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+-let initialized = false;
+-let workletRuntime;
+-function getWorkletRuntime() {
+-  if (workletRuntime === undefined) {
+-    throw new Error("[react-native-live-markdown] Worklet runtime hasn't been created yet. Please avoid calling `getWorkletRuntime()` in top-level scope. Instead, call `getWorkletRuntime()` directly in `runOnRuntime` arguments list.");
+-  }
+-  return workletRuntime;
+-}
+-function initializeLiveMarkdownIfNeeded() {
+-  if (initialized) {
+-    return;
+-  }
+-  if (_NativeLiveMarkdownModule.default) {
+-    _NativeLiveMarkdownModule.default.install();
+-  }
+-  if (!global.jsi_setMarkdownRuntime) {
+-    throw new Error('[react-native-live-markdown] global.jsi_setMarkdownRuntime is not available');
+-  }
+-  workletRuntime = (0, _reactNativeWorklets.createWorkletRuntime)({
+-    name: 'LiveMarkdownRuntime'
+-  });
+-  global.jsi_setMarkdownRuntime(workletRuntime);
+-  initialized = true;
+-}
+-function registerParser(parser) {
+-  initializeLiveMarkdownIfNeeded();
+-  const serializableWorklet = (0, _reactNativeWorklets.createSerializable)(parser);
+-  const parserId = global.jsi_registerMarkdownWorklet(serializableWorklet);
+-  return parserId;
+-}
+-function unregisterParser(parserId) {
+-  global.jsi_unregisterMarkdownWorklet(parserId);
+-}
+ function processColorsInMarkdownStyle(input) {
+   const output = JSON.parse(JSON.stringify(input));
+   Object.keys(output).forEach(key => {
+@@ -74,12 +46,7 @@ const MarkdownTextInput = /*#__PURE__*/_react.default.forwardRef((props, ref) =>
+   if (workletHash === undefined) {
+     throw new Error('[react-native-live-markdown] `parser` is not a worklet');
+   }
+-  const parserId = _react.default.useMemo(() => {
+-    return registerParser(props.parser);
+-  }, [props.parser]);
+-  _react.default.useEffect(() => {
+-    return () => unregisterParser(parserId);
+-  }, [parserId]);
++  const parserId = (0, _useParserId.default)(props.parser);
+   return /*#__PURE__*/(0, _jsxRuntime.jsx)(_MarkdownTextInputDecoratorViewNativeComponent.default, {
+     style: styles.displayContents,
+     markdownStyle: markdownStyle,
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js.map b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js.map
+index e1ef1aa..95f66bb 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js.map
++++ b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/MarkdownTextInput.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["_reactNative","require","_react","_interopRequireDefault","_reactNativeWorklets","_MarkdownTextInputDecoratorViewNativeComponent","_NativeLiveMarkdownModule","_styleUtils","_jsxRuntime","e","__esModule","default","initialized","workletRuntime","getWorkletRuntime","undefined","Error","initializeLiveMarkdownIfNeeded","NativeLiveMarkdownModule","install","global","jsi_setMarkdownRuntime","createWorkletRuntime","name","registerParser","parser","serializableWorklet","createSerializable","parserId","jsi_registerMarkdownWorklet","unregisterParser","jsi_unregisterMarkdownWorklet","processColorsInMarkdownStyle","input","output","JSON","parse","stringify","Object","keys","forEach","key","obj","prop","endsWith","processColor","processMarkdownStyle","mergeMarkdownStyleWithDefault","MarkdownTextInput","React","forwardRef","props","ref","markdownStyle","useMemo","workletHash","__workletHash","useEffect","jsx","style","styles","displayContents","children","TextInput","StyleSheet","create","display","_default","exports"],"sourceRoot":"../../src","sources":["MarkdownTextInput.tsx"],"mappings":"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","ignoreList":[]}
++{"version":3,"names":["_reactNative","require","_react","_interopRequireDefault","_MarkdownTextInputDecoratorViewNativeComponent","_styleUtils","_useParserId","_workletRuntime","_jsxRuntime","e","__esModule","default","processColorsInMarkdownStyle","input","output","JSON","parse","stringify","Object","keys","forEach","key","obj","prop","endsWith","processColor","processMarkdownStyle","mergeMarkdownStyleWithDefault","MarkdownTextInput","React","forwardRef","props","ref","markdownStyle","useMemo","parser","undefined","Error","workletHash","__workletHash","parserId","useParserId","jsx","style","styles","displayContents","children","TextInput","StyleSheet","create","display","_default","exports"],"sourceRoot":"../../src","sources":["MarkdownTextInput.tsx"],"mappings":";;;;;;;;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AACA,IAAAC,MAAA,GAAAC,sBAAA,CAAAF,OAAA;AAEA,IAAAG,8CAAA,GAAAD,sBAAA,CAAAF,OAAA;AAEA,IAAAI,WAAA,GAAAJ,OAAA;AAGA,IAAAK,YAAA,GAAAH,sBAAA,CAAAF,OAAA;AACA,IAAAM,eAAA,GAAAN,OAAA;AAAmD,IAAAO,WAAA,GAAAP,OAAA;AAAA,SAAAE,uBAAAM,CAAA,WAAAA,CAAA,IAAAA,CAAA,CAAAC,UAAA,GAAAD,CAAA,KAAAE,OAAA,EAAAF,CAAA;AAgBnD,SAASG,4BAA4BA,CAACC,KAAoB,EAAiB;EACzE,MAAMC,MAAM,GAAGC,IAAI,CAACC,KAAK,CAACD,IAAI,CAACE,SAAS,CAACJ,KAAK,CAAC,CAAC;EAEhDK,MAAM,CAACC,IAAI,CAACL,MAAM,CAAC,CAACM,OAAO,CAAEC,GAAG,IAAK;IACnC,MAAMC,GAAG,GAAGR,MAAM,CAACO,GAAG,CAAC;IACvBH,MAAM,CAACC,IAAI,CAACG,GAAG,CAAC,CAACF,OAAO,CAAEG,IAAI,IAAK;MACjC;MACA,IAAI,EAAEA,IAAI,KAAK,OAAO,IAAIA,IAAI,CAACC,QAAQ,CAAC,OAAO,CAAC,CAAC,EAAE;QACjD;MACF;MACAF,GAAG,CAACC,IAAI,CAAC,GAAG,IAAAE,yBAAY,EAACH,GAAG,CAACC,IAAI,CAAC,CAAC;IACrC,CAAC,CAAC;EACJ,CAAC,CAAC;EAEF,OAAOT,MAAM;AACf;AAEA,SAASY,oBAAoBA,CAACb,KAAuC,EAAiB;EACpF,OAAOD,4BAA4B,CAAC,IAAAe,yCAA6B,EAACd,KAAK,CAAC,CAAC;AAC3E;AAEA,MAAMe,iBAAiB,gBAAGC,cAAK,CAACC,UAAU,CAA4C,CAACC,KAAK,EAAEC,GAAG,KAAK;EACpG,MAAMC,aAAa,GAAGJ,cAAK,CAACK,OAAO,CAAC,MAAMR,oBAAoB,CAACK,KAAK,CAACE,aAAa,CAAC,EAAE,CAACF,KAAK,CAACE,aAAa,CAAC,CAAC;EAE3G,IAAIF,KAAK,CAACI,MAAM,KAAKC,SAAS,EAAE;IAC9B,MAAM,IAAIC,KAAK,CAAC,oDAAoD,CAAC;EACvE;;EAEA;EACA,MAAMC,WAAW,GAAIP,KAAK,CAACI,MAAM,CAA8BI,aAAa;EAC5E,IAAID,WAAW,KAAKF,SAAS,EAAE;IAC7B,MAAM,IAAIC,KAAK,CAAC,wDAAwD,CAAC;EAC3E;EAEA,MAAMG,QAAQ,GAAG,IAAAC,oBAAW,EAACV,KAAK,CAACI,MAAM,CAAC;EAE1C,oBACE,IAAA3B,WAAA,CAAAkC,GAAA,EAACtC,8CAAA,CAAAO,OAA6C;IAC5CgC,KAAK,EAAEC,MAAM,CAACC,eAAgB;IAC9BZ,aAAa,EAAEA,aAAc;IAC7BO,QAAQ,EAAEA,QAAS;IAAAM,QAAA,eAEnB,IAAAtC,WAAA,CAAAkC,GAAA,EAAC1C,YAAA,CAAA+C,SAAS;MAAA,GACJhB,KAAK;MACTC,GAAG,EAAEA;IAAI,CACV;EAAC,CAC2C,CAAC;AAEpD,CAAC,CAAC;AAEF,MAAMY,MAAM,GAAGI,uBAAU,CAACC,MAAM,CAAC;EAC/BJ,eAAe,EAAE;IACfK,OAAO,EAAE;EACX;AACF,CAAC,CAAC;AAAC,IAAAC,QAAA,GAAAC,OAAA,CAAAzC,OAAA,GAIYiB,iBAAiB","ignoreList":[]}
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/useParserId.js b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/useParserId.js
+new file mode 100644
+index 0000000..7d0e792
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/useParserId.js
+@@ -0,0 +1,42 @@
++"use strict";
++
++Object.defineProperty(exports, "__esModule", {
++  value: true
++});
++exports.default = void 0;
++var _react = _interopRequireDefault(require("react"));
++var _reactNativeWorklets = require("react-native-worklets");
++var _workletRuntime = require("./workletRuntime.js");
++function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
++let nextParserId = 1;
++
++// Ids are picked in JS so a render can hand one to the native view before any effect runs.
++function allocateParserId() {
++  const parserId = nextParserId;
++  nextParserId += 1;
++  return parserId;
++}
++function registerParser(parserId, parser) {
++  (0, _workletRuntime.initializeLiveMarkdownIfNeeded)();
++  global.jsi_registerMarkdownWorklet(parserId, (0, _reactNativeWorklets.createSerializable)(parser));
++}
++function unregisterParser(parserId) {
++  global.jsi_unregisterMarkdownWorklet(parserId);
++}
++
++// An insertion effect is the only effect React runs before the host tree commits, does not run twice under StrictMode
++// and keeps connected inside a hidden <Activity>. A parser change gets a fresh id because the native side caches ranges
++// by text and parser id.
++function useParserId(parser) {
++  const registration = _react.default.useMemo(() => ({
++    parser,
++    parserId: allocateParserId()
++  }), [parser]);
++  _react.default.useInsertionEffect(() => {
++    registerParser(registration.parserId, registration.parser);
++    return () => unregisterParser(registration.parserId);
++  }, [registration]);
++  return registration.parserId;
++}
++var _default = exports.default = useParserId;
++//# sourceMappingURL=useParserId.js.map
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/useParserId.js.map b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/useParserId.js.map
+new file mode 100644
+index 0000000..815ffc7
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/useParserId.js.map
+@@ -0,0 +1 @@
++{"version":3,"names":["_react","_interopRequireDefault","require","_reactNativeWorklets","_workletRuntime","e","__esModule","default","nextParserId","allocateParserId","parserId","registerParser","parser","initializeLiveMarkdownIfNeeded","global","jsi_registerMarkdownWorklet","createSerializable","unregisterParser","jsi_unregisterMarkdownWorklet","useParserId","registration","React","useMemo","useInsertionEffect","_default","exports"],"sourceRoot":"../../src","sources":["useParserId.ts"],"mappings":";;;;;;AAAA,IAAAA,MAAA,GAAAC,sBAAA,CAAAC,OAAA;AACA,IAAAC,oBAAA,GAAAD,OAAA;AACA,IAAAE,eAAA,GAAAF,OAAA;AAAgE,SAAAD,uBAAAI,CAAA,WAAAA,CAAA,IAAAA,CAAA,CAAAC,UAAA,GAAAD,CAAA,KAAAE,OAAA,EAAAF,CAAA;AAGhE,IAAIG,YAAY,GAAG,CAAC;;AAEpB;AACA,SAASC,gBAAgBA,CAAA,EAAW;EAClC,MAAMC,QAAQ,GAAGF,YAAY;EAC7BA,YAAY,IAAI,CAAC;EACjB,OAAOE,QAAQ;AACjB;AAEA,SAASC,cAAcA,CAACD,QAAgB,EAAEE,MAAqB,EAAE;EAC/D,IAAAC,8CAA8B,EAAC,CAAC;EAChCC,MAAM,CAACC,2BAA2B,CAACL,QAAQ,EAAE,IAAAM,uCAAkB,EAACJ,MAAM,CAAC,CAAC;AAC1E;AAEA,SAASK,gBAAgBA,CAACP,QAAgB,EAAE;EAC1CI,MAAM,CAACI,6BAA6B,CAACR,QAAQ,CAAC;AAChD;;AAEA;AACA;AACA;AACA,SAASS,WAAWA,CAACP,MAAqB,EAAU;EAClD,MAAMQ,YAAY,GAAGC,cAAK,CAACC,OAAO,CAAC,OAAO;IAACV,MAAM;IAAEF,QAAQ,EAAED,gBAAgB,CAAC;EAAC,CAAC,CAAC,EAAE,CAACG,MAAM,CAAC,CAAC;EAE5FS,cAAK,CAACE,kBAAkB,CAAC,MAAM;IAC7BZ,cAAc,CAACS,YAAY,CAACV,QAAQ,EAAEU,YAAY,CAACR,MAAM,CAAC;IAC1D,OAAO,MAAMK,gBAAgB,CAACG,YAAY,CAACV,QAAQ,CAAC;EACtD,CAAC,EAAE,CAACU,YAAY,CAAC,CAAC;EAElB,OAAOA,YAAY,CAACV,QAAQ;AAC9B;AAAC,IAAAc,QAAA,GAAAC,OAAA,CAAAlB,OAAA,GAEcY,WAAW","ignoreList":[]}
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/workletRuntime.js b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/workletRuntime.js
+new file mode 100644
+index 0000000..caf60f3
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/workletRuntime.js
+@@ -0,0 +1,41 @@
++"use strict";
++
++Object.defineProperty(exports, "__esModule", {
++  value: true
++});
++exports.getWorkletRuntime = getWorkletRuntime;
++exports.initializeLiveMarkdownIfNeeded = initializeLiveMarkdownIfNeeded;
++var _reactNativeWorklets = require("react-native-worklets");
++var _NativeLiveMarkdownModule = _interopRequireDefault(require("./NativeLiveMarkdownModule.js"));
++function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
++// A function compiled with the 'worklet' directive. The type cannot express that, so `MarkdownTextInput` checks it at
++// runtime and throws otherwise.
++
++// `NativeLiveMarkdownModule.install()` puts these functions on the global object from `injectJSIBindings` in
++// `cpp/RuntimeDecorator.cpp`. Both sides must agree on the signatures.
++
++let initialized = false;
++let workletRuntime;
++function getWorkletRuntime() {
++  if (workletRuntime === undefined) {
++    throw new Error("[react-native-live-markdown] Worklet runtime hasn't been created yet. Please avoid calling `getWorkletRuntime()` in top-level scope. Instead, call `getWorkletRuntime()` directly in `runOnRuntime` arguments list.");
++  }
++  return workletRuntime;
++}
++function initializeLiveMarkdownIfNeeded() {
++  if (initialized) {
++    return;
++  }
++  if (_NativeLiveMarkdownModule.default) {
++    _NativeLiveMarkdownModule.default.install();
++  }
++  if (!global.jsi_setMarkdownRuntime) {
++    throw new Error('[react-native-live-markdown] global.jsi_setMarkdownRuntime is not available');
++  }
++  workletRuntime = (0, _reactNativeWorklets.createWorkletRuntime)({
++    name: 'LiveMarkdownRuntime'
++  });
++  global.jsi_setMarkdownRuntime(workletRuntime);
++  initialized = true;
++}
++//# sourceMappingURL=workletRuntime.js.map
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/workletRuntime.js.map b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/workletRuntime.js.map
+new file mode 100644
+index 0000000..360e874
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/workletRuntime.js.map
+@@ -0,0 +1 @@
++{"version":3,"names":["_reactNativeWorklets","require","_NativeLiveMarkdownModule","_interopRequireDefault","e","__esModule","default","initialized","workletRuntime","getWorkletRuntime","undefined","Error","initializeLiveMarkdownIfNeeded","NativeLiveMarkdownModule","install","global","jsi_setMarkdownRuntime","createWorkletRuntime","name"],"sourceRoot":"../../src","sources":["workletRuntime.ts"],"mappings":";;;;;;;AAAA,IAAAA,oBAAA,GAAAC,OAAA;AAEA,IAAAC,yBAAA,GAAAC,sBAAA,CAAAF,OAAA;AAAkE,SAAAE,uBAAAC,CAAA,WAAAA,CAAA,IAAAA,CAAA,CAAAC,UAAA,GAAAD,CAAA,KAAAE,OAAA,EAAAF,CAAA;AAGlE;AACA;;AAGA;AACA;;AAUA,IAAIG,WAAW,GAAG,KAAK;AACvB,IAAIC,cAA0C;AAE9C,SAASC,iBAAiBA,CAAA,EAAmB;EAC3C,IAAID,cAAc,KAAKE,SAAS,EAAE;IAChC,MAAM,IAAIC,KAAK,CACb,qNACF,CAAC;EACH;EACA,OAAOH,cAAc;AACvB;AAEA,SAASI,8BAA8BA,CAAA,EAAG;EACxC,IAAIL,WAAW,EAAE;IACf;EACF;EACA,IAAIM,iCAAwB,EAAE;IAC5BA,iCAAwB,CAACC,OAAO,CAAC,CAAC;EACpC;EACA,IAAI,CAACC,MAAM,CAACC,sBAAsB,EAAE;IAClC,MAAM,IAAIL,KAAK,CAAC,6EAA6E,CAAC;EAChG;EACAH,cAAc,GAAG,IAAAS,yCAAoB,EAAC;IAACC,IAAI,EAAE;EAAqB,CAAC,CAAC;EACpEH,MAAM,CAACC,sBAAsB,CAACR,cAAc,CAAC;EAC7CD,WAAW,GAAG,IAAI;AACpB","ignoreList":[]}
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.js b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.js
+index 90365d5..6cf805a 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.js
+@@ -2,44 +2,11 @@
+ 
+ import { StyleSheet, TextInput, processColor } from 'react-native';
+ import React from 'react';
+-import { createSerializable, createWorkletRuntime } from 'react-native-worklets';
+ import MarkdownTextInputDecoratorViewNativeComponent from "./MarkdownTextInputDecoratorViewNativeComponent.js";
+-import NativeLiveMarkdownModule from "./NativeLiveMarkdownModule.js";
+ import { mergeMarkdownStyleWithDefault } from "./styleUtils.js";
++import useParserId from "./useParserId.js";
++import { getWorkletRuntime } from "./workletRuntime.js";
+ import { jsx as _jsx } from "react/jsx-runtime";
+-let initialized = false;
+-let workletRuntime;
+-function getWorkletRuntime() {
+-  if (workletRuntime === undefined) {
+-    throw new Error("[react-native-live-markdown] Worklet runtime hasn't been created yet. Please avoid calling `getWorkletRuntime()` in top-level scope. Instead, call `getWorkletRuntime()` directly in `runOnRuntime` arguments list.");
+-  }
+-  return workletRuntime;
+-}
+-function initializeLiveMarkdownIfNeeded() {
+-  if (initialized) {
+-    return;
+-  }
+-  if (NativeLiveMarkdownModule) {
+-    NativeLiveMarkdownModule.install();
+-  }
+-  if (!global.jsi_setMarkdownRuntime) {
+-    throw new Error('[react-native-live-markdown] global.jsi_setMarkdownRuntime is not available');
+-  }
+-  workletRuntime = createWorkletRuntime({
+-    name: 'LiveMarkdownRuntime'
+-  });
+-  global.jsi_setMarkdownRuntime(workletRuntime);
+-  initialized = true;
+-}
+-function registerParser(parser) {
+-  initializeLiveMarkdownIfNeeded();
+-  const serializableWorklet = createSerializable(parser);
+-  const parserId = global.jsi_registerMarkdownWorklet(serializableWorklet);
+-  return parserId;
+-}
+-function unregisterParser(parserId) {
+-  global.jsi_unregisterMarkdownWorklet(parserId);
+-}
+ function processColorsInMarkdownStyle(input) {
+   const output = JSON.parse(JSON.stringify(input));
+   Object.keys(output).forEach(key => {
+@@ -68,12 +35,7 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef((props, ref) => {
+   if (workletHash === undefined) {
+     throw new Error('[react-native-live-markdown] `parser` is not a worklet');
+   }
+-  const parserId = React.useMemo(() => {
+-    return registerParser(props.parser);
+-  }, [props.parser]);
+-  React.useEffect(() => {
+-    return () => unregisterParser(parserId);
+-  }, [parserId]);
++  const parserId = useParserId(props.parser);
+   return /*#__PURE__*/_jsx(MarkdownTextInputDecoratorViewNativeComponent, {
+     style: styles.displayContents,
+     markdownStyle: markdownStyle,
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.js.map b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.js.map
+index bb65984..cacb715 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.js.map
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["StyleSheet","TextInput","processColor","React","createSerializable","createWorkletRuntime","MarkdownTextInputDecoratorViewNativeComponent","NativeLiveMarkdownModule","mergeMarkdownStyleWithDefault","jsx","_jsx","initialized","workletRuntime","getWorkletRuntime","undefined","Error","initializeLiveMarkdownIfNeeded","install","global","jsi_setMarkdownRuntime","name","registerParser","parser","serializableWorklet","parserId","jsi_registerMarkdownWorklet","unregisterParser","jsi_unregisterMarkdownWorklet","processColorsInMarkdownStyle","input","output","JSON","parse","stringify","Object","keys","forEach","key","obj","prop","endsWith","processMarkdownStyle","MarkdownTextInput","forwardRef","props","ref","markdownStyle","useMemo","workletHash","__workletHash","useEffect","style","styles","displayContents","children","create","display"],"sourceRoot":"../../src","sources":["MarkdownTextInput.tsx"],"mappings":"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","ignoreList":[]}
++{"version":3,"names":["StyleSheet","TextInput","processColor","React","MarkdownTextInputDecoratorViewNativeComponent","mergeMarkdownStyleWithDefault","useParserId","getWorkletRuntime","jsx","_jsx","processColorsInMarkdownStyle","input","output","JSON","parse","stringify","Object","keys","forEach","key","obj","prop","endsWith","processMarkdownStyle","MarkdownTextInput","forwardRef","props","ref","markdownStyle","useMemo","parser","undefined","Error","workletHash","__workletHash","parserId","style","styles","displayContents","children","create","display"],"sourceRoot":"../../src","sources":["MarkdownTextInput.tsx"],"mappings":";;AAAA,SAAQA,UAAU,EAAEC,SAAS,EAAEC,YAAY,QAAO,cAAc;AAChE,OAAOC,KAAK,MAAM,OAAO;AAEzB,OAAOC,6CAA6C,MAAM,oDAAiD;AAE3G,SAAQC,6BAA6B,QAAO,iBAAc;AAG1D,OAAOC,WAAW,MAAM,kBAAe;AACvC,SAAQC,iBAAiB,QAAO,qBAAkB;AAAC,SAAAC,GAAA,IAAAC,IAAA;AAgBnD,SAASC,4BAA4BA,CAACC,KAAoB,EAAiB;EACzE,MAAMC,MAAM,GAAGC,IAAI,CAACC,KAAK,CAACD,IAAI,CAACE,SAAS,CAACJ,KAAK,CAAC,CAAC;EAEhDK,MAAM,CAACC,IAAI,CAACL,MAAM,CAAC,CAACM,OAAO,CAAEC,GAAG,IAAK;IACnC,MAAMC,GAAG,GAAGR,MAAM,CAACO,GAAG,CAAC;IACvBH,MAAM,CAACC,IAAI,CAACG,GAAG,CAAC,CAACF,OAAO,CAAEG,IAAI,IAAK;MACjC;MACA,IAAI,EAAEA,IAAI,KAAK,OAAO,IAAIA,IAAI,CAACC,QAAQ,CAAC,OAAO,CAAC,CAAC,EAAE;QACjD;MACF;MACAF,GAAG,CAACC,IAAI,CAAC,GAAGnB,YAAY,CAACkB,GAAG,CAACC,IAAI,CAAC,CAAC;IACrC,CAAC,CAAC;EACJ,CAAC,CAAC;EAEF,OAAOT,MAAM;AACf;AAEA,SAASW,oBAAoBA,CAACZ,KAAuC,EAAiB;EACpF,OAAOD,4BAA4B,CAACL,6BAA6B,CAACM,KAAK,CAAC,CAAC;AAC3E;AAEA,MAAMa,iBAAiB,gBAAGrB,KAAK,CAACsB,UAAU,CAA4C,CAACC,KAAK,EAAEC,GAAG,KAAK;EACpG,MAAMC,aAAa,GAAGzB,KAAK,CAAC0B,OAAO,CAAC,MAAMN,oBAAoB,CAACG,KAAK,CAACE,aAAa,CAAC,EAAE,CAACF,KAAK,CAACE,aAAa,CAAC,CAAC;EAE3G,IAAIF,KAAK,CAACI,MAAM,KAAKC,SAAS,EAAE;IAC9B,MAAM,IAAIC,KAAK,CAAC,oDAAoD,CAAC;EACvE;;EAEA;EACA,MAAMC,WAAW,GAAIP,KAAK,CAACI,MAAM,CAA8BI,aAAa;EAC5E,IAAID,WAAW,KAAKF,SAAS,EAAE;IAC7B,MAAM,IAAIC,KAAK,CAAC,wDAAwD,CAAC;EAC3E;EAEA,MAAMG,QAAQ,GAAG7B,WAAW,CAACoB,KAAK,CAACI,MAAM,CAAC;EAE1C,oBACErB,IAAA,CAACL,6CAA6C;IAC5CgC,KAAK,EAAEC,MAAM,CAACC,eAAgB;IAC9BV,aAAa,EAAEA,aAAc;IAC7BO,QAAQ,EAAEA,QAAS;IAAAI,QAAA,eAEnB9B,IAAA,CAACR,SAAS;MAAA,GACJyB,KAAK;MACTC,GAAG,EAAEA;IAAI,CACV;EAAC,CAC2C,CAAC;AAEpD,CAAC,CAAC;AAEF,MAAMU,MAAM,GAAGrC,UAAU,CAACwC,MAAM,CAAC;EAC/BF,eAAe,EAAE;IACfG,OAAO,EAAE;EACX;AACF,CAAC,CAAC;AAIF,eAAejB,iBAAiB;AAEhC,SAAQjB,iBAAiB","ignoreList":[]}
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/useParserId.js b/node_modules/@expensify/react-native-live-markdown/lib/module/useParserId.js
+new file mode 100644
+index 0000000..da3d3c2
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/useParserId.js
+@@ -0,0 +1,37 @@
++"use strict";
++
++import React from 'react';
++import { createSerializable } from 'react-native-worklets';
++import { initializeLiveMarkdownIfNeeded } from "./workletRuntime.js";
++let nextParserId = 1;
++
++// Ids are picked in JS so a render can hand one to the native view before any effect runs.
++function allocateParserId() {
++  const parserId = nextParserId;
++  nextParserId += 1;
++  return parserId;
++}
++function registerParser(parserId, parser) {
++  initializeLiveMarkdownIfNeeded();
++  global.jsi_registerMarkdownWorklet(parserId, createSerializable(parser));
++}
++function unregisterParser(parserId) {
++  global.jsi_unregisterMarkdownWorklet(parserId);
++}
++
++// An insertion effect is the only effect React runs before the host tree commits, does not run twice under StrictMode
++// and keeps connected inside a hidden <Activity>. A parser change gets a fresh id because the native side caches ranges
++// by text and parser id.
++function useParserId(parser) {
++  const registration = React.useMemo(() => ({
++    parser,
++    parserId: allocateParserId()
++  }), [parser]);
++  React.useInsertionEffect(() => {
++    registerParser(registration.parserId, registration.parser);
++    return () => unregisterParser(registration.parserId);
++  }, [registration]);
++  return registration.parserId;
++}
++export default useParserId;
++//# sourceMappingURL=useParserId.js.map
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/useParserId.js.map b/node_modules/@expensify/react-native-live-markdown/lib/module/useParserId.js.map
+new file mode 100644
+index 0000000..38de989
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/useParserId.js.map
+@@ -0,0 +1 @@
++{"version":3,"names":["React","createSerializable","initializeLiveMarkdownIfNeeded","nextParserId","allocateParserId","parserId","registerParser","parser","global","jsi_registerMarkdownWorklet","unregisterParser","jsi_unregisterMarkdownWorklet","useParserId","registration","useMemo","useInsertionEffect"],"sourceRoot":"../../src","sources":["useParserId.ts"],"mappings":";;AAAA,OAAOA,KAAK,MAAM,OAAO;AACzB,SAAQC,kBAAkB,QAAO,uBAAuB;AACxD,SAAQC,8BAA8B,QAAO,qBAAkB;AAG/D,IAAIC,YAAY,GAAG,CAAC;;AAEpB;AACA,SAASC,gBAAgBA,CAAA,EAAW;EAClC,MAAMC,QAAQ,GAAGF,YAAY;EAC7BA,YAAY,IAAI,CAAC;EACjB,OAAOE,QAAQ;AACjB;AAEA,SAASC,cAAcA,CAACD,QAAgB,EAAEE,MAAqB,EAAE;EAC/DL,8BAA8B,CAAC,CAAC;EAChCM,MAAM,CAACC,2BAA2B,CAACJ,QAAQ,EAAEJ,kBAAkB,CAACM,MAAM,CAAC,CAAC;AAC1E;AAEA,SAASG,gBAAgBA,CAACL,QAAgB,EAAE;EAC1CG,MAAM,CAACG,6BAA6B,CAACN,QAAQ,CAAC;AAChD;;AAEA;AACA;AACA;AACA,SAASO,WAAWA,CAACL,MAAqB,EAAU;EAClD,MAAMM,YAAY,GAAGb,KAAK,CAACc,OAAO,CAAC,OAAO;IAACP,MAAM;IAAEF,QAAQ,EAAED,gBAAgB,CAAC;EAAC,CAAC,CAAC,EAAE,CAACG,MAAM,CAAC,CAAC;EAE5FP,KAAK,CAACe,kBAAkB,CAAC,MAAM;IAC7BT,cAAc,CAACO,YAAY,CAACR,QAAQ,EAAEQ,YAAY,CAACN,MAAM,CAAC;IAC1D,OAAO,MAAMG,gBAAgB,CAACG,YAAY,CAACR,QAAQ,CAAC;EACtD,CAAC,EAAE,CAACQ,YAAY,CAAC,CAAC;EAElB,OAAOA,YAAY,CAACR,QAAQ;AAC9B;AAEA,eAAeO,WAAW","ignoreList":[]}
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/workletRuntime.js b/node_modules/@expensify/react-native-live-markdown/lib/module/workletRuntime.js
+new file mode 100644
+index 0000000..4ef4edb
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/workletRuntime.js
+@@ -0,0 +1,37 @@
++"use strict";
++
++import { createWorkletRuntime } from 'react-native-worklets';
++import NativeLiveMarkdownModule from "./NativeLiveMarkdownModule.js";
++
++// A function compiled with the 'worklet' directive. The type cannot express that, so `MarkdownTextInput` checks it at
++// runtime and throws otherwise.
++
++// `NativeLiveMarkdownModule.install()` puts these functions on the global object from `injectJSIBindings` in
++// `cpp/RuntimeDecorator.cpp`. Both sides must agree on the signatures.
++
++let initialized = false;
++let workletRuntime;
++function getWorkletRuntime() {
++  if (workletRuntime === undefined) {
++    throw new Error("[react-native-live-markdown] Worklet runtime hasn't been created yet. Please avoid calling `getWorkletRuntime()` in top-level scope. Instead, call `getWorkletRuntime()` directly in `runOnRuntime` arguments list.");
++  }
++  return workletRuntime;
++}
++function initializeLiveMarkdownIfNeeded() {
++  if (initialized) {
++    return;
++  }
++  if (NativeLiveMarkdownModule) {
++    NativeLiveMarkdownModule.install();
++  }
++  if (!global.jsi_setMarkdownRuntime) {
++    throw new Error('[react-native-live-markdown] global.jsi_setMarkdownRuntime is not available');
++  }
++  workletRuntime = createWorkletRuntime({
++    name: 'LiveMarkdownRuntime'
++  });
++  global.jsi_setMarkdownRuntime(workletRuntime);
++  initialized = true;
++}
++export { getWorkletRuntime, initializeLiveMarkdownIfNeeded };
++//# sourceMappingURL=workletRuntime.js.map
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/workletRuntime.js.map b/node_modules/@expensify/react-native-live-markdown/lib/module/workletRuntime.js.map
+new file mode 100644
+index 0000000..ddc1c19
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/workletRuntime.js.map
+@@ -0,0 +1 @@
++{"version":3,"names":["createWorkletRuntime","NativeLiveMarkdownModule","initialized","workletRuntime","getWorkletRuntime","undefined","Error","initializeLiveMarkdownIfNeeded","install","global","jsi_setMarkdownRuntime","name"],"sourceRoot":"../../src","sources":["workletRuntime.ts"],"mappings":";;AAAA,SAAQA,oBAAoB,QAAO,uBAAuB;AAE1D,OAAOC,wBAAwB,MAAM,+BAA4B;;AAGjE;AACA;;AAGA;AACA;;AAUA,IAAIC,WAAW,GAAG,KAAK;AACvB,IAAIC,cAA0C;AAE9C,SAASC,iBAAiBA,CAAA,EAAmB;EAC3C,IAAID,cAAc,KAAKE,SAAS,EAAE;IAChC,MAAM,IAAIC,KAAK,CACb,qNACF,CAAC;EACH;EACA,OAAOH,cAAc;AACvB;AAEA,SAASI,8BAA8BA,CAAA,EAAG;EACxC,IAAIL,WAAW,EAAE;IACf;EACF;EACA,IAAID,wBAAwB,EAAE;IAC5BA,wBAAwB,CAACO,OAAO,CAAC,CAAC;EACpC;EACA,IAAI,CAACC,MAAM,CAACC,sBAAsB,EAAE;IAClC,MAAM,IAAIJ,KAAK,CAAC,6EAA6E,CAAC;EAChG;EACAH,cAAc,GAAGH,oBAAoB,CAAC;IAACW,IAAI,EAAE;EAAqB,CAAC,CAAC;EACpEF,MAAM,CAACC,sBAAsB,CAACP,cAAc,CAAC;EAC7CD,WAAW,GAAG,IAAI;AACpB;AAGA,SAAQE,iBAAiB,EAAEG,8BAA8B","ignoreList":[]}
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts
+index abee995..2a4e2a6 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts
++++ b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts
+@@ -1,19 +1,14 @@
+ import { TextInput } from 'react-native';
+ import React from 'react';
+ import type { TextInputProps } from 'react-native';
+-import type { SerializableRef, WorkletFunction, WorkletRuntime } from 'react-native-worklets';
+ import type { PartialMarkdownStyle } from './styleUtils';
+-import type { InlineImagesInputProps, MarkdownRange } from './commonTypes';
+-declare global {
+-    var jsi_setMarkdownRuntime: (runtime: WorkletRuntime) => void;
+-    var jsi_registerMarkdownWorklet: (shareableWorklet: SerializableRef<WorkletFunction<[string], MarkdownRange[]>>) => number;
+-    var jsi_unregisterMarkdownWorklet: (parserId: number) => void;
+-}
+-declare function getWorkletRuntime(): WorkletRuntime;
++import type { InlineImagesInputProps } from './commonTypes';
++import { getWorkletRuntime } from './workletRuntime';
++import type { ParserWorklet } from './workletRuntime';
+ interface MarkdownTextInputProps extends TextInputProps, InlineImagesInputProps {
+     markdownStyle?: PartialMarkdownStyle;
+     formatSelection?: (text: string, selectionStart: number, selectionEnd: number, formatCommand: string) => FormatSelectionResult;
+-    parser: (value: string) => MarkdownRange[];
++    parser: ParserWorklet;
+ }
+ type FormatSelectionResult = {
+     updatedText: string;
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts.map b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts.map
+index 4ff739f..94061fd 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts.map
++++ b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"MarkdownTextInput.d.ts","sourceRoot":"","sources":["../../../src/MarkdownTextInput.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAa,SAAS,EAAe,MAAM,cAAc,CAAC;AACjE,OAAO,KAAK,MAAM,OAAO,CAAC;AAC1B,OAAO,KAAK,EAAC,cAAc,EAAC,MAAM,cAAc,CAAC;AAEjD,OAAO,KAAK,EAAC,eAAe,EAAE,eAAe,EAAE,cAAc,EAAC,MAAM,uBAAuB,CAAC;AAK5F,OAAO,KAAK,EAAC,oBAAoB,EAAC,MAAM,cAAc,CAAC;AACvD,OAAO,KAAK,EAAC,sBAAsB,EAAE,aAAa,EAAC,MAAM,eAAe,CAAC;AAEzE,OAAO,CAAC,MAAM,CAAC;IAEb,IAAI,sBAAsB,EAAE,CAAC,OAAO,EAAE,cAAc,KAAK,IAAI,CAAC;IAE9D,IAAI,2BAA2B,EAAE,CAAC,gBAAgB,EAAE,eAAe,CAAC,eAAe,CAAC,CAAC,MAAM,CAAC,EAAE,aAAa,EAAE,CAAC,CAAC,KAAK,MAAM,CAAC;IAE3H,IAAI,6BAA6B,EAAE,CAAC,QAAQ,EAAE,MAAM,KAAK,IAAI,CAAC;CAC/D;AAKD,iBAAS,iBAAiB,IAAI,cAAc,CAO3C;AA4BD,UAAU,sBAAuB,SAAQ,cAAc,EAAE,sBAAsB;IAC7E,aAAa,CAAC,EAAE,oBAAoB,CAAC;IACrC,eAAe,CAAC,EAAE,CAAC,IAAI,EAAE,MAAM,EAAE,cAAc,EAAE,MAAM,EAAE,YAAY,EAAE,MAAM,EAAE,aAAa,EAAE,MAAM,KAAK,qBAAqB,CAAC;IAC/H,MAAM,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,aAAa,EAAE,CAAC;CAC5C;AAED,KAAK,qBAAqB,GAAG;IAC3B,WAAW,EAAE,MAAM,CAAC;IACpB,YAAY,EAAE,MAAM,CAAC;CACtB,CAAC;AAEF,KAAK,iBAAiB,GAAG,SAAS,GAAG,KAAK,CAAC,SAAS,CAAC,sBAAsB,CAAC,CAAC;AAuB7E,QAAA,MAAM,iBAAiB,kGAiCrB,CAAC;AAQH,YAAY,EAAC,oBAAoB,IAAI,aAAa,EAAE,sBAAsB,EAAC,CAAC;AAE5E,eAAe,iBAAiB,CAAC;AAEjC,OAAO,EAAC,iBAAiB,EAAC,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"MarkdownTextInput.d.ts","sourceRoot":"","sources":["../../../src/MarkdownTextInput.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAa,SAAS,EAAe,MAAM,cAAc,CAAC;AACjE,OAAO,KAAK,MAAM,OAAO,CAAC;AAC1B,OAAO,KAAK,EAAC,cAAc,EAAC,MAAM,cAAc,CAAC;AAIjD,OAAO,KAAK,EAAC,oBAAoB,EAAC,MAAM,cAAc,CAAC;AACvD,OAAO,KAAK,EAAC,sBAAsB,EAAC,MAAM,eAAe,CAAC;AAE1D,OAAO,EAAC,iBAAiB,EAAC,MAAM,kBAAkB,CAAC;AACnD,OAAO,KAAK,EAAC,aAAa,EAAC,MAAM,kBAAkB,CAAC;AAEpD,UAAU,sBAAuB,SAAQ,cAAc,EAAE,sBAAsB;IAC7E,aAAa,CAAC,EAAE,oBAAoB,CAAC;IACrC,eAAe,CAAC,EAAE,CAAC,IAAI,EAAE,MAAM,EAAE,cAAc,EAAE,MAAM,EAAE,YAAY,EAAE,MAAM,EAAE,aAAa,EAAE,MAAM,KAAK,qBAAqB,CAAC;IAC/H,MAAM,EAAE,aAAa,CAAC;CACvB;AAED,KAAK,qBAAqB,GAAG;IAC3B,WAAW,EAAE,MAAM,CAAC;IACpB,YAAY,EAAE,MAAM,CAAC;CACtB,CAAC;AAEF,KAAK,iBAAiB,GAAG,SAAS,GAAG,KAAK,CAAC,SAAS,CAAC,sBAAsB,CAAC,CAAC;AAuB7E,QAAA,MAAM,iBAAiB,kGA2BrB,CAAC;AAQH,YAAY,EAAC,oBAAoB,IAAI,aAAa,EAAE,sBAAsB,EAAC,CAAC;AAE5E,eAAe,iBAAiB,CAAC;AAEjC,OAAO,EAAC,iBAAiB,EAAC,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/useParserId.d.ts b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/useParserId.d.ts
+new file mode 100644
+index 0000000..77187bf
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/useParserId.d.ts
+@@ -0,0 +1,4 @@
++import type { ParserWorklet } from './workletRuntime';
++declare function useParserId(parser: ParserWorklet): number;
++export default useParserId;
++//# sourceMappingURL=useParserId.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/useParserId.d.ts.map b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/useParserId.d.ts.map
+new file mode 100644
+index 0000000..e533b23
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/useParserId.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useParserId.d.ts","sourceRoot":"","sources":["../../../src/useParserId.ts"],"names":[],"mappings":"AAGA,OAAO,KAAK,EAAC,aAAa,EAAC,MAAM,kBAAkB,CAAC;AAuBpD,iBAAS,WAAW,CAAC,MAAM,EAAE,aAAa,GAAG,MAAM,CASlD;AAED,eAAe,WAAW,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/workletRuntime.d.ts b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/workletRuntime.d.ts
+new file mode 100644
+index 0000000..4536260
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/workletRuntime.d.ts
+@@ -0,0 +1,13 @@
++import type { SerializableRef, WorkletRuntime } from 'react-native-worklets';
++import type { MarkdownRange } from './commonTypes';
++type ParserWorklet = (input: string) => MarkdownRange[];
++declare global {
++    var jsi_setMarkdownRuntime: (runtime: WorkletRuntime) => void;
++    var jsi_registerMarkdownWorklet: (parserId: number, shareableWorklet: SerializableRef<ParserWorklet>) => void;
++    var jsi_unregisterMarkdownWorklet: (parserId: number) => void;
++}
++declare function getWorkletRuntime(): WorkletRuntime;
++declare function initializeLiveMarkdownIfNeeded(): void;
++export type { ParserWorklet };
++export { getWorkletRuntime, initializeLiveMarkdownIfNeeded };
++//# sourceMappingURL=workletRuntime.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/workletRuntime.d.ts.map b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/workletRuntime.d.ts.map
+new file mode 100644
+index 0000000..bb1ea46
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/workletRuntime.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"workletRuntime.d.ts","sourceRoot":"","sources":["../../../src/workletRuntime.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAC,eAAe,EAAE,cAAc,EAAC,MAAM,uBAAuB,CAAC;AAE3E,OAAO,KAAK,EAAC,aAAa,EAAC,MAAM,eAAe,CAAC;AAIjD,KAAK,aAAa,GAAG,CAAC,KAAK,EAAE,MAAM,KAAK,aAAa,EAAE,CAAC;AAIxD,OAAO,CAAC,MAAM,CAAC;IAEb,IAAI,sBAAsB,EAAE,CAAC,OAAO,EAAE,cAAc,KAAK,IAAI,CAAC;IAE9D,IAAI,2BAA2B,EAAE,CAAC,QAAQ,EAAE,MAAM,EAAE,gBAAgB,EAAE,eAAe,CAAC,aAAa,CAAC,KAAK,IAAI,CAAC;IAE9G,IAAI,6BAA6B,EAAE,CAAC,QAAQ,EAAE,MAAM,KAAK,IAAI,CAAC;CAC/D;AAKD,iBAAS,iBAAiB,IAAI,cAAc,CAO3C;AAED,iBAAS,8BAA8B,SAatC;AAED,YAAY,EAAC,aAAa,EAAC,CAAC;AAC5B,OAAO,EAAC,iBAAiB,EAAE,8BAA8B,EAAC,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx
+index 935b055..cebb798 100644
+--- a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx
++++ b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx
+@@ -1,66 +1,19 @@
+ import {StyleSheet, TextInput, processColor} from 'react-native';
+ import React from 'react';
+ import type {TextInputProps} from 'react-native';
+-import {createSerializable, createWorkletRuntime} from 'react-native-worklets';
+-import type {SerializableRef, WorkletFunction, WorkletRuntime} from 'react-native-worklets';
+ import MarkdownTextInputDecoratorViewNativeComponent from './MarkdownTextInputDecoratorViewNativeComponent';
+ import type {MarkdownStyle} from './MarkdownTextInputDecoratorViewNativeComponent';
+-import NativeLiveMarkdownModule from './NativeLiveMarkdownModule';
+ import {mergeMarkdownStyleWithDefault} from './styleUtils';
+ import type {PartialMarkdownStyle} from './styleUtils';
+-import type {InlineImagesInputProps, MarkdownRange} from './commonTypes';
+-
+-declare global {
+-  // eslint-disable-next-line no-var
+-  var jsi_setMarkdownRuntime: (runtime: WorkletRuntime) => void;
+-  // eslint-disable-next-line no-var
+-  var jsi_registerMarkdownWorklet: (shareableWorklet: SerializableRef<WorkletFunction<[string], MarkdownRange[]>>) => number;
+-  // eslint-disable-next-line no-var
+-  var jsi_unregisterMarkdownWorklet: (parserId: number) => void;
+-}
+-
+-let initialized = false;
+-let workletRuntime: WorkletRuntime | undefined;
+-
+-function getWorkletRuntime(): WorkletRuntime {
+-  if (workletRuntime === undefined) {
+-    throw new Error(
+-      "[react-native-live-markdown] Worklet runtime hasn't been created yet. Please avoid calling `getWorkletRuntime()` in top-level scope. Instead, call `getWorkletRuntime()` directly in `runOnRuntime` arguments list.",
+-    );
+-  }
+-  return workletRuntime;
+-}
+-
+-function initializeLiveMarkdownIfNeeded() {
+-  if (initialized) {
+-    return;
+-  }
+-  if (NativeLiveMarkdownModule) {
+-    NativeLiveMarkdownModule.install();
+-  }
+-  if (!global.jsi_setMarkdownRuntime) {
+-    throw new Error('[react-native-live-markdown] global.jsi_setMarkdownRuntime is not available');
+-  }
+-  workletRuntime = createWorkletRuntime({name: 'LiveMarkdownRuntime'});
+-  global.jsi_setMarkdownRuntime(workletRuntime);
+-  initialized = true;
+-}
+-
+-function registerParser(parser: (input: string) => MarkdownRange[]): number {
+-  initializeLiveMarkdownIfNeeded();
+-  const serializableWorklet = createSerializable(parser as WorkletFunction<[string], MarkdownRange[]>);
+-  const parserId = global.jsi_registerMarkdownWorklet(serializableWorklet);
+-  return parserId;
+-}
+-
+-function unregisterParser(parserId: number) {
+-  global.jsi_unregisterMarkdownWorklet(parserId);
+-}
++import type {InlineImagesInputProps} from './commonTypes';
++import useParserId from './useParserId';
++import {getWorkletRuntime} from './workletRuntime';
++import type {ParserWorklet} from './workletRuntime';
+ 
+ interface MarkdownTextInputProps extends TextInputProps, InlineImagesInputProps {
+   markdownStyle?: PartialMarkdownStyle;
+   formatSelection?: (text: string, selectionStart: number, selectionEnd: number, formatCommand: string) => FormatSelectionResult;
+-  parser: (value: string) => MarkdownRange[];
++  parser: ParserWorklet;
+ }
+ 
+ type FormatSelectionResult = {
+@@ -104,13 +57,7 @@ const MarkdownTextInput = React.forwardRef<MarkdownTextInput, MarkdownTextInputP
+     throw new Error('[react-native-live-markdown] `parser` is not a worklet');
+   }
+ 
+-  const parserId = React.useMemo(() => {
+-    return registerParser(props.parser);
+-  }, [props.parser]);
+-
+-  React.useEffect(() => {
+-    return () => unregisterParser(parserId);
+-  }, [parserId]);
++  const parserId = useParserId(props.parser);
+ 
+   return (
+     <MarkdownTextInputDecoratorViewNativeComponent
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/useParserId.ts b/node_modules/@expensify/react-native-live-markdown/src/useParserId.ts
+new file mode 100644
+index 0000000..966481c
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/src/useParserId.ts
+@@ -0,0 +1,38 @@
++import React from 'react';
++import {createSerializable} from 'react-native-worklets';
++import {initializeLiveMarkdownIfNeeded} from './workletRuntime';
++import type {ParserWorklet} from './workletRuntime';
++
++let nextParserId = 1;
++
++// Ids are picked in JS so a render can hand one to the native view before any effect runs.
++function allocateParserId(): number {
++  const parserId = nextParserId;
++  nextParserId += 1;
++  return parserId;
++}
++
++function registerParser(parserId: number, parser: ParserWorklet) {
++  initializeLiveMarkdownIfNeeded();
++  global.jsi_registerMarkdownWorklet(parserId, createSerializable(parser));
++}
++
++function unregisterParser(parserId: number) {
++  global.jsi_unregisterMarkdownWorklet(parserId);
++}
++
++// An insertion effect is the only effect React runs before the host tree commits, does not run twice under StrictMode
++// and keeps connected inside a hidden <Activity>. A parser change gets a fresh id because the native side caches ranges
++// by text and parser id.
++function useParserId(parser: ParserWorklet): number {
++  const registration = React.useMemo(() => ({parser, parserId: allocateParserId()}), [parser]);
++
++  React.useInsertionEffect(() => {
++    registerParser(registration.parserId, registration.parser);
++    return () => unregisterParser(registration.parserId);
++  }, [registration]);
++
++  return registration.parserId;
++}
++
++export default useParserId;
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/workletRuntime.ts b/node_modules/@expensify/react-native-live-markdown/src/workletRuntime.ts
+new file mode 100644
+index 0000000..4f87228
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/src/workletRuntime.ts
+@@ -0,0 +1,49 @@
++import {createWorkletRuntime} from 'react-native-worklets';
++import type {SerializableRef, WorkletRuntime} from 'react-native-worklets';
++import NativeLiveMarkdownModule from './NativeLiveMarkdownModule';
++import type {MarkdownRange} from './commonTypes';
++
++// A function compiled with the 'worklet' directive. The type cannot express that, so `MarkdownTextInput` checks it at
++// runtime and throws otherwise.
++type ParserWorklet = (input: string) => MarkdownRange[];
++
++// `NativeLiveMarkdownModule.install()` puts these functions on the global object from `injectJSIBindings` in
++// `cpp/RuntimeDecorator.cpp`. Both sides must agree on the signatures.
++declare global {
++  // eslint-disable-next-line no-var
++  var jsi_setMarkdownRuntime: (runtime: WorkletRuntime) => void;
++  // eslint-disable-next-line no-var
++  var jsi_registerMarkdownWorklet: (parserId: number, shareableWorklet: SerializableRef<ParserWorklet>) => void;
++  // eslint-disable-next-line no-var
++  var jsi_unregisterMarkdownWorklet: (parserId: number) => void;
++}
++
++let initialized = false;
++let workletRuntime: WorkletRuntime | undefined;
++
++function getWorkletRuntime(): WorkletRuntime {
++  if (workletRuntime === undefined) {
++    throw new Error(
++      "[react-native-live-markdown] Worklet runtime hasn't been created yet. Please avoid calling `getWorkletRuntime()` in top-level scope. Instead, call `getWorkletRuntime()` directly in `runOnRuntime` arguments list.",
++    );
++  }
++  return workletRuntime;
++}
++
++function initializeLiveMarkdownIfNeeded() {
++  if (initialized) {
++    return;
++  }
++  if (NativeLiveMarkdownModule) {
++    NativeLiveMarkdownModule.install();
++  }
++  if (!global.jsi_setMarkdownRuntime) {
++    throw new Error('[react-native-live-markdown] global.jsi_setMarkdownRuntime is not available');
++  }
++  workletRuntime = createWorkletRuntime({name: 'LiveMarkdownRuntime'});
++  global.jsi_setMarkdownRuntime(workletRuntime);
++  initialized = true;
++}
++
++export type {ParserWorklet};
++export {getWorkletRuntime, initializeLiveMarkdownIfNeeded};

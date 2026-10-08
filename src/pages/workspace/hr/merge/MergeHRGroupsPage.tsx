@@ -72,12 +72,14 @@ function MergeHRGroupsPage({
             keyForList: group.id,
             value: group.id,
             isSelected: selectedIds.has(group.id),
+            itemStyle: styles.pv4,
         })),
         ...filteredNonRenderableGroupIDs.map((groupID) => ({
             text: translate('workspace.hr.mergeHR.groups.unnamedGroup', groupID),
             keyForList: groupID,
             value: groupID,
             isSelected: selectedIds.has(groupID),
+            itemStyle: styles.pv4,
         })),
     ];
     const visibleGroupIDs = [...filteredGroups.map((group) => group.id), ...filteredNonRenderableGroupIDs];
@@ -154,7 +156,7 @@ function MergeHRGroupsPage({
                             headerMessage: listData.length === 0 && hasAnyGroups ? translate('common.noResultsFound') : undefined,
                             style: {containerStyle: styles.pb5},
                         }}
-                        style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting, listItemWrapperStyle: styles.pv4}}
+                        style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting}}
                     />
                     <FixedFooter
                         style={styles.mtAuto}

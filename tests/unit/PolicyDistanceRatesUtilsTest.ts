@@ -1,5 +1,7 @@
 import {
     getDistanceExpenseTypeForPolicy,
+    getDistanceRateNameError,
+    getDistanceRateValueError,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
@@ -139,6 +141,9 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getGovernmentRateCountryForCurrency('CAD')).toBe('CA');
             expect(getGovernmentRateCountryForCurrency('GBP')).toBe('GB');
             expect(getGovernmentRateCountryForCurrency('AUD')).toBe('AU');
+            expect(getGovernmentRateCountryForCurrency('NOK')).toBe('NO');
+            expect(getGovernmentRateCountryForCurrency('SEK')).toBe('SE');
+            expect(getGovernmentRateCountryForCurrency('ZAR')).toBe('ZA');
         });
 
         it('should return undefined for an unsupported or missing currency', () => {
@@ -154,6 +159,9 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(isCurrencySupportedForAutoUpdate('CAD')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('GBP')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('AUD')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('NOK')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('SEK')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('ZAR')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('NZD')).toBe(false);
             expect(isCurrencySupportedForAutoUpdate(undefined)).toBe(false);
         });
@@ -165,6 +173,9 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getExpectedUnitForCurrency('GBP')).toBe('mi');
             expect(getExpectedUnitForCurrency('CAD')).toBe('km');
             expect(getExpectedUnitForCurrency('AUD')).toBe('km');
+            expect(getExpectedUnitForCurrency('NOK')).toBe('km');
+            expect(getExpectedUnitForCurrency('SEK')).toBe('km');
+            expect(getExpectedUnitForCurrency('ZAR')).toBe('km');
         });
 
         it('should return undefined for an unsupported currency', () => {
@@ -240,6 +251,71 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should pass through an unset preference', () => {
             expect(getDistanceExpenseTypeForPolicy(buildPolicy({requireMapOrGPS: true}), undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceRateNameError', () => {
+        const existingRateNames = ['IRS', 'Custom rate'];
+
+        it('should return required when the name is empty or only whitespace', () => {
+            expect(getDistanceRateNameError(existingRateNames, '')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getDistanceRateNameError(existingRateNames, '   ')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+            expect(getDistanceRateNameError(existingRateNames, '\u200B')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+        });
+
+        it('should return existing when the name matches another rate', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'IRS')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+            expect(getDistanceRateNameError(existingRateNames, ' Custom rate ')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        });
+
+        it('should not flag a rate as a duplicate of its own name', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'IRS', 'IRS')).toBeUndefined();
+        });
+
+        it('should return tooLong when the name exceeds the character limit', () => {
+            const tooLongName = 'a'.repeat(CONST.TAX_RATES.NAME_MAX_LENGTH + 1);
+            expect(getDistanceRateNameError(existingRateNames, tooLongName)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LONG);
+        });
+
+        it('should accept a unique name within the character limit', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'New rate')).toBeUndefined();
+        });
+
+        it('flags an HTML-like name the Name page already rejects', () => {
+            // Given a distance rate the admin is renaming from the table
+            // When the new name is an HTML-like token such as </>
+            // Then the name is invalid, because the Name page blocks it and the table must not save it
+            expect(getDistanceRateNameError(existingRateNames, '</>', 'IRS')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('allows a whitelisted angle-bracket token', () => {
+            // Given a distance rate the admin is renaming
+            // When the new name is a harmless token the Name page already allows, such as <>
+            // Then the name is valid, so the table and the Name page stay in agreement
+            expect(getDistanceRateNameError(existingRateNames, '<>', 'IRS')).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceRateValueError', () => {
+        const toLocaleDigit = (digit: string) => digit;
+
+        it('should return invalid when the rate is empty or not a number', () => {
+            expect(getDistanceRateValueError('', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+            expect(getDistanceRateValueError('abc', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('should return tooLow when the rate is zero or negative', () => {
+            expect(getDistanceRateValueError('0', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LOW);
+            expect(getDistanceRateValueError('-1', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LOW);
+        });
+
+        it('should return invalid when the rate has more than four decimal places', () => {
+            expect(getDistanceRateValueError('0.12345', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('should accept a positive rate with up to four decimal places', () => {
+            expect(getDistanceRateValueError('0.67', toLocaleDigit)).toBeUndefined();
+            expect(getDistanceRateValueError('0.6700', toLocaleDigit)).toBeUndefined();
         });
     });
 });

@@ -1,8 +1,10 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -16,6 +18,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -26,7 +29,7 @@ type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customFie
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
-    role?: string;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
     name: string;
@@ -39,6 +42,8 @@ type WorkspaceMemberRowData = TableData & {
     invitedSecondaryLogin: string;
     action: () => void;
     dismissError: () => void;
+    canEditRole?: boolean;
+    onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 };
 
 type WorkspaceMembersTableProps = {
@@ -59,6 +64,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
+    GUESTS: 'guests',
     MEMBERS: 'members',
     PAYMENTS_ADMINS: 'paymentsAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
@@ -75,6 +81,7 @@ export default function WorkspaceMembersTable({
     onRowSelectionChange,
     headerComponent,
 }: WorkspaceMembersTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -123,10 +130,16 @@ export default function WorkspaceMembersTable({
             key: 'role',
             label: translate('common.role'),
             sortable: true,
+            styling: {
+                // editableCellHeader matches the padded role cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
                 // A role is one of a short, known set of labels, so the column always shows them in full.
                 shouldFitContent: true,
+                // Padding and border sit inside the track. A role is pinned to its text, so that chrome has to be measured or the label clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -146,75 +159,16 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'role') {
-            if (!item1.role && !item2.role) {
-                return memberNameComparison;
-            }
-
-            if (!item1.role) {
-                return 1;
-            }
-
-            if (!item2.role) {
-                return -1;
-            }
-
-            const roleComparison = localeCompare(translate('workspace.common.roleName', item1.role), translate('workspace.common.roleName', item2.role));
-
-            if (roleComparison !== 0) {
-                return roleComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            const compareRoleNames = (role1: string, role2: string) => localeCompare(translate('workspace.common.roleName', role1), translate('workspace.common.roleName', role2));
+            return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField1') {
-            const item1CustomField1Value = item1.employeeUserID;
-            const item2CustomField1Value = item2.employeeUserID;
-
-            if (!item1CustomField1Value && !item2CustomField1Value) {
-                return memberNameComparison;
-            }
-
-            if (!item1CustomField1Value) {
-                return 1;
-            }
-
-            if (!item2CustomField1Value) {
-                return -1;
-            }
-
-            const employeeIdComparison = localeCompare(item1CustomField1Value, item2CustomField1Value);
-
-            if (employeeIdComparison !== 0) {
-                return employeeIdComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            return compareOptionalValues(item1.employeeUserID, item2.employeeUserID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField2') {
-            const item1CustomField2Value = item1.employeePayrollID;
-            const item2CustomField2Value = item2.employeePayrollID;
-
-            if (!item1CustomField2Value && !item2CustomField2Value) {
-                return memberNameComparison;
-            }
-
-            if (!item1CustomField2Value) {
-                return 1;
-            }
-
-            if (!item2CustomField2Value) {
-                return -1;
-            }
-
-            const payrollIdComparison = localeCompare(item1CustomField2Value, item2CustomField2Value);
-
-            if (payrollIdComparison !== 0) {
-                return payrollIdComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            return compareOptionalValues(item1.employeePayrollID, item2.employeePayrollID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         return 1;
@@ -258,6 +212,11 @@ export default function WorkspaceMembersTable({
 
         const isPaymentsAdmin = item.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS) && isPaymentsAdmin) {
+            return true;
+        }
+
+        const isGuest = item.role === CONST.POLICY.ROLE.GUEST;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.GUESTS) && isGuest) {
             return true;
         }
 
@@ -311,6 +270,11 @@ export default function WorkspaceMembersTable({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.guests'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
+        });
     }
 
     if (isSubmitPolicy(policy)) {
@@ -333,6 +297,7 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                policy={policy}
             />
         );
     };

@@ -1,6 +1,7 @@
 import {render} from '@testing-library/react-native';
 
 import DistanceRequestController from '@components/MoneyRequestConfirmationList/DistanceRequestController';
+import type useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 
@@ -73,33 +74,41 @@ describe('DistanceRequestController', () => {
     });
 
     it('updates the base distance merchant and delegates commuter fields to the commuter action', () => {
+        // Given the confirmation data and the distance state the controller takes as props
+        const confirmationData = {
+            transactionID: 'txn1',
+            transaction,
+            policy: undefined,
+            isDistanceRequest: true,
+            isPolicyExpenseChat: false,
+            isMovingTransactionFromTrackExpense: false,
+            isReadOnly: false,
+            isTypeSplit: false,
+            customUnitRateID: '',
+            currentUserAccountID: 1,
+            selectedParticipants: [],
+            selectedParticipantsProp: [],
+            setFormError: jest.fn(),
+            clearFormErrors: jest.fn(),
+        };
+
+        const distanceState = createMock<ReturnType<typeof useDistanceRequestState>>({
+            mileageRate: {rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, currency: CONST.CURRENCY.USD},
+            rate: 67,
+            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            currency: CONST.CURRENCY.USD,
+            distance: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+            distanceRequestAmount: 201,
+            shouldCalculateDistanceAmount: false,
+            isDistanceRequestWithPendingRoute: false,
+            hasRoute: true,
+            defaultRate: undefined,
+        });
+
         render(
             <DistanceRequestController
-                transactionID="txn1"
-                transaction={transaction}
-                policy={undefined}
-                isDistanceRequest
-                isManualDistanceRequest={false}
-                isPolicyExpenseChat={false}
-                isMovingTransactionFromTrackExpense={false}
-                isReadOnly={false}
-                isTypeSplit={false}
-                customUnitRateID=""
-                mileageRate={{rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, currency: CONST.CURRENCY.USD}}
-                rate={67}
-                unit={CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}
-                currency={CONST.CURRENCY.USD}
-                distance={DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
-                distanceRequestAmount={201}
-                shouldCalculateDistanceAmount={false}
-                currentUserAccountID={1}
-                isDistanceRequestWithPendingRoute={false}
-                hasRoute
-                defaultMileageRateCustomUnitRateID={undefined}
-                selectedParticipants={[]}
-                selectedParticipantsProp={[]}
-                setFormError={jest.fn()}
-                clearFormErrors={jest.fn()}
+                {...confirmationData}
+                distanceState={distanceState}
             />,
         );
 
@@ -156,27 +165,28 @@ describe('DistanceRequestController', () => {
                     transaction={transaction}
                     policy={policy}
                     isDistanceRequest
-                    isManualDistanceRequest={false}
                     isPolicyExpenseChat={isPolicyExpenseChat}
                     isMovingTransactionFromTrackExpense={false}
                     isReadOnly={false}
                     isTypeSplit={false}
                     customUnitRateID="rateFromAnotherWorkspace"
-                    mileageRate={{rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, currency: CONST.CURRENCY.USD}}
-                    rate={67}
-                    unit={CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}
-                    currency={CONST.CURRENCY.USD}
-                    distance={DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
-                    distanceRequestAmount={201}
-                    shouldCalculateDistanceAmount={false}
                     currentUserAccountID={1}
-                    isDistanceRequestWithPendingRoute={false}
-                    hasRoute
-                    defaultMileageRateCustomUnitRateID={undefined}
                     selectedParticipants={[]}
                     selectedParticipantsProp={[]}
                     setFormError={setFormError}
                     clearFormErrors={clearFormErrors}
+                    distanceState={createMock<ReturnType<typeof useDistanceRequestState>>({
+                        mileageRate: {rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, currency: CONST.CURRENCY.USD},
+                        rate: 67,
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        currency: CONST.CURRENCY.USD,
+                        distance: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                        distanceRequestAmount: 201,
+                        shouldCalculateDistanceAmount: false,
+                        isDistanceRequestWithPendingRoute: false,
+                        hasRoute: true,
+                        defaultRate: undefined,
+                    })}
                 />,
             );
 

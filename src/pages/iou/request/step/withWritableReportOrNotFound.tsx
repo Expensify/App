@@ -39,6 +39,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
+    | typeof SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE
@@ -96,7 +97,6 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -116,7 +116,6 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
             reportID: route.params.reportID,
             introSelected,
             conciergeChat,
-            betas,
             hasReportActions,
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
