@@ -83,6 +83,9 @@ type Account = {
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 
+    /** Whether an email unblock request is currently in flight */
+    isUnblockingEmail?: boolean;
+
     /** User recovery codes for setting up 2-FA */
     recoveryCodes?: string;
 

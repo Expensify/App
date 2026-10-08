@@ -14,6 +14,7 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
@@ -66,6 +67,7 @@ import {
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
     getSelectableRoles,
+    hasActiveExpensifyCard,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
@@ -125,6 +127,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const getWorkspaceMembers = () => {
@@ -285,6 +288,21 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return;
         }
 
+        const cardholderEmail = selectedEmployees.find((email) => hasActiveExpensifyCard(policy, email));
+        if (cardholderEmail) {
+            showConfirmModal({
+                shouldShowCancelButton: false,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
+                prompt: translate('workspace.people.removeMemberPromptExpensifyCard', {
+                    memberName: getDisplayNameForParticipant({accountID: policyMemberEmailsToAccountIDs[cardholderEmail], formatPhoneNumber, hiddenTranslation: translate('common.hidden')}),
+                }),
+                confirmText: translate('common.buttonConfirm'),
+                cancelText: translate('common.cancel'),
+            });
+            return;
+        }
+
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
@@ -298,7 +316,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             removeUsers();
         });
-    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, policyID, showConfirmModal, showRuleBotGuardModal, translate]);
+    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, policyID, showConfirmModal, showRuleBotGuardModal, translate, formatPhoneNumber]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -802,7 +820,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
-                    {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{getHeaderButtons()}</View>}
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}

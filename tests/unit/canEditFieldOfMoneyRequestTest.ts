@@ -137,13 +137,15 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(true);
             });
 
-            it('should return false for invoice report action when billable field is edited on an approved invoice report', async () => {
+            it('should return true for invoice report action when billable field is edited on an approved invoice report', async () => {
+                // Given an approved invoice
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 });
                 await waitForBatchedUpdates();
 
+                // When the billable field is edited
                 const canEditBillable = canEditFieldOfMoneyRequest({
                     reportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
@@ -151,7 +153,31 @@ describe('canEditFieldOfMoneyRequest', () => {
                     rules: undefined,
                     reportNameValuePairs: undefined,
                 });
-                expect(canEditBillable).toBe(false);
+
+                // Then it is allowed, because billable follows the coding fields in every report state. This is what
+                // the single-expense view already does, so bulk edit has to agree with it
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return true for invoice report action when billable field is edited on a paid invoice report', async () => {
+                // Given an invoice that has already been paid, which lands on REIMBURSED rather than APPROVED
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+                await waitForBatchedUpdates();
+
+                // When the billable field is edited
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: moneyRequestTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed too, so approved and paid invoices stay consistent with each other
+                expect(canEditBillable).toBe(true);
             });
 
             it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
@@ -773,12 +799,67 @@ describe('canEditFieldOfMoneyRequest', () => {
                     CONST.EDIT_REQUEST_FIELD.MERCHANT,
                     CONST.EDIT_REQUEST_FIELD.DATE,
                     CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
-                    CONST.EDIT_REQUEST_FIELD.BILLABLE,
                 ];
 
                 for (const fieldToEdit of restrictedFields) {
                     expect(canEditFieldOfMoneyRequest({reportAction, fieldToEdit, transaction: approvedTransaction, rules: undefined, reportNameValuePairs: undefined})).toBe(false);
                 }
+            });
+
+            it('should return true for an admin editing billable on an approved report', async () => {
+                // Given an expense on an approved report in a workspace the current user admins
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                // When the admin edits the billable field
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed, because billable is a coding field an admin can already change one expense at a
+                // time on an approved report, and bulk edit has to offer the same thing to stay consistent with it
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return true for an admin editing billable on a reimbursed report', async () => {
+                // Given an expense on a report that has already been paid
+                const reportAction = await setUpOnyx(adminPolicy, {
+                    ...approvedReport,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+
+                // When the admin edits the billable field
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is still allowed, since paying a report does not lock its coding
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return false for the non-admin submitter editing billable on an approved report', async () => {
+                // Given the same approved report seen by the submitter, who is a plain workspace member
+                const reportAction = await setUpOnyx(memberPolicy);
+
+                // When they try to edit the billable field
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is blocked, so dropping billable from the restricted fields does not widen access past
+                // admins and the report manager
+                expect(canEditBillable).toBe(false);
             });
         });
 

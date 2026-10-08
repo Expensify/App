@@ -149,6 +149,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         processedData: filteredAndSortedData,
         listProps,
         listRef,
+        scrollbarWidth,
+        measureScrollbarRef,
         listContainerRef,
         trackScrollOffset,
         title,
@@ -365,7 +367,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         style={[styles.flex1, styles.mnh0]}
                         contentContainerStyle={[styles.flexGrow1, tableBodyContentContainerStyle]}
                         keyboardShouldPersistTaps="handled"
-                        showsVerticalScrollIndicator={false}
                     >
                         <View style={[styles.flexGrow1, styles.justifyContentCenter]}>{emptyStateContent}</View>
                         {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
@@ -402,12 +403,20 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
                 const isAccessibleTableHeader = info.target === (isTableHeaderSticky ? 'StickyHeader' : 'Cell');
                 const isAccessibilityHidden = isTableSemanticsEnabled && !isAccessibleTableHeader;
-                return React.cloneElement(tableHeaderElement, {
+                const headerElement = React.cloneElement(tableHeaderElement, {
                     isStickyListHeader: true,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'aria-hidden': isAccessibilityHidden ? true : undefined,
                     isAccessibilityHidden,
                 });
+
+                // The list draws its stuck header as a sibling of the scroller rather than inside it, so the header
+                // spans a width the rows below never get. Holding it off the scrollbar keeps the two edges in line.
+                if (info.target !== 'StickyHeader' || scrollbarWidth === 0) {
+                    return headerElement;
+                }
+
+                return <View style={StyleUtils.getPaddingRight(scrollbarWidth)}>{headerElement}</View>;
             }
             case 'data':
             default: {
@@ -454,10 +463,12 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             {...props}
         >
             <FlashList<TableData>
-                ref={listRef}
+                ref={(instance) => {
+                    listRef.current = instance;
+                    measureScrollbarRef(instance);
+                }}
                 data={listData}
                 style={[styles.flex1, styles.mnh0, isBulkActionBarVisible && styles.bulkActionBarScrollPadding]}
-                showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={listHeaderContent}
                 ListHeaderComponentStyle={[
