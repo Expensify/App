@@ -10,7 +10,7 @@ const TRANSACTION_ID = '1';
 
 const RECEIPT: Receipt = {source: 'file://receipt.jpg'};
 
-function buildScanTransaction(overrides: Partial<Transaction> = {}): Transaction {
+function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
     return {
         ...createRandomTransaction(Number(TRANSACTION_ID)),
         iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
@@ -24,7 +24,7 @@ function buildScanTransaction(overrides: Partial<Transaction> = {}): Transaction
 describe('getCurrentReceiptState', () => {
     it('returns undefined when the transaction has no receipt file', () => {
         // Given a scan transaction whose ID has no entry in the receipt files
-        const item = buildScanTransaction();
+        const item = buildTransaction();
 
         // When the receipt state is resolved
         const result = getCurrentReceiptState({item, receiptFiles: {}, canEnterScanFieldsManually: true});
@@ -35,7 +35,7 @@ describe('getCurrentReceiptState', () => {
 
     it('returns undefined when the surface does not offer the manual scan fields', () => {
         // Given a scan transaction with a receipt, on a surface that never showed the amount / merchant / date fields
-        const item = buildScanTransaction({isAmountSet: true, isMerchantSet: true, isCreatedSet: true});
+        const item = buildTransaction({isAmountSet: true, isMerchantSet: true, isCreatedSet: true});
 
         // When the receipt state is resolved
         const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: false});
@@ -46,7 +46,7 @@ describe('getCurrentReceiptState', () => {
 
     it('returns undefined for a test receipt', () => {
         // Given a scan transaction whose receipt is a test receipt
-        const item = buildScanTransaction();
+        const item = buildTransaction();
 
         // When the receipt state is resolved
         const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: {...RECEIPT, isTestReceipt: true}}, canEnterScanFieldsManually: true});
@@ -57,7 +57,7 @@ describe('getCurrentReceiptState', () => {
 
     it('returns undefined for a test drive receipt', () => {
         // Given a scan transaction whose receipt is a test drive receipt
-        const item = buildScanTransaction();
+        const item = buildTransaction();
 
         // When the receipt state is resolved
         const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: {...RECEIPT, isTestDriveReceipt: true}}, canEnterScanFieldsManually: true});
@@ -68,7 +68,7 @@ describe('getCurrentReceiptState', () => {
 
     it('returns undefined when the transaction is not a scan request', () => {
         // Given a manual transaction that has a receipt attached
-        const item = buildScanTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+        const item = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
 
         // When the receipt state is resolved
         const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true});
@@ -79,7 +79,7 @@ describe('getCurrentReceiptState', () => {
 
     it('returns SCAN_READY when none of the manual scan fields are filled in', () => {
         // Given a scan transaction with a receipt and no amount, merchant or date entered
-        const item = buildScanTransaction();
+        const item = buildTransaction();
 
         // When the receipt state is resolved
         const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true});
@@ -90,7 +90,7 @@ describe('getCurrentReceiptState', () => {
 
     it('returns SCAN_READY when only some of the manual scan fields are filled in', () => {
         // Given a scan transaction with a receipt where only the amount was entered
-        const item = buildScanTransaction({isAmountSet: true});
+        const item = buildTransaction({isAmountSet: true});
 
         // When the receipt state is resolved
         const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true});
@@ -101,7 +101,7 @@ describe('getCurrentReceiptState', () => {
 
     it('returns OPEN when all manual scan fields are filled in', () => {
         // Given a scan transaction with a receipt where amount, merchant and date were all entered
-        const item = buildScanTransaction({isAmountSet: true, isMerchantSet: true, isCreatedSet: true});
+        const item = buildTransaction({isAmountSet: true, isMerchantSet: true, isCreatedSet: true});
 
         // When the receipt state is resolved
         const result = getCurrentReceiptState({item, receiptFiles: {[TRANSACTION_ID]: RECEIPT}, canEnterScanFieldsManually: true});

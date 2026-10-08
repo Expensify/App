@@ -125,7 +125,7 @@ describe('performPostBatchCleanup', () => {
             participantReportDraft: PARTICIPANT_REPORT_DRAFT,
         });
 
-        // And navigation goes to that chat, with the transaction ID and global create flag taken from the last expense
+        // And navigation goes to that chat, with the global create flag taken from the last expense and the last optimistic transaction ID
         expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith({
             report: RESOLVED_REPORT,
             action: CONST.IOU.ACTION.CREATE,
@@ -155,8 +155,11 @@ describe('performPostBatchCleanup', () => {
     });
 
     it('navigates to the tracked transaction when a tracked expense is moved', () => {
-        // Given a completed batch whose last expense is a tracked expense being moved
-        const params = buildParams({action: CONST.IOU.ACTION.SUBMIT, transactions: [buildTransaction(1, {linkedTrackedExpenseReportAction: LINKED_TRACKED_EXPENSE_ACTION})]});
+        // Given a completed batch where a plain expense is followed by a tracked expense being moved
+        const params = buildParams({
+            action: CONST.IOU.ACTION.SUBMIT,
+            transactions: [buildTransaction(1), buildTransaction(2, {linkedTrackedExpenseReportAction: LINKED_TRACKED_EXPENSE_ACTION})],
+        });
 
         // When the post-batch cleanup runs
         performPostBatchCleanup(params);

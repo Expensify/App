@@ -55,6 +55,17 @@ describe('getSelectedParticipantsForSubmission', () => {
         expect(result).toEqual([ALICE]);
     });
 
+    it('drops split participants that have no split share entry', () => {
+        // Given a split whose shares only include Alice
+        const transaction = buildTransaction({[ALICE_ACCOUNT_ID]: {amount: 100}});
+
+        // When the participants are picked for a split
+        const result = getSelectedParticipantsForSubmission({transaction, iouType: CONST.IOU.TYPE.SPLIT, selectedParticipants: [ALICE, BOB]});
+
+        // Then Bob is dropped, because only participants with a positive share are kept
+        expect(result).toEqual([ALICE]);
+    });
+
     it('matches a workspace chat participant by its owner account ID', () => {
         // Given a split with a workspace chat whose owner has a non-zero share, keyed by the owner's account ID
         const transaction = buildTransaction({[ALICE_ACCOUNT_ID]: {amount: 0}, [WORKSPACE_OWNER_ACCOUNT_ID]: {amount: 100}});
