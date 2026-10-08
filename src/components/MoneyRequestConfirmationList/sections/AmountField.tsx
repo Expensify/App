@@ -268,9 +268,7 @@ function AmountField({
 
         buildAndSaveSplitShares(updatedAmount, value);
 
-        // Picking a currency is not entering an amount. While the amount field is still empty (an untouched manual
-        // amount, or a Scan amount that belongs to SmartScan), only the currency is written: going through
-        // setMoneyRequestAmount would flip isAmountSet and turn a Scan into a partially entered manual expense.
+        // Only save the currency while the amount is empty, since setMoneyRequestAmount sets isAmountSet and blocks Scan submission.
         if (parsedAmount === null && shouldShowEmptyAmount && !isEditingSplitBill) {
             setMoneyRequestCurrency(transactionID, value);
         } else {
