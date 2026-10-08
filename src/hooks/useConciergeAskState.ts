@@ -45,13 +45,12 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
             return false;
         }
         return Object.values(actions).some((action) => {
-            const isPendingAdd = isCurrentUserPendingAddAction(action, currentUserAccountID);
-
-            // A question that opens its own thread takes the user there, so the welcome stays until it is sent.
-            if (isPendingAdd && !!action.childReportID) {
+            // A question that opens its own thread is answered there, so it keeps the welcome both while sending and once sent.
+            // Otherwise reconnecting would switch this chat to a partial view that `Hide chat history` can't return to.
+            if (action.actorAccountID === currentUserAccountID && !!action.childReportID && action.childType === CONST.REPORT.TYPE.CHAT) {
                 return false;
             }
-            return isPendingAdd || (!isCreatedAction(action) && action.created >= sessionStartTime);
+            return isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime);
         });
     };
     const [hasSessionActivity] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {

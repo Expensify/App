@@ -54,23 +54,38 @@ describe('useConciergeAskState', () => {
         expect(result.current.shouldShowWelcome).toBe(true);
     });
 
-    it('keeps the empty state while a question that opens its own thread is sending', async () => {
+    it('keeps the empty state for a question that opens its own thread, while sending and once sent', async () => {
+        // Given a question from the current user that opened its own thread and is still sending (for example, offline)
         const question = {
             reportActionID: '3',
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             actorAccountID: 100,
             created: '2024-06-01 12:05:00.000',
             childReportID: '4',
+            childType: CONST.REPORT.TYPE.CHAT,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: question});
         await waitForBatchedUpdates();
 
+        // When the Concierge chat renders
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
+
+        // Then the welcome stays, because the question is answered in its thread
         expect(result.current.shouldShowWelcome).toBe(true);
 
+        // When the question is sent (for example, after reconnecting)
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {pendingAction: null}});
         await waitForBatchedUpdates();
+
+        // Then the welcome still stays, so the collapsed chat doesn't switch to a partial list on its own
+        expect(result.current.shouldShowWelcome).toBe(true);
+
+        // When the thread fails to be created, which clears the question's child thread
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {childReportID: null, childType: ''}});
+        await waitForBatchedUpdates();
+
+        // Then the question counts as activity, so its error stays visible in this chat
         expect(result.current.shouldShowWelcome).toBe(false);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);

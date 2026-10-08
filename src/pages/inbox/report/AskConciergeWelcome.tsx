@@ -26,7 +26,8 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
     return (
         <ScrollView
             style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
-            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
+            // Without previous messages the toggle is hidden, so its padding no longer keeps the description off the composer.
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, !hasPreviousMessages && styles.pb5]}
             keyboardShouldPersistTaps="handled"
         >
             <AskConciergeEmptyState />
