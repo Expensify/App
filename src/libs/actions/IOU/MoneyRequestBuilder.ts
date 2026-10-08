@@ -108,7 +108,8 @@ type BuildOnyxDataForMoneyRequestKeys =
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
     | typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
-    | typeof ONYXKEYS.COLLECTION.SNAPSHOT;
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES;
 
 type MoneyRequestInformation = {
     payerAccountID: number;

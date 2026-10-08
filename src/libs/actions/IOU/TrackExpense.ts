@@ -87,6 +87,7 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData} from '@userActions/Report';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
+import {getLocallyCreatedRouteOnyxData} from '@userActions/ReusableDistanceRoutes';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 
@@ -2506,6 +2507,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         writeBarrier,
         rules,
         personalDetailsByLogins,
+        reusableDistanceRoutes = [],
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2949,6 +2951,21 @@ function trackExpense(params: CreateTrackExpenseParams) {
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
+            }
+
+            if (validWaypoints && transaction?.transactionID) {
+                const reusableRouteOnyxData = getLocallyCreatedRouteOnyxData(
+                    {
+                        transactionID: transaction.transactionID,
+                        waypoints: validWaypoints,
+                        distance: distance ?? 0,
+                        routeDistanceMeters: selectedRouteDistance,
+                        inserted: created ?? DateUtils.getDBTime(),
+                    },
+                    reusableDistanceRoutes,
+                );
+                onyxData?.optimisticData?.push(...reusableRouteOnyxData.optimisticData);
+                onyxData?.failureData?.push(...reusableRouteOnyxData.failureData);
             }
 
             API.writeWhenReady(

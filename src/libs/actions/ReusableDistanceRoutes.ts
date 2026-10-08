@@ -13,6 +13,24 @@ import Onyx from 'react-native-onyx';
 
 import {updateWaypoints} from './Transaction';
 
+/**
+ * Onyx data saving the route of a newly created distance expense locally, so the just used
+ * route shows in "Reuse route" in offline mode before the server list refreshes.
+ */
+function getLocallyCreatedRouteOnyxData(
+    route: ReusableDistanceRoute,
+    currentRoutes: ReusableDistanceRoute[],
+): {
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES>>;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES>>;
+} {
+    const updatedRoutes = [route, ...currentRoutes.filter((item) => item.transactionID !== route.transactionID)];
+    return {
+        optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.REUSABLE_DISTANCE_ROUTES, value: updatedRoutes}],
+        failureData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.REUSABLE_DISTANCE_ROUTES, value: currentRoutes}],
+    };
+}
+
 function fetchReusableDistanceRoutes() {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_REUSABLE_DISTANCE_ROUTES>> = [
         {
@@ -55,4 +73,4 @@ function selectReusableRoute(transactionID: string, route: ReusableDistanceRoute
     );
 }
 
-export {fetchReusableDistanceRoutes, selectReusableRoute};
+export {fetchReusableDistanceRoutes, getLocallyCreatedRouteOnyxData, selectReusableRoute};

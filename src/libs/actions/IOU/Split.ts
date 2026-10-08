@@ -56,6 +56,7 @@ import {
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
+import {getLocallyCreatedRouteOnyxData} from '@userActions/ReusableDistanceRoutes';
 import {sanitizeWaypointsForAPI} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -162,6 +163,9 @@ type CreateDistanceRequestInformation = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+
+    /** Current "Reuse route" list value, so the just used route can be saved locally */
+    reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
 };
 
 type CreateSplitsTransactionParams = BaseTransactionParams & {
@@ -2078,6 +2082,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         writeBarrier,
         rules,
         isVendorMatchingBetaEnabled,
+        reusableDistanceRoutes = [],
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2341,6 +2346,21 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             selectedRouteDistance,
             shouldDeferAutoSubmit,
         };
+    }
+
+    if (!isManualDistanceRequest && validWaypoints) {
+        const reusableRouteOnyxData = getLocallyCreatedRouteOnyxData(
+            {
+                transactionID: parameters.transactionID,
+                waypoints: validWaypoints,
+                distance: distance ?? 0,
+                routeDistanceMeters: selectedRouteDistance,
+                inserted: created ?? DateUtils.getDBTime(),
+            },
+            reusableDistanceRoutes,
+        );
+        onyxData?.optimisticData?.push(...reusableRouteOnyxData.optimisticData);
+        onyxData?.failureData?.push(...reusableRouteOnyxData.failureData);
     }
 
     if (previousOdometerDraft !== undefined && (odometerStart !== undefined || odometerEnd !== undefined)) {
