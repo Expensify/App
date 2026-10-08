@@ -285,6 +285,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 isTrackIntentUser,
                 delegateAccountID,
