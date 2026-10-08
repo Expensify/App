@@ -458,6 +458,7 @@ function MoneyRequestReceiptView({
               transactionThreadReport,
               transactionViolations: rawTransactionViolations,
               currentUserPersonalDetails: currentUserPersonalDetail,
+              introSelected,
           }
         : undefined;
 

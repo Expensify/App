@@ -1385,6 +1385,45 @@ describe('actions/IOU/TrackExpense', () => {
             expect(actionableWhisper).toBeTruthy();
         });
 
+        it('reuses the failed IOU action and thread on a receipt retry, and clears the thread creation error', async () => {
+            // Given a self-DM and the thread a failed track left behind, still carrying its creation error
+            mockFetch?.pause?.();
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry',
+            };
+            const failedIOUActionID = '1111111111111111';
+            const failedThreadReportID = '2222222222222222';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`, {
+                reportID: failedThreadReportID,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: failedIOUActionID,
+                errorFields: {createChat: {error: 'report.genericCreateReportFailureMessage'}},
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 1200}),
+                optimisticTransactionID: '3333333333333333',
+                currentReportActionID: failedIOUActionID,
+                existingTransactionThreadReportID: failedThreadReportID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self-DM holds one IOU action under the failed ID, linked to the same thread, so no second expense or thread appears
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const iouActions = Object.values(reportActions ?? {}).filter((action) => isMoneyRequestAction(action));
+            expect(iouActions).toHaveLength(1);
+            expect(iouActions.at(0)?.reportActionID).toBe(failedIOUActionID);
+            expect(iouActions.at(0)?.childReportID).toBe(failedThreadReportID);
+
+            // And the thread no longer shows the creation error from the failed attempt
+            const threadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`);
+            expect(threadReport?.errorFields?.createChat).toBeFalsy();
+        });
+
         it('should set correct tax fields when tax parameters are provided', async () => {
             // Given a selfDM report and transaction with tax
             const selfDMReport: Report = {

@@ -1,12 +1,13 @@
 import retryReceiptUpload, {canRetryReceiptUpload} from '@libs/ReceiptUploadRetryHandler';
 import buildReplaceReceiptRetryPayload from '@libs/ReceiptUploadRetryHandler/buildReplaceReceiptRetryPayload';
 import buildRetryPayload, {canBuildRetryPayload} from '@libs/ReceiptUploadRetryHandler/buildRetryPayload';
+import buildTrackExpenseRetryPayload from '@libs/ReceiptUploadRetryHandler/buildTrackExpenseRetryPayload';
 import resolveReceiptFile from '@libs/ReceiptUploadRetryHandler/resolveReceiptFile';
 import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
 
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import type {ReplaceReceiptRetryParams} from '@userActions/IOU/Receipt';
-import {requestMoney} from '@userActions/IOU/TrackExpense';
+import {requestMoney, trackExpense} from '@userActions/IOU/TrackExpense';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +22,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/ReceiptUploadRetryHandler/resolveReceiptFile', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@userActions/IOU/Receipt', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/IOU/Receipt'), replaceReceipt: jest.fn()}));
-jest.mock('@userActions/IOU/TrackExpense', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/IOU/TrackExpense'), requestMoney: jest.fn()}));
+jest.mock('@userActions/IOU/TrackExpense', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/IOU/TrackExpense'), requestMoney: jest.fn(), trackExpense: jest.fn()}));
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const TRANSACTION_ID = '7000000000000001';
@@ -30,6 +31,7 @@ const CHAT_REPORT_ID = '9000000000000001';
 const POLICY_ID = 'A0000000000000001';
 const IOU_ACTION_ID = '6000000000000001';
 const THREAD_REPORT_ID = '5000000000000001';
+const SELF_DM_REPORT_ID = '4000000000000001';
 
 const receiptFile: FileObject = {name: 'receipt.jpg', type: 'image/jpeg', uri: 'file:///receipts/receipt.jpg'};
 
@@ -75,6 +77,7 @@ function buildContext(transaction: Transaction, receiptErrorOverrides: Partial<R
         transactionThreadReport: undefined,
         transactionViolations: undefined,
         currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@example.com'},
+        introSelected: undefined,
     };
 }
 
@@ -89,6 +92,12 @@ function buildReplaceReceiptContext(retryParamsOverrides: Partial<ReplaceReceipt
         ...retryParamsOverrides,
     };
     return buildContext(transaction, {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams: JSON.stringify(retryParams), ...receiptErrorOverrides});
+}
+
+function buildTrackExpenseContext(iouReport: Report = {reportID: SELF_DM_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM} as Report): ReceiptRetryContext {
+    // A tracked expense in the self-DM is unreported, and its amount is stored negated.
+    const transaction = buildFailedTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: -1200});
+    return {...buildContext(transaction, {action: CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE}), iouReport};
 }
 
 describe('buildRetryPayload', () => {
@@ -132,7 +141,7 @@ describe('buildRetryPayload', () => {
         expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT}))).toBe(false);
     });
 
-    it('offers no retry for a trackExpense failure, whose convert-and-submit path the handler does not replay', () => {
+    it('does not rebuild a trackExpense failure as a RequestMoney call, because track has its own builder', () => {
         expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {action: CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE}))).toBe(false);
     });
 
@@ -232,6 +241,65 @@ describe('buildRetryPayload', () => {
             expect(jest.mocked(replaceReceipt)).toHaveBeenCalledTimes(1);
             expect(jest.mocked(requestMoney)).not.toHaveBeenCalled();
             expect(jest.mocked(replaceReceipt).mock.invocationCallOrder.at(0)).toBeLessThan(clearReceiptError.mock.invocationCallOrder.at(0) ?? 0);
+        });
+    });
+    describe('trackExpense retry', () => {
+        beforeEach(() => {
+            jest.mocked(resolveReceiptFile).mockResolvedValue(receiptFile);
+            jest.mocked(trackExpense).mockReset();
+            jest.mocked(requestMoney).mockReset();
+        });
+
+        it('offers a retry for a failed track in the self-DM', () => {
+            // Given a scan tracked in the self-DM whose upload failed
+            const context = buildTrackExpenseContext();
+
+            // When the receipt view asks whether it can retry
+            const canRetry = canRetryReceiptUpload(context);
+
+            // Then Try again is offered
+            expect(canRetry).toBe(true);
+        });
+
+        it('offers no retry for a track outside the self-DM, because a retry there would also have to leave the report totals alone', () => {
+            // Given a track failure whose expense sits on a workspace expense report
+            const context = buildTrackExpenseContext({reportID: IOU_REPORT_ID, chatReportID: CHAT_REPORT_ID, policyID: POLICY_ID, type: CONST.REPORT.TYPE.EXPENSE} as Report);
+
+            // When the receipt view asks whether it can retry
+            const canRetry = canRetryReceiptUpload(context);
+
+            // Then only Save is offered
+            expect(canRetry).toBe(false);
+        });
+
+        it('reuses the failed transaction, IOU action and thread, so the retry does not create a second tracked expense', () => {
+            // Given a failed track in the self-DM
+            const context = buildTrackExpenseContext();
+
+            // When the retry payload is rebuilt
+            const payload = buildTrackExpenseRetryPayload(context, receiptFile);
+
+            // Then it points at the records the failed attempt created, and passes the amount positive as trackExpense expects
+            expect(payload?.optimisticTransactionID).toBe(TRANSACTION_ID);
+            expect(payload?.currentReportActionID).toBe(IOU_ACTION_ID);
+            expect(payload?.existingTransactionThreadReportID).toBe(THREAD_REPORT_ID);
+            expect(payload?.report?.reportID).toBe(SELF_DM_REPORT_ID);
+            expect(payload?.transactionParams.amount).toBe(1200);
+        });
+
+        it('dispatches trackExpense as a retry and clears the error after it', async () => {
+            // Given a failed track in the self-DM
+            const clearReceiptError = jest.fn(() => Promise.resolve());
+
+            // When Try again is pressed
+            const outcome = await retryReceiptUpload(buildTrackExpenseContext(), clearReceiptError);
+
+            // Then trackExpense is sent once as a silent retry, not requestMoney, and the error is cleared only after it
+            expect(outcome).toBe('dispatched');
+            expect(jest.mocked(trackExpense)).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(trackExpense)).toHaveBeenCalledWith(expect.objectContaining({isRetry: true, shouldPlaySound: false}));
+            expect(jest.mocked(requestMoney)).not.toHaveBeenCalled();
+            expect(jest.mocked(trackExpense).mock.invocationCallOrder.at(0)).toBeLessThan(clearReceiptError.mock.invocationCallOrder.at(0) ?? 0);
         });
     });
 });
