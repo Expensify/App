@@ -39,7 +39,6 @@ Flag ONLY when ALL of these are true:
 - The changed code adds a new named style to `src/styles` (or a local style object built in a component)
 - An equivalent already exists in `src/styles`, or the same shape can be produced by an existing `StyleUtils` function
 - Swapping in the existing style or helper renders identically: every property the new style sets comes out with the same value
-- The new style is a plain composition of existing utility styles (spacing, flex, colors) rather than something genuinely new
 
 **DO NOT flag if:**
 
