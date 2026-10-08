@@ -18,6 +18,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
+import {isSingleTransactionReport} from './MoneyRequestReportUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canMemberWrite,
@@ -101,6 +102,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isTimeRequest as isTimeRequestTransactionUtils,
     isReceiptBeingScanned,
     isScanning as isScanningTransactionUtils,
     shouldRedirectDeleteToSplitExpenseEdit,
@@ -1206,6 +1208,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
+    // Reports with more than one expense always use the table view, so the switch only applies to single-expense reports
+    if (isSingleTransactionReport(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
     if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, policy, cardList, reportActions ?? [], true)) {
@@ -1253,6 +1260,7 @@ function getSecondaryTransactionThreadActions({
     isChatReportArchived,
     grandParentReport,
     hasWorkspaceToSubmitTo = false,
+    isRestrictedToPreferredPolicy = false,
     rules,
     cardList,
 }: {
@@ -1276,6 +1284,9 @@ function getSecondaryTransactionThreadActions({
     grandParentReport?: OnyxEntry<Report>;
     /** Whether the user belongs to a workspace they can submit an expense to (self-DM split expenses can only be submitted to a workspace). */
     hasWorkspaceToSubmitTo?: boolean;
+
+    /** Whether the user's domain restricts them to one workspace, which removes every P2P money option. */
+    isRestrictedToPreferredPolicy?: boolean;
     rules: OnyxCollection<Rule>;
     cardList: OnyxEntry<CardList>;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
@@ -1333,8 +1344,9 @@ function getSecondaryTransactionThreadActions({
     const canConvertFromTrack = isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) && canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived);
     if (canConvertFromTrack) {
         // A self-DM split has no personal destination, so it can never go to a friend (matches ChatActionableButtons,
-        // which hides "Submit to a friend" for a split unconditionally).
-        if (!isSelfDMExpenseSplit) {
+        // which hides "Submit to a friend" for a split unconditionally). Per diem and time expenses need a workspace,
+        // and a restricted user cannot submit into a DM at all.
+        if (!isSelfDMExpenseSplit && !isRestrictedToPreferredPolicy && !isPerDiemRequestTransactionUtils(reportTransaction) && !isTimeRequestTransactionUtils(reportTransaction)) {
             options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         }
         // A split can still go to a workspace, but only one that already exists: the create-a-workspace fallback in
