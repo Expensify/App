@@ -120,7 +120,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             draftComment,
             currentUserLogin,
             currentUserAccountID,
-            // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
+            // TODO: Pass guideAccountIDs in PR B2. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
             hasGuidesEmails: ReportUtils.isDefaultRoom(report) ? ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined) : false,
             conciergeReportID,
             derivedIsEmptyReport,

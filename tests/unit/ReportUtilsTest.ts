@@ -179,6 +179,7 @@ import {
     isApproverOfOutstandingPolicyReports,
     isArchivedNonExpenseReport,
     isArchivedReport,
+    isAwaitingFirstLevelApproval,
     isChatUsedForOnboarding,
     isClosedExpenseReportWithNoExpenses,
     isConciergeChatReport,
@@ -6391,7 +6392,7 @@ describe('ReportUtils', () => {
                     },
                 });
             });
-            expect(canDeleteMoneyRequestReport(invoiceReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, undefined)).toBe(true);
+            expect(canDeleteMoneyRequestReport(invoiceReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, undefined, undefined)).toBe(true);
         });
 
         describe('draft reports', () => {
@@ -6410,14 +6411,14 @@ describe('ReportUtils', () => {
                 const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined, true)).toBe(true);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, adminPolicy, undefined, true)).toBe(true);
             });
 
             it('should not allow an admin to delete a single expense on a draft report they do not own', () => {
                 const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined)).toBe(false);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, adminPolicy, undefined)).toBe(false);
             });
 
             it('should allow the submitter to delete their own draft report', () => {
@@ -6425,14 +6426,14 @@ describe('ReportUtils', () => {
                 const transaction = {...createRandomTransaction(902), reportID: ownDraftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(ownDraftReport.reportID, transaction.transactionID, currentUserAccountID);
 
-                expect(canDeleteMoneyRequestReport(ownDraftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined)).toBe(true);
+                expect(canDeleteMoneyRequestReport(ownDraftReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, memberPolicy, undefined)).toBe(true);
             });
 
             it('should not allow a non-admin who does not own the transaction to delete a draft report', () => {
                 const transaction = {...createRandomTransaction(903), reportID: draftReport.reportID, managedCard: false};
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined)).toBe(false);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, memberPolicy, undefined)).toBe(false);
             });
 
             it('should allow an admin to delete a draft report holding a card transaction with restricted liability, since the expenses become unreported rather than deleted', () => {
@@ -6444,7 +6445,7 @@ describe('ReportUtils', () => {
                 };
                 const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, currentUserAccountID);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined, true)).toBe(true);
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, undefined, adminPolicy, undefined, true)).toBe(true);
             });
         });
 
@@ -6484,7 +6485,7 @@ describe('ReportUtils', () => {
                 });
             });
 
-            expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, undefined, undefined, undefined)).toBe(true);
+            expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, undefined, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should allow card expense deletion as the policy admin', async () => {
@@ -6531,7 +6532,7 @@ describe('ReportUtils', () => {
                 });
             });
 
-            expect(canDeleteMoneyRequestReport(expenseReport, [cardTransaction], [], currentUserAccountID, undefined, adminPolicy, undefined, false)).toBe(true);
+            expect(canDeleteMoneyRequestReport(expenseReport, [cardTransaction], [], currentUserAccountID, undefined, undefined, adminPolicy, undefined, false)).toBe(true);
         });
     });
 
@@ -10362,7 +10363,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
             // Then the owner cannot delete it because the card transaction's liability type restricts deletion
-            expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should let an admin delete a draft report they did not submit from its report preview', async () => {
@@ -10386,7 +10387,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}9002-policy`, {...createRandomPolicy(1), id: '9002-policy', role: CONST.POLICY.ROLE.ADMIN});
 
             // Then the admin can delete it, because deleting a preview deletes the whole report
-            expect(canDeleteReportAction(reportPreviewAction, draftReport.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(true);
+            expect(canDeleteReportAction(reportPreviewAction, draftReport.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should return true for demo transaction', () => {
@@ -10430,7 +10431,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(true);
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should return false for unreported card expense imported with deleting disabled', async () => {
@@ -10476,7 +10477,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
             // Then it should return false since the unreported card expense is imported with deleting disabled
-            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
@@ -10503,7 +10504,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
 
-            expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
     });
 
@@ -11718,6 +11719,89 @@ describe('ReportUtils', () => {
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
             expect(participants.length).toBe(2);
+        });
+    });
+
+    describe('isAwaitingFirstLevelApproval', () => {
+        const REPORT_OWNER_ACCOUNT_ID = 801;
+        const REPORT_OWNER_EMAIL = 'owner@vikings.net';
+        const FIRST_APPROVER_ACCOUNT_ID = 802;
+        const FIRST_APPROVER_EMAIL = 'first.approver@vikings.net';
+        const SECOND_APPROVER_ACCOUNT_ID = 803;
+        const SECOND_APPROVER_EMAIL = 'second.approver@vikings.net';
+        const OTHER_MEMBER_EMAIL = 'other.member@vikings.net';
+
+        /**
+         * The owner submits to the first approver, and the other member submits to the second one. The policy default
+         * approver is the second approver, so an owner login that matches no employee resolves somewhere different again.
+         * That lets each test tell apart the passed login, the stored login, and the default.
+         */
+        async function setUpApprovalChain() {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [REPORT_OWNER_ACCOUNT_ID]: {accountID: REPORT_OWNER_ACCOUNT_ID, login: REPORT_OWNER_EMAIL},
+                [FIRST_APPROVER_ACCOUNT_ID]: {accountID: FIRST_APPROVER_ACCOUNT_ID, login: FIRST_APPROVER_EMAIL},
+                [SECOND_APPROVER_ACCOUNT_ID]: {accountID: SECOND_APPROVER_ACCOUNT_ID, login: SECOND_APPROVER_EMAIL},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                ...policy,
+                approver: SECOND_APPROVER_EMAIL,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [REPORT_OWNER_EMAIL]: {email: REPORT_OWNER_EMAIL, submitsTo: FIRST_APPROVER_EMAIL},
+                    [OTHER_MEMBER_EMAIL]: {email: OTHER_MEMBER_EMAIL, submitsTo: SECOND_APPROVER_EMAIL},
+                },
+            });
+        }
+
+        /** A processing report owned by REPORT_OWNER_ACCOUNT_ID and currently sitting with the first approver. */
+        function buildProcessingReport(): Report {
+            return {
+                ...createRandomReport(900, undefined),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: REPORT_OWNER_ACCOUNT_ID,
+                managerID: FIRST_APPROVER_ACCOUNT_ID,
+            };
+        }
+
+        it('should prefer the passed reportOwnerLogin over the login held in the personal details store', async () => {
+            // Given a report owned by an account whose stored login submits to the report manager
+            await setUpApprovalChain();
+            const report = buildProcessingReport();
+
+            // When a different member's login is passed explicitly, and that member submits to someone else
+            const result = isAwaitingFirstLevelApproval(report, undefined, OTHER_MEMBER_EMAIL);
+
+            // Then the passed login decides the approver, so the report is not awaiting its first level.
+            // Were the parameter ignored in favour of the store, the stored owner would match the manager and this would be true.
+            expect(result).toBe(false);
+        });
+
+        it('should fall back to the personal details store when reportOwnerLogin is undefined', async () => {
+            // Given the same report, and no login passed by the caller
+            await setUpApprovalChain();
+            const report = buildProcessingReport();
+
+            // When the owner login is left unresolved
+            const result = isAwaitingFirstLevelApproval(report, undefined, undefined);
+
+            // Then the store supplies the owner login, which submits to the manager
+            expect(result).toBe(true);
+        });
+
+        it('should treat an empty reportOwnerLogin as unresolved rather than looking it up', async () => {
+            // Given the same report, and a caller holding an optimistic personal detail, whose login is an empty string
+            await setUpApprovalChain();
+            const report = buildProcessingReport();
+
+            // When that empty login is passed
+            const result = isAwaitingFirstLevelApproval(report, undefined, '');
+
+            // Then it is discarded in favour of the store, rather than reaching the approval lookup and matching no
+            // employee, which would fall through to the policy default approver and wrongly report false
+            expect(result).toBe(true);
         });
     });
 
@@ -15623,7 +15707,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, chatReport);
 
             // When we check if the report is eligible for merge
-            const result = isMoneyRequestReportEligibleForMerge(mockReportID, true, undefined);
+            const result = isMoneyRequestReportEligibleForMerge(mockReportID, true, undefined, undefined);
 
             // Then it should return false because it's not a money request report
             expect(result).toBe(false);
@@ -15634,7 +15718,7 @@ describe('ReportUtils', () => {
             const nonExistentReportID = 'nonexistent123';
 
             // When we check if the report is eligible for merge
-            const result = isMoneyRequestReportEligibleForMerge(nonExistentReportID, true, undefined);
+            const result = isMoneyRequestReportEligibleForMerge(nonExistentReportID, true, undefined, undefined);
 
             // Then it should return false because the report doesn't exist
             expect(result).toBe(false);
@@ -15652,7 +15736,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
 
             // When we check if the report is eligible for merge as a submitter
-            const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined);
+            const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined, undefined);
 
             // Then it should return true because submitters can merge processing IOU reports
             expect(result).toBe(false);
@@ -15670,7 +15754,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
 
                 // When we check if the report is eligible for merge as an admin
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true, undefined, undefined);
 
                 // Then it should return true because admins can merge open expense reports
                 expect(result).toBe(true);
@@ -15687,7 +15771,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
 
                 // When we check if the report is eligible for merge as an admin
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true, undefined, undefined);
 
                 // Then it should return true because admins can merge processing expense reports
                 expect(result).toBe(true);
@@ -15704,7 +15788,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
 
                 // When we check if the report is eligible for merge as an admin
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true, undefined, undefined);
 
                 // Then it should return false because approved reports are not eligible for merge
                 expect(result).toBe(false);
@@ -15724,7 +15808,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
 
                 // When we check if the report is eligible for merge as a submitter
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined, undefined);
 
                 // Then it should return true because submitters can merge open expense reports
                 expect(result).toBe(true);
@@ -15762,7 +15846,7 @@ describe('ReportUtils', () => {
                 });
 
                 // When we check if the report is eligible for merge as a submitter
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined, undefined);
 
                 // Then it should return true because submitters can merge processing expense reports
                 expect(result).toBe(true);
@@ -15780,7 +15864,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
 
                 // When we check if the report is eligible for merge as a submitter
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined, undefined);
 
                 // Then the result depends on the actual approval level logic in the implementation
                 expect(typeof result).toBe('boolean');
@@ -15798,7 +15882,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
 
                 // When we check if the report is eligible for merge as a non-submitter
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined, undefined);
 
                 // Then it should return false because the user is not the submitter and not an admin
                 expect(result).toBe(false);
@@ -15821,7 +15905,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
 
                 // When we check if the report is eligible for merge as a manager
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined, undefined);
 
                 // Then it should return true because managers can merge processing expense reports
                 expect(result).toBe(true);
@@ -15840,7 +15924,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
 
                 // When we check if the report is eligible for merge as a manager
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined, undefined);
 
                 // Then it should return false because managers can only merge processing expense reports, not open ones
                 expect(result).toBe(false);
@@ -15859,7 +15943,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
 
                 // When we check if the report is eligible for merge as a non-manager
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined);
+                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false, undefined, undefined);
 
                 // Then it should return false because the user is not the manager, submitter, or admin
                 expect(result).toBe(false);
@@ -26348,67 +26432,67 @@ describe('ReportUtils', () => {
         });
 
         it('returns false for an empty selection', () => {
-            expect(canMergeReports([], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([], USER_ID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when only 1 report is selected', () => {
-            expect(canMergeReports([makeOpenReport()], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport()], USER_ID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when currentUserAccountID is 0 (falsy)', () => {
-            expect(canMergeReports([makeOpenReport(), makeOpenReport()], 0, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), makeOpenReport()], 0, undefined, undefined)).toBe(false);
         });
 
         // Same ownerAccountID (cross-account not supported)
         it('returns false when reports have different ownerAccountIDs', () => {
             const r1 = makeOpenReport({ownerAccountID: OWNER_ID});
             const r2 = makeOpenReport({ownerAccountID: OWNER_ID + 1});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when the first report has no ownerAccountID', () => {
             const r1 = makeOpenReport({ownerAccountID: undefined});
             const r2 = makeOpenReport({ownerAccountID: OWNER_ID});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
         });
 
         // Same policyID (cross-workspace not supported)
         it('returns false when reports belong to different workspaces', () => {
             const r1 = makeOpenReport({policyID: 'p1'});
             const r2 = makeOpenReport({policyID: 'p2'});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when the first report has no policyID', () => {
             const r1 = makeOpenReport({policyID: undefined});
             const r2 = makeOpenReport({policyID: POLICY_ID});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
         });
 
         // Same workflow state
         it('returns false when mixing Open and Processing reports', () => {
             const open = makeOpenReport();
             const processing = makeProcessingReport();
-            expect(canMergeReports([open, processing], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([open, processing], USER_ID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when stateNum matches but statusNum differs', () => {
             const r1 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
             const r2 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
         });
 
         // Same managerID for Processing reports
         it('returns false when Processing reports have different managerIDs', () => {
             const r1 = makeProcessingReport({managerID: MANAGER_ID});
             const r2 = makeProcessingReport({managerID: MANAGER_ID + 99});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when a Processing report has no managerID', () => {
             const r1 = makeProcessingReport({managerID: MANAGER_ID});
             const r2 = makeProcessingReport({managerID: undefined});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
         });
 
         /**
@@ -26420,7 +26504,7 @@ describe('ReportUtils', () => {
             const r1 = makeOpenReport({managerID: undefined});
             const r2 = makeOpenReport({managerID: 999});
 
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(true);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(true);
         });
 
         // Terminal states (settled / approved / closed)
@@ -26431,7 +26515,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: false,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), settled], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), settled], USER_ID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when a report is approved', () => {
@@ -26440,7 +26524,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), approved], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), approved], USER_ID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when a report is closed', () => {
@@ -26448,14 +26532,14 @@ describe('ReportUtils', () => {
                 ...makeOpenReport(),
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), closed], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), closed], USER_ID, undefined, undefined)).toBe(false);
         });
 
         // The user must be able to write to each report
         it('returns false when the current user is not able to write to each report', async () => {
             const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
             const r2 = makeOpenReport();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
         });
 
         // The user must be the report owner, a workspace admin, or the current approver.
@@ -26468,7 +26552,7 @@ describe('ReportUtils', () => {
             // STRANGER_ID is neither admin, owner, nor manager.
             const r1 = makeOpenReport();
             const r2 = makeOpenReport();
-            expect(canMergeReports([r1, r2], STRANGER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], STRANGER_ID, undefined, undefined)).toBe(false);
         });
 
         // Happy paths
@@ -26476,35 +26560,35 @@ describe('ReportUtils', () => {
             // When the current user is the policy admin
             const r1 = makeOpenReport();
             const r2 = makeOpenReport();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(true);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(true);
 
             // When the current user is the submitter
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
             await waitForBatchedUpdates();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(true);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(true);
         });
 
         it('returns true for two valid Processing reports when user is the report owner and approver matches', async () => {
             // When the current user is the policy admin
             const r1 = makeProcessingReport();
             const r2 = makeProcessingReport();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(true);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(true);
 
             // When the current user is the submitter
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
             await waitForBatchedUpdates();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
         });
 
         it('returns true when the current user is the approver on Processing reports', async () => {
             const r1 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
             const r2 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
-            expect(canMergeReports([r1, r2], MANAGER_ID, undefined)).toBe(true);
+            expect(canMergeReports([r1, r2], MANAGER_ID, undefined, undefined)).toBe(true);
         });
 
         it('returns true for three or more valid Open reports', () => {
             const reports = [makeOpenReport(), makeOpenReport(), makeOpenReport()];
-            expect(canMergeReports(reports, USER_ID, undefined)).toBe(true);
+            expect(canMergeReports(reports, USER_ID, undefined, undefined)).toBe(true);
         });
     });
 });
