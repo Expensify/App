@@ -220,6 +220,25 @@ describe('ImageWithLoading', () => {
         expect(onError).not.toHaveBeenCalled();
     });
 
+    it('hides the notice in a thumbnail-sized image that stalls', () => {
+        // Given a caller that opts out of the notice, as small thumbnails do
+        const {onError} = renderImage({previewUri: PREVIEW_URI, shouldShowTimeoutNotice: false});
+        startLoading();
+        expect(screen.getByTestId('loading-indicator')).toBeTruthy();
+
+        // When the load runs past the ceiling without finishing
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // Then the spinner still stops and the preview stays mounted, but no notice is offered
+        expect(screen.queryByTestId('loading-indicator')).toBeNull();
+        expect(screen.getByTestId('preview-image')).toBeTruthy();
+        expect(screen.queryByTestId('load-timeout-notice')).toBeNull();
+        expect(screen.queryByTestId('retry-button')).toBeNull();
+        expect(onError).not.toHaveBeenCalled();
+    });
+
     it('does not report a timeout while offline', () => {
         // Given the device is offline, where the offline indicator owns the waiting state
         mockIsOffline = true;

@@ -90,10 +90,11 @@ describe('ImageWithSizeCalculation', () => {
             jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
         });
 
-        // Then the load is not logged as a size-fetch failure and the parent keeps its image instead of a fallback
+        // Then the load is not logged as a size-fetch failure and the parent keeps its image instead of a fallback.
+        // The Retry notice is suppressed: this renders inside a thumbnail, which is too small to show it.
         expect(mockLogHmmm).not.toHaveBeenCalled();
         expect(onLoadFailure).not.toHaveBeenCalled();
-        expect(screen.getByTestId('retry-button')).toBeTruthy();
+        expect(screen.queryByTestId('retry-button')).toBeNull();
     });
 
     it('logs and reports a load that errors', () => {

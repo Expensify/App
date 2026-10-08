@@ -29,6 +29,9 @@ type ImageWithSizeLoadingProps = {
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;
+
+    /** Whether the Retry notice may replace the spinner on stall; small thumbnails suppress it */
+    shouldShowTimeoutNotice?: boolean;
 } & ImageProps;
 
 function ImageWithLoading({
@@ -43,6 +46,7 @@ function ImageWithLoading({
     onLayout,
     style,
     previewUri,
+    shouldShowTimeoutNotice = true,
     ...rest
 }: ImageWithSizeLoadingProps) {
     const styles = useThemeStyles();
@@ -161,7 +165,7 @@ function ImageWithLoading({
                     }}
                 />
             )}
-            {hasLoadTimedOut && !isOffline && <ImageLoadTimeoutNotice onRetry={retryLoad} />}
+            {hasLoadTimedOut && !isOffline && shouldShowTimeoutNotice && <ImageLoadTimeoutNotice onRetry={retryLoad} />}
             {isLoading && shouldShowOfflineIndicator && !isImageCached && <AttachmentOfflineIndicator isPreview />}
         </View>
     );
