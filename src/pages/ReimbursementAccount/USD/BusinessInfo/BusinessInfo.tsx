@@ -81,13 +81,11 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
-    const exitAfterAddressSave = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.goBack(ROUTES.HOME);
-    }, [backTo]);
+    const isAddressOnlySaveAndExitRef = useRef(false);
+    const afterReimbursementAccountSubmitRef = useRef<() => void>(() => {});
+    const onReimbursementAccountSettledRef = useRef(() => {
+        afterReimbursementAccountSubmitRef.current();
+    });
 
     const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
@@ -118,6 +116,8 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
         [policyID, backTo],
     );
 
+    const markSubmitting = useReimbursementAccountSubmitCallback(onReimbursementAccountSettledRef.current);
+
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
         pages,
         startFrom,
@@ -129,45 +129,51 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
         buildRoute,
     });
 
-    const isAddressOnlySaveAndExitRef = useRef(false);
-    if (
-        !isAddressOnlySaveAndExitRef.current &&
+    const isAddressOnlySaveAndExit =
         backTo === ROUTES.HOME &&
         currentPageName === SUB_PAGE_NAMES.ADDRESS &&
-        reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN
-    ) {
+        reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+
+    const exitAfterAddressSave = () => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(ROUTES.HOME);
+    };
+
+    afterReimbursementAccountSubmitRef.current = () => {
+        if (isAddressOnlySaveAndExitRef.current) {
+            exitAfterAddressSave();
+            return;
+        }
+        onSubmit?.();
+    };
+
+    const handleAddressOnlySubmit = (addressValues: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
         isAddressOnlySaveAndExitRef.current = true;
-    }
-    const saveCompanyAddressAndExit = isAddressOnlySaveAndExitRef.current;
-
-    const markSubmitting = useReimbursementAccountSubmitCallback(saveCompanyAddressAndExit ? exitAfterAddressSave : onSubmit);
-
-    const handleAddressOnlySubmit = useCallback(
-        (addressValues: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
-            const companyWebsite = Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-            updateCompanyInformationForBankAccount(
-                bankAccountID,
-                {
-                    ...values,
-                    addressStreet: addressValues[BUSINESS_INFO_STEP_KEYS.STREET],
-                    addressCity: addressValues[BUSINESS_INFO_STEP_KEYS.CITY],
-                    addressState: addressValues[BUSINESS_INFO_STEP_KEYS.STATE],
-                    addressZipCode: addressValues[BUSINESS_INFO_STEP_KEYS.ZIP_CODE],
-                    ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
-                    companyTaxID: values.companyTaxID?.replaceAll(CONST.REGEX.NON_NUMERIC, ''),
-                    companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
-                    website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
-                },
-                policyID,
-                false,
-            );
-            markSubmitting();
-        },
-        [bankAccountID, values, getBankAccountFields, policyID, markSubmitting],
-    );
+        const companyWebsite = Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+        updateCompanyInformationForBankAccount(
+            bankAccountID,
+            {
+                ...values,
+                addressStreet: addressValues[BUSINESS_INFO_STEP_KEYS.STREET],
+                addressCity: addressValues[BUSINESS_INFO_STEP_KEYS.CITY],
+                addressState: addressValues[BUSINESS_INFO_STEP_KEYS.STATE],
+                addressZipCode: addressValues[BUSINESS_INFO_STEP_KEYS.ZIP_CODE],
+                ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
+                companyTaxID: values.companyTaxID?.replaceAll(CONST.REGEX.NON_NUMERIC, ''),
+                companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
+                website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
+            },
+            policyID,
+            false,
+        );
+        markSubmitting();
+    };
 
     const handleBackButtonPress = () => {
-        if (saveCompanyAddressAndExit) {
+        if (isAddressOnlySaveAndExit) {
             exitAfterAddressSave();
             return;
         }
@@ -203,7 +209,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
                 onNext={nextPage}
                 onMove={moveTo}
                 currentPageName={currentPageName}
-                {...(saveCompanyAddressAndExit && currentPageName === SUB_PAGE_NAMES.ADDRESS ? {onAddressSubmit: handleAddressOnlySubmit} : {})}
+                {...(isAddressOnlySaveAndExit ? {onAddressSubmit: handleAddressOnlySubmit} : {})}
             />
         </InteractiveStepWrapper>
     );

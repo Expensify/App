@@ -52,13 +52,13 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
     const [pendingWorkspaceNavigation, setPendingWorkspaceNavigation] = useState<PendingWorkspaceNavigation | null>(null);
     const hasSeenReimbursementAccountLoadingRef = useRef(false);
 
-    const title = policyName
-        ? translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceTitle')
-        : translate('homePage.timeSensitiveSection.addBankAccountAddress.personalTitle');
+    const title = isPersonalAccount
+        ? translate('homePage.timeSensitiveSection.addBankAccountAddress.personalTitle')
+        : translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceTitle');
 
-    const subtitle = policyName
-        ? translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceSubtitle', {policyName})
-        : translate('homePage.timeSensitiveSection.addBankAccountAddress.personalSubtitle');
+    const subtitle = isPersonalAccount
+        ? translate('homePage.timeSensitiveSection.addBankAccountAddress.personalSubtitle')
+        : translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceSubtitle', {policyName: policyName ?? ''});
 
     const showWorkspaceLoadError = (isOfflineError = false) => {
         showConfirmModal({
@@ -92,7 +92,12 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
         const navigationTarget = pendingWorkspaceNavigation;
         setPendingWorkspaceNavigation(null);
 
-        if (!isEmptyObject(reimbursementAccount?.errors ?? {}) || !isExpectedAccount) {
+        if (!isExpectedAccount) {
+            showWorkspaceLoadError();
+            return;
+        }
+
+        if (hasSeenReimbursementAccountLoadingRef.current && !isEmptyObject(reimbursementAccount?.errors ?? {})) {
             showWorkspaceLoadError();
             return;
         }
