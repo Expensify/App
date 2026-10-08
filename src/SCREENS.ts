@@ -470,6 +470,7 @@ const SCREENS = {
         VISIBILITY: 'Report_Settings_Visibility',
         DYNAMIC_SETTINGS_VISIBILITY: 'Dynamic_Report_Settings_Visibility',
         COLUMNS: 'Report_Settings_Columns',
+        FIELDS: 'Report_Settings_Fields',
     },
 
     NEW_TASK: {
