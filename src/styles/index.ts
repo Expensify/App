@@ -3971,6 +3971,13 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: -variables.searchTableHeaderCellGap / 2,
         },
 
+        // Pulls the chevron 2px into the row's `gap1` so it sits close to the label, and cancels its width and the rest of
+        // that gap on the right, so showing it doesn't shift the heading.
+        searchTableHeaderMenuChevron: {
+            marginLeft: -2,
+            marginRight: -(variables.searchTableHeaderMenuChevronSize + 2),
+        },
+
         searchTableHeaderPressable: {
             flexGrow: 1,
             justifyContent: 'center',
