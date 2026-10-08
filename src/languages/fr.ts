@@ -7566,6 +7566,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                             return 'Synchronisation des données Campfire';
                         case 'campfireSyncConnection':
                             return 'Initialisation de la connexion à Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Initialisation de la connexion à Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Chargement des données';
                         case 'campfireSyncPayments':
