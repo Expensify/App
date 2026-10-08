@@ -935,6 +935,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Este chat não está mais ativo porque <strong>você</strong> não é mais membro do workspace ${policyName}.`
                 : `Este chat não está mais ativo porque ${displayName} não é mais membro do workspace ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Este chat não está mais ativo porque ${policyName} não é mais um espaço de trabalho ativo.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `Este chat não está mais ativo porque ${policyName} é um espaço de trabalho arquivado.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Este chat não está mais ativo porque ${policyName} não é mais um espaço de trabalho ativo.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está arquivada.',
@@ -1197,6 +1198,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ops! Um campo obrigatório ("${fieldName}") não foi mapeado. Revise e tente novamente.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Você mapeou um único campo ("${fieldName}") para várias colunas. Revise e tente novamente.`,
         emptyMappedField: (fieldName: string) => `Ops! O campo ("${fieldName}") contém um ou mais valores vazios. Revise e tente novamente.`,
+        invalidApprovalLimit: 'Os limites de aprovação devem ser valores válidos na moeda do espaço de trabalho.',
         fieldValueTooLong: (fieldName: string, limit: number) => `Ops! O campo ("${fieldName}") contém um ou mais valores com mais de ${limit} caracteres. Revise e tente novamente.`,
         importSuccessfulTitle: 'Importação concluída',
         importCategoriesNoneAddedOrUpdated: 'Nenhuma categoria foi adicionada ou atualizada.',
@@ -2035,6 +2037,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Nenhuma ação adicional é necessária!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Altere o espaço de trabalho do relatório para realizar outras ações.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2698,6 +2706,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Método de pagamento padrão definido!',
         deleteAccount: 'Excluir conta',
         deleteConfirmation: 'Tem certeza de que deseja excluir esta conta?',
+        editNickname: 'Editar apelido',
+        nickname: 'Apelido',
+        editNicknameInstruction: 'Dê um apelido para a conta bancária que a diferencie das outras.',
         deleteCard: 'Excluir cartão',
         deleteCardConfirmation:
             'Todas as transações de cartão não enviadas, incluindo as de relatórios em aberto, serão removidas. Tem certeza de que deseja excluir este cartão? Essa ação não pode ser desfeita.',
@@ -4792,6 +4803,9 @@ ${amount} para ${merchant} - ${date}`,
                 'Tem certeza de que deseja arquivar este workspace? Isso removerá a atribuição de todos os cartões de crédito dos usuários e excluirá permanentemente as despesas de cartão não enviadas.',
             archiveWithExpensifyCardsConfirmation:
                 'Tem certeza de que deseja arquivar este workspace? Isso definirá todos os limites do Expensify Card como $0 e recusará automaticamente novas tentativas de compra.',
+            unarchive: 'Desarquivar',
+            unarchiveWorkspace: 'Desarquivar espaço de trabalho',
+            unarchiveConfirmation: 'Tem certeza de que deseja desarquivar este espaço de trabalho?',
             deleteWorkspaceTitle: (workspaceName: string) => `Excluir ${workspaceName}?`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
@@ -4849,20 +4863,23 @@ ${amount} para ${merchant} - ${date}`,
             memberAlternateText: 'Enviar e aprovar relatórios.',
             adminAlternateText: 'Gerencie relatórios e configurações do espaço de trabalho.',
             auditorAlternateText: 'Visualize e comente relatórios.',
+            guestAlternateText: 'Enviar relatórios com visibilidade limitada.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Proprietário';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrador da área de trabalho';
+                        return 'Admin do workspace';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Convidado';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Admin do cartão';
+                        return 'Admin. do cartão';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administração de pessoas';
+                        return 'Admin de pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Admin de pagamentos';
                     case CONST.POLICY.ROLE.USER:
@@ -6861,6 +6878,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             emptySubtitle: 'Os fornecedores vão aparecer aqui depois que a sincronização contábil for concluída.',
             findVendor: 'Encontrar fornecedor',
             managedInAccountingSoftware: 'Fornecedores são gerenciados no seu',
+            enableVendor: 'Ativar fornecedor',
+            enableVendors: 'Ativar fornecedores',
+            disableVendor: 'Desativar fornecedor',
+            disableVendors: 'Desativar fornecedores',
+            updateFailureMessage: 'Ocorreu um erro ao atualizar o fornecedor, tente novamente por favor',
         },
         tags: {
             tagName: 'Nome da tag',
@@ -7109,6 +7131,10 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 one: 'Tornar auditor',
                 other: 'Tornar auditores',
             }),
+            makeGuest: () => ({
+                one: 'Tornar convidado',
+                other: 'Tornar convidados',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Tornar administrador de pessoas',
                 other: 'Tornar administradores de pessoas',
@@ -7145,6 +7171,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             admins: 'Admins do workspace',
             approvers: 'Aprovadores',
             auditors: 'Auditores',
+            guests: 'Convidados',
             editors: 'Editores',
             emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},
             configureHRSync: (providerName: string) => `Configurar a sincronização do ${providerName}.`,
@@ -7263,6 +7290,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7490,6 +7519,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando dados do Campfire';
                         case 'campfireSyncConnection':
                             return 'Inicializando conexão com o Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Inicializando conexão com o Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Carregando dados';
                         case 'campfireSyncPayments':
@@ -7547,6 +7578,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>A Conciliação Contínua é configurada por feed de cartão. Selecione um feed para alterar qual você está configurando.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
@@ -10134,8 +10166,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             category: 'Categoria',
             tag: 'Etiqueta',
         },
-        switchToTableView: 'Mudar para visualização em tabela',
-        switchToExpenseView: 'Mudar para visualização de despesa',
     },
     report: {
         newReport: {
@@ -10856,6 +10886,40 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             taxOutOfPolicy: 'Alíquota de imposto não é mais válida',
             taxRateChanged: 'Alíquota de imposto modificada',
             taxRequired: 'Alíquota de imposto ausente',
+        },
+        ruleViolation: {
+            fallback: 'Viola a política de despesas',
+            anyExpense: 'Qualquer despesa',
+            expense: (adjectives: string) => (adjectives ? `despesa ${adjectives}` : 'Despesa'),
+            perDiem: 'diária',
+            notExpenseType: (expenseType: string) => `não é um(a) ${expenseType}`,
+            billable: {enabled: 'Faturável', disabled: 'Não faturável'},
+            reimbursable: {enabled: 'Reembolsável', disabled: 'Não reembolsável'},
+            withoutCategory: 'sem categoria',
+            fromMerchant: (merchant: string) => `de ${merchant}`,
+            notFromMerchant: (merchant: string) => `não de ${merchant}`,
+            fromMerchantsContaining: (merchant: string) => `de estabelecimentos que contêm ${merchant}`,
+            notFromMerchantsContaining: (merchant: string) => `não de estabelecimentos que contenham ${merchant}`,
+            withVendor: (vendor: string) => `com o fornecedor ${vendor}`,
+            withoutVendor: (vendor: string) => `sem fornecedor ${vendor}`,
+            fromVendor: (vendor: string) => `de ${vendor}`,
+            notFromVendor: (vendor: string) => `não é de ${vendor}`,
+            overAmount: (amount: string) => `mais de ${amount}`,
+            amountOrMore: (amount: string) => `${amount} ou mais`,
+            underAmount: (amount: string) => `abaixo de ${amount}`,
+            amountOrLess: (amount: string) => `${amount} ou menos`,
+            withoutTag: 'sem uma tag',
+            tagged: (tag: string) => `marcado como ${tag}`,
+            inCurrency: (currency: string) => `em ${currency}`,
+            notInCurrency: (currency: string) => `não em ${currency}`,
+            paidInCurrency: (currency: string) => `pago em ${currency}`,
+            notPaidInCurrency: (currency: string) => `não pago em ${currency}`,
+            attachment: 'um anexo',
+            attribute: (attribute: string) => `um(a) ${attribute}`,
+            withAttributes: (attributes: string) => `com ${attributes}`,
+            withoutAttributes: (attributes: string) => `sem ${attributes}`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `em ${merchantCode}`,
         },
     },
     reportViolations: {

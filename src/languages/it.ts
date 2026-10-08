@@ -936,6 +936,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Questa chat non è più attiva perché <strong>tu</strong> non fai più parte dello spazio di lavoro ${policyName}.`
                 : `Questa chat non è più attiva perché ${displayName} non fa più parte dello spazio di lavoro ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Questa chat non è più attiva perché ${policyName} non è più uno spazio di lavoro attivo.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `Questa chat non è più attiva perché ${policyName} è uno spazio di lavoro archiviato.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Questa chat non è più attiva perché ${policyName} non è più uno spazio di lavoro attivo.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Questa prenotazione è archiviata.',
@@ -1198,6 +1199,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ops! Un campo obbligatorio ("${fieldName}") non è stato mappato. Controlla e riprova.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Hai associato un singolo campo ("${fieldName}") a più colonne. Controlla e riprova.`,
         emptyMappedField: (fieldName: string) => `Ops! Il campo ("${fieldName}") contiene uno o più valori vuoti. Controlla e riprova.`,
+        invalidApprovalLimit: 'I limiti di approvazione devono essere importi validi nella valuta dello spazio di lavoro.',
         fieldValueTooLong: (fieldName: string, limit: number) => `Ops! Il campo ("${fieldName}") contiene uno o più valori più lunghi di ${limit} caratteri. Controlla e riprova.`,
         importSuccessfulTitle: 'Importazione riuscita',
         importCategoriesNoneAddedOrUpdated: 'Nessuna categoria è stata aggiunta o aggiornata.',
@@ -2044,6 +2046,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Nessuna ulteriore azione richiesta!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Cambia lo spazio di lavoro del rendiconto per ulteriori azioni.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2703,6 +2711,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Metodo di pagamento predefinito impostato!',
         deleteAccount: 'Elimina account',
         deleteConfirmation: 'Sei sicuro di voler eliminare questo account?',
+        editNickname: 'Modifica soprannome',
+        nickname: 'Nickname',
+        editNicknameInstruction: 'Dai al conto bancario un nome descrittivo che lo distingua dagli altri.',
         deleteCard: 'Elimina carta',
         deleteCardConfirmation:
             'Tutte le transazioni con carta non inviate, incluse quelle nei report aperti, verranno rimosse. Sei sicuro di voler eliminare questa carta? Non puoi annullare questa azione.',
@@ -4799,6 +4810,9 @@ ${amount} per ${merchant} - ${date}`,
                 'Sei sicuro di voler archiviare questo spazio di lavoro? Questa azione annullerà l’assegnazione di tutte le carte di credito agli utenti ed eliminerà definitivamente le spese con carta non inviate.',
             archiveWithExpensifyCardsConfirmation:
                 'Sei sicuro di voler archiviare questo spazio di lavoro? Questa azione imposterà tutti i limiti delle Expensify Card a 0 $ e rifiuterà automaticamente qualsiasi nuovo tentativo di acquisto.',
+            unarchive: 'Ripristina dall’archivio',
+            unarchiveWorkspace: 'Ripristina spazio di lavoro dall’archivio',
+            unarchiveConfirmation: 'Sei sicuro di voler ripristinare questo spazio di lavoro dall’archivio?',
             deleteWorkspaceTitle: (workspaceName: string) => `Eliminare ${workspaceName}?`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
@@ -4856,22 +4870,25 @@ ${amount} per ${merchant} - ${date}`,
             memberAlternateText: 'Invia e approva i report.',
             adminAlternateText: 'Gestisci i report e le impostazioni dello spazio di lavoro.',
             auditorAlternateText: 'Visualizza e commenta i report.',
+            guestAlternateText: 'Invia i report con visibilità limitata.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Proprietario';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Amministratore spazio di lavoro';
+                        return 'Amministratore dello spazio di lavoro';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Ospite';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Amministrazione carte';
+                        return 'Amministrazione carta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Amministrazione persone';
+                        return 'Gestione persone';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Amministrazione pagamenti';
+                        return 'Amministratore pagamenti';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -6874,6 +6891,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             emptySubtitle: 'I fornitori verranno visualizzati qui al termine della sincronizzazione contabile.',
             findVendor: 'Trova fornitore',
             managedInAccountingSoftware: 'I fornitori sono gestiti nel tuo',
+            enableVendor: 'Abilita fornitore',
+            enableVendors: 'Abilita fornitori',
+            disableVendor: 'Disabilita fornitore',
+            disableVendors: 'Disattiva fornitori',
+            updateFailureMessage: "Si è verificato un errore durante l'aggiornamento del fornitore, riprova per favore",
         },
         tags: {
             tagName: 'Nome tag',
@@ -7122,6 +7144,10 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 one: 'Rendi revisore',
                 other: 'Crea revisori',
             }),
+            makeGuest: () => ({
+                one: 'Rendi ospite',
+                other: 'Rendi ospiti',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Rendi amministratore persone',
                 other: 'Rendi amministratori persone',
@@ -7158,6 +7184,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             admins: 'Amministratori dello spazio di lavoro',
             approvers: 'Approvatori',
             auditors: 'Revisori',
+            guests: 'Ospiti',
             editors: 'Editori',
             emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},
             configureHRSync: (providerName: string) => `Configura la sincronizzazione di ${providerName}.`,
@@ -7277,6 +7304,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7504,6 +7533,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Sincronizzazione dei dati Campfire';
                         case 'campfireSyncConnection':
                             return 'Inizializzazione della connessione a Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Inizializzazione della connessione a Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Caricamento dei dati';
                         case 'campfireSyncPayments':
@@ -7561,6 +7592,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>La Riconciliazione continua è configurata per ogni flusso di carte. Seleziona un flusso per cambiare quello che stai configurando.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
@@ -10166,8 +10198,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             category: 'Categoria',
             tag: 'Etichetta',
         },
-        switchToTableView: 'Passa alla vista tabella',
-        switchToExpenseView: 'Passa alla vista spesa',
     },
     report: {
         newReport: {
@@ -10894,6 +10924,40 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             taxOutOfPolicy: 'Aliquota fiscale non più valida',
             taxRateChanged: 'Aliquota fiscale modificata',
             taxRequired: 'Aliquota fiscale mancante',
+        },
+        ruleViolation: {
+            fallback: 'Viola la politica spese',
+            anyExpense: 'Qualsiasi spesa',
+            expense: (adjectives: string) => (adjectives ? `spesa ${adjectives}` : 'Spesa'),
+            perDiem: 'indennità di trasferta',
+            notExpenseType: (expenseType: string) => `non è un/una ${expenseType}`,
+            billable: {enabled: 'Fatturabile', disabled: 'Non fatturabile'},
+            reimbursable: {enabled: 'Rimborsabile', disabled: 'Non rimborsabile'},
+            withoutCategory: 'senza categoria',
+            fromMerchant: (merchant: string) => `da ${merchant}`,
+            notFromMerchant: (merchant: string) => `non di ${merchant}`,
+            fromMerchantsContaining: (merchant: string) => `da esercenti che contengono ${merchant}`,
+            notFromMerchantsContaining: (merchant: string) => `non da esercenti che contengono ${merchant}`,
+            withVendor: (vendor: string) => `con il fornitore ${vendor}`,
+            withoutVendor: (vendor: string) => `senza fornitore ${vendor}`,
+            fromVendor: (vendor: string) => `da ${vendor}`,
+            notFromVendor: (vendor: string) => `non di ${vendor}`,
+            overAmount: (amount: string) => `oltre ${amount}`,
+            amountOrMore: (amount: string) => `${amount} o più`,
+            underAmount: (amount: string) => `meno di ${amount}`,
+            amountOrLess: (amount: string) => `${amount} o meno`,
+            withoutTag: 'senza un tag',
+            tagged: (tag: string) => `contrassegnato con ${tag}`,
+            inCurrency: (currency: string) => `in ${currency}`,
+            notInCurrency: (currency: string) => `non in ${currency}`,
+            paidInCurrency: (currency: string) => `pagato in ${currency}`,
+            notPaidInCurrency: (currency: string) => `non pagato in ${currency}`,
+            attachment: 'un allegato',
+            attribute: (attribute: string) => `un*${attribute}*`,
+            withAttributes: (attributes: string) => `con ${attributes}`,
+            withoutAttributes: (attributes: string) => `senza ${attributes}`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `presso ${merchantCode}`,
         },
     },
     reportViolations: {

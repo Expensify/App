@@ -96,6 +96,7 @@ type NavigationRouteLike = {
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]: '*:' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS]: '*:' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
@@ -606,6 +607,8 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
             filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+        } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS) {
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS]}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
             const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
             if (rangeBoundaries.from) {
