@@ -78,6 +78,10 @@ For example, you could create an agent that:
 
 You can also add an agent to a workspace as an approver.
 
+You don't have to create an agent from scratch. You can use agent templates, which come with pre-written instructions for common tasks. You can choose a template and customize its instructions to fit your workflow.
+
+[Learn more about agents, agent rules, and templates](/articles/new-expensify/ai-agents/Understand-How-Agents-Work).
+
 [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents).
 
 [Learn how to use agent templates](/articles/new-expensify/ai-agents/Use-Agent-Templates).
