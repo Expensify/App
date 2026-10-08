@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getLatestConciergeFeedbackActionIDs, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
+import {getFeedbackPromptActionIDs, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
 import {
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
@@ -48,6 +48,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -152,14 +153,17 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const conciergeFeedbackForReportActionID = reportNameValuePairs?.conciergeFeedbackForReportActionID;
 
-    const actorAccountIDs = [...new Set(visibleReportActionsNewestFirst.map((action) => action.actorAccountID))];
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    // An agent account can be opened through Copilot, and the agent must not rate its own replies
+    const actorAccountIDs = [...new Set(visibleReportActionsNewestFirst.map((action) => action.actorAccountID))].filter((accountID) => accountID !== currentUserAccountID);
     const [customAgentAccountIDs = getEmptyArray<number>()] = usePersonalDetailsByIDs(actorAccountIDs, getCustomAgentAccountIDs);
 
     // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
     const latestConciergeFeedbackActionIDs =
         conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
             ? getEmptyArray<string>()
-            : getLatestConciergeFeedbackActionIDs(visibleReportActionsNewestFirst, reportActionIDs, customAgentAccountIDs);
+            : getFeedbackPromptActionIDs(visibleReportActionsNewestFirst, reportActionIDs, customAgentAccountIDs);
 
     const {onStartReached, onEndReached} = useMoneyRequestReportPagination({
         reportID,

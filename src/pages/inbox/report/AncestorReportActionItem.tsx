@@ -23,7 +23,7 @@ import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import {getLatestConciergeFeedbackActionIDByAuthorSelector} from '@src/selectors/ReportAction';
+import {getLatestFeedbackActionIDByAuthorSelector} from '@src/selectors/ReportAction';
 import type {IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -96,11 +96,13 @@ function AncestorReportActionItem({
 
     const authorAccountID = reportAction.actorAccountID;
     const [isAuthorCustomAgent = false] = usePersonalDetail(authorAccountID, (personalDetail) => !!personalDetail?.isCustomAgent);
-    const canAuthorCollectFeedback = authorAccountID === CONST.ACCOUNT_ID.CONCIERGE || isAuthorCustomAgent;
+
+    // An agent account can be opened through Copilot, and the agent must not rate its own replies
+    const canAuthorCollectFeedback = authorAccountID === CONST.ACCOUNT_ID.CONCIERGE || (isAuthorCustomAgent && authorAccountID !== currentUserAccountID);
 
     // The message shown above a thread belongs to the parent report, so its own actions decide whether it is the author's newest answer
     const [latestConciergeFeedbackActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {
-        selector: getLatestConciergeFeedbackActionIDByAuthorSelector(authorAccountID),
+        selector: getLatestFeedbackActionIDByAuthorSelector(canAuthorCollectFeedback ? authorAccountID : undefined),
     });
 
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
@@ -170,9 +172,7 @@ function AncestorReportActionItem({
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 isThreadReportParentAction
-                isLatestConciergeFeedbackAction={
-                    shouldAllowConciergeFeedback && canAuthorCollectFeedback && !!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID
-                }
+                isLatestConciergeFeedbackAction={shouldAllowConciergeFeedback && !!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
                 linkedTransactionRouteError={linkedTransactionRouteError}
             />
         </OfflineWithFeedback>

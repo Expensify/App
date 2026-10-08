@@ -452,6 +452,61 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         expect(screen.queryByTestId('MockInitialReportActionsSkeleton')).toBeNull();
     });
 
+    describe('feedback prompt under custom agent replies', () => {
+        const AGENT_ACCOUNT_ID = 99001;
+        const mockReportActionsListItemRenderer = jest.requireMock<jest.Mock<null, [{reportAction: ReportAction; isLatestConciergeFeedbackAction?: boolean}]>>(
+            '@pages/inbox/report/ReportActionsListItemRenderer',
+        );
+        const agentReply: ReportAction = {
+            ...mockCommentReportAction,
+            reportActionID: 'AGENT_REPLY_001',
+            created: '2025-01-03 00:00:00',
+            actorAccountID: AGENT_ACCOUNT_ID,
+            message: [{type: 'COMMENT', html: 'Everything looks in order.', text: 'Everything looks in order.'}],
+            person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
+        };
+
+        const renderWithAgentReply = async (currentUserAccountID: number) => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {
+                        [mockReportAction.reportActionID]: mockReportAction,
+                        [agentReply.reportActionID]: agentReply,
+                    },
+                    [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[AGENT_ACCOUNT_ID]: {accountID: AGENT_ACCOUNT_ID, isCustomAgent: true}},
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID, email: FAKE_EMAIL} as Session,
+                });
+            });
+
+            renderComponent();
+            await waitForBatchedUpdatesWithAct();
+
+            return mockReportActionsListItemRenderer.mock.calls.findLast(([props]) => props.reportAction.reportActionID === agentReply.reportActionID)?.at(0);
+        };
+
+        it('marks the newest reply of a custom agent as the feedback target', async () => {
+            // Given an expense report where a custom agent replied last
+            // When the report opens for the expense owner
+            const agentReplyProps = await renderWithAgentReply(FAKE_ACCOUNT_ID);
+
+            // Then the agent's reply shows the feedback prompt, the same as a Concierge reply would
+            expect(agentReplyProps?.isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('does not ask the agent to rate its own reply when the agent account is open through Copilot', async () => {
+            // Given the same report, opened while signed in as the agent
+            // When the list renders
+            const agentReplyProps = await renderWithAgentReply(AGENT_ACCOUNT_ID);
+
+            // Then the agent's own reply shows no prompt, because an author cannot give feedback to itself
+            expect(agentReplyProps?.isLatestConciergeFeedbackAction).toBe(false);
+        });
+    });
+
     it('shows cached empty behavior for an offline queued report load', async () => {
         mockUseNetwork.mockReturnValue({isOffline: true});
         mockUseIsReportLoadPending.mockReturnValue(true);

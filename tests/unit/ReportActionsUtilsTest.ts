@@ -7508,7 +7508,7 @@ describe('ReportActionsUtils', () => {
             ];
 
             // When the comments that show the prompt are picked
-            const actionIDs = ReportActionsUtils.getLatestConciergeFeedbackActionIDs(sorted, persisted(sorted), [firstAgentAccountID, secondAgentAccountID]);
+            const actionIDs = ReportActionsUtils.getFeedbackPromptActionIDs(sorted, persisted(sorted), [firstAgentAccountID, secondAgentAccountID]);
 
             // Then each AI author gets one prompt on its newest comment, so an agent reply does not take the prompt away from Concierge, and the human gets none
             expect([...actionIDs].sort()).toEqual(['400', '500', '600']);
@@ -7523,7 +7523,7 @@ describe('ReportActionsUtils', () => {
             const sorted = [unsavedAgentComment, concierge, olderAgentComment];
 
             // When the comments that show the prompt are picked
-            const actionIDs = ReportActionsUtils.getLatestConciergeFeedbackActionIDs(sorted, persisted([concierge, olderAgentComment]), [agentAccountID]);
+            const actionIDs = ReportActionsUtils.getFeedbackPromptActionIDs(sorted, persisted([concierge, olderAgentComment]), [agentAccountID]);
 
             // Then the older agent comment does not stand in for the unsaved one, which would ask the user to rate an older reply
             expect(actionIDs).toEqual(['200']);

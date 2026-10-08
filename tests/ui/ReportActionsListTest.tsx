@@ -384,10 +384,9 @@ describe('ReportActionsList (body)', () => {
                 actorAccountID: agentAccountID,
                 person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
             };
-            const personalDetailsList = {[agentAccountID]: {accountID: agentAccountID, isCustomAgent: true}};
             mockUseOnyx.mockImplementation((key, options) => {
                 if (key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
-                    return [options?.selector?.(personalDetailsList as never) as number[] | undefined, {status: 'loaded'}];
+                    return [[agentAccountID], {status: 'loaded'}];
                 }
                 return getMockOnyxValue(key, options);
             });

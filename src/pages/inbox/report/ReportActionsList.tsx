@@ -27,7 +27,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
-    getLatestConciergeFeedbackActionIDs,
+    getFeedbackPromptActionIDs,
     getReportActionMessage,
     isConsecutiveActionMadeByPreviousActor,
     isDeletedParentAction,
@@ -68,6 +68,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
 import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
@@ -367,14 +368,17 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
-    const actorAccountIDs = [...new Set(renderedVisibleReportActions.map((action) => action.actorAccountID))];
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    // An agent account can be opened through Copilot, and the agent must not rate its own replies
+    const actorAccountIDs = [...new Set(renderedVisibleReportActions.map((action) => action.actorAccountID))].filter((accountID) => accountID !== currentUserAccountID);
     const [customAgentAccountIDs = getEmptyArray<number>()] = usePersonalDetailsByIDs(actorAccountIDs, getCustomAgentAccountIDs);
 
     // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
     const latestConciergeFeedbackActionIDs =
         reportNameValuePairs?.conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
             ? getEmptyArray<string>()
-            : getLatestConciergeFeedbackActionIDs(renderedVisibleReportActions, allReportActionIDs, customAgentAccountIDs);
+            : getFeedbackPromptActionIDs(renderedVisibleReportActions, allReportActionIDs, customAgentAccountIDs);
 
     useFollowActionBadgeTarget({
         reportID,

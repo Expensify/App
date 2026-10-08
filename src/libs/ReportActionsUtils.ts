@@ -1780,7 +1780,7 @@ function getLatestConciergeFeedbackActionID(
  * @param persistedReportActionIDs - IDs of the report actions stored in Onyx
  * @param customAgentAccountIDs - accountIDs of the custom agents that wrote in the report
  */
-function getLatestConciergeFeedbackActionIDs(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: string[], customAgentAccountIDs: number[]): string[] {
+function getFeedbackPromptActionIDs(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: string[], customAgentAccountIDs: number[]): string[] {
     return [CONST.ACCOUNT_ID.CONCIERGE, ...customAgentAccountIDs]
         .map((authorAccountID) => getLatestConciergeFeedbackActionID(sortedVisibleReportActions, persistedReportActionIDs, authorAccountID))
         .filter((reportActionID): reportActionID is string => !!reportActionID);
@@ -5336,7 +5336,7 @@ export {
     getDismissedViolationMessageText,
     getFirstVisibleReportActionID,
     getLatestConciergeFeedbackActionID,
-    getLatestConciergeFeedbackActionIDs,
+    getFeedbackPromptActionIDs,
     getLatestConciergeFeedbackActionIDFromReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,

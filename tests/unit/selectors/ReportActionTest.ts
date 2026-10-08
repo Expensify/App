@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
-import {getLatestConciergeFeedbackActionIDByAuthorSelector, getReceiptScanFailedIOUActionDataSelector} from '@selectors/ReportAction';
+import {getLatestFeedbackActionIDByAuthorSelector, getReceiptScanFailedIOUActionDataSelector} from '@selectors/ReportAction';
 
 const CURRENT_USER_ACCOUNT_ID = 123456789;
 const OTHER_USER_ACCOUNT_ID = 987654321;
@@ -147,7 +147,7 @@ describe('getReceiptScanFailedIOUActionDataSelector', () => {
     });
 });
 
-describe('getLatestConciergeFeedbackActionIDByAuthorSelector', () => {
+describe('getLatestFeedbackActionIDByAuthorSelector', () => {
     const AGENT_ACCOUNT_ID = 1001;
 
     const createComment = (reportActionID: string, actorAccountID: number, created: string): ReportAction => ({
@@ -169,13 +169,13 @@ describe('getLatestConciergeFeedbackActionIDByAuthorSelector', () => {
         // Given a parent report where a custom agent wrote twice after Concierge
         // When the selector runs for the agent
         // Then it picks the agent's newest comment, and Concierge's comment does not count for the agent
-        expect(getLatestConciergeFeedbackActionIDByAuthorSelector(AGENT_ACCOUNT_ID)(reportActions)).toBe('newerAgent');
+        expect(getLatestFeedbackActionIDByAuthorSelector(AGENT_ACCOUNT_ID)(reportActions)).toBe('newerAgent');
     });
 
     it('returns undefined when the author is not known', () => {
         // Given a parent action whose author is not loaded yet
         // When the selector runs without an author
         // Then it returns nothing, so the selector does not fall back to Concierge's newest comment
-        expect(getLatestConciergeFeedbackActionIDByAuthorSelector(undefined)(reportActions)).toBeUndefined();
+        expect(getLatestFeedbackActionIDByAuthorSelector(undefined)(reportActions)).toBeUndefined();
     });
 });
