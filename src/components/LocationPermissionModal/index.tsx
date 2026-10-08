@@ -11,6 +11,8 @@ import getPlatform from '@libs/getPlatform';
 
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 
 import {useEffect, useRef, useState} from 'react';
@@ -31,7 +33,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
+    const {asset: ReceiptLocationMarker, isLoading: isLoadingIllustration} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const {showConfirmModal, closeModal} = useConfirmModal();
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
@@ -58,7 +60,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     usePolling(checkPermission, CONST.TIMING.LOCATION_UPDATE_INTERVAL, showModal, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
 
     useEffect(() => {
-        if (!startPermissionFlow) {
+        if (!startPermissionFlow || isLoadingIllustration) {
             return;
         }
 
@@ -116,6 +118,10 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 return;
             }
 
+            if (hasError) {
+                updateLastLocationPermissionPrompt();
+            }
+
             // Already handled by the visibility listener
             if (isGrantedExternallyRef.current) {
                 resetFlowState();
@@ -167,8 +173,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             isModalActiveRef.current = false;
             closeModal();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
-    }, [startPermissionFlow]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes, or once the prompt illustration settles
+    }, [startPermissionFlow, isLoadingIllustration]);
 
     return null;
 }
