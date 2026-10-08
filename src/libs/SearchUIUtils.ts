@@ -3474,11 +3474,18 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
     return [tagSectionsValues, tagSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
-/** Whether the date groups fall in more than one year. `getYears` returns the years a group covers, or none for other group types. */
-function doGroupsSpanMultipleYears(data: OnyxTypes.SearchResults['data'], getYears: (group: OnyxTypes.SearchResults['data'][SearchGroupKey]) => number[]): boolean {
+/** Whether the day, month or quarter groups fall in more than one year */
+function doGroupsSpanMultipleYears(data: OnyxTypes.SearchResults['data']): boolean {
     const years = Object.keys(data)
         .filter(isGroupEntry)
-        .flatMap((key) => getYears(data[key]));
+        .map((key) => {
+            const group = data[key];
+            if ('day' in group) {
+                return getYearOfDate(group.day);
+            }
+            return 'year' in group ? group.year : undefined;
+        })
+        .filter((year) => year !== undefined);
     return new Set(years).size > 1;
 }
 
@@ -3495,7 +3502,7 @@ function getDaySections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionDayGroupListItemType[], number, boolean] {
     const daySections: Record<string, TransactionDayGroupListItemType> = {};
-    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('day' in group ? [getYearOfDate(group.day)] : []));
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
     for (const key in data) {
         if (!isGroupEntry(key)) {
             continue;
@@ -3534,7 +3541,7 @@ function getMonthSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionMonthGroupListItemType[], number, boolean] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
-    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('month' in group ? [group.year] : []));
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const monthGroup = data[key];
@@ -3649,7 +3656,7 @@ function getQuarterSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionQuarterGroupListItemType[], number, boolean] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
-    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('quarter' in group ? [group.year] : []));
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const quarterGroup = data[key];
