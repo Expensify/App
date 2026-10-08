@@ -23,7 +23,7 @@ type AttachmentCommentFragmentProps = {
 function AttachmentCommentFragment({addExtraMargin, html, source, styleAsDeleted, reportActionID, isEdited = false}: AttachmentCommentFragmentProps) {
     const styles = useThemeStyles();
     const htmlWithIDs = getHtmlWithAttachmentID(styleAsDeleted ? `<del>${html}</del>` : html, reportActionID);
-    const attachmentHtml = wrapAttachmentAnchorsInBlocks(htmlWithIDs);
+    const attachmentHtml = wrapAttachmentAnchorsInBlocks(htmlWithIDs, reportActionID);
     // Only a file card gets its own block, so only a file card can carry the label without it sharing the card's line.
     const editedTag = isEdited && attachmentHtml !== htmlWithIDs ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
     const htmlContent = `${attachmentHtml}${editedTag}`;

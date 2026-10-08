@@ -99,7 +99,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = adjustExpensifyLinksForEnv(wrapAttachmentAnchorsInBlocks(getHtmlWithAttachmentID(htmlWithTag, reportActionID)));
+        htmlWithTag = adjustExpensifyLinksForEnv(wrapAttachmentAnchorsInBlocks(getHtmlWithAttachmentID(htmlWithTag, reportActionID), reportActionID));
 
         return (
             <View onLayout={endSendMessageVisibleSpanOnLayout}>

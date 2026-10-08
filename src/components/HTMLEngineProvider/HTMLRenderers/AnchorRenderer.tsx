@@ -11,7 +11,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
-import {isAttachmentAnchor} from '@libs/AttachmentAnchorUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import CONST from '@src/CONST';
@@ -37,9 +36,9 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
     const {hovered, bind} = useHover();
-    // An auth token is needed to download Expensify chat attachments
-    // Editing a comment round-trips its HTML through the server, which returns anchors stripped of these attributes.
-    const isAttachment = isAttachmentAnchor(htmlAttribs.href ?? '', !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE], !!htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE]);
+    // An auth token is needed to download Expensify chat attachments. An edited comment comes back without the source
+    // attribute, so the comment fragment restores the ID before this runs.
+    const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || !!htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
     // An edited label such as `my_file.csv` can come back wrapped in `<em>`, so the name is gathered from every text node.
     const displayName = getTextContent(tnode);
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';

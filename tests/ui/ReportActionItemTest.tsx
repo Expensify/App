@@ -225,6 +225,30 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/Text/)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
         });
+
+        it("shows a link the author pasted to an earlier message's attachment as a link", async () => {
+            // Given a comment that is only a chat attachment URL the author pasted, which names the action that holds that file
+            const pastedURL = 'https://www.expensify.com/chat-attachments/99999/w_other.jpg';
+
+            // When the comment is rendered
+            renderComment(`<a href="${pastedURL}" target="_blank" rel="noreferrer noopener">${pastedURL}</a>`, '[Attachment]', false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the URL stays readable as a link instead of being drawn as this message's own file
+            expect(screen.getByText(pastedURL)).toBeOnTheScreen();
+        });
+
+        it('shows an image the author linked from an attachment URL', async () => {
+            // Given a comment written as a linked image, whose anchor holds no text to name a card with
+            const pastedURL = 'https://www.expensify.com/chat-attachments/99999/w_other.jpg';
+
+            // When the comment is rendered
+            renderComment(`<a href="${pastedURL}"><img src="${pastedURL}" alt="photo" /></a>`, '[Attachment]', false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the image is on screen rather than an empty card
+            expect(screen.getByLabelText('photo')).toBeOnTheScreen();
+        });
     });
 
     describe('Automatic actions', () => {
