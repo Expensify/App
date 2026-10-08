@@ -20,7 +20,8 @@ import {updateCompanyInformationForBankAccount} from '@userActions/BankAccounts'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {type Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import {Str} from 'expensify-common';

@@ -69,7 +69,7 @@ function BankAccountAddressWidgetItem({title, subtitle, ctaText, onCtaPress, isC
     );
 }
 
-function AddPersonalBankAccountAddress({bankAccountID, additionalData, title, subtitle, ctaText}: AddBankAccountAddressProps & WidgetCopyPropsWithoutCta) {
+function AddPersonalBankAccountAddress({bankAccountID, additionalData, title, subtitle, ctaText}: Pick<AddBankAccountAddressProps, 'bankAccountID' | 'additionalData'> & WidgetCopyPropsWithoutCta) {
     const handleCtaPress = () => {
         const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
         resetPersonalBankAccountForUpdate(
@@ -106,7 +106,7 @@ function AddPersonalBankAccountAddress({bankAccountID, additionalData, title, su
     );
 }
 
-function AddWorkspaceBankAccountAddress({bankAccountID, policyID, title, subtitle, ctaText}: AddBankAccountAddressProps & WidgetCopyPropsWithoutCta) {
+function AddWorkspaceBankAccountAddress({bankAccountID, policyID, title, subtitle, ctaText}: Pick<AddBankAccountAddressProps, 'bankAccountID' | 'policyID'> & WidgetCopyPropsWithoutCta) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
@@ -154,7 +154,7 @@ function AddWorkspaceBankAccountAddress({bankAccountID, policyID, title, subtitl
             return;
         }
 
-        if (hasSeenReimbursementAccountLoadingRef.current && !isEmptyObject(reimbursementAccount?.errors ?? {})) {
+        if (!isEmptyObject(reimbursementAccount?.errors ?? {})) {
             showWorkspaceLoadError();
             return;
         }
@@ -223,22 +223,27 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
 
     const ctaText = translate('homePage.timeSensitiveSection.addBankAccountAddress.cta');
 
-    const sharedProps = {
-        bankAccountID,
-        isPersonalAccount,
-        policyID,
-        policyName,
-        additionalData,
-        title,
-        subtitle,
-        ctaText,
-    };
-
     if (isPersonalAccount) {
-        return <AddPersonalBankAccountAddress {...sharedProps} />;
+        return (
+            <AddPersonalBankAccountAddress
+                bankAccountID={bankAccountID}
+                additionalData={additionalData}
+                title={title}
+                subtitle={subtitle}
+                ctaText={ctaText}
+            />
+        );
     }
 
-    return <AddWorkspaceBankAccountAddress {...sharedProps} />;
+    return (
+        <AddWorkspaceBankAccountAddress
+            bankAccountID={bankAccountID}
+            policyID={policyID}
+            title={title}
+            subtitle={subtitle}
+            ctaText={ctaText}
+        />
+    );
 }
 
 export default AddBankAccountAddress;
