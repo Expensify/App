@@ -11,6 +11,9 @@ import type React from 'react';
 // Jest resolves the native no-op, so the web implementation is loaded by its file name.
 const {default: useColumnResize} = jest.requireActual<{default: typeof UseColumnResize}>('@components/Table/columnResize/useColumnResize/index.ts');
 
+// Jest resolves the native cursor styles, which are empty, so the web ones are loaded by their file name too.
+jest.mock('@styles/utils/cursor', () => jest.requireActual<unknown>('@styles/utils/cursor/index.ts'));
+
 jest.mock('@libs/actions/TableColumnWidths', () => ({
     setTableColumnWidth: jest.fn(),
 }));
