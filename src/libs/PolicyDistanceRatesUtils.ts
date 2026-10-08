@@ -17,24 +17,87 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {parseFloatAnyLocale} from './NumberUtils';
+import StringUtils from './StringUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
 
 type TaxReclaimableForm = typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM;
 
-function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit: (arg: string) => string, translate: LocalizedTranslate): FormInputErrors<RateValueForm> {
-    const errors: FormInputErrors<RateValueForm> = {};
-    const parsedRate = replaceAllDigits(values.rate, toLocaleDigit);
-    const decimalSeparator = toLocaleDigit('.');
+/** The reason a proposed distance rate name is invalid. Callers translate it via `getDistanceRateNameErrorMessage`. */
+type DistanceRateNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.EXISTING | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
+/** The reason a proposed distance rate amount is invalid. Shared by the RHP edit form and inline table editing. */
+type DistanceRateValueError = typeof CONST.INPUT_VALIDATION_ERRORS.INVALID | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LOW;
+
+/**
+ * Validates a distance rate name against every rule (required, unique, length). This is the single
+ * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
+ * `currentName` when editing so renaming a rate to its own name isn't flagged as a duplicate.
+ * Returns an error code, or undefined when the name is valid.
+ */
+function getDistanceRateNameError(existingRateNames: readonly string[], newName: string, currentName?: string): DistanceRateNameError | undefined {
+    const sanitized = StringUtils.sanitizeName(newName);
+
+    if (StringUtils.isEmptyString(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    if (sanitized !== currentName && existingRateNames.includes(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.EXISTING;
+    }
+
+    // Spread to count Unicode code points rather than UTF-16 code units.
+    if ([...sanitized].length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+    }
+
+    return undefined;
+}
+
+/** Translates a {@link DistanceRateNameError} into a user-facing message for the given name. */
+function getDistanceRateNameErrorMessage(translate: LocalizedTranslate, error: DistanceRateNameError, name: string): string {
+    switch (error) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('workspace.distanceRates.errors.nameRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.EXISTING:
+            return translate('workspace.distanceRates.errors.existingRateName');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
+        default:
+            return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
+    }
+}
+
+/**
+ * Validates a distance rate amount against the same rules as the RHP edit form (format and > 0).
+ * Returns an error code, or undefined when the value is valid.
+ */
+function getDistanceRateValueError(rate: string, toLocaleDigit: (arg: string) => string): DistanceRateValueError | undefined {
+    const parsedRate = replaceAllDigits(rate, toLocaleDigit);
+    const decimalSeparator = toLocaleDigit('.');
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
+
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
+    }
+    if (parseFloatAnyLocale(parsedRate) <= 0) {
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LOW;
+    }
+
+    return undefined;
+}
+
+function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit: (arg: string) => string, translate: LocalizedTranslate): FormInputErrors<RateValueForm> {
+    const errors: FormInputErrors<RateValueForm> = {};
+    const error = getDistanceRateValueError(values.rate, toLocaleDigit);
+
+    if (error === CONST.INPUT_VALIDATION_ERRORS.INVALID) {
         errors.rate = translate('common.error.invalidRateError');
-    } else if (parseFloatAnyLocale(parsedRate) <= 0) {
+    } else if (error === CONST.INPUT_VALIDATION_ERRORS.TOO_LOW) {
         errors.rate = translate('common.error.lowRateError');
     }
+
     return errors;
 }
 
@@ -54,14 +117,10 @@ function validateCreateDistanceRateForm(
     existingRateNames: string[],
 ): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> {
     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
-    const trimmedName = values.name?.trim() ?? '';
+    const nameError = getDistanceRateNameError(existingRateNames, values.name ?? '');
 
-    if (!isRequiredFulfilled(trimmedName)) {
-        errors.name = translate('workspace.distanceRates.errors.nameRequired');
-    } else if ([...trimmedName].length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
-        errors.name = translate('common.error.characterLimitExceedCounter', [...trimmedName].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
-    } else if (existingRateNames.includes(trimmedName)) {
-        errors.name = translate('workspace.distanceRates.errors.existingRateName');
+    if (nameError) {
+        errors.name = getDistanceRateNameErrorMessage(translate, nameError, values.name ?? '');
     }
 
     if (!isRequiredFulfilled(values.rate)) {
@@ -185,13 +244,36 @@ function getRateStatus(rate: Rate): string {
     return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
 }
 
+function getGovernmentRateAmountForUnit(governmentRateAmount: number, sourceRateID: string | undefined, currentUnit: Unit | undefined): number {
+    if (!sourceRateID || !currentUnit) {
+        return governmentRateAmount;
+    }
+
+    const snapshotCountry = sourceRateID.split('_').at(0);
+    const countryToUnit: Partial<Record<string, Unit>> = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT;
+    const snapshotUnit = snapshotCountry ? countryToUnit[snapshotCountry] : undefined;
+
+    if (!snapshotUnit || snapshotUnit === currentUnit) {
+        return governmentRateAmount;
+    }
+
+    // If a rate is expressed in cents / km, converting to cents / mi means multiplying by a factor that cancels the kilometers:
+    // cents / km * km / mi = cents / mi. Do the opposite for a rate expressed in cents / mi.
+    const convertedAmount =
+        snapshotUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS
+            ? governmentRateAmount * CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS
+            : governmentRateAmount / CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS;
+
+    return Math.round(convertedAmount * 100) / 100;
+}
+
 /**
  * Whether a government-managed rate still matches the government-published snapshot it was copied from.
  * Returns true only when the rate amount, start date, and end date each match the snapshot in attributes.governmentRate.
  * The amount is compared within a small tolerance to absorb floating-point noise from the stored cents value.
  * A date omitted on both sides counts as a match; a date omitted on only one side does not.
  */
-function isGovernmentRateUnmodified(rate: Rate): boolean {
+function isGovernmentRateUnmodified(rate: Rate, currentUnit?: Unit): boolean {
     const governmentRate = rate.attributes?.governmentRate;
     // A snapshot without a rate amount (e.g. malformed data) can never be matched, otherwise `undefined === undefined` would
     // incorrectly report an unset rate as unmodified.
@@ -201,7 +283,8 @@ function isGovernmentRateUnmodified(rate: Rate): boolean {
 
     // The submit path stores the amount as `Number(value) * 100`, which can introduce tiny floating-point errors (e.g. restoring
     // 0.29 yields 28.999999999999996), so compare amounts within a tolerance rather than requiring strict equality.
-    const isRateAmountMatching = Math.abs(rate.rate - governmentRate.rate) < CONST.CUSTOM_UNITS.GOVERNMENT_RATE_MATCH_TOLERANCE;
+    const governmentRateAmount = getGovernmentRateAmountForUnit(governmentRate.rate, governmentRate.sourceRateID, currentUnit);
+    const isRateAmountMatching = Math.abs(rate.rate - governmentRateAmount) < CONST.CUSTOM_UNITS.GOVERNMENT_RATE_MATCH_TOLERANCE;
 
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
@@ -284,4 +367,7 @@ export {
     isMapOrGPSRequired,
     getDistanceExpenseTypeForPolicy,
     isGovernmentRateUnmodified,
+    getDistanceRateNameError,
+    getDistanceRateNameErrorMessage,
+    getDistanceRateValueError,
 };

@@ -1,4 +1,5 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
@@ -61,16 +62,15 @@ export default function WorkspaceTagsTableRow({
         item.name,
         tagCountSubtitle,
         enabledStatusLabel,
-        item.showRequiredSwitch && item.required ? translate('common.required') : null,
         shouldShowGLCodeColumn && item.glCode ? `${translate('workspace.tags.glCode')}: ${item.glCode}` : null,
         shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
     ]
         .filter(Boolean)
         .join(', ');
 
-    const switchValue = item.showRequiredSwitch ? !!item.required : item.enabled;
-    const switchAccessibilityLabel = item.showRequiredSwitch ? translate('workspace.tags.requiresTag') : translate('workspace.tags.enableTag');
-    const handleSwitchToggle = item.showRequiredSwitch ? item.onToggleRequired : item.onToggleEnabled;
+    const switchValue = item.enabled;
+    const switchAccessibilityLabel = translate('workspace.tags.enableTag');
+    const handleSwitchToggle = item.onToggleEnabled;
     const isSwitchControlDisabled = !!item.disabled || !!item.isSwitchDisabled;
 
     return (
@@ -93,11 +93,12 @@ export default function WorkspaceTagsTableRow({
                         style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <TextWithTooltip
-                            shouldShowTooltip
-                            numberOfLines={1}
-                            text={item.name}
-                            style={styles.optionDisplayName}
+                        <InlineTextEditCell
+                            value={item.name}
+                            accessibilityLabel={translate('common.name')}
+                            canEdit={!!item.canEditName && !item.disabled}
+                            onSave={item.onRenameName}
+                            displayTextStyle={styles.optionDisplayName}
                         />
                         {shouldUseNarrowTableLayout && !!tagCountSubtitle && (
                             <Text
@@ -155,7 +156,7 @@ export default function WorkspaceTagsTableRow({
                         </View>
                     )}
 
-                    {(item.showEnabledSwitch || item.showRequiredSwitch) && !!handleSwitchToggle && (
+                    {item.showEnabledSwitch && !!handleSwitchToggle && (
                         <View
                             style={[styles.justifyContentCenter, styles.alignItemsEnd]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}

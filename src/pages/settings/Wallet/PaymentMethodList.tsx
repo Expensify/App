@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
+import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
 import {
     getAssignedCardSortKey,
     getCardConnectionStatusDisplay,
@@ -22,13 +24,14 @@ import {
     getCardFeedWithDomainID,
     getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
+    hasCardConnectionIssue,
     isActionableVirtualExpensifyCard,
-    isBrokenConnectionPastDismissThreshold,
-    isCardConnectionBroken,
     doesCardConnectionNeedReauthentication,
     isCardFrozen,
     isCardInactive,
+    isCardPendingDigitalWalletApproval,
     isExpensifyCard,
+    isExpensifyCardPending,
     isExpensifyCardPendingAction,
     isExpiredCard,
     isPersonalCard,
@@ -40,7 +43,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getDescriptionForPolicyDomainCard, getPolicyIDFromDomainName, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {getTravelBillingCard, isTravelCVVEligible} from '@libs/TravelBillingUtils';
 
 import colors from '@styles/theme/colors';
@@ -63,7 +66,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
-import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
+import {createPoliciesForAssignedCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
@@ -209,14 +212,12 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
-    const cardDomains = shouldShowAssignedCards
-        ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-              .filter((card) => !!card.domainName)
-              .map((card) => card.domainName)
-        : [];
-    const policiesForDomainCardsSelectorFactory = createPoliciesForDomainCardsSelector(cardDomains);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const [allCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const cardsForPolicyLookup = shouldShowAssignedCards ? Object.values(isLoadingCardList ? {} : (cardList ?? {})).filter((card) => !!card.domainName || !!card.fundID) : [];
+    const policiesForAssignedCardsSelectorFactory = createPoliciesForAssignedCardsSelector(cardsForPolicyLookup, getPolicyIDsNamedByCardFeeds(cardsForPolicyLookup, allCardFeeds));
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<Policy>) => policiesForDomainCardsSelectorFactory(policies),
+        selector: (policies: OnyxCollection<Policy>) => policiesForAssignedCardsSelectorFactory(policies),
     });
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -266,12 +267,13 @@ function PaymentMethodList({
             const hasMissingPersonalDetails = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                const isUserExpensifyCard = isExpensifyCard(card);
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
-                const policyIDForCard = shouldShowConnectionStatus && card.domainName ? getPolicyIDFromDomainName(card.domainName) : undefined;
-                const policyForCard = policyIDForCard ? policiesForAssignedCards?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForCard}`] : undefined;
-                const isAdminForCardPolicy = shouldShowConnectionStatus ? isPolicyAdmin(policyForCard) : false;
+                const {policyID: policyIDForCard, isAdmin: isAdminForCardPolicy} = shouldShowConnectionStatus
+                    ? getAssignedCardFeedAccess(card, allCardFeeds, policiesForAssignedCards, currentUserLogin)
+                    : {policyID: undefined, isAdmin: false};
 
                 let icon;
                 if (isUserPersonalCard && isCSVCard) {
@@ -292,35 +294,44 @@ function PaymentMethodList({
 
                 let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
                 if (!card.errors) {
-                    if (shouldShowRBR) {
+                    // An Expensify Card has no bank connection, so its feed's RBR is never something the cardholder can
+                    // fix and it is the RBR this card is not supposed to show. Fraud and the pending-action prompt below
+                    // are still theirs to act on, so those keep their indicator.
+                    if (shouldShowRBR && !isUserExpensifyCard) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                    } else if (isUserExpensifyCard && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                     }
                 }
 
-                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
+                if (isUserPersonalCard && (!isEmptyObject(card.errors) || hasCardConnectionIssue(card))) {
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
                 const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
-                const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+                // The grace period and the ignored scrape statuses only stop us from prompting the user. The status itself
+                // stays truthful, so a card reporting a connection error still reads as Inactive with a way to fix it.
+                const isCardBroken = hasCardConnectionIssue(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
                     shouldShowConnectionStatus,
                     isCardBroken,
                     shouldShowRBR,
                     isCardInactive: isCardInactiveState,
+                    isCardPending: isExpensifyCardPending(card),
+                    isExpensifyCard: isUserExpensifyCard,
                     isPersonalCard: isUserPersonalCard,
                     isAdminForCardPolicy,
                     doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
                     policyID: policyIDForCard,
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
-                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
-                const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
+                // A row showing a connection message doesn't repeat the card's own errors, unless the card has a pending action.
+                // A pending wallet approval hides them too, because that flow shows its errors on its own confirmation screen.
+                const shouldShowCardErrorMessages = (!shouldShowCardConnectionMessage && !isCardPendingDigitalWalletApproval(card)) || !!card.pendingAction;
+                const shouldShowCardLastSync = shouldShowConnectionStatus && !isUserExpensifyCard && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
                     if (card.lastScrape) {
@@ -365,7 +376,7 @@ function PaymentMethodList({
                     };
                 }
 
-                if (!isExpensifyCard(card)) {
+                if (!isUserExpensifyCard) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
@@ -453,6 +464,12 @@ function PaymentMethodList({
                         ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
+                        // The domain gets one row, so a pending approval on any of its cards has to surface there.
+                        // The CTA needs the pending card's own ID, which the group row doesn't carry.
+                        if (isCardPendingDigitalWalletApproval(card) && !assignedCardsGroupedItem.digitalWalletApprovalCardID) {
+                            assignedCardsGroupedItem.digitalWalletApprovalCardID = card.cardID;
+                            assignedCardsGroupedItem.digitalWalletProvider = card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider;
+                        }
                     }
                     continue;
                 }
@@ -505,6 +522,8 @@ function PaymentMethodList({
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
                     shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails,
+                    digitalWalletApprovalCardID: isCardPendingDigitalWalletApproval(card) ? card.cardID : undefined,
+                    digitalWalletProvider: card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider,
                 });
             }
 

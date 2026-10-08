@@ -2,12 +2,13 @@ import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {buildCopiedExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists, PolicyCategory} from '@src/types/onyx';
+import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists, PolicyCategory, Rule} from '@src/types/onyx';
 import type {CustomUnit, PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
@@ -64,10 +65,12 @@ const PARTS_TO_POLICY_FIELDS = {
         'shouldShowAutoReimbursementLimitOption',
         'customRules',
     ],
-    codingRules: ['rules'],
+    // Merchant rules are copied into the `rules_` collection rather than onto the policy, so this part patches
+    // no policy field. It stays listed because the map has to cover every part.
+    codingRules: [],
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
-    invoices: ['areInvoicesEnabled', 'invoice'],
+    invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
     // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
     // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
     // and must not be copied — each target is re-provisioned with its own entity by the backend.
@@ -84,8 +87,8 @@ type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
  * given target can't access. Parts with no plan/feature gate (e.g. overview, members) are omitted.
  *
  * This is intentionally separate from `PARTS_TO_POLICY_FIELDS`: that map lists every Onyx field a
- * part copies, where the feature toggle isn't reliably identifiable (e.g. `codingRules` copies the
- * `rules` field, not the `areRulesEnabled` feature; `timeTracking`/`receiptPartners` copy no fields).
+ * part copies, and several parts copy no policy field at all (`codingRules` copies into the `rules_`
+ * collection, `timeTracking`/`receiptPartners` are patched separately).
  */
 const PART_TO_POLICY_FEATURE: Partial<Record<Part, PolicyFeatureName>> = {
     reports: CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
@@ -299,20 +302,35 @@ function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCateg
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
  * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
  */
-function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Policy> {
+function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts: Part[]): Partial<Policy> {
     const patch: Partial<Policy> = {};
+    const shouldCopyReportFields = parts.includes('reports');
+    const shouldCopyInvoiceFields = parts.includes('invoices');
+
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
             if (field === 'customUnits') {
                 continue;
             }
-            if (part === 'codingRules' && field === 'rules') {
+            if (field === 'fieldList') {
                 continue;
             }
             // The PARTS_TO_POLICY_FIELDS values are typed as keyof Policy, so this assignment is safe.
             (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
         }
     }
+
+    if (shouldCopyReportFields || shouldCopyInvoiceFields) {
+        const shouldCopyField = (field: NonNullable<Policy['fieldList']>[string]) => {
+            const isInvoiceField = field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
+        };
+        const retainedTargetFields = Object.entries(targetPolicy.fieldList ?? {}).filter(([, field]) => !shouldCopyField(field));
+        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => shouldCopyField(field));
+        const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
+        patch.fieldList = Object.fromEntries(mergedFields);
+    }
+
     return patch;
 }
 
@@ -340,6 +358,7 @@ type CopyPolicySettingsOnyxKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
     | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
+    | typeof ONYXKEYS.COLLECTION.RULE
     | typeof ONYXKEYS.COPY_POLICY_SETTINGS
     | typeof ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS;
 
@@ -349,6 +368,7 @@ function buildCopyPolicySettingsData(
     parts: Part[],
     allPolicyCategories: OnyxCollection<PolicyCategories>,
     allPolicyTags: OnyxCollection<PolicyTagLists>,
+    allRules: OnyxCollection<Rule>,
 ): {
     optimisticData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
     successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
@@ -358,7 +378,6 @@ function buildCopyPolicySettingsData(
     const successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
     const failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
 
-    const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, parts);
     const pendingFields = buildExpandedPendingFields(parts);
     const clearedPendingFields = buildClearedPendingFields(parts);
 
@@ -385,38 +404,33 @@ function buildCopyPolicySettingsData(
         : {};
     const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
     const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
+    // Merchant rules are only visible while Rules is on, so copying them turns Rules on for the target,
+    // the same way the backend does. This keeps the target right while offline, before the server push lands.
+    const codingRulesPatch = isCodingRulesSelected ? {areRulesEnabled: true} : {};
+    const codingRulesPendingFields = isCodingRulesSelected ? {areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const codingRulesClearedPendingFields = isCodingRulesSelected ? {areRulesEnabled: null} : {};
 
     const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;
     const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
     const sourceCategories = allPolicyCategories?.[sourceCategoriesKey] ?? {};
     const sourceTags = allPolicyTags?.[sourceTagsKey] ?? {};
-    const filterPendingDeleteData = <T>(data?: Record<string, T>): Record<string, T> | undefined =>
-        data
-            ? (Object.fromEntries(
-                  Object.entries(data).filter(([, value]) => {
-                      if (!value || typeof value !== 'object' || !('pendingAction' in value)) {
-                          return true;
-                      }
-                      return value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                  }),
-              ) as Record<string, T>)
-            : undefined;
-    const codingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy.rules?.codingRules);
 
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
+        const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, targetPolicy, parts);
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
         const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
         const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
-        const codingRulesPatch = isCodingRulesSelected
-            ? {
-                  rules: {
-                      ...targetPolicy.rules,
-                      codingRules: codingRulesWithoutPendingDelete,
-                  },
-              }
-            : {};
+        // Merchant rules live in their own collection, so each target policy gets its own copies rather than
+        // a shared blob on the policy object. The server mints its own IDs, so the optimistic copies are dropped on success.
+        const copiedRules = isCodingRulesSelected ? buildCopiedExpenseDefaultRules(allRules, sourcePolicy.id, targetPolicy.id) : {};
+        for (const [ruleID, rule] of Object.entries(copiedRules)) {
+            const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
+            optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: rule});
+            successData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null});
+            failureData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null});
+        }
 
         // Step 1+2: SET the full policy with patched fields overlaid.
         // We use SET (not MERGE) because Onyx.merge deep-merges nested objects — source
@@ -439,7 +453,7 @@ function buildCopyPolicySettingsData(
                 ...(travelSettingsPatch ?? {}),
                 ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
                 ...codingRulesPatch,
-                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields},
+                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields, ...codingRulesPendingFields},
             },
         });
 
@@ -448,7 +462,7 @@ function buildCopyPolicySettingsData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields},
+                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields, ...codingRulesClearedPendingFields},
                 errors: null,
             },
         });
@@ -565,8 +579,9 @@ function copyPolicySettings(
     parts: Part[],
     allPolicyCategories: OnyxCollection<PolicyCategories>,
     allPolicyTags: OnyxCollection<PolicyTagLists>,
+    allRules: OnyxCollection<Rule>,
 ): void {
-    const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
+    const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules);
 
     const params: CopyPolicySettingsParams = {
         policyID: sourcePolicy.id,

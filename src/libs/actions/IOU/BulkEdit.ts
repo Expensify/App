@@ -6,7 +6,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, getTagLists, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -33,6 +33,7 @@ import {
     getTaxValue,
     getUpdatedTransaction,
     isDistanceRequest,
+    isFailedScanAmountPlaceholder,
     isOnHold,
     isSplitChildTransaction,
     shouldShowAttendees,
@@ -129,7 +130,12 @@ function removeUnchangedBulkEditFields(
         const currentValue = currentDetails[field as keyof TransactionDetails];
 
         const hasChanged = field === CONST.EDIT_REQUEST_FIELD.ATTENDEES ? !deepEqual(nextValue, currentValue) : nextValue !== currentValue;
-        if (hasChanged) {
+        // A failed-scan placeholder amount must always be treated as changed so that bulk-confirming the same
+        // displayed value (e.g. re-entering 0) still submits and clears the scan-failure error, mirroring the
+        // no-op bypass already used in IOUAmountSubmission.ts and TotalCell.tsx.
+        const isFailedScanAmountEdit = field === 'amount' && isFailedScanAmountPlaceholder(transaction);
+
+        if (isFailedScanAmountEdit || hasChanged) {
             filteredChanges = {
                 ...filteredChanges,
                 [field]: nextValue,
@@ -151,6 +157,8 @@ type UpdateMultipleMoneyRequestsParams = {
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    /** Per-policy tags read state. A policy's tag list count is only trusted once its tags have fully loaded. */
+    policyTagsLoadingStates?: OnyxCollection<OnyxTypes.PolicyDataLoadingState>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     hash?: number;
@@ -161,6 +169,8 @@ type UpdateMultipleMoneyRequestsParams = {
     personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function writeBulkEditMoneyRequest(
@@ -196,6 +206,7 @@ function updateMultipleMoneyRequests({
     reportActions,
     policyCategories,
     policyTags,
+    policyTagsLoadingStates,
     violations,
     reportNameValuePairs,
     hash,
@@ -206,6 +217,8 @@ function updateMultipleMoneyRequests({
     personalDetailsList,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
+    isVendorMatchingBetaEnabled,
 }: UpdateMultipleMoneyRequestsParams) {
     // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -283,7 +296,16 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy, reportNameValuePairs});
+            return canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report: iouReport,
+                policy: transactionPolicy,
+                reportNameValuePairs,
+                reportActions: transactionReportActions,
+                rules,
+            });
         };
 
         let transactionChanges: TransactionChanges = {};
@@ -316,33 +338,32 @@ function updateMultipleMoneyRequests({
         if (changes.category !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
             transactionChanges.category = changes.category;
         }
+
+        // Use bulkEditTagChanges to save tag changes. changes.tag is only for display.
         const editedTagIndexes = bulkEditTagChanges ? Object.keys(bulkEditTagChanges) : [];
-        if ((changes.tag || editedTagIndexes.length > 0) && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
-            if (editedTagIndexes.length > 0) {
-                // Rebuild the tag from THIS transaction's own tag so levels the user didn't touch are
-                // preserved, instead of overwriting every level with one shared common-prefix string.
-                // Apply each edited level in ascending order because editing a parent may clear its
-                // dependent children, and pass an empty currentTag so the selected value is always a
-                // fresh selection at that level rather than a per-transaction deselect.
-                const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`];
-                const transactionHasDependentTags = hasDependentTags(transactionPolicy, transactionPolicyTagList);
-                const transactionHasMultipleTagLists = transactionPolicy?.hasMultipleTagLists ?? false;
-                let reconstructedTag = transaction.tag ?? '';
-                for (const editedIndex of editedTagIndexes.map(Number).sort((first, second) => first - second)) {
-                    reconstructedTag = getUpdatedTransactionTag({
-                        transactionTag: reconstructedTag,
-                        selectedTagName: bulkEditTagChanges?.[editedIndex] ?? '',
-                        currentTag: '',
-                        tagListIndex: editedIndex,
-                        policyTags: transactionPolicyTagList,
-                        hasDependentTags: transactionHasDependentTags,
-                        hasMultipleTagLists: transactionHasMultipleTagLists,
-                    });
-                }
-                transactionChanges.tag = reconstructedTag;
-            } else {
-                transactionChanges.tag = changes.tag;
+        if (editedTagIndexes.length > 0 && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
+            // Rebuild from each transaction's own tag to keep the unchanged levels. Apply each edited level in order.
+            const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`];
+            const transactionHasDependentTags = hasDependentTags(transactionPolicy, transactionPolicyTagList);
+            const transactionHasMultipleTagLists = transactionPolicy?.hasMultipleTagLists ?? false;
+            // A partially loaded tag collection can hold fewer tag lists than the policy, so only drop values for removed
+            // tag lists once this policy's tags have fully loaded
+            const hasLoadedTransactionPolicyTags = !!policyTagsLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${transactionPolicy?.id}`]?.hasOnceLoaded;
+            const transactionTagListCount = hasLoadedTransactionPolicyTags ? getTagLists(transactionPolicyTagList).length : undefined;
+            let reconstructedTag = transaction.tag ?? '';
+            for (const editedIndex of editedTagIndexes.map(Number).sort((first, second) => first - second)) {
+                reconstructedTag = getUpdatedTransactionTag({
+                    transactionTag: reconstructedTag,
+                    selectedTagName: bulkEditTagChanges?.[editedIndex] ?? '',
+                    currentTag: '',
+                    tagListIndex: editedIndex,
+                    policyTags: transactionPolicyTagList,
+                    hasDependentTags: transactionHasDependentTags,
+                    hasMultipleTagLists: transactionHasMultipleTagLists,
+                    tagListCount: transactionTagListCount,
+                });
             }
+            transactionChanges.tag = reconstructedTag;
         }
         if (changes.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
             transactionChanges.comment = getParsedComment(changes.comment);
@@ -546,6 +567,7 @@ function updateMultipleMoneyRequests({
                 ownerLogin: getLoginByAccountID(iouReport?.ownerAccountID, personalDetailsList),
                 isFromExpenseReport,
                 distanceOriginalPolicy,
+                isVendorMatchingBetaEnabled,
             });
             optimisticData.push(optimisticViolationsData);
             failureData.push({

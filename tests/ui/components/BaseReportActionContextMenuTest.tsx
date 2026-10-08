@@ -13,6 +13,7 @@ import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ActionSheetAwareScrollView', () => ({
@@ -418,18 +419,23 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
             onPress({});
         });
 
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
         expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest).toHaveBeenCalledWith(
+        expect(mockUnholdRequest).toHaveBeenCalledWith({
             transactionID,
-            childReportID,
-            expect.objectContaining({id: policyID}),
-            false,
+            transaction,
+
+            reportID: childReportID,
+            policy: expect.objectContaining({id: policyID}),
+            isOffline: false,
             currentUserLogin,
             currentUserAccountID,
-            undefined,
-            false,
-            undefined,
-        );
+            transactionViolations: undefined,
+            isTrackIntentUser: false,
+            delegateAccountID: undefined,
+            rules: {},
+        });
     });
 });
 

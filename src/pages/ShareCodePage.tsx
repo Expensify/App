@@ -108,6 +108,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const reportForTitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForTitle?.reportID]);
@@ -123,20 +124,33 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                 return getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
             }
             if (isMoneyRequestReport(report)) {
-                // generate subtitle from participants
+                // generate subtitle from participants; resolve the translation once, not per participant
+                const hiddenText = translate('common.hidden');
                 return getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, translate}))
+                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, hiddenTranslation: hiddenText}))
                     .join(' & ');
             }
 
             return (
                 getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived).workspaceName ??
-                getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived)
+                getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived)
             );
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID, translate, derivedParentReportName]);
+    }, [
+        report,
+        policy,
+        currentUserPersonalDetails.login,
+        isReport,
+        isReportArchived,
+        isParentReportArchived,
+        formatPhoneNumber,
+        conciergeReportID,
+        translate,
+        derivedParentReportName,
+        rules,
+    ]);
 
     const title = isReport ? getReportName(reportForTitle, derivedTitleReportName) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
@@ -212,12 +226,16 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     We shouldn't introduce platform specific code in our codebase.
                     This is a temporary solution while Web is not supported for the QR code download feature */}
                     {shouldAllowDownloadQRCode && (
-                        <MenuItem
-                            isAnonymousAction
-                            title={translate('common.download')}
-                            icon={icons.Download}
-                            onPress={() => qrCodeRef.current?.download?.()}
-                        />
+                        <MenuItem.Root onPress={() => qrCodeRef.current?.download?.()}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Download} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('common.download')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     )}
 
                     <MenuItemNavigation

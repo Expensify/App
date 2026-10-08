@@ -135,6 +135,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
@@ -150,7 +151,6 @@ describe('MoneyRequest', () => {
             allTransactionDrafts: {},
             selfDMReport,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionIDs: ['mock-txn-id'],
@@ -160,6 +160,7 @@ describe('MoneyRequest', () => {
             isTrackIntentUser: false,
             isDraftChatReport: false,
             formatPhoneNumber,
+            rules: undefined,
         };
 
         beforeEach(async () => {
@@ -760,6 +761,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
             policy: fakePolicy,
@@ -782,7 +784,6 @@ describe('MoneyRequest', () => {
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
             selfDMReport,
-            betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionID: 'mock-txn-id',
             optimisticChatReportID: 'mock-chat-id',
@@ -805,6 +806,7 @@ describe('MoneyRequest', () => {
                 personalDetails: {},
                 conciergeReportID: undefined,
                 privateIsArchived: false,
+                rules: undefined,
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate: translateLocal,
@@ -812,6 +814,7 @@ describe('MoneyRequest', () => {
                 dateFnsLocale: undefined,
             }),
             participantsPolicyTags: {},
+            rules: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1735,6 +1738,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1752,6 +1756,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1769,6 +1774,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1789,6 +1795,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: true,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1810,6 +1817,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1827,6 +1835,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: fakeReport,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1846,6 +1855,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1865,6 +1875,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,

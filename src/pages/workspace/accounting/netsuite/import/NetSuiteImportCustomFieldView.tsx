@@ -1,6 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -13,7 +13,8 @@ import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/act
 import {clearNetSuiteErrorField, clearNetSuitePendingField, removeNetSuiteCustomFieldByIndex} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNameFromNetSuiteCustomField, isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNameFromNetSuiteCustomField, isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -124,11 +125,10 @@ function NetSuiteImportCustomFieldView({
                     {fieldList.map((fieldName) => {
                         const isEditable = !config?.pendingFields?.[importCustomField] && isNetSuiteCustomFieldPropertyEditable(customField, fieldName);
                         return (
-                            <MenuItemWithTopDescription
+                            <MenuItemField
                                 key={fieldName}
-                                description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
-                                shouldShowRightIcon={isEditable}
-                                title={
+                                name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                                value={
                                     fieldName === 'mapping'
                                         ? translate(`workspace.netsuite.import.importTypes.${customField[fieldName as keyof CustomField].toUpperCase()}.label` as TranslationPaths)
                                         : customField[fieldName as keyof CustomField]

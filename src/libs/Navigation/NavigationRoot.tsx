@@ -32,7 +32,7 @@ import type {NavigationState} from '@react-navigation/native';
 import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -42,6 +42,7 @@ import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
 import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
+import isJoinWorkspaceTaskPath, {isOnboardingPath} from './helpers/isJoinWorkspaceTaskPath';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -78,7 +79,7 @@ function trackFullstoryPageView(state: NavigationState) {
 /**
  * Intercept navigation state changes and log it
  */
-function parseAndLogRoute(state: NavigationState) {
+function parseAndLogRoute(state: NavigationState, authenticated: boolean) {
     if (!state) {
         return;
     }
@@ -87,7 +88,8 @@ function parseAndLogRoute(state: NavigationState) {
 
     const focusedRoute = findFocusedRoute(state);
 
-    if (focusedRoute && !CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute?.name)) {
+    // Signed-out screens are never restored, and saving one would overwrite the page a forced re-auth returns to.
+    if (authenticated && focusedRoute && !CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute?.name)) {
         updateLastVisitedPath(currentPath);
         if (currentPath.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
             updateOnboardingLastVisitedPath(currentPath);
@@ -149,8 +151,13 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const previousAuthenticated = usePrevious(authenticated);
 
-    const initialState = useMemo(() => {
+    const [initialState] = useState(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        const shouldRedirectCompletedUser = !!path && isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path);
+        if (isOnboardingCompleted && shouldRedirectCompletedUser) {
+            return getAdaptedStateFromPath(ROUTES.HOME);
+        }
+
         if (path?.includes(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, lastVisitedPath));
@@ -185,10 +192,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         // Default behavior - let React Navigation handle the initial state
         return undefined;
-
-        // The initialState value is relevant only on the first render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
@@ -279,7 +283,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         Sentry.addBreadcrumb({message: `[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`, category: 'navigation'});
 
         updateCurrentReportID(state);
-        parseAndLogRoute(state);
+        parseAndLogRoute(state, authenticated);
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);

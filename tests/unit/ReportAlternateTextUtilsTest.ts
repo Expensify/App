@@ -23,11 +23,14 @@ import {
     getRequireCompanyCardsEnabledMessage,
     getRequiresCategoryMessage,
     getRequiresTagMessage,
+    getPolicyWorkArrangementMessage,
     getUnassignedCompanyCardMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
+    getApprovalLimitUpdateMessage,
+    getOverLimitForwardsToUpdateMessage,
 } from '@libs/ReportActionsUtils';
 import {
     getLastActorDisplayName,
@@ -138,6 +141,7 @@ function getAlternateText({report = makeReport(), lastAction, lastMessageTextFro
         dateFnsLocale: undefined,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
+        rules: undefined,
     });
 }
 
@@ -466,6 +470,39 @@ describe('ReportAlternateTextUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
+        it('formats an agent prompt update from its original message', () => {
+            const report: Report = createRandomReport(0, undefined);
+            const agentPromptUpdatedAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                originalMessage: {
+                    previousPrompt: 'Summarize expenses.',
+                    newPrompt: 'Summarize expenses and flag policy exceptions.',
+                    updatedByAccountID: CURRENT_USER_ACCOUNT_ID,
+                    updatedBy: CURRENT_USER_LOGIN,
+                },
+            };
+
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+                lastAction: agentPromptUpdatedAction,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                rules: undefined,
+            });
+
+            expect(lastMessage).toBe(
+                `${CURRENT_USER_LOGIN} updated this agent's instructions.\nPrevious instructions:\nSummarize expenses.\nNew instructions:\nSummarize expenses and flag policy exceptions.`,
+            );
+        });
+
         describe('getReportPreviewMessage', () => {
             it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
                 const report: Report = {
@@ -573,6 +610,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -641,6 +679,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -694,6 +733,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -747,6 +787,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -800,6 +841,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -852,6 +894,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -892,6 +935,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -958,6 +1002,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -1010,6 +1055,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -1048,6 +1094,7 @@ describe('ReportAlternateTextUtils', () => {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1080,6 +1127,7 @@ describe('ReportAlternateTextUtils', () => {
                     [submittedAction.reportActionID]: submittedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -1112,6 +1160,7 @@ describe('ReportAlternateTextUtils', () => {
                     [approvedAction.reportActionID]: approvedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -1146,6 +1195,7 @@ describe('ReportAlternateTextUtils', () => {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -1177,6 +1227,7 @@ describe('ReportAlternateTextUtils', () => {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -1206,6 +1257,7 @@ describe('ReportAlternateTextUtils', () => {
                     [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -1234,6 +1286,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1261,6 +1314,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1276,6 +1330,41 @@ describe('ReportAlternateTextUtils', () => {
             });
             expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
+        it('CONCIERGE_AUTO_SELECT_DISTANCE_RATE action', async () => {
+            // Given a report whose last action is an automatic distance rate change
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE,
+                message: [{type: 'COMMENT', text: 'rate updated by the backend'}],
+                originalMessage: {
+                    policyName: "Hal's Burgers",
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+
+            // When getting the last message text of the report
+            const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_LOGIN,
+            });
+
+            // Then it should be built from the translation rather than the text the backend provided
+            expect(lastMessage).toBe("distance rates updated for the new workspace - Hal's Burgers");
+        });
         it('ADD_AGENT_RULE action', async () => {
             const report: Report = createRandomReport(0, undefined);
             const action: ReportAction = {
@@ -1288,6 +1377,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1314,6 +1404,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1340,6 +1431,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1369,6 +1461,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1396,6 +1489,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1423,6 +1517,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1453,6 +1548,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1468,6 +1564,39 @@ describe('ReportAlternateTextUtils', () => {
             });
             expect(lastMessage).toBe(expectedMessage);
         });
+        it('UPDATE_POLICY_WORK_ARRANGEMENT action', async () => {
+            // Given a change log for an admin switching the workspace-wide work arrangement
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {newValue: false, oldValue: true},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+
+            // When the sidebar resolves the report's last message
+            const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_LOGIN,
+            });
+
+            // Then the preview reads the same as the in-chat change log rather than the raw stored text
+            expect(lastMessage).toBe(getPolicyWorkArrangementMessage(translateLocal, action));
+        });
         it('UPDATE_AUTO_HARVESTING action', async () => {
             const report: Report = createRandomReport(0, undefined);
             const action: ReportAction = {
@@ -1480,6 +1609,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1513,6 +1643,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1540,6 +1671,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1567,6 +1699,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1593,6 +1726,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1619,6 +1753,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1649,6 +1784,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1679,6 +1815,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1708,6 +1845,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1738,6 +1876,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1764,6 +1903,7 @@ describe('ReportAlternateTextUtils', () => {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1791,6 +1931,7 @@ describe('ReportAlternateTextUtils', () => {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1818,6 +1959,7 @@ describe('ReportAlternateTextUtils', () => {
                 [movedAction.reportActionID]: movedAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1849,6 +1991,7 @@ describe('ReportAlternateTextUtils', () => {
 
             // When getting the last message text for the report
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1882,6 +2025,7 @@ describe('ReportAlternateTextUtils', () => {
 
             const expectedVisibleText = '';
             const result = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1934,6 +2078,7 @@ describe('ReportAlternateTextUtils', () => {
 
             // When we get the last message text while the mentioned user is absent from personal details
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1959,6 +2104,7 @@ describe('ReportAlternateTextUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -1995,6 +2141,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -2044,6 +2191,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,
@@ -2094,6 +2242,7 @@ describe('ReportAlternateTextUtils', () => {
                     [submittedAction.reportActionID]: submittedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -2134,6 +2283,7 @@ describe('ReportAlternateTextUtils', () => {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -2170,6 +2320,7 @@ describe('ReportAlternateTextUtils', () => {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -2214,6 +2365,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -2257,6 +2409,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -2297,6 +2450,7 @@ describe('ReportAlternateTextUtils', () => {
                     path === 'workspace.common.unavailable' ? 'UnavailableMarker' : translateLocal(path, ...parameters);
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -2333,6 +2487,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -2368,6 +2523,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
                     conciergeReportID: undefined,
@@ -2382,6 +2538,76 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 expect(lastMessage).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+            });
+        });
+
+        describe('UPDATE_OVER_LIMIT_FORWARDS_TO action', () => {
+            it('should display the correct message for over limit forwards update', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const action: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                        overLimitForwardsTo: {email: 'approver@example.com', name: 'Approver', accountID: 200},
+                        limit: 10000,
+                        currency: 'USD',
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [action.reportActionID]: action,
+                });
+                const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    personalDetails: undefined,
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(lastMessage).toBe(getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString));
+            });
+        });
+
+        describe('UPDATE_APPROVAL_LIMIT action', () => {
+            it('should display the correct message for approval limit update', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const action: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                        limit: 20000,
+                        previousLimit: 10000,
+                        currency: 'USD',
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [action.reportActionID]: action,
+                });
+                const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    personalDetails: undefined,
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(lastMessage).toBe(getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString));
             });
         });
     });

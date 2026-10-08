@@ -23,6 +23,7 @@ import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
 
+import type {AccessibilityFocusTarget} from '@libs/Accessibility/moveAccessibilityFocus/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
@@ -31,6 +32,8 @@ import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/impo
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
 import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
+import type InitialListValueSelector from '@pages/workspace/reports/InitialListValueSelector';
+import type TypeSelector from '@pages/workspace/reports/TypeSelector';
 import type TaxValuePicker from '@pages/workspace/taxes/TaxValuePicker';
 
 import type {ButtonVariant} from '@styles/utils/types';
@@ -42,8 +45,8 @@ import type {BaseForm} from '@src/types/form/Form';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ComponentRef, ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, HostComponent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
+import type {GestureResponderEvent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 /**
@@ -76,6 +79,8 @@ type ValidInputs =
     | typeof NetSuiteCustomListPicker
     | typeof NetSuiteCustomFieldMappingPicker
     | typeof NetSuiteMenuWithTopDescriptionForm
+    | typeof InitialListValueSelector
+    | typeof TypeSelector
     | typeof CountryPicker
     | typeof StatePicker
     | typeof ConstantSelector
@@ -132,7 +137,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     uncontrolled?: boolean;
     inputMode?: InputModeOptions;
     keyboardType?: KeyboardTypeOptions;
-    getNativeRef?: () => ComponentRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
+    getNativeRef?: () => AccessibilityFocusTarget;
 };
 
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;

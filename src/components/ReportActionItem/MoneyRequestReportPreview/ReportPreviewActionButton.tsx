@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,15 +21,6 @@ function ReportPreviewActionButton() {
     const {reportPreviewAction, connectedIntegration} = useReportPreviewActionState();
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {openReportFromPreview} = useReportPreviewActions();
-
-    const viewButton = (
-        <Button
-            onPress={openReportFromPreview}
-            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
-        >
-            <Button.Text>{translate('common.view')}</Button.Text>
-        </Button>
-    );
 
     const renderPrimaryButton = () => {
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT) {
@@ -56,6 +47,17 @@ function ReportPreviewActionButton() {
     };
 
     const primaryButton = renderPrimaryButton();
+
+    const viewButton = (
+        <Button
+            // Only flex View when it shares the row with a primary action. A lone View sits in a column with no fixed height, where flex: 1 collapses it on iOS Safari and cuts off the button.
+            style={primaryButton ? styles.flex1 : undefined}
+            onPress={openReportFromPreview}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
+        >
+            <Button.Text>{translate('common.view')}</Button.Text>
+        </Button>
+    );
 
     if (!primaryButton) {
         return <View style={[buttonMaxWidth, styles.flex1, styles.reportPreviewActionRow]}>{viewButton}</View>;

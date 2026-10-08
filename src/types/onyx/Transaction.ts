@@ -210,11 +210,29 @@ type TransactionCustomUnit = {
     /** Reimbursable distance after commuter exclusion: max(0, quantity - commuterExclusion) */
     reimbursableDistance?: number;
 
-    /** The kind of commute the exclusion represents (R3 — currently unused) */
+    /** The kind of commute the exclusion represents (not populated yet) */
     commuterExclusionType?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_TYPE>;
 
-    /** How the exclusion was configured on the policy (R1: fixedDistance; R2: homeAndOffice) */
+    /** How the exclusion was configured on the policy */
     commuterExclusionMethod?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
+};
+
+/**
+ * How much of a trip a workspace that excludes commutes by home and office takes off it. Matching a trip against
+ * the member's home and the workspace address needs geocoding, so only the server can decide it.
+ */
+type CommuterExclusionPreview = {
+    /** The workspace the preview was computed for, so one left behind by another workspace is ignored */
+    policyID: string;
+
+    /** Whether the trip starts or ends at the member's home, and so has a commute to take off it */
+    hasExclusion: boolean;
+
+    /** Whether the trip runs straight between home and the office, which makes all of it the commute */
+    isWholeTripExcluded: boolean;
+
+    /** The member's usual one-way commute, to take off a trip that only starts or ends at home */
+    commuteDistanceMeters: number;
 };
 
 /** Types of geometry */
@@ -249,6 +267,9 @@ type Receipt = {
     /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
     localSource?: string | null;
 
+    /** When the receipt upload reached the write queue */
+    receiptEnqueuedAt?: number;
+
     /** Name of receipt file */
     filename?: string;
 
@@ -271,6 +292,12 @@ type Receipt = {
 
     /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
     receiptTraceId?: string;
+
+    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
+    hotelReservationStartDate?: string;
+
+    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
+    hotelReservationEndDate?: string;
 };
 
 /** Model of route */
@@ -297,7 +324,7 @@ type ReceiptError = {
     action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
 
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };
@@ -325,10 +352,10 @@ type Reservation = {
     company?: Company;
 
     /** In car and hotel reservations, this represents the cancellation policy */
-    cancellationPolicy?: string;
+    cancellationPolicy?: string | null;
 
     /** In car and hotel reservations, this represents the cancellation deadline */
-    cancellationDeadline?: string;
+    cancellationDeadline?: string | null;
 
     /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
@@ -530,6 +557,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
 
+        /** Draft-only marker set when waypoints come from a reused route, so the client must not refetch the route from the map SDK */
+        isReusedRoute?: boolean | null;
+
         /**
          * Tracks whether the user has explicitly set an amount in the new manual expense flow.
          * A fresh draft transaction starts at amount=0 which is indistinguishable from an intentional $0 entry,
@@ -540,6 +570,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the merchant has been explicitly set by the user */
         isMerchantSet?: boolean;
+
+        /** Whether the date has been explicitly picked by the user */
+        isCreatedSet?: boolean;
 
         /** The original merchant name */
         merchant: string;
@@ -579,10 +612,19 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
+        /**
+         * The report a failed reject was attempted from.
+         */
+        rejectFailedFromReportID?: string;
+
         /** The name of iouReport associated with the transaction */
         reportName?: string;
 
         routes?: Routes;
+
+        /** Server preview of whether this trip is a commute the workspace excludes, for the confirmation screen */
+        commuterExclusionPreview?: CommuterExclusionPreview | null;
+
         transactionID: string;
 
         /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
@@ -600,6 +642,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
+
+        /**
+         * Whether the workspace was set to auto-categorize new expenses when this expense was created.
+         * Turning the setting on later does not categorize an expense that already exists.
+         */
+        wasAutoCategorizeEnabledOnCreation?: boolean;
 
         /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
         isFromFloatingActionButton?: boolean;

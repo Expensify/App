@@ -7,10 +7,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticPersonalDetails from '@hooks/useOptimisticPersonalDetails';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
+import {hasPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 
 import {clearCreateChatError} from '@userActions/Report';
@@ -19,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, isOptimisticPersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 
@@ -42,18 +44,18 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
+    const optimisticPersonalDetails = useOptimisticPersonalDetails();
 
     const otherParticipantAccountID =
         Object.keys(report?.participants ?? {})
             .map(Number)
             .find((id) => id !== currentUserAccountID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [isParticipantOptimistic = true] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(otherParticipantAccountID)});
+    const [isParticipantOptimistic = true] = usePersonalDetail(otherParticipantAccountID, isPersonalDetailOptimistic);
 
     if (!isChatReport(report)) {
         return null;
@@ -72,22 +74,22 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                     conciergeReportID,
                     introSelected,
                     currentUserAccountID,
-                    betas,
                     isSelfTourViewed,
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
+                    optimisticPersonalDetails,
                 )
             }
         >
             <View style={[styles.pRelative]}>
-                {/* hasDeferredWriteForReport is non-reactive (reads a module-level Map, not tracked by React).
-                   This is intentional: we only suppress the animation on the initial render while a
-                   DISMISS_MODAL write targeting THIS report is pending. The animation re-appears on the
+                {/* hasPendingSubmitWriteForReport is non-reactive (reads module-level state, not tracked by
+                   React). This is intentional: we only suppress the animation on the initial render while a
+                   submit write targeting THIS report is pending. The animation re-appears on the
                    next organic re-render (e.g. Onyx updates after the API write resolves). The check is
                    scoped to `report.reportID` so an unrelated submit flow's dismiss doesn't suppress the
                    animation here. */}
-                {!hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID) && <AnimatedEmptyStateBackground />}
+                {!hasPendingSubmitWriteForReport(report?.reportID) && <AnimatedEmptyStateBackground />}
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}

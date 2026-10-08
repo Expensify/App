@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -21,17 +22,19 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useWaypointItems from '@hooks/useWaypointItems';
 
 import {init, stop} from '@libs/actions/MapboxToken';
+import {fetchReusableDistanceRoutes} from '@libs/actions/ReusableDistanceRoutes';
 import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
+import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -39,6 +42,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
@@ -77,13 +81,27 @@ function IOURequestStepDistanceMap({
     const isArchived = useReportIsArchived(report?.reportID);
     const selfDMReport = useSelfDMReport();
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({policyID: policy?.id, isDistanceRequest: true});
     const personalPolicy = usePersonalPolicy();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
+        iouType,
+        defaultExpensePolicy,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+        currentUserPersonalDetails.accountID,
+    );
+    const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
+        isDistanceRequest: true,
+    });
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const transactionWaypoints = transaction?.comment?.waypoints;
     const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
@@ -102,11 +120,11 @@ function IOURequestStepDistanceMap({
     const reportAttributesDerived = useReportAttributes();
 
     const transactionState: TransactionStateType = shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT;
-    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(transaction, waypoints, action, transactionState);
+    const {shouldFetchRoute, validatedWaypoints} = useFetchRoute(transaction, waypoints, action, transactionState, policy);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
     const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
     const isLoading = transaction?.isLoading ?? false;
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -173,6 +191,18 @@ function IOURequestStepDistanceMap({
         return stop;
     }, []);
 
+    // Load the reusable routes on mount so the Reuse route button visibility is known before the user opens the picker
+    useEffect(() => {
+        if (action !== CONST.IOU.ACTION.CREATE) {
+            return;
+        }
+        fetchReusableDistanceRoutes();
+    }, [action]);
+
+    const navigateToReuseRoutePage = () => {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID));
+    };
+
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
             return;
@@ -224,7 +254,6 @@ function IOURequestStepDistanceMap({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        betas,
         recentWaypoints,
         introSelected,
     });
@@ -278,7 +307,7 @@ function IOURequestStepDistanceMap({
 
             Promise.all([
                 removeWaypoint(transaction, emptyWaypointIndex.toString(), shouldUseTransactionDraft(action), undefined),
-                updateWaypointsUtil(transactionID, newWaypoints, transactionState),
+                updateWaypointsUtil(transactionID, newWaypoints, transactionState, waypoints),
             ]).then(() => {
                 setOptimisticWaypoints(null);
             });
@@ -355,6 +384,7 @@ function IOURequestStepDistanceMap({
                 errorState={errorState}
                 loadingState={loadingState}
                 transactionState={transactionState}
+                navigateToReuseRoutePage={action === CONST.IOU.ACTION.CREATE ? navigateToReuseRoutePage : undefined}
             />
         </StepScreenWrapper>
     );
