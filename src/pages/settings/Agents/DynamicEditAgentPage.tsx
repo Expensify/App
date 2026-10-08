@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearAgentAvatarUpdateError, clearAgentNameUpdateError, clearAgentPromptUpdateError, deleteAgent} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -59,9 +60,9 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
 
     const agentLogin = personalDetails?.login ?? '';
     const handleBackPress = () => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT.path));
-    const handleEditAvatarPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.getRoute(accountID));
-    const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(accountID));
-    const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID));
+    const handleEditAvatarPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.getRoute(accountID)));
+    const handleEditNamePress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute(accountID)));
+    const handleEditPromptPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute(accountID)));
     const handleDeletePress = async () => {
         const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(accountID, allPolicies);
         if (ruleBotEnforcedPolicy) {

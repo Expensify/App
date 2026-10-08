@@ -29,9 +29,9 @@ import Onyx from 'react-native-onyx';
 
 const AGENT_SETTINGS_SCREENS = new Set<string>([
     SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT,
-    SCREENS.SETTINGS.AGENTS.EDIT_NAME,
-    SCREENS.SETTINGS.AGENTS.EDIT_PROMPT,
-    SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,
+    SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME,
+    SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT,
+    SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR,
 ]);
 
 // Reports are only read inside the mapping callback, so connectWithoutView() is used. On app start the mapping can

@@ -12,6 +12,7 @@ import TextInput from '@components/TextInput';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +25,7 @@ import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -33,7 +35,7 @@ import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, setNewAgen
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
@@ -48,17 +50,17 @@ import {Platform, View} from 'react-native';
 import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
 import scrollToMultilineInput from './scrollToMultilineInput';
 
-type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
+type DynamicAddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD>;
 
-type AddAgentPageContentProps = {
+type DynamicAddAgentPageContentProps = {
     /** Route params (policyID) forwarded from the screen */
-    route: AddAgentPageProps['route'];
+    route: DynamicAddAgentPageProps['route'];
 
     /** Template picked in the "New agent" screen used to pre-fill the fields, or undefined for a blank agent */
     template: NewAgentTemplate | undefined;
 };
 
-function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
+function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageContentProps) {
     const StyleUtils = useStyleUtils();
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
@@ -198,7 +200,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
 
     return (
         <ScreenWrapper
-            testID={AddAgentPage.displayName}
+            testID={DynamicAddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldAutoGrowPromptInput}
@@ -206,7 +208,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('addAgentPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}
+                    onBackButtonPress={() => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_ADD.path))}
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
@@ -228,7 +230,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         <AvatarButtonWithIcon
                             text={translate('addAgentPage.editAvatar')}
                             avatar={agentAvatar}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR)}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()))}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
@@ -280,7 +282,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     );
 }
 
-function AddAgentPage({route}: AddAgentPageProps) {
+function DynamicAddAgentPage({route}: DynamicAddAgentPageProps) {
     const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
 
     if (isLoadingOnyxValue(templateMetadata)) {
@@ -288,13 +290,13 @@ function AddAgentPage({route}: AddAgentPageProps) {
     }
 
     return (
-        <AddAgentPageContent
+        <DynamicAddAgentPageContent
             route={route}
             template={template}
         />
     );
 }
 
-AddAgentPage.displayName = 'AddAgentPage';
+DynamicAddAgentPage.displayName = 'DynamicAddAgentPage';
 
-export default AddAgentPage;
+export default DynamicAddAgentPage;

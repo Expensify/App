@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -16,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -23,7 +25,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, setNewAgentTemplate, getAgentTemplates} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type SuggestedAgent from '@src/types/onyx/SuggestedAgent';
 
@@ -73,9 +75,9 @@ function AgentTemplateCard({template, avatarID, onAdd}: AgentTemplateCardProps) 
     );
 }
 
-type NewAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.NEW>;
+type DynamicNewAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW>;
 
-function NewAgentPage({route}: NewAgentPageProps) {
+function DynamicNewAgentPage({route}: DynamicNewAgentPageProps) {
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -98,14 +100,14 @@ function NewAgentPage({route}: NewAgentPageProps) {
     const handleBuildCustomAgent = () => {
         // Start from scratch — drop any previously stashed template and avatar draft.
         Promise.all([clearNewAgentTemplate(), clearNewAgentAvatarDraft()]).then(() => {
-            Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute(policyID ? {policyID} : undefined));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute(policyID ? {policyID} : undefined)));
         });
     };
 
     const handleAddTemplate = (template: SuggestedAgent, avatarID: AgentAvatarID) => {
         // Stash the template in Onyx (persists across refresh) and drop any stale avatar draft.
         Promise.all([setNewAgentTemplate({name: template.name, prompt: template.prompt, avatarID}), clearNewAgentAvatarDraft()]).then(() => {
-            Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute(policyID ? {policyID} : undefined));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute(policyID ? {policyID} : undefined)));
         });
     };
 
@@ -177,20 +179,20 @@ function NewAgentPage({route}: NewAgentPageProps) {
 
     return (
         <ScreenWrapper
-            testID={NewAgentPage.displayName}
+            testID={DynamicNewAgentPage.displayName}
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
                 title={translate('newAgentPage.title')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_NEW.path))}
             />
             {body}
         </ScreenWrapper>
     );
 }
 
-NewAgentPage.displayName = 'NewAgentPage';
+DynamicNewAgentPage.displayName = 'DynamicNewAgentPage';
 
-export default NewAgentPage;
+export default DynamicNewAgentPage;

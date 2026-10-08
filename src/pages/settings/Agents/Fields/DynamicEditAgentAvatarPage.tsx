@@ -39,7 +39,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
-type EditAgentAvatarPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_AVATAR>;
+type DynamicEditAgentAvatarPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR>;
 
 type ImageData = {
     uri: string;
@@ -232,7 +232,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 
 EditAgentAvatarContent.displayName = 'EditAgentAvatarContent';
 
-function EditAgentAvatarPage({route}: EditAgentAvatarPageProps) {
+function DynamicEditAgentAvatarPage({route}: DynamicEditAgentAvatarPageProps) {
     const {accountID} = route.params;
     return (
         <EditAgentAvatarContent
@@ -242,8 +242,8 @@ function EditAgentAvatarPage({route}: EditAgentAvatarPageProps) {
     );
 }
 
-EditAgentAvatarPage.displayName = 'EditAgentAvatarPage';
+DynamicEditAgentAvatarPage.displayName = 'DynamicEditAgentAvatarPage';
 
 export type {OnSaveParams};
 export {EditAgentAvatarContent};
-export default EditAgentAvatarPage;
+export default DynamicEditAgentAvatarPage;

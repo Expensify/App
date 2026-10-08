@@ -16,6 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateAgentPrompt} from '@libs/actions/Agent';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -25,6 +26,7 @@ import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInpu
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentPromptForm';
 
@@ -32,9 +34,9 @@ import {Str} from 'expensify-common';
 import React, {useRef} from 'react';
 import {Platform, View} from 'react-native';
 
-type EditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_PROMPT>;
+type DynamicEditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT>;
 
-function EditPromptPage({route}: EditPromptPageProps) {
+function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -61,7 +63,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>) => {
         updateAgentPrompt(accountID, values[INPUT_IDS.PROMPT].trim(), agentPrompt?.prompt ?? '');
-        Navigation.goBack();
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute(accountID)));
     };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, (e) => {
@@ -85,7 +87,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
 
     return (
         <ScreenWrapper
-            testID={EditPromptPage.displayName}
+            testID={DynamicEditPromptPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldAutoGrowPromptInput}
@@ -93,7 +95,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('editAgentPromptPage.title')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute(accountID)))}
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
@@ -147,6 +149,6 @@ function EditPromptPage({route}: EditPromptPageProps) {
     );
 }
 
-EditPromptPage.displayName = 'EditPromptPage';
+DynamicEditPromptPage.displayName = 'DynamicEditPromptPage';
 
-export default EditPromptPage;
+export default DynamicEditPromptPage;

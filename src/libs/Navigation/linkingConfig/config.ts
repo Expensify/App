@@ -373,15 +373,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.AGENTS.NEW]: {
-                            path: ROUTES.SETTINGS_AGENTS_NEW.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: {
+                            path: DYNAMIC_ROUTES.AGENT_NEW.path,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.AGENTS.ADD]: {
-                            path: ROUTES.SETTINGS_AGENTS_ADD.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD]: {
+                            path: DYNAMIC_ROUTES.AGENT_ADD.path,
                         },
-                        [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: {
-                            path: ROUTES.SETTINGS_AGENTS_ADD_AVATAR,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: {
+                            path: DYNAMIC_ROUTES.AGENT_ADD_AVATAR.path,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
@@ -390,20 +390,20 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 accountID: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT_NAME.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT_NAME.path,
                             parse: {
                                 accountID: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path,
                             parse: {
                                 accountID: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
-                            path: ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.route,
+                        [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
+                            path: DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path,
                             parse: {
                                 accountID: Number,
                             },

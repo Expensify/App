@@ -265,7 +265,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
                         index: 1,
                         routes: [
                             {key: 'agents-edit-route-key', name: SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT, params: {accountID: String(optimisticAccountID)}},
-                            {key: 'agents-edit-name-route-key', name: SCREENS.SETTINGS.AGENTS.EDIT_NAME, params: {accountID: String(optimisticAccountID)}},
+                            {key: 'agents-edit-name-route-key', name: SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME, params: {accountID: String(optimisticAccountID)}},
                         ],
                     },
                 },

@@ -686,8 +686,8 @@ const DYNAMIC_ROUTES = {
         path: 'avatar-crop',
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.AVATAR,
-            SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,
-            SCREENS.SETTINGS.AGENTS.ADD_AVATAR,
+            SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR,
+            SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR,
             SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM,
             SCREENS.WORKSPACE.PROFILE,
             SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT,
@@ -2091,9 +2091,53 @@ const DYNAMIC_ROUTES = {
         },
         queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath'],
     },
+    AGENT_NEW: {
+        path: 'new',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `new${query ? `?${query}` : ''}` as const;
+        },
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_ADD: {
+        path: 'new/custom',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `new/custom${query ? `?${query}` : ''}` as const;
+        },
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_ADD_AVATAR: {
+        path: 'new/custom/avatar',
+        getRoute: () => `new/custom/avatar` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
     AGENT_EDIT: {
         path: ':accountID/edit',
         getRoute: (accountID: number) => `${accountID}/edit` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_EDIT_NAME: {
+        path: ':accountID/edit/name',
+        getRoute: (accountID: number) => `${accountID}/edit/name` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_EDIT_PROMPT: {
+        path: ':accountID/edit/prompt',
+        getRoute: (accountID: number) => `${accountID}/edit/prompt` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_EDIT_AVATAR: {
+        path: ':accountID/edit/avatar',
+        getRoute: (accountID: number) => `${accountID}/edit/avatar` as const,
         entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
     },
 } as const satisfies DynamicRoutes;
@@ -2608,41 +2652,6 @@ const ROUTES = {
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',
-    SETTINGS_AGENTS_NEW: {
-        route: 'settings/agents/new',
-        getRoute: ({policyID}: {policyID?: string} = {}) => {
-            const params = new URLSearchParams();
-            if (policyID) {
-                params.set('policyID', policyID);
-            }
-            const query = params.toString();
-            return `settings/agents/new${query ? `?${query}` : ''}` as const;
-        },
-    },
-    SETTINGS_AGENTS_ADD: {
-        route: 'settings/agents/new/custom',
-        getRoute: ({policyID}: {policyID?: string} = {}) => {
-            const params = new URLSearchParams();
-            if (policyID) {
-                params.set('policyID', policyID);
-            }
-            const query = params.toString();
-            return `settings/agents/new/custom${query ? `?${query}` : ''}` as const;
-        },
-    },
-    SETTINGS_AGENTS_ADD_AVATAR: 'settings/agents/new/custom/avatar',
-    SETTINGS_AGENTS_EDIT_NAME: {
-        route: 'settings/agents/:accountID/edit/name',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/name` as const,
-    },
-    SETTINGS_AGENTS_EDIT_PROMPT: {
-        route: 'settings/agents/:accountID/edit/prompt',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/prompt` as const,
-    },
-    SETTINGS_AGENTS_EDIT_AVATAR: {
-        route: 'settings/agents/:accountID/edit/avatar',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/avatar` as const,
-    },
     AGENT_REPORT: {
         route: 'settings/agents/r/:reportID',
         getRoute: (reportID: string) => `settings/agents/r/${reportID}` as const,

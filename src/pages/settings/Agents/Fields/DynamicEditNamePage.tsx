@@ -24,9 +24,9 @@ import INPUT_IDS from '@src/types/form/EditAgentNameForm';
 
 import React from 'react';
 
-type EditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_NAME>;
+type DynamicEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME>;
 
-function EditNamePage({route}: EditNamePageProps) {
+function DynamicEditNamePage({route}: DynamicEditNamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const accountID = route.params.accountID;
@@ -36,19 +36,19 @@ function EditNamePage({route}: EditNamePageProps) {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM>) => {
         updateAgentName(accountID, values[INPUT_IDS.FIRST_NAME].trim(), personalDetails?.displayName ?? '');
-        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID)));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute(accountID)));
     };
 
     return (
         <ScreenWrapper
-            testID={EditNamePage.displayName}
+            testID={DynamicEditNamePage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('editAgentNamePage.title')}
-                onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID)))}
+                onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute(accountID)))}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM}
@@ -74,6 +74,6 @@ function EditNamePage({route}: EditNamePageProps) {
     );
 }
 
-EditNamePage.displayName = 'EditNamePage';
+DynamicEditNamePage.displayName = 'DynamicEditNamePage';
 
-export default EditNamePage;
+export default DynamicEditNamePage;
