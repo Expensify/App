@@ -4,6 +4,7 @@ import * as SentryReact from '@sentry/react';
 
 import classCallCheckNoiseFilterIntegration from './classCallCheckNoiseFilter';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
+import googleTranslateRecursionNoiseFilterIntegration from './googleTranslateRecursionNoiseFilter';
 
 /**
  * `typeof` guard rather than a bare read: the define is absent from bundles that do not go through
@@ -59,4 +60,5 @@ export {
     reportingObserverIntegration,
     thirdPartyErrorFilterIntegration,
     classCallCheckNoiseFilterIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
 };
