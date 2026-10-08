@@ -9,7 +9,6 @@ import MergeFinalApproverPageBase from '@pages/workspace/merge/MergeFinalApprove
 import type {MergeFinalApproverProviderConfig} from '@pages/workspace/merge/MergeFinalApproverPageBase';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -27,7 +26,6 @@ function GustoFinalApproverPage({
         testID: 'GustoFinalApproverPage',
         isConnected: isGustoConnected,
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-        backRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
         getCurrentFinalApprover: (policy) => policy?.connections?.gusto?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.gusto.title'),
         getHeaderTitle: () => translate('workspace.merge.finalApprover'),

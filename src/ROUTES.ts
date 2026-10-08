@@ -1312,13 +1312,33 @@ const DYNAMIC_ROUTES = {
         path: 'hr-sync-results',
         // The results screen opens automatically when an HR sync finishes, and a sync can complete
         // while the user is on the HR page, the Connections page or its HR panel, or the members list.
-        entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.CONNECTIONS_HR, SCREENS.WORKSPACE.MEMBERS],
+        // With the unified connections beta, the Connections page also renders on the old integration routes.
+        entryScreens: [
+            SCREENS.WORKSPACE.HR,
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.CONNECTIONS_HR,
+            SCREENS.WORKSPACE.MEMBERS,
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.RECRUITING,
+            SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
+        ],
     },
     WORKSPACE_RECRUITING_SYNC_RESULTS: {
         // The results screen opens automatically when a recruiting sync finishes, and a sync can complete
         // while the user is on the recruiting page, the Connections page or its recruiting panel, or the members list.
+        // With the unified connections beta, the Connections page also renders on the old integration routes.
         path: 'recruiting-sync-results',
-        entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.CONNECTIONS, SCREENS.WORKSPACE.CONNECTIONS_RECRUITING, SCREENS.WORKSPACE.MEMBERS],
+        entryScreens: [
+            SCREENS.WORKSPACE.RECRUITING,
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.CONNECTIONS_RECRUITING,
+            SCREENS.WORKSPACE.MEMBERS,
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.HR,
+            SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
+        ],
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',

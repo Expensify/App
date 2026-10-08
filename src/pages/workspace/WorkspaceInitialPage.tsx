@@ -21,6 +21,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -207,6 +208,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         ...item,
         action: singleExecution(waitForNavigate(() => Navigation.navigate(item.getRoute()))),
     }));
+    const triggerScrollEvent = useScrollEventEmitter();
     const {shouldShowProductTrainingTooltip: shouldShowConnectionsTooltip, hideProductTrainingTooltip: hideConnectionsTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED,
         isWorkspacesTabFocused && !hasPolicyCreationError && workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
@@ -294,7 +296,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     shouldDisplayAccountButton
                 />
 
-                <ScrollView contentContainerStyle={styles.flexColumn}>
+                <ScrollView
+                    contentContainerStyle={styles.flexColumn}
+                    onScroll={triggerScrollEvent}
+                    scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                >
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}

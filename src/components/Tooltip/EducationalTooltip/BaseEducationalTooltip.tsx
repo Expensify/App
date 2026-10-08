@@ -161,7 +161,12 @@ function BaseEducationalTooltip({
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
-            show.current?.();
+            // An anchor that starts off screen, like a menu item under the bottom tab bar in landscape, must stay hidden.
+            if (shouldHideOnScroll) {
+                renderTooltip();
+            } else {
+                show.current?.();
+            }
             // Mark the first display as done only once it has actually happened, so paths that re-measure
             // on a later layout (e.g. rotation) don't fire against a still-animating layout beforehand.
             hasDisplayedTooltipRef.current = true;
@@ -169,7 +174,7 @@ function BaseEducationalTooltip({
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldMeasure, shouldRender, shouldShowTooltip, shouldSuppressTooltip]);
+    }, [shouldMeasure, shouldRender, shouldShowTooltip, shouldSuppressTooltip, shouldHideOnScroll, renderTooltip]);
 
     useEffect(() => {
         if (!shouldRender || !shouldShowTooltip || shouldSuppressTooltip || !shouldMeasure) {

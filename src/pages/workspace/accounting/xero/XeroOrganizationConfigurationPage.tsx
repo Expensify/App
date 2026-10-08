@@ -22,7 +22,6 @@ import variables from '@styles/variables';
 import {clearXeroErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useMemo} from 'react';
@@ -95,7 +94,7 @@ function XeroOrganizationConfigurationPage({
             onSelectRow={saveSelection}
             initiallyFocusedOptionKey={currentXeroOrganization?.id}
             headerContent={listHeaderComponent}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack()}
             title="workspace.xero.organization"
             listEmptyContent={listEmptyContent}
             pendingAction={xeroConfig?.pendingFields?.tenantID}

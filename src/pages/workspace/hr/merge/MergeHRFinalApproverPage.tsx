@@ -10,7 +10,6 @@ import MergeFinalApproverPageBase from '@pages/workspace/merge/MergeFinalApprove
 import type {MergeFinalApproverProviderConfig} from '@pages/workspace/merge/MergeFinalApproverPageBase';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -28,7 +27,6 @@ function MergeHRFinalApproverPage({
         testID: 'MergeHRFinalApproverPage',
         isConnected: (policy) => isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-        backRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
         getCurrentFinalApprover: (policy) => policy?.connections?.merge_hris?.config?.finalApprover ?? null,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
         getHeaderTitle: (providerName) => translate('workspace.hr.providerFinalApprover', providerName),

@@ -23,7 +23,7 @@ import React from 'react';
 type MergeFinalApproverProviderConfig = {
     testID: string;
     featureName: PolicyFeatureName;
-    backRoute: Route;
+    backRoute?: Route;
     shouldBeBlocked?: boolean;
     isConnected: (policy: OnyxEntry<Policy>) => boolean;
     getCurrentFinalApprover: (policy: OnyxEntry<Policy>) => string | null;
