@@ -1,4 +1,4 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -7,6 +7,7 @@ import useLoadDepositAccountSetup from '@hooks/useLoadDepositAccountSetup';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {getBankAccountFields, hasLocalBankAccountFields} from '@libs/BankAccountFields';
@@ -40,6 +41,7 @@ const pages = [
 
 function CollectDepositAccount() {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const isLoadingCountries = useLoadDepositAccountSetup();
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM_DRAFT);
 
@@ -114,7 +116,10 @@ function CollectDepositAccount() {
                 onBackButtonPress={handleBackButtonPress}
             />
             {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
-                <FullScreenLoadingIndicator />
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={styles.flex1}
+                />
             ) : (
                 <CurrentPage
                     isEditing={isEditing}
