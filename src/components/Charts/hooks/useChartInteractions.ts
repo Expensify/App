@@ -3,7 +3,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import {useCallback} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 
 import useChartInteractionState from './useChartInteractionState';
 
@@ -297,6 +297,40 @@ function useChartInteractions({
         return updateInteractionFlags(hitTestArgs.targetIndex, hitTestArgs.cursorX, hitTestArgs.cursorY, hitTestArgs.chartBottom);
     };
 
+    /** Moves the hover cursor to the given chart position and updates the matched target and the tooltip visibility */
+    const updateHoverAt = (cursorX: number, cursorY: number) => {
+        'worklet';
+
+        chartInteractionState.cursor.x.set(cursorX);
+        chartInteractionState.cursor.y.set(cursorY);
+        const bottom = chartBottom?.get() ?? cursorY;
+        const isOverCurrentTarget = updateCurrentInteractionFlags();
+        // Only update the matched index when the cursor is not over the current target.
+        // This keeps the active index locked while hovering over a bar/point/label,
+        // preventing it from jumping to a different point during continuous movement.
+        if (!isOverCurrentTarget) {
+            const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
+            const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
+            applyTargetIndex(targetIndex);
+            updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+        }
+    };
+
+    /** The page scrolling moves the chart under a still cursor without any hover event, so the hover is checked again at the cursor's new chart position */
+    const handleChartMoved = (deltaX: number, deltaY: number) => {
+        'worklet';
+
+        if (!chartInteractionState.isActive.get()) {
+            return;
+        }
+        updateHoverAt(
+            chartInteractionState.cursor.x.get() - normalizeChartCoordinate(deltaX, coordinateScale),
+            chartInteractionState.cursor.y.get() - normalizeChartCoordinate(deltaY, coordinateScale),
+        );
+    };
+
+    const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
+
     /**
      * Hover gesture to be placed on the full-height outer container (chart + label area).
      * Clamps the y coordinate to chartBottom before passing to Victory so that hovering
@@ -324,21 +358,7 @@ function useChartInteractions({
             .onUpdate((e) => {
                 'worklet';
 
-                const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
-                const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
-                chartInteractionState.cursor.x.set(cursorX);
-                chartInteractionState.cursor.y.set(cursorY);
-                const bottom = chartBottom?.get() ?? cursorY;
-                const isOverCurrentTarget = updateCurrentInteractionFlags();
-                // Only update the matched index when the cursor is not over the current target.
-                // This keeps the active index locked while hovering over a bar/point/label,
-                // preventing it from jumping to a different point during continuous movement.
-                if (!isOverCurrentTarget) {
-                    const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
-                    const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
-                    applyTargetIndex(targetIndex);
-                    updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
-                }
+                updateHoverAt(normalizeChartCoordinate(e.x, coordinateScale), normalizeChartCoordinate(e.y, coordinateScale));
             })
             .onEnd(() => {
                 'worklet';
@@ -423,6 +443,8 @@ function useChartInteractions({
         initialTooltipPosition,
         /** Canvas position of the matched data point */
         activePointPosition,
+        /** Call with how far the chart moved in the window, e.g. on page scroll, to re-check the hover under a still cursor */
+        onChartMoved,
     };
 }
 

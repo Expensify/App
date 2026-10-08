@@ -4,7 +4,7 @@ import type {ChartDataPoint} from '@components/Charts/types';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
 import React, {useState} from 'react';
-import Animated, {useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated';
+import {useAnimatedReaction} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import ChartTooltip from './ChartTooltip';
@@ -26,28 +26,17 @@ type ChartTooltipLayerProps = {
 
     /** The initial tooltip position (x, y) in canvas coordinates */
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
+
+    /** Called with how far the chart moved in the window while the tooltip is shown */
+    onChartMoved?: (deltaX: number, deltaY: number) => void;
 };
 
 /**
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition, onChartMoved}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
-    const [measureKey, setMeasureKey] = useState(0);
-
-    const bumpMeasureKey = () => setMeasureKey((key) => key + 1);
-
-    // The tooltip stays mounted while hidden, so each time it shows again it re-measures the room above, which scrolling may have changed
-    useAnimatedReaction(
-        () => isTooltipActive.get(),
-        (isActive, wasActive) => {
-            if (!isActive || wasActive) {
-                return;
-            }
-            scheduleOnRN(bumpMeasureKey);
-        },
-    );
 
     useAnimatedReaction(
         () => matchedIndex.get(),
@@ -56,15 +45,6 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
         },
     );
 
-    const wrapperStyle = useAnimatedStyle(() => ({
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        opacity: isTooltipActive.get() ? 1 : 0,
-    }));
-
     const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
     if (!tooltipData) {
@@ -72,20 +52,16 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
     }
 
     return (
-        <Animated.View
-            style={wrapperStyle}
-            pointerEvents="none"
-        >
-            <ChartTooltip
-                label={tooltipData.label}
-                amount={tooltipData.amount}
-                percentage={tooltipData.percentage}
-                expenseCount={tooltipData.expenseCount}
-                chartWidth={chartWidth}
-                initialTooltipPosition={initialTooltipPosition}
-                measureKey={measureKey}
-            />
-        </Animated.View>
+        <ChartTooltip
+            label={tooltipData.label}
+            amount={tooltipData.amount}
+            percentage={tooltipData.percentage}
+            expenseCount={tooltipData.expenseCount}
+            chartWidth={chartWidth}
+            initialTooltipPosition={initialTooltipPosition}
+            isVisible={isTooltipActive}
+            onChartMoved={onChartMoved}
+        />
     );
 }
 

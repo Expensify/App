@@ -1,17 +1,24 @@
-import {useMeasureChartTooltipBoundary} from '@components/Charts/context/ChartTooltipBoundaryContext';
 import {TOOLTIP_BAR_GAP} from '@components/Charts/hooks';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 
 import variables from '@styles/variables';
 
 import type {ComponentRef} from 'react';
-import type {SharedValue} from 'react-native-reanimated';
+import type {LayoutChangeEvent} from 'react-native';
+import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
-import React, {useLayoutEffect, useRef} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
+import ChartTooltipAnchor from './ChartTooltipAnchor';
+import ChartTooltipPortal from './ChartTooltipPortal';
 
 type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */
@@ -31,8 +38,11 @@ type ChartTooltipProps = {
 
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
 
-    /** Changing this re-measures the room above the chart, e.g. each time the tooltip shows again after the page may have scrolled */
-    measureKey?: number;
+    /** Whether the tooltip should be shown, treated as always shown when omitted */
+    isVisible?: DerivedValue<boolean>;
+
+    /** Updates the hovered point after the chart is moved in the window (e.g. via scroll) by the given offset */
+    onChartMoved?: (deltaX: number, deltaY: number) => void;
 };
 
 function getAmountContent(amount: string, percentage?: string): string {
@@ -43,9 +53,9 @@ function getAmountContent(amount: string, percentage?: string): string {
     return `${amount} (${percentage})`;
 }
 
-function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, initialTooltipPosition, measureKey}: ChartTooltipProps) {
+function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, initialTooltipPosition, isVisible, onChartMoved}: ChartTooltipProps) {
     const styles = useThemeStyles();
-    const measureBoundary = useMeasureChartTooltipBoundary();
+    const {windowWidth, windowHeight} = useWindowDimensions();
 
     /** Shared value to store the measured width of the tooltip container */
     const tooltipMeasuredWidth = useSharedValue(0);
@@ -53,21 +63,19 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
     /** Shared value to store the measured height of the tooltip container */
     const tooltipMeasuredHeight = useSharedValue(0);
 
-    /** Shared value to store the visible room between the top of the chart and the top edge of the clipping boundary */
-    const spaceAbove = useSharedValue(0);
+    /** Window position of the chart's top-left corner, since the tooltip is drawn in a portal in window coordinates */
+    const origin = useSharedValue({x: 0, y: 0});
+
+    /** False until the origin is measured for the current showing, so the tooltip is never drawn at a stale position */
+    const isOriginMeasured = useSharedValue(false);
+
+    /** JS mirror of isVisible, which turns the anchor's position tracking on and off */
+    const [isShown, setIsShown] = useState(false);
 
     const amountContent = getAmountContent(amount, percentage);
     const content = [label, amountContent, expenseCount].join('|');
 
-    /**
-     * Synchronously reset the width and hide the tooltip whenever the content changes.
-     * This prevents the "old" dimensions from being used to calculate the position
-     * of "new" content, avoiding visual jumps or "ghosting" effects.
-     */
     const tooltipWrapperRef = useRef<ComponentRef<typeof View>>(null);
-
-    /** Zero-size view pinned to the chart's top-left corner, used to find where the chart sits in the window */
-    const originRef = useRef<ComponentRef<typeof View>>(null);
 
     useLayoutEffect(() => {
         tooltipWrapperRef.current?.measure((x: number, y: number, width: number, height: number) => {
@@ -77,16 +85,42 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
             tooltipMeasuredWidth.set(width);
             tooltipMeasuredHeight.set(height);
         });
-        originRef.current?.measureInWindow((originX: number, originY: number) => {
-            if (!measureBoundary) {
-                spaceAbove.set(Math.max(0, originY));
+    }, [content, chartWidth, tooltipMeasuredWidth, tooltipMeasuredHeight]);
+
+    const updateMeasuredSize = (event: LayoutChangeEvent) => {
+        const {width, height} = event.nativeEvent.layout;
+        if (width <= 0) {
+            return;
+        }
+        tooltipMeasuredWidth.set(width);
+        tooltipMeasuredHeight.set(height);
+    };
+
+    useAnimatedReaction(
+        () => isVisible?.get() ?? true,
+        (isCurrentlyShown, wasShown) => {
+            if (isCurrentlyShown === wasShown) {
                 return;
             }
-            measureBoundary((boundaryX: number, boundaryY: number) => {
-                spaceAbove.set(Math.max(0, originY - boundaryY));
-            });
-        });
-    }, [content, chartWidth, measureKey, measureBoundary, tooltipMeasuredWidth, tooltipMeasuredHeight, spaceAbove]);
+            if (!isCurrentlyShown) {
+                isOriginMeasured.set(false);
+            }
+            scheduleOnRN(setIsShown, isCurrentlyShown);
+        },
+    );
+
+    const handleOriginChange = (x: number, y: number) => {
+        const previousOrigin = origin.get();
+        const wasOriginMeasured = isOriginMeasured.get();
+        origin.set({x, y});
+        isOriginMeasured.set(true);
+
+        // The cursor stays still while the page scrolls, so the chart moving under it is reported for the hover to be checked again
+        if (!wasOriginMeasured || (previousOrigin.x === x && previousOrigin.y === y)) {
+            return;
+        }
+        onChartMoved?.(x - previousOrigin.x, y - previousOrigin.y);
+    };
 
     /** Calculate the center point, ensuring the box doesn't overflow the left or right edges */
     const clampedCenter = useDerivedValue(() => {
@@ -97,48 +131,46 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
         return Math.max(halfWidth, Math.min(chartWidth - halfWidth, x));
     }, [initialTooltipPosition, tooltipMeasuredWidth, chartWidth]);
 
-    /** True when the tooltip would stick out above the visible area, so it is drawn below the point instead */
-    const shouldShowBelow = useDerivedValue(
-        () => initialTooltipPosition.get().y - tooltipMeasuredHeight.get() < -spaceAbove.get(),
-        [initialTooltipPosition, tooltipMeasuredHeight, spaceAbove],
-    );
-
-    /**
-     * Animated style for the main tooltip container.
-     * Calculates the clamped center to keep the box within chart boundaries, and lifts the box above the point,
-     * or drops it below the point when there isn't enough room above, since clipping parents (e.g. a ScrollView) would cut it.
-     */
+    /** Animated window position of the tooltip, placed above the point and kept within the chart horizontally and within the window */
     const tooltipStyle = useAnimatedStyle(() => {
         const {y} = initialTooltipPosition.get();
-        const isBelow = shouldShowBelow.get();
+        const {x: originX, y: originY} = origin.get();
+        const width = tooltipMeasuredWidth.get();
+        const height = tooltipMeasuredHeight.get();
+
+        const left = originX + clampedCenter.get() - width / 2;
+        const topAbove = originY + y - height;
+        const shiftedLeft = left + PopoverWithMeasuredContentUtils.computeHorizontalShift(left, width, windowWidth);
+        const shiftedTop = topAbove + PopoverWithMeasuredContentUtils.computeVerticalShift(topAbove, height, windowHeight, 2 * TOOLTIP_BAR_GAP, true);
+        const isTooltipShown = (isVisible?.get() ?? true) && isOriginMeasured.get() && width > 0;
 
         return {
-            position: 'absolute',
-            left: 0,
-            top: isBelow ? y + 2 * TOOLTIP_BAR_GAP : y,
-            transform: [{translateX: clampedCenter.get() - tooltipMeasuredWidth.get() / 2}, {translateY: isBelow ? 0 : -tooltipMeasuredHeight.get()}],
-            opacity: tooltipMeasuredWidth.get() > 0 ? 1 : 0,
+            left: Math.max(0, Math.min(windowWidth - width, shiftedLeft)),
+            top: Math.max(0, Math.min(windowHeight - height, shiftedTop)),
+            opacity: isTooltipShown ? 1 : 0,
         };
-    }, [initialTooltipPosition]);
+    }, [initialTooltipPosition, windowWidth, windowHeight]);
 
     return (
         <>
-            <View
-                ref={originRef}
-                style={styles.chartTooltipOrigin}
-                pointerEvents="none"
+            <ChartTooltipAnchor
+                isShown={isShown}
+                onOriginChange={handleOriginChange}
             />
-            <Animated.View
-                style={tooltipStyle}
-                pointerEvents="none"
-                ref={tooltipWrapperRef}
-            >
-                <View style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}>
-                    <Text style={styles.chartTooltipTitle}>{label}</Text>
-                    {!!amountContent && <Text style={styles.chartTooltipText}>{amountContent}</Text>}
-                    {!!expenseCount && <Text style={styles.chartTooltipText}>{expenseCount}</Text>}
-                </View>
-            </Animated.View>
+            <ChartTooltipPortal>
+                <Animated.View
+                    style={[styles.chartTooltipLayer, tooltipStyle]}
+                    pointerEvents="none"
+                    ref={tooltipWrapperRef}
+                    onLayout={updateMeasuredSize}
+                >
+                    <View style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}>
+                        <Text style={styles.chartTooltipTitle}>{label}</Text>
+                        {!!amountContent && <Text style={styles.chartTooltipText}>{amountContent}</Text>}
+                        {!!expenseCount && <Text style={styles.chartTooltipText}>{expenseCount}</Text>}
+                    </View>
+                </Animated.View>
+            </ChartTooltipPortal>
         </>
     );
 }

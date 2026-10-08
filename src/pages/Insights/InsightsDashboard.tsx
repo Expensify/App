@@ -1,6 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
-import {ChartTooltipBoundaryContext} from '@components/Charts/context/ChartTooltipBoundaryContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
@@ -16,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -27,11 +27,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
-import type {ComponentRef} from 'react';
-import type {MeasureInWindowOnSuccessCallback} from 'react-native';
-
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent, useRef} from 'react';
+import React, {useEffect, useEffectEvent} from 'react';
 import {View} from 'react-native';
 
 import type {InsightsFilters} from './insightsFilters';
@@ -70,9 +67,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
-    const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
-
-    const measureTooltipBoundary = (callback: MeasureInWindowOnSuccessCallback) => scrollViewRef.current?.getNativeScrollRef()?.measureInWindow(callback);
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
@@ -130,43 +125,41 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 
     return (
         <ScrollView
-            ref={scrollViewRef}
             style={styles.insightsDashboardScrollView}
+            onScroll={triggerScrollEvent}
             contentContainerStyle={[styles.flexGrow1, pageGutter, styles.pb5]}
             addBottomSafeAreaPadding
         >
-            <ChartTooltipBoundaryContext.Provider value={measureTooltipBoundary}>
-                <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
-                    <InsightsChartWidget
-                        chart={headlineChart.chart}
-                        queryJSON={headlineChart.queryJSON}
-                        snapshot={headlineChart.snapshot}
-                        filters={filters}
-                        onRetry={onRetry}
-                        onGroupByChange={onGroupByChange}
-                    />
-                    <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
-                        {columns.map((columnCharts, columnIndex) => (
-                            <View
-                                // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                                key={columnIndex}
-                                style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
-                            >
-                                {columnCharts.map(({chart, queryJSON, snapshot}) => (
-                                    <InsightsChartWidget
-                                        key={chart.graphKey}
-                                        chart={chart}
-                                        queryJSON={queryJSON}
-                                        snapshot={snapshot}
-                                        filters={filters}
-                                        onRetry={onRetry}
-                                    />
-                                ))}
-                            </View>
-                        ))}
-                    </View>
+            <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
+                <InsightsChartWidget
+                    chart={headlineChart.chart}
+                    queryJSON={headlineChart.queryJSON}
+                    snapshot={headlineChart.snapshot}
+                    filters={filters}
+                    onRetry={onRetry}
+                    onGroupByChange={onGroupByChange}
+                />
+                <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
+                    {columns.map((columnCharts, columnIndex) => (
+                        <View
+                            // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                            key={columnIndex}
+                            style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
+                        >
+                            {columnCharts.map(({chart, queryJSON, snapshot}) => (
+                                <InsightsChartWidget
+                                    key={chart.graphKey}
+                                    chart={chart}
+                                    queryJSON={queryJSON}
+                                    snapshot={snapshot}
+                                    filters={filters}
+                                    onRetry={onRetry}
+                                />
+                            ))}
+                        </View>
+                    ))}
                 </View>
-            </ChartTooltipBoundaryContext.Provider>
+            </View>
         </ScrollView>
     );
 }

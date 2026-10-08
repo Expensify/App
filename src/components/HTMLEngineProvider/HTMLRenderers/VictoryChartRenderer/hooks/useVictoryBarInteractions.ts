@@ -218,7 +218,7 @@ function useVictoryBarInteractions() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: getSearchKeyForQuery(buildSearchQueryJSON(searchQuery))}));
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} = useChartInteractions({
         handlePress: navigateToBarSearch,
         checkIsOver: checkIsOverBar,
         checkIsClickable: checkIsClickableBar,
@@ -273,6 +273,7 @@ function useVictoryBarInteractions() {
         isTooltipActive,
         isCursorOverClickable,
         initialTooltipPosition,
+        onChartMoved,
     };
 }
 
