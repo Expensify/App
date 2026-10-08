@@ -10016,8 +10016,6 @@ ${reportName}`,
             category: 'カテゴリ',
             tag: 'タグ',
         },
-        switchToTableView: 'テーブル表示に切り替え',
-        switchToExpenseView: '経費表示に切り替え',
     },
     report: {
         newReport: {

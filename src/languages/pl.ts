@@ -10148,8 +10148,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             category: 'Kategoria',
             tag: 'Tag',
         },
-        switchToTableView: 'Przełącz na widok tabeli',
-        switchToExpenseView: 'Przełącz na widok wydatku',
     },
     report: {
         newReport: {
