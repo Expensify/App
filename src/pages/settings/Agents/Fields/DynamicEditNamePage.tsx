@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +37,7 @@ function DynamicEditNamePage({route}: DynamicEditNamePageProps) {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM>) => {
         updateAgentName(accountID, values[INPUT_IDS.FIRST_NAME].trim(), personalDetails?.displayName ?? '');
-        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute(accountID)));
+        Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_NAME.path));
     };
 
     return (
@@ -48,7 +49,7 @@ function DynamicEditNamePage({route}: DynamicEditNamePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('editAgentNamePage.title')}
-                onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute(accountID)))}
+                onBackButtonPress={() => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_NAME.path))}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM}

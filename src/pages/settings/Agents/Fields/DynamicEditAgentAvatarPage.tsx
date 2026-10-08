@@ -11,6 +11,7 @@ import Text from '@components/Text';
 
 import useAvatarCrop from '@hooks/useAvatarCrop';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -237,7 +238,7 @@ function DynamicEditAgentAvatarPage({route}: DynamicEditAgentAvatarPageProps) {
     return (
         <EditAgentAvatarContent
             accountID={accountID}
-            fallbackRoute={createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID))}
+            fallbackRoute={useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path)}
         />
     );
 }

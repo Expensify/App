@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -63,7 +64,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>) => {
         updateAgentPrompt(accountID, values[INPUT_IDS.PROMPT].trim(), agentPrompt?.prompt ?? '');
-        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute(accountID)));
+        Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path));
     };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, (e) => {
@@ -95,7 +96,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('editAgentPromptPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute(accountID)))}
+                    onBackButtonPress={() => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path))}
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider

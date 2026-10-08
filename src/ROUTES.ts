@@ -2113,12 +2113,12 @@ const DYNAMIC_ROUTES = {
             const query = params.toString();
             return `new-agent/custom${query ? `?${query}` : ''}` as const;
         },
-        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW],
     },
     AGENT_ADD_AVATAR: {
         path: 'new-agent/custom/avatar',
         getRoute: () => `new-agent/custom/avatar` as const,
-        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD],
     },
     AGENT_EDIT: {
         path: ':accountID/edit',
@@ -2128,17 +2128,17 @@ const DYNAMIC_ROUTES = {
     AGENT_EDIT_NAME: {
         path: ':accountID/edit/name',
         getRoute: (accountID: number) => `${accountID}/edit/name` as const,
-        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
     },
     AGENT_EDIT_PROMPT: {
         path: ':accountID/edit/prompt',
         getRoute: (accountID: number) => `${accountID}/edit/prompt` as const,
-        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
     },
     AGENT_EDIT_AVATAR: {
         path: ':accountID/edit/avatar',
         getRoute: (accountID: number) => `${accountID}/edit/avatar` as const,
-        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
     },
 } as const satisfies DynamicRoutes;
 
