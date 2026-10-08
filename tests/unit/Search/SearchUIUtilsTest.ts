@@ -2782,6 +2782,53 @@ describe('SearchUIUtils', () => {
             expect(allReportActionsLength).toBe(6);
         });
 
+        it('should hide a MARKED_REIMBURSED action that has a sibling PAY action in the Search snapshot when the report is not loaded into Onyx', () => {
+            // Given a CHAT search result whose report only exists in the snapshot, with a stale MARKED_REIMBURSED action and its sibling PAY action
+            const snapshotReportID = 'snapshotOnlyReportID';
+            const markedReimbursedAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: 'markedReimbursedActionID',
+                reportID: snapshotReportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            } as OnyxTypes.ReportAction;
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: 'payActionID',
+                reportID: snapshotReportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: snapshotReportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as OnyxTypes.ReportAction;
+            const data = {
+                personalDetailsList: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${snapshotReportID}`]: {
+                    [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                    [payAction.reportActionID]: payAction,
+                },
+            } as unknown as OnyxTypes.SearchResults['data'];
+
+            // When the CHAT sections are built from the snapshot
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+            });
+
+            // Then only the PAY action is listed, because the snapshot is used to find the sibling of the MARKED_REIMBURSED action
+            expect((sections as Array<{reportActionID: string}>).map((item) => item.reportActionID)).toStrictEqual([payAction.reportActionID]);
+        });
+
         it('should return getTransactionsSections result when groupBy is undefined', () => {
             expect(
                 SearchUIUtils.getSections({

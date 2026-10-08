@@ -2831,6 +2831,139 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
+        it('should return false for MARKED_REIMBURSED with a sibling IOU PAY action in the passed collection when the report timeline is not loaded into Onyx', () => {
+            // Given a MARKED_REIMBURSED action with stale write-time flags on a report whose actions are not in the Onyx collection
+            const reportID = 'reportOnlyInSearchSnapshot';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            // And a caller-provided collection (e.g. a Search snapshot) that contains a sibling IOU PAY action
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const snapshotReportActions = {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should NOT be visible, because the sibling is found in the passed collection
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for MARKED_REIMBURSED when Onyx only has the action and the passed collection has the sibling IOU PAY action', async () => {
+            // Given a partially loaded Onyx history that contains the MARKED_REIMBURSED action but no PAY action
+            const reportID = 'reportPartiallyLoadedInOnyx';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+            // And a caller-provided collection (e.g. a Search snapshot) that contains the sibling IOU PAY action
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const snapshotReportActions = {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should NOT be visible, because Onyx can't answer and the caller's collection holds the sibling
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for MARKED_REIMBURSED when the loaded Onyx history separates the PAY action with a cancellation, even if the passed collection has the PAY action', async () => {
+            // Given a loaded Onyx history where a PAY was canceled before the manual MARKED_REIMBURSED action
+            const reportID = 'reportWithCanceledPayInOnyx';
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const canceledAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:10',
+                message: [{type: 'TEXT', style: 'normal', text: 'canceled payment'}],
+                originalMessage: {},
+            } as ReportAction;
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '3',
+                reportID,
+                created: '2025-01-01 00:00:20',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [payAction.reportActionID]: payAction,
+                [canceledAction.reportActionID]: canceledAction,
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+            // And a filtered caller-provided collection that omits the cancellation
+            const snapshotReportActions = {
+                [payAction.reportActionID]: payAction,
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should stay visible, because the complete Onyx history shows it belongs to a new payment attempt
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for MARKED_REIMBURSED when the passed collection has no PAY action', () => {
+            // Given a MARKED_REIMBURSED action on a report whose actions are not in the Onyx collection
+            const reportID = 'reportOnlyInSearchSnapshotWithoutPay';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+
+            // When visibility is checked with a caller-provided collection that only contains the MARKED_REIMBURSED action
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+
+            // Then the MARKED_REIMBURSED action should stay visible, because there is no PAY action to replace it
+            expect(actual).toBe(true);
+        });
+
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
             const reportAction = buildTakeControlActionFixture(
                 {
