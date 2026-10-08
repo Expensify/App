@@ -2,7 +2,7 @@
 title: Statement Matching and Reconciliation
 description: Learn how to reconcile company card transactions in Expensify against your credit card statement.
 keywords: [New Expensify, company cards, statement matching, company card reconciliation, reconciliation, card statement, card feed, statement close date, statement mismatch]
-internalScope: Audience is Workspace Admins reconciling third-party company card spend. Covers statement-based reconciliation under Reconciliation > Card statements. Does not cover Expensify Card withdrawal-based reconciliation or reimbursement reconciliation.
+internalScope: Audience is Workspace Admins reconciling third-party company card spend. Covers statement-based reconciliation under Accounting > Card statements. Does not cover Expensify Card withdrawal-based reconciliation or reimbursement reconciliation.
 ---
 
 # Statement Matching and Reconciliation
@@ -20,7 +20,7 @@ Workspace Admins whose workspace has at least one company card feed connected ca
 ## How to Reconcile Company Card Transactions Against a Statement
 
 1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Spend**.
-2. In the **Reconciliation** section, select **Card statements**.
+2. In the **Accounting** section, select **Card statements**.
 3. Choose the **Feed** filter to select the card feed or account you want to reconcile.
 4. Choose the **Posted** filter to select the date range that matches your statement period. 
 5. Review the **Total spend** shown at the bottom of the results and compare it to your card statement total.
@@ -52,7 +52,9 @@ If your workspace uses multiple currencies, apply the **Group currency** filter 
 
 Company card reconciliation is statement-based and matches Expensify transaction totals to an external card statement. Expensify Card reconciliation is withdrawal-based and matches bank withdrawals to grouped expenses within Expensify. See [View and Reconcile Expensify Card Expenses](/articles/new-expensify/expensify-card/View-and-Reconcile-Expensify-Card-Expenses) for the Expensify Card workflow.
 
-## Why Don't I See Card Statements Under Reconciliation?
+**Note:** To download an Expensify Card statement PDF, use **Bank reconciliation**, not **Card statements**.
+
+## Why Don't I See Card Statements Under Accounting?
 
 The Card statements option appears only when your workspace has at least one company card feed connected. If you don’t see it, confirm that a company card feed is set up and active.
 
