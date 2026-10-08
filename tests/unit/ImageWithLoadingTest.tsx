@@ -176,7 +176,7 @@ describe('ImageWithLoading', () => {
             act(() => {
                 jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT - 1000);
             });
-            fireEvent(screen.getByTestId('full-image'), 'progress', {nativeEvent: {loaded: (i + 1) * 1000, total: 10000}});
+            fireEvent(screen.getByTestId('full-image'), 'progress', {loaded: (i + 1) * 1000, total: 10000});
         }
 
         // Then the spinner keeps spinning and nothing is reported

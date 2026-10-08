@@ -10,7 +10,7 @@ function renderStallWatch(onStalled = jest.fn()) {
     const {result, rerender} = renderHook(({isActive}: {isActive: boolean}) => useImageLoadStall(isActive, onStalled), {
         initialProps: {isActive: true},
     });
-    return {onStalled, reportActivity: result.current, rerender};
+    return {onStalled, reportActivity: result.current, result, rerender};
 }
 
 describe('useImageLoadStall', () => {
@@ -79,6 +79,19 @@ describe('useImageLoadStall', () => {
 
         // Then the stall is reported
         expect(onStalled).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps one reporter identity across renders', () => {
+        // Given an active load, because the reporter is passed straight to the Image onProgress prop
+        const {result, rerender} = renderStallWatch();
+        const firstReportActivity = result.current;
+
+        // When the caller re-renders
+        rerender({isActive: true});
+        rerender({isActive: true});
+
+        // Then the reporter identity does not change, so the image does not resubscribe on every render
+        expect(result.current).toBe(firstReportActivity);
     });
 
     it('does not watch an inactive load', () => {

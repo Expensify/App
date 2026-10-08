@@ -58,7 +58,7 @@ type ImageOwnProps = BaseImageProps & {
     onError?: () => void;
 
     /** Download progress. Not emitted on web, nor natively when the response has no Content-Length. */
-    onProgress?: (event: {nativeEvent: {loaded: number; total: number}}) => void;
+    onProgress?: (event: {loaded: number; total: number}) => void;
 
     objectPosition?: ImageObjectPosition;
 
