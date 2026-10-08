@@ -18,6 +18,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getPerDiemCustomUnit,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
+    isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isInvoiceReport, isIOUReport, isThread} from '@libs/ReportUtils';
@@ -1584,6 +1585,7 @@ function getEligibleTransactionsToAdd({
     const isIOU = isIOUReport(report);
     const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
     const workspacePerDiemUnitID = getPerDiemCustomUnit(policy)?.customUnitID;
+    const canSubmitTimeExpense = isTimeTrackingEnabled(policy);
 
     return Object.values(transactions).filter((transaction): transaction is Transaction => {
         if (!transaction) {
@@ -1632,6 +1634,11 @@ function getEligibleTransactionsToAdd({
             const perDiemCustomUnitID = transaction.comment?.customUnit?.customUnitID;
 
             return canSubmitPerDiemExpense && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnitID);
+        }
+
+        // Only show time expenses if the target workspace has time tracking enabled
+        if (isTimeRequest(transaction)) {
+            return canSubmitTimeExpense;
         }
 
         return true;
