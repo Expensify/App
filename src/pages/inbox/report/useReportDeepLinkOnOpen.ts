@@ -41,6 +41,7 @@ function useReportDeepLinkOnOpen({reportID, isReportLoaded, shouldFetchReport}: 
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });
+        // OpenReport should only fire when the fetch decision or report identity changes; the other args are read at call time.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldFetchReport, isReportLoaded, reportID, currentUserAccountID]);
 }
