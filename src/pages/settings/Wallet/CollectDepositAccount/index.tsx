@@ -21,6 +21,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {createIsInternationalCountrySelector} from '@selectors/Policy';
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 import type CustomSubPageProps from './types';
 
@@ -116,10 +117,9 @@ function CollectDepositAccount() {
                 onBackButtonPress={handleBackButtonPress}
             />
             {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={styles.flex1}
-                />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <CurrentPage
                     isEditing={isEditing}
