@@ -1,3 +1,4 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
@@ -7,6 +8,8 @@ import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
 import type {TableColumn, TableData} from './types';
@@ -72,10 +75,26 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
 }
 
 /**
+ * Whether the header draws `editableCellHeader`, which reserves the same padding and border as the cell.
+ * That chrome is inside the track, so a header wider than the cell text clips unless the measurement includes it.
+ */
+function headerReservesEditableCellChrome(containerStyles: StyleProp<ViewStyle> | undefined, editableCellHeaderStyle: ViewStyle): boolean {
+    if (!containerStyles) {
+        return false;
+    }
+
+    if (Array.isArray(containerStyles)) {
+        return containerStyles.includes(editableCellHeaderStyle);
+    }
+
+    return containerStyles === editableCellHeaderStyle;
+}
+
+/**
  * Measures how wide a column's header label renders, or `null` when the platform can't measure text. The label is
  * measured in the bold font the header uses while the column is sorted, so sorting a column never truncates its label.
  */
-function measureHeaderLabelWidth(label: string, sortIconWidth: number): number | null {
+function measureHeaderLabelWidth(label: string, sortIconWidth: number, chromeWidth = 0): number | null {
     const width = measureTextWidth(label, {fontSize: fontScale.micro, fontWeight: '700'});
 
     if (width === null) {
@@ -83,7 +102,7 @@ function measureHeaderLabelWidth(label: string, sortIconWidth: number): number |
     }
 
     // Rounded up for the same reason as the cell content above.
-    return width === 0 ? 0 : Math.ceil(width + sortIconWidth);
+    return width === 0 ? 0 : Math.ceil(width + sortIconWidth + chromeWidth);
 }
 
 /**
@@ -105,6 +124,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     hasSelectionColumn,
 }: UseDynamicColumnWidthsParams<DataType, ColumnKey>): {gridTemplateColumns: string[] | undefined; scrollWidth: number | undefined} {
     const styles = useThemeStyles();
+    const {values} = useLayoutSpacing();
 
     const noDynamicWidths = {gridTemplateColumns: undefined, scrollWidth: undefined};
 
@@ -137,7 +157,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     const selectionColumnWidth = hasSelectionColumn ? variables.tableCheckboxColumnWidth : 0;
     const totalColumnCount = columns.length + (hasSelectionColumn ? 1 : 0);
     const totalGapWidth = Math.max(totalColumnCount - 1, 0) * styles.gap3.gap;
-    const rowChromeWidth = (styles.mh5.marginHorizontal + styles.ph3.paddingHorizontal) * 2;
+    const rowChromeWidth = (values.pageGutter + styles.ph3.paddingHorizontal) * 2;
     // Floored because the tracks are whole px. A fractional budget leaves a fraction over once they are rounded, and
     // handing it to a column would put a sub-pixel track in the row. Rounding down keeps the columns inside the table.
     const availableWidth = Math.floor(tableWidth - rowChromeWidth - totalGapWidth - fixedColumnsWidth - selectionColumnWidth);
@@ -149,7 +169,8 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
     for (const column of dynamicColumns) {
         const contentWidth = measureColumnContentWidth(column, data);
-        const headerLabelWidth = measureHeaderLabelWidth(column.label, variables.iconSizeExtraSmall + styles.ml1.marginLeft);
+        const headerChromeWidth = headerReservesEditableCellChrome(column.styling?.containerStyles, styles.editableCellHeader) ? variables.editableCellChromeWidth : 0;
+        const headerLabelWidth = measureHeaderLabelWidth(column.label, variables.iconSizeExtraSmall + styles.ml1.marginLeft, headerChromeWidth);
 
         // Text measurement is unavailable (native), so the table keeps its static, content-independent tracks.
         if (contentWidth === null || headerLabelWidth === null) {

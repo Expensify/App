@@ -68,6 +68,7 @@ import {
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
+    getPolicyWorkArrangementMessage,
     getUpdatedCommuterExclusionsMessage,
     getUpdatedMemberWorkArrangementMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -1632,6 +1633,23 @@ describe('ReportActionsUtils', () => {
 
             expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
         });
+
+        it('formats a closed support ticket as a muted system message', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                reportActionID: 'support-ticket-closed-action',
+                created: '2026-10-05 12:00:00.000',
+                message: [{text: 'Daniel resolved this support ticket.', type: CONST.REPORT.MESSAGE.TYPE.TEXT}],
+                originalMessage: {
+                    policyName: '',
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action, true)).toEqual([
+                {text: 'Daniel resolved this support ticket.', html: '<muted-text>Daniel resolved this support ticket.</muted-text>', type: 'COMMENT'},
+            ]);
+        });
     });
 
     describe('getConciergeAutoSelectDistanceRateMessage', () => {
@@ -2528,6 +2546,39 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isPushScopedToOthers', () => {
+        const cardholderAccountID = 1;
+        const auditorAccountID = 2;
+        const buildDecline = (originalMessage: Record<string, unknown>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE,
+                reportActionID: '1',
+                actorAccountID: 3,
+                created: '2026-10-06',
+                message: [],
+                originalMessage,
+            }) as ReportAction;
+
+        it('returns true for an account outside actionableForAccountIDs when the push is scoped', () => {
+            const decline = buildDecline({actionableForAccountIDs: [cardholderAccountID], shouldScopePushToActionableAccounts: true});
+            expect(ReportActionsUtils.isPushScopedToOthers(decline, auditorAccountID)).toBe(true);
+        });
+
+        it('returns false for an account in actionableForAccountIDs', () => {
+            const decline = buildDecline({actionableForAccountIDs: [cardholderAccountID], shouldScopePushToActionableAccounts: true});
+            expect(ReportActionsUtils.isPushScopedToOthers(decline, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the action does not ask to scope its push', () => {
+            const decline = buildDecline({actionableForAccountIDs: [cardholderAccountID]});
+            expect(ReportActionsUtils.isPushScopedToOthers(decline, auditorAccountID)).toBe(false);
+        });
+
+        it('returns false for an empty reportAction', () => {
+            expect(ReportActionsUtils.isPushScopedToOthers(undefined, auditorAccountID)).toBe(false);
+        });
+    });
+
     describe('doesReportHaveVisibleActions', () => {
         const reportID = 'report_1';
         const visibleComment: ReportAction = {
@@ -2581,6 +2632,21 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('shouldReportActionBeVisible', () => {
+        it('keeps a closed support ticket action visible', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    policyName: '',
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
+            expect(ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true)).toBe(false);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, undefined, true)).toBe(true);
+        });
+
         it('should return false for moved transaction if the report destination is unavailable', () => {
             // Given a moved transaction action but the report destination is not available
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
@@ -4552,6 +4618,73 @@ describe('ReportActionsUtils', () => {
             [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, undefined, 'changed exclude commutes to a fixed distance per claim (previously do not exclude commutes)'],
         ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
             expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
+        });
+    });
+
+    describe('getPolicyWorkArrangementMessage', () => {
+        const buildWorkArrangementAction = (originalMessage: Record<string, unknown>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [{type: 'COMMENT', html: 'raw text', text: 'raw text'}],
+            }) as ReportAction;
+
+        it.each([
+            [true, 'set the default work arrangement to Office-based'],
+            [false, 'set the default work arrangement to Remote or mobile'],
+        ])('reports only the new arrangement the first time it is set to %s', (newValue, expected) => {
+            // Given a change log for the first time an admin picks a work arrangement, which has no previous value
+            const action = buildWorkArrangementAction({newValue});
+
+            // When the message is built
+            const result = getPolicyWorkArrangementMessage(translateLocal, action);
+
+            // Then it names the new arrangement without claiming the workspace had a previous one
+            expect(result).toBe(expected);
+        });
+
+        it.each([
+            [true, false, 'changed the default work arrangement to Office-based (previously Remote or mobile)'],
+            [false, true, 'changed the default work arrangement to Remote or mobile (previously Office-based)'],
+        ])('names both arrangements when changing to %s from %s', (newValue, oldValue, expected) => {
+            // Given a change log for an admin switching an arrangement the workspace already had
+            const action = buildWorkArrangementAction({newValue, oldValue});
+
+            // When the message is built
+            const result = getPolicyWorkArrangementMessage(translateLocal, action);
+
+            // Then it names what the arrangement became and what it was
+            expect(result).toBe(expected);
+        });
+
+        it('falls back to the stored text when the action is of another type', () => {
+            // Given an action the resolver does not own, which can happen when a change log type is mapped wrongly
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {newValue: true},
+                message: [{type: 'COMMENT', html: 'raw text', text: 'raw text'}],
+            } as ReportAction;
+
+            // When the message is built
+            const result = getPolicyWorkArrangementMessage(translateLocal, action);
+
+            // Then the text the server sent is shown rather than an arrangement invented from the wrong payload
+            expect(result).toBe('raw text');
+        });
+
+        it('falls back to the stored text when the arrangement is missing from the payload', () => {
+            // Given a change log whose newValue never arrived, so there is no arrangement to name
+            const action = buildWorkArrangementAction({});
+
+            // When the message is built
+            const result = getPolicyWorkArrangementMessage(translateLocal, action);
+
+            // Then the text the server sent is shown instead of a half-built sentence
+            expect(result).toBe('raw text');
         });
     });
 

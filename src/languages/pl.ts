@@ -229,6 +229,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Wybierz dzisiejszą lub przyszłą datę',
             invalidTimeShouldBeFuture: 'Wybierz godzinę co najmniej o minutę późniejszą',
             invalidCharacter: 'Nieprawidłowy znak',
+            invalidField: (fieldName) => `Nieprawidłowe pole: ${fieldName}`,
             enterMerchant: 'Wprowadź nazwę sprzedawcy',
             enterAmount: 'Wprowadź kwotę',
             missingMerchantName: 'Brak nazwy sprzedawcy',
@@ -940,6 +941,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 : `Ten czat nie jest już aktywny, ponieważ ${displayName} nie jest już członkiem przestrzeni roboczej ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Ten czat nie jest już aktywny, ponieważ ${policyName} nie jest już aktywnym obszarem roboczym.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) =>
+            `Ten czat nie jest już aktywny, ponieważ ${policyName} jest zarchiwizowaną przestrzenią roboczą.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Ten czat nie jest już aktywny, ponieważ ${policyName} nie jest już aktywnym obszarem roboczym.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Ta rezerwacja jest zarchiwizowana.',
@@ -1216,6 +1219,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ups! Wymagane pole („${fieldName}”) nie zostało zmapowane. Sprawdź i spróbuj ponownie.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
+        invalidApprovalLimit: 'Limity zatwierdzania muszą być prawidłowymi kwotami w walucie przestrzeni roboczej.',
         fieldValueTooLong: (fieldName: string, limit: number) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej wartości dłuższych niż ${limit} znaków. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony powodzeniem',
         importCategoriesNoneAddedOrUpdated: 'Nie dodano ani nie zaktualizowano żadnych kategorii.',
@@ -2075,6 +2079,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Nie są wymagane dalsze działania!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Zmień przestrzeń roboczą raportu, aby wykonać dalsze działania.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2441,9 +2451,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Ustawienia konta',
         account: 'Konto',
         general: 'Ogólne',
+        talkToAHuman: 'Porozmawiaj z człowiekiem',
         helpPage: {
             title: 'Pomoc i wsparcie',
             description: 'Jesteśmy tutaj, aby pomagać przez całą dobę.',
+            talkToAHumanDescription: 'Uzyskaj pomoc od prawdziwej osoby',
             helpSite: 'Centrum pomocy',
             helpSiteDescription: 'Artykuły, poradniki i więcej',
             conciergeChat: 'Concierge',
@@ -2742,6 +2754,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Ustawiono domyślną metodę płatności!',
         deleteAccount: 'Usuń konto',
         deleteConfirmation: 'Czy na pewno chcesz usunąć to konto?',
+        editNickname: 'Edytuj pseudonim',
+        nickname: 'Pseudonim',
+        editNicknameInstruction: 'Nadaj temu rachunkowi bankowemu pseudonim, który odróżni go od innych.',
         deleteCard: 'Usuń kartę',
         deleteCardConfirmation:
             'Wszystkie niewysłane transakcje z karty, w tym te na otwartych raportach, zostaną usunięte. Na pewno chcesz usunąć tę kartę? Tej czynności nie można cofnąć.',
@@ -3418,12 +3433,13 @@ ${amount} dla ${merchant} - ${date}`,
         errorSelection: 'Wybierz opcję, aby przejść dalej',
         purpose: {
             title: 'Co chcesz dzisiaj zrobić?',
-            errorContinue: 'Naciśnij „Kontynuuj”, aby się skonfigurować',
-            errorBackButton: 'Dokończ pytania konfiguracyjne, aby zacząć korzystać z aplikacji',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Zgłoś wydatki pracodawcy',
+            errorContinue: 'Naciśnij „Dalej”, żeby dokończyć konfigurację',
+            errorBackButton: 'Dokończ pytania konfiguracyjne, żeby zacząć korzystać z aplikacji',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Dołącz do firmowej przestrzeni roboczej',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Przesyłaj wydatki do mojego pracodawcy',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Zarządzaj wydatkami mojego zespołu',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Śledź wydatki firmowe',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizuj swoje wydatki osobiste',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Śledź wydatki mojej firmy',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Porządkuj moje wydatki osobiste',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Coś innego',
         },
         personalTrackGoal: {
@@ -3480,6 +3496,8 @@ ${amount} dla ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Nie udało się dodać służbowego adresu e-mail',
             subtitle: (workEmail: string | undefined) => `Nie udało się dodać ${workEmail}. Spróbuj ponownie później w Ustawieniach lub porozmawiaj z Concierge, aby uzyskać pomoc.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Nie udało się dodać ${workEmail}. Żeby scalić te konta, zaloguj się jako ${workEmail} i przejdź do Konto > Zabezpieczenia > Scal konta, aby dokończyć proces.`,
             workAccountClosedSubtitle:
                 'Konto służbowe powiązane z tym adresem e‑mail jest zamknięte. Skontaktuj się z administratorem w swojej firmie, żeby je ponownie aktywować, albo zarejestruj się przy użyciu innego adresu e‑mail.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} to login kontrolowany przez domenę dla istniejącego konta Expensify.`,
@@ -3718,6 +3736,34 @@ ${amount} dla ${merchant} - ${date}`,
                     I gotowe!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Dodaj swój służbowy e‑mail',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Otwórz [Dodaj służbowy e‑mail](${workEmailLink}).
+                        2. Wpisz swój służbowy adres e‑mail.
+                        3. Wpisz kod, który ci wyślemy e‑mailem.
+                        4. Wybierz przestrzeń roboczą, do której chcesz dołączyć, albo kliknij *Poproś o dołączenie*, żeby wysłać prośbę do właściciela przestrzeni roboczej.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Zweryfikuj swój e-mail',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Otwórz [Zweryfikuj swoje konto](${validateEmailLink}).
+                        2. Wpisz kod, który wysłaliśmy na adres ${workEmail}.
+                        3. Wybierz przestrzeń roboczą, do której chcesz dołączyć, albo kliknij *Poproś o dołączenie*, żeby wysłać prośbę do właściciela przestrzeni roboczej.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Dołącz do przestrzeni roboczej swojej firmy',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Otwórz [Dołącz do przestrzeni roboczej](${joinWorkspaceLink}).
+                        2. Znajdź swój zespół na liście. Przy każdym widać jego właściciela i liczbę osób, zaczynając od największych. Kliknij *Pokaż więcej*, jeśli nie widzisz swojego.
+                        3. Kliknij *Dołącz teraz* lub *Poproś o dołączenie*, jeśli wymagana jest akceptacja administratora.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Zrób [jazdę próbną](${testDriveURL})` : 'Wypróbuj wersję testową'),
@@ -3740,6 +3786,14 @@ ${amount} dla ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dziel się rachunkami ze znajomymi tak łatwo, jak wysyłasz wiadomość. Oto jak to działa.',
             onboardingAdminMessage: 'Dowiedz się, jak zarządzać przestrzenią roboczą swojego zespołu jako administrator i rozliczać własne wydatki.',
             onboardingTestDriveReceiverMessage: '*Masz 3 miesiące za darmo! Zacznij poniżej.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Ponieważ chcesz dołączyć do firmowego obszaru roboczego, nie utworzyłem żadnego dla ciebie. Dodaj swój służbowy e‑mail, a sprawdzę, do których obszarów roboczych w twojej firmie możesz dołączyć.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Ponieważ chcesz dołączyć do przestrzeni roboczej swojej firmy, nie utworzyłem żadnej dla ciebie. Zweryfikuj swój e‑mail, a ja sprawdzę, do których przestrzeni roboczych w domenie ${companyDomain} możesz dołączyć.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Ponieważ chcesz dołączyć do firmowego workspace'u, nie utworzyłem nowego dla ciebie. Twój zespół w ${companyDomain} jest już w Expensify. [Zobacz workspace'y, do których możesz dołączyć.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Wygląda na to, że w twojej firmie nie ma żadnych przestrzeni roboczych, do których możesz dołączyć. Skontaktuj się ze swoim administratorem i poproś go o zaproszenie cię do jego przestrzeni roboczej.',
         },
         workspace: {
             title: 'Zachowaj porządek dzięki przestrzeni roboczej',
@@ -4788,6 +4842,9 @@ ${amount} dla ${merchant} - ${date}`,
                 'Czy na pewno chcesz zarchiwizować tę przestrzeń roboczą? Spowoduje to anulowanie przypisania wszystkich kart kredytowych użytkownikom i trwałe usunięcie nieprzesłanych wydatków z kart.',
             archiveWithExpensifyCardsConfirmation:
                 'Czy na pewno chcesz zarchiwizować tę przestrzeń roboczą? Spowoduje to ustawienie wszystkich limitów Expensify Card na $0 i automatyczne odrzucanie nowych prób zakupu.',
+            unarchive: 'Przywróć z archiwum',
+            unarchiveWorkspace: 'Przywróć przestrzeń roboczą z archiwum',
+            unarchiveConfirmation: 'Czy na pewno chcesz przywrócić tę przestrzeń roboczą z archiwum?',
             deleteWorkspaceTitle: (workspaceName: string) => `Usunąć ${workspaceName}?`,
             deleteConfirmation: 'Czy na pewno chcesz usunąć tę przestrzeń roboczą?',
             deleteWithCardsConfirmation: 'Na pewno chcesz usunąć tę przestrzeń roboczą? Spowoduje to usunięcie wszystkich źródeł kart i przypisanych kart.',
@@ -4845,6 +4902,7 @@ ${amount} dla ${merchant} - ${date}`,
             memberAlternateText: 'Przesyłaj i zatwierdzaj raporty.',
             adminAlternateText: 'Zarządzaj raportami i ustawieniami przestrzeni roboczej.',
             auditorAlternateText: 'Przeglądaj i komentuj raporty.',
+            guestAlternateText: 'Przesyłaj raporty z ograniczoną widocznością.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4853,6 +4911,8 @@ ${amount} dla ${merchant} - ${date}`,
                         return 'Administrator przestrzeni roboczej';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Audytor';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Gość';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Edytor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -5340,11 +5400,11 @@ ${amount} dla ${merchant} - ${date}`,
                         label: 'Data ostatniego wydatku',
                         description: 'Data najnowszego wydatku w raporcie.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Data eksportu',
                         description: 'Data wyeksportowania raportu do Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Data wysłania',
                         description: 'Data przesłania raportu do zatwierdzenia.',
                     },
@@ -6842,6 +6902,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             emptySubtitle: 'Dostawcy pojawią się tutaj po zakończeniu synchronizacji z księgowością.',
             findVendor: 'Znajdź dostawcę',
             managedInAccountingSoftware: 'Dostawcy są zarządzani w twoim',
+            enableVendor: 'Włącz kontrahenta',
+            enableVendors: 'Włącz dostawców',
+            disableVendor: 'Wyłącz dostawcę',
+            disableVendors: 'Wyłącz dostawców',
+            updateFailureMessage: 'Wystąpił błąd podczas aktualizowania dostawcy, spróbuj ponownie',
         },
         tags: {
             tagName: 'Nazwa tagu',
@@ -7090,6 +7155,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 one: 'Ustaw jako audytora',
                 other: 'Utwórz audytorów',
             }),
+            makeGuest: () => ({
+                one: 'Ustaw jako gościa',
+                other: 'Dodaj gości',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Ustaw jako administratora osób',
                 other: 'Ustaw administratorów osób',
@@ -7114,6 +7183,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 `${memberName} ma zaległe raporty wydatków do zatwierdzenia. Poproś tę osobę o ich zatwierdzenie lub przejmij kontrolę nad jej raportami, zanim usuniesz ją z przestrzeni roboczej.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Nie możesz usunąć ${memberName} z tego przestrzeni roboczej. Ustaw nową osobę zwracającą wydatki w Workflows > Make or track payments, a następnie spróbuj ponownie.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Nie możesz usunąć użytkownika ${memberName} z tego workspace, dopóki ma Kartę Expensify. Dezaktywuj jego kartę w Workspace > Karta Expensify, a następnie spróbuj ponownie.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zastąpimy go jako preferowanego eksportującego użytkownikiem ${workspaceOwner}, właścicielem przestrzeni roboczej.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -7124,6 +7195,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             admins: 'Administratorzy przestrzeni roboczej',
             approvers: 'Osoby zatwierdzające',
             auditors: 'Audytorzy',
+            guests: 'Goście',
             editors: 'Edytorzy',
             emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},
             configureHRSync: (providerName: string) => `Skonfiguruj synchronizację ${providerName}.`,
@@ -7242,6 +7314,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7469,6 +7543,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                             return 'Synchronizowanie danych Campfire';
                         case 'campfireSyncConnection':
                             return 'Inicjowanie połączenia z Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Inicjowanie połączenia z Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Wczytywanie danych';
                         case 'campfireSyncPayments':
@@ -7525,6 +7601,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Aby odblokować, ustaw konto dla swoich eksportów.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Aby odblokować, włącz automatyczną synchronizację.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
+            continuousReconciliationFeedSelection:
+                '<muted-text-label>Ciągłe uzgadnianie jest konfigurowane dla każdego źródła kart osobno. Wybierz źródło, aby zmienić, które konfigurujesz.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Twoje połączenie z QuickBooks Online wygaśnie ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Twoje połączenie z QuickBooks Online wygasło ${date}.`,
@@ -7598,6 +7677,20 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     cta: 'Jasne',
                 },
                 errors: {distanceMustBePositive: 'Dystans musi być dodatnią liczbą całkowitą.', invalidAddress: 'Wpisz prawidłowy adres', distanceTooLarge: 'Odległość jest zbyt duża.'},
+                workArrangement: {
+                    title: 'Domyślny tryb pracy',
+                    officeBasedTitle: 'Pracujący z biura',
+                    officeBasedHelp: 'Członek dojeżdża do biura. Zwykłe dojazdy są wyłączone ze zwrotu kosztów.',
+                    noRegularWorkplaceTitle: 'Zdalnie lub mobilnie',
+                    noRegularWorkplaceHelp: 'Członek pracuje z domu lub podróżuje między różnymi lokalizacjami bez stałego biura, więc zasady dotyczące dojazdów nie mają zastosowania.',
+                    startingPrompt: {
+                        title: 'Ustaw typowy tryb pracy',
+                        prompt: 'Wybierz układ, który dotyczy większości obecnych członków. Później możesz zaktualizować członków indywidualnie lub hurtowo.',
+                        officeBasedHelp: 'Większość członków dojeżdża do biura. Zwykłe dojazdy są wyłączone.',
+                        noRegularWorkplaceHelp: 'Większość członków pracuje zdalnie, więc wyłączenia dotyczące dojazdu z domu do pracy zazwyczaj nie mają zastosowania.',
+                        confirm: 'Zastosuj',
+                    },
+                },
             },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',
@@ -7643,9 +7736,32 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             startDate: 'Data rozpoczęcia',
             endDate: 'Data zakończenia',
             autoGeneratedRateTooltip: 'Ta stawka jest generowana automatycznie.',
+            automaticRates: 'Automatyczne stawki',
             autoUpdateGovernmentRate: 'Automatycznie aktualizuj stawki rządowe',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Automatycznie twórz nowe stawki, gdy ${countryPhrase} publikuje nowe wytyczne.`,
-            governmentRateCountries: {US: 'Stany Zjednoczone', CA: 'Kanada', GB: 'Wielka Brytania', AU: 'Australia', NO: 'Norwegia', SE: 'Szwecja', ZA: 'Republika Południowej Afryki'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `Automatycznie twórz nowe stawki, gdy ${countryPhrase} publikuje nowe wytyczne. Nie modyfikuje istniejących stawek.`,
+            governmentRateCountries: {
+                US: 'Stany Zjednoczone',
+                CA: 'Kanada',
+                GB: 'Wielka Brytania',
+                AU: 'Australia',
+                AT: 'Austria',
+                BE: 'Belgia',
+                FI: 'Finlandia',
+                DE: 'Niemcy',
+                NL: 'Holandia',
+                PT: 'Portugalia',
+                ES: 'Hiszpania',
+                NO: 'Norwegia',
+                SE: 'Szwecja',
+                ZA: 'Republika Południowej Afryki',
+            },
+            governmentRateCountryGeneric: 'Twój kraj',
+            governmentRateSourceCountry: 'Kraj pochodzenia stawek za dystans',
+            governmentRateCountrySelectionPrompt:
+                'Aby nadal korzystać z funkcji automatycznej aktualizacji rządowych stawek za dystans, potwierdź, którego kraju chcesz używać w przyszłości.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Uwaga! Zmiana waluty obszaru roboczego na ${currency} spowoduje korzystanie z rządowych stawek kilometrowych, które publikuje ${countryPhrase}. Czy na pewno chcesz kontynuować?`,
         },
         editor: {
             descriptionInputLabel: 'Opis',
@@ -8960,6 +9076,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noBankAccountsFoundDescription: 'Dodaj konta bankowe w Dynamics 365 Business Central i ponownie zsynchronizuj połączenie',
             noPaymentMethodsFound: 'Nie znaleziono metod płatności',
             noPaymentMethodsFoundDescription: 'Dodaj metody płatności w Dynamics 365 Business Central i ponownie zsynchronizuj połączenie',
+            accountsDescription: 'Twoje konta Dynamics 365 Business Central zostaną zaimportowane jako kategorie.',
+            dimensionsImportAsTags: 'Wszystkie wymiary z Dynamics 365 Business Central są importowane jako tagi',
+            customers: 'Klienci',
+            projects: 'Projekty',
+            projectsAndCustomersCannotBeEnabled: 'Nie można włączyć projektów i klientów',
+            projectsAndCustomersCannotBeEnabledDescription: 'Projekty i klienci mogą być włączone tylko wtedy, gdy opcja eksportu to „Faktura zakupu”',
+            enableNewCategoriesDescription: 'Nowe konta Dynamics 365 Business Central będą dostępne jako kategorie.',
         },
     },
     getAssistancePage: {
@@ -9434,6 +9557,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `dodano „${prohibitedExpense}” do zabronionych wydatków`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `ustaw domyślny tryb pracy na ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `zmienił domyślny tryb pracy na ${arrangement} (wcześniej ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `zmienił(-a) wykluczanie dojazdów na stałą odległość na zgłoszenie (wcześniej ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `zmienił(-a) wykluczanie dojazdów na obliczanie według domu i biura (wcześniej ${previousMethod})`,
@@ -9693,6 +9821,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         genericCreateTaskFailureMessage: 'Wystąpił błąd podczas tworzenia tego zadania. Spróbuj ponownie później.',
         deleteTask: 'Usuń zadanie',
         deleteConfirmation: 'Czy na pewno chcesz usunąć to zadanie?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Zgłoszenie do pomocy technicznej, ${date}: ${customer} i ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Cześć, jestem ${supportRep} i będę z tobą współpracować, dopóki całkowicie tego nie rozwiążemy. Jeśli przekazałeś nam już szczegóły, przejrzę je przed odpowiedzią, żebyś nie musiał się powtarzać. Jeśli to nowy problem, daj znać, z czym potrzebujesz pomocy.`,
+        checkboxTooltip: 'Twój przedstawiciel wsparcia zaznaczy to, gdy zostanie rozwiązane.',
+        genericCreateSupportTicketFailureMessage: 'Nie udało się utworzyć tego zgłoszenia do pomocy technicznej. Zamknij ten błąd i spróbuj ponownie.',
+        noSupportRepAvailable: 'Obecnie nie ma dostępnych pracowników pomocy technicznej. Nadal możesz wysłać wiadomość do Concierge, aby uzyskać pomoc.',
+        fallbackTitle: 'Zgłoszenie do pomocy technicznej',
+        resolved: 'To zgłoszenie do pomocy technicznej zostało rozwiązane.',
+        surveyPrompt: 'Jak oceniasz swoje doświadczenie ze wsparciem?',
+        reopenTicket: 'Otwórz zgłoszenie ponownie',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Wyciąg za ${monthName} ${year}`,
@@ -10027,6 +10167,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
         mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
+        periodSoFar: ({period}: {period: string}) => `${period} do tej pory`,
+        weekOf: ({date}: {date: string}) => `Tydzień od ${date}`,
         saveEdits: {
             title: 'Zapisz zmiany',
             prompt: ({name}: {name: string}) => `Zaktualizować zmiany w „${name}” czy utworzyć nowy?`,
@@ -10801,6 +10943,40 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             taxOutOfPolicy: 'Stawka podatku nie jest już ważna',
             taxRateChanged: 'Zmodyfikowano stawkę podatku',
             taxRequired: 'Brak stawki podatku',
+        },
+        ruleViolation: {
+            fallback: 'Narusza politykę wydatków',
+            anyExpense: 'Dowolny wydatek',
+            expense: (adjectives: string) => (adjectives ? `${adjectives} wydatek` : 'Wydatek'),
+            perDiem: 'ryczałt dzienny',
+            notExpenseType: (expenseType: string) => `nie jest typem ${expenseType}`,
+            billable: {enabled: 'Do refakturowania', disabled: 'Niefakturowalne'},
+            reimbursable: {enabled: 'Podlegające zwrotowi', disabled: 'Nierefundowane'},
+            withoutCategory: 'bez kategorii',
+            fromMerchant: (merchant: string) => `od ${merchant}`,
+            notFromMerchant: (merchant: string) => `nie od ${merchant}`,
+            fromMerchantsContaining: (merchant: string) => `od sprzedawców zawierających ${merchant}`,
+            notFromMerchantsContaining: (merchant: string) => `nie od sprzedawców zawierających ${merchant}`,
+            withVendor: (vendor: string) => `z dostawcą ${vendor}`,
+            withoutVendor: (vendor: string) => `bez sprzedawcy ${vendor}`,
+            fromVendor: (vendor: string) => `od ${vendor}`,
+            notFromVendor: (vendor: string) => `nie od ${vendor}`,
+            overAmount: (amount: string) => `powyżej ${amount}`,
+            amountOrMore: (amount: string) => `${amount} lub więcej`,
+            underAmount: (amount: string) => `poniżej ${amount}`,
+            amountOrLess: (amount: string) => `${amount} lub mniej`,
+            withoutTag: 'bez tagu',
+            tagged: (tag: string) => `oznaczono tagiem ${tag}`,
+            inCurrency: (currency: string) => `w ${currency}`,
+            notInCurrency: (currency: string) => `nie w ${currency}`,
+            paidInCurrency: (currency: string) => `zapłacone w ${currency}`,
+            notPaidInCurrency: (currency: string) => `niezapłacone w ${currency}`,
+            attachment: 'załącznik',
+            attribute: (attribute: string) => `${attribute}`,
+            withAttributes: (attributes: string) => `z atrybutami ${attributes}`,
+            withoutAttributes: (attributes: string) => `bez ${attributes}`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `u ${merchantCode}`,
         },
     },
     reportViolations: {
