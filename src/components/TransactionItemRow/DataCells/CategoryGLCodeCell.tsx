@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCategoryGLCode, hasAnyCategoryGLCode, isCategoryMissing} from '@libs/CategoryUtils';
 
+import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 
 import React from 'react';
@@ -55,6 +56,7 @@ function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEdi
                     policyID={policyID}
                     selectedCategory={categoryForComparison}
                     shouldAlwaysShowGLCode
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}

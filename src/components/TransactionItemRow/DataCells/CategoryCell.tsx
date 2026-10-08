@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import type TransactionDataCellProps from './TransactionDataCellProps';
@@ -65,6 +67,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
                 <CategoryPickerModal
                     policyID={policyID}
                     selectedCategory={categoryForComparison}
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
