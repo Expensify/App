@@ -3686,7 +3686,9 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
     const {textForNewComment, isOriginalReportArchived, currentUserLogin, videoAttributeCache} = deferredEdit;
 
     // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
-    Promise.resolve().then(() => editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, allPersonalDetails, videoAttributeCache));
+    Promise.resolve().then(() =>
+        editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, getAllPersonalDetails(), videoAttributeCache),
+    );
     return true;
 });
 

@@ -2762,6 +2762,34 @@ describe('actions/Report', () => {
             expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
         });
 
+        it('replays an edit restored from Onyx once the report loads after the attachment', async () => {
+            // Given a deferred edit restored from Onyx on a cold start, where the report cache is still empty
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            await seedUploadingComment();
+            await Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: {reportID, textForNewComment: editKeepingAttachment, currentUserLogin: ''}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            await waitForBatchedUpdates();
+
+            // When the attachment syncs before the report arrives
+            await syncAttachment();
+
+            // Then the replay cannot run yet, because editing a comment needs its report
+            expect(getUpdateCommentRequests()).toHaveLength(0);
+
+            // When the report collection finishes loading
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
+            await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
+
+            // Then the edit is replayed instead of sitting deferred until the next restart
+            const requests = getUpdateCommentRequests();
+            expect(requests).toHaveLength(1);
+            expect(requests.at(0)?.data?.reportComment).toContain('hello edited');
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
+        });
+
         it('replays an edit restored from Onyx once the attachment has synced', async () => {
             // Given a comment whose attachment is still uploading, and a deferred edit already in Onyx, as after an app restart
             global.fetch = TestHelper.createGlobalFetchMock();
