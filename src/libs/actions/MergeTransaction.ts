@@ -223,10 +223,6 @@ function getTransactionsForMergingLocally(
             return areTransactionsEligibleForMerge(targetTransaction, transaction) && !isTransactionPendingDelete(transaction);
         }
 
-        if (!transaction.reportID) {
-            return false;
-        }
-
         // Resolve admin status against the candidate’s own workspace. If the policy is absent from
         // the local cache we cannot verify access, so we exclude the candidate rather than assuming
         // admin rights.
