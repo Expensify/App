@@ -19566,10 +19566,17 @@ describe('ReportUtils', () => {
                 async (violationType) => {
                     await Onyx.clear();
 
-                    const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(`only-${violationType}`, [
-                        {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: violationType, showInReview: true},
-                    ]);
+                    // Given a submitted instant-submit report with only companyCardRequired
+                    const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                        `only-${violationType}`,
+                        [{name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: violationType, showInReview: true}],
+                        false,
+                        {},
+                        true,
+                    );
 
+                    // When the Inbox checks for the red dot
+                    // Then the dot stays off, because the submitter cannot fix this after submit
                     expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
 
                     await Onyx.clear();
@@ -19593,6 +19600,7 @@ describe('ReportUtils', () => {
             it('should still surface RBR on an instant-submit submitted report when a resolvable violation sits next to companyCardRequired', async () => {
                 await Onyx.clear();
 
+                // Given a submitted instant-submit report with companyCardRequired and a violation the submitter can fix
                 const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'alongside-resolvable',
                     [
@@ -19604,18 +19612,17 @@ describe('ReportUtils', () => {
                     true,
                 );
 
+                // When the Inbox checks for the red dot
+                // Then the dot stays on, because the fixable violation is still there
                 expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
 
-            // The visibility check and the type checks have to judge the same set of violations. If only the type checks
-            // drop `companyCardRequired`, the visibility check still sees it and lets it vouch for a violation the
-            // submitter cannot act on either, leaving the dot lit with nothing behind it.
             it('should not surface RBR when the violation left next to companyCardRequired is hidden while the category is being analyzed', async () => {
                 await Onyx.clear();
 
-                // Inside the 60-second auto-categorization grace period, so `shouldShowViolation` hides `missingCategory`.
+                // Given a submitted instant-submit report where the category violation is still hidden while it is being analyzed
                 const pendingAutoCategorizationTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
 
                 const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
@@ -19626,20 +19633,20 @@ describe('ReportUtils', () => {
                     ],
                     false,
                     {category: '', comment: {pendingAutoCategorizationTime}},
+                    true,
                 );
 
+                // When the Inbox checks for the red dot
+                // Then the dot stays off, because nothing left is something the submitter can fix
                 expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
 
                 await Onyx.clear();
             });
 
-            // Guards the scope of the change: `modifiedAmount` has always been excluded from the notice check only, and it
-            // also arrives typed `violation` (the `modifiedAmount` checks in TransactionPreviewUtils match `VIOLATION` or
-            // `NOTICE`). Widening its exclusion to the hard-violation bucket would silently drop the RBR here. There is no
-            // evidence the back end ever types `modifiedAmount` as `warning`, so that bucket is deliberately not asserted.
             it('should still surface RBR on an instant-submit submitted report when the only violation is a modifiedAmount violation', async () => {
                 await Onyx.clear();
 
+                // Given a submitted instant-submit report with only a modifiedAmount violation
                 const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'modified-amount-violation',
                     [{name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
@@ -19648,6 +19655,8 @@ describe('ReportUtils', () => {
                     true,
                 );
 
+                // When the Inbox checks for the red dot
+                // Then the dot stays on, because this modifiedAmount can still be fixed
                 expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
 
                 await Onyx.clear();
@@ -19656,10 +19665,13 @@ describe('ReportUtils', () => {
             it('should not surface RBR on a non-instant-submit submitted report even with a resolvable violation', async () => {
                 await Onyx.clear();
 
+                // Given a submitted report that is not instant submit, with a violation the submitter can fix
                 const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('submitted-non-instant', [
                     {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
                 ]);
 
+                // When the Inbox checks for the red dot
+                // Then the dot stays off, because only instant submit keeps Fix after submit
                 expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
 
                 await Onyx.clear();
@@ -19668,12 +19680,15 @@ describe('ReportUtils', () => {
             it('should surface RBR on a draft report with a resolvable violation regardless of submit frequency', async () => {
                 await Onyx.clear();
 
+                // Given a draft report with a violation the submitter can fix
                 const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'draft-non-instant',
                     [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     true,
                 );
 
+                // When the Inbox checks for the red dot
+                // Then the dot stays on, because a draft can still be fixed
                 expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
 
                 await Onyx.clear();

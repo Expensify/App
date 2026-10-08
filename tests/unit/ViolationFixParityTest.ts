@@ -4,7 +4,7 @@ import {getFlaggedExpenses} from '@pages/home/ForYouSection/useReviewFlaggedExpe
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Session, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 
@@ -12,6 +12,7 @@ import Onyx from 'react-native-onyx';
 
 import {createExpenseReport, createPolicyExpenseChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const currentUserAccountID = 5;
@@ -24,6 +25,8 @@ type Cell = {
     instantSubmit: boolean;
     ownedByCurrentUser: boolean;
     violations: TransactionViolation[];
+    // An approver already forwarded this report, but it is still submitted.
+    forwardedSinceSubmit?: boolean;
 };
 
 const stateToNums = {
@@ -94,6 +97,17 @@ describe('Violation Fix parity between Inbox and Home', () => {
         const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as OnyxKey;
         const violationsCollection: OnyxCollection<TransactionViolation[]> = {[violationsKey]: cell.violations};
 
+        const submittedAction = createMock<ReportAction>({
+            reportActionID: `${expenseReportID}-submitted`,
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            created: '2026-01-02 10:00:00.000',
+        });
+        const forwardedAction = createMock<ReportAction>({
+            reportActionID: `${expenseReportID}-forwarded`,
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            created: '2026-01-03 10:00:00.000',
+        });
+
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
         await Promise.all([
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy),
@@ -101,6 +115,14 @@ describe('Violation Fix parity between Inbox and Home', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction),
             Onyx.merge(violationsKey, cell.violations),
+            ...(cell.forwardedSinceSubmit
+                ? [
+                      Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {
+                          [submittedAction.reportActionID]: submittedAction,
+                          [forwardedAction.reportActionID]: forwardedAction,
+                      }),
+                  ]
+                : []),
         ]);
         await waitForBatchedUpdates();
 
@@ -112,10 +134,15 @@ describe('Violation Fix parity between Inbox and Home', () => {
         const allPolicies: OnyxCollection<Policy> = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy};
         const session: Session = {accountID: currentUserAccountID, email: currentUserEmail};
 
-        const inboxShows = getViolatingReportIDForRBRInLHN(chatReport, violationsCollection, currentUserEmail) === expenseReportID;
-        const homeShows = getFlaggedExpenses(allReports, allTransactions, violationsCollection, allPolicies, session).some((flagged) => flagged.reportID === expenseReportID);
+        return {chatReport, expenseReport, policy, violationsCollection, allReports, allTransactions, allPolicies, session};
+    }
 
-        return {inboxShows, homeShows, expenseReport, policy};
+    function evaluateSurfaces(fixture: Awaited<ReturnType<typeof buildCell>>) {
+        const inboxShows = getViolatingReportIDForRBRInLHN(fixture.chatReport, fixture.violationsCollection, currentUserEmail) === fixture.expenseReport.reportID;
+        const homeShows = getFlaggedExpenses(fixture.allReports, fixture.allTransactions, fixture.violationsCollection, fixture.allPolicies, fixture.session).some(
+            (flagged) => flagged.reportID === fixture.expenseReport.reportID,
+        );
+        return {inboxShows, homeShows, expenseReport: fixture.expenseReport, policy: fixture.policy};
     }
 
     const violationVariants: Array<{label: string; violations: TransactionViolation[]}> = [
@@ -144,16 +171,57 @@ describe('Violation Fix parity between Inbox and Home', () => {
     }
 
     it.each(cells)('Inbox and Home agree for $name', async (cell) => {
-        const {inboxShows, homeShows, expenseReport, policy} = await buildCell(cell);
+        // Given both surfaces see the same report
+        const fixture = await buildCell(cell);
 
-        // Both surfaces must give the same answer for the same report
+        // When each surface decides whether to show Fix
+        const {inboxShows, homeShows, expenseReport, policy} = evaluateSurfaces(fixture);
+
+        // Then they agree
         expect(inboxShows).toBe(homeShows);
 
-        // A plain resolvable violation on an owned, eligible report must light both up
+        // Then a fixable violation shows only while the report can still be fixed
         if (cell.violations.length === 1 && cell.violations.at(0)?.name === CONST.VIOLATIONS.MISSING_CATEGORY && cell.violations.at(0)?.type === CONST.VIOLATION_TYPES.VIOLATION) {
             const expected = cell.ownedByCurrentUser && isReportEligibleForViolationFix(expenseReport, policy);
             expect(inboxShows).toBe(expected);
         }
+    });
+
+    it('hides Fix on both surfaces after the first approver forwards an instant-submit report', async () => {
+        // Given an instant-submit report that was forwarded and is still submitted
+        const fixture = await buildCell({
+            name: 'processing-instant-owner-forwarded-resolvable',
+            reportState: 'processing',
+            instantSubmit: true,
+            ownedByCurrentUser: true,
+            violations: [RESOLVABLE],
+            forwardedSinceSubmit: true,
+        });
+
+        // When both surfaces decide whether to show Fix
+        const {inboxShows, homeShows} = evaluateSurfaces(fixture);
+
+        // Then neither shows it, because an approver already acted
+        expect(inboxShows).toBe(false);
+        expect(homeShows).toBe(false);
+    });
+
+    it('counts a warning-typed modifiedAmount on both surfaces', async () => {
+        // Given a submitted instant-submit report with only a warning modifiedAmount
+        const fixture = await buildCell({
+            name: 'processing-instant-owner-modifiedAmount-warning',
+            reportState: 'processing',
+            instantSubmit: true,
+            ownedByCurrentUser: true,
+            violations: [{name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
+        });
+
+        // When both surfaces decide whether to show Fix
+        const {inboxShows, homeShows} = evaluateSurfaces(fixture);
+
+        // Then both show it, because only a notice is skipped
+        expect(inboxShows).toBe(true);
+        expect(homeShows).toBe(true);
     });
 
     afterAll(async () => {

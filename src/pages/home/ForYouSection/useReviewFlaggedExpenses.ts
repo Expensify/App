@@ -54,8 +54,8 @@ function isCurrentUserReportEligibleForViolationFix(report: Report | null | unde
     return isReportEligibleForViolationFix(report, policy);
 }
 
-// True when a visible violation should surface in the "Review X expenses" row.
-// On a submitted report companyCardRequired and the modifiedAmount notice aren't fixable, so they're skipped to match the Inbox RBR.
+// True when a violation should show in "Review expenses".
+// On a submitted report, skip companyCardRequired and a modifiedAmount notice so Home matches the Inbox.
 function hasReviewableViolation(violations: TransactionViolations | null | undefined, isProcessing: boolean): boolean {
     if (!violations || violations.length === 0) {
         return false;
@@ -75,7 +75,7 @@ function hasReviewableViolation(violations: TransactionViolations | null | undef
             return false;
         }
         if (violation.type === CONST.VIOLATION_TYPES.NOTICE || violation.type === CONST.VIOLATION_TYPES.WARNING) {
-            if (isProcessing && violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT) {
+            if (isProcessing && violation.type === CONST.VIOLATION_TYPES.NOTICE && violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT) {
                 return false;
             }
             return violation.showInReview === true;
