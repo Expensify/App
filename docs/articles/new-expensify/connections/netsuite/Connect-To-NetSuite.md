@@ -26,6 +26,26 @@ Employees submitting reports don't need NetSuite access or licenses.
 
 ---
 
+## How to connect to NetSuite
+
+Complete these steps in order. Each step has its own section below with detailed instructions.
+
+1. Install the Expensify bundle in NetSuite
+2. Enable OAuth 2.0 in NetSuite
+3. Enable REST web services in NetSuite
+4. Enable expense reports in NetSuite
+5. Set up expense categories in NetSuite
+6. Check your journal entry transaction forms
+7. Check your expense report transaction forms
+8. Check your vendor bill transaction forms
+9. Check your vendor credit transaction forms
+10. Set up tax groups in NetSuite
+11. Connect Expensify to NetSuite using OAuth 2.0
+
+If you're connecting with token-based authentication instead, follow the steps in **How to connect to NetSuite using token-based authentication** below.
+
+---
+
 ## How to install the Expensify bundle in NetSuite
 
 1. In NetSuite, go to **Customization > SuiteBundler > Search & Install Bundles**
@@ -44,7 +64,7 @@ The latest bundle version grants the permissions Expensify needs to log in using
 2. Under **Manage Authentication**, enable **OAuth 2.0**
 3. Click **Save**
 
-Skip this step if you're connecting with token-based authentication instead.
+Skip this section if you're connecting with token-based authentication instead.
 
 ---
 
@@ -54,7 +74,7 @@ Skip this step if you're connecting with token-based authentication instead.
 2. Under **SuiteTalk (Web Services)**, enable **REST Web Services**
 3. Click **Save**
 
-Skip this step if you're connecting with token-based authentication instead.
+Skip this section if you're connecting with token-based authentication instead.
 
 ---
 
@@ -167,15 +187,32 @@ Purpose: Members expect to stay in Expensify and may abandon the flow when NetSu
 
 **Note:** Token-based authentication still works, but we're deprecating it. We'll remove it as soon as every customer with an existing connection has migrated to the new OAuth 2.0 connection, and we'll let you know well before that happens. If you're setting up a new connection, use OAuth 2.0 instead.
 
-These steps replace enabling OAuth 2.0, enabling REST web services, and connecting on the NetSuite consent screen. Everything else in this article — installing the bundle, enabling expense reports, setting up expense categories, checking your transaction forms, and setting up tax groups — applies to both connection types.
+Complete these steps in order. Steps 1 and 5–11 are the same as for an OAuth 2.0 connection. Steps 2–4 and 12 have their own sections below.
 
-### How to enable token-based authentication in NetSuite
+1. Install the Expensify bundle in NetSuite
+2. Enable token-based authentication in NetSuite
+3. Assign the Expensify Integration role in NetSuite
+4. Create access tokens in NetSuite
+5. Enable expense reports in NetSuite
+6. Set up expense categories in NetSuite
+7. Check your journal entry transaction forms
+8. Check your expense report transaction forms
+9. Check your vendor bill transaction forms
+10. Check your vendor credit transaction forms
+11. Set up tax groups in NetSuite
+12. Connect Expensify to NetSuite using access tokens
+
+---
+
+## How to enable token-based authentication in NetSuite
 
 1. Go to **Setup > Company > Enable Features > SuiteCloud > Manage Authentication**
 2. Enable **Token Based Authentication**
 3. Click **Save**
 
-### How to assign the Expensify Integration role in NetSuite
+---
+
+## How to assign the Expensify Integration role in NetSuite
 
 1. Go to **Lists > Employees**
 2. Find and edit the employee who will connect the integration
@@ -184,7 +221,9 @@ These steps replace enabling OAuth 2.0, enabling REST web services, and connecti
 
 Tokens link to a user-role combination, not just a user. Use the same user and role for all syncs after setup.
 
-### How to create access tokens in NetSuite
+---
+
+## How to create access tokens in NetSuite
 
 1. In NetSuite, use the Global Search to search for `page: tokens`
 2. Click **New Access Token**
@@ -192,7 +231,9 @@ Tokens link to a user-role combination, not just a user. Use the same user and r
 4. Click **Save**
 5. Copy and securely save the **Token ID** and **Token Secret**, which you'll only see once
 
-### How to connect Expensify to NetSuite using access tokens
+---
+
+## How to connect Expensify to NetSuite using access tokens
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Click **Connect** next to **NetSuite**
