@@ -64,6 +64,7 @@ When company card expenses are exported, Expensify assigns vendors in the follow
 
 1. The vendor selected on the expense.
 2. The **Default company card vendor** configured in the Intuit Enterprise Suite export settings.
+3. **Credit Card Misc.** or D**ebit Card Misc.**, if neither of the above is available.
 
 ## How vendors that are no longer valid affect expenses
 
