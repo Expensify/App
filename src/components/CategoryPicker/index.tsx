@@ -114,6 +114,7 @@ function CategoryPicker({
         recentlyUsedCategories: validPolicyRecentlyUsedCategories,
         translate,
         shouldShowGLCode,
+        searchInputThreshold,
     });
 
     const noneOption: OptionTree[] = shouldShowNoneOption

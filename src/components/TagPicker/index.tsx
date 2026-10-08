@@ -163,6 +163,7 @@ function TagPicker({
         localeCompare,
         translate,
         shouldShowGLCode,
+        searchInputThreshold,
     });
     const sections = tagSections.map((section) => ({
         ...section,

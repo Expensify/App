@@ -90,6 +90,7 @@ function getTagListSections({
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     translate,
     shouldShowGLCode = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
 }: {
     tags: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     localeCompare: LocaleContextProps['localeCompare'];
@@ -99,6 +100,7 @@ function getTagListSections({
     maxRecentReportsToShow?: number;
     translate: LocalizedTranslate;
     shouldShowGLCode?: boolean;
+    searchInputThreshold?: number;
 }) {
     const tagSections = [];
     const sortedTags = sortTags(tags, localeCompare);
@@ -154,7 +156,7 @@ function getTagListSections({
         return tagSections;
     }
 
-    if (numberOfTags < CONST.STANDARD_LIST_ITEM_LIMIT) {
+    if (numberOfTags < searchInputThreshold) {
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
