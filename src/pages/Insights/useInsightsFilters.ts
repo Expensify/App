@@ -13,6 +13,7 @@ import type {InsightsFilters} from './insightsFilters';
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 import {parseInsightsFilters} from './insightsFilterParsing';
 import DEFAULT_INSIGHTS_FILTERS from './insightsFilters';
+import {getFittingGroupBy, getInsightsGroupByOptions} from './insightsGroupByOptions';
 import {buildInsightsQueryString} from './insightsQueries';
 
 type UseInsightsFiltersResult = {
@@ -29,6 +30,10 @@ type UseInsightsFiltersResult = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
+function withFittingGroupBy(filters: InsightsFilters): InsightsFilters {
+    return {...filters, groupBy: getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date))};
+}
+
 function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersResult {
     const {searchKey} = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -40,10 +45,10 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
         ...DEFAULT_INSIGHTS_FILTERS,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
-    const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedQuery)};
+    const filters = withFittingGroupBy({...defaultFilters, ...parseInsightsFilters(storedQuery)});
 
     const setFilters = (update: Partial<InsightsFilters>) => {
-        setInsightsFilters(searchKey, buildInsightsQueryString({...filters, ...update}));
+        setInsightsFilters(searchKey, buildInsightsQueryString(withFittingGroupBy({...filters, ...update})));
     };
 
     return {

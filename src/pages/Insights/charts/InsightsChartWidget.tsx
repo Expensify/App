@@ -20,6 +20,7 @@ import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsig
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions} from '@pages/Insights/insightsGroupByOptions';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -64,12 +65,16 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
 
-    const groupByControl = onGroupByChange ? (
-        <InsightsGroupByDropdown
-            groupBy={filters.groupBy}
-            onChange={onGroupByChange}
-        />
-    ) : null;
+    const groupByOptions = getInsightsGroupByOptions(filters.date);
+
+    const groupByControl =
+        onGroupByChange && groupByOptions.length > 0 ? (
+            <InsightsGroupByDropdown
+                groupBy={filters.groupBy}
+                options={groupByOptions}
+                onChange={onGroupByChange}
+            />
+        ) : null;
 
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (

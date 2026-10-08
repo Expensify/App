@@ -10,6 +10,7 @@ import InsightsGroupCurrencyControl from '@pages/Insights/controls/InsightsGroup
 import InsightsPageControls from '@pages/Insights/controls/InsightsPageControls';
 import InsightsWorkspaceControl from '@pages/Insights/controls/InsightsWorkspaceControl';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions} from '@pages/Insights/insightsGroupByOptions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,6 +123,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
         );
@@ -142,6 +144,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.QUARTER}
+                options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
         );
@@ -153,6 +156,47 @@ describe('Insights controls', () => {
 
         // Then the chart goes back to the default monthly buckets
         expect(onChange).toHaveBeenCalledWith(CONST.SEARCH.GROUP_BY.MONTH);
+    });
+
+    it('only offers the groupings that fit the date range', async () => {
+        // Given the headline chart grouped by week over this month, which is too short for Month, Quarter and Year
+        const date: InsightsFilters['date'] = {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH};
+        renderWithProviders(
+            <InsightsGroupByDropdown
+                groupBy={CONST.SEARCH.GROUP_BY.WEEK}
+                options={getInsightsGroupByOptions(date)}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // When the user opens the control
+        await openPill(/: Week$/);
+
+        // Then the groupings that would plot a single point are hidden
+        expect(screen.getByText(/^(Day|search\.filters\.groupBy\.day)$/)).toBeOnTheScreen();
+        expect(screen.queryByText(/^(Month|search\.filters\.groupBy\.month)$/)).toBeNull();
+        expect(screen.queryByText(/^(Quarter|search\.filters\.groupBy\.quarter)$/)).toBeNull();
+    });
+
+    it('resets the grouping to the nearest fit for month when the date range rules month out', async () => {
+        // Given the headline chart grouped by day over this month, which doesn't offer Month
+        const onChange = jest.fn();
+        const date: InsightsFilters['date'] = {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH};
+        renderWithProviders(
+            <InsightsGroupByDropdown
+                groupBy={CONST.SEARCH.GROUP_BY.DAY}
+                options={getInsightsGroupByOptions(date)}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user resets the control
+        await openPill(/: Day$/);
+        fireEvent.press(screen.getByText(RESET));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the chart goes to Week, the closest offered grouping to the monthly default
+        expect(onChange).toHaveBeenCalledWith(CONST.SEARCH.GROUP_BY.WEEK);
     });
 
     it('resets Workspace to every workspace', async () => {
