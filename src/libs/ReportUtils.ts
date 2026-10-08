@@ -4696,6 +4696,7 @@ function getReasonAndReportActionThatRequiresAttention(
         currentUserLogin,
         currentUserAccountID,
         reportActions,
+        isReportArchived,
         reports,
         allReportActionsParam ?? allReportActions,
     );
@@ -4733,6 +4734,7 @@ function getReasonAndReportActionThatRequiresAttention(
                 currentUserLogin,
                 currentUserAccountID,
                 reportActions,
+                false,
             );
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,

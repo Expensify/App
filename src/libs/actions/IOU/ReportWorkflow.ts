@@ -54,7 +54,6 @@ import {
     hasSettledZeroReimbursableSpend,
     isPayOptional,
     hasOutstandingChildRequest,
-    isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isExpenseReport,
     isInvoiceReport as isInvoiceReportReportUtils,
@@ -99,7 +98,7 @@ import Onyx from 'react-native-onyx';
 
 import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
 
-import {getAllReportNameValuePairs, getAllTransactionViolations} from '.';
+import {getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 
@@ -340,16 +339,13 @@ function getBadgeFromIOUReport(
     currentUserLogin: string,
     currentUserAccountID: number,
     iouReportActions: OnyxEntry<OnyxTypes.ReportActions>,
+    isChatReportArchived: boolean,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     const reportTransactions = getReportTransactions(iouReport?.reportID);
 
     if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
         return undefined;
     }
-
-    // TODO: https://github.com/Expensify/App/issues/66518
-    // Transitional: resolve the chat report's archived state from the module-level cache until this function threads it down from its callers.
-    const isChatReportArchived = isArchivedReport(getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
 
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
@@ -413,6 +409,7 @@ function getIOUReportActionWithBadge(
     currentUserLogin: string,
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
+    isChatReportArchived: boolean,
     allReports?: OnyxCollection<OnyxTypes.Report>,
     allReportActions?: OnyxCollection<OnyxTypes.ReportActions>,
 ): {
@@ -452,7 +449,17 @@ function getIOUReportActionWithBadge(
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, iouReportActions);
+        const badge = getBadgeFromIOUReport(
+            iouReport,
+            chatReport,
+            policy,
+            reportMetadata,
+            invoiceReceiverPolicy,
+            currentUserLogin,
+            currentUserAccountID,
+            iouReportActions,
+            isChatReportArchived,
+        );
         if (!badge) {
             continue;
         }
