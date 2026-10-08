@@ -97,6 +97,7 @@ export type {MergeAccountDetailsForm} from './MergeAccountDetailsForm';
 export type {WorkspaceConfirmationForm} from './WorkspaceConfirmationForm';
 export type {MoneyRequestTimeForm} from './MoneyRequestTimeForm';
 export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';
+export type {CollectDepositAccountForm} from './CollectDepositAccountForm';
 export type {InternationalBankAccountForm} from './InternationalBankAccountForm';
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
 export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm';
