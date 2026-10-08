@@ -25,7 +25,7 @@ type HeaderCentralPaneProps = Partial<ChildrenProps> & {
     isHeadline?: boolean;
 
     /** Whether to display the SearchRouter button. */
-    displaySearchRouter?: boolean;
+    shouldDisplaySearchRouter?: boolean;
 };
 
 function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, displaySearchRouter = false, children}: HeaderCentralPaneProps) {
