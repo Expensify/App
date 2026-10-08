@@ -1045,7 +1045,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.SPLIT,
-                        requestType: CONST.IOU.REQUEST_TYPE.SCAN,
                         transaction: splitTransaction,
                         transactions: [splitTransaction],
                         receiptFiles,
@@ -1057,7 +1056,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             // When the split is submitted
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1095,7 +1094,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.SPLIT,
-                        requestType: CONST.IOU.REQUEST_TYPE.SCAN,
                         transaction: splitTransaction,
                         transactions: [splitTransaction],
                         receiptFiles,
@@ -1107,7 +1105,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             // When the split is submitted
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
