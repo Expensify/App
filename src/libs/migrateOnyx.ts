@@ -1,7 +1,6 @@
 import CONST from '@src/CONST';
 
 import Log from './Log';
-import ConvertGpsPointsTo2DArray from './migrations/ConvertGpsPointsTo2DArray';
 import MoveFilesOutOfDocuments from './migrations/MoveFilesOutOfDocuments';
 import MoveSearchQueryByHashToSnapshots from './migrations/MoveSearchQueryByHashToSnapshots';
 import ReplaceShouldUseStagingServerWithActiveServer from './migrations/ReplaceShouldUseStagingServerWithActiveServer';
@@ -19,12 +18,7 @@ export default function () {
         });
 
         // Add all migrations to an array so they are executed in order
-        const migrationPromises: Array<() => Promise<void>> = [
-            ConvertGpsPointsTo2DArray,
-            MoveFilesOutOfDocuments,
-            ReplaceShouldUseStagingServerWithActiveServer,
-            MoveSearchQueryByHashToSnapshots,
-        ];
+        const migrationPromises: Array<() => Promise<void>> = [MoveFilesOutOfDocuments, ReplaceShouldUseStagingServerWithActiveServer, MoveSearchQueryByHashToSnapshots];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
         // previous promise to finish before moving onto the next one.
