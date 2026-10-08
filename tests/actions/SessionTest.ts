@@ -934,6 +934,17 @@ describe('Session', () => {
             makeRequestSpy.mockRestore();
         });
 
+        test('signInWithShortLivedAuthToken sends the current session authToken to the API as currentAuthToken', async () => {
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', 'existingSessionAuthToken', false, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(makeRequestSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', currentAuthToken: 'existingSessionAuthToken'}));
+
+            makeRequestSpy.mockRestore();
+        });
+
         test('signInWithShortLivedAuthToken does not wait on navigation when no exitTo is passed', async () => {
             const waitForProtectedRoutesSpy = jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
