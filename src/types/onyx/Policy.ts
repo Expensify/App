@@ -4219,17 +4219,19 @@ export type {
     CampfireExport,
     CampfireAutoSync,
     CampfireSync,
-    ZohoBooksConnectionsConfig,
-    ZohoBooksCoding,
     ZohoBooksExportDate,
     ZohoBooksVendor,
     ZohoBooksAccount,
-    ZohoBooksExport,
-    ZohoBooksAutoSync,
-    ZohoBooksSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
     BusinessCentralCustomerMappings,
     BusinessCentralExport,
     BusinessCentralCodingOfflineFeedbackKeys,
 };
+
+/**
+ * The Zoho Books action module is the only importer of these config types, and Knip ignores that module until workspace screens import it.
+ *
+ * @public
+ */
+export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksSync};
