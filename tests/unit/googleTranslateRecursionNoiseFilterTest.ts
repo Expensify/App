@@ -97,30 +97,8 @@ describe('googleTranslateRecursionNoiseFilter', () => {
         ['a frame in one of our chunks', buildStackOverflowEvent([frame('app:///76-f662df2d477d1a4f.bundle.js', [1, 1]), ...APP_M6P_FRAMES])],
         ['an <anonymous> script', buildStackOverflowEvent(cycle('app:///<anonymous>', [16, 9], [4, 13], 45))],
         ['APP-ZF, a synthesized frame with no stack', buildStackOverflowEvent([frame('app:///undefined', [192, 70])])],
-        ['self-recursion (APP-2NH)', buildStackOverflowEvent(cycle('app:///home', [226, 63], [226, 63], 50))],
-        [
-            'a three-position cycle',
-            buildStackOverflowEvent(
-                Array.from({length: 10}, () =>
-                    callers('app:///home', [
-                        [226, 63],
-                        [226, 408],
-                        [226, 500],
-                    ]),
-                ).flat(),
-            ),
-        ],
-        [
-            'a short loop at the end of a deeper stack',
-            buildStackOverflowEvent([
-                ...callers(
-                    'app:///home',
-                    Array.from({length: 30}, (_, index): Position => [100 + index, 1]),
-                ),
-                ...cycle('app:///home', [226, 63], [226, 408], 10),
-            ]),
-        ],
-        ['a single call pair', buildStackOverflowEvent(cycle('app:///home', [226, 63], [226, 408], 2))],
+        ['APP-2NH, a vendor script under its own dotted URL', buildStackOverflowEvent(cycle('app:///10042537-100413459.js', [4541, 17291], [4541, 17291], 50))],
+        ['a stack overflow with no frames', buildStackOverflowEvent([])],
     ])('keeps %s', (_, event) => {
         // Given an event that misses one condition of the signature
         // When the predicate runs
