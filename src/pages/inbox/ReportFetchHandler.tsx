@@ -478,13 +478,6 @@ function ReportFetchHandler() {
     // Record navigating away so the next openReport can clear a manual unread marker on the return trip. We flag
     // on blur (wide layout keeps the screen mounted) and on unmount / reportID change (narrow layout tears it
     // down). Staying in the report never flags it, so the user's marker is not wiped mid-session.
-    useEffect(() => {
-        if (!prevIsFocused || isFocused || isHiddenPreMount) {
-            return;
-        }
-        flagReportNavigatedAway(reportIDFromRoute);
-    }, [isFocused, prevIsFocused, reportIDFromRoute, isHiddenPreMount]);
-
     // A hidden pre-mount the user never saw, e.g. after a cancelled submit, was not navigated away from.
     const flagNavigatedAwayIfShown = useEffectEvent((navigatedAwayReportID: string | undefined) => {
         if (isHiddenPreMount) {
@@ -492,6 +485,13 @@ function ReportFetchHandler() {
         }
         flagReportNavigatedAway(navigatedAwayReportID);
     });
+
+    useEffect(() => {
+        if (!prevIsFocused || isFocused) {
+            return;
+        }
+        flagNavigatedAwayIfShown(reportIDFromRoute);
+    }, [isFocused, prevIsFocused, reportIDFromRoute]);
 
     useEffect(() => {
         return () => flagNavigatedAwayIfShown(reportIDFromRoute);

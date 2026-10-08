@@ -123,10 +123,10 @@ function useMarkAsRead({
     const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
     // A preloaded tab mounts this screen before the user opens it. Marking read assumes the user is looking,
     // so hold every readNewestAction until the tab is focused, which drops the preloaded flag.
-    const isInPreloadedTabContext = useIsInPreloadedTab();
+    const isInPreloadedTab = useIsInPreloadedTab();
     // A hidden wide submit pre-mount is held the same way until its reveal.
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
-    const isInPreloadedTab = isInPreloadedTabContext || isHiddenPreMount;
+    const isHiddenFromUser = isInPreloadedTab || isHiddenPreMount;
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -182,7 +182,7 @@ function useMarkAsRead({
 
     useEffect(() => {
         // Skip while preloaded without latching, so the effect re-runs and marks read once the tab is focused.
-        if (isInPreloadedTab) {
+        if (isHiddenFromUser) {
             return;
         }
 
@@ -203,7 +203,7 @@ function useMarkAsRead({
         // one-shot initial mark-as-read, and re-running it whenever the user scrolls or pagination state changes would
         // mark the report as read long after mount.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isInPreloadedTab, isReportUnreadValue, reportID, isReportActionsLoaded]);
+    }, [isHiddenFromUser, isReportUnreadValue, reportID, isReportActionsLoaded]);
 
     const didMarkOnReportChangeRef = useRef(false);
 
@@ -213,7 +213,7 @@ function useMarkAsRead({
         // Same hold as the initial pass: a preloaded tab can satisfy the visible+focus guard while hidden, and cached
         // actions make isReportActionsLoaded true, so without this it marks the report read before opening. The hold
         // sits below the reset so a held pass cannot leave a stale true behind for handleAppVisibilityMarkAsRead.
-        if (isInPreloadedTab) {
+        if (isHiddenFromUser) {
             return;
         }
 
@@ -245,11 +245,12 @@ function useMarkAsRead({
     });
 
     // Only re-run on newest-action changes; otherwise any report update can prematurely consume unread state.
-    // isInPreloadedTab is safe to add because it flips once, when the user opens the tab, and re-running there is the
-    // point: the pass held while preloaded is what clears a notification referrer and latches a skipped read.
+    // isHiddenFromUser is safe to add because it flips once, when the user opens the tab or sees the revealed
+    // pre-mount, and re-running there is the point: the held pass clears a notification referrer and latches a
+    // skipped read.
     useEffect(() => {
         handleReportChangeMarkAsRead();
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded, isInPreloadedTab]);
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded, isHiddenFromUser]);
 
     // isFocused is passed as an arg because the Effect Event closure can be stale (stuck true) on frozen screens,
     // re-marking a just-unread report as read on report switch

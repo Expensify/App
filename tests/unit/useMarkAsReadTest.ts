@@ -84,9 +84,14 @@ function PreloadedTabWrapper({children}: {children: React.ReactNode}) {
     return React.createElement(IsInPreloadedTabContext.Provider, {value: mockIsInPreloadedTab}, children);
 }
 
-function renderMarkAsRead(params: Partial<Parameters<typeof useMarkAsRead>[0]> = {}) {
+/** Renders with the hidden flag a wide submit pre-mount gets until its reveal, read again on every render. */
+function createHiddenPreMountWrapper(getIsHiddenPreMount: () => boolean) {
+    return ({children}: {children: React.ReactNode}) => React.createElement(IsHiddenWideTabPreMountContext.Provider, {value: getIsHiddenPreMount()}, children);
+}
+
+function renderMarkAsRead(params: Partial<Parameters<typeof useMarkAsRead>[0]> = {}, wrapper: React.ComponentType<{children: React.ReactNode}> = PreloadedTabWrapper) {
     return renderHook(
-        () =>
+        (props?: {report: OnyxTypes.Report}) =>
             useMarkAsRead({
                 reportID: REPORT_ID,
                 report: REPORT as OnyxEntry<OnyxTypes.Report>,
@@ -95,8 +100,9 @@ function renderMarkAsRead(params: Partial<Parameters<typeof useMarkAsRead>[0]> =
                 isScrolledToEnd: true,
                 hasNewerActions: false,
                 ...params,
+                ...props,
             }),
-        {wrapper: PreloadedTabWrapper},
+        {wrapper},
     );
 }
 
@@ -500,29 +506,10 @@ describe('useMarkAsRead', () => {
         const reportB = {reportID: 'B', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
 
         mockIsUnread = false;
-        const {rerender} = renderHook(
-            (props: {report: OnyxTypes.Report}) =>
-                useMarkAsRead({
-                    reportID: 'A',
-                    report: props.report as OnyxEntry<OnyxTypes.Report>,
-                    transactionThreadReport: undefined,
-                    sortedVisibleReportActions: [],
-                    isScrolledToEnd: true,
-                    hasNewerActions: false,
-                }),
-            {initialProps: {report: reportA}},
-        );
-        renderHook(
-            () =>
-                useMarkAsRead({
-                    reportID: 'B',
-                    report: reportB as OnyxEntry<OnyxTypes.Report>,
-                    transactionThreadReport: undefined,
-                    sortedVisibleReportActions: [],
-                    isScrolledToEnd: true,
-                    hasNewerActions: false,
-                }),
-            {wrapper: ({children}: {children: React.ReactNode}) => React.createElement(IsHiddenWideTabPreMountContext.Provider, {value: true}, children)},
+        const {rerender} = renderMarkAsRead({reportID: 'A', report: reportA});
+        renderMarkAsRead(
+            {reportID: 'B', report: reportB},
+            createHiddenPreMountWrapper(() => true),
         );
         readNewestAction.mockClear();
 
@@ -542,34 +529,15 @@ describe('useMarkAsRead', () => {
         let isHiddenPreMount = true;
 
         mockIsUnread = false;
-        const {rerender: rerenderA} = renderHook(
-            (props: {report: OnyxTypes.Report}) =>
-                useMarkAsRead({
-                    reportID: 'A',
-                    report: props.report as OnyxEntry<OnyxTypes.Report>,
-                    transactionThreadReport: undefined,
-                    sortedVisibleReportActions: [],
-                    isScrolledToEnd: true,
-                    hasNewerActions: false,
-                }),
-            {initialProps: {report: reportA}},
-        );
+        const {rerender: rerenderA} = renderMarkAsRead({reportID: 'A', report: reportA});
         mockIsUnread = true;
-        const {rerender: rerenderB} = renderHook(
-            () =>
-                useMarkAsRead({
-                    reportID: 'B',
-                    report: reportB as OnyxEntry<OnyxTypes.Report>,
-                    transactionThreadReport: undefined,
-                    sortedVisibleReportActions: [],
-                    isScrolledToEnd: true,
-                    hasNewerActions: false,
-                }),
-            {wrapper: ({children}: {children: React.ReactNode}) => React.createElement(IsHiddenWideTabPreMountContext.Provider, {value: isHiddenPreMount}, children)},
+        const {rerender: rerenderB} = renderMarkAsRead(
+            {reportID: 'B', report: reportB},
+            createHiddenPreMountWrapper(() => isHiddenPreMount),
         );
         expect(readNewestAction).not.toHaveBeenCalledWith('B', expect.anything());
 
-        // When the submit reveals B
+        // When the submit reveals B (the wrapper reads isHiddenPreMount again on rerenderB)
         isHiddenPreMount = false;
         rerenderB(undefined);
 

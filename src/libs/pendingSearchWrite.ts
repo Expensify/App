@@ -37,6 +37,14 @@ type PendingSearchWrite = {
     safetyTimeoutID: ReturnType<typeof setTimeout>;
 };
 
+type FlushHold = {
+    /** Ends the hold if nothing releases it first. */
+    timeoutID: ReturnType<typeof setTimeout>;
+
+    /** Generation of the write whose flush was requested during the hold, so the release cannot flush a newer write. */
+    requestedGeneration?: number;
+};
+
 let pending: PendingSearchWrite | undefined;
 let generationCounter = 0;
 
@@ -146,25 +154,22 @@ function restartPendingSearchWriteSafetyTimeoutForGeneration(generation: number)
 }
 
 /** Set while a revealed wide pre-mount slides the RHP out, so the write does not re-render the visible list mid-slide. */
-let flushHoldTimeoutID: ReturnType<typeof setTimeout> | undefined;
-// Generation of the write whose flush was requested during the hold, so the release cannot flush a newer write.
-let flushRequestedGenerationWhileHeld: number | undefined;
+let flushHold: FlushHold | undefined;
 
 /** Holds flushes until `releasePendingSearchWriteFlush`, or the safety timeout if the release never comes. */
 function holdPendingSearchWriteFlush() {
-    clearTimeout(flushHoldTimeoutID);
-    flushHoldTimeoutID = setTimeout(releasePendingSearchWriteFlush, SAFETY_TIMEOUT_MS);
+    clearTimeout(flushHold?.timeoutID);
+    flushHold = {timeoutID: setTimeout(releasePendingSearchWriteFlush, SAFETY_TIMEOUT_MS), requestedGeneration: flushHold?.requestedGeneration};
 }
 
 /** Ends the hold and runs a flush that was requested during it. */
 function releasePendingSearchWriteFlush() {
-    if (flushHoldTimeoutID === undefined) {
+    if (!flushHold) {
         return;
     }
-    clearTimeout(flushHoldTimeoutID);
-    flushHoldTimeoutID = undefined;
-    const requestedGeneration = flushRequestedGenerationWhileHeld;
-    flushRequestedGenerationWhileHeld = undefined;
+    clearTimeout(flushHold.timeoutID);
+    const {requestedGeneration} = flushHold;
+    flushHold = undefined;
     if (requestedGeneration === undefined || pending?.generation !== requestedGeneration) {
         return;
     }
@@ -176,8 +181,8 @@ function flushPendingSearchWrite() {
     if (!pending) {
         return;
     }
-    if (flushHoldTimeoutID !== undefined) {
-        flushRequestedGenerationWhileHeld = pending.generation;
+    if (flushHold) {
+        flushHold.requestedGeneration = pending.generation;
         return;
     }
 
@@ -215,9 +220,8 @@ function resetForTesting() {
     }
     pending = undefined;
     watchKey = undefined;
-    clearTimeout(flushHoldTimeoutID);
-    flushHoldTimeoutID = undefined;
-    flushRequestedGenerationWhileHeld = undefined;
+    clearTimeout(flushHold?.timeoutID);
+    flushHold = undefined;
 }
 
 export {
