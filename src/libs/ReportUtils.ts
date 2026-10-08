@@ -3767,16 +3767,19 @@ function excludeParticipantsForDisplay(
     });
 }
 
+/**
+ * Callers that pass `shouldExcludeDeleted` must pass `reportMetadata` too (see pendingChatMembersSelector),
+ * otherwise members pending removal are still listed. The other callers never read it.
+ */
 function getParticipantsAccountIDsForDisplay(
     report: OnyxEntry<Report>,
     shouldExcludeHidden = false,
     shouldExcludeDeleted = false,
     shouldForceExcludeCurrentUser = false,
-    reportMetadataParam?: OnyxEntry<ReportMetadata>,
+    reportMetadata?: OnyxEntry<ReportMetadata>,
     personalDetails: OnyxEntry<PersonalDetailsList> = getAllPersonalDetails(),
 ): number[] {
     const reportParticipants = report?.participants ?? {};
-    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
     let participantsEntries = Object.entries(reportParticipants);
 
     // We should not show participants that have an optimistic entry with the same login in the personal details
@@ -4622,6 +4625,10 @@ function getOldestUnreadMentionReportAction(
     return oldestUnreadMentionAction;
 }
 
+/**
+ * Callers must pass `optionReportMetadata` (see pendingExpenseActionSelector), otherwise a report whose approval is
+ * already pending in a dynamic external workflow still reports an approve action as required.
+ */
 function getReasonAndReportActionThatRequiresAttention(
     optionOrReport: OnyxEntry<Report> | OptionData,
     currentUserLogin: string,
@@ -4631,7 +4638,7 @@ function getReasonAndReportActionThatRequiresAttention(
     allReportActionsParam?: OnyxCollection<ReportActions>,
     reports?: OnyxCollection<Report>,
     policiesParam?: OnyxCollection<Policy>,
-    reportMetadataParam?: OnyxEntry<ReportMetadata>,
+    optionReportMetadata?: OnyxEntry<ReportMetadata>,
     cardList?: OnyxEntry<CardList>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
@@ -4677,7 +4684,6 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    const optionReportMetadata = reportMetadataParam ?? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
     // Prefer the policies collection callers already have on hand (e.g. reportAttributes.ts's own OnyxDerived
     // dependency) over the deprecated allPolicies module cache, which is populated by its own independently-timed
     // Onyx.connect and can still be stale/missing a policy that's already present in the caller's own snapshot.

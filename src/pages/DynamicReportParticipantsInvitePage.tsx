@@ -27,7 +27,7 @@ import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getGroupChatName} from '@libs/ReportNameUtils';
-import {canInviteMembersToReport, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import {canInviteMembersToReport, getParticipantsAccountIDsForDisplay, getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +37,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
+import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import React, {useEffect, useState} from 'react';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -52,9 +52,10 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true, false, reportMetadata);
     const [participantLogins = getEmptyArray<string>()] = usePersonalDetailsByIDs(participantAccountIDs, personalDetailsLoginsSelector(participantAccountIDs));
-    const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
+    const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
