@@ -25,6 +25,11 @@ type OnboardingTaskLinks = Partial<{
     workspaceConfirmationLink: string;
     testDriveURL: string;
     corporateCardLink: string;
+    companyDomain: string;
+    workEmail: string;
+    validateEmailLink: string;
+    workEmailLink: string;
+    joinWorkspaceLink: string;
 }>;
 
 type OnboardingTask = {
@@ -70,6 +75,24 @@ function buildOnboardingMessages(onboardingData: OnyxEntry<Onboarding>, locale?:
         autoCompleted: false,
         title: translate(resolvedLocale, 'onboarding.tasks.createReportTask.title'),
         description: translate(resolvedLocale, 'onboarding.tasks.createReportTask.description'),
+    };
+    const addWorkEmailTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL,
+        autoCompleted: false,
+        title: translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.title'),
+        description: ({workEmailLink}) => translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.description', {workEmailLink}),
+    };
+    const validateEmailTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL,
+        autoCompleted: false,
+        title: translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.title'),
+        description: ({validateEmailLink, workEmail}) => translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.description', {validateEmailLink, workEmail}),
+    };
+    const joinWorkspaceTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE,
+        autoCompleted: false,
+        title: translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.title'),
+        description: ({joinWorkspaceLink}) => translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.description', {joinWorkspaceLink}),
     };
     const testDriveAdminTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
@@ -248,8 +271,26 @@ function buildOnboardingMessages(onboardingData: OnyxEntry<Onboarding>, locale?:
         tasks: [testDriveAdminTask, createTestDriveAdminWorkspaceTask],
     };
 
+    const onboardingJoinWorkspaceAddWorkEmailMessage: OnboardingMessage = {
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceAddWorkEmailMessage'),
+        tasks: [addWorkEmailTask],
+    };
+    const onboardingJoinWorkspaceValidateEmailMessage: OnboardingMessage = {
+        message: ({companyDomain}) => translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceValidateEmailMessage', {companyDomain}),
+        tasks: [validateEmailTask],
+    };
+    const onboardingJoinWorkspaceMessage: OnboardingMessage = {
+        message: ({companyDomain, joinWorkspaceLink}) => translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceMessage', {companyDomain, joinWorkspaceLink}),
+        tasks: [joinWorkspaceTask],
+    };
+    const onboardingJoinWorkspaceEmptyMessage: OnboardingMessage = {
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceEmptyMessage'),
+        tasks: [],
+    };
+
     return {
         onboardingMessages: {
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: onboardingJoinWorkspaceAddWorkEmailMessage,
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
@@ -267,6 +308,12 @@ function buildOnboardingMessages(onboardingData: OnyxEntry<Onboarding>, locale?:
             [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
         } satisfies Record<ValueOf<typeof CONST.CREATE_EXPENSE_ONBOARDING_CHOICES>, OnboardingMessage>,
         testDrive,
+        joinWorkspaceMessages: {
+            addWorkEmail: onboardingJoinWorkspaceAddWorkEmailMessage,
+            validateEmail: onboardingJoinWorkspaceValidateEmailMessage,
+            joinWorkspace: onboardingJoinWorkspaceMessage,
+            empty: onboardingJoinWorkspaceEmptyMessage,
+        },
     };
 }
 

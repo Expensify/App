@@ -2701,6 +2701,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
         policy?.connections?.campfire?.config?.export?.exporter,
+        policy?.connections?.businessCentral?.config?.export?.exporter,
     ];
 }
 

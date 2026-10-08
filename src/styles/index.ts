@@ -3710,6 +3710,7 @@ const staticStyles = (theme: ThemeColors) =>
         // "View" action rendered as a Medium Link Button on the growl's inverse-colored surface.
         growlNotificationActionText: {
             color: theme.linkReversed,
+            textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
         },
 
         growlNotificationActionHovered: {
