@@ -4,7 +4,8 @@ import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
-import {format as formatNumber} from '@libs/NumberFormatUtils';
+import registerMiddlewares from '@libs/Middleware/register';
+import {format as formatNumber, formatToParts} from '@libs/NumberFormatUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 
@@ -32,6 +33,10 @@ import createMock from './createMock';
 import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
+
+// Every test that imports this module can make an API call without first calling setupApp(), so middlewares
+// must be registered here too. Idempotent, so this doesn't conflict with the appSetup() call inside setupApp().
+registerMiddlewares();
 
 type MockFetch = jest.Mock<ReturnType<typeof fetch>, Parameters<typeof fetch>> & {
     pause: () => void;
@@ -93,7 +98,6 @@ function setupApp(initialUrl = `https://new.expensify.com/${ROUTES.INBOX}`) {
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
         });
     });
 }
@@ -505,6 +509,26 @@ function convertToDisplayString(amountInCents: number | undefined, currencyCode:
     });
 }
 
+/**
+ * A local version of useCurrencyListActions().convertToDisplayStringWithoutCurrency for tests that call lib
+ * functions directly and need to inject the symbol-less formatter without the full app context.
+ */
+function convertToDisplayStringWithoutCurrency(amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = getCurrencyDecimalsLocal(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+    return formatToParts(CONST.LOCALES.EN, convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: 2,
+    })
+        .filter((x) => x.type !== 'currency')
+        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .map((x) => x.value)
+        .join('');
+}
+
 function getNavigateToChatHintRegex(): RegExp {
     const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
     return new RegExp(hintTextPrefix, 'i');
@@ -536,6 +560,7 @@ export {
     anyString,
     translateLocal,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     getCurrencyDecimalsLocal,
     getCurrencySymbolLocal,
     assertFormDataMatchesObject,

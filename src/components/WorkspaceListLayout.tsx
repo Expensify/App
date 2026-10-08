@@ -1,10 +1,14 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+
+import useDomainsTabBadge from '@pages/home/ForYouSection/useDomainsTabBadge';
 
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -12,6 +16,7 @@ import SCREENS from '@src/SCREENS';
 import React from 'react';
 import {View} from 'react-native';
 
+import {useDebugTabViewHeight} from './Navigation/DebugTabView';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from './Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
@@ -37,8 +42,10 @@ type WorkspaceListLayoutProps = {
 
 function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
+    const {pageGutterRight, pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
+    const {badgeText: domainsBadgeText, hasDomainErrors} = useDomainsTabBadge();
     const navigationOptions = [
         {
             key: 'workspaces',
@@ -53,6 +60,9 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
             icon: icons.Globe,
             route: ROUTES.DOMAINS_LIST.getRoute(),
             screenName: SCREENS.DOMAINS_LIST,
+            badgeText: domainsBadgeText,
+            isBadgeCondensed: true,
+            isBadgeError: hasDomainErrors,
         },
     ];
 
@@ -67,8 +77,9 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     };
 
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
+        <View style={[styles.flexRow, styles.justifyContentBetween, pageGutterRight, styles.pt1, styles.pb2]}>
             <TabSelectorBase
+                contentContainerStyles={pageGutter}
                 tabs={navigationOptions}
                 activeTabKey={activeTabKey}
                 onTabPress={onTabPress}
@@ -80,9 +91,11 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
 
 function WorkspaceListLayout({children, activeTabKey, headerButton, headerComponent, scrollHeaderWithTable = false}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const debugTabViewHeight = useDebugTabViewHeight();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const isWorkspacesListPage = activeTabKey === 'workspaces';
@@ -123,6 +136,12 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
 
                     {content}
                     {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
+                    {debugTabViewHeight > 0 && (
+                        <View
+                            style={StyleUtils.getHeight(debugTabViewHeight)}
+                            testID="DebugTabViewSpacer"
+                        />
+                    )}
                 </View>
             </View>
         </ScreenWrapper>

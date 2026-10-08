@@ -27,7 +27,6 @@ type EnterEmailProps = {
     /** Callback when the form is submitted */
     onSubmit: (values: EmailSubmitParams) => void;
 
-    /** Whether the user is a director */
     isUserDirector: boolean;
 
     /** Whether the page is in loading state or not */

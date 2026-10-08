@@ -1,4 +1,4 @@
-import {applyCompanyCardSavedColumnMappings, setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
+import {applyCompanyCardColumnMappings, setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -132,7 +132,7 @@ describe('ImportSpreadsheet', () => {
         });
     });
 
-    describe('applyCompanyCardSavedColumnMappings', () => {
+    describe('applyCompanyCardColumnMappings', () => {
         let mergedColumns: Record<number, string> | undefined;
 
         beforeEach(() => {
@@ -166,21 +166,32 @@ describe('ImportSpreadsheet', () => {
             CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID,
         ];
 
-        it('restores the saved mappings for regular roles', () => {
-            applyCompanyCardSavedColumnMappings(spreadsheetColumns, {cardNumber: '0', postedDate: '1', merchant: '2'}, availableRoles);
+        it('writes a role for every column, leaving the ones it cannot resolve as ignore', () => {
+            applyCompanyCardColumnMappings(spreadsheetColumns, {cardNumber: '0', postedDate: '1', merchant: '2'}, availableRoles);
 
             // Asserted as entries because integer-like object keys trip the naming-convention lint rule.
             expect(Object.entries(mergedColumns ?? {})).toEqual([
                 ['0', CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER],
                 ['1', CONST.CSV_IMPORT_COLUMNS.POSTED_DATE],
                 ['2', CONST.CSV_IMPORT_COLUMNS.MERCHANT],
+                ['3', CONST.CSV_IMPORT_COLUMNS.AMOUNT],
+                ['4', CONST.CSV_IMPORT_COLUMNS.CURRENCY],
+                ['5', CONST.CSV_IMPORT_COLUMNS.IGNORE],
             ]);
         });
 
         it('never restores a saved externalID mapping, which can point at the synthetic column rather than a real one', () => {
-            applyCompanyCardSavedColumnMappings(spreadsheetColumns, {cardNumber: '0', externalID: '5'}, availableRoles);
+            applyCompanyCardColumnMappings(spreadsheetColumns, {cardNumber: '0', externalID: '5'}, availableRoles);
 
-            expect(Object.entries(mergedColumns ?? {})).toEqual([['0', CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER]]);
+            // Column 5 is the saved externalID target, and it stays ignore for the user to map
+            expect(Object.entries(mergedColumns ?? {})).toEqual([
+                ['0', CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER],
+                ['1', CONST.CSV_IMPORT_COLUMNS.POSTED_DATE],
+                ['2', CONST.CSV_IMPORT_COLUMNS.MERCHANT],
+                ['3', CONST.CSV_IMPORT_COLUMNS.AMOUNT],
+                ['4', CONST.CSV_IMPORT_COLUMNS.CURRENCY],
+                ['5', CONST.CSV_IMPORT_COLUMNS.IGNORE],
+            ]);
         });
     });
 });

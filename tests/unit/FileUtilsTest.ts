@@ -5,12 +5,17 @@ import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
     appendTimeToFileName,
     canvasFallback,
+    createFile,
     getExportFileName,
+    getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
     isHighResolutionImage,
+    resizeImageIfNeeded,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
+import getImageManipulator from '@libs/fileDownload/getImageManipulator';
+import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 
@@ -21,6 +26,8 @@ import createMock from '../utils/createMock';
 
 jest.useFakeTimers();
 jest.mock('react-native-image-size');
+jest.mock('@libs/fileDownload/getImageManipulator', () => jest.fn());
+jest.mock('@libs/getPlatform', () => jest.fn());
 
 const createFileNameFromLength = ({length, extension}: {length: number; extension?: string | undefined}): string => `${'a'.repeat(length)}${extension ? `.${extension}` : ''}`;
 
@@ -42,6 +49,28 @@ describe('FileUtils', () => {
             const file = splitExtensionFromFileName('image');
             expect(file.fileName).toEqual('image');
             expect(file.fileExtension).toEqual('');
+        });
+    });
+
+    describe('getFileNameWithFallback', () => {
+        it('should return the given file name when there is one', () => {
+            expect(getFileNameWithFallback('statement.qfx', 'file:///tmp/other.csv', 'spreadsheet')).toEqual('statement.qfx');
+        });
+
+        it('should read the file name from the URI when the picker returns no name', () => {
+            expect(getFileNameWithFallback(null, 'file:///private/var/mobile/Containers/Data/Application/ABC/tmp/statement.qfx', 'spreadsheet')).toEqual('statement.qfx');
+        });
+
+        it('should decode the file name read from the URI and replace illegal characters', () => {
+            expect(getFileNameWithFallback(null, 'file:///tmp/bank%20statement%3A2026.qfx', 'spreadsheet')).toEqual('bank statement_2026.qfx');
+        });
+
+        it('should return the default file name when the URI has no extension either', () => {
+            expect(getFileNameWithFallback(null, 'content://com.android.providers.media.documents/document/12345', 'spreadsheet')).toEqual('spreadsheet');
+        });
+
+        it('should return the default file name when both the name and the URI are empty', () => {
+            expect(getFileNameWithFallback('', '', 'spreadsheet')).toEqual('spreadsheet');
         });
     });
 
@@ -495,6 +524,61 @@ describe('FileUtils', () => {
         /* eslint-enable no-bitwise */
     });
 
+    describe('createFile', () => {
+        afterEach(() => {
+            jest.mocked(getPlatform).mockReset();
+        });
+
+        it('should keep the uri when cloning a File on web', () => {
+            // Given a web File that carries a blob uri for previewing
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
+            const file = new File(['content'], 'image.jpeg', {type: 'image/jpeg'});
+            file.uri = 'blob:http://localhost/image';
+
+            const clonedFile = createFile(file);
+
+            // Then the clone keeps the uri, because attachment previews read it to display the image
+            expect(clonedFile).toBeInstanceOf(File);
+            expect(clonedFile).not.toBe(file);
+            expect(clonedFile.uri).toBe('blob:http://localhost/image');
+            expect(clonedFile.name).toBe('image.jpeg');
+            expect(clonedFile.type).toBe('image/jpeg');
+        });
+
+        it('should keep the uri when cloning a file on native', () => {
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+            const file = new File(['content'], 'image.jpeg', {type: 'image/jpeg'});
+            file.uri = 'file://image.jpeg';
+
+            const clonedFile = createFile(file);
+
+            expect(clonedFile).toEqual({uri: 'file://image.jpeg', name: 'image.jpeg', type: 'image/jpeg'});
+        });
+    });
+
+    describe('resizeImageIfNeeded', () => {
+        afterEach(() => {
+            jest.mocked(getPlatform).mockReset();
+            jest.mocked(getImageManipulator).mockReset();
+        });
+
+        it('should return a resized File with a uri on web when the image is larger than the max size', async () => {
+            // Given an image on web that is larger than the max attachment size, and an image manipulator that returns a File with a blob uri
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
+            jest.mocked(ImageSize.getSize).mockResolvedValue({width: 6000, height: 4000});
+            const resizedFile = new File(['resized'], 'large.jpeg', {type: 'image/jpeg'});
+            resizedFile.uri = 'blob:http://localhost/resized';
+            jest.mocked(getImageManipulator).mockResolvedValue(resizedFile);
+            const file = {uri: 'file://large.jpg', name: 'large.jpg', type: 'image/jpeg', size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1};
+
+            const result = await resizeImageIfNeeded(file);
+
+            // Then the result keeps the resized blob uri, so the attachment preview can load it instead of spinning forever
+            expect(result).toBeInstanceOf(File);
+            expect(result.uri).toBe('blob:http://localhost/resized');
+        });
+    });
+
     describe('isHighResolutionImage', () => {
         it('should return false when resolution is null', () => {
             expect(isHighResolutionImage(null)).toBe(false);
@@ -524,6 +608,23 @@ describe('FileUtils', () => {
 
             expect(result.title).toBe('attachmentPicker.attachmentError');
             expect(result.reason).toBe('attachmentPicker.imageDimensionsTooLarge');
+        });
+
+        it('should return the folder-specific error text for a single folder', () => {
+            const result = getFileValidationErrorText(mockTranslate, {error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED});
+
+            expect(result.title).toBe('attachmentPicker.attachmentError');
+            expect(result.reason).toBe('attachmentPicker.folderNotAllowedMessage');
+        });
+
+        it('should return the folder-specific error text when multiple items are selected', () => {
+            const result = getFileValidationErrorText(mockTranslate, {
+                error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED,
+                isValidatingMultipleFiles: true,
+            });
+
+            expect(result.title).toBe('attachmentPicker.someFilesCantBeUploaded');
+            expect(result.reason).toBe('attachmentPicker.folderNotAllowedMessage');
         });
 
         it('should return empty strings for null validation error', () => {

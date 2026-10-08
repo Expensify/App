@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -21,10 +22,11 @@ import type {OptionTree} from '@libs/OptionsListUtils/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data (GL code flags are trimmed from the snapshot).
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
@@ -39,6 +41,13 @@ type CategoryPickerProps = {
 
     /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
     shouldAutoFocusSearchInput?: boolean;
+
+    /**
+     * Reports how many rows the unfiltered list renders, for a pop-over wrapper to size itself from. The category
+     * count does not match: nested names add a row per parent, a selected out-of-policy category adds one, and
+     * the `Recent` and `All` headings add one each. Only reported unfiltered, so searching never resizes it.
+     */
+    onRenderedRowCountChange?: (rowCount: number) => void;
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -55,16 +64,27 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false, shouldAutoFocusSearchInput = false}: CategoryPickerProps) {
+function CategoryPicker({
+    selectedCategory,
+    policyID,
+    onSubmit,
+    shouldShowNoneOption = false,
+    addBottomSafeAreaPadding = false,
+    shouldAutoFocusSearchInput = false,
+    onRenderedRowCountChange,
+}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [shouldShowGLCode] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
+    const [shouldShowGLCode] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes,
     });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const {isOffline} = useNetwork();
+
+    // Backfill the policy's categories on demand so lazy-loaded accounts don't get stuck showing only the selected category.
+    const {isLoadingPolicyCategories} = useLoadPolicyCategories(policyID);
 
     const {translate, localeCompare} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -105,9 +125,23 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
     const sectionsWithNoneOption =
         noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
 
+    const sectionsWithTitleStyles = sectionsWithNoneOption.map((section) => ({...section, data: section.data.map((category) => ({...category, titleStyles: styles.w100}))}));
     const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
+    const renderedRowCount = sectionsWithNoneOption.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
+
+    useEffect(() => {
+        if (debouncedSearchValue) {
+            return;
+        }
+        onRenderedRowCountChange?.(renderedRowCount);
+    }, [renderedRowCount, debouncedSearchValue, onRenderedRowCountChange]);
+
     const categoriesCount = getEnabledCategoriesCount(categories);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
+
+    // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
+    // fallback. A draft collection is a complete local list, so it renders immediately rather than waiting on the read.
+    const isLoadingNewOptions = isLoadingPolicyCategories && policyCategoriesDraft === undefined;
 
     const textInputOptions = {
         value: searchValue,
@@ -122,15 +156,17 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
 
     return (
         <SelectionListWithSections
-            sections={sectionsWithNoneOption}
+            // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
+            // Otherwise the selected-only fallback row still shows while the fetch is in flight.
+            sections={isLoadingNewOptions ? getEmptyArray<never>() : sectionsWithTitleStyles}
             onSelectRow={onSubmit}
             ListItem={SingleSelectListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             textInputOptions={textInputOptions}
+            shouldShowLoadingPlaceholder={isLoadingNewOptions}
+            isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            style={{listItemTitleStyles: styles.w100}}
-            isRowMultilineSupported
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );

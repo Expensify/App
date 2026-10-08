@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
@@ -28,10 +28,7 @@ type EarlyDiscountBannerProps = {
     /** Whether the banner is being displayed on the subscription page. */
     isSubscriptionPage: boolean;
 
-    /** The Onboarding help dropdown button to display */
     onboardingHelpDropdownButton?: React.JSX.Element;
-
-    /** Function to trigger when the discount banner is dismissed */
     onDismissedDiscountBanner?: () => void;
 
     /** Has user active Schedule call with guide */

@@ -1,25 +1,25 @@
-import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import dismissOnboardingModalBeforeExit from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import SidePanelActions from '@userActions/SidePanel';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
 const ONBOARDING_POLICY_ID = '2';
 const REPORT_ID = '3';
 const USER_ID = '4';
-const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
+const mockFindLastAccessedReport = jest.fn<ReportUtils.LastAccessedReport | undefined, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn(() => false);
 const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
 
@@ -74,6 +74,11 @@ jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     default: () => mockShouldOpenOnAdminRoom(),
 }));
 
+jest.mock('@libs/Navigation/helpers/OnboardingNavigationUtils', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
     __esModule: true,
     default: () => mockIsReportTopmostSplitNavigator(),
@@ -106,6 +111,24 @@ describe('navigateAfterOnboarding', () => {
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
         // Without an admins chat report, we fall back to HOME to trigger guard evaluation instead of opening a report.
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+    });
+
+    it('should dismiss onboarding before navigating away from the final screen', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((navigationAction) => navigationAction());
+        let finishDismissal: (() => void) | undefined;
+        jest.mocked(dismissOnboardingModalBeforeExit).mockImplementation((afterTransition) => {
+            finishDismissal = afterTransition;
+        });
+
+        navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {});
+
+        expect(dismissOnboardingModalBeforeExit).toHaveBeenCalledTimes(1);
+        expect(navigate).not.toHaveBeenCalled();
+
+        finishDismissal?.();
+
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
@@ -172,7 +195,7 @@ describe('navigateAfterOnboarding', () => {
 
         navigateAfterOnboarding(true, true, '', reportNameValuePairs, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
-        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, reportNameValuePairs);
+        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, undefined, false, undefined, reportNameValuePairs);
     });
 
     it('should navigate to Concierge room if user uses a test email', () => {
@@ -190,5 +213,66 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE});
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+    });
+
+    it('should land on Home instead of the admin room for the homePageNoRHP variant', () => {
+        // Given an admin whose #admins room exists, which the control and inboxAdminsBespoke arms open after onboarding
+        const navigate = jest.spyOn(Navigation, 'navigate');
+
+        // When onboarding finishes with the homePageNoRHP arm of the experiment
+        navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP});
+
+        // Then the user starts on Home, so Home's Getting started is the only onboarding surface they see
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+    });
+
+    it.each([CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL, CONST.ONBOARDING_COMPANY_SIZE.SMALL, CONST.ONBOARDING_COMPANY_SIZE.LARGE])(
+        'should land on Home without opening the side panel at company size %s for the homePageNoRHP variant',
+        async (companySize) => {
+            // Given a new account at a company size that decides whether the older RHP arms open the side panel
+            const navigate = jest.spyOn(Navigation, 'navigate');
+            const openSidePanel = jest.spyOn(SidePanelActions, 'openSidePanel');
+            await Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, companySize);
+
+            // When onboarding finishes with the homePageNoRHP arm
+            navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP});
+            await waitForBatchedUpdates();
+
+            // Then the arm behaves the same at every company size: Home, and the side panel is never opened
+            expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+            expect(openSidePanel).not.toHaveBeenCalled();
+            const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
+            expect(sidePanel?.open).toBeFalsy();
+            expect(sidePanel?.openNarrowScreen).toBeFalsy();
+        },
+    );
+
+    it('should keep a report that is already on top for the homePageNoRHP variant', async () => {
+        // Given a report is already showing, which the other paths that end on Home also leave in place
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        const openSidePanel = jest.spyOn(SidePanelActions, 'openSidePanel');
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        // When onboarding finishes with the homePageNoRHP arm
+        navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP});
+        await waitForBatchedUpdates();
+
+        // Then the report stays where it is, and the side panel is not opened over it
+        expect(navigate).not.toHaveBeenCalled();
+        expect(openSidePanel).not.toHaveBeenCalled();
+    });
+
+    it('should use the stored homePageNoRHP variant when the onboarding response does not carry one', async () => {
+        // Given the variant was saved to Onyx earlier and the completion response has no variant of its own
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP);
+
+        // When onboarding finishes without a variant override
+        navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+
+        // Then the stored variant still applies and the user lands on Home rather than the admin room
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
 });

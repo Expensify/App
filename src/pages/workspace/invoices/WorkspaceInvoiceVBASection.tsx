@@ -3,6 +3,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,6 +11,7 @@ import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
@@ -51,6 +53,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
     const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -83,7 +86,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {isForcedToChangeCurrency: true}));
     }, [policy]);
 
     /**
@@ -148,6 +151,16 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         }
     };
 
+    const continueAddBankAccountFlow = () => {
+        if (hasValidExistingAccounts && !shouldShowContinueModal) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)));
+            return;
+        }
+        navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
+    };
+
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => continueAddBankAccountFlow());
+
     const onAddBankAccountPress = () => {
         if (!canWriteMoreFeatures) {
             showReadOnlyModal();
@@ -173,11 +186,12 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
             return;
         }
 
-        if (hasValidExistingAccounts && !shouldShowContinueModal) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)));
+        if (!isUserValidated) {
+            verifyAccountAndResume(undefined);
             return;
         }
-        navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
+
+        continueAddBankAccountFlow();
     };
 
     const threeDotsMenuItems = useMemo(() => {
@@ -268,14 +282,13 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
                 onPress={onBankAccountRowPressed}
                 onAddBankAccountPress={onAddBankAccountPress}
                 onThreeDotsMenuPress={paymentMethodPressed}
-                shouldSkipDefaultAccountValidation={!canWriteMoreFeatures || !isSupportedGlobalReimbursement}
+                shouldSkipDefaultAccountValidation
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
                 threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
                 addBankAccountItemStyle={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
-                style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
-                listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                policyID={policyID}
+                style={[styles.mt5, cardEdgeToEdge]}
+                listItemStyle={cardPaddingHorizontal}
                 filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
             />
         </Section>

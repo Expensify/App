@@ -6,7 +6,7 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import React from 'react';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import FixedFooter from './FixedFooter';
 

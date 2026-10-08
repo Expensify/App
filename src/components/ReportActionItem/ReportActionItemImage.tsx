@@ -57,10 +57,9 @@ type ReportActionItemImageProps = {
     /** URI for the image or local numeric reference for the image  */
     image?: string | number;
 
-    /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
 
-    /* The transaction associated with this image, if any. Passed for handling eReceipts. */
+    /** The transaction associated with this image, if any. Passed for handling eReceipts */
     transaction?: OnyxEntry<Transaction>;
 
     /** whether thumbnail is refer the local file or not */
@@ -209,6 +208,8 @@ function ReportActionItemImage({
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
             isAuthTokenRequired: false,
             source: shouldUseThumbnailImage ? (effectiveThumbnail ?? effectiveImage ?? '') : originalImageSource,
+            fallbackIcon: icons.Receipt,
+            fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
 
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,

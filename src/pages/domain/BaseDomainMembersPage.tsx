@@ -4,6 +4,7 @@ import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -17,19 +18,16 @@ import {View} from 'react-native';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainMembersPageProps = {
-    /** The ID of the domain used for the not found wrapper */
     domainAccountID: number;
 
     /** The list of members to display in the table */
     members: DomainMemberRowData[];
 
-    /** The title of the header */
     headerTitle: string;
 
     /** Content to display in the header (e.g., Add/Settings buttons) */
     headerContent?: React.ReactNode;
 
-    /** Stores list of selected members */
     selectedMembers?: string[];
 
     /** Setter for a list of selected members */
@@ -38,7 +36,6 @@ type BaseDomainMembersPageProps = {
     /** Whether the selection mode header should be shown (changes title and hides icon) */
     useSelectionModeHeader?: boolean;
 
-    /** Custom back button press handler */
     onBackButtonPress?: () => void;
 
     /** Filter configuration for the group filter dropdown */
@@ -47,7 +44,6 @@ type BaseDomainMembersPageProps = {
     /** Callback to determine whether a member matches the active group filter */
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
 
-    /** Whether the group filter should be shown */
     shouldShowGroupFilter: boolean;
 
     /** Whether the group column should be shown in the table */
@@ -70,6 +66,7 @@ function BaseDomainMembersPage({
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
@@ -90,7 +87,7 @@ function BaseDomainMembersPage({
                 >
                     {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={pageGutter}>{headerContent}</View>}
                 <DomainMembersTable
                     domainAccountID={domainAccountID}
                     members={members}

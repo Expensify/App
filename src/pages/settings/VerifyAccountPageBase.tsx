@@ -28,12 +28,15 @@ type VerifyAccountPageBaseProps = {
     handleClose?: () => void;
     /** Callback called ONLY when user successfully validates their account (not on dismiss/back) */
     onValidationSuccess?: () => void;
+
+    /** Whether to display a close button instead of the default back button. */
+    shouldShowCloseButton?: boolean;
 };
 
 /**
  * This is a base page as RHP for account verification. The back & forward url logic should be handled on per case basis in higher component.
  */
-function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, onValidationSuccess}: VerifyAccountPageBaseProps) {
+function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, onValidationSuccess, shouldShowCloseButton = false}: VerifyAccountPageBaseProps) {
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -110,12 +113,14 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
             descriptionSecondary={translate('contacts.enterSecurityCode', contactMethod)}
             sendValidateCode={sendValidateCode}
+            validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}
             validateCodeActionErrorField="validateLogin"
             validatePendingAction={loginData?.pendingFields?.validateCodeSent}
             handleSubmitForm={handleSubmitForm}
             validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
             clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
             onClose={handleCloseWithFallback}
+            shouldShowCloseButton={shouldShowCloseButton}
         />
     );
 }

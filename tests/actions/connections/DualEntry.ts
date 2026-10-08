@@ -8,7 +8,6 @@ import {
     updateDualEntryCreditCardAccount,
     updateDualEntryDefaultVendor,
     updateDualEntryEnableNewCategories,
-    updateDualEntryExpensifyCardAccount,
     updateDualEntryExportDate,
     updateDualEntryExporter,
     updateDualEntryFieldMapping,
@@ -342,42 +341,6 @@ describe('actions/connections/DualEntry', () => {
             );
             expect(getFirstWriteOnyxData()).toMatchObject({
                 optimisticData: [{key: POLICY_KEY, value: {connections: {dualEntry: {config: {export: {[CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID]: 'account-1'}}}}}}],
-            });
-        });
-    });
-
-    describe('updateDualEntryExpensifyCardAccount', () => {
-        it('writes the Expensify Card account command, mapping the value to the creditCardAccountID param', () => {
-            // Given a policy whose Expensify Card export currently uses an old account
-
-            // When a specific Expensify Card account is selected
-            updateDualEntryExpensifyCardAccount(MOCK_POLICY_ID, 'account-1', 'old-account');
-
-            // Then the value is sent under the `creditCardAccountID` param key (the backend reuses that key for the Expensify Card account) and the export config optimistically shows the selected account
-            expect(writeSpy).toHaveBeenCalledWith(
-                WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT,
-                expect.objectContaining({policyID: MOCK_POLICY_ID, creditCardAccountID: 'account-1'}),
-                expect.anything(),
-            );
-            expect(getFirstWriteOnyxData()).toMatchObject({
-                optimisticData: [{key: POLICY_KEY, value: {connections: {dualEntry: {config: {export: {[CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID]: 'account-1'}}}}}}],
-            });
-        });
-
-        it('optimistically stores an empty string when the custom override is cleared', () => {
-            // Given a policy with a custom Expensify Card account override in place
-
-            // When the override is cleared (the user picks the default account, sending an empty string)
-            updateDualEntryExpensifyCardAccount(MOCK_POLICY_ID, '', 'account-1');
-
-            // Then an empty string is sent and stored optimistically, which is the "cleared" marker the display logic falls back on to show the company-card account
-            expect(writeSpy).toHaveBeenCalledWith(
-                WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT,
-                expect.objectContaining({policyID: MOCK_POLICY_ID, creditCardAccountID: ''}),
-                expect.anything(),
-            );
-            expect(getFirstWriteOnyxData()).toMatchObject({
-                optimisticData: [{key: POLICY_KEY, value: {connections: {dualEntry: {config: {export: {[CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID]: ''}}}}}}],
             });
         });
     });

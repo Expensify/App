@@ -1,7 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -147,24 +147,19 @@ function WorkspaceCompanyCardsSettingsPage({
                 >
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={feedName}
-                            description={translate('workspace.moreFeatures.companyCards.cardFeedName')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
+                        <MenuItemField
+                            value={feedName}
+                            name={translate('workspace.moreFeatures.companyCards.cardFeedName')}
                             onPress={navigateToChangeFeedName}
                         />
                         <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={statementCloseDate?.toString()}
-                                description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
+                            <MenuItemField
+                                value={statementCloseDate?.toString()}
+                                name={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
                                 onPress={navigateToChangeStatementCloseDate}
-                                brickRoadIndicator={selectedFeedData?.errorFields?.statementPeriodEndDay ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
+                            >
+                                {!!selectedFeedData?.errorFields?.statementPeriodEndDay && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                         <View style={[styles.mv3, styles.mh5]}>
                             <ToggleSettingOptionRow
@@ -177,10 +172,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
                         {isDirectFeedType && (
-                            <MenuItem
-                                icon={icons.Sync}
-                                title={translate('workspace.companyCards.assignNewCards.title')}
-                                description={translate('workspace.companyCards.assignNewCards.description')}
+                            <MenuItem.Root
                                 onPress={() => {
                                     if (!isUserValidated) {
                                         verifyAccountAndResume(undefined);
@@ -188,7 +180,17 @@ function WorkspaceCompanyCardsSettingsPage({
                                     }
                                     refreshCardFeed();
                                 }}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={icons.Sync} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('workspace.companyCards.assignNewCards.title')}</MenuItem.Title>
+                                        <MenuItem.Description>{translate('workspace.companyCards.assignNewCards.description')}</MenuItem.Description>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         )}
                         {isCsvFeed && (
                             <MenuItemAction

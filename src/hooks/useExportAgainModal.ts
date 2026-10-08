@@ -30,6 +30,18 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
         if (!integrationForExport) {
             return;
         }
+
+        // "Mark as exported" only logs a per-report exported action through MarkAsExported and never pushes data
+        // into the external accounting company, so an already-exported report is simply re-marked. The
+        // "export again" copy would wrongly warn that the report is about to be exported to e.g. QuickBooks Online.
+        if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+            if (!reportID) {
+                return;
+            }
+            markAsManuallyExported([reportID], integrationForExport, policy);
+            return;
+        }
+
         const connectionNameFriendly = getAccountingIntegrationDisplayName(policy, integrationForExport, translate);
 
         showConfirmModal({
@@ -45,11 +57,7 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
             if (result.action !== ModalActions.CONFIRM || !reportID) {
                 return;
             }
-            if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, integrationForExport, policy);
-            } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], integrationForExport, policy);
-            }
+            exportToIntegration(reportID, integrationForExport, policy);
         });
     };
 

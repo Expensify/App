@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative, shift click, select range of expenses, shift+click, select a range, select multiple expenses at once]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -57,19 +57,20 @@ Each row represents an expense and includes:
   - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
   - **Delete:** To remove expenses from the expense report.
 
-**Note:** The bulk action menu appears after selecting at least one expense.
+**Note:** The selection bar appears after selecting at least one expense.
 
 ## How to move expenses between reports
 
 **From the report table**
 
 1. Select the expense(s) using checkboxes.
-2. Click **Move to report** from the bulk action menu.
-3. In the right-hand panel, select from the following options:
+2. On the selection bar, choose **More**.
+3. Select **Move to report**.
+4. In the right-hand panel, select from the following options:
    - Create report
-   - An existing draft report
+   - An existing draft or submitted report
    - Remove from report 
-4. The expenses are moved. A system message records the move when the expense leaves a submitted report or is removed from a report. Moving expenses between draft reports does not add a system message.
+5. The expenses are moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
 
 **From the expense details**
 
@@ -77,9 +78,9 @@ Each row represents an expense and includes:
 2. Click **Move to report** from the bulk action menu.
 3. In the right-hand panel, select from the following options:
    - Create report
-   - An existing draft report
+   - An existing draft or submitted report
    - Remove from report 
-4. The expense is moved. A system message records the move when the expense leaves a submitted report or is removed from a report. Moving expenses between draft reports does not add a system message.
+4. The expense is moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
 
 ## How to add a new expense to the table
 - The expense appears in the table.  
@@ -96,6 +97,8 @@ The **Spend** page footer shows the **Total spend** for what you're viewing. Whe
 
 - **Total spend:** the combined amount, shown with a currency code. With nothing selected, this covers the whole search result; when you select rows, it covers just your selection.
 - **Expenses:** the number of expenses currently selected (shown when you've made a selection).
+
+Credits and refunds are negative amounts, so they reduce the **Total spend** instead of adding to it. If you select a $100 expense and a -$100 credit, the **Total spend** reads $0.00.
 
 The total is shown in your default currency until you choose a different one.
 
@@ -121,6 +124,54 @@ The currency picker can't be opened in these cases:
 
 - You're offline, because converting the total requires a refresh from Expensify.
 - The totals are still loading.
+
+---
+
+## How to sort the Amount column on the Spend page
+
+On a wide screen:
+
+1. On the **Spend** page, select **Expenses**.
+2. Click the **Amount** column header to sort from largest to smallest.
+3. Click the **Amount** column header again to reverse the order.
+
+On mobile, or in a narrow browser window, the column headers aren't shown, so sort from the **Display** menu instead:
+
+1. On the **Spend** page, select **Expenses**.
+2. Tap the **Display** icon.
+3. Tap **Sort by**, select **Amount**, then tap **Apply**.
+4. To change the direction, tap the **Display** icon again, tap **Sort by**, tap **Sort order**, select **Descending** (largest to smallest) or **Ascending** (smallest to largest), then tap **Apply**.
+
+The **Amount** column is only sortable when your results are shown as a table. When you group your results, this column reads **Total** instead of **Amount**.
+
+## How to select a range of expenses with Shift+click on the Spend page
+
+Web:
+
+1. On the **Spend** page, open a list of expenses or reports, such as **Expenses** or **Reports**, or open a report to see its list of expenses.
+2. Click the checkbox next to the first item you want to select.
+3. Hold **Shift** and click the checkbox next to the last item.
+
+Everything between the two checkboxes is selected. To adjust the range, hold **Shift** and click a different checkbox.
+
+- Group header checkboxes and the **Select all** checkbox work as usual, even while you hold **Shift**. They don't select a range.
+- After you check a group's header, Shift+click the checkbox of an expense in that group to keep only the expenses from the top of the group down to that one.
+- After you check **Select all**, or choose **Select all on this page**, Shift+click a row's checkbox to keep only the rows from the top of the list down to that one. Groups that are collapsed stay selected.
+- When there are more results than fit on the page, the **Select all** checkbox opens a menu. If you choose **Select all** there, every matching item is selected, and Shift+click doesn't narrow that selection.
+- When your results are grouped, a range only includes expenses in groups that are expanded.
+- In **Reports**, a range selects whole reports. To select a range of expenses inside a report, open the report.
+- Items that can't be selected, such as expenses being deleted, are skipped.
+
+This feature is not available on mobile.
+
+## How negative amounts sort in the Amount column on the Spend page
+
+The **Amount** column sorts by the signed value each row displays, not by its size. Because credits and refunds are negative amounts:
+
+- Sorting from largest to smallest puts every negative amount below every positive amount, ordered -$1, -$2, -$3 going down.
+- Sorting from smallest to largest puts every negative amount above every positive amount.
+
+A -$4,000 credit therefore sorts below a $10 expense rather than next to a $4,000 expense.
 
 ---
 

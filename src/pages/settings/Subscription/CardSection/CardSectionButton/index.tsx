@@ -1,8 +1,8 @@
-import Button from '@components/ButtonComposed';
-import type {ButtonProps} from '@components/ButtonComposed';
-import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
-import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
-import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
+import Button from '@components/Button';
+import type {ButtonProps} from '@components/Button';
+import ButtonIcon from '@components/Button/primitives/ButtonIcon';
+import ButtonKeyboardShortcut from '@components/Button/primitives/ButtonKeyboardShortcut';
+import ButtonText from '@components/Button/primitives/ButtonText';
 
 function CardSectionButtonBase(props: ButtonProps) {
     return <Button {...props} />;

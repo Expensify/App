@@ -23,6 +23,7 @@ const useConfirmModal = () => {
     return {
         ...context,
         closeModal: () => context.closeModal(),
+        closeModalByID: (id: string) => context.closeModalByID(id),
         showConfirmModal,
     };
 };

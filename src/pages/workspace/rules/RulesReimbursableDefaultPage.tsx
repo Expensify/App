@@ -1,11 +1,10 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -31,8 +30,6 @@ function RulesReimbursableDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const {isBetaEnabled} = usePermissions();
-    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy);
 
@@ -77,10 +74,7 @@ function RulesReimbursableDefaultPage({
                 shouldEnableMaxHeight
                 testID="RulesReimbursableDefaultPage"
             >
-                <HeaderWithBackButton
-                    title={translate(isRevamp ? 'workspace.rules.generalTab.cashExpenses' : 'workspace.rules.individualExpenseRules.cashExpenseDefault')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.cashExpenses')} />
                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.cashExpenseDefaultDescription')}</Text>
                 </Text>
