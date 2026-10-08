@@ -31,8 +31,6 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
         return false;
     }
 
-    // If URLSearchParams didn't find it (e.g. transitionURL is a full URL which
-    // mangles the first query-param key), fall back to regex
     const linkedDelegatorEmail = getDelegatorEmailFromURL(transitionURL) ?? null;
 
     return linkedEmail !== sessionEmail && linkedDelegatorEmail !== sessionEmail;
