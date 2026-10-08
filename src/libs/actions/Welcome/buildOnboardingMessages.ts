@@ -53,10 +53,6 @@ type OnboardingMessage = {
     type?: string;
 };
 
-/**
- * Builds the onboarding messages and tasks for each engagement choice.
- * `onboardingData` only affects the Manage team message (whether the guided setup flow was completed).
- */
 function buildOnboardingMessages(onboardingData: OnyxEntry<Onboarding>, locale?: Locale) {
     const resolvedLocale = locale ?? IntlStore.getCurrentLocale();
     const testDrive = {
@@ -317,5 +313,16 @@ function buildOnboardingMessages(onboardingData: OnyxEntry<Onboarding>, locale?:
     };
 }
 
+type OnboardingMessages = ReturnType<typeof buildOnboardingMessages>;
+
+type OnboardingMessagesWithoutManageTeam = Omit<OnboardingMessages, 'onboardingMessages'> & {
+    onboardingMessages: Omit<OnboardingMessages['onboardingMessages'], typeof CONST.ONBOARDING_CHOICES.MANAGE_TEAM>;
+};
+
+function buildOnboardingMessagesWithoutManageTeam(locale?: Locale): OnboardingMessagesWithoutManageTeam {
+    return buildOnboardingMessages(undefined, locale);
+}
+
 export default buildOnboardingMessages;
+export {buildOnboardingMessagesWithoutManageTeam};
 export type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTask, OnboardingTaskLinks};
