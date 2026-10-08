@@ -11,6 +11,9 @@ const PAGE_URL_FILENAME = /^app:\/\/\/[^./<]*$/;
 /** Synthesized by the SDK for an `onerror` event with no stack (APP-ZF), which cannot be told apart from a real error. */
 const SYNTHESIZED_FILENAME = 'app:///undefined';
 
+/** Translate's loop sits on this line in every recorded build (APP-M6P, APP-KQF, APP-M27, APP-MTE). `web/index.html` is shorter, so none of its inline scripts can reach it. */
+const TRANSLATE_LOOP_LINE = 226;
+
 function isPageUrlFrame({filename = ''}: StackFrame): boolean {
     return PAGE_URL_FILENAME.test(filename) && filename !== SYNTHESIZED_FILENAME;
 }
@@ -18,7 +21,8 @@ function isPageUrlFrame({filename = ''}: StackFrame): boolean {
 /**
  * True for the Google Translate stack overflow from https://github.com/Expensify/App/issues/102044: Chrome iOS
  * injects Translate twice and two of its functions call each other until the stack overflows. Requires a
- * third-party tag, a single stack-overflow `RangeError`, and only page-URL frames.
+ * third-party tag, a single stack-overflow `RangeError`, only page-URL frames, and the innermost frame on
+ * Translate's loop line. A Translate build that moves the loop fails open and shows up as a new Sentry issue.
  */
 function isGoogleTranslateRecursionNoise(event: Event): boolean {
     if (event.tags?.[THIRD_PARTY_CODE_TAG] !== true) {
@@ -36,7 +40,7 @@ function isGoogleTranslateRecursionNoise(event: Event): boolean {
     }
 
     const frames = exception.stacktrace?.frames ?? [];
-    return frames.length > 0 && frames.every(isPageUrlFrame);
+    return frames.at(-1)?.lineno === TRANSLATE_LOOP_LINE && frames.every(isPageUrlFrame);
 }
 
 /** Must run after `thirdPartyErrorFilterIntegration`, which writes the tag this reads. */

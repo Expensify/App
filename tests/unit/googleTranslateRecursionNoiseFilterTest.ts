@@ -99,6 +99,7 @@ describe('googleTranslateRecursionNoiseFilter', () => {
         ['APP-ZF, a synthesized frame with no stack', buildStackOverflowEvent([frame('app:///undefined', [192, 70])])],
         ['APP-2NH, a vendor script under its own dotted URL', buildStackOverflowEvent(cycle('app:///10042537-100413459.js', [4541, 17291], [4541, 17291], 50))],
         ['a stack overflow with no frames', buildStackOverflowEvent([])],
+        ['an inline page script, such as the GTM loader', buildStackOverflowEvent(cycle('app:///home', [164, 20], [164, 90], 45))],
     ])('keeps %s', (_, event) => {
         // Given an event that misses one condition of the signature
         // When the predicate runs
