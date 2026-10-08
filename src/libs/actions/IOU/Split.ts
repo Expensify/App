@@ -161,8 +161,6 @@ type CreateDistanceRequestInformation = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-
-    // Expenses currently on `report`, used to detect the 1→2 transaction transition for the pending-new-transaction highlight.
     moneyRequestReportTransactions: OnyxTypes.Transaction[];
 };
 

@@ -117,7 +117,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     participantsPolicyTags: ParticipantsPolicyTags;
     rules: OnyxCollection<Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    // Expenses currently on `report`, used to detect the 1→2 transaction transition for the pending-new-transaction highlight.
     moneyRequestReportTransactions: Transaction[];
 };
 
