@@ -8,6 +8,8 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -53,6 +55,8 @@ function AddressBusiness({onNext, onMove, isEditing, onAddressSubmit}: AddressBu
         shouldSaveDraft: isEditing,
     });
     const handleSubmit = onAddressSubmit ?? handleStepSubmit;
+    const isSavingAddress = !!onAddressSubmit && (reimbursementAccount?.isLoading ?? false);
+    const addressSaveError = onAddressSubmit ? getLatestErrorMessage(reimbursementAccount ?? {}) : undefined;
 
     if (isLoadingReimbursementAccount) {
         return (
@@ -76,6 +80,8 @@ function AddressBusiness({onNext, onMove, isEditing, onAddressSubmit}: AddressBu
             defaultValues={defaultValues}
             shouldAllowCountryChange={false}
             streetTranslationKey="common.companyAddress"
+            isLoading={isSavingAddress}
+            additionalServerErrorMessage={addressSaveError}
         />
     );
 }

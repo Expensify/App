@@ -82,10 +82,6 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
     const policyID = reimbursementAccount?.achData?.policyID;
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const isAddressOnlySaveAndExitRef = useRef(false);
-    const afterReimbursementAccountSubmitRef = useRef<() => void>(() => {});
-    const onReimbursementAccountSettledRef = useRef(() => {
-        afterReimbursementAccountSubmitRef.current();
-    });
 
     const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
@@ -116,7 +112,24 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
         [policyID, backTo],
     );
 
-    const markSubmitting = useReimbursementAccountSubmitCallback(onReimbursementAccountSettledRef.current);
+    const exitAfterAddressSave = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(ROUTES.HOME);
+    }, [backTo]);
+
+    const onReimbursementAccountSubmit = useCallback(() => {
+        if (isAddressOnlySaveAndExitRef.current) {
+            isAddressOnlySaveAndExitRef.current = false;
+            exitAfterAddressSave();
+            return;
+        }
+        onSubmit?.();
+    }, [exitAfterAddressSave, onSubmit]);
+
+    const markSubmitting = useReimbursementAccountSubmitCallback(onReimbursementAccountSubmit);
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
         pages,
@@ -129,26 +142,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
         buildRoute,
     });
 
-    const isAddressOnlySaveAndExit =
-        backTo === ROUTES.HOME &&
-        currentPageName === SUB_PAGE_NAMES.ADDRESS &&
-        reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
-
-    const exitAfterAddressSave = () => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.goBack(ROUTES.HOME);
-    };
-
-    afterReimbursementAccountSubmitRef.current = () => {
-        if (isAddressOnlySaveAndExitRef.current) {
-            exitAfterAddressSave();
-            return;
-        }
-        onSubmit?.();
-    };
+    const isAddressOnlySaveAndExit = backTo === ROUTES.HOME && currentPageName === SUB_PAGE_NAMES.ADDRESS && reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     const handleAddressOnlySubmit = (addressValues: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
         isAddressOnlySaveAndExitRef.current = true;
@@ -168,6 +162,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
             },
             policyID,
             false,
+            true,
         );
         markSubmitting();
     };

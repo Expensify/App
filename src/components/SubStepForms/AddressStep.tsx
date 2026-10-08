@@ -75,6 +75,12 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProp
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */
         shouldShowPatriotActLink?: boolean;
+
+        /** Shows a loading state on the submit button while an external save is in progress */
+        isLoading?: boolean;
+
+        /** Server error from outside the form (e.g. reimbursement account save failures) */
+        additionalServerErrorMessage?: string;
     };
 
 type AddressStepPropsWidened = Omit<AddressStepProps<keyof OnyxFormValuesMapping>, never>;
@@ -104,6 +110,8 @@ function AddressStepImpl({
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
     shouldShowPatriotActLink = false,
+    isLoading = false,
+    additionalServerErrorMessage,
     forwardedFSClass,
 }: AddressStepPropsWidened) {
     const {translate} = useLocalize();
@@ -163,6 +171,8 @@ function AddressStepImpl({
             style={[styles.mh5, styles.flexGrow1]}
             ref={formRef}
             enabledWhenOffline
+            isLoading={isLoading}
+            additionalServerErrorMessage={additionalServerErrorMessage}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>

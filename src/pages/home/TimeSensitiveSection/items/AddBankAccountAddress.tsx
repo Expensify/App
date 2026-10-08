@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 type AddBankAccountAddressProps = {
     /** The ID of the bank account missing an address */
@@ -43,31 +43,86 @@ type PendingWorkspaceNavigation = {
     bankAccountID: number;
 };
 
-function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, policyName, additionalData}: AddBankAccountAddressProps) {
+type WidgetCopyProps = {
+    title: string;
+    subtitle: string;
+    ctaText: string;
+    onCtaPress: () => void;
+    isCtaLoading?: boolean;
+};
+
+function BankAccountAddressWidgetItem({title, subtitle, ctaText, onCtaPress, isCtaLoading}: WidgetCopyProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Bank']);
+
+    return (
+        <BaseWidgetItem
+            icon={icons.Bank}
+            title={title}
+            subtitle={subtitle}
+            ctaText={ctaText}
+            onCtaPress={onCtaPress}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
+            isCtaLoading={isCtaLoading}
+        />
+    );
+}
+
+function AddPersonalBankAccountAddress({bankAccountID, additionalData, title, subtitle, ctaText}: AddBankAccountAddressProps & WidgetCopyProps) {
+    const handleCtaPress = () => {
+        const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
+        resetPersonalBankAccountForUpdate(
+            bankAccountID,
+            {
+                legalFirstName: additionalData?.firstName ?? additionalData?.legalFirstName,
+                legalLastName: additionalData?.lastName ?? additionalData?.legalLastName,
+                addressStreet: street1,
+                addressStreet2: street2 ?? '',
+                addressCity: additionalData?.addressCity,
+                addressState: additionalData?.addressState,
+                addressZipCode: additionalData?.addressZipCode,
+                phoneNumber: additionalData?.companyPhone,
+            },
+            {
+                addressLine1: street1,
+                addressLine2: street2 ?? '',
+                city: additionalData?.addressCity,
+                state: additionalData?.addressState,
+                zipPostCode: additionalData?.addressZipCode,
+                country: CONST.COUNTRY.US,
+            },
+        );
+        Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME.ADDRESS));
+    };
+
+    return (
+        <BankAccountAddressWidgetItem
+            title={title}
+            subtitle={subtitle}
+            ctaText={ctaText}
+            onCtaPress={handleCtaPress}
+        />
+    );
+}
+
+function AddWorkspaceBankAccountAddress({bankAccountID, policyID, title, subtitle, ctaText}: AddBankAccountAddressProps & WidgetCopyProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['Bank']);
     const {showConfirmModal} = useConfirmModal();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [pendingWorkspaceNavigation, setPendingWorkspaceNavigation] = useState<PendingWorkspaceNavigation | null>(null);
     const hasSeenReimbursementAccountLoadingRef = useRef(false);
 
-    const title = isPersonalAccount
-        ? translate('homePage.timeSensitiveSection.addBankAccountAddress.personalTitle')
-        : translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceTitle');
-
-    const subtitle = isPersonalAccount
-        ? translate('homePage.timeSensitiveSection.addBankAccountAddress.personalSubtitle')
-        : translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceSubtitle', {policyName: policyName ?? ''});
-
-    const showWorkspaceLoadError = (isOfflineError = false) => {
-        showConfirmModal({
-            title: isOfflineError ? translate('common.youAppearToBeOffline') : translate('genericErrorPage.title'),
-            prompt: isOfflineError ? translate('common.thisFeatureRequiresInternet') : translate('common.genericErrorMessage'),
-            confirmText: translate('common.ok'),
-            shouldShowCancelButton: false,
-        });
-    };
+    const showWorkspaceLoadError = useCallback(
+        (isOfflineError = false) => {
+            showConfirmModal({
+                title: isOfflineError ? translate('common.youAppearToBeOffline') : translate('genericErrorPage.title'),
+                prompt: isOfflineError ? translate('common.thisFeatureRequiresInternet') : translate('common.genericErrorMessage'),
+                confirmText: translate('common.ok'),
+                shouldShowCancelButton: false,
+            });
+        },
+        [showConfirmModal, translate],
+    );
 
     useEffect(() => {
         if (!pendingWorkspaceNavigation) {
@@ -116,8 +171,7 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
         reimbursementAccount?.achData?.policyID,
         reimbursementAccount?.errors,
         reimbursementAccount?.isLoading,
-        showConfirmModal,
-        translate,
+        showWorkspaceLoadError,
     ]);
 
     const handleCtaPress = () => {
@@ -125,60 +179,70 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
             return;
         }
 
-        if (isPersonalAccount) {
-            const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
-            resetPersonalBankAccountForUpdate(
-                bankAccountID,
-                {
-                    legalFirstName: additionalData?.firstName ?? additionalData?.legalFirstName,
-                    legalLastName: additionalData?.lastName ?? additionalData?.legalLastName,
-                    addressStreet: street1,
-                    addressStreet2: street2 ?? '',
-                    addressCity: additionalData?.addressCity,
-                    addressState: additionalData?.addressState,
-                    addressZipCode: additionalData?.addressZipCode,
-                    phoneNumber: additionalData?.companyPhone,
-                },
-                {
-                    addressLine1: street1,
-                    addressLine2: street2 ?? '',
-                    city: additionalData?.addressCity,
-                    state: additionalData?.addressState,
-                    zipPostCode: additionalData?.addressZipCode,
-                    country: CONST.COUNTRY.US,
-                },
-            );
-            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME.ADDRESS));
+        if (!policyID) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET);
             return;
         }
 
-        if (policyID) {
-            if (isOffline) {
-                showWorkspaceLoadError(true);
-                return;
-            }
-
-            setPendingWorkspaceNavigation({policyID, bankAccountID});
-            openReimbursementAccountPage({
-                policyID,
-                bankAccountID,
-                stepToOpen: CONST.BANK_ACCOUNT.STEP.COMPANY,
-            });
+        if (isOffline) {
+            showWorkspaceLoadError(true);
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET);
+        setPendingWorkspaceNavigation({policyID, bankAccountID});
+        openReimbursementAccountPage({
+            policyID,
+            bankAccountID,
+            stepToOpen: CONST.BANK_ACCOUNT.STEP.COMPANY,
+        });
     };
 
     return (
-        <BaseWidgetItem
-            icon={icons.Bank}
+        <BankAccountAddressWidgetItem
             title={title}
             subtitle={subtitle}
-            ctaText={translate('homePage.timeSensitiveSection.addBankAccountAddress.cta')}
+            ctaText={ctaText}
             onCtaPress={handleCtaPress}
-            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             isCtaLoading={!!pendingWorkspaceNavigation}
+        />
+    );
+}
+
+function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, policyName, additionalData}: AddBankAccountAddressProps) {
+    const {translate} = useLocalize();
+
+    const title = isPersonalAccount
+        ? translate('homePage.timeSensitiveSection.addBankAccountAddress.personalTitle')
+        : translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceTitle');
+
+    const subtitle = isPersonalAccount
+        ? translate('homePage.timeSensitiveSection.addBankAccountAddress.personalSubtitle')
+        : translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceSubtitle', {policyName: policyName ?? ''});
+
+    const ctaText = translate('homePage.timeSensitiveSection.addBankAccountAddress.cta');
+
+    const sharedProps = {
+        bankAccountID,
+        isPersonalAccount,
+        policyID,
+        policyName,
+        additionalData,
+        title,
+        subtitle,
+        ctaText,
+    };
+
+    if (isPersonalAccount) {
+        return (
+            <AddPersonalBankAccountAddress
+                {...sharedProps}
+            />
+        );
+    }
+
+    return (
+        <AddWorkspaceBankAccountAddress
+            {...sharedProps}
         />
     );
 }
