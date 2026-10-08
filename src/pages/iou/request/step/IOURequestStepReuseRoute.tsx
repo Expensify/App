@@ -123,6 +123,7 @@ function IOURequestStepReuseRoute({
         waypoints: selectedRoute?.waypoints ?? transaction?.comment?.waypoints ?? {},
         currentUserLogin: currentUserPersonalDetails.login ?? '',
         currentUserAccountID: currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails,
         currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo: undefined,
         backToReport: undefined,

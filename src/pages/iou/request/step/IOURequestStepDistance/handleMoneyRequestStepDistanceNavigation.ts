@@ -51,6 +51,7 @@ import type {
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -69,6 +70,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     currentUserLocalCurrency: string | undefined;
     backTo?: Route;
     backToReport?: string;
@@ -175,6 +177,7 @@ function handleMoneyRequestStepDistanceNavigation({
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     backTo,
     backToReport,
@@ -342,6 +345,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             },
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
+                            currentUserPersonalDetails,
                             introSelected,
                             conciergeChat,
                             quickAction,

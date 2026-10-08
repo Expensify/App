@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {IntroSelected, OdometerDraft, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -59,6 +60,9 @@ type UseOdometerNavigationParams = {
 
     /** Current user's account ID — passed through to the navigation util. */
     currentUserAccountID: number;
+
+    /** Current user's personal details — passed through to the navigation util. */
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
 
     /** Current user's localCurrencyCode — passed through to the navigation util for draft-workspace creation. */
     currentUserLocalCurrency: string | undefined;
@@ -126,6 +130,7 @@ function useOdometerNavigation({
     personalDetails,
     currentUserLogin,
     currentUserAccountID,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     backToReport,
     shouldSkipConfirmation,
@@ -194,6 +199,7 @@ function useOdometerNavigation({
             personalDetails,
             currentUserLogin,
             currentUserAccountID,
+            currentUserPersonalDetails,
             currentUserLocalCurrency,
             backToReport,
             shouldSkipConfirmation,
