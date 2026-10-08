@@ -109,7 +109,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
                 onBackdropPress: () => {
                     dismissedViaBackdropRef.current = true;
-                    closeModal();
                     resetFlowState();
                 },
                 isConfirmLoading: false,

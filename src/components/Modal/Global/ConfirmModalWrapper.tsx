@@ -20,7 +20,7 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 // - handle closeModal inside ConfirmModal
 // - remove ConfirmModalWrapper
 
-function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: ConfirmModalWrapperProps) {
+function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, onBackdropPress, ...props}: ConfirmModalWrapperProps) {
     const activeElementRole = useActiveElementRole();
     const {isOffline} = useNetwork();
     const [isVisible, setIsVisible] = useState(true);
@@ -45,6 +45,14 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: 
         setCloseAction(ModalActions.CLOSE);
         setIsVisible(false);
     };
+
+    // Hide through isVisible so a backdrop close animates out like the cancel button, instead of leaving the stack mid-tap
+    const handleBackdropPress = onBackdropPress
+        ? () => {
+              onBackdropPress();
+              handleCancel();
+          }
+        : undefined;
 
     const handleModalHide = () => {
         if (isVisible) {
@@ -71,6 +79,7 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: 
             isVisible={isVisible}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
+            onBackdropPress={handleBackdropPress}
             onModalHide={handleModalHide}
             isConfirmLoading={isConfirmLoading || props.isConfirmLoading}
         />

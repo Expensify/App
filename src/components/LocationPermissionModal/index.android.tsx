@@ -65,7 +65,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 shouldReverseStackedButtons: true,
                 onBackdropPress: () => {
                     dismissedViaBackdropRef.current = true;
-                    closeModal();
                     resetPermissionFlowRef.current();
                 },
                 isConfirmLoading: false,
