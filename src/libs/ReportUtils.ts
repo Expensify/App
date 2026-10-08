@@ -12670,8 +12670,7 @@ function getValidateEmailTaskLink(targetChatReportID: string | undefined, should
 }
 
 function getValidateEmailTaskDescription(workEmail: string, targetChatReportID: string | undefined, shouldResumeAccountMerge: boolean) {
-    const validateEmailTask = buildOnboardingMessages(onboarding)
-        .joinWorkspaceMessages.validateEmail.tasks.find((task) => task.type === CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
+    const validateEmailTask = buildOnboardingMessages(onboarding).joinWorkspaceMessages.validateEmail.tasks.find((task) => task.type === CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
     if (!validateEmailTask) {
         return '';
     }

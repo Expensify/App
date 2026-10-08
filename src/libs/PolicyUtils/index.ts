@@ -2778,7 +2778,6 @@ function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Poli
 }
 
 export {
-    shouldShowQBOReimbursableExportDestinationAccountError,
     canDisableOrDeleteTaxRate,
     canPolicyAccessFeature,
     getActivePolicies,
@@ -2967,6 +2966,7 @@ export {
     isTaxCodeCustomized,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,
+    shouldShowQBOReimbursableExportDestinationAccountError,
 };
 
 // Re-exported with `export *` rather than through the block above: a named re-export becomes a getter that throws
