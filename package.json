@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.4-0",
+  "version": "9.5.6-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -203,7 +203,7 @@
     "react-native-nitro-fetch": "1.6.2",
     "react-native-nitro-modules": "0.37.1",
     "react-native-nitro-sqlite": "9.8.3",
-    "react-native-onyx": "3.0.115",
+    "react-native-onyx": "3.0.116",
     "react-native-pager-view": "9.0.4",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
@@ -242,7 +242,6 @@
     "@babel/plugin-proposal-private-methods": "^7.18.6",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@babel/plugin-transform-export-namespace-from": "^7.27.1",
-    "@babel/traverse": "^7.22.20",
     "@callstack/reassure-compare": "^1.0.0-rc.4",
     "@callstack/repack": "5.3.0",
     "@callstack/repack-plugin-expo-modules": "5.3.0",
@@ -416,7 +415,7 @@
       "eslint": "^9.36.0"
     },
     "node-abi": "^3.78.0",
-    "pdfjs-dist": "^5.5.207",
+    "pdfjs-dist": "5.5.207",
     "lightningcss": "1.30.1",
     "@fullstory/react-native": {
       "expo": "57.0.8"

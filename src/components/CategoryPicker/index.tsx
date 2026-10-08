@@ -105,16 +105,14 @@ function CategoryPicker({
     });
 
     const noneOption: OptionTree[] = shouldShowNoneOption
-        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map(
-              (option): OptionTree => ({
-                  text: option.text,
-                  keyForList: option.keyForList,
-                  searchText: '',
-                  tooltipText: option.text,
-                  isDisabled: false,
-                  isSelected: option.isSelected,
-              }),
-          )
+        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map((option): OptionTree => ({
+              text: option.text,
+              keyForList: option.keyForList,
+              searchText: '',
+              tooltipText: option.text,
+              isDisabled: false,
+              isSelected: option.isSelected,
+          }))
         : [];
     const noneOptionSection = {
         title: '',
@@ -147,7 +145,7 @@ function CategoryPicker({
         value: searchValue,
         label: translate('common.search'),
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, categoryData.length > 0, debouncedSearchValue),
         hint: offlineMessage,
         // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
         disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),

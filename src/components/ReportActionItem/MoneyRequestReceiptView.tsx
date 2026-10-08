@@ -44,7 +44,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
-import retryReceiptUpload, {canBuildRetryPayload} from '@libs/ReceiptUploadRetryHandler';
+import retryReceiptUpload, {canRetryReceiptUpload} from '@libs/ReceiptUploadRetryHandler';
 import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
@@ -192,6 +192,7 @@ function MoneyRequestReceiptView({
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
@@ -366,6 +367,8 @@ function MoneyRequestReceiptView({
                     isMarkAsCash,
                     routeDistanceMeters,
                     distanceUnit,
+                    policyVendors,
+                    transactionCurrency: transaction?.currency,
                 });
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
@@ -386,6 +389,8 @@ function MoneyRequestReceiptView({
         isMarkAsCash,
         routeDistanceMeters,
         distanceUnit,
+        policyVendors,
+        transaction?.currency,
         dateFnsLocale,
     ]);
 
@@ -459,10 +464,14 @@ function MoneyRequestReceiptView({
               delegateAccountID,
               formatPhoneNumber,
               getCurrencyDecimals,
+              transactionReport,
+              transactionThreadReport,
+              transactionViolations: rawTransactionViolations,
+              currentUserPersonalDetails: currentUserPersonalDetail,
           }
         : undefined;
 
-    const canRetryUpload = !!receiptRetryContext && canBuildRetryPayload(receiptRetryContext);
+    const canRetryUpload = !!receiptRetryContext && canRetryReceiptUpload(receiptRetryContext);
 
     const retryReceiptUploadAndClearError = () => {
         if (!receiptRetryContext) {
@@ -617,8 +626,8 @@ function MoneyRequestReceiptView({
     // Expanding only opens the receipt to look at, so it asks for none of the permission above
     const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
 
-    // Show the count badge only after a multi-page PDF receipt loads.
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !(isMapDistanceRequest && isPendingReceiptRegeneration);
+    // Show the count badge only after a multi-page PDF receipt loads. Map distance receipts render as an e-receipt card, so their stored PDF page count is never shown.
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !isMapDistanceRequest;
 
     // Pages can only be flipped where ReportActionItemImage renders the real PDF over the thumbnail (hover-capable
     // devices, using the same eligibility check ReportActionItemImage applies to its own overlay). Elsewhere only a

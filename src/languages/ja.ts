@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: '本日または将来の日付を選択してください',
             invalidTimeShouldBeFuture: '少なくとも1分先の時刻を選択してください',
             invalidCharacter: '無効な文字',
+            invalidField: (fieldName) => `無効な項目: ${fieldName}`,
             enterMerchant: '店舗名を入力してください',
             enterAmount: '金額を入力してください',
             missingMerchantName: '加盟店名がありません',
@@ -924,6 +925,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 : `${displayName}さんが${policyName}ワークスペースのメンバーではなくなったため、このチャットはこれ以上利用できません。`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `このチャットは、${policyName} がアクティブなワークスペースではなくなったため、これ以上利用できません。`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) =>
+            `${policyName} はアーカイブされたワークスペースのため、このチャットは現在アクティブではありません。`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `このチャットは、${policyName} がアクティブなワークスペースではなくなったため、これ以上利用できません。`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'この予約はアーカイブされています。',
@@ -1182,6 +1185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認してもう一度お試しください。`,
         singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）を複数の列に割り当てています。確認してもう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
+        invalidApprovalLimit: '承認上限額は、ワークスペースの通貨で有効な金額である必要があります。',
         fieldValueTooLong: (fieldName: string, limit: number) => `おっと！フィールド（「${fieldName}」）に${limit}文字を超える値が1つ以上含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
         importCategoriesNoneAddedOrUpdated: 'カテゴリーは追加も更新もされていません。',
@@ -2023,6 +2027,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `これ以上の対応は不要です。`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `さらに操作を行うには、レポートのワークスペースを変更してください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2385,9 +2395,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
+        talkToAHuman: '担当者に相談する',
         helpPage: {
             title: 'ヘルプとサポート',
             description: '24時間いつでもサポートします。',
+            talkToAHumanDescription: '担当者からサポートを受ける',
             helpSite: 'ヘルプサイト',
             helpSiteDescription: '記事、チュートリアルなど',
             conciergeChat: 'Concierge',
@@ -2684,6 +2696,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'デフォルトの支払い方法を設定しました！',
         deleteAccount: 'アカウントを削除',
         deleteConfirmation: 'このアカウントを本当に削除しますか？',
+        editNickname: 'ニックネームを編集',
+        nickname: 'ニックネーム',
+        editNicknameInstruction: 'ほかの口座と区別できるニックネームをこの銀行口座に付けてください。',
         deleteCard: 'カードを削除',
         deleteCardConfirmation: '未提出のカード取引（未提出レポート上の取引を含む）はすべて削除されます。このカードを本当に削除してもよろしいですか？この操作は元に戻せません。',
         error: {
@@ -3355,12 +3370,13 @@ ${date} の ${merchant} への ${amount}`,
         errorSelection: '次に進むオプションを選択してください',
         purpose: {
             title: '今日は何をしたいですか？',
-            errorContinue: '続行を押してセットアップを完了してください',
-            errorBackButton: 'アプリを使い始めるには、セットアップの質問にすべて回答してください',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '雇用主に経費を提出する',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'チームの経費を管理',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'ビジネスの経費を記録',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '個人の支出を管理',
+            errorContinue: 'セットアップを続行するには［続行］を押してください',
+            errorBackButton: 'アプリを使い始めるには、セットアップの質問に最後までお答えください',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: '自分の会社のワークスペースに参加する',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '経費を雇用主に提出する',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'チームの経費を管理する',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '自分のビジネスの経費を管理する',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '個人の支出を整理する',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'その他',
         },
         personalTrackGoal: {
@@ -3418,6 +3434,8 @@ ${date} の ${merchant} への ${amount}`,
             title: '勤務用メールアドレスを追加できませんでした',
             subtitle: (workEmail: string | undefined) =>
                 `${workEmail} を追加できませんでした。後で「設定」からもう一度お試しいただくか、ガイダンスについて Concierge にチャットでお問い合わせください。`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `${workEmail} を追加できませんでした。これらのアカウントを統合するには、${workEmail} としてログインし、「アカウント」＞「セキュリティ」＞「アカウントの統合」に進んで処理を完了してください。`,
             workAccountClosedSubtitle:
                 'このメールアドレスに関連付けられている業務用アカウントは停止されています。再有効化するには会社の管理者にご連絡いただくか、別のメールアドレスでサインアップしてください。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} は既存のExpensifyアカウントのドメイン管理ログインです。`,
@@ -3656,6 +3674,34 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     これで完了です！
                 `),
             },
+            addWorkEmailTask: {
+                title: '勤務先のメールアドレスを追加してください',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. [勤務先メールを追加](${workEmailLink}) を開きます。  
+                        2. 会社のメールアドレスを入力します。  
+                        3. お送りしたコードを入力します。  
+                        4. 参加するワークスペースを選ぶか、ワークスペースのオーナーにリクエストを送るには *参加をリクエスト* をクリックします。
+                    `),
+            },
+            validateEmailTask: {
+                title: 'メールを確認してください',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. [アカウントを認証](${validateEmailLink})を開きます。  
+                        2. ${workEmail} に送信されたコードを入力します。  
+                        3. 参加するワークスペースを選択するか、ワークスペースのオーナーにリクエストを送信するには「参加リクエストを送信」をクリックします。
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: '会社のワークスペースに参加する',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. [ワークスペースに参加](${joinWorkspaceLink}) を開きます。  
+                        2. 一覧から自分のチームを探します。各チームには、そのオーナー名と参加人数が表示され、多い順に並んでいます。見つからない場合は *Show more* をクリックします。  
+                        3. *Join now* をクリックします。管理者の承認が必要な場合は、*Ask to join* をクリックします。
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `[テストドライブ](${testDriveURL})を試す` : '試してみる'),
@@ -3678,6 +3724,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             onboardingChatSplitMessage: '友だちとの割り勘は、メッセージを送るくらい簡単です。やり方はこちら。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
             onboardingTestDriveReceiverMessage: '*3か月無料でご利用いただけます！下から始めましょう。*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                '会社のワークスペースに参加しようとしているため、新しいワークスペースは作成していません。勤務先のメールアドレスを追加してください。参加できる会社のワークスペースを確認します。',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `会社のワークスペースに参加しようとしているようですので、新しいワークスペースは作成していません。メールアドレスを確認していただければ、${companyDomain} のどのワークスペースに参加できるかをお調べします。`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `会社のワークスペースに参加しようとしているようですので、新しくワークスペースは作成していません。${companyDomain} のチームはすでに Expensify を利用中です。[参加できるワークスペースを確認しましょう](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: 'ご利用の会社には参加可能なワークスペースがないようです。管理者に連絡して、ワークスペースに招待してもらってください。',
         },
         workspace: {
             title: 'ワークスペースで整理整頓しよう',
@@ -4723,6 +4776,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'このワークスペースをアーカイブしてもよろしいですか？ すべてのクレジットカードのユーザーへの割り当てが解除され、未申請のカード経費は完全に削除されます。',
             archiveWithExpensifyCardsConfirmation:
                 'このワークスペースをアーカイブしてもよろしいですか？ すべての Expensify カードの利用限度額が $0 に設定され、新しい購入はすべて自動的に拒否されます。',
+            unarchive: 'アーカイブ解除',
+            unarchiveWorkspace: 'ワークスペースのアーカイブを解除',
+            unarchiveConfirmation: 'このワークスペースのアーカイブを解除してもよろしいですか？',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} を削除しますか？`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
@@ -4780,6 +4836,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             memberAlternateText: 'レポートを提出して承認します。',
             adminAlternateText: 'レポートとワークスペースの設定を管理します。',
             auditorAlternateText: 'レポートを表示してコメントします。',
+            guestAlternateText: '表示を限定してレポートを提出します。',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4788,6 +4845,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         return 'ワークスペース管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '監査担当者';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'ゲスト';
                     case CONST.POLICY.ROLE.EDITOR:
                         return '編集者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -5269,11 +5328,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         label: '最終経費の日付',
                         description: 'レポート内で最新の経費の日付。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'エクスポート日',
                         description: 'レポートが Sage Intacct にエクスポートされた日付。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: '提出日',
                         description: 'レポートが承認申請として提出された日付。',
                     },
@@ -6746,6 +6805,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             emptySubtitle: '会計システムとの同期が完了すると、ここに取引先が表示されます。',
             findVendor: '取引先を検索',
             managedInAccountingSoftware: '取引先は次の場所で管理されます：',
+            enableVendor: 'ベンダーを有効にする',
+            enableVendors: 'ベンダーを有効にする',
+            disableVendor: '取引先を無効にする',
+            disableVendors: '取引先を無効化',
+            updateFailureMessage: '仕入先の更新中にエラーが発生しました。もう一度お試しください。',
         },
         tags: {
             tagName: 'タグ名',
@@ -6993,6 +7057,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 one: '監査担当者に設定',
                 other: '監査担当者を作成',
             }),
+            makeGuest: () => ({
+                one: 'ゲストにする',
+                other: 'ゲストにする',
+            }),
             makePeopleAdmin: () => ({
                 one: 'People 管理者にする',
                 other: 'People 管理者にする',
@@ -7029,6 +7097,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             admins: 'ワークスペース管理者',
             approvers: '承認者',
             auditors: '監査担当者',
+            guests: 'ゲスト',
             editors: '編集者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
             configureHRSync: (providerName: string) => `${providerName} の同期を設定します。`,
@@ -7147,6 +7216,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7375,6 +7446,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'Campfire データを同期しています';
                         case 'campfireSyncConnection':
                             return 'Campfire への接続を初期化しています';
+                        case 'zohoBooksSyncConnection':
+                            return 'Zoho Books への接続を初期化しています';
                         case 'campfireSyncImportData':
                             return 'データを読み込んでいます';
                         case 'campfireSyncPayments':
@@ -7431,6 +7504,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncTravelInvoicingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
+            continuousReconciliationFeedSelection:
+                '<muted-text-label>継続的な照合はカードフィードごとに設定されます。設定するフィードを変更するには、フィードを選択してください。</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に有効期限が切れます。`,
             qboConnectionExpired: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に期限切れになりました。`,
@@ -7504,6 +7580,20 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     cta: '了解です',
                 },
                 errors: {distanceMustBePositive: '距離は正の整数で入力してください。', invalidAddress: '有効な住所を入力してください', distanceTooLarge: '距離が大きすぎます。'},
+                workArrangement: {
+                    title: 'デフォルトの勤務形態',
+                    officeBasedTitle: 'オフィス勤務',
+                    officeBasedHelp: 'メンバーはオフィスに通勤します。通常の通勤は払い戻しの対象外です。',
+                    noRegularWorkplaceTitle: 'リモートまたはモバイル',
+                    noRegularWorkplaceHelp: 'メンバーは自宅勤務、または決まったオフィスを持たずに拠点間を移動して勤務しているため、通勤規定は適用されません。',
+                    startingPrompt: {
+                        title: '通常の勤務形態を設定',
+                        prompt: '現在のメンバーの大半に該当する構成を選択してください。メンバーは後から個別または一括で更新できます。',
+                        officeBasedHelp: 'ほとんどのメンバーはオフィスに通勤しています。通常の通勤は対象外です。',
+                        noRegularWorkplaceHelp: 'ほとんどのメンバーはリモートワークのため、自宅から職場までの区間除外は通常は適用されません。',
+                        confirm: '適用',
+                    },
+                },
             },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',
@@ -7549,9 +7639,31 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             startDate: '開始日',
             endDate: '終了日',
             autoGeneratedRateTooltip: 'このレートは自動生成されています。',
+            automaticRates: '自動レート',
             autoUpdateGovernmentRate: '政府レートを自動更新',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `${countryPhrase} が新しいガイダンスを公表したときに、新しいレートを自動的に作成します。`,
-            governmentRateCountries: {US: 'アメリカ合衆国', CA: 'カナダ', GB: 'グレートブリテン', AU: 'オーストラリア', NO: 'ノルウェー', SE: 'スウェーデン', ZA: '南アフリカ'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `${countryPhrase} が新しいガイダンスを公表したときに、新しいレートを自動的に作成します。既存のレートは変更されません。`,
+            governmentRateCountries: {
+                US: 'アメリカ合衆国',
+                CA: 'カナダ',
+                GB: 'グレートブリテン',
+                AU: 'オーストラリア',
+                AT: 'オーストリア',
+                BE: 'ベルギー',
+                FI: 'フィンランド',
+                DE: 'ドイツ',
+                NL: 'オランダ',
+                PT: 'ポルトガル',
+                ES: 'スペイン',
+                NO: 'ノルウェー',
+                SE: 'スウェーデン',
+                ZA: '南アフリカ',
+            },
+            governmentRateCountryGeneric: 'お住まいの国',
+            governmentRateSourceCountry: '距離レートのソース国',
+            governmentRateCountrySelectionPrompt: '政府の距離レート自動更新機能を引き続き使用するには、今後使用する国を確認してください。',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `注意！ワークスペースの通貨を${currency}に変更すると、代わりに${countryPhrase}が公表する政府の距離レートが使用されます。続行してもよろしいですか？`,
         },
         editor: {
             descriptionInputLabel: '説明',
@@ -8852,6 +8964,13 @@ ${reportName}`,
             noBankAccountsFoundDescription: 'Dynamics 365 Business Central で銀行口座を追加し、接続を再度同期してください',
             noPaymentMethodsFound: '支払方法が見つかりません',
             noPaymentMethodsFoundDescription: 'Dynamics 365 Business Central で支払方法を追加し、接続を再度同期してください',
+            accountsDescription: 'Dynamics 365 Business Central の勘定科目はカテゴリとしてインポートされます。',
+            dimensionsImportAsTags: 'すべての Dynamics 365 Business Central のディメンションがタグとしてインポートされます',
+            customers: '顧客',
+            projects: 'プロジェクト',
+            projectsAndCustomersCannotBeEnabled: 'プロジェクトと顧客を有効にできません',
+            projectsAndCustomersCannotBeEnabledDescription: 'プロジェクトと顧客は、エクスポートオプションが「仕入請求書」の場合にのみ有効化できます',
+            enableNewCategoriesDescription: '新しい Dynamics 365 Business Central アカウントは、カテゴリとして利用できるようになります。',
         },
     },
     getAssistancePage: {
@@ -9322,6 +9441,11 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `デフォルトの勤務形態を${arrangement}に設定します`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `既定の勤務形態を${arrangement}（以前は${previousArrangement}）に変更しました`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `通勤分の除外方法を、申請ごとの固定距離に変更しました（以前は${previousMethod}）。`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `「通勤を除外」の計算方法を自宅とオフィスに基づいて行うよう変更しました（以前の方法：${previousMethod}）`,
@@ -9580,6 +9704,18 @@ ${reportName}`,
         genericCreateTaskFailureMessage: 'このタスクの作成中にエラーが発生しました。後でもう一度お試しください。',
         deleteTask: 'タスクを削除',
         deleteConfirmation: 'このタスクを削除してもよろしいですか？',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `サポートチケット、${date}：${customer} と ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `こんにちは、${supportRep}です。問題が完全に解決するまで、私が対応いたします。すでに詳細を共有いただいている場合は、それらを確認してから返信しますので、繰り返していただく必要はありません。新しい問題の場合は、どのようなことでお困りか教えてください。`,
+        checkboxTooltip: '解決されたときに、サポート担当者がこれを確認します。',
+        genericCreateSupportTicketFailureMessage: 'このサポートチケットを作成できませんでした。このエラーを閉じて、もう一度お試しください。',
+        noSupportRepAvailable: '現在対応可能なサポート担当者はいません。Concierge にメッセージを送ってサポートを受けることはできます。',
+        fallbackTitle: 'サポートチケット',
+        resolved: 'このサポートチケットは解決済みです。',
+        surveyPrompt: 'サポートの対応はいかがでしたか？',
+        reopenTicket: 'チケットを再開',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `${year}年${monthName}の明細書`,
@@ -9892,6 +10028,8 @@ ${reportName}`,
             violationsBySubmitter: '申請者による違反',
         },
         mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
+        periodSoFar: ({period}: {period: string}) => `これまでの${period}`,
+        weekOf: ({date}: {date: string}) => `${date} の週`,
         saveEdits: {
             title: '編集を保存',
             prompt: ({name}: {name: string}) => `「${name}」を更新しますか、それとも新規作成しますか？`,
@@ -10663,6 +10801,40 @@ ${reportName}`,
             taxOutOfPolicy: '税率が無効になりました',
             taxRateChanged: '税率を変更しました',
             taxRequired: '税率が未設定です',
+        },
+        ruleViolation: {
+            fallback: '経費ポリシー違反',
+            anyExpense: '任意の経費',
+            expense: (adjectives: string) => (adjectives ? `${adjectives}経費` : '経費'),
+            perDiem: '日当',
+            notExpenseType: (expenseType: string) => `${expenseType}ではありません`,
+            billable: {enabled: '請求対象', disabled: '請求不可'},
+            reimbursable: {enabled: '精算対象', disabled: '精算対象外'},
+            withoutCategory: 'カテゴリなし',
+            fromMerchant: (merchant: string) => `${merchant} から`,
+            notFromMerchant: (merchant: string) => `${merchant} 以外`,
+            fromMerchantsContaining: (merchant: string) => `${merchant} を含む加盟店から`,
+            notFromMerchantsContaining: (merchant: string) => `${merchant} を含まない加盟店からのもの`,
+            withVendor: (vendor: string) => `仕入先 ${vendor} と`,
+            withoutVendor: (vendor: string) => `ベンダー ${vendor} なし`,
+            fromVendor: (vendor: string) => `${vendor} から`,
+            notFromVendor: (vendor: string) => `${vendor} 以外`,
+            overAmount: (amount: string) => `${amount} を超える`,
+            amountOrMore: (amount: string) => `${amount} 以上`,
+            underAmount: (amount: string) => `${amount} 未満`,
+            amountOrLess: (amount: string) => `${amount} 以下`,
+            withoutTag: 'タグなし',
+            tagged: (tag: string) => `${tag} をタグ付けしました`,
+            inCurrency: (currency: string) => `${currency}建て`,
+            notInCurrency: (currency: string) => `${currency} 以外`,
+            paidInCurrency: (currency: string) => `${currency} で支払済み`,
+            notPaidInCurrency: (currency: string) => `${currency}で未払い`,
+            attachment: '添付ファイル',
+            attribute: (attribute: string) => `${attribute} を 1 つ`,
+            withAttributes: (attributes: string) => `${attributes} 付き`,
+            withoutAttributes: (attributes: string) => `${attributes} なし`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `${merchantCode} にて`,
         },
     },
     reportViolations: {
