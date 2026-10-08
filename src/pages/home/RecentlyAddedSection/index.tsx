@@ -1,28 +1,29 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
+import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
-
-import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
@@ -36,6 +37,7 @@ function RecentlyAddedSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     // The hovered receipt preview is a portal on document.body, so it isn't dismissed by navigation alone.
     // Once the screen blurs (e.g. after opening an expense), we hide the preview instead of leaving it floating over the RHP.
     const isFocused = useIsFocused();
@@ -44,7 +46,9 @@ function RecentlyAddedSection() {
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const hasExpenses = transactions.length > 0;
@@ -55,11 +59,23 @@ function RecentlyAddedSection() {
         // resolving every sibling up front would create a thread for each multi-expense sibling on a single tap.
         // Instead, seed the cheap snapshot-derived descriptors and let the carousel resolve each sibling lazily,
         // one at a time, only when the user actually navigates to it.
-        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID, personalDetails};
+        const resolveContext = {
+            introSelected,
+            conciergeChat,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            currentUserEmail,
+            currentUserAccountID,
+            personalDetails,
+        };
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
+        // A pending-delete row keeps its ID but gets no descriptor. The carousel hides it while the delete is
+        // pending and re-adds it if the delete rolls back, both from its live transaction. A descriptor would keep
+        // it in the arrows after the delete syncs and its live copy is gone, landing the arrow on "not here".
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
-        const siblingDescriptorsByTransactionID = transactions.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
+        const navigableSiblings = transactions.filter((sibling) => sibling.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const siblingDescriptorsByTransactionID = navigableSiblings.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
             // eslint-disable-next-line no-param-reassign
             map[sibling.transactionID] = {
                 reportID: sibling.reportID,
@@ -73,9 +89,12 @@ function RecentlyAddedSection() {
         // Each row opens a single-expense view that always lands in (Wide) RHP on both layouts so the carousel
         // arrows are available. Marking the report as an expense lets the RHP open wide immediately, before its
         // data loads, instead of flickering from narrow to wide.
-        setActiveTransactionIDs(siblingTransactionIDs, siblingDescriptorsByTransactionID).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDs, {source: CAROUSEL_SOURCE.homeRecentlyAdded, descriptors: siblingDescriptorsByTransactionID}).then(() => {
             markReportRHPWidth(reportID, 'wide');
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
+            // The anchor is what lets the header show the carousel on a cold open: getReportIDToOpenForExpense
+            // resolves the snapshot's childReportID without materializing the thread, so the header has no
+            // transaction of its own until OpenReport round-trips, and the counter would pop in only after that.
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME, anchorTransactionID: expense.transactionID}));
         });
     };
 
@@ -83,6 +102,7 @@ function RecentlyAddedSection() {
         Navigation.navigate(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: buildQueryStringFromFilterFormValues({type: CONST.SEARCH.DATA_TYPES.EXPENSE}),
+                searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             }),
         );
     };
@@ -124,7 +144,7 @@ function RecentlyAddedSection() {
                         onPress={() => openExpense(expense)}
                         shouldShowSeparator={index < transactions.length - 1}
                         shouldShowReceiptPreview={isFocused}
-                        rowStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        rowStyle={cardPaddingHorizontal}
                     />
                 ))
             ) : (

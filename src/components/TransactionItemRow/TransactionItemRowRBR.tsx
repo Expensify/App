@@ -32,13 +32,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 type TransactionItemRowRBRInnerProps = {
-    /** Transaction item */
     transaction: Transaction;
-
-    /** Transaction violations */
     violations?: TransactionViolation[];
-
-    /** Report item */
     report?: Report;
 
     /** Styles for the RBR messages container */
@@ -65,6 +60,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -90,6 +86,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
         cardList,
         isMarkAsCash: isMarkAsCash || undefined,
         canEdit,
+        policyVendors,
     });
     const hasHTMLTags = CONST.HTML_TAG_REGEX.test(RBRMessages);
 

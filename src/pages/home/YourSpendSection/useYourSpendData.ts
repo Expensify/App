@@ -2,15 +2,18 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
 
 import {search} from '@libs/actions/Search';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {AnyRequest} from '@src/types/onyx/Request';
@@ -19,11 +22,10 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 
 import {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE} from './const';
-import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
+import {buildAwaitingApprovalQuery, buildCardGroupQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
 
 type YourSpendRowState = ValueOf<typeof YOUR_SPEND_ROW_STATE>;
 type YourSpendCardKind = ValueOf<typeof YOUR_SPEND_CARD_KIND>;
@@ -338,6 +340,24 @@ function useOfflineFrozenSpendRow(isOffline: boolean, isApplicable: boolean, sta
     return frozen;
 }
 
+function getCardTotalsByCardID(snapshot: OnyxEntry<SearchResults>): Record<number, YourSpendRowTotals> | undefined {
+    if (!snapshot?.data) {
+        return undefined;
+    }
+    const totalsByCardID: Record<number, YourSpendRowTotals> = {};
+    for (const key of Object.keys(snapshot.data)) {
+        if (!isGroupEntry(key)) {
+            continue;
+        }
+        const group = snapshot.data[key];
+        if (!('cardID' in group) || !group.count) {
+            continue;
+        }
+        totalsByCardID[group.cardID] = {total: group.total, currency: group.currency};
+    }
+    return totalsByCardID;
+}
+
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
     if (!isApplicable) {
         return YOUR_SPEND_ROW_STATE.HIDDEN;
@@ -357,10 +377,10 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
 function useYourSpendData(): UseYourSpendDataReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
     const {isApprovalApplicable, isPaymentApplicable, paidGroupPolicyIDs} = getYourSpendApplicability(policies);
 
@@ -388,6 +408,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
         selector: (reports) => getYourSpendReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
     const outstandingReportsSignature = reportsSignature?.outstandingReportIDs ?? '';
+    const reimbursedReportsSignature = reportsSignature?.reimbursedReportIDs ?? '';
     const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
     const [ongoingSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: projectOngoingSpendRequest});
     const pendingSpendBuckets = useMemo(
@@ -416,98 +437,16 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [expensifyCards, thirdPartyCards],
     );
 
-    // Stable signature for the search-firing effect. Re-fires on card-set changes
-    // but not on unrelated `cardList` mutations.
-    const displayableCardIDsKey = displayableCards
-        .map(({card}) => card.cardID)
-        .sort((a, b) => a - b)
-        .join(',');
-
-    const cardQueryByCardID = useMemo(
-        () =>
-            displayableCards.reduce<Record<number, {query: string; queryJSON: ReturnType<typeof buildSearchQueryJSON>}>>((acc, {card}) => {
-                const query = buildRecentCardTransactionsQuery(accountID, card.cardID);
-                acc[card.cardID] = {query, queryJSON: buildSearchQueryJSON(query)};
-                return acc;
-            }, {}),
-        [displayableCards, accountID],
-    );
-
-    const cardSnapshotKeys = useMemo(
-        () =>
-            Object.values(cardQueryByCardID)
-                .map((entry) => entry.queryJSON?.hash)
-                .filter((hash): hash is number => hash !== undefined)
-                .map((hash) => `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`),
-        [cardQueryByCardID],
-    );
-
-    type CardSnapshotSummary = {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
-
-    // Project snapshots down to {count, total, currency} so unrelated snapshot
-    // mutations don't re-render us (useOnyx deep-equals selector output).
-    const cardSnapshotsSelector = (snapshots: OnyxCollection<SearchResults> | undefined): Record<string, CardSnapshotSummary | undefined> | undefined => {
-        if (!snapshots || cardSnapshotKeys.length === 0) {
-            return undefined;
-        }
-        const projected: Record<string, CardSnapshotSummary | undefined> = {};
-        for (const key of cardSnapshotKeys) {
-            const s = snapshots[key];
-            projected[key] = s ? {count: s.search.count, total: s.search.total, currency: s.search.currency} : undefined;
-        }
-        return projected;
-    };
-    const [cardSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {selector: cardSnapshotsSelector});
-
-    // Per-card READY totals cache. See the approval/payment cache below for the mechanic.
-    const [cachedCardTotals, setCachedCardTotals] = useState<Record<number, YourSpendRowTotals>>({});
-
-    const cardCacheUpdates: Record<number, YourSpendRowTotals> = {};
-    let hasCardCacheUpdates = false;
-    for (const {card} of displayableCards) {
-        const entry = cardQueryByCardID[card.cardID];
-        const hash = entry?.queryJSON?.hash;
-        const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
-        const snapshot = snapshotKey ? cardSnapshots?.[snapshotKey] : undefined;
-        if (!snapshot?.count) {
-            continue;
-        }
-        const cached = cachedCardTotals[card.cardID];
-        if (!cached || cached.total !== snapshot.total || cached.currency !== snapshot.currency) {
-            cardCacheUpdates[card.cardID] = {total: snapshot.total, currency: snapshot.currency};
-            hasCardCacheUpdates = true;
-        }
-    }
-    if (hasCardCacheUpdates) {
-        setCachedCardTotals((prev) => ({...prev, ...cardCacheUpdates}));
-    }
+    const cardGroupQueryJSON = displayableCards.length > 0 ? buildSearchQueryJSON(buildCardGroupQuery(accountID)) : undefined;
+    const [cardTotalsByCardID] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${cardGroupQueryJSON?.hash}`, {selector: getCardTotalsByCardID});
 
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
             displayableCards.reduce<YourSpendCardRow[]>((acc, {card, kind}) => {
-                const entry = cardQueryByCardID[card.cardID];
-                if (!entry) {
+                const totals = cardTotalsByCardID?.[card.cardID];
+                if (!totals) {
                     return acc;
                 }
-                const hash = entry.queryJSON?.hash;
-                const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
-                const snapshot = snapshotKey ? cardSnapshots?.[snapshotKey] : undefined;
-
-                // Snapshot loaded but count wiped by the Search screen, so fall back to cached READY totals.
-                const countIsMissing = snapshot !== undefined && (snapshot.count === undefined || snapshot.count === null);
-                const cached = cachedCardTotals[card.cardID];
-                const shouldUseCached = countIsMissing && cached !== undefined;
-
-                if (!snapshot?.count && !shouldUseCached) {
-                    return acc;
-                }
-
-                const total = snapshot?.count ? snapshot.total : cached?.total;
-                const currency = snapshot?.count ? snapshot.currency : cached?.currency;
 
                 // Fallback for third-party cards with empty `lastFourPAN` and digits in `cardName`
                 // (e.g. "CREDIT CARD...1234". No-space names fall through to ""). Ternary so
@@ -525,9 +464,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 acc.push({
                     cardID: card.cardID,
                     lastFour,
-                    query: entry.query,
-                    total,
-                    currency,
+                    query: buildRecentCardTransactionsQuery(accountID, card.cardID),
+                    total: totals.total,
+                    currency: totals.currency,
                     spentFraction,
                     kind,
                     bank: card.bank,
@@ -536,7 +475,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 });
                 return acc;
             }, []),
-        [displayableCards, cardQueryByCardID, cardSnapshots, cachedCardTotals],
+        [displayableCards, cardTotalsByCardID, accountID],
     );
 
     const approvalRowStateRaw = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
@@ -602,56 +541,57 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const {state: approvalRowState, totals: approvalTotals} = useOfflineFrozenSpendRow(isOffline, isApprovalApplicable, approvalRowStateLive, approvalTotalsLive, approvalHash);
     const {state: paymentRowState, totals: paymentTotals} = useOfflineFrozenSpendRow(isOffline, isPaymentApplicable, paymentRowStateLive, paymentTotalsLive, paymentQueryJSON?.hash);
 
-    // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
-    // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    const applicabilityKey = [isApprovalApplicable ? 1 : 0, isPaymentApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature].join('|');
-
-    const fireSearches = useEffectEvent(() => {
-        if (isOffline) {
+    // One key per search, so a card charge does not also refetch the approval and payment totals.
+    const fireCardSearch = () => {
+        if (isOffline || !cardGroupQueryJSON) {
             return;
         }
-        for (const {card} of displayableCards) {
-            const cardQueryJSON = cardQueryByCardID[card.cardID]?.queryJSON;
-            if (!cardQueryJSON) {
-                continue;
-            }
-            search({
-                queryJSON: cardQueryJSON,
-                searchKey: undefined,
-                offset: 0,
-                isLoading: false,
-                shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-        if (isApprovalApplicable && approvalQueryJSON) {
-            search({
-                queryJSON: approvalQueryJSON,
-                searchKey: undefined,
-                offset: 0,
-                isLoading: false,
-                shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-        if (isPaymentApplicable && paymentQueryJSON) {
-            search({
-                queryJSON: paymentQueryJSON,
-                searchKey: undefined,
-                offset: 0,
-                isLoading: false,
-                shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-    });
+        search({
+            queryJSON: cardGroupQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            isLoading: false,
+            shouldCalculateTotals: true,
+            shouldUpdateLastSearchParams: false,
+        });
+    };
 
-    useEffect(() => {
-        if (!isFocused) {
+    const fireApprovalSearch = () => {
+        if (isOffline || !isApprovalApplicable || !approvalQueryJSON) {
             return;
         }
-        fireSearches();
-    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey, accountID]);
+        search({
+            queryJSON: approvalQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            isLoading: false,
+            shouldCalculateTotals: true,
+            shouldUpdateLastSearchParams: false,
+        });
+    };
+
+    const firePaymentSearch = () => {
+        if (isOffline || !isPaymentApplicable || !paymentQueryJSON) {
+            return;
+        }
+        search({
+            queryJSON: paymentQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            isLoading: false,
+            shouldCalculateTotals: true,
+            shouldUpdateLastSearchParams: false,
+        });
+    };
+
+    useTabFocusedRefresh(SCREENS.HOME, [isOffline, accountID, cardGroupQueryJSON?.hash, spendDataSignature?.cardExpenses ?? 0].join('|'), fireCardSearch);
+    useTabFocusedRefresh(
+        SCREENS.HOME,
+        // The expense counter catches edits on a report that is already outstanding, which leave the report list unchanged.
+        [isOffline, accountID, approvalQueryJSON?.hash, isApprovalApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature, spendDataSignature?.expenses ?? 0].join('|'),
+        fireApprovalSearch,
+    );
+    useTabFocusedRefresh(SCREENS.HOME, [isOffline, accountID, paymentQueryJSON?.hash, isPaymentApplicable ? 1 : 0, reimbursedReportsSignature].join('|'), firePaymentSearch);
 
     return {
         approvalRowState,

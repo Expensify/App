@@ -11,9 +11,9 @@ const COMMENT_INTENTS = Str.dedent(`
 
     - "${CONST.INTENT.SPAM}" if it claims or bids for the job without offering any technical content of its own: expressions of interest, "I'd like to work on this", "assign me", references to an Upwork application, or a restatement of the issue as a plan of action with no root cause or solution.
     - "${CONST.INTENT.GENUINE_ATTEMPT}" if it makes a real technical attempt to explain the cause of the problem or propose a fix, but does not follow the template.
-    - "${CONST.INTENT.NOT_AN_ATTEMPT}" for anything else: feedback on someone else's proposal, retest results, questions, reproduction notes, or general discussion.
+    - "${CONST.INTENT.NOT_AN_ATTEMPT}" for anything else: feedback on someone else's proposal, retest results, questions, reproduction notes, takeover coordination, review offers, or general discussion.
 
-    The dividing line between the first two is technical content. A comment that offers a root cause or a concrete fix is a genuine attempt no matter how informally it is written, or how poor the English. A comment that only asserts the author will do the work is spam.
+    The dividing line between the first two is technical content. A comment that offers a root cause or a concrete fix is a genuine attempt no matter how informally it is written, or how poor the English. A comment that only asserts the author will do the work is spam. Coordination about who should take over an issue or review a proposal is not a bid for the job, even when it contains no technical content.
 `);
 
 /**

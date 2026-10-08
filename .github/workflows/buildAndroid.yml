@@ -63,7 +63,7 @@ jobs:
       PROGUARD_MAPPING_FILENAME: mapping.txt
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           submodules: true
           ref: ${{ inputs.ref }}
@@ -206,6 +206,10 @@ jobs:
           mkdir -p /tmp/android-artifacts
 
           AAB_FILE=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' -print -quit 2>/dev/null || true)
+          # Adhoc builds produce an APK, so only use the Rock artifact when it is an AAB
+          if [ -z "$AAB_FILE" ] && [[ "${ARTIFACT_PATH:-}" == *.aab ]] && [ -f "$ARTIFACT_PATH" ]; then
+            AAB_FILE="$ARTIFACT_PATH"
+          fi
           if [ -n "$AAB_FILE" ]; then
             echo "Found AAB: $AAB_FILE"
             cp "$AAB_FILE" /tmp/android-artifacts/
@@ -215,7 +219,11 @@ jobs:
               echo "APK_FILENAME=Expensify.apk"
             } >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::No AAB file found (expected for remote-cache hits on Adhoc builds)"
+            if [ "${{ inputs.variant }}" == 'Release' ]; then
+              echo '::error::No AAB file found for Release build'
+              exit 1
+            fi
+            echo '::warning::No AAB file found for Adhoc build'
             echo "HAS_AAB=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -275,7 +283,7 @@ jobs:
       - name: Generate APK from AAB
         if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
         run: |
-          AAB_PATH=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' | head -1)
+          AAB_PATH="/tmp/android-artifacts/${{ steps.collectArtifacts.outputs.AAB_FILENAME }}"
           java -jar bundletool.jar build-apks --bundle="$AAB_PATH" --output=Expensify.apks \
             --mode=universal \
             --ks=upload-key.keystore \

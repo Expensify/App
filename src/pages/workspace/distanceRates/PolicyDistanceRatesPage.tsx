@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -33,6 +34,7 @@ import {
     openPolicyDistanceRatesPage,
     setPolicyDistanceRatesEnabled,
 } from '@libs/actions/Policy/DistanceRate';
+import {renameDistanceRateInline, updateDistanceRateValueInline} from '@libs/actions/Policy/InlineEdit';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,7 +67,8 @@ function PolicyDistanceRatesPage({
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {pageGutter} = useLayoutSpacing();
+    const {translate, toLocaleDigit} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.distanceRates');
@@ -89,12 +92,13 @@ function PolicyDistanceRatesPage({
 
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
-            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+            const reportIDs: Record<string, true> = {};
+            for (const report of Object.values(reports ?? {})) {
                 if (report?.policyID === policyID) {
-                    reportIDs.add(report.reportID);
+                    reportIDs[report.reportID] = true;
                 }
-                return reportIDs;
-            }, new Set<string>());
+            }
+            return reportIDs;
         },
         [policyID],
     );
@@ -112,11 +116,11 @@ function PolicyDistanceRatesPage({
                 (transactionsData, transaction) => {
                     if (
                         transaction?.reportID &&
-                        policyReports?.has(transaction.reportID) &&
+                        policyReports?.[transaction.reportID] &&
                         transaction?.comment?.customUnit?.customUnitRateID &&
                         rateIDs.has(transaction?.comment?.customUnit?.customUnitRateID)
                     ) {
-                        transactionsData.transactionIDs.add(transaction.transactionID);
+                        transactionsData.transactionIDs.push(transaction.transactionID);
                         if (!transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID]) {
                             // eslint-disable-next-line no-param-reassign
                             transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID] = [];
@@ -125,7 +129,7 @@ function PolicyDistanceRatesPage({
                     }
                     return transactionsData;
                 },
-                {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
+                {transactionIDs: [] as string[], rateIDToTransactionIDsMap: {} as Record<string, string[]>},
             );
         },
         [customUnit?.customUnitID, rateIDs, policyReports],
@@ -151,6 +155,8 @@ function PolicyDistanceRatesPage({
     }, [setSelectedDistanceRates]);
 
     useCleanupSelectedOptions(clearTableSelection);
+
+    const isSelectionModeActive = selectedDistanceRates.length > 0 || isMobileSelectionModeEnabled;
 
     const canDisableOrDeleteSelectedRates = useMemo(
         () =>
@@ -214,6 +220,7 @@ function PolicyDistanceRatesPage({
     );
 
     const unitTranslation = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
+    const currentUnit = customUnit?.attributes?.unit;
 
     const addRate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
@@ -313,18 +320,35 @@ function PolicyDistanceRatesPage({
                     formattedRate: `${convertAmountToDisplayString(rate.rate, rate.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`,
                     pendingAction: resolvedPendingAction ?? undefined,
                     errors: rate.errors ?? undefined,
+                    canEditName: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
+                    canEditRate: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
                     action: () => openRateDetailsByID(rate.customUnitRateID),
                     dismissError: () => dismissErrorByID(rate.customUnitRateID),
                     onToggleEnabled: (value: boolean) => updateDistanceRateEnabled(value, rate.customUnitRateID),
+                    onRenameName: (newName: string) => {
+                        if (!customUnit) {
+                            return;
+                        }
+                        renameDistanceRateInline(policyID, customUnit, rate, newName);
+                    },
+                    onChangeRate: (newRate: string) => {
+                        if (!customUnit) {
+                            return;
+                        }
+                        updateDistanceRateValueInline(policyID, customUnit, rate, newRate, toLocaleDigit);
+                    },
                 };
             }),
         [
             customUnitRates,
             unitTranslation,
-            customUnit?.pendingFields?.attributes,
+            customUnit,
             policy?.pendingAction,
             canWriteDistanceRates,
             canDisableOrDeleteRate,
+            isSelectionModeActive,
+            policyID,
+            toLocaleDigit,
             openRateDetailsByID,
             dismissErrorByID,
             updateDistanceRateEnabled,
@@ -348,7 +372,7 @@ function PolicyDistanceRatesPage({
                         prompt: translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         deleteRates();
@@ -477,7 +501,7 @@ function PolicyDistanceRatesPage({
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.ph5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={pageGutter}>{headerButtons}</View>}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -488,6 +512,7 @@ function PolicyDistanceRatesPage({
                     <WorkspaceDistanceRatesTable
                         policyID={policyID}
                         ratesData={ratesData}
+                        unit={currentUnit}
                         selectedKeys={selectedDistanceRates}
                         selectionEnabled={canWriteDistanceRates}
                         onRowSelectionChange={setSelectedDistanceRates}

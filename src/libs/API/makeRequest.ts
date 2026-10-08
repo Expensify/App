@@ -1,23 +1,8 @@
 import Log from '@libs/Log';
-import {
-    FailureTracking,
-    handleDeletedAccount,
-    HandleUnusedOptimisticID,
-    LoadTest,
-    Logging,
-    Pagination,
-    Reauthentication,
-    RecordFullReconnectTime,
-    SaveResponseInOnyx,
-    SupportalPermission,
-} from '@libs/Middleware';
-import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
-import LoadPostDataForOpenOrReconnect from '@libs/Middleware/LoadPostDataForOpenOrReconnect';
-import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
-import {addMiddleware, processWithMiddleware} from '@libs/Request';
+import {processWithMiddleware} from '@libs/Request';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
 
 import {getAll} from '@userActions/PersistedRequests';
@@ -33,50 +18,6 @@ import type {SetRequired} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType} from './types';
-
-// Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
-// Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
-// e.g. an error thrown in Logging or Reauthenticate logic will be caught by the next middleware or the SequentialQueue which retries failing requests.
-// This lives alongside prepareRequest/processRequest (rather than in index.ts) so registration happens for any entry point that can process a request, not just the barrel.
-
-// Logging - Logs request details and errors.
-addMiddleware(Logging);
-
-// Duplicates API calls (tagged with mockRequest=true) when the server sends load-test parameters via the X-Load-Test response header.
-addMiddleware(LoadTest);
-
-// FailureTracking - Observes request outcomes and feeds them to FailureTracker for sustained failure detection.
-addMiddleware(FailureTracking);
-
-// Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
-addMiddleware(Reauthentication);
-
-// Handles the case when the copilot has been deleted. The response contains jsonCode 408 and a message indicating account deletion
-addMiddleware(handleDeletedAccount);
-
-// Handle supportal permission denial centrally
-addMiddleware(SupportalPermission);
-
-// If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
-addMiddleware(HandleUnusedOptimisticID);
-
-addMiddleware(Pagination);
-
-// SentryServerTiming - Tracks server round-trip time for configured command groups via Sentry spans.
-addMiddleware(SentryServerTiming);
-
-// RecordFullReconnectTime - Records the full-reconnect time into an OpenApp/full-ReconnectApp response. Must run before SaveResponseInOnyx applies the response.
-addMiddleware(RecordFullReconnectTime);
-
-// LoadPostDataForOpenOrReconnect - Sends the reads that OpenApp/ReconnectApp does not return, once per response that reaches the server.
-addMiddleware(LoadPostDataForOpenOrReconnect);
-
-// SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
-// (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
-addMiddleware(SaveResponseInOnyx);
-
-// FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
-addMiddleware(FraudMonitoring);
 
 // Use timestamp-based IDs to avoid collisions between browser tabs.
 // Each tab has its own JS context with its own counter, so a simple
@@ -109,7 +50,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     const {optimisticData, successData, failureData, ...onyxDataWithoutOptimisticData} = onyxData;
 
     if (optimisticData && shouldApplyOptimisticData) {
-        Log.info('[API] Applying optimistic data', false, {command, type});
+        Log.info('[API] Applying optimistic data', false, {command, type}, undefined, optimisticData);
         Onyx.update(optimisticData);
     }
 

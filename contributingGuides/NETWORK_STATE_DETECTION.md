@@ -159,16 +159,17 @@ const offline = !hasRadio || internetUnreachable || sustainedFailuresActive || s
 
 `Reconnect.ts` registers an `AppStateMonitor.addBecameActiveListener` callback:
 - If in hard stop → calls `NetworkState.refresh()` which triggers `NetInfo.refresh()` (bypasses stale `isInternetReachable` cache, see NetInfo issue #326)
-- Always → calls `reconnect()` to catch up on missed Pusher events
+- Always → flushes `SequentialQueue` so pending writes go out
+
+It does not sync app data. A foreground proves nothing about missed events: if the socket died while backgrounded it resubscribes on foreground, and that resubscription syncs. If it survived, nothing was missed, and a hole in the update IDs is caught by gap detection.
 
 ## Recovery & Reconnect
 
 **File:** `src/libs/actions/Reconnect.ts`
 
-Subscribes to `NetworkState.onReachabilityConfirmed()` and `AppStateMonitor.addBecameActiveListener()`. Handles data synchronization:
+Subscribes to `NetworkState.onReachabilityConfirmed()`, and is called by the Pusher private-user-channel resubscription (`PusherUtils.ts`) and the `Reauthentication` middleware. Handles data synchronization:
 
 - Skips reconnection if no active session (`currentAccountID` is undefined)
-- If `isLoadingApp` is true → calls `App.openApp()` (full initial load)
 - Otherwise → calls `App.reconnectApp(lastUpdateIDAppliedToClient)` (incremental sync)
 - Flushes `SequentialQueue` to send any pending write requests
 
@@ -203,7 +204,7 @@ Two debug options are available via the TestToolMenu (accessible in dev builds):
 | `src/libs/NetworkState.ts` | Central hard stop state machine, NetInfo configuration/subscription, OS radio detection, and reachability tracking |
 | `src/libs/FailureTracker.ts` | Counts failures, triggers sustained failure hard stop via listener pattern |
 | `src/libs/Middleware/FailureTracking.ts` | Middleware that observes request outcomes and feeds FailureTracker |
-| `src/libs/actions/Reconnect.ts` | Subscribes to reachability + foreground events, syncs app data after recovery |
+| `src/libs/actions/Reconnect.ts` | Syncs app data after a reachability recovery; flushes the queue on foreground and on offline→online |
 | `src/libs/Network/SequentialQueue.ts` | Write request queue, reads `getIsOffline()` synchronously for guard checks |
 | `src/libs/actions/Network.ts` | Onyx actions for debug flags (forceOffline, simulatePoorConnection) |
 | `src/hooks/useNetwork.ts` | Hook for components — uses `useSyncExternalStore` with `NetworkState.subscribe()` |

@@ -5,32 +5,22 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text, View} from 'react-native';
 
 type PopoverProps = BaseModalProps &
     ChildrenProps & {
-        /** The anchor position of the popover */
         anchorPosition?: PopoverAnchorPosition;
-
-        /** The anchor alignment of the popover */
         anchorAlignment?: AnchorAlignment;
-
-        /** The anchor ref of the popover */
-        anchorRef: RefObject<View | HTMLDivElement | Text | null>;
-
-        /** Whether disable the animations */
+        anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof Text> | null>;
         disableAnimation?: boolean;
 
         /** Whether we don't want to show overlay */
         withoutOverlay?: boolean;
 
-        /** The dimensions of the popover */
         popoverDimensions?: Dimensions;
-
-        /** The ref of the popover */
-        withoutOverlayRef?: RefObject<View | HTMLDivElement>;
+        withoutOverlayRef?: RefObject<ComponentRef<typeof View> | HTMLDivElement>;
 
         /** Whether we want to show the popover on the right side of the screen */
         fromSidebarMediumScreen?: boolean;

@@ -22,6 +22,7 @@ import type {Report} from '@src/types/onyx';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 
 type WithWritableReportOrNotFoundOnyxProps = {
@@ -33,11 +34,12 @@ type WithWritableReportOrNotFoundOnyxProps = {
 };
 
 type MoneyRequestRouteName =
-    | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_WAYPOINT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
+    | typeof SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE
@@ -49,7 +51,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT
-    | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO
@@ -95,9 +97,9 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
 
@@ -110,7 +112,15 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
         if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID});
+        openReport({
+            reportID: route.params.reportID,
+            introSelected,
+            conciergeChat,
+            hasReportActions,
+            currentUserAccountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

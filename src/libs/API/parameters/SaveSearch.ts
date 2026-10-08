@@ -2,6 +2,7 @@ import type {SearchQueryString} from '@components/Search/types';
 
 type SaveSearchParams = {
     jsonQuery: SearchQueryString;
+    savedSearchID: string;
     newName?: string;
 };
 

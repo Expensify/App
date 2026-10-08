@@ -1,7 +1,9 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 
@@ -15,7 +17,6 @@ import type {BusinessTypeItemType, IncorporationType} from './types';
 import BusinessTypeSelectorModal from './BusinessTypeSelectorModal';
 
 type BusinessTypePickerProps = {
-    /** Error text to display */
     errorText?: string;
 
     /** Business type to display */
@@ -24,10 +25,7 @@ type BusinessTypePickerProps = {
     /** Callback to call when the input changes */
     onInputChange?: (value: string) => void;
 
-    /** Label to display on field */
     label: string;
-
-    /** Any additional styles to apply */
     wrapperStyle: StyleProp<ViewStyle>;
 
     /**  Callback to call when the picker modal is dismissed */
@@ -35,7 +33,6 @@ type BusinessTypePickerProps = {
 };
 
 function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputChange, label, onBlur}: BusinessTypePickerProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -61,20 +58,24 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
     };
 
     const title = value ? translate(`businessInfoStep.incorporationType.${value as IncorporationType}`) : '';
-    const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
-        <View>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                title={title}
-                description={label}
-                descriptionTextStyle={descStyle}
-                onPress={showPickerModal}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-                wrapperStyle={wrapperStyle}
-            />
+        <View style={wrapperStyle}>
+            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(showPickerModal)}>
+                <MenuItemField.Row
+                    name={label}
+                    value={title}
+                >
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    <MenuItem.Chevron />
+                </MenuItemField.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={errorText}
+                    />
+                )}
+            </MenuItem.Root>
             <BusinessTypeSelectorModal
                 isVisible={isPickerVisible}
                 currentBusinessType={value}

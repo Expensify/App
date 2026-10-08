@@ -25,21 +25,11 @@ type TaxPickerProps = {
     /** The selected tax rate of an expense */
     selectedTaxRate?: string;
 
-    /** ID of the policy */
     policyID?: string;
-
-    /** ID of the transaction */
     transactionID?: string;
-
-    /** Callback to fire when a tax is pressed */
     onSubmit: (tax: TaxRatesOption, shouldClearTax?: boolean) => void;
-
-    /** The action to take */
     action?: IOUAction;
-
-    /** The type of IOU */
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
-
     onDismiss: () => void;
 
     /**
@@ -155,7 +145,7 @@ function TaxPicker({
         label: translate('common.search'),
         value: searchValue,
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, (sections.at(0)?.data?.length ?? 0) > 0, searchValue),
     };
 
     const updatedSections = deletedTaxOption

@@ -37,7 +37,7 @@ jobs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -215,7 +215,7 @@ jobs:
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -269,7 +269,7 @@ jobs:
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -434,6 +434,7 @@ jobs:
     with:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       variant: Release
+      download-dsyms: true
     secrets: inherit
 
   iosUploadTestflight:
@@ -705,7 +706,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -740,7 +741,16 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+          aws s3 cp --recursive --acl public-read --exclude "*.br" "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+
+          for PAIR in js:text/javascript css:text/css html:text/html svg:image/svg+xml wasm:application/wasm ttf:font/ttf; do
+            EXT="${PAIR%%:*}"
+            CONTENT_TYPE="${PAIR#*:}"
+            aws s3 cp --recursive --acl public-read --exclude "*" --include "*.${EXT}.br" \
+              --content-encoding br --content-type "$CONTENT_TYPE" \
+              "$GITHUB_WORKSPACE"/dist ${{ env.S3_BUCKET }}/
+          done
+
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/apple-app-site-association
         env:
@@ -767,7 +777,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -811,7 +821,7 @@ jobs:
       ]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
@@ -948,7 +958,7 @@ jobs:
     needs: [prep, checkDeploymentSuccess]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -978,7 +988,9 @@ jobs:
         run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+          SLACK_RETEST_USER_TOKEN: ${{ secrets.SLACK_RETEST_USER_TOKEN }}
           SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -1123,7 +1135,7 @@ jobs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
@@ -1141,18 +1153,19 @@ jobs:
   iosUploadSentry:
     name: Upload iOS build to Sentry for size analysis
     needs: [prep, iosBuild, checkDeploymentSuccess]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # sentry-cli only supports IPA uploads when running on Apple Silicon macOS
+    runs-on: blacksmith-6vcpu-macos-latest
     if: >-
       ${{ always()
           && needs.prep.outputs.DEPLOY_ENV == 'production'
           && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     continue-on-error: true
-    timeout-minutes: 10
+    timeout-minutes: 20
     outputs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
