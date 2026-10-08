@@ -116,7 +116,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         outerWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
         wrapperStyle?: StyleProp<ViewStyle>;
-        titleWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Styles to apply on the inner row containing the icon and text content */
         innerContainerStyle?: StyleProp<ViewStyle>;
@@ -435,7 +434,6 @@ function MenuItem({
     shouldShowBadgeBelow = false,
     style,
     wrapperStyle,
-    titleWrapperStyle,
     innerContainerStyle,
     outerWrapperStyle,
     titleStyle,
@@ -978,7 +976,7 @@ function MenuItem({
                                                         {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (
                                                             <View
-                                                                style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
+                                                                style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
