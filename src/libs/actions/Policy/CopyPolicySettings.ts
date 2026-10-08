@@ -56,6 +56,7 @@ const PARTS_TO_POLICY_FIELDS = {
         'defaultReimbursable',
         'prohibitedExpenses',
         'eReceipts',
+        'requireCompanyCardsEnabled',
         'isAttendeeTrackingEnabled',
         'preventSelfApproval',
         'disabledFields',
