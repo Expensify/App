@@ -391,8 +391,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
-        rootWrapperStyle?: StyleProp<ViewStyle>;
-
         /** The accessibility role to use for this menu item */
         role?: Role;
 
@@ -552,7 +550,6 @@ function MenuItem({
     isFocused,
     shouldUseNativeHoverEvents = false,
     sentryLabel,
-    rootWrapperStyle,
     role = CONST.ROLE.BUTTON,
     shouldBeAccessible = true,
     tabIndex = 0,
@@ -776,10 +773,7 @@ function MenuItem({
     const hasRightIconAccount = !!rightIconAccountID && rightIconAccountIDNumber > 0;
 
     return (
-        <View
-            style={rootWrapperStyle}
-            onBlur={onBlur}
-        >
+        <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
