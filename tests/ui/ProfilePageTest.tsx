@@ -315,7 +315,7 @@ describe('ProfilePage - agent account', () => {
         expect(screen.queryByTestId('address-menu-item-further-details')).toBeNull();
     });
 
-    it('hides the commuter exclusion indicator when distance rates are disabled', async () => {
+    it('shows the commuter exclusion indicator when distance rates are disabled but the setting remains active', async () => {
         await setupUser('user@expensify.com');
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
@@ -329,8 +329,8 @@ describe('ProfilePage - agent account', () => {
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('address-menu-item')).toHaveTextContent('none-brickRoadIndicator');
-        expect(screen.queryByTestId('address-menu-item-further-details')).toBeNull();
+        expect(screen.getByTestId('address-menu-item')).toHaveTextContent('info-brickRoadIndicator');
+        expect(screen.getByTestId('address-menu-item-further-details')).toHaveTextContent('Boulder Development uses this address for commuter exclusions.');
     });
 
     it('shows contact methods, pronouns, timezone and private section for non-agent account', async () => {

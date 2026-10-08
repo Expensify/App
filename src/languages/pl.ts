@@ -6532,6 +6532,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             distanceRates: {
                 title: 'Stawki za dystans',
                 subtitle: 'Dodawaj, aktualizuj i egzekwuj stawki.',
+                disableLockedByCommuterExclusionsPrompt:
+                    'Nie możesz wyłączyć stawek za dystans, gdy aktywne są wykluczenia dojazdów między domem a biurem. Najpierw ustaw Wykluczaj dojazdy na „Nie wykluczaj dojazdów”.',
             },
             perDiem: {
                 title: 'Dieta',

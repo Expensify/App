@@ -6442,6 +6442,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             distanceRates: {
                 title: '距離単価',
                 subtitle: 'レートを追加、更新し、適用します。',
+                disableLockedByCommuterExclusionsPrompt:
+                    '自宅とオフィス間の通勤除外が有効な間は、距離単価をオフにできません。距離単価をオフにするには、まず「通勤を除外」を「通勤を除外しない」に設定してください。',
             },
             perDiem: {
                 title: '日当',

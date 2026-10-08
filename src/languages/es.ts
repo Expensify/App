@@ -6426,6 +6426,8 @@ ${amount} para ${merchant} - ${date}`,
             distanceRates: {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
+                disableLockedByCommuterExclusionsPrompt:
+                    'No puedes desactivar las tasas de distancia mientras estén activas las exclusiones de desplazamientos entre casa y oficina. Primero establece Excluir desplazamientos en «No excluir desplazamientos».',
             },
             perDiem: {
                 title: 'Per diem',

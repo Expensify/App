@@ -69,6 +69,19 @@ describe('useTimeSensitiveHomeAddress', () => {
         });
     });
 
+    it('asks for an address when Distance rates are disabled but home and office exclusions remain active', async () => {
+        // Given a workspace whose saved commuter setting is still enforced by the server
+        await setUpWorkspace({...makeHomeAndOfficePolicy(true), areDistanceRatesEnabled: false});
+
+        // When the time sensitive items are resolved
+        const {result} = renderHook(() => useTimeSensitiveHomeAddress());
+
+        // Then the task appears because disabling Distance rates does not remove the commuter setting
+        await waitFor(() => {
+            expect(result.current.shouldShowAddHomeAddress).toBe(true);
+        });
+    });
+
     it('stays quiet when the workspace default is no regular workplace', async () => {
         // Given a workspace on the method whose members have no regular workplace
         await setUpWorkspace(makeHomeAndOfficePolicy(false));

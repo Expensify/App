@@ -6893,6 +6893,8 @@ const translations = {
             distanceRates: {
                 title: 'Distance rates',
                 subtitle: 'Add, update, and enforce rates.',
+                disableLockedByCommuterExclusionsPrompt:
+                    'You can’t turn off Distance rates while Home and office commuter exclusions are enabled. First set Exclude commutes to “Do not exclude commutes”.',
             },
             perDiem: {
                 title: 'Per diem',

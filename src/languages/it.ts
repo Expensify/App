@@ -6517,6 +6517,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             distanceRates: {
                 title: 'Tariffe chilometriche',
                 subtitle: 'Aggiungi, aggiorna e applica le tariffe.',
+                disableLockedByCommuterExclusionsPrompt:
+                    'Non puoi disattivare le tariffe di distanza mentre sono attive le esclusioni per i tragitti tra casa e ufficio. Imposta prima Escludi tragitti su “Non escludere i tragitti”.',
             },
             perDiem: {
                 title: 'Diaria',

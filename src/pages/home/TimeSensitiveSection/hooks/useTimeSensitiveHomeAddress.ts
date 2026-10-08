@@ -11,7 +11,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 const createNeedsHomeAddressWorkspaceSelector = (currentUserEmail: string | undefined) => (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).some(
         (policy) =>
-            !!policy?.areDistanceRatesEnabled &&
             policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
             policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             getEffectiveWorkArrangement(currentUserEmail ? policy.employeeList?.[currentUserEmail]?.hasOfficeWorkArrangement : undefined, policy.commuterExclusions.isOfficeWorkArrangement),
