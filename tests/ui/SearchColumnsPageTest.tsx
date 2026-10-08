@@ -1,6 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import type ColumnsSettingsList from '@components/ColumnsSettingsList';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MockText from '@components/Text';
 
 import useOnyx from '@hooks/useOnyx';
@@ -9,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SearchColumnsPage from '@src/pages/Search/SearchColumnsPage';
 import SCREENS from '@src/SCREENS';
 
@@ -36,12 +38,16 @@ describe('SearchColumnsPage', () => {
         }
 
         const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-        (jest.mocked(useOnyx) as jest.Mock).mockReturnValue([form]);
+        (jest.mocked(useOnyx) as jest.Mock).mockImplementation((key: string) => [key === ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM ? form : undefined]);
         mockGetRootState.mockReturnValue({
             routes: [{name: NAVIGATORS.TAB_NAVIGATOR, params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, params: {screen: SCREENS.SEARCH.ROOT, params: {q: input}}}}],
         });
 
-        render(<SearchColumnsPage />);
+        render(
+            <OnyxListItemProvider>
+                <SearchColumnsPage />
+            </OnyxListItemProvider>,
+        );
         fireEvent.press(screen.getByText('Save columns'));
 
         const [route] = jest.mocked(Navigation.navigate).mock.calls.at(-1) ?? [];
