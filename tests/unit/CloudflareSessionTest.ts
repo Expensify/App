@@ -45,7 +45,7 @@ jest.mock('@libs/Log', () => ({
 jest.mock('@libs/CloudflareAccess/generatePKCE', () => ({
     __esModule: true,
     generatePKCEPair: jest.fn(),
-    generateState: jest.fn(() => 'test-state'),
+    generateState: jest.fn(),
 }));
 
 const SESSION_A: CloudflareSession = {accessToken: 'oauth:access-a', refreshToken: 'oauth:refresh-a', expiresAt: 1900000000000};
@@ -53,6 +53,7 @@ const SESSION_B: CloudflareSession = {accessToken: 'oauth:access-b', refreshToke
 
 const PAIR_1: PKCEPair = {codeVerifier: 'verifier-1', codeChallenge: 'challenge-1'};
 const PAIR_2: PKCEPair = {codeVerifier: 'verifier-2', codeChallenge: 'challenge-2'};
+const OAUTH_STATE = 'test-state';
 
 let Onyx: typeof OnyxDefault;
 let ONYXKEYS: typeof OnyxKeysModule.default;
@@ -63,13 +64,15 @@ let pendingAuthFlowStorage: typeof PendingAuthFlowStorageModule;
 let sessionCleanup: typeof SessionCleanupModule;
 let assignSpy: jest.Mock;
 let realLocation: Location;
+let realLocalStorage: Storage;
 
 beforeEach(() => {
     jest.resetModules();
     // Nothing here makes an HTTP request, but resetModules gives every test its own copy of the network
     // queues, and one of those flushes during an await in this suite, reaching jsdom's missing `Request`.
     global.fetch = jest.fn(() => Promise.reject(new Error('fetch is not available in CloudflareSessionTest')));
-    window.sessionStorage.clear();
+    realLocalStorage = window.localStorage;
+    window.localStorage.clear();
     // jsdom throws "Not implemented: navigation" on a real location.assign
     realLocation = window.location;
     assignSpy = jest.fn<void, [string]>();
@@ -83,6 +86,7 @@ beforeEach(() => {
     Onyx.init({keys: ONYXKEYS});
     oAuthClient = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
     pkce = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
+    jest.mocked(pkce.generateState).mockReturnValue(OAUTH_STATE);
     pendingAuthFlowStorage = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
     sessionCleanup = require<typeof SessionCleanupModule>('@libs/SessionCleanup');
     SessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
@@ -90,6 +94,7 @@ beforeEach(() => {
 
 afterEach(() => {
     Object.defineProperty(window, 'location', {value: realLocation, writable: true, configurable: true});
+    Object.defineProperty(window, 'localStorage', {value: realLocalStorage, writable: true, configurable: true});
     // jsdom ships no Web Locks, so the lock test installs one. Every other test must see it absent again
     Object.defineProperty(navigator, 'locks', {value: undefined, writable: true, configurable: true});
 });
@@ -306,13 +311,13 @@ describe('redirectToCloudflareSignIn', () => {
         addEventListenerSpy.mockRestore();
     });
 
-    it('stores the flow record before navigating — module memory does not survive the unload', async () => {
-        // Given key material ready and a navigation spy that captures what sessionStorage held at the exact
+    it('stores the flow record before navigating: module memory does not survive the unload', async () => {
+        // Given key material ready and a navigation spy that captures what storage held at the exact
         // moment the browser was asked to leave the page
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
-        const savedBeforeAssign: Array<string | null> = [];
+        const savedBeforeAssign: Array<PendingAuthFlowStorageModule.PendingAuthFlow | null> = [];
         assignSpy.mockImplementation(() => {
-            savedBeforeAssign.push(window.sessionStorage.getItem('QA_AUTH_REDIRECT_FLOW'));
+            savedBeforeAssign.push(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE));
         });
 
         // When the redirect begins
@@ -322,13 +327,12 @@ describe('redirectToCloudflareSignIn', () => {
         expect(assignSpy).toHaveBeenCalledWith(AUTHORIZE_URL);
         // Then the record must already be readable at the moment the navigation is requested:
         // without the stored verifier the returning code could never be exchanged
-        expect(savedBeforeAssign.at(0)).not.toBeNull();
-        expect(pendingAuthFlowStorage.consumePendingAuthFlow()).toMatchObject({
-            state: 'test-state',
+        expect(savedBeforeAssign.at(0)).toMatchObject({
+            state: OAUTH_STATE,
             codeVerifier: PAIR_1.codeVerifier,
             returnURL: 'http://localhost/settings/troubleshoot',
         });
-        expect(jest.mocked(oAuthClient.buildAuthorizeURL)).toHaveBeenCalledWith({state: 'test-state', codeChallenge: PAIR_1.codeChallenge});
+        expect(jest.mocked(oAuthClient.buildAuthorizeURL)).toHaveBeenCalledWith({state: OAUTH_STATE, codeChallenge: PAIR_1.codeChallenge});
     });
 
     it('stays pending once the navigation is requested, so callers run nothing after it while the page leaves', async () => {
@@ -355,10 +359,9 @@ describe('redirectToCloudflareSignIn', () => {
 
     it('refuses to navigate when the flow record cannot be stored', async () => {
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
-        // Given valid key material (mocked above) but a sessionStorage whose writes fail
+        // Given valid key material (mocked above) but a localStorage whose writes fail
         // (jsdom's Storage methods are not spy-able, so the whole object is swapped out)
-        const realSessionStorage = window.sessionStorage;
-        Object.defineProperty(window, 'sessionStorage', {
+        Object.defineProperty(window, 'localStorage', {
             value: {
                 getItem: () => null,
                 removeItem: () => {},
@@ -374,8 +377,6 @@ describe('redirectToCloudflareSignIn', () => {
         // stored verifier would strand the flow with no way to exchange the code that comes back
         await expect(SessionActions.redirectToCloudflareSignIn()).rejects.toThrow('QuotaExceededError');
         expect(assignSpy).not.toHaveBeenCalled();
-
-        Object.defineProperty(window, 'sessionStorage', {value: realSessionStorage, writable: true, configurable: true});
     });
 
     it('refuses to navigate when the session was dropped while the key material was generated', async () => {
@@ -392,10 +393,10 @@ describe('redirectToCloudflareSignIn', () => {
         // in-flight work, so its late result is discarded rather than sending the tab into a stale authorize
         await expect(redirect).rejects.toThrow();
         expect(assignSpy).not.toHaveBeenCalled();
-        expect(window.sessionStorage.getItem('QA_AUTH_REDIRECT_FLOW')).toBeNull();
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE)).toBeNull();
     });
 
-    it('a second press while the first navigation settles does not overwrite the stored flow', async () => {
+    it('a second press while the first navigation settles joins it instead of starting a second round trip', async () => {
         // Given a first press whose navigation has been requested but has not torn the page down yet
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
 
@@ -404,8 +405,7 @@ describe('redirectToCloudflareSignIn', () => {
         SessionActions.redirectToCloudflareSignIn();
         await waitForBatchedUpdates();
 
-        // Then the second press joins the first and the flow runs once: a second run would regenerate PKCE and
-        // overwrite the stored flow record, orphaning the verifier the navigation already under way is going to need
+        // Then the second press joins the first and the flow runs once
         expect(assignSpy).toHaveBeenCalledTimes(1);
         expect(pkce.generatePKCEPair).toHaveBeenCalledTimes(1);
     });
@@ -456,7 +456,7 @@ describe('redirectToCloudflareSignIn', () => {
         // Then it navigates again with a newly stored verifier: the restored page keeps its module memory,
         // so a redirect slot left filled would swallow every later press
         expect(assignSpy).toHaveBeenCalledTimes(2);
-        expect(pendingAuthFlowStorage.consumePendingAuthFlow()).toMatchObject({codeVerifier: PAIR_2.codeVerifier});
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE)).toMatchObject({codeVerifier: PAIR_2.codeVerifier});
     });
 });
 

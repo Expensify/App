@@ -1,17 +1,15 @@
 /**
- * Capture half of the same-tab OAuth redirect. Cloudflare delivers the authorization code as this
- * document's own location, and no app route lives at the redirect path, so the URL has to be rewritten
- * before anything can resolve a route from it.
+ * Cloudflare delivers the authorization code as this document's own location, and no app route lives at
+ * the redirect path, so the URL has to be rewritten before anything can resolve a route from it.
  */
 import {getOAuthRedirectURI, isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
 import {OAuthError} from '@libs/CloudflareAccess/OAuthClient';
-import {consumePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
+import {consumePendingAuthFlow, sweepExpiredPendingAuthFlows} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
 
 import type {CapturedAuthCallback, CaptureCloudflareAuthCallbackURL, GetCapturedCloudflareAuthCallback} from './types';
 
 let captured: CapturedAuthCallback = {outcome: 'not-a-callback'};
 
-/** The one stored field fed back into navigation, so it is treated as tainted */
 function toSafeReturnPath(returnURL: string | undefined): string {
     if (!returnURL) {
         return '/';
@@ -32,6 +30,8 @@ function runCapture(): CapturedAuthCallback {
         return {outcome: 'not-a-callback'};
     }
 
+    sweepExpiredPendingAuthFlows();
+
     let callbackPath: string;
     try {
         callbackPath = new URL(getOAuthRedirectURI()).pathname;
@@ -44,16 +44,13 @@ function runCapture(): CapturedAuthCallback {
     }
 
     const params = new URL(window.location.href).searchParams;
-    const flow = consumePendingAuthFlow();
+    const state = params.get('state');
+    const flow = state ? consumePendingAuthFlow(state) : null;
 
     window.history.replaceState(null, '', toSafeReturnPath(flow?.returnURL));
 
     if (!flow) {
-        return {outcome: 'no-pending-flow', errorMessage: 'No pending QA auth flow in this tab. Start the sign-in again'};
-    }
-
-    if (params.get('state') !== flow.state) {
-        return {outcome: 'invalid-callback', errorMessage: 'OAuth callback state mismatch'};
+        return {outcome: 'no-pending-flow', errorMessage: 'No pending QA auth flow matches this callback. Start the sign-in again'};
     }
 
     const oauthError = params.get('error');

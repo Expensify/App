@@ -1,10 +1,11 @@
-/** Boot runs capture and exchange as two phases, so the tests drive both: the only combination the app ever produces */
 import type * as CaptureAuthCallbackModule from '@libs/CloudflareAccess/captureAuthCallbackURL/index.ts';
 import type * as ConfigModule from '@libs/CloudflareAccess/Config/index.ts';
 import type * as AuthRedirectCallbackModule from '@libs/CloudflareAccess/finishSignInFromURL/index.ts';
 import type * as PendingAuthFlowStorageModule from '@libs/CloudflareAccess/PendingAuthFlowStorage';
 
 import type * as SessionActionsModule from '@userActions/CloudflareSession';
+
+import CONST from '@src/CONST';
 
 const mockQAAuth = {
     API_ROOT: 'https://qa.example.com/',
@@ -55,7 +56,7 @@ let realLocation: Location;
 beforeEach(() => {
     jest.resetModules();
     mockLogWarn.mockClear();
-    window.sessionStorage.clear();
+    window.localStorage.clear();
     realLocation = window.location;
     mockQAAuth.CLIENT_ID = 'client-123';
     nowSpy = jest.spyOn(Date, 'now').mockReturnValue(FLOW.createdAt);
@@ -78,7 +79,7 @@ function runBoot() {
 }
 
 describe('the boot-time QA auth callback handling', () => {
-    it('is a no-op off the callback path — every normal boot runs this', () => {
+    it('is a no-op off the callback path: every normal boot runs this', () => {
         // Given a pending flow saved by another tab's in-flight round trip, while this boot sits on an ordinary app route
         pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
         Object.defineProperty(window, 'location', {
@@ -93,7 +94,24 @@ describe('the boot-time QA auth callback handling', () => {
         expect(replaceStateSpy).not.toHaveBeenCalled();
         expect(sessionActions.exchangeCodeForCloudflareSession).not.toHaveBeenCalled();
         // Then a pending flow from another tab's round trip must survive an unrelated boot
-        expect(pendingAuthFlowStorage.consumePendingAuthFlow()).not.toBeNull();
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(FLOW.state)).not.toBeNull();
+    });
+
+    it('sweeps expired records from abandoned round trips on every boot', () => {
+        // Given a round trip abandoned on the Authorize screen, whose record has since expired, and a later ordinary boot on an app route
+        pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
+        nowSpy.mockReturnValue(FLOW.createdAt + 11 * 60 * 1000);
+        Object.defineProperty(window, 'location', {
+            value: {origin: 'http://localhost', href: RETURN_URL, pathname: '/settings/troubleshoot'},
+            writable: true,
+            configurable: true,
+        });
+
+        // When the boot-time handler runs
+        runBoot();
+
+        // Then the record is gone from storage: no callback will ever consume it, and localStorage would otherwise keep it on disk indefinitely
+        expect(window.localStorage.getItem(`${CONST.LOCAL_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW_PREFIX}${FLOW.state}`)).toBeNull();
     });
 
     it('is a no-op when QA auth is not configured', () => {
@@ -117,8 +135,24 @@ describe('the boot-time QA auth callback handling', () => {
         expect(runBoot()).toBe('code-captured');
         // Then the URL is rewritten synchronously. Before React Navigation reads window.location, since no app route lives at the redirect path and the boot would otherwise land in /not-found
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/settings/troubleshoot');
-        // Then the exchange runs with the stored verifier, the proof that this tab began the flow
+        // Then the exchange runs with the stored verifier, the proof that this browser began the flow
         expect(sessionActions.exchangeCodeForCloudflareSession).toHaveBeenCalledWith({code: 'auth-code-1', codeVerifier: FLOW.codeVerifier});
+    });
+
+    it('answers a callback from an older Authorize screen with the round trip that screen started', () => {
+        // Given two round trips in flight: a newer one started while the older one's Authorize screen stayed open, through Back or a second tab
+        const newerFlow = {...FLOW, state: 'state-2', codeVerifier: 'verifier-2'};
+        pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
+        pendingAuthFlowStorage.savePendingAuthFlow(newerFlow);
+        arrangeCallbackURL('?code=auth-code-1&state=state-1');
+
+        // When Allow on the older screen delivers its callback
+        expect(runBoot()).toBe('code-captured');
+
+        // Then the exchange gets the older round trip's verifier, the one Cloudflare bound to this code
+        expect(sessionActions.exchangeCodeForCloudflareSession).toHaveBeenCalledWith({code: 'auth-code-1', codeVerifier: FLOW.codeVerifier});
+        // Then the newer round trip can still complete on its own callback
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(newerFlow.state)).toEqual(newerFlow);
     });
 
     it('reports a rejected exchange to the log', async () => {
@@ -132,22 +166,30 @@ describe('the boot-time QA auth callback handling', () => {
         // When the rejection lands. Its handler runs on a later microtask, so asserting synchronously would miss the log line
         await Promise.resolve();
 
-        // Then the reason must reach the log: nothing else can ever observe the rejection
+        // Then the reason must reach the log
         expect(mockLogWarn).toHaveBeenCalledWith('[CloudflareSession] Code exchange failed', {errorMessage: 'invalid_grant'});
     });
 
-    it('validates state first: a foreign callback is discarded wholesale, even with error and code present', () => {
-        // Given a callback whose state fails provenance while dangling both a provider error and a code
-        arrangeCallbackURL('?state=WRONG&error=access_denied&code=evil-code');
+    it.each([
+        ['a state no stored flow carries', '?state=WRONG&error=access_denied&code=evil-code'],
+        ['no state at all', '?error=access_denied&code=evil-code'],
+    ])('refuses a callback with %s before reading its error or code', (_label, search) => {
+        // Given a round trip in flight, and a callback that fails provenance while dangling both a provider error and a code
+        arrangeCallbackURL(search);
         pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
 
         // When the handler runs
-        // Then state must be validated before anything else: a callback failing provenance is discarded wholesale with its other params untrusted, so the planted code never reaches the exchange and the reported error is our mismatch, not the attacker's (CSRF/injection protection)
-        expect(runBoot()).toBe('invalid-callback');
+        // Then the callback is discarded wholesale with its other params untrusted, so the planted code never reaches the exchange and the reported error is ours, not the attacker's (CSRF/injection protection)
+        expect(runBoot()).toBe('no-pending-flow');
         expect(sessionActions.exchangeCodeForCloudflareSession).not.toHaveBeenCalled();
-        expect(mockLogWarn).toHaveBeenCalledWith('[CloudflareSession] Sign-in callback did not complete', {outcome: 'invalid-callback', errorMessage: 'OAuth callback state mismatch'});
-        // Then the boot is still rescued off the redirect path, which has no app route
-        expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/settings/troubleshoot');
+        expect(mockLogWarn).toHaveBeenCalledWith('[CloudflareSession] Sign-in callback did not complete', {
+            outcome: 'no-pending-flow',
+            errorMessage: 'No pending QA auth flow matches this callback. Start the sign-in again',
+        });
+        // Then the boot is still rescued off the redirect path
+        expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/');
+        // Then the round trip actually in flight can still complete: a forged callback must not be able to burn it
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(FLOW.state)).toEqual(FLOW);
     });
 
     it('surfaces a provider refusal without exchanging', () => {
@@ -160,6 +202,8 @@ describe('the boot-time QA auth callback handling', () => {
         expect(runBoot()).toBe('provider-error');
         expect(sessionActions.exchangeCodeForCloudflareSession).not.toHaveBeenCalled();
         expect(mockLogWarn).toHaveBeenCalledWith('[CloudflareSession] Sign-in callback did not complete', {outcome: 'provider-error', errorMessage: 'User refused'});
+        // Then the record is consumed anyway
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(FLOW.state)).toBeNull();
     });
 
     it('rejects a callback with no authorization code', () => {
@@ -174,11 +218,11 @@ describe('the boot-time QA auth callback handling', () => {
     });
 
     it('refuses a callback with no stored flow, and lands on a safe route', () => {
-        // Given a replayed callback URL, or one opened in a tab that never started the flow, no stored flow exists to vouch for it
+        // Given a replayed callback URL whose record was already consumed, or one from another browser, no stored flow exists to vouch for it
         arrangeCallbackURL('?code=auth-code-1&state=state-1');
 
         // When the handler runs
-        // Then the callback is refused because nothing proves this tab initiated it, and with no stored returnURL the boot falls back to the root, still a safe route off the redirect path
+        // Then the callback is refused because nothing proves this browser initiated it, and with no stored returnURL the boot falls back to the root, still a safe route off the redirect path
         expect(runBoot()).toBe('no-pending-flow');
         expect(sessionActions.exchangeCodeForCloudflareSession).not.toHaveBeenCalled();
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/');
@@ -193,16 +237,5 @@ describe('the boot-time QA auth callback handling', () => {
         expect(runBoot()).toBe('code-captured');
         // Then navigation falls back to the root: rewriting to another origin would hand out an open redirect, so a foreign returnURL is never followed
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/');
-    });
-
-    it('consumes the flow record even when the callback is rejected, so it can never be replayed', () => {
-        // Given a stored flow and a callback that will be rejected for failing the state check
-        arrangeCallbackURL('?state=WRONG&code=evil-code');
-        pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
-
-        // When the handler rejects the callback
-        runBoot();
-        // Then the flow record must be consumed anyway: leaving it behind would let the same verifier be replayed by a later, possibly forged, callback
-        expect(pendingAuthFlowStorage.consumePendingAuthFlow()).toBeNull();
     });
 });
