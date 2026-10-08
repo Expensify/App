@@ -6,8 +6,8 @@ import navigationRef from '@libs/Navigation/navigationRef';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import ONYXKEYS from '@src/ONYXKEYS';
-import HomeTaskGroup from '@src/pages/home/HomeTaskGroup';
 import AddHomeAddress from '@src/pages/home/TimeSensitiveSection/items/AddHomeAddress';
+import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -95,12 +95,7 @@ jest.mock('@hooks/useThemeStyles', () =>
 );
 
 function TimeSensitiveSection() {
-    return (
-        <HomeTaskGroup
-            title="homePage.timeSensitiveSection.title"
-            rows={useTimeSensitiveItems()}
-        />
-    );
+    return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
 }
 
 const renderTimeSensitiveSection = () =>

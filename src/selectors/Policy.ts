@@ -451,6 +451,8 @@ const isActiveHomeAndOfficeCommuterExclusionPolicy = (policy: OnyxEntry<Policy>)
     policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
     policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
+const hasHomeAndOfficeCommuterExclusionPolicySelector = (policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some(isActiveHomeAndOfficeCommuterExclusionPolicy);
+
 const homeAndOfficeCommuterExclusionPolicyNameSelector = (policies: OnyxCollection<Policy>): string | undefined =>
     Object.values(policies ?? {}).find(isActiveHomeAndOfficeCommuterExclusionPolicy)?.name;
 
@@ -603,6 +605,7 @@ export {
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
+    hasHomeAndOfficeCommuterExclusionPolicySelector,
     homeAndOfficeCommuterExclusionPolicyNameSelector,
     policyAvatarFieldsSelector,
     policyNameSelector,
