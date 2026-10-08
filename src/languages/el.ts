@@ -1042,11 +1042,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Πορτοφόλι',
             },
             addBankAccountAddress: {
-                workspaceTitle: 'Add your business bank account address',
-                personalTitle: 'Add your bank account address',
+                workspaceTitle: 'Προσθέστε τη διεύθυνση του επαγγελματικού τραπεζικού λογαριασμού σας',
+                personalTitle: 'Προσθέστε τη διεύθυνση του τραπεζικού λογαριασμού σας',
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
-                personalSubtitle: 'Wallet',
-                cta: 'Add address',
+                personalSubtitle: 'Πορτοφόλι',
+                cta: 'Προσθήκη διεύθυνσης',
             },
             enterSignerInfo: {
                 title: 'Απαιτούνται στοιχεία υπογράφοντος',
