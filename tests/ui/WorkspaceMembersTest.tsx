@@ -225,7 +225,7 @@ describe('WorkspaceMembers', () => {
 
         const selectForRoleChange = async (logins: string[]) => {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, logins);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, {policyID: policy.id, logins});
             });
         };
 
@@ -312,6 +312,58 @@ describe('WorkspaceMembers', () => {
 
             unmount();
             await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should ignore a selection stashed on another workspace', async () => {
+            // Given an admin stashed for a role change on a different workspace, as backing out of this screen there would leave behind
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, {policyID: 'ANOTHER_WORKSPACE', logins: [adminEmail]});
+            });
+
+            const {unmount} = renderRolePage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+
+            // When Save is pressed
+            const saveButton = await screen.findByText(TestHelper.translateLocal('common.save'));
+            fireEvent.press(saveButton, {
+                nativeEvent: {},
+                type: 'press',
+                target: saveButton,
+                currentTarget: saveButton,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the stashed admin was never adopted, so the screen has nothing picked to save
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('common.error.pleaseSelectOne'))).toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should drop the selection when the screen is left without saving', async () => {
+            // Given an admin selected for a role change
+            await selectForRoleChange([adminEmail]);
+
+            const {unmount} = renderRolePage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the screen is left without saving
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is left for a later visit to act on, and the empty selection that reports a saved change is not written
+            const stashedSelection = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            expect(stashedSelection).toBeUndefined();
         });
 
         it('should only offer the roles that can pay when the selection holds the Authorized Payer', async () => {
@@ -430,7 +482,7 @@ describe('WorkspaceMembers', () => {
             // Given the RuleBot selected for a role change
             await makeAdminTheRuleBot();
             await act(async () => {
-                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, [adminEmail]);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, {policyID: policy.id, logins: [adminEmail]});
             });
 
             const {unmount} = renderRolePage(policy.id);

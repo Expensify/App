@@ -590,14 +590,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     });
 
     // The role change happens on its own screen, which reports the change back by emptying the shared selection.
-    // Backing out of that screen leaves the selection in place, so only a drop to zero clears the rows here.
+    // Backing out of that screen drops the selection instead, so only a drop to zero clears the rows here.
     const [membersSelectedForRoleChange] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
-    const membersSelectedForRoleChangeCount = membersSelectedForRoleChange?.length ?? 0;
-    const [lastMembersSelectedForRoleChangeCount, setLastMembersSelectedForRoleChangeCount] = useState(membersSelectedForRoleChangeCount);
-    if (lastMembersSelectedForRoleChangeCount !== membersSelectedForRoleChangeCount) {
-        setLastMembersSelectedForRoleChangeCount(membersSelectedForRoleChangeCount);
+    const isRoleChangeSaved = membersSelectedForRoleChange?.policyID === policyID && membersSelectedForRoleChange.logins.length === 0;
+    const [wasRoleChangeSaved, setWasRoleChangeSaved] = useState(isRoleChangeSaved);
+    if (wasRoleChangeSaved !== isRoleChangeSaved) {
+        setWasRoleChangeSaved(isRoleChangeSaved);
 
-        if (lastMembersSelectedForRoleChangeCount > 0 && membersSelectedForRoleChangeCount === 0) {
+        if (isRoleChangeSaved) {
             setSelectedEmployees([]);
         }
     }
@@ -621,7 +621,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 icon: icons.UserPencil,
                 shouldSkipFocusRestore: true,
                 onSelected: () => {
-                    setMembersSelectedForRoleChange(selectedEmployees);
+                    setMembersSelectedForRoleChange(policyID, selectedEmployees);
                     Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_ROLE.getRoute(policyID));
                 },
             });

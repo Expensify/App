@@ -9,7 +9,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
-import {clearMembersSelectedForRoleChange, updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
+import {clearMembersSelectedForRoleChange, discardMembersSelectedForRoleChange, updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -28,7 +28,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type WorkspaceMembersRolePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_ROLE>;
 
@@ -41,7 +41,8 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const memberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
 
-    const memberLogins = selectedLogins ?? [];
+    // A selection left behind by an earlier visit belongs to the workspace it was made on, so it is ignored here.
+    const memberLogins = selectedLogins?.policyID === policyID ? selectedLogins.logins : [];
     const memberRoles = memberLogins.map((login) => policy?.employeeList?.[login]?.role);
     const canManageSelectedMemberRoles = memberRoles.every((role) => canMemberManageMemberWithRole(policy, currentUserLogin, role));
 
@@ -73,6 +74,19 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
         Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     }, [isSelectionLoading, memberCount, policyID]);
 
+    // Leaving without saving drops the selection, so coming back to this screen through history cannot apply a role to
+    // members the table no longer has selected.
+    const hasSaved = useRef(false);
+    useEffect(
+        () => () => {
+            if (hasSaved.current) {
+                return;
+            }
+            discardMembersSelectedForRoleChange();
+        },
+        [],
+    );
+
     const saveAndGoBack = () => {
         if (!selectedRole) {
             setHasError(true);
@@ -91,7 +105,8 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
             updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, selectedRole);
         }
 
-        clearMembersSelectedForRoleChange();
+        hasSaved.current = true;
+        clearMembersSelectedForRoleChange(policyID);
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 

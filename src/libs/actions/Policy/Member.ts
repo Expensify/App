@@ -1303,12 +1303,24 @@ function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccount
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
-function setMembersSelectedForRoleChange(memberLogins: string[]) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, memberLogins);
+function setMembersSelectedForRoleChange(policyID: string, memberLogins: string[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, {policyID, logins: memberLogins});
 }
 
-function clearMembersSelectedForRoleChange() {
-    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, []);
+/**
+ * Empties the selection in place, which is how the members table learns the change was saved and drops the rows it
+ * still has selected.
+ */
+function clearMembersSelectedForRoleChange(policyID: string) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, {policyID, logins: []});
+}
+
+/**
+ * Drops the selection entirely, for leaving the role screen without saving. The members table keeps its rows selected,
+ * since an empty selection is reserved for a saved change.
+ */
+function discardMembersSelectedForRoleChange() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, null);
 }
 
 function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONST.POLICY.ROLE>) {
@@ -1516,6 +1528,7 @@ export {
     setWorkspaceInviteRoleDraft,
     setMembersSelectedForRoleChange,
     clearMembersSelectedForRoleChange,
+    discardMembersSelectedForRoleChange,
     clearWorkspaceInviteRoleDraft,
     setWorkspaceInviteApproverDraft,
     clearWorkspaceInviteApproverDraft,
