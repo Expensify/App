@@ -14,7 +14,7 @@ import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTagNameError} from '@libs/TagUtils';
 
-import {updateExpensifyCardLimit, updateExpensifyCardLimitType, updateExpensifyCardTitle} from '@userActions/Card';
+import {updateExpensifyCardLimit, updateExpensifyCardLimitType} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
@@ -63,16 +63,6 @@ function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: str
     }
 
     updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, storedName);
-}
-
-function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, newName: string, currentName: string): void {
-    const sanitized = StringUtils.sanitizeName(newName);
-
-    if (sanitized === currentName || getCardNameError(newName)) {
-        return;
-    }
-
-    updateExpensifyCardTitle(workspaceAccountID, cardID, sanitized, currentName);
 }
 
 function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): void {
@@ -216,7 +206,6 @@ export {
     renameCategoryInline,
     renameTagInline,
     renameCompanyCardInline,
-    renameExpensifyCardInline,
     renameDistanceRateInline,
     updateDistanceRateValueInline,
     updateMemberRoleInline,

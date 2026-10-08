@@ -8,6 +8,7 @@ import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from '@libs/AgentRuleChangeLogUtils';
 import {isMobileSafari} from '@libs/Browser';
@@ -186,7 +187,6 @@ import {
     canEditReportAction,
     canFlagReportAction,
     canHoldUnholdReportAction,
-    changeMoneyRequestHoldStatus,
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getIOUReportActionDisplayMessage,
@@ -301,6 +301,10 @@ type ShouldShow = (args: {
     type: string;
     reportAction: OnyxEntry<ReportAction>;
     childReportActions: OnyxCollection<ReportAction>;
+    /** Actions of the report the context-menu action belongs to (`reportAction` is read from this collection) */
+    originalReportActions: OnyxEntry<ReportActions>;
+    /** Actions of the money request report that `moneyRequestAction` belongs to */
+    moneyRequestReportActions: OnyxEntry<ReportActions>;
     isArchivedRoom: boolean;
     menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
@@ -350,6 +354,7 @@ type ContextMenuActionPayload = {
     setIsEmojiPickerActive?: (state: boolean) => void;
     anchorRef?: RefObject<ComponentRef<typeof View> | null>;
     moneyRequestAction: ReportAction | undefined;
+    moneyRequestPolicy?: OnyxEntry<Policy>;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
     isHarvestReport?: boolean;
@@ -648,9 +653,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
         icon: 'Pencil',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, moneyRequestAction, iouTransaction, rules}) =>
+        shouldShow: ({type, reportAction, originalReportActions, isArchivedRoom, isChronosReport, moneyRequestAction, moneyRequestReportActions, iouTransaction, rules}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            (canEditReportAction(reportAction, iouTransaction, rules) || canEditReportAction(moneyRequestAction, iouTransaction, rules)) &&
+            (canEditReportAction(reportAction, iouTransaction, rules, originalReportActions) || canEditReportAction(moneyRequestAction, iouTransaction, rules, moneyRequestReportActions)) &&
             !isArchivedRoom &&
             !isChronosReport,
         onPress: (
@@ -722,6 +727,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             {
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 iouTransactionViolations,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
@@ -742,6 +748,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     changeMoneyRequestHoldStatus(
                         moneyRequestAction,
                         iouTransaction,
+                        moneyRequestPolicy,
                         isOffline,
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
@@ -758,6 +765,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 isOffline,
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
@@ -786,6 +794,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             {
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 iouTransactionViolations,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
@@ -806,6 +815,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     changeMoneyRequestHoldStatus(
                         moneyRequestAction,
                         iouTransaction,
+                        moneyRequestPolicy,
                         isOffline,
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
@@ -822,6 +832,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 isOffline,
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
