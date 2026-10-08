@@ -6,7 +6,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Parser from '@libs/Parser';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -17,12 +16,12 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type NetSuiteSectionType = {
     title?: string;
@@ -41,7 +40,6 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
-    const netSuiteExportBackPath = useMemo(() => createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)), [policyID]);
     const config = policy?.connections?.netsuite?.options?.config;
 
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
@@ -88,7 +86,7 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onBackButtonPress={() => Navigation.goBack(netSuiteExportBackPath)}
+            onBackButtonPress={() => Navigation.goBack()}
         >
             <MenuItemField
                 name={translate('workspace.accounting.exportAs')}
