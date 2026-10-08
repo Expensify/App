@@ -114,7 +114,7 @@ function CollectDepositAccount() {
                 onBackButtonPress={handleBackButtonPress}
             />
             {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator onGoBack={handleBackButtonPress} />
             ) : (
                 <CurrentPage
                     isEditing={isEditing}

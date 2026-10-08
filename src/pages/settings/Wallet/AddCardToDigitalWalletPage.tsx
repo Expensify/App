@@ -116,7 +116,7 @@ function AddCardToDigitalWalletPage({
     const isWaitingForPendingApproval = !isOffline && isCheckingPendingApproval !== false && !hasPendingApproval && !submittedRequest;
 
     if (isWaitingForPendingApproval || (!card && isLoadingOnyxValue(cardMetadata))) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={goBackToEntryPoint} />;
     }
 
     if (!card || (!hasPendingApproval && !submittedRequest)) {
