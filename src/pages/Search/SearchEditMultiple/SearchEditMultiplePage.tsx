@@ -60,7 +60,7 @@ import {
 } from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -382,7 +382,7 @@ function SearchEditMultiplePage() {
                     {areAttendeesEnabled && (
                         <MenuItemField
                             name={translate('iou.attendees')}
-                            value={draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, localeCompare) : ''}
+                            value={draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, formatPhoneNumber, localeCompare) : ''}
                             onPress={isAttendeesDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
                             isDisabled={isAttendeesDisabled}
                         />
