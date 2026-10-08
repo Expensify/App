@@ -2054,6 +2054,17 @@ function isReportEligibleForViolationFix(report: OnyxEntry<Report>, policy: Onyx
     return isOpenReport(report);
 }
 
+// Violations the submitter can no longer fix once a report is submitted. Inbox and Home both use this list.
+function getSubmitterUnfixableViolationNames(report: OnyxEntry<Report>): {excludedViolations: ViolationName[]; excludedNotices: ViolationName[]} {
+    if (!isProcessingReport(report)) {
+        return {excludedViolations: [], excludedNotices: []};
+    }
+    return {
+        excludedViolations: [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED],
+        excludedNotices: [CONST.VIOLATIONS.MODIFIED_AMOUNT],
+    };
+}
+
 /**
  * Checks if a report is in an open/unsubmitted state where its transactions can be deleted.
  * Returns true for:
@@ -10179,10 +10190,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
             const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
-            // A submitted `companyCardRequired` is not actionable by the submitter, so it must not drive the RBR. It is
-            // excluded by name because the back end owns its type.
-            const excludedViolationNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.COMPANY_CARD_REQUIRED] : [];
-            const excludedNoticeNamesForLHN: ViolationName[] = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
+            const {excludedViolations: excludedViolationNamesForLHN, excludedNotices: excludedNoticeNamesForLHN} = getSubmitterUnfixableViolationNames(potentialReport);
 
             return (
                 !isInvoiceReport(potentialReport) &&
@@ -14925,6 +14933,7 @@ export {
     isProcessingReport,
     isOpenReport,
     isReportEligibleForViolationFix,
+    getSubmitterUnfixableViolationNames,
     isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicRoom,

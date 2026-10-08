@@ -5,7 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOneTransactionReport, isProcessingReport, isReportEligibleForViolationFix} from '@libs/ReportUtils';
+import {getSubmitterUnfixableViolationNames, isOneTransactionReport, isReportEligibleForViolationFix} from '@libs/ReportUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -55,11 +55,12 @@ function isCurrentUserReportEligibleForViolationFix(report: Report | null | unde
 }
 
 // True when a violation should show in "Review expenses".
-// On a submitted report, skip companyCardRequired and a modifiedAmount notice so Home matches the Inbox.
-function hasReviewableViolation(violations: TransactionViolations | null | undefined, isProcessing: boolean): boolean {
+function hasReviewableViolation(violations: TransactionViolations | null | undefined, report: OnyxEntry<Report>): boolean {
     if (!violations || violations.length === 0) {
         return false;
     }
+
+    const {excludedViolations, excludedNotices} = getSubmitterUnfixableViolationNames(report);
 
     return violations.some((violation) => {
         if (!violation) {
@@ -71,11 +72,11 @@ function hasReviewableViolation(violations: TransactionViolations | null | undef
         if (violation.name === CONST.REPORT_VIOLATIONS.FIELD_REQUIRED) {
             return false;
         }
-        if (isProcessing && violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED) {
+        if (excludedViolations.includes(violation.name)) {
             return false;
         }
         if (violation.type === CONST.VIOLATION_TYPES.NOTICE || violation.type === CONST.VIOLATION_TYPES.WARNING) {
-            if (isProcessing && violation.type === CONST.VIOLATION_TYPES.NOTICE && violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT) {
+            if (violation.type === CONST.VIOLATION_TYPES.NOTICE && excludedNotices.includes(violation.name)) {
                 return false;
             }
             return violation.showInReview === true;
@@ -119,7 +120,7 @@ function getFlaggedExpenses(
 
         // The report is owned by the current user, so the owner login is currentUserEmail.
         const visibleViolations = getVisibleTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, currentUserEmail, policy);
-        if (!hasReviewableViolation(visibleViolations, isProcessingReport(report))) {
+        if (!hasReviewableViolation(visibleViolations, report)) {
             continue;
         }
 
