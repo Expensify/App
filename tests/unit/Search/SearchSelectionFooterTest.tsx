@@ -3,7 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import type {SearchFooterCount, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
-import {getFooterConvertedAmounts, search} from '@libs/actions/Search';
+import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -28,10 +28,11 @@ jest.mock('@hooks/usePermissions', () => ({
     }),
 }));
 
+const mockSearch = jest.fn<Promise<void> | undefined, unknown[]>();
 jest.mock('@libs/actions/Search', () => ({
     openSearchCardFiltersPage: jest.fn(),
     getFooterConvertedAmounts: jest.fn(),
-    search: jest.fn(),
+    search: (...args: unknown[]) => mockSearch(...args),
 }));
 
 const mockSetParams = jest.fn<void, [{q?: string; rawQuery?: string}]>();
@@ -490,7 +491,7 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
         });
 
-        it('moves the search hash when a total is applied, keeping the rows on screen while the new one loads', async () => {
+        it('asks the backend for the new aggregate itself, against the search the list is already reading', async () => {
             setSearchQuery('type:expense');
             mockSelectedTransactions.current = {};
             const beforeHash = mockSearchQueryContext.current.currentSearchQueryJSON?.hash;
@@ -503,50 +504,52 @@ describe('SearchSelectionFooter', () => {
                 await waitForBatchedUpdates();
             });
 
-            // The query change is what re-runs the search, so the footer asks for nothing itself.
-            expect(search).not.toHaveBeenCalled();
-
-            // The choice goes into the query, which is what saves it for the next visit...
+            // The choice goes into the query, which saves it for the next visit...
             const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
             expect(nextQuery).toContain('footerTotal:reimbursable');
-            // ...and the hash moves with it, since the backend answers a different aggregate for each breakdown.
-            expect(buildSearchQueryJSON(nextQuery)?.hash).not.toBe(beforeHash);
+            // ...and the hash holds, so the list keeps its rows, its pages and its selection.
+            expect(buildSearchQueryJSON(nextQuery)?.hash).toBe(beforeHash);
+
+            // Nothing re-runs the search on a hash that did not move, so the footer asks for the aggregate itself.
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldCalculateTotals: true, queryJSON: expect.objectContaining({hash: beforeHash})}));
         });
 
-        it("skeletons the total after applying one while another search's results are still on screen, leaving the count alone", async () => {
-            // Given the footer describing the whole search, with the results of another search still displayed
-            setSearchQuery('type:expense', 2);
+        it('skeletons the total while the aggregate it asked for is on its way, leaving the count alone', async () => {
+            // Given the footer describing the whole search
+            setSearchQuery('type:expense');
             mockSelectedTransactions.current = {};
+            let resolveSearch: () => void = () => {};
+            mockSearch.mockImplementation(
+                () =>
+                    new Promise<void>((resolve) => {
+                        resolveSearch = resolve;
+                    }),
+            );
 
-            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)} />);
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)} />);
             await waitForBatchedUpdates();
 
             // Then nothing is waited on until the footer asks for something
             expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
 
-            // When a different total is applied, which moves the query onto its own hash
+            // When a different total is applied, which the footer asks the backend for
             await act(async () => {
                 mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
                 await waitForBatchedUpdates();
             });
-            const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
-            const nextHash = buildSearchQueryJSON(nextQuery)?.hash ?? 0;
-            setSearchQuery(nextQuery, nextHash);
-            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)} />);
-            await waitForBatchedUpdates();
 
             // Then the skeleton stands in for the figure it cannot describe yet, and the count holds its value
             expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
             expect(mockCapturedFooterProps.current?.count).toBe(10);
 
-            // When this search's own results arrive
-            const nextResults = buildSearchResults(CONST.CURRENCY.USD, 10, 12000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4);
-            nextResults.search.hash = nextHash;
-            rerender(<SearchSelectionFooter searchResults={nextResults} />);
-            await waitForBatchedUpdates();
+            // When the request answers
+            await act(async () => {
+                resolveSearch();
+                await waitForBatchedUpdates();
+            });
 
             // Then the skeleton gives way to the figure
-            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: false, total: 12000}));
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
         });
 
         it('never waits on a search for a to-do search, whose totals are summed from live data', async () => {
@@ -642,22 +645,28 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current?.currency).not.toBe(CONST.CURRENCY.EUR);
         });
 
-        it('stores a total applied over a selection in the query too, so it is restored on the next visit', async () => {
+        it('stores a total applied over a selection in the query, which is what the sum then follows', async () => {
+            // Given a hand-picked selection of three expenses, one of them billable
             setSearchQuery('type:expense');
-            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)} />);
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)} />);
             await waitForBatchedUpdates();
 
+            // When Billable is applied
             await act(async () => {
                 mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
                 await waitForBatchedUpdates();
             });
 
-            // The choice goes into the query like any other, so it survives a reload and a saved search. The hash it
-            // moves is a footer-only change, which `useSearchPageSetup` keeps the selection across.
+            // Then the choice goes into the query like any other, so it survives a reload and a saved search, without
+            // asking the backend for anything: the sum is the client's own
             const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
             expect(nextQuery).toContain('footerTotal:billable');
+            expect(mockSearch).not.toHaveBeenCalled();
 
-            // The breakdown applies right away all the same, summed from the selected rows: one of the three is billable.
+            // And once the app is on that query, the selection is summed by it: one of the three is billable
+            setSearchQuery(nextQuery);
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)} />);
+            await waitForBatchedUpdates();
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, total: -100}));
         });
 

@@ -5,9 +5,8 @@ import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
 import {close} from '@libs/actions/Modal';
-import {getFooterConvertedAmounts} from '@libs/actions/Search';
+import {getFooterConvertedAmounts, search} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
 import {doesTransactionMatchFooterTotal, isGroupEntry} from '@libs/SearchUIUtils';
 
@@ -122,14 +121,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         selectedCurrency: undefined,
         defaultCurrency: undefined,
     });
-    const [footerTotalState, setFooterTotalState] = useState<{searchHash: number | undefined; selectedTotal: SearchFooterTotal | undefined}>({
-        searchHash: undefined,
-        selectedTotal: undefined,
-    });
-    // The hash the footer is waiting on after asking for a different total, which is the only search whose result
-    // changes the figure on display, stamped with the snapshot hash the request was made from. The stamp ends the wait
-    // on its own once the snapshot moves off it, so a later visit to that hash never skeletons the total again.
-    const [pendingTotal, setPendingTotal] = useState<{hash: number | undefined; fromHash: number | undefined}>();
+    // Whether the backend is still answering the breakdown the footer asked for. The request keys no hash of its own —
+    // it refreshes the figures of the search already on screen — so the wait is held here and ends with the response.
+    const [isAwaitingBreakdownTotal, setIsAwaitingBreakdownTotal] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const isFooterSelectorsEnabled = isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS);
     const footerSelection = isFooterSelectorsEnabled ? getFooterSelectionFromQuery(currentSearchQueryJSON) : EMPTY_FOOTER_SELECTION;
@@ -358,12 +352,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
 
-    // A total the client sums itself is chosen in local state, not in the query: the query's `footerTotal` is part of the
-    // search hash, so writing it would re-run the search and clear the very selection the footer is describing. The
-    // override lives only while the client is summing. Once the selection goes, the footer is back on the query's total.
-    const footerTotalOverride = hasPartialSelection && footerTotalState.searchHash === currentSearchHash ? footerTotalState.selectedTotal : undefined;
     const shouldNameQueryBreakdown = isFooterSelectorsEnabled && (shouldShowTotalSelector || !shouldUseClientTotal);
-    const footerTotalType = shouldNameQueryBreakdown ? (footerTotalOverride ?? footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
+    const footerTotalType = shouldNameQueryBreakdown ? (footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
     // No selector means no breakdown, which is the plain total, so the sums below never have to special-case it.
     const footerTotalBreakdown = footerTotalType ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
@@ -580,10 +570,6 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         }
 
         const nextQuery = getQueryWithFooterSelection(currentSearchQueryJSON, selection);
-        // `footerTotal` moves the search hash, so the new query has no snapshot of its own yet. Marking it a
-        // refinement is what keeps the rows, the selection and the figures on screen while it loads, instead of
-        // unmounting the list to a skeleton over a change that matches exactly the same rows.
-        markQueryAsRefinement(nextQuery);
         close(() => {
             Navigation.setParams({q: nextQuery, rawQuery: undefined});
         });
@@ -599,19 +585,31 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     };
 
     const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
-        // A hand-picked selection is summed from its own rows, so it shows the new breakdown straight away and waits
-        // on nothing. The same goes for a to-do search, whose totals are summed from live Onyx data with the query's
-        // own breakdown applied. Every other case needs the figure from the backend, so the skeleton waits on the hash
-        // the query is moving to — `footerTotal` is part of the hash, since it changes the aggregate that comes back.
-        if (hasPartialSelection) {
-            setFooterTotalState({searchHash: currentSearchHash, selectedTotal: nextTotalType});
-        } else if (currentSearchQueryJSON && !shouldUseLiveData) {
-            setPendingTotal({hash: buildSearchQueryJSON(getQueryWithFooterSelection(currentSearchQueryJSON, {footerTotal: nextTotalType}))?.hash, fromHash: metadata?.hash});
+        // A hand-picked selection is summed from its own rows, and a to-do search from live Onyx data, so both show the
+        // new breakdown as soon as the query carries it and wait on nothing.
+        if (!hasPartialSelection && currentSearchQueryJSON && !shouldUseLiveData) {
+            // Every other case needs the figure from the backend. The breakdown keys no hash — the rows it matches are
+            // the ones already on screen — so nothing re-runs the search on its own and the footer asks for the
+            // aggregate itself, against the snapshot the list is already reading. The request carries the page the
+            // list has reached rather than the first one, so the rows it holds are left where they are.
+            const nextQueryJSON = buildSearchQueryJSON(getQueryWithFooterSelection(currentSearchQueryJSON, {footerTotal: nextTotalType}));
+            if (nextQueryJSON) {
+                setIsAwaitingBreakdownTotal(true);
+                Promise.resolve(
+                    search({
+                        queryJSON: nextQueryJSON,
+                        searchKey: currentSearchKey,
+                        offset: metadata?.offset ?? 0,
+                        shouldCalculateTotals: true,
+                        isLoading: false,
+                        shouldShowLoading: false,
+                    }),
+                ).finally(() => setIsAwaitingBreakdownTotal(false));
+            }
         }
 
-        // Written in both cases, so the choice is saved against this search and restored on the next visit. The page
-        // is told first so the rows stay on screen while the new hash loads, and the selection rides it out:
-        // `useSearchPageSetup` keeps a selection across a query change that is only a footer selection.
+        // Every case writes the choice into the query: that is what every sum reads, and what saves it against this
+        // search for the next visit.
         applyFooterSelection({footerTotal: nextTotalType});
     };
 
@@ -735,11 +733,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return null;
     }
 
-    const isAwaitingFooterTotal =
-        !shouldUseLiveData && pendingTotal?.hash !== undefined && pendingTotal.hash === currentSearchHash && metadata?.hash !== currentSearchHash && metadata?.hash === pendingTotal.fromHash;
-
     // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
-    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isAwaitingFooterTotal || (!!metadata?.isLoading && metadata?.offset === 0)));
+    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isAwaitingBreakdownTotal || (!!metadata?.isLoading && metadata?.offset === 0)));
 
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.

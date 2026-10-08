@@ -185,20 +185,6 @@ describe('useSearchPageSetup', () => {
         expect(getClearedHashes()).toEqual([queryJSON?.hash]);
     });
 
-    it('keeps the selection when only the Spend footer total changes, which is the same search', () => {
-        // Given a search with rows selected
-        const {rerender} = renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
-        mockClearSelectedTransactions.mockClear();
-
-        // When the footer asks for a different total, which moves the hash because the backend answers differently
-        const withBreakdown = buildSearchQueryJSON(`${QUERY} footerTotal:billable`);
-        expect(withBreakdown?.hash).not.toBe(queryJSON?.hash);
-        rerender({queryJSON: withBreakdown});
-
-        // Then the selection the footer is describing survives it
-        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
-    });
-
     it('clears the selection when the search itself changes', () => {
         const {rerender} = renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
         mockClearSelectedTransactions.mockClear();

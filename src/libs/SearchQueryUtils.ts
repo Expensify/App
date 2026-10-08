@@ -734,9 +734,9 @@ function getQueryWithFooterSelection(
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL, nextSelection.footerTotal],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY, nextSelection.footerCurrency],
     ] as const) {
-        // The plain total is what a query with no selection already shows, and it is the one selection that keys the
-        // snapshot: writing it would send the user back to a hash they came from as if it were a different search,
-        // costing a request for figures already cached under the query they started on.
+        // The plain total is what a query with no selection already shows, so it is left out rather than spelled out:
+        // going back to it returns the query to what it was before the footer was touched, in the URL and in a saved
+        // search alike.
         if (!value || (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL && value === CONST.SEARCH.FOOTER_TOTAL.TOTAL)) {
             continue;
         }
@@ -955,8 +955,7 @@ function getQueryHashes(query: SearchQueryJSON) {
         }
 
         // The Spend footer's selections ride along as filters but match no rows, so they must not make a query look
-        // like a different (or a less similar) search. `footerTotal` rejoins the primary hash below, after the recent
-        // and similar hashes are taken, because it does change the total the backend returns.
+        // like a different (or a less similar) search, or key a snapshot of its own.
         if (FOOTER_FILTER_KEYS.has(filterKey)) {
             continue;
         }
@@ -987,30 +986,12 @@ function getQueryHashes(query: SearchQueryJSON) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
     }
 
-    // The total the footer asks for changes the aggregate the backend answers with, so it is part of the primary
-    // hash — the snapshot key. It joins here, after the recent and similar hashes are taken, so switching the
-    // breakdown is still the same search in the recent list and still matches the same saved search.
-    // The plain total is what the backend answers without being asked, so a query carrying it explicitly — a saved
-    // search or a hand-typed link — keys the same snapshot as one that leaves it out.
-    const {footerTotal} = getFooterSelectionFromQuery(query);
-    if (footerTotal && footerTotal !== CONST.SEARCH.FOOTER_TOTAL.TOTAL) {
-        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL}:${footerTotal}`;
-    }
-
     if (query.compare) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE}:${query.compare}`;
     }
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
-}
-
-/**
- * The primary hash a query would have with the Spend footer's selections taken out. Two queries sharing it are the
- * same search with a different footer selection, which is what lets a selection survive a footer-driven re-run.
- */
-function getQueryHashWithoutFooterSelections(query: SearchQueryJSON | Readonly<SearchQueryJSON>): number {
-    return getQueryHashes({...query, flatFilters: query.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key))}).primaryHash;
 }
 
 function withExactMatchFilterKeys(queryJSON: Readonly<SearchQueryJSON>, exactMatchFilterKeys: SearchFilterKey[]): SearchQueryJSON {
@@ -3121,7 +3102,6 @@ export {
     getQueryHashes,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
-    getQueryHashWithoutFooterSelections,
     getQueryWithoutFooterSelections,
     hasFooterSelections,
     hasFiltersChangedFromDefault,

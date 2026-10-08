@@ -26,7 +26,6 @@ import {
     getFilterFromQuery,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
-    getQueryHashWithoutFooterSelections,
     getQueryWithoutFooterSelections,
     hasFooterSelections,
     queryHasViolationFilter,
@@ -2597,7 +2596,7 @@ describe('SearchQueryUtils', () => {
             expect(expenses?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
         });
 
-        it('leaves the plain total out of the query, so switching back to it returns to the search it came from', () => {
+        it('leaves the plain total out of the query, so switching back to it returns the query to what it was', () => {
             const queryJSON = buildSearchQueryJSON('type:expense footerTotal:billable footerCurrency:EUR');
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
@@ -2606,36 +2605,21 @@ describe('SearchQueryUtils', () => {
             const backToPlainTotal = getQueryWithFooterSelection(queryJSON, {footerTotal: CONST.SEARCH.FOOTER_TOTAL.TOTAL});
 
             expect(backToPlainTotal).not.toContain('footerTotal');
-            // The currency rides along untouched, and the hash is the one the untouched search has.
+            // The currency rides along untouched.
             expect(backToPlainTotal).toContain('footerCurrency:EUR');
-            expect(buildSearchQueryJSON(backToPlainTotal)?.hash).toBe(buildSearchQueryJSON('type:expense')?.hash);
         });
 
-        it('hashes a query that spells out the plain total like one that leaves it out, so a saved search keys one snapshot', () => {
-            expect(buildSearchQueryJSON('type:expense footerTotal:total')?.hash).toBe(buildSearchQueryJSON('type:expense')?.hash);
-        });
-
-        it('moves the primary hash for the footer total, which is the one selection the backend answers differently', () => {
+        it('leaves every hash alone for the footer total, so one search keeps one snapshot', () => {
             const noSelection = buildSearchQueryJSON('type:expense');
-            const total = buildSearchQueryJSON('type:expense footerTotal:total');
             const reimbursable = buildSearchQueryJSON('type:expense footerTotal:reimbursable');
+            const billable = buildSearchQueryJSON('type:expense footerTotal:billable');
 
-            // Each breakdown is its own snapshot, so the aggregate the backend sends back is cached per breakdown.
-            expect(total?.hash).not.toEqual(reimbursable?.hash);
-            expect(reimbursable?.hash).not.toEqual(noSelection?.hash);
-            // ...but it is the same search in the recent list, and still matches the same saved search.
+            // The breakdown is a different aggregate over the same rows, so it keys nothing: the list keeps its
+            // snapshot, its pages and its selection across a switch, and the footer refreshes the figures itself.
+            expect(reimbursable?.hash).toEqual(noSelection?.hash);
+            expect(billable?.hash).toEqual(noSelection?.hash);
             expect(reimbursable?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
             expect(reimbursable?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
-        });
-
-        it('gives every breakdown of one search the same hash once the footer selections are left out, which is what keeps a selection across it', () => {
-            const getHashWithoutFooterSelections = (query: string) => {
-                const queryJSON = buildSearchQueryJSON(query);
-                return queryJSON ? getQueryHashWithoutFooterSelections(queryJSON) : undefined;
-            };
-
-            expect(getHashWithoutFooterSelections('type:expense footerTotal:billable')).toEqual(getHashWithoutFooterSelections('type:expense'));
-            expect(getHashWithoutFooterSelections('type:expense footerTotal:billable sortBy:amount')).not.toEqual(getHashWithoutFooterSelections('type:expense footerTotal:billable'));
         });
 
         it('leaves every hash alone for the footer currency, which Search ignores and a separate command converts', () => {

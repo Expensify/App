@@ -32,15 +32,8 @@ jest.mock('@react-navigation/native', () => ({
 /** The search the rows were selected in. */
 const SEARCH_HASH = 1;
 
-/** The hash a Spend footer total switch moves the query onto: the same rows, a different aggregate. */
-const FOOTER_TOTAL_HASH = 2;
-
-/** A real filter change, which lands on a different search altogether. */
+/** A filter change, which lands on a different search altogether. */
 const OTHER_SEARCH_HASH = 3;
-
-/** What the two hashes above share: the query with the footer's own selections left out. */
-const FOOTERLESS_HASH = 10;
-const OTHER_FOOTERLESS_HASH = 11;
 
 const buildRow = (index: number) => buildTransactionRow(index, `${index}`, {currency: 'USD', amount: -500});
 
@@ -78,7 +71,6 @@ function makeSearchResults(hash: number, rows: TransactionListItemType[]): Searc
 /** What the list is rendering. Swapped between renders to stand for a page load or a re-run of the search. */
 let renderedRows: TransactionListItemType[] = bothPages;
 let renderedHash = SEARCH_HASH;
-let renderedFooterlessHash = FOOTERLESS_HASH;
 
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
@@ -89,7 +81,6 @@ function Wrapper({children}: {children: React.ReactNode}) {
                 totalSelectableItemsCount={renderedRows.length}
                 searchResults={makeSearchResults(renderedHash, renderedRows)}
                 searchHash={renderedHash}
-                searchHashWithoutFooterSelections={renderedFooterlessHash}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -113,74 +104,16 @@ const renderSelection = () =>
         {wrapper: Wrapper},
     );
 
-describe('Selection across a Spend footer total switch', () => {
+describe('Selection as the search data changes', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(() => {
         renderedRows = bothPages;
         renderedHash = SEARCH_HASH;
-        renderedFooterlessHash = FOOTERLESS_HASH;
     });
 
     afterEach(async () => {
         await Onyx.clear();
-    });
-
-    it('keeps rows selected beyond the first page, which the re-run has not loaded back yet', async () => {
-        // Given two rows selected from a page that loaded after the first
-        const {result, rerender} = renderSelection();
-        await act(async () => {
-            result.current.toggle(laterPageRowA);
-            result.current.toggle(laterPageRowB);
-            await waitForBatchedUpdatesWithAct();
-        });
-        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual(['3', '4']);
-
-        // When a footer total switch moves the query onto its own hash, re-running the search from the first page
-        renderedRows = firstPage;
-        renderedHash = FOOTER_TOTAL_HASH;
-        rerender({});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then they stay selected: the rows are unloaded, not gone
-        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual(['3', '4']);
-    });
-
-    it('keeps both halves of a selection that spans the pages', async () => {
-        const {result, rerender} = renderSelection();
-        await act(async () => {
-            result.current.toggle(firstPageRowA);
-            result.current.toggle(laterPageRowB);
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderedRows = firstPage;
-        renderedHash = FOOTER_TOTAL_HASH;
-        rerender({});
-        await waitForBatchedUpdatesWithAct();
-
-        // The loaded row is rebuilt from what is on screen, the unloaded one is carried over
-        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual(['1', '4']);
-    });
-
-    it('keeps them across the passes that follow the switch, as the data settles', async () => {
-        const {result, rerender} = renderSelection();
-        await act(async () => {
-            result.current.toggle(laterPageRowB);
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderedRows = firstPage;
-        renderedHash = FOOTER_TOTAL_HASH;
-        rerender({});
-        await waitForBatchedUpdatesWithAct();
-
-        // A later Onyx push re-runs the reconcile against the same first page
-        renderedRows = [...firstPage];
-        rerender({});
-        await waitForBatchedUpdatesWithAct();
-
-        expect(Object.keys(result.current.selectedTransactions)).toEqual(['4']);
     });
 
     it('still drops a row that disappears without the search changing', async () => {
@@ -208,10 +141,9 @@ describe('Selection across a Spend footer total switch', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // When a filter change moves the search onto a hash that is not a footer sibling
+        // When a filter change moves the search onto another hash
         renderedRows = firstPage;
         renderedHash = OTHER_SEARCH_HASH;
-        renderedFooterlessHash = OTHER_FOOTERLESS_HASH;
         rerender({});
         await waitForBatchedUpdatesWithAct();
 

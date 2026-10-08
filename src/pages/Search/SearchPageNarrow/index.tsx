@@ -29,7 +29,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, getQueryHashWithoutFooterSelections} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
@@ -335,7 +335,7 @@ function SearchPageNarrow({
                                         <Search
                                             searchResults={contentSearchResults}
                                             queryJSON={contentQueryJSON}
-                                            key={getQueryHashWithoutFooterSelections(contentQueryJSON)}
+                                            key={contentQueryJSON.hash}
                                             contentContainerStyle={contentContainerStyle}
                                             handleSearch={handleSearchAction}
                                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -359,7 +359,7 @@ function SearchPageNarrow({
                             {!useStaticRendering && (
                                 <>
                                     <Animated.View
-                                        key={getQueryHashWithoutFooterSelections(contentQueryJSON)}
+                                        key={contentQueryJSON.hash}
                                         entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
@@ -392,7 +392,7 @@ function SearchPageNarrow({
                                 </>
                             )}
                         </View>
-                        <SearchSelectionFooter searchResults={contentSearchResults} />
+                        <SearchSelectionFooter searchResults={searchResults} />
                     </View>
                 </ScreenWrapper>
             </ReceiptScanDropZone>
