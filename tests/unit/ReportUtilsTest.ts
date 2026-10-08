@@ -6237,13 +6237,27 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined);
+            changeMoneyRequestHoldStatus({
+                reportAction,
+                iouTransaction,
+                iouTransactionReport: undefined,
+                reportActionChildReport: undefined,
+                isOffline: false,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
             expect(unholdRequestSpy).toHaveBeenCalledWith({
                 transactionID,
-                transaction: iouTransaction,
                 reportID: childReportID,
+                transaction: iouTransaction,
+                transactionReport: undefined,
+                report: undefined,
                 policy: expect.objectContaining({id: policyID}),
                 isOffline: false,
                 currentUserLogin: currentUserEmail,
@@ -6295,7 +6309,19 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined);
+            changeMoneyRequestHoldStatus({
+                reportAction,
+                iouTransaction,
+                iouTransactionReport: undefined,
+                reportActionChildReport: undefined,
+                isOffline: false,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, childReportID), 'mock-route'));

@@ -420,6 +420,8 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
         });
 
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        const transactionReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+        const reportActionChildReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`);
 
         expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
         expect(mockUnholdRequest).toHaveBeenCalledWith({
@@ -427,6 +429,8 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
             transaction,
 
             reportID: childReportID,
+            transactionReport,
+            report: reportActionChildReport,
             policy: expect.objectContaining({id: policyID}),
             isOffline: false,
             currentUserLogin,

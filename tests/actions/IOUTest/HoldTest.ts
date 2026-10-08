@@ -677,6 +677,7 @@ describe('actions/IOU/Hold', () => {
                     // When an expense is unhold
                     unholdRequest({
                         transactionID: transaction.transactionID,
+                        reportID: transactionThread.reportID,
                         transactionReport: iouReport,
                         report: transactionThread,
                         transaction,
@@ -780,6 +781,7 @@ describe('actions/IOU/Hold', () => {
                     const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
                     unholdRequest({
                         transactionID: transaction.transactionID,
+                        reportID: transactionThread.reportID,
                         transaction: updatedTransaction,
                         transactionReport: iouReport,
                         report: transactionThread,

@@ -101,19 +101,19 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                             showDelegateNoAccessModal();
                             return;
                         }
-                        changeMoneyRequestHoldStatus(
-                            parentReportAction,
-                            transaction,
-                            transactionReport,
-                            parentReportActionChildReport,
+                        changeMoneyRequestHoldStatus({
+                            reportAction: parentReportAction,
+                            iouTransaction: transaction,
+                            iouTransactionReport: transactionReport,
+                            reportActionChildReport: parentReportActionChildReport,
                             isOffline,
-                            currentUserLogin ?? '',
-                            accountID,
-                            rawTransactionViolations,
+                            currentUserLogin: currentUserLogin ?? '',
+                            currentUserAccountID: accountID,
+                            transactionViolations: rawTransactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }}
                 >
                     <Button.Text>{translate('iou.unhold')}</Button.Text>

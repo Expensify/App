@@ -84,19 +84,19 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                 const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || shouldSuppressPromotionalUI) {
-                    changeMoneyRequestHoldStatus(
-                        requestParentReportAction,
-                        transaction,
-                        transactionReport,
-                        requestParentReportActionChildReport,
+                    changeMoneyRequestHoldStatus({
+                        reportAction: requestParentReportAction,
+                        iouTransaction: transaction,
+                        iouTransactionReport: transactionReport,
+                        reportActionChildReport: requestParentReportActionChildReport,
                         isOffline,
-                        currentUserLogin ?? '',
+                        currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
                         transactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         rules,
-                    );
+                    });
                 } else if (shouldShowHoldEducationalModal) {
                     onHoldEducationalOpen();
                 } else {
@@ -119,19 +119,19 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(
-                    requestParentReportAction,
-                    transaction,
-                    transactionReport,
-                    requestParentReportActionChildReport,
+                changeMoneyRequestHoldStatus({
+                    reportAction: requestParentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: requestParentReportActionChildReport,
                     isOffline,
-                    currentUserLogin ?? '',
+                    currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
                     transactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {

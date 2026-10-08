@@ -368,6 +368,7 @@ function useSelectedTransactionsActions({
                         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                         unholdRequest({
                             transactionID,
+                            reportID: action.childReportID,
                             transaction,
                             transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
                             report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`],

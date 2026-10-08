@@ -44,7 +44,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 
 import Onyx from 'react-native-onyx';
 
-import {getAllReports, getAllTransactions} from '.';
+import {getAllTransactions} from '.';
 
 /**
  * Put expense on HOLD
@@ -425,6 +425,7 @@ function putTransactionsOnHold({
  */
 function unholdRequest({
     transactionID,
+    reportID,
     transactionReport,
     report,
     transaction,
@@ -438,7 +439,10 @@ function unholdRequest({
     rules,
 }: {
     transactionID: string;
+    /** The transaction thread report ID the unhold action belongs to. Always set, so optimistic updates never target an undefined key. */
+    reportID: string;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
+    /** Only used to roll back lastVisibleActionCreated on API failure. */
     report: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -453,7 +457,6 @@ function unholdRequest({
     const createdReportAction = buildOptimisticUnHoldReportAction(delegateAccountID);
     const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
     const iouReport = transactionReport;
-    const reportID = report?.reportID;
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>

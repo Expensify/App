@@ -71,19 +71,19 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(
-                requestParentReportAction,
-                transaction,
-                transactionReport,
-                requestParentReportActionChildReport,
+            changeMoneyRequestHoldStatus({
+                reportAction: requestParentReportAction,
+                iouTransaction: transaction,
+                iouTransactionReport: transactionReport,
+                reportActionChildReport: requestParentReportActionChildReport,
                 isOffline,
-                currentUserLogin ?? '',
+                currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID,
                 transactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         }
     };
 
@@ -91,19 +91,19 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(
-                    requestParentReportAction,
-                    transaction,
-                    transactionReport,
-                    requestParentReportActionChildReport,
+                changeMoneyRequestHoldStatus({
+                    reportAction: requestParentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: requestParentReportActionChildReport,
                     isOffline,
-                    currentUserLogin ?? '',
+                    currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
                     transactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
