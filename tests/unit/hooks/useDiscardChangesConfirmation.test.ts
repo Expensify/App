@@ -4,7 +4,7 @@ import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmat
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
 type MockBeforeRemoveEvent = {
-    data: {action: {type: string}};
+    data: {action: {type: string; payload?: unknown}};
     defaultPrevented: boolean;
     preventDefault: () => void;
 };
@@ -75,9 +75,9 @@ const dispatchPopstate = () => {
     });
 };
 
-const createBeforeRemoveEvent = (type: string): MockBeforeRemoveEvent => {
+const createBeforeRemoveEvent = (type: string, payload?: unknown): MockBeforeRemoveEvent => {
     const event: MockBeforeRemoveEvent = {
-        data: {action: {type}},
+        data: {action: {type, payload}},
         defaultPrevented: false,
         preventDefault: () => {
             event.defaultPrevented = true;
@@ -86,8 +86,8 @@ const createBeforeRemoveEvent = (type: string): MockBeforeRemoveEvent => {
     return event;
 };
 
-const invokeBeforeRemove = (type: string): MockBeforeRemoveEvent => {
-    const event = createBeforeRemoveEvent(type);
+const invokeBeforeRemove = (type: string, payload?: unknown): MockBeforeRemoveEvent => {
+    const event = createBeforeRemoveEvent(type, payload);
     act(() => {
         mockBeforeRemoveCallback?.(event);
     });
@@ -130,6 +130,16 @@ describe('useDiscardChangesConfirmation (web)', () => {
     });
 
     describe('browser back prevented through beforeRemove', () => {
+        it('allows a caller-designated internal reset without opening the discard modal', () => {
+            renderDiscardHook(() => true, {shouldPromptForNavigationAction: (action) => action.type !== 'RESET'});
+
+            const event = invokeBeforeRemove('RESET');
+
+            expect(event.defaultPrevented).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(historyGoSpy).not.toHaveBeenCalled();
+        });
+
         it('prevents the reset, restores the URL once, and shows a single history-inert modal', () => {
             renderDiscardHook(() => true);
 

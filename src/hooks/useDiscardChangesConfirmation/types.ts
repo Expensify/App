@@ -1,3 +1,5 @@
+import type {NavigationAction} from '@react-navigation/native';
+
 type UseDiscardChangesConfirmationOptions = {
     /** Returns whether the screen has unsaved changes. The hook already gates on focus and an in-progress save, so this should report only real dirtiness. */
     getHasUnsavedChanges: () => boolean;
@@ -5,6 +7,8 @@ type UseDiscardChangesConfirmationOptions = {
     onVisibilityChange?: (visible: boolean) => void;
     shouldEnableNewFocusManagement?: boolean;
     shouldPromptWhenUnfocused?: boolean;
+    /** Allows callers to exempt an internal navigation action from the discard guard. */
+    shouldPromptForNavigationAction?: (action: NavigationAction) => boolean;
     /** Handles a confirmed discard while the guarded screen is underneath a child screen. */
     onConfirmWhenUnfocused?: () => void;
     onConfirm?: () => void | Promise<void>;

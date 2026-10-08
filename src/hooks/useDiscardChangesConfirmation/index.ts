@@ -34,6 +34,7 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldPromptWhenUnfocused = false,
+    shouldPromptForNavigationAction,
     onConfirmWhenUnfocused,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
@@ -128,7 +129,7 @@ function useDiscardChangesConfirmation({
             return;
         }
 
-        if (!hasUnsavedChanges()) {
+        if (!hasUnsavedChanges() || shouldPromptForNavigationAction?.(e.data.action) === false) {
             return;
         }
 

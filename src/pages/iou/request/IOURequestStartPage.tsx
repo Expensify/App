@@ -21,6 +21,7 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
+import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
@@ -33,11 +34,13 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import {createIOURequestStartPoliciesSelector} from '@src/selectors/Policy';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -60,6 +63,23 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
+
+function isNavigationStatePayload(payload: unknown): payload is NavigationState {
+    return !!payload && typeof payload === 'object' && 'routes' in payload && Array.isArray(payload.routes);
+}
+
+function getTransactionIDFromRouteParams(params: unknown): string | undefined {
+    if (!params || typeof params !== 'object') {
+        return undefined;
+    }
+
+    if ('transactionID' in params && typeof params.transactionID === 'string') {
+        return params.transactionID;
+    }
+
+    // `getActionFromState()` nests a child screen's route parameters under `params.params` in a RESET payload.
+    return 'params' in params ? getTransactionIDFromRouteParams(params.params) : undefined;
+}
 
 function IOURequestStartPage({
     route,
@@ -249,6 +269,20 @@ function IOURequestStartPage({
     const getEmbeddedHasUnsavedChanges = () => isEmbeddedConfirmationActive && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
     const isEmbeddedDirty = isEmbeddedConfirmationActive && !hasSubmitted && (isSignDirty || hasAmountChanged);
 
+    const shouldPromptForEmbeddedNavigationAction = useCallback(
+        (action: NavigationAction) => {
+            // After a refresh, browser Back from a child page is restored as a RESET that temporarily removes the
+            // parent Create route. It is still an internal return when the reset's destination is this same draft.
+            if (action.type !== 'RESET' || !isNavigationStatePayload(action.payload)) {
+                return true;
+            }
+
+            const destinationRoute = findFocusedRouteWithOnyxTabGuard(action.payload);
+            return destinationRoute?.name !== SCREENS.MONEY_REQUEST.CREATE || getTransactionIDFromRouteParams(destinationRoute.params) !== route.params.transactionID;
+        },
+        [route.params.transactionID],
+    );
+
     const handleInputBlur = () => {
         if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
             return;
@@ -309,6 +343,7 @@ function IOURequestStartPage({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
         shouldEnableNewFocusManagement: isEmbeddedConfirmationActive,
         shouldPromptWhenUnfocused: isEmbeddedConfirmationActive,
+        shouldPromptForNavigationAction: shouldPromptForEmbeddedNavigationAction,
         onConfirmWhenUnfocused: () => Navigation.closeRHPFlow(),
         onCancel: restoreLastFocusedInput,
         onVisibilityChange: (isVisible) => {
