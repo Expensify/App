@@ -44,6 +44,7 @@ jest.mock('@react-navigation/native', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
     return {
         ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+        useIsFocused: () => mockIsFocused,
         useFocusEffect: (effect: () => void | (() => void)) => {
             const isFocused = mockIsFocused;
             useEffect(() => (isFocused ? effect() : undefined), [effect, isFocused]);
@@ -119,6 +120,8 @@ describe('CategoryField', () => {
     });
 
     beforeEach(async () => {
+        // `jest.clearAllMocks()` does not touch this, so a value left by an earlier render could satisfy a later assertion.
+        mockShouldOpenInDropdown = undefined;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -207,7 +210,16 @@ describe('CategoryField', () => {
     });
 
     describe('after an upgrade started from the category row', () => {
-        const renderDropdownCategoryField = (shouldNavigateToUpgradePath: boolean) => (
+        const renderDropdownCategoryField = ({
+            shouldNavigateToUpgradePath,
+            isPolicyLoaded = !shouldNavigateToUpgradePath,
+            didConfirm = false,
+        }: {
+            shouldNavigateToUpgradePath: boolean;
+            /** False while the workspace the upgrade created has not reached Onyx yet */
+            isPolicyLoaded?: boolean;
+            didConfirm?: boolean;
+        }) => (
             <ConfirmationFieldsProvider
                 transactionID={TRANSACTION_ID}
                 reportID={REPORT_ID}
@@ -217,14 +229,14 @@ describe('CategoryField', () => {
                 <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
                     <CategoryField
                         isCategoryRequired={false}
-                        didConfirm={false}
+                        didConfirm={didConfirm}
                         isReadOnly={false}
                         transactionID={TRANSACTION_ID}
                         action={CONST.IOU.ACTION.CREATE}
                         iouType={CONST.IOU.TYPE.TRACK}
                         reportID={REPORT_ID}
                         reportActionID={undefined}
-                        policy={shouldNavigateToUpgradePath ? undefined : enabledPolicy}
+                        policy={isPolicyLoaded ? enabledPolicy : undefined}
                         formError=""
                         shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                         shouldSelectPolicy={false}
@@ -241,14 +253,14 @@ describe('CategoryField', () => {
         it('opens the category list in place once the user is back with a workspace', async () => {
             // Given an expense with no workspace, whose category row sends the user to upgrade
             await givenManualExpense();
-            const {rerender} = render(renderDropdownCategoryField(true));
+            const {rerender} = render(renderDropdownCategoryField({shouldNavigateToUpgradePath: true}));
 
             // When the user presses the row, upgrades on the upgrade screen, and comes back to the form
             fireEvent.press(screen.getByText('common.category'));
             mockIsFocused = false;
-            rerender(renderDropdownCategoryField(false));
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
             mockIsFocused = true;
-            rerender(renderDropdownCategoryField(false));
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
 
             // Then the upgrade screen is told to return to the form rather than open the full-page Category step,
             // and the form opens the anchored list itself, so the user lands where they were heading
@@ -261,17 +273,59 @@ describe('CategoryField', () => {
         it('does not open the category list when the user backs out of the upgrade', async () => {
             // Given an expense with no workspace, whose category row sends the user to upgrade
             await givenManualExpense();
-            const {rerender} = render(renderDropdownCategoryField(true));
+            const {rerender} = render(renderDropdownCategoryField({shouldNavigateToUpgradePath: true}));
 
             // When the user presses the row but closes the upgrade screen without upgrading
             fireEvent.press(screen.getByText('common.category'));
             mockIsFocused = false;
-            rerender(renderDropdownCategoryField(true));
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: true}));
             mockIsFocused = true;
-            rerender(renderDropdownCategoryField(true));
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: true}));
             await waitForBatchedUpdates();
 
             // Then nothing opens, because there is still no workspace to pick a category from
+            expect(mockOpenDropdown).not.toHaveBeenCalled();
+        });
+
+        it('does not open anything once the expense is being confirmed', async () => {
+            // Given an expense with no workspace, whose category row sends the user to upgrade
+            await givenManualExpense();
+            const {rerender} = render(renderDropdownCategoryField({shouldNavigateToUpgradePath: true}));
+
+            // When the user upgrades, comes back, and presses Submit before the list gets to open
+            fireEvent.press(screen.getByText('common.category'));
+            mockIsFocused = false;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
+            mockIsFocused = true;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false, didConfirm: true}));
+            await waitForBatchedUpdates();
+
+            // Then the list is not asked to open: the row would refuse and push the full-page Category step over a
+            // confirming expense instead
+            expect(mockOpenDropdown).not.toHaveBeenCalled();
+            expect(jest.mocked(Navigation.navigate)).toHaveBeenCalledTimes(1);
+        });
+
+        it('forgets the upgrade once the user leaves the form again', async () => {
+            // Given an expense with no workspace, whose category row sends the user to upgrade
+            await givenManualExpense();
+            const {rerender} = render(renderDropdownCategoryField({shouldNavigateToUpgradePath: true}));
+
+            // When the user upgrades and comes back before the new workspace has landed, then visits another step
+            // and returns once it has
+            fireEvent.press(screen.getByText('common.category'));
+            mockIsFocused = false;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false, isPolicyLoaded: false}));
+            mockIsFocused = true;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false, isPolicyLoaded: false}));
+            mockIsFocused = false;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
+            mockIsFocused = true;
+            rerender(renderDropdownCategoryField({shouldNavigateToUpgradePath: false}));
+            await waitForBatchedUpdates();
+
+            // Then the list stays closed: the return from the upgrade is the only focus that may open it, not a
+            // later one the user never pressed Category for
             expect(mockOpenDropdown).not.toHaveBeenCalled();
         });
     });
@@ -282,12 +336,13 @@ describe('CategoryField', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${enabledPolicy.id}`, {Travel: {name: 'Travel', enabled: true}});
         await waitForBatchedUpdates();
 
-        // When the confirmation form renders the category row
+        // When the confirmation form renders the category row for that flow, which submits rather than creates, so
+        // nothing but the draft categories can make the row open in place
         render(
             <ConfirmationFieldsProvider
                 transactionID={TRANSACTION_ID}
                 reportID={REPORT_ID}
-                action={CONST.IOU.ACTION.CREATE}
+                action={CONST.IOU.ACTION.SUBMIT}
                 iouType={CONST.IOU.TYPE.SUBMIT}
             >
                 <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
@@ -296,7 +351,7 @@ describe('CategoryField', () => {
                         didConfirm={false}
                         isReadOnly={false}
                         transactionID={TRANSACTION_ID}
-                        action={CONST.IOU.ACTION.CREATE}
+                        action={CONST.IOU.ACTION.SUBMIT}
                         iouType={CONST.IOU.TYPE.SUBMIT}
                         reportID={REPORT_ID}
                         reportActionID={undefined}

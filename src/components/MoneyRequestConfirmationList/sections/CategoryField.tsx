@@ -21,8 +21,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useRef} from 'react';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
 
 import type {ExpenseFieldDropdownHandle} from './ExpenseFieldDropdown';
 
@@ -31,6 +31,9 @@ import ExpenseFieldDropdown from './ExpenseFieldDropdown';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {categoryStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
+
+/** idle → departing (row pressed) → away (left for the workspace step) → returned (back on the form) → idle */
+type WorkspaceStep = 'idle' | 'departing' | 'away' | 'returned';
 
 type CategoryFieldProps = {
     isCategoryRequired: boolean;
@@ -68,8 +71,10 @@ function CategoryField({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
     const dropdownRef = useRef<ExpenseFieldDropdownHandle>(null);
-    // Set when the row sends the user to pick or create a workspace, so the list opens once they are back.
-    const isAwaitingWorkspaceRef = useRef(false);
+    const isFocused = useIsFocused();
+    // Where the user is in the workspace step the row sent them to. Scoped to that one departure and return: it
+    // disarms when they leave the form again, so a later unrelated focus cannot open the list by itself.
+    const workspaceStepRef = useRef<WorkspaceStep>('idle');
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
     const policyCategories = usePolicyCategoriesForConfirmation(policy?.id);
@@ -107,28 +112,47 @@ function CategoryField({
     const canShowCategories = isCreatingExpense || hasEnabledCategories;
     const shouldOpenInDropdown =
         canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && canShowCategories && canSaveFromThisForm;
+    // The one condition both the row and the effect below open on, so the effect never asks the row to open a
+    // list it would refuse and fall back to the full page for.
+    const canOpenListInPlace = shouldOpenInDropdown && !isReadOnly && !didConfirm;
     const canOpenInDropdownAfterWorkspaceStep = canUseAnchoredFieldDropdowns && shouldUseDropdownRows && isCreatingExpense;
+
+    // Blurs move the step along: the first is the departure to the workspace step, the next after returning means
+    // the user left the form for something else, and the arm must not survive that.
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        if (workspaceStepRef.current === 'departing') {
+            workspaceStepRef.current = 'away';
+        } else if (workspaceStepRef.current === 'returned') {
+            workspaceStepRef.current = 'idle';
+        }
+    }, [isFocused]);
 
     // The row sent the user to create or pick a workspace, and the upgrade step was told to only go back (`shouldReturnToConfirmation`).
     // Once the form is focused again with a workspace, wait for the RHP to finish closing, then open the list in place.
     useFocusEffect(() => {
-        if (!isAwaitingWorkspaceRef.current) {
+        if (workspaceStepRef.current === 'away') {
+            workspaceStepRef.current = 'returned';
+        }
+        if (workspaceStepRef.current !== 'returned') {
             return;
         }
 
         // The user backed out without a workspace, so there is still nothing to list.
         if (shouldNavigateToUpgradePath || shouldSelectPolicy) {
-            isAwaitingWorkspaceRef.current = false;
+            workspaceStepRef.current = 'idle';
             return;
         }
 
-        if (!shouldOpenInDropdown) {
+        if (!canOpenListInPlace) {
             return;
         }
 
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
-                isAwaitingWorkspaceRef.current = false;
+                workspaceStepRef.current = 'idle';
                 dropdownRef.current?.open();
             },
             waitForUpcomingTransition: 'navigation',
@@ -141,7 +165,7 @@ function CategoryField({
             return;
         }
 
-        isAwaitingWorkspaceRef.current = (shouldNavigateToUpgradePath || (!policy && shouldSelectPolicy)) && canOpenInDropdownAfterWorkspaceStep;
+        workspaceStepRef.current = (shouldNavigateToUpgradePath || (!policy && shouldSelectPolicy)) && canOpenInDropdownAfterWorkspaceStep ? 'departing' : 'idle';
         if (shouldNavigateToUpgradePath) {
             Navigation.navigate(
                 createDynamicRoute(
@@ -200,7 +224,7 @@ function CategoryField({
                 shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
-                shouldOpenInDropdown={shouldOpenInDropdown && !isReadOnly && !didConfirm}
+                shouldOpenInDropdown={canOpenListInPlace}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (
                         <CategoryFieldDropdown
