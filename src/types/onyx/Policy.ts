@@ -2659,11 +2659,22 @@ type BusinessCentralCoding = {
      */
     fieldMappings?: Record<string, ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>>;
 
+    /** How Business Central customers and projects are imported into Expensify */
+    customerMappings?: BusinessCentralCustomerMappings;
+
     /** Whether VAT posting setups are imported as tax rates */
     syncTaxRates: boolean;
 
     /** Whether items are imported */
     syncItems: boolean;
+};
+
+/**
+ * How Business Central customers and projects are imported into Expensify.
+ */
+type BusinessCentralCustomerMappings = {
+    customers?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
+    projects?: ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>;
 };
 
 /** Offline feedback key for field mapping */
@@ -2672,7 +2683,10 @@ type BusinessCentralCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.BUSI
 /**
  * Offline feedback keys for `BusinessCentralCoding`
  */
-type BusinessCentralCodingOfflineFeedbackKeys = keyof Omit<BusinessCentralCoding, 'fieldMappings'> | BusinessCentralCodingFieldMappingsOfflineFeedbackKey;
+type BusinessCentralCodingOfflineFeedbackKeys =
+    | keyof Omit<BusinessCentralCoding, 'fieldMappings' | 'customerMappings'>
+    | BusinessCentralCodingFieldMappingsOfflineFeedbackKey
+    | keyof BusinessCentralCustomerMappings;
 
 /**
  * Export configuration for Business Central.
@@ -3443,6 +3457,18 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | ValueOf<typeof CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES>;
 
+        /** Whether the workspace collects employee deposit account details to reimburse them outside of Expensify */
+        isCollectDepositAccountsEnabled?: boolean;
+
+        /** Configuration for collecting employee deposit account details for reimbursement outside of Expensify */
+        reimbursement?: {
+            /** Whether reimbursement is enabled for the policy */
+            enabled?: boolean;
+
+            /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
+            countries?: Record<string, unknown>;
+        };
+
         /** The set reimburser for the policy */
         reimburser?: string;
 
@@ -3888,6 +3914,7 @@ export type {
     CampfireSync,
     BusinessCentralCompany,
     BusinessCentralCoding,
+    BusinessCentralCustomerMappings,
     BusinessCentralExport,
     BusinessCentralCodingOfflineFeedbackKeys,
 };
