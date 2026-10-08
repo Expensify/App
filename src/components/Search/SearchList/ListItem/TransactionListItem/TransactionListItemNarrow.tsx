@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -49,6 +50,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
@@ -128,7 +130,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
                 }}
                 wrapperStyle={[
-                    styles.mh5,
+                    pageGutterMargin,
                     styles.flex1,
                     StyleUtils.getSearchRowBackgroundStyle(isSelected),
                     styles.userSelectNone,
