@@ -259,6 +259,7 @@ function useTrackExpenseSubmission({
                 optimisticTransactionID: lastOptimisticTransactionID,
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email},
+                currentUserPersonalDetails,
                 introSelected,
                 activePolicy,
                 conciergeChat,

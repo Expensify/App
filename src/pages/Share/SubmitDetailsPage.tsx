@@ -446,6 +446,7 @@ function SubmitDetailsPage({
                     existingTransaction: transaction,
                     isASAPSubmitBetaEnabled,
                     currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
+                    currentUserPersonalDetails,
                     introSelected,
                     conciergeChat,
                     quickAction,
