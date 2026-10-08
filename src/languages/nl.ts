@@ -6865,6 +6865,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             emptySubtitle: 'Leveranciers verschijnen hier zodra je boekhoudkundige synchronisatie is voltooid.',
             findVendor: 'Leverancier zoeken',
             managedInAccountingSoftware: 'Leveranciers worden beheerd in je',
+            enableVendor: 'Leverancier inschakelen',
+            enableVendors: 'Leveranciers inschakelen',
+            disableVendor: 'Leverancier uitschakelen',
+            disableVendors: 'Leveranciers uitschakelen',
+            updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de leverancier, probeer het alsjeblieft opnieuw',
         },
         tags: {
             tagName: 'Tagnaam',

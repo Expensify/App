@@ -175,6 +175,7 @@ const WRITE_COMMANDS = {
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',
     UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS: 'UpdatePolicyMembersCustomFields',
     SET_WORKSPACE_CATEGORIES_ENABLED: 'SetWorkspaceCategoriesEnabled',
+    SET_POLICY_VENDORS_ENABLED: 'SetPolicyVendorsEnabled',
     MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER: 'MoveIOUReportToPolicyAndInviteSubmitter',
     SET_POLICY_TAGS_ENABLED: 'SetPolicyTagsEnabled',
     CREATE_WORKSPACE_CATEGORIES: 'CreateWorkspaceCategories',
@@ -923,6 +924,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS]: Parameters.UpdatePolicyMembersCustomFieldsParams;
     [WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY]: Parameters.MoveIOUReportToExistingPolicyParams;
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
+    [WRITE_COMMANDS.SET_POLICY_VENDORS_ENABLED]: Parameters.SetPolicyVendorsEnabledParams;
     [WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER]: Parameters.MoveIOUReportToPolicyAndInviteSubmitterParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES]: Parameters.CreateWorkspaceCategoriesParams;
     [WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS]: Parameters.ImportCSVCompanyCardsParams;

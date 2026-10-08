@@ -6920,6 +6920,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             emptySubtitle: 'Anbieter werden hier angezeigt, nachdem Ihre Buchhaltungssynchronisierung abgeschlossen ist.',
             findVendor: 'Lieferanten finden',
             managedInAccountingSoftware: 'Lieferanten werden verwaltet in Ihrem',
+            enableVendor: 'Lieferanten aktivieren',
+            enableVendors: 'Anbieter aktivieren',
+            disableVendor: 'Lieferanten deaktivieren',
+            disableVendors: 'Lieferanten deaktivieren',
+            updateFailureMessage: 'Beim Aktualisieren des Lieferanten ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
         },
         tags: {
             tagName: 'Tag-Name',

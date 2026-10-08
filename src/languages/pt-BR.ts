@@ -6867,6 +6867,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             emptySubtitle: 'Os fornecedores vão aparecer aqui depois que a sincronização contábil for concluída.',
             findVendor: 'Encontrar fornecedor',
             managedInAccountingSoftware: 'Fornecedores são gerenciados no seu',
+            enableVendor: 'Ativar fornecedor',
+            enableVendors: 'Ativar fornecedores',
+            disableVendor: 'Desativar fornecedor',
+            disableVendors: 'Desativar fornecedores',
+            updateFailureMessage: 'Ocorreu um erro ao atualizar o fornecedor, tente novamente por favor',
         },
         tags: {
             tagName: 'Nome da tag',

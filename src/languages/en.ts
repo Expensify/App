@@ -7261,6 +7261,11 @@ const translations = {
             emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
             findVendor: 'Find vendor',
             managedInAccountingSoftware: 'Vendors are managed in your',
+            enableVendor: 'Enable vendor',
+            enableVendors: 'Enable vendors',
+            disableVendor: 'Disable vendor',
+            disableVendors: 'Disable vendors',
+            updateFailureMessage: 'An error occurred while updating the vendor, please try again',
         },
         tags: {
             tagName: 'Tag name',
