@@ -51,7 +51,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isOpenReport as isOpenReportUtils,
-    isPayBlockedByArchivedState,
+    isPayBlocked,
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
@@ -222,7 +222,7 @@ function isPrimaryPayAction({
 }: IsPrimaryPayActionParams) {
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (isPayBlockedByArchivedState(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived) || report.isWaitingForCancelledReimbursement) {
+    if (isPayBlocked(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
         return false;
     }
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {
