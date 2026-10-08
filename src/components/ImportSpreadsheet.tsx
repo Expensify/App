@@ -33,6 +33,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import ImageSVG from './ImageSVG';
 import RenderHTML from './RenderHTML';
 import ScreenWrapper from './ScreenWrapper';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type ImportSpreadsheetProps = {
@@ -285,8 +286,14 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             }}
                         />
 
-                        <View style={[styles.flex1, styles.uploadFileView, styles.uploadFileViewBorderWidth(isSmallScreenWidth)]}>
-                            {!(isDraggingOver ?? isDraggingOver) && desktopView}
+                        <View style={[styles.flex1, styles.uploadFileView, styles.uploadFileViewBorderWidth(isSmallScreenWidth), styles.pv0]}>
+                            {/* Scroll so the Choose File button stays reachable when the content is taller than the screen, e.g. in landscape with a large font */}
+                            <ScrollView
+                                style={[styles.flex1, styles.w100]}
+                                contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv10, styles.gap1]}
+                            >
+                                {!(isDraggingOver ?? isDraggingOver) && desktopView}
+                            </ScrollView>
 
                             <DragAndDropConsumer
                                 onDrop={(e) => {
