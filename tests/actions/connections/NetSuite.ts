@@ -51,7 +51,7 @@ function createPolicy(options: {isAuthError?: boolean; verified?: boolean; token
         connections: {
             netsuite: {
                 verified: options.verified ?? false,
-                tokenID: options.tokenID ?? '',
+                tokenID: options.tokenID,
                 lastSync: {
                     isAuthenticationError: options.isAuthError ?? false,
                 },

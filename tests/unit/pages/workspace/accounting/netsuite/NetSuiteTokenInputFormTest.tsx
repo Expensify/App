@@ -109,10 +109,21 @@ describe('NetSuiteTokenInputForm', () => {
 
     describe('in the OAuth flow', () => {
         it('hands off to the OAuth setup with the policy, account ID and environment URL', () => {
+            // Given a fresh OAuth connection (not a migration)
             renderForm(true);
             submitForm();
 
+            // Then isMigration is false so the backend connects fresh without preserving TBA credentials
             expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, false);
+        });
+
+        it('forwards isMigration=true so the backend preserves TBA credentials until OAuth is verified', () => {
+            // Given a TBA → OAuth migration
+            renderForm(true, true);
+            submitForm();
+
+            // Then isMigration is forwarded so the backend treats this as a migration
+            expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, true);
         });
 
         it('does not write the token-based credentials', () => {
