@@ -380,12 +380,12 @@ describe('PolicyUtils', () => {
             expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
         });
 
-        it('allows auditors to read but not write every policy feature', () => {
+        it('allows auditors to read every policy feature but write only rooms', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 
             for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
                 expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
-                expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS);
             }
         });
 
