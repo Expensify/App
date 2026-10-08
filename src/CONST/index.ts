@@ -4561,6 +4561,7 @@ const CONST = {
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
+            AGENTS: 'agents',
             ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
             WORKFLOWS: 'workflows',
             WORKFLOWS_APPROVALS: 'workflowsApprovals',
