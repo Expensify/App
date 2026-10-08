@@ -57,6 +57,7 @@ import lodashSortBy from 'lodash/sortBy';
 
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
+import containsHtmlTag from './containsHtmlTag';
 import DateUtils from './DateUtils';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {hasInProgressVBBA} from './ReimbursementAccountUtils';
@@ -338,6 +339,32 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
         }
     }
     return feedCards;
+}
+
+/**
+ * Whether the viewer can resolve the card an expense sits on: their own cards, plus the feeds of workspaces they
+ * administer. "Auto report" needs it because the backend resolves each destination through the card, and one
+ * unresolvable card fails the whole batched move. The `managedCard` flag cannot answer it, carrying no feed or
+ * workspace identity.
+ *
+ * Search opens with only a subset of those cards, so a missing card proves nothing until `isCardListComplete` and
+ * fails closed: a move the backend refuses costs the whole batch, while waiting for the list costs a moment.
+ */
+function canResolveTransactionCard(
+    transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'cardID'>>,
+    nonPersonalAndWorkspaceCards: OnyxEntry<CardList>,
+    isCardListComplete: boolean,
+): boolean {
+    // Inlined rather than calling isManagedCardTransaction: TransactionUtils already imports this file.
+    if (!transaction?.managedCard || !transaction.cardID) {
+        return false;
+    }
+
+    if (!isCardListComplete) {
+        return false;
+    }
+
+    return !!nonPersonalAndWorkspaceCards?.[transaction.cardID];
 }
 
 /**
@@ -1364,17 +1391,22 @@ function getDefaultCardName(cardholder?: string) {
 }
 
 /** The reason a proposed card name is invalid. Callers translate it via `getCardNameErrorMessage`. */
-type CardNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+type CardNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /**
- * Validates a card name. Sanitize first so RHP forms, assign/issue steps, and inline
- * table edits reject and persist the same value.
+ * Validates a card name against every rule (required, HTML-like characters, length). Sanitize first so RHP forms,
+ * assign/issue steps, and inline table edits reject and persist the same value.
  */
 function getCardNameError(newName: string): CardNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
     if (StringUtils.isEmptyString(sanitized)) {
         return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    // The Name page rejects these in FormProvider. Inline rename only calls this helper, so </> would otherwise save from the table.
+    if (containsHtmlTag(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
 
     if (StringUtils.getUTF8ByteLength(sanitized) > CONST.STANDARD_LENGTH_LIMIT) {
@@ -1389,6 +1421,8 @@ function getCardNameErrorMessage(translate: LocaleContextProps['translate'], err
     switch (error) {
         case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
             return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            return translate('common.error.invalidCharacter');
         case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:
             return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(StringUtils.sanitizeName(name)), CONST.STANDARD_LENGTH_LIMIT);
@@ -2500,6 +2534,7 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
 }
 
 export {
+    canResolveTransactionCard,
     getAssignedCardSortKey,
     getCardFeedBackgroundColor,
     getCardFeedTextColor,
