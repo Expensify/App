@@ -2092,32 +2092,32 @@ const DYNAMIC_ROUTES = {
         queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath'],
     },
     AGENT_NEW: {
-        path: 'new',
+        path: 'new-agent',
         getRoute: ({policyID}: {policyID?: string} = {}) => {
             const params = new URLSearchParams();
             if (policyID) {
                 params.set('policyID', policyID);
             }
             const query = params.toString();
-            return `new${query ? `?${query}` : ''}` as const;
+            return `new-agent${query ? `?${query}` : ''}` as const;
         },
         entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
     },
     AGENT_ADD: {
-        path: 'new/custom',
+        path: 'new-agent/custom',
         getRoute: ({policyID}: {policyID?: string} = {}) => {
             const params = new URLSearchParams();
             if (policyID) {
                 params.set('policyID', policyID);
             }
             const query = params.toString();
-            return `new/custom${query ? `?${query}` : ''}` as const;
+            return `new-agent/custom${query ? `?${query}` : ''}` as const;
         },
         entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
     },
     AGENT_ADD_AVATAR: {
-        path: 'new/custom/avatar',
-        getRoute: () => `new/custom/avatar` as const,
+        path: 'new-agent/custom/avatar',
+        getRoute: () => `new-agent/custom/avatar` as const,
         entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
     },
     AGENT_EDIT: {

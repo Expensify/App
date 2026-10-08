@@ -2,13 +2,14 @@ import {render, waitFor} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
-import AddAgentAvatarPage from '@pages/settings/Agents/Fields/AddAgentAvatarPage';
-import type {OnSaveParams} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
+import AddAgentAvatarPage from '@pages/settings/Agents/Fields/DynamicAddAgentAvatarPage';
+import type {OnSaveParams} from '@pages/settings/Agents/Fields/DynamicEditAgentAvatarPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
@@ -90,7 +91,7 @@ describe('AddAgentAvatarPage', () => {
 
         expect(mockSetNewAgentAvatarPreset).toHaveBeenCalledWith('bot-avatar--blue');
         expect(mockSetNewAgentUploadedAvatar).not.toHaveBeenCalled();
-        await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute()));
+        await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute())));
     });
 
     it('serializes the uploaded file into the Onyx draft and navigates back when save is called with a file', async () => {
@@ -100,7 +101,7 @@ describe('AddAgentAvatarPage', () => {
 
         expect(mockSetNewAgentUploadedAvatar).toHaveBeenCalledWith(MOCK_FILE);
         expect(mockSetNewAgentAvatarPreset).not.toHaveBeenCalled();
-        await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute()));
+        await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute())));
     });
 
     it('waits for the uploaded-photo write to persist before navigating back', async () => {
@@ -119,7 +120,7 @@ describe('AddAgentAvatarPage', () => {
 
         resolveWrite();
 
-        await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute()));
+        await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute())));
     });
 
     it('logs a warning and still navigates back when the draft write fails', async () => {
@@ -128,7 +129,7 @@ describe('AddAgentAvatarPage', () => {
         render(<AddAgentAvatarPage />);
         mockEditAgentAvatarOnSave?.({file: MOCK_FILE, uri: 'file://photo.jpg'});
 
-        await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD.getRoute()));
+        await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute())));
         expect(mockLogWarn).toHaveBeenCalledTimes(1);
         expect(mockLogWarn.mock.calls.at(0)?.at(0)).toBe('Failed to persist the new-agent avatar draft');
     });
