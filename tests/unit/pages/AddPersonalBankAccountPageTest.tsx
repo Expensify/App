@@ -1,7 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
@@ -64,13 +63,6 @@ jest.mock('@userActions/User', () => ({
 }));
 
 jest.mock('@components/ValidateCodeActionModal/ValidateCodeActionContent', () => jest.fn(() => null));
-
-const showDelegateNoAccessModal = jest.fn();
-
-jest.mock('@components/DelegateNoAccessModalProvider', () => ({
-    useDelegateNoAccessState: jest.fn(),
-    useDelegateNoAccessActions: jest.fn(),
-}));
 
 const SUB_PAGE_NAMES = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES;
 
@@ -175,8 +167,6 @@ describe('AddPersonalBankAccountPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        jest.mocked(useDelegateNoAccessState).mockReturnValue({isActingAsDelegate: false, isDelegateAccessRestricted: false});
-        jest.mocked(useDelegateNoAccessActions).mockReturnValue({showDelegateNoAccessModal});
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
@@ -329,41 +319,6 @@ describe('AddPersonalBankAccountPage', () => {
             // Then they must enter a magic code, since the flow would write those details to their profile
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.VALIDATE_CODE, undefined));
             expect(addPersonalBankAccount).not.toHaveBeenCalled();
-        });
-
-        it('blocks a copilot from changing private personal details, since the magic code goes to the account owner', async () => {
-            // Given a copilot who entered a phone number different from the one saved in the account's private personal details
-            jest.mocked(useDelegateNoAccessState).mockReturnValue({isActingAsDelegate: true, isDelegateAccessRestricted: false});
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
-                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
-            });
-            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
-
-            // When they confirm the bank account
-            fireEvent.press(screen.getByText('Confirm'));
-
-            // Then they see the copilot no-access message instead of a magic code step they can't complete, as in Profile > Private
-            expect(showDelegateNoAccessModal).toHaveBeenCalledTimes(1);
-            expect(navigateSpy).not.toHaveBeenCalled();
-            expect(addPersonalBankAccount).not.toHaveBeenCalled();
-        });
-
-        it('lets a copilot add the bank account when the saved personal details are unchanged', async () => {
-            // Given a copilot whose account's saved name, address, and phone number are all used as-is
-            jest.mocked(useDelegateNoAccessState).mockReturnValue({isActingAsDelegate: true, isDelegateAccessRestricted: false});
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
-                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
-            });
-            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
-
-            // When they confirm the bank account
-            fireEvent.press(screen.getByText('Confirm'));
-
-            // Then it is added, because no magic code is needed
-            expect(addPersonalBankAccount).toHaveBeenCalledTimes(1);
-            expect(showDelegateNoAccessModal).not.toHaveBeenCalled();
         });
 
         it('replaces the magic code step with the success step, so going back from success does not land on the code form', async () => {

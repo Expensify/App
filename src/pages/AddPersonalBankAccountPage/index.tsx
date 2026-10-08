@@ -1,4 +1,3 @@
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -65,8 +64,6 @@ function AddPersonalBankAccountPage() {
     const route = useRoute();
     const navigation = useNavigation();
     const urlSubPage = (route.params as {subPage?: string} | undefined)?.subPage;
-    const {isActingAsDelegate} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccount] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
@@ -202,11 +199,6 @@ function AddPersonalBankAccountPage() {
         if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
             const {accountData, hasPersonalDetailsChanges} = getAccountData();
             if (hasPersonalDetailsChanges) {
-                // The magic code goes to the account owner, so a copilot can't change private personal details here, matching Profile > Private
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
                 nextPage();
                 return;
             }
