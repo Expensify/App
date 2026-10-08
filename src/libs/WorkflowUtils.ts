@@ -17,6 +17,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilter, RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -1499,6 +1500,13 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
 }
 
 /**
+ * Whether approval workflow rules route the reports of the given policy.
+ */
+function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
+    return !isEmptyObject(getApprovalWorkflowRulesForPolicy(rulesCollection, policyID));
+}
+
+/**
  * Map every submitter found in the rules to their workflow's first approver.
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
@@ -1772,6 +1780,7 @@ export {
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
+    hasApprovalWorkflowRules,
     hasRuleBasedDefaultWorkflow,
     includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
