@@ -124,6 +124,7 @@ function useMarkAsRead({
     // A preloaded tab mounts this screen before the user opens it. Marking read assumes the user is looking,
     // so hold every readNewestAction until the tab is focused, which drops the preloaded flag.
     const isInPreloadedTab = useIsInPreloadedTab();
+
     // A hidden wide submit pre-mount is held the same way until its reveal.
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
     const isHiddenFromUser = isInPreloadedTab || isHiddenPreMount;

@@ -14,6 +14,7 @@ function runAfterClosingScreenUnmount(callback: () => void) {
         clearTimeout(fallbackTimer);
         callback();
     };
+
     // A background browser tab stops animation frames, so the work (e.g. an expense write) must not wait for them alone.
     fallbackTimer = setTimeout(run, CONST.MAX_TRANSITION_DURATION_MS);
     requestAnimationFrame(() => requestAnimationFrame(() => scheduleCallback(LowPriority, run)));

@@ -1724,6 +1724,7 @@ function openReport(params: OpenReportActionParams) {
         // first open, on the repeated openReport calls of a single visit, and after a refresh (the set is RAM-only).
         const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
         reportsNavigatedAwayFrom.delete(reportID);
+
         // A refresh resets the report screen's RAM-only `hasOnceLoadedReportActions`, which is how we detect one here.
         // A genuine first open has no marker to clear, so this only affects a marker persisted from before the refresh.
         const isFirstLoadAfterRefresh = !hasOnceLoadedReportActions;

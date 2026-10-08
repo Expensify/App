@@ -110,6 +110,7 @@ function ReportFetchHandler() {
     // fetch that could mark it read is held while the tab is preloaded. Opening the tab drops the flag, which re-runs
     // the navigate effect below and fetches this report, so a held fetch of this report needs no separate replay.
     const isInPreloadedTab = useIsInPreloadedTab();
+
     // A hidden wide submit pre-mount still loads its report, but the read state is left for the reveal (see useMarkAsRead).
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
