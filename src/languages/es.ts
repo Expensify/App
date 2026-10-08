@@ -10039,8 +10039,6 @@ ${reportName}`,
             category: 'Categoría',
             tag: 'Etiqueta',
         },
-        switchToTableView: 'Cambiar a vista de tabla',
-        switchToExpenseView: 'Cambiar a vista de gasto',
     },
     report: {
         newReport: {

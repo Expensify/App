@@ -16,7 +16,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 // This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
-import {getCreated, hasSmartScanFailedWithMissingFields, isCategoryBeingAnalyzed, isExpensifyCardTransaction, isPending, isScanning} from './index';
+import {getCreated, isCategoryBeingAnalyzed, isExpenseValueUnsettled, isPending, isScanning} from './index';
 
 /**
  * Get all transaction violations of the transaction with given transactionID.
@@ -610,7 +610,7 @@ function isTransactionSubmittable(
     policy: OnyxEntry<Policy>,
     isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning,
 ): boolean {
-    if (isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report)) {
+    if (isExpenseValueUnsettled(transaction, report, isTransactionScanning)) {
         return false;
     }
 
