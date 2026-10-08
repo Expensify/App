@@ -255,8 +255,8 @@ function shouldShowConfirmationDate(shouldShowSmartScanFields: boolean, isDistan
  * This is the single source of truth shared by the validation that raises `common.error.fieldRequired`, the effect
  * that clears it once the field is filled, and the amount field that renders it inline, so the three never drift.
  */
-function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, isMerchantRequired = true): boolean {
-    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, isMerchantRequired)) {
+function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, shouldRequireMerchant = true): boolean {
+    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, shouldRequireMerchant)) {
         return !transaction?.isAmountSet;
     }
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet;
@@ -266,8 +266,8 @@ function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanF
  * Whether the merchant is still missing on a Scan the user started filling in, under the same all-or-nothing rule.
  * The merchant only takes part in that rule where it is required (a workspace chat), as in the manual flow.
  */
-function isConfirmationMerchantMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, isMerchantRequired = true): boolean {
-    return isMerchantRequired && isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, isMerchantRequired) && !transaction?.isMerchantSet;
+function isConfirmationMerchantMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, shouldRequireMerchant = true): boolean {
+    return shouldRequireMerchant && isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, shouldRequireMerchant) && !transaction?.isMerchantSet;
 }
 
 /**
@@ -281,9 +281,9 @@ function isConfirmationDateMissing(
     shouldShowDate: boolean,
     isReadOnly: boolean,
     canEnterScanFieldsManually = false,
-    isMerchantRequired = true,
+    shouldRequireMerchant = true,
 ): boolean {
-    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, isMerchantRequired)) {
+    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, shouldRequireMerchant)) {
         return !transaction?.isCreatedSet;
     }
     return shouldShowDate && !isReadOnly && isCreatedMissing(transaction);

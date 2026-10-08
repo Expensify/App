@@ -7,7 +7,7 @@ import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 
-import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
+import {getCategoryDescriptionHint, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -20,7 +20,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 
-import type {ConfirmationDistanceState, UseConfirmationListDataParams} from './types';
+import type {ConfirmationDistanceState, ConfirmationListData, UseConfirmationListDataParams} from './types';
 
 import useConfirmationAmount from './useConfirmationAmount';
 import useConfirmationPolicyData from './useConfirmationPolicyData';
@@ -58,6 +58,9 @@ function useConfirmationListDataWithPolicy({
     isEditingSplitBill,
     expensesNumber = 0,
     receiptOptions,
+    isParticipantPickerVisible = false,
+    onToggleBillable,
+    onToggleReimbursable,
     isConfirmed,
     isConfirming,
     shouldShowSmartScanFields = true,
@@ -74,7 +77,7 @@ function useConfirmationListDataWithPolicy({
     isTimeRequest = false,
     isDistanceRequest = false,
     distanceState,
-}: UseConfirmationListDataParams) {
+}: UseConfirmationListDataParams): ConfirmationListData {
     // Every distance branch below goes inert for the variants that pass no distance state.
     const {
         isDistanceRequestWithPendingRoute = false,
@@ -152,6 +155,7 @@ function useConfirmationListDataWithPolicy({
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
+
     // Both the validation gate and the clear gate below key off this, so it is computed once here rather than
     // being re-derived per hook, where the two could be updated independently.
     const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
@@ -184,7 +188,12 @@ function useConfirmationListDataWithPolicy({
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
 
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, iouCategory, arePolicyRulesEnabled(policy, policyCategories));
+    const areRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, iouCategory, areRulesEnabled);
+
+    // Only show the hint when the expense goes to a workspace with Rules on, matching when categories are shown,
+    // so a track expense in Self DM doesn't pick up the hint from the fallback default workspace.
+    const descriptionHint = getCategoryDescriptionHint(policyCategories, iouCategory, (isPolicyExpenseChat || isTypeInvoice) && areRulesEnabled);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -275,90 +284,131 @@ function useConfirmationListDataWithPolicy({
         onSendMoney,
     });
 
+    const amountDisplay = {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee};
+    const requiredFlags = {isCategoryRequired, isMerchantRequired, isDescriptionRequired, descriptionHint};
+    const visibilityFlags = {
+        shouldShowSmartScanFields,
+        shouldShowAmountField: !isPerDiemRequest,
+        shouldShowMerchant,
+        shouldShowCategories,
+        shouldShowTax,
+        hasParticipantSection: sections.length > 0,
+        isParticipantPickerVisible,
+    };
+    const errorState = {shouldDisplayFieldError, formError, clearFormErrors, setFormError};
+
     return {
-        /** Handed straight to `ConfirmationListLayout`. Only `listFooterContent` differs per expense type. */
+        /** Handed straight to `ConfirmationListLayout`. The variant adds its `listFooterContent`, its `fieldFlags`, and its controllers as children. */
         layoutProps: {
             transactionID,
             sections,
             listRef,
+            isReadOnly,
             onSelectRow: navigateToParticipantPage,
             onDismissError: dismissParticipantRowError,
+
+            footerContentProps: {
+                iouType,
+                confirm,
+                iouCurrencyCode,
+                policyID,
+                reportID,
+                isConfirmed,
+                isConfirming,
+                receiptOptions,
+                errorMessage,
+                expensesNumber,
+                showRemoveExpenseConfirmModal,
+                transaction,
+                policy,
+                iouAmount,
+                isTypeSplit,
+                formattedAmount,
+                isPerDiemRequest,
+                isDistanceRequestWithPendingRoute,
+            },
+
+            /** The `ConfirmationFieldsProvider` props that are the same for every expense type. */
+            confirmationFieldsProviderProps: {
+                transactionID,
+                reportID,
+                reportActionID,
+                action,
+                iouType,
+                policyID,
+                isReadOnly,
+                didConfirm: !!didConfirm,
+                canEnterScanFieldsManually,
+                isPolicyExpenseChat,
+                isEditingSplitBill,
+                scrollFocusedInputIntoView,
+                onSubmitForm: confirm,
+                onTaxAmountEmptyChange: setIsTaxAmountEmpty,
+            },
         },
 
-        /**
-         * The `ConfirmationFieldsProvider` props that are the same for every expense type. A variant spreads these
-         * and adds only the type flags that are true for it.
-         */
-        confirmationFieldsProviderProps: {
+        /** The props every variant's footer takes. A variant spreads these and adds only its footer-specific extras. */
+        footerProps: {
+            policy,
+            policyTags,
+            selectedParticipants: selectedParticipantsProp,
+            amountDisplay,
+            requiredFlags,
+            visibilityFlags,
+            errorState,
+            toggleHandlers: {onToggleReimbursable, onToggleBillable},
+            receiptOptions,
+        },
+
+        // Side-effect controller props, passed as props so each controller re-renders only when its own inputs change
+        taxControllerProps: {
             transactionID,
-            reportID,
-            reportActionID,
-            action,
-            iouType,
             policyID,
             isReadOnly,
-            didConfirm: !!didConfirm,
-            canEnterScanFieldsManually,
-            isPolicyExpenseChat,
-            scrollFocusedInputIntoView,
-            onSubmitForm: confirm,
-        },
-
-        // Footer prop bundles, shared by every variant's footer
-        amountDisplay: {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee},
-        requiredFlags: {isCategoryRequired, isMerchantRequired, isDescriptionRequired},
-        visibilityFlags: {
-            shouldShowSmartScanFields,
-            shouldShowAmountField: !isPerDiemRequest,
-            shouldShowMerchant,
-            shouldShowCategories,
             shouldShowTax,
-            hasParticipantSection: sections.length > 0,
+            isMovingTransactionFromTrackExpense,
+            transaction,
+            policy,
+            policyForMovingExpenses,
+            customUnitRateID,
         },
-        errorState: {shouldDisplayFieldError, formError, clearFormErrors, setFormError},
-
-        // Shared values, read from context by the side-effect controllers and passed on to the footers
-        transaction,
-        policy,
-        policyForMovingExpenses,
-        policyID,
-        policyTags,
-        policyTagLists,
-        policyCategories,
-        transactionID,
-        iouAmount,
-        iouCurrencyCode,
-        iouCategory,
-        customUnitRateID,
-        currentUserAccountID: currentUserPersonalDetails.accountID,
-        isMovingTransactionFromTrackExpense,
-        isReadOnly,
-        isPolicyExpenseChat,
-        isDistanceRequest,
-        isTypeSplit,
-        isCategoryRequired,
-        isFocused,
-        shouldShowCategories,
-        shouldShowTax,
-        selectedParticipants,
-        selectedParticipantsProp,
-        setFormError,
-        clearFormErrors,
-        setIsTaxAmountEmpty,
-
-        // Read from context by `ConfirmationFooterContent`, which owns the CTA label and the Test Drive tooltip
-        confirm,
-        formattedAmount,
-        iouType,
-        reportID,
-        receiptOptions,
-        isConfirmed,
-        isConfirming,
-        errorMessage,
-        expensesNumber,
-        showRemoveExpenseConfirmModal,
-        isPerDiemRequest,
-        isDistanceRequestWithPendingRoute,
+        splitBillControllerProps: {
+            transaction,
+            isTypeSplit,
+            iouAmount,
+            iouCurrencyCode,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            isFocused,
+            setFormError,
+        },
+        fieldAutoSelectProps: {
+            transactionID,
+            transaction,
+            policyCategories,
+            policyTagLists,
+            policyTags,
+            policy,
+            shouldShowCategories,
+            isCategoryRequired,
+            iouCategory,
+            isMovingTransactionFromTrackExpense,
+        },
+        distanceControllerProps: {
+            transactionID,
+            transaction,
+            policy,
+            isDistanceRequest,
+            isPolicyExpenseChat,
+            isMovingTransactionFromTrackExpense,
+            isReadOnly,
+            isTypeSplit,
+            customUnitRateID,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            selectedParticipants,
+            selectedParticipantsProp,
+            setFormError,
+            clearFormErrors,
+        },
     };
 }
 
