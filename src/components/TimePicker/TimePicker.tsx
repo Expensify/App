@@ -2,6 +2,7 @@ import AmountTextInput from '@components/AmountTextInput';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -735,117 +736,163 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         </View>
     );
 
-    return (
-        <View style={styles.flex1}>
-            <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                <View
-                    nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, !isInLandscapeMode && styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb2]}
-                >
-                    <AmountTextInput
-                        placeholder={numberFormat(0)}
-                        formattedAmount={hours}
-                        onKeyPress={(e) => {
-                            lastPressedKey.current = e.nativeEvent.key;
-                        }}
-                        onChangeAmount={handleHourChange}
-                        ref={(textInputRef) => {
-                            hourInputRef.current = textInputRef as TextInput | null;
-                        }}
-                        onSelectionChange={(e) => {
-                            setSelectionHour(e.nativeEvent.selection);
-                        }}
-                        style={[styles.iouAmountTextInput, styles.timePickerInput, showFullFormat && [styles.textXXLarge, styles.mnw0]]}
-                        containerStyle={[styles.iouAmountTextInputContainer]}
-                        touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
-                        selection={selectionHour}
-                        testID="hourInput"
-                    />
+    const renderedInputs = (
+        <View
+            nativeID={AMOUNT_VIEW_ID}
+            style={[styles.flexRow, !isInLandscapeMode && styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb2]}
+        >
+            <AmountTextInput
+                placeholder={numberFormat(0)}
+                formattedAmount={hours}
+                onKeyPress={(e) => {
+                    lastPressedKey.current = e.nativeEvent.key;
+                }}
+                onChangeAmount={handleHourChange}
+                ref={(textInputRef) => {
+                    hourInputRef.current = textInputRef as TextInput | null;
+                }}
+                onSelectionChange={(e) => {
+                    setSelectionHour(e.nativeEvent.selection);
+                }}
+                style={[styles.iouAmountTextInput, styles.timePickerInput, showFullFormat && [styles.textXXLarge, styles.mnw0]]}
+                containerStyle={[styles.iouAmountTextInputContainer]}
+                touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
+                selection={selectionHour}
+                testID="hourInput"
+            />
+            <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
+            <AmountTextInput
+                placeholder={numberFormat(0)}
+                formattedAmount={minutes}
+                onKeyPress={(e) => {
+                    lastPressedKey.current = e.nativeEvent.key;
+                    handleFocusOnBackspace(e);
+                }}
+                onChangeAmount={handleMinutesChange}
+                ref={(textInputRef) => {
+                    minuteInputRef.current = textInputRef as TextInput | null;
+                    if (!showFullFormat) {
+                        inputCallbackRef(textInputRef as TextInput | null);
+                    }
+                }}
+                onSelectionChange={(e) => {
+                    setSelectionMinute(e.nativeEvent.selection);
+                }}
+                style={[styles.iouAmountTextInput, styles.timePickerInput, showFullFormat && [styles.textXXLarge, styles.mnw0]]}
+                containerStyle={[styles.iouAmountTextInputContainer]}
+                touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
+                selection={selectionMinute}
+                testID="minuteInput"
+            />
+            {showFullFormat && (
+                <>
                     <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
                     <AmountTextInput
                         placeholder={numberFormat(0)}
-                        formattedAmount={minutes}
+                        formattedAmount={seconds}
                         onKeyPress={(e) => {
                             lastPressedKey.current = e.nativeEvent.key;
                             handleFocusOnBackspace(e);
                         }}
-                        onChangeAmount={handleMinutesChange}
+                        onChangeAmount={handleSecondsChange}
                         ref={(textInputRef) => {
-                            minuteInputRef.current = textInputRef as TextInput | null;
-                            if (!showFullFormat) {
-                                inputCallbackRef(textInputRef as TextInput | null);
-                            }
+                            secondInputRef.current = textInputRef as TextInput | null;
                         }}
                         onSelectionChange={(e) => {
-                            setSelectionMinute(e.nativeEvent.selection);
+                            setSelectionSecond(e.nativeEvent.selection);
                         }}
                         style={[styles.iouAmountTextInput, styles.timePickerInput, showFullFormat && [styles.textXXLarge, styles.mnw0]]}
                         containerStyle={[styles.iouAmountTextInputContainer]}
                         touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
-                        selection={selectionMinute}
-                        testID="minuteInput"
+                        selection={selectionSecond}
+                        testID="secondInput"
                     />
-                    {showFullFormat && (
-                        <>
-                            <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
-                            <AmountTextInput
-                                placeholder={numberFormat(0)}
-                                formattedAmount={seconds}
-                                onKeyPress={(e) => {
-                                    lastPressedKey.current = e.nativeEvent.key;
-                                    handleFocusOnBackspace(e);
-                                }}
-                                onChangeAmount={handleSecondsChange}
-                                ref={(textInputRef) => {
-                                    secondInputRef.current = textInputRef as TextInput | null;
-                                }}
-                                onSelectionChange={(e) => {
-                                    setSelectionSecond(e.nativeEvent.selection);
-                                }}
-                                style={[styles.iouAmountTextInput, styles.timePickerInput, showFullFormat && [styles.textXXLarge, styles.mnw0]]}
-                                containerStyle={[styles.iouAmountTextInputContainer]}
-                                touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
-                                selection={selectionSecond}
-                                testID="secondInput"
-                            />
-                            <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
-                            <AmountTextInput
-                                placeholder={numberFormat(0)}
-                                formattedAmount={milliseconds}
-                                onKeyPress={(e) => {
-                                    lastPressedKey.current = e.nativeEvent.key;
-                                    handleFocusOnBackspace(e);
-                                }}
-                                onChangeAmount={handleMillisecondsChange}
-                                ref={(textInputRef) => {
-                                    millisecondInputRef.current = textInputRef as TextInput | null;
-                                    if (showFullFormat) {
-                                        inputCallbackRef(textInputRef as TextInput | null);
-                                    }
-                                }}
-                                onSelectionChange={(e) => {
-                                    setSelectionMillisecond(e.nativeEvent.selection);
-                                }}
-                                style={[styles.iouAmountTextInput, styles.timePickerInput, showFullFormat && [styles.textXXLarge, styles.mnw0]]}
-                                containerStyle={[styles.iouAmountTextInputContainer]}
-                                touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
-                                selection={selectionMillisecond}
-                                testID="millisecondInput"
-                            />
-                        </>
+                    <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
+                    <AmountTextInput
+                        placeholder={numberFormat(0)}
+                        formattedAmount={milliseconds}
+                        onKeyPress={(e) => {
+                            lastPressedKey.current = e.nativeEvent.key;
+                            handleFocusOnBackspace(e);
+                        }}
+                        onChangeAmount={handleMillisecondsChange}
+                        ref={(textInputRef) => {
+                            millisecondInputRef.current = textInputRef as TextInput | null;
+                            if (showFullFormat) {
+                                inputCallbackRef(textInputRef as TextInput | null);
+                            }
+                        }}
+                        onSelectionChange={(e) => {
+                            setSelectionMillisecond(e.nativeEvent.selection);
+                        }}
+                        style={[styles.iouAmountTextInput, styles.timePickerInput, showFullFormat && [styles.textXXLarge, styles.mnw0]]}
+                        containerStyle={[styles.iouAmountTextInputContainer]}
+                        touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
+                        selection={selectionMillisecond}
+                        testID="millisecondInput"
+                    />
+                </>
+            )}
+        </View>
+    );
+
+    const renderedErrorMessage = isError ? (
+        <FormHelpMessage
+            isError={isError}
+            message={errorMessage}
+            style={[styles.ph5, styles.formHelperMessage, canUseTouchScreen && styles.mb5]}
+        />
+    ) : (
+        <View style={[styles.formHelperMessage, canUseTouchScreen && styles.mb5]} />
+    );
+
+    const renderedSaveButton = (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
+            style={[styles.mb5, styles.mh5]}
+            onPress={handleSubmit}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{translate('common.save')}</Button.Text>
+        </Button>
+    );
+
+    // In landscape there isn't enough height to stack the inputs, number pad and Save button, so place the inputs next to
+    // the number pad inside a ScrollView and keep the Save button pinned below it.
+    if (isInLandscapeMode) {
+        return (
+            <View style={styles.flex1}>
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, styles.flexRow]}
+                    style={[styles.flex1, styles.ph5]}
+                >
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.numberWithSymbolFormInputContainerLandscape]}>
+                        {renderedInputs}
+                        {renderedErrorMessage}
+                        {renderedAmPmButtons}
+                    </View>
+                    {canUseTouchScreen && (
+                        <View
+                            style={[styles.flex1, styles.justifyContentCenter]}
+                            nativeID={NUM_PAD_CONTAINER_VIEW_ID}
+                        >
+                            {numberPad()}
+                        </View>
                     )}
-                </View>
+                </ScrollView>
+                {renderedSaveButton}
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.flex1}>
+            <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                {renderedInputs}
                 {!canUseTouchScreen && renderedAmPmButtons}
             </View>
-            {isError ? (
-                <FormHelpMessage
-                    isError={isError}
-                    message={errorMessage}
-                    style={[styles.ph5, styles.formHelperMessage, canUseTouchScreen && styles.mb5]}
-                />
-            ) : (
-                <View style={[styles.formHelperMessage, canUseTouchScreen && styles.mb5]} />
-            )}
+            {renderedErrorMessage}
             {canUseTouchScreen && renderedAmPmButtons}
             <View
                 style={[styles.numberPadWrapper, styles.pb4]}
@@ -853,15 +900,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
             >
                 {numberPad()}
             </View>
-            <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
-                style={[styles.mb5, styles.mh5]}
-                onPress={handleSubmit}
-            >
-                <Button.KeyboardShortcut />
-                <Button.Text>{translate('common.save')}</Button.Text>
-            </Button>
+            {renderedSaveButton}
         </View>
     );
 }
