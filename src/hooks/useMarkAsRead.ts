@@ -1,8 +1,10 @@
 import DateUtils from '@libs/DateUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isCurrentActionUnread, isReportPreviewAction} from '@libs/ReportActionsUtils';
-import {isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
+import {getReportNotificationPreference, isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
+import {getLHNUnreadState} from '@libs/SidebarUtils';
 import Visibility from '@libs/Visibility';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -168,6 +170,42 @@ function useMarkAsRead({
         });
         return () => subscription.remove();
     }, [reportID, isAnonymousUser]);
+
+    // Telemetry for reports that had unread messages but the LHN did not show as unread before they were opened.
+    // Runs once per opened report, before the initial mark-as-read merges a new lastReadTime, and relies only on the
+    // report's own fields so a wrong derived or LHN value cannot hide the mismatch.
+    useEffect(() => {
+        if (isInPreloadedTab || isAnonymousUser || !report?.reportID) {
+            return;
+        }
+
+        const notificationPreference = getReportNotificationPreference(report);
+        const isUnreadByReportFields =
+            report.type === CONST.REPORT.TYPE.CHAT &&
+            !!report.lastVisibleActionCreated &&
+            report.lastVisibleActionCreated > (report.lastReadTime ?? '') &&
+            !!report.lastActorAccountID &&
+            report.lastActorAccountID !== currentUserAccountID &&
+            notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE &&
+            notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        if (!isUnreadByReportFields) {
+            return;
+        }
+
+        const lhnUnreadState = getLHNUnreadState(report.reportID);
+        if (lhnUnreadState === 'unread') {
+            return;
+        }
+
+        Log.info('[LHNUnread] Opened unread report that LHN did not show as unread', false, {
+            reportID: report.reportID,
+            lhnUnreadState,
+            derivedIsEmptyReport,
+            hasLastMessageText: !!report.lastMessageText,
+        });
+        // Only the report ID and preloaded flag should re-run this; the report fields are read as of the open.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportID, isInPreloadedTab]);
 
     useEffect(() => {
         // Skip while preloaded without latching, so the effect re-runs and marks read once the tab is focused.
