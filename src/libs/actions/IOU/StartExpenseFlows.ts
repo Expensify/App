@@ -457,9 +457,16 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             }
         }
 
+        const isSubmittingToFriend = actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.FRIEND;
         Navigation.navigate(
             createDynamicRoute(
-                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID}),
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    shouldExcludeWorkspaces: isSubmittingToFriend,
+                }),
                 ROUTES.REPORT_WITH_ID.getRoute(reportID),
             ),
         );

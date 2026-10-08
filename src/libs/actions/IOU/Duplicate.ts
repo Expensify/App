@@ -10,6 +10,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
@@ -66,10 +67,11 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllTransactions, getCurrentUserAccountIDFromSession} from '.';
+import {getAllTransactions, getCurrentUserAccountIDFromSession, getIOUAndChatReportForIOUAction} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -306,9 +308,7 @@ function mergeDuplicates({
         for (const [index, iouAction] of actions.entries()) {
             const transactionThreadID = iouAction.childReportID;
             const transactionThread = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`];
-            const iouReportID = isMoneyRequestAction(iouAction) ? iouAction?.reportID : undefined;
-            const iouReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-            const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
+            const {chatReport, iouReport} = getIOUAndChatReportForIOUAction(iouAction, allReportsList);
             const cleanUp = getCleanUpTransactionThreadReportOnyxData({
                 transactionThreadID,
                 shouldDeleteTransactionThread: !!transactionThreadID,
@@ -1374,6 +1374,7 @@ function bulkDuplicateExpenses({
 
     // A copy of an unreported expense is tracked, so only an expense that lands on the report can submit it.
     const lastReportBoundIndex = targetPolicy ? transactionsToDuplicate.findLastIndex((t) => !!t.reportID && t.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) : -1;
+    let lastDuplicateTransactionID: string | undefined;
 
     for (let i = 0; i < transactionsToDuplicate.length; i++) {
         const item = transactionsToDuplicate.at(i);
@@ -1445,6 +1446,9 @@ function bulkDuplicateExpenses({
         if (result?.iouReport) {
             optimisticIOUReport = result.iouReport;
         }
+        if (result?.transactionID) {
+            lastDuplicateTransactionID = result.transactionID;
+        }
 
         if (currentTargetReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
@@ -1452,6 +1456,9 @@ function bulkDuplicateExpenses({
     }
 
     playSound(SOUNDS.DONE);
+    if (isSearchTopmostFullScreenRoute()) {
+        signalExpenseAddedGrowl(lastDuplicateTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    }
 }
 
 type BulkDuplicateReportsParams = {

@@ -43,9 +43,9 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {TextInputKeyPressEvent} from 'react-native';
 
 import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 
-import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
+import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
 import scrollToMultilineInput from './scrollToMultilineInput';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
@@ -66,6 +66,10 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+    // On native portrait the prompt grows with its content up to a max height instead of filling the screen, so the open
+    // keyboard can't squeeze it or hide the line being edited, and the form scrolls to fit it above the keyboard.
+    const shouldAutoGrowPromptInput = Platform.OS !== 'web' && !isInLandscapeMode;
+    const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
@@ -74,6 +78,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
     const hasSubmittedRef = useRef(false);
+    const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -115,6 +120,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     // Reset the draft when the add flow is dismissed without creating the agent, so the next session starts fresh.
     useBeforeRemove(
         useCallback(() => {
+            hasLeftPageRef.current = true;
             if (hasSubmittedRef.current || !avatarDraft) {
                 return;
             }
@@ -138,31 +144,49 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         // Pure optimistic flow: `createAgent` writes the agent and the owner<->agent DM to Onyx under a
         // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
         // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
-        const {optimisticReportID} = uploadedAvatar?.uri
+        const {optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
             ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
             : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
 
         clearNewAgentTemplate();
-        clearNewAgentAvatarDraft();
 
         // Not useResponsiveLayout: this page itself lives inside the RHP modal stack, so
         // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
         // regardless of window size. getIsNarrowLayout() reflects the actual window width.
-        if (getIsNarrowLayout()) {
-            // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
-            // instead of dismissing to the agents list first and navigating to the DM afterward.
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS));
-            return;
-        }
+        const isNarrowLayout = getIsNarrowLayout();
 
-        // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
-        // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
-        // already-submitted form can't be reached again via the close/back button.
-        Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
+        optimisticPersonalDetailPromise.then(() => {
+            // The user left the builder before the write resolved, so don't pull them into the DM from whatever screen is now active.
+            if (hasLeftPageRef.current) {
+                clearNewAgentAvatarDraft();
+                return;
+            }
+
+            if (isNarrowLayout) {
+                // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
+                // instead of dismissing to the agents list first and navigating to the DM afterward.
+                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS), {
+                    afterTransition: () => {
+                        clearNewAgentAvatarDraft();
+                    },
+                });
+                return;
+            }
+
+            // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
+            // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
+            // already-submitted form can't be reached again via the close/back button.
+            Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {
+                forceReplace: true,
+                afterTransition: () => {
+                    clearNewAgentAvatarDraft();
+                },
+            });
+        });
     };
 
     const promptTopOffsetRef = useRef(0);
-    const handleInputFocus = () => scrollToMultilineInput(formRef, isInLandscapeMode, promptTopOffsetRef.current);
+    const handleInputFocus = () => scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
@@ -177,6 +201,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             testID={AddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight={shouldAutoGrowPromptInput}
         >
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
@@ -191,7 +216,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={isInLandscapeMode}
+                shouldUseScrollView={shouldUseScrollableLayout}
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
@@ -220,7 +245,11 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         defaultValue={defaultAgentName}
                     />
                     <View
-                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}
+                        style={
+                            shouldShrinkPromptInput
+                                ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+                                : [isInLandscapeMode && styles.h42, !isInLandscapeMode && !shouldAutoGrowPromptInput && styles.flex1]
+                        }
                         onLayout={(event) => {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
                         }}
@@ -236,9 +265,11 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                             onKeyPress={submitFormOnModEnter}
                             defaultValue={defaultPrompt}
                             multiline
-                            containerStyles={[styles.h100]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            autoGrowHeight={shouldAutoGrowPromptInput}
+                            maxAutoGrowHeight={shouldAutoGrowPromptInput ? PROMPT_MAX_AUTO_GROW_HEIGHT : undefined}
+                            containerStyles={shouldAutoGrowPromptInput ? undefined : [styles.h100]}
+                            touchableInputWrapperStyle={shouldAutoGrowPromptInput ? undefined : [styles.flex1]}
+                            inputStyle={[!shouldAutoGrowPromptInput && styles.flex1, styles.textAlignVerticalTop]}
                             onFocus={handleInputFocus}
                         />
                     </View>

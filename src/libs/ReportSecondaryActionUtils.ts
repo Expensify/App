@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
+    CardList,
     OutstandingReportsByPolicyIDDerivedValue,
     Policy,
     Report,
@@ -17,6 +18,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
+import {isSingleTransactionReport} from './MoneyRequestReportUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canMemberWrite,
@@ -100,6 +102,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isTimeRequest as isTimeRequestTransactionUtils,
     isReceiptBeingScanned,
     isScanning as isScanningTransactionUtils,
     shouldRedirectDeleteToSplitExpenseEdit,
@@ -123,6 +126,7 @@ function isSplitAction(
     currentUserLogin: string,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
     policy?: OnyxEntry<Policy>,
     parentReport?: OnyxEntry<Report>,
 ): boolean {
@@ -189,7 +193,7 @@ function isSplitAction(
     }
 
     // Hide split option for the submitter if the report is forwarded
-    return (isSubmitter && isAwaitingFirstLevelApproval(report, rules)) || isAdmin || isManager;
+    return (isSubmitter && isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin)) || isAdmin || isManager;
 }
 
 function isSubmitAction({
@@ -729,11 +733,12 @@ function isDeleteAction(
     reportTransactions: Transaction[],
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    policy: OnyxEntry<Policy>,
+    cardList: OnyxEntry<CardList>,
     reportActions?: ReportAction[],
-    policy?: Policy,
     isReportLevelDelete = false,
 ): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, isReportLevelDelete);
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, cardList, isReportLevelDelete);
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -742,7 +747,9 @@ function shouldShowEditSplitInDeleteAction(
     reportActions: ReportAction[] | undefined,
     originalTransaction: OnyxEntry<Transaction>,
     currentUserAccountID: number,
+    policy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     if (reportTransactions.length !== 1) {
         return false;
@@ -756,7 +763,7 @@ function shouldShowEditSplitInDeleteAction(
     const isSelfDMSplit = isSelfDMReportUtils(report);
     return (
         shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit) &&
-        isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions)
+        isDeleteAction(report, reportTransactions, currentUserAccountID, rules, policy, cardList, reportActions)
     );
 }
 
@@ -1009,6 +1016,7 @@ function getSecondaryReportActions({
     parentReport,
     isOffline,
     rules,
+    cardList,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1031,6 +1039,7 @@ function getSecondaryReportActions({
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
     const reportNameValuePairs = moveExpenseReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
@@ -1135,8 +1144,8 @@ function getSecondaryReportActions({
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, policy, parentReport) &&
-        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, rules)
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, submitterLogin, policy, parentReport) &&
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, policy, rules, cardList)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -1197,9 +1206,14 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
+    // Reports with more than one expense always use the table view, so the switch only applies to single-expense reports
+    if (isSingleTransactionReport(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions ?? [], policy, true)) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, policy, cardList, reportActions ?? [], true)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1233,6 +1247,7 @@ function getSecondaryTransactionThreadActions({
     currentUserLogin,
     currentUserAccountID,
     parentReport,
+    parentReportOwnerLogin,
     reportTransaction,
     reportAction,
     originalTransaction,
@@ -1243,11 +1258,19 @@ function getSecondaryTransactionThreadActions({
     isChatReportArchived,
     grandParentReport,
     hasWorkspaceToSubmitTo = false,
+    isRestrictedToPreferredPolicy = false,
     rules,
+    cardList,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
     parentReport: Report;
+    /**
+     * Login of the parent report owner. Optional so the existing test callers keep compiling, because
+     * isAwaitingFirstLevelApproval still falls back to the personal details store when it is omitted.
+     * See https://github.com/Expensify/App/issues/66413.
+     */
+    parentReportOwnerLogin?: string;
     reportTransaction: Transaction;
     reportAction: ReportAction | undefined;
     originalTransaction: OnyxEntry<Transaction>;
@@ -1259,7 +1282,11 @@ function getSecondaryTransactionThreadActions({
     grandParentReport?: OnyxEntry<Report>;
     /** Whether the user belongs to a workspace they can submit an expense to (self-DM split expenses can only be submitted to a workspace). */
     hasWorkspaceToSubmitTo?: boolean;
+
+    /** Whether the user's domain restricts them to one workspace, which removes every P2P money option. */
+    isRestrictedToPreferredPolicy?: boolean;
     rules: OnyxCollection<Rule>;
+    cardList: OnyxEntry<CardList>;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1276,8 +1303,8 @@ function getSecondaryTransactionThreadActions({
     }
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, policy, grandParentReport) &&
-        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID, rules)
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, parentReportOwnerLogin, policy, grandParentReport) &&
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID, policy, rules, cardList)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
@@ -1315,8 +1342,9 @@ function getSecondaryTransactionThreadActions({
     const canConvertFromTrack = isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) && canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived);
     if (canConvertFromTrack) {
         // A self-DM split has no personal destination, so it can never go to a friend (matches ChatActionableButtons,
-        // which hides "Submit to a friend" for a split unconditionally).
-        if (!isSelfDMExpenseSplit) {
+        // which hides "Submit to a friend" for a split unconditionally). Per diem and time expenses need a workspace,
+        // and a restricted user cannot submit into a DM at all.
+        if (!isSelfDMExpenseSplit && !isRestrictedToPreferredPolicy && !isPerDiemRequestTransactionUtils(reportTransaction) && !isTimeRequestTransactionUtils(reportTransaction)) {
             options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         }
         // A split can still go to a workspace, but only one that already exists: the create-a-workspace fallback in
@@ -1328,7 +1356,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, reportAction ? [reportAction] : [], policy)) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, policy, cardList, reportAction ? [reportAction] : [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
