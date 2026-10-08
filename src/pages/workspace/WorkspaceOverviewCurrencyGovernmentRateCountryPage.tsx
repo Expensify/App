@@ -30,7 +30,7 @@ function WorkspaceOverviewCurrencyGovernmentRateCountryPage({route}: WorkspaceOv
 
     const applyWorkspaceCurrencyChange = useApplyWorkspaceCurrencyChange(policy);
 
-    const goBackToCurrencyPage = () => Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyID));
+    const goBackToCurrencyPage = () => Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyID, {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}));
 
     const saveCountry = (selectedCountry: string) => {
         if (!policy) {
@@ -38,7 +38,12 @@ function WorkspaceOverviewCurrencyGovernmentRateCountryPage({route}: WorkspaceOv
             return;
         }
 
-        applyWorkspaceCurrencyChange(currencyCode, {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment, governmentRateCountry: selectedCountry});
+        applyWorkspaceCurrencyChange(currencyCode, {
+            isForcedToChangeCurrency,
+            shouldStartExpensifyCardEnrollment,
+            governmentRateCountry: selectedCountry,
+            backTo: ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID),
+        });
     };
 
     // The page only makes sense when switching to a currency that shares its government rates, so a crafted deep link lands on nothing

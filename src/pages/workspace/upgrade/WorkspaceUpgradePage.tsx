@@ -203,7 +203,12 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             });
             return;
         }
-        if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id && policyID && isSharedGovernmentRateCurrency(policy?.outputCurrency)) {
+        if (
+            feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id &&
+            policyID &&
+            isSharedGovernmentRateCurrency(policy?.outputCurrency) &&
+            !getAutoUpdateGovernmentRateCountry(policy)
+        ) {
             Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID), {forceReplace: true});
             return;
         }
@@ -299,11 +304,22 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     enablePolicyRules(policy, true, isVendorMatchingBetaEnabled, false, policyDataRef.current);
                 }
                 break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
-                if (distanceRateCustomUnit && !(isSharedGovernmentRateCurrency(policy?.outputCurrency) && !getAutoUpdateGovernmentRateCountry(policy))) {
-                    setWorkspaceDistanceAutoUpdate(policyID, distanceRateCustomUnit, true, governmentMileageRates ?? [], policy?.outputCurrency);
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id: {
+                const storedGovernmentRateCountry = getAutoUpdateGovernmentRateCountry(policy);
+                const isSharedCurrency = isSharedGovernmentRateCurrency(policy?.outputCurrency);
+                if (!distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
+                    break;
                 }
+                setWorkspaceDistanceAutoUpdate(
+                    policyID,
+                    distanceRateCustomUnit,
+                    true,
+                    governmentMileageRates ?? [],
+                    policy?.outputCurrency,
+                    isSharedCurrency ? storedGovernmentRateCountry : undefined,
+                );
                 break;
+            }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
                 setPolicyReceiptVisibilityPublic(policyID, true, policy?.isReceiptVisibilityPublic);
                 break;

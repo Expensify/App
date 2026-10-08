@@ -2167,10 +2167,6 @@ function clearAvatarErrors(policyID: string) {
     });
 }
 
-/**
- * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
- * If the response fails set a general error message. Clear the error message when updating.
- */
 type UpdateGeneralSettingsGovernmentRateOptions = {
     /** Country whose government mileage rates to enable for a shared (EUR) currency, set in the same request */
     governmentRateCountry?: string;
@@ -2178,6 +2174,10 @@ type UpdateGeneralSettingsGovernmentRateOptions = {
     governmentMileageRates?: GovernmentMileageRate[];
 };
 
+/**
+ * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
+ * If the response fails set a general error message. Clear the error message when updating.
+ */
 function updateGeneralSettings(
     policy: OnyxEntry<Policy>,
     name: string,
