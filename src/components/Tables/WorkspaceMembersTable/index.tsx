@@ -64,6 +64,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
+    GUESTS: 'guests',
     MEMBERS: 'members',
     PAYMENTS_ADMINS: 'paymentsAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
@@ -214,6 +215,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isGuest = item.role === CONST.POLICY.ROLE.GUEST;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.GUESTS) && isGuest) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -263,6 +269,11 @@ export default function WorkspaceMembersTable({
         filterConfig.role.options.push({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.guests'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
         });
     }
 

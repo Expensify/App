@@ -4856,22 +4856,25 @@ ${amount} per ${merchant} - ${date}`,
             memberAlternateText: 'Invia e approva i report.',
             adminAlternateText: 'Gestisci i report e le impostazioni dello spazio di lavoro.',
             auditorAlternateText: 'Visualizza e commenta i report.',
+            guestAlternateText: 'Invia i report con visibilità limitata.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Proprietario';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Amministratore spazio di lavoro';
+                        return 'Amministratore dello spazio di lavoro';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Ospite';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Amministrazione carte';
+                        return 'Amministrazione carta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Amministrazione persone';
+                        return 'Gestione persone';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Amministrazione pagamenti';
+                        return 'Amministratore pagamenti';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -7122,6 +7125,10 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 one: 'Rendi revisore',
                 other: 'Crea revisori',
             }),
+            makeGuest: () => ({
+                one: 'Rendi ospite',
+                other: 'Rendi ospiti',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Rendi amministratore persone',
                 other: 'Rendi amministratori persone',
@@ -7158,6 +7165,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             admins: 'Amministratori dello spazio di lavoro',
             approvers: 'Approvatori',
             auditors: 'Revisori',
+            guests: 'Ospiti',
             editors: 'Editori',
             emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},
             configureHRSync: (providerName: string) => `Configura la sincronizzazione di ${providerName}.`,

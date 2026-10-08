@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicyOnlyRole} from '@libs/PolicyUtils/permissions';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -135,12 +136,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
 
-        const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
         const hasControlPolicyOnlyRole =
             membersRolesColumn !== -1 &&
             spreadsheet?.data?.at(membersRolesColumn)?.some((role, index) => {
                 const memberRole = containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '');
-                return controlPolicyOnlyRoles.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === memberRole);
+                return isControlPolicyOnlyRole(memberRole);
             });
         const controlPolicyColumns = [
             CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO,

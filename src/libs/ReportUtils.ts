@@ -166,6 +166,7 @@ import {
     isPerDiemEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
+    isPolicyGuest,
     isPolicyOwner,
     isSubmitAndClose,
     isSubmitterApproveBlockedOnSubmitWorkspace,
@@ -11530,7 +11531,7 @@ function getAllWorkspaceReports(policyID?: string): Array<OnyxEntry<Report>> {
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false, policy?: OnyxEntry<Policy>): boolean {
     if (
         isDefaultRoom(report) ||
         isReportArchived ||
@@ -11551,6 +11552,10 @@ function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false
     }
 
     if (isDeprecatedGroupDM(report, isReportArchived) || isTaskReport(report)) {
+        return true;
+    }
+
+    if (isPolicyGuest(policy)) {
         return true;
     }
 
@@ -11915,7 +11920,8 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         !isChatThread(report) &&
         !isEmpty(policy) &&
         hasParticipantInArray(report, deprecatedCurrentUserAccountID ? [deprecatedCurrentUserAccountID] : []) &&
-        !isAuditor(report)
+        !isAuditor(report) &&
+        !isPolicyGuest(policy)
     );
 }
 

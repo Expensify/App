@@ -4887,20 +4887,23 @@ ${amount} für ${merchant} – ${date}`,
             memberAlternateText: 'Berichte einreichen und freigeben.',
             adminAlternateText: 'Berichte und Arbeitsbereichseinstellungen verwalten.',
             auditorAlternateText: 'Berichte anzeigen und kommentieren.',
+            guestAlternateText: 'Berichte mit eingeschränkter Sichtbarkeit einreichen.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Eigentümer';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Workspace-Administrator';
+                        return 'Workspace-Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Prüfer';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Gast';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personalverwaltung';
+                        return 'Personenverwaltung';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
@@ -7164,6 +7167,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 one: 'Zum Prüfer machen',
                 other: 'Prüfende hinzufügen',
             }),
+            makeGuest: () => ({
+                one: 'Zur*m* Gast machen',
+                other: 'Zu Gästen machen',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Zum Personaladministrator machen',
                 other: 'Personaladministratoren festlegen',
@@ -7200,6 +7207,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             admins: 'Workspace-Administratoren',
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
+            guests: 'Gäste',
             editors: 'Bearbeiter',
             emptyRoleFilter: {title: 'Keine Mitglieder entsprechen diesem Filter', subtitle: 'Laden Sie ein Mitglied ein oder ändern Sie den Filter oben.'},
             configureHRSync: (providerName: string) => `Synchronisierung mit ${providerName} einrichten.`,

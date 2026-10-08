@@ -4813,6 +4813,7 @@ ${amount} para ${merchant} - ${date}`,
             memberAlternateText: 'Presentar y aprobar informes.',
             adminAlternateText: 'Gestionar informes y configuración del área de trabajo.',
             auditorAlternateText: 'Ver y comentar los informes.',
+            guestAlternateText: 'Envía informes con visibilidad limitada.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Directo',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Ninguno',
@@ -4826,12 +4827,14 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Administrador del espacio de trabajo';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Invitado';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Administrador de tarjeta';
+                        return 'Administrador de tarjetas';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administrador de personas';
+                        return 'Administrar personas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrador de pagos';
                     case CONST.POLICY.ROLE.USER:
@@ -7030,6 +7033,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 one: 'Convertir en auditor',
                 other: 'Convertir en auditores',
             }),
+            makeGuest: () => ({
+                one: 'Hacer invitado',
+                other: 'Hacer invitados',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Hacer administrador de personas',
                 other: 'Hacer administradores de personas',
@@ -7051,6 +7058,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             admins: 'Administradores del espacio de trabajo',
             approvers: 'Aprobadores',
             auditors: 'Auditores',
+            guests: 'Invitados',
             editors: 'Editores',
             emptyRoleFilter: {
                 title: 'Ningún miembro coincide con este filtro',
