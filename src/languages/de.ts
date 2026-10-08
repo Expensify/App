@@ -2421,9 +2421,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',
+        talkToAHuman: 'Mit einer Person sprechen',
         helpPage: {
             title: 'Hilfe und Support',
             description: 'Wir sind rund um die Uhr für Sie da.',
+            talkToAHumanDescription: 'Holen Sie sich Hilfe von einer echten Person',
             helpSite: 'Hilfeseite',
             helpSiteDescription: 'Artikel, Tutorials und mehr',
             conciergeChat: 'Concierge',
@@ -9865,6 +9867,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         genericCreateTaskFailureMessage: 'Beim Erstellen dieser Aufgabe ist ein Fehler aufgetreten. Bitte versuche es später erneut.',
         deleteTask: 'Aufgabe löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Support-Ticket, ${date}: ${customer} und ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Hallo, ich bin ${supportRep}, und ich werde mit Ihnen zusammenarbeiten, bis dieses Problem vollständig gelöst ist. Wenn Sie uns bereits Details mitgeteilt haben, werde ich diese vor meiner Antwort prüfen, damit Sie sich nicht wiederholen müssen. Wenn es sich um ein neues Problem handelt, lassen Sie mich wissen, wobei Sie Hilfe benötigen.`,
+        checkboxTooltip: 'Ihre Support-Mitarbeiterin/Ihr Support-Mitarbeiter wird dies überprüfen, sobald es behoben ist.',
+        genericCreateSupportTicketFailureMessage: 'Wir konnten dieses Supportticket nicht erstellen. Bitte schließen Sie diese Fehlermeldung und versuchen Sie es erneut.',
+        noSupportRepAvailable: 'Derzeit sind keine Support-Mitarbeiter verfügbar. Du kannst Concierge trotzdem um Hilfe bitten.',
+        fallbackTitle: 'Support-Ticket',
+        resolved: 'Dieses Support-Ticket ist gelöst.',
+        surveyPrompt: 'Wie war Ihre Erfahrung mit dem Support?',
+        reopenTicket: 'Ticket erneut öffnen',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Abrechnung ${monthName} ${year}`,

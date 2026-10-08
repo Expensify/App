@@ -1162,6 +1162,7 @@ const CONST = {
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
+        SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
     },
     BUTTON_STATES: {
@@ -1847,6 +1848,7 @@ const CONST = {
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
                 SUBMITTED_AND_CLOSED: 'SUBMITTEDCLOSED',
+                SUPPORT_SURVEY: 'SUPPORT_SURVEY',
                 ACTION_DELEGATE_SUBMIT: 'DELEGATESUBMIT',
                 TAKE_CONTROL: 'TAKECONTROL', // OldDot Action
                 TASK_CANCELLED: 'TASKCANCELLED',
@@ -2067,6 +2069,7 @@ const CONST = {
             EXPENSE: 'expense',
             IOU: 'iou',
             TASK: 'task',
+            SUPPORT_TICKET: 'supportTicket',
             INVOICE: 'invoice',
         },
         UNSUPPORTED_TYPE: {
@@ -9807,6 +9810,11 @@ const CONST = {
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
+        SUPPORT_TICKET: {
+            PREVIEW_CARD: 'SupportTicket-PreviewCard',
+            PREVIEW_CHECKBOX: 'SupportTicket-PreviewCheckbox',
+            VIEW_CHECKBOX: 'SupportTicket-ViewCheckbox',
+        },
         ACCOUNT: {
             PROFILE: 'Account-Profile',
             WALLET: 'Account-Wallet',
@@ -10292,6 +10300,7 @@ const CONST = {
         SETTINGS_HELP: {
             CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
             HELP_DOCS: 'SettingsHelp-HelpDocs',
+            SUPPORT_TICKET: 'SettingsHelp-SupportTicket',
             ACCOUNT_MANAGER: 'SettingsHelp-AccountManager',
             PARTNER_MANAGER: 'SettingsHelp-PartnerManager',
             GUIDE: 'SettingsHelp-Guide',

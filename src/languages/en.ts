@@ -2562,9 +2562,11 @@ const translations = {
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
+        talkToAHuman: 'Talk to a human',
         helpPage: {
             title: 'Help and support',
             description: 'We are here to help you 24/7.',
+            talkToAHumanDescription: 'Get help from a real person',
             helpSite: 'Help site',
             helpSiteDescription: 'Articles, tutorials, and more',
             conciergeChat: 'Concierge',
@@ -10073,6 +10075,18 @@ const translations = {
         genericCreateTaskFailureMessage: 'There was an error creating this task. Please try again later.',
         deleteTask: 'Delete task',
         deleteConfirmation: 'Are you sure you want to delete this task?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Support ticket, ${date}: ${customer} and ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Hi, I'm ${supportRep}, and I'll work with you until this is fully resolved. If you've already shared details with us, I'll review them before responding so you don't need to repeat yourself. If this is a new issue, let me know what you need help with.`,
+        checkboxTooltip: 'Your support rep will check this when it is resolved.',
+        genericCreateSupportTicketFailureMessage: "We couldn't create this support ticket. Please dismiss this error and try again.",
+        noSupportRepAvailable: 'No support reps are available right now. You can still message Concierge for help.',
+        fallbackTitle: 'Support ticket',
+        resolved: 'This support ticket is resolved.',
+        surveyPrompt: 'How was your support experience?',
+        reopenTicket: 'Reopen ticket',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `${monthName} ${year} statement`,
