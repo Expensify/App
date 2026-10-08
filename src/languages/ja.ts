@@ -1183,6 +1183,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認してもう一度お試しください。`,
         singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）を複数の列に割り当てています。確認してもう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
+        invalidApprovalLimit: '承認上限額は、ワークスペースの通貨で有効な金額である必要があります。',
         fieldValueTooLong: (fieldName: string, limit: number) => `おっと！フィールド（「${fieldName}」）に${limit}文字を超える値が1つ以上含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
         importCategoriesNoneAddedOrUpdated: 'カテゴリーは追加も更新もされていません。',
@@ -2685,6 +2686,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'デフォルトの支払い方法を設定しました！',
         deleteAccount: 'アカウントを削除',
         deleteConfirmation: 'このアカウントを本当に削除しますか？',
+        editNickname: 'ニックネームを編集',
+        nickname: 'ニックネーム',
+        editNicknameInstruction: 'ほかの口座と区別できるニックネームをこの銀行口座に付けてください。',
         deleteCard: 'カードを削除',
         deleteCardConfirmation: '未提出のカード取引（未提出レポート上の取引を含む）はすべて削除されます。このカードを本当に削除してもよろしいですか？この操作は元に戻せません。',
         error: {
@@ -4819,6 +4823,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             memberAlternateText: 'レポートを提出して承認します。',
             adminAlternateText: 'レポートとワークスペースの設定を管理します。',
             auditorAlternateText: 'レポートを表示してコメントします。',
+            guestAlternateText: '表示を限定してレポートを提出します。',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4827,6 +4832,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         return 'ワークスペース管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '監査担当者';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'ゲスト';
                     case CONST.POLICY.ROLE.EDITOR:
                         return '編集者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -7032,6 +7039,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 one: '監査担当者に設定',
                 other: '監査担当者を作成',
             }),
+            makeGuest: () => ({
+                one: 'ゲストにする',
+                other: 'ゲストにする',
+            }),
             makePeopleAdmin: () => ({
                 one: 'People 管理者にする',
                 other: 'People 管理者にする',
@@ -7068,6 +7079,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             admins: 'ワークスペース管理者',
             approvers: '承認者',
             auditors: '監査担当者',
+            guests: 'ゲスト',
             editors: '編集者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
             configureHRSync: (providerName: string) => `${providerName} の同期を設定します。`,
@@ -10015,8 +10027,6 @@ ${reportName}`,
             category: 'カテゴリ',
             tag: 'タグ',
         },
-        switchToTableView: 'テーブル表示に切り替え',
-        switchToExpenseView: '経費表示に切り替え',
     },
     report: {
         newReport: {

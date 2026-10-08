@@ -192,6 +192,7 @@ import {
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
     isPayer,
+    isPayOptional,
     isPolicyRelatedReport,
     isReportManager,
     isReportOutstanding,
@@ -10672,6 +10673,28 @@ describe('ReportUtils', () => {
             // the function should filter it out and return the normal report
             expect(result?.reportID).toBe(normalReport.reportID);
             expect(result?.reportID).not.toBe(archivedReport.reportID);
+        });
+
+        it('should prefer a visited report over an unvisited one, and fall back to lastReadTime when no visited report is eligible', () => {
+            // Given an unvisited report that was read more recently than the visited one
+            const unvisitedReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1003',
+                lastReadTime: '2025-01-01 04:56:47.233',
+                lastVisibleActionCreated: '2025-01-01 04:56:47.233',
+            };
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`]: normalReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${unvisitedReport.reportID}`]: unvisitedReport,
+            };
+
+            // When resolving with visit data present
+            // Then the visited report wins, because any visit time outranks a lastReadTime-only report
+            expect(findLastAccessedReport(false, undefined, false, undefined, undefined, reports)?.reportID).toBe(normalReport.reportID);
+
+            // When the only visited report is excluded
+            // Then the lookup falls back to the most recently read eligible report
+            expect(findLastAccessedReport(false, undefined, false, normalReport.reportID, undefined, reports)?.reportID).toBe(unvisitedReport.reportID);
         });
     });
     describe('findLastAccessedReport should return owned report if no reports was accessed before', () => {
@@ -27007,6 +27030,67 @@ describe('getPendingChatMembers', () => {
         const result = getPendingChatMembers(accountIDs, previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
         expect(result).toEqual(previousPendingChatMembers);
+    });
+});
+
+describe('isPayOptional', () => {
+    const reportID = '9001';
+    const expenseReport: Report = {
+        ...createRandomReport(Number(reportID), undefined),
+        reportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        total: 0,
+        nonReimbursableTotal: 0,
+        reimbursableTotal: undefined,
+        pendingFields: undefined,
+    };
+    const buildTransaction = (transactionID: number, amount: number, reimbursable: boolean): Transaction => ({
+        ...createRandomTransaction(transactionID),
+        reportID,
+        amount,
+        reimbursable,
+        bank: '',
+        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        receipt: undefined,
+    });
+
+    it('returns true when the reimbursable expenses cancel out to $0', () => {
+        // Given an approved $0 report with a $50 and a -$50 reimbursable expense, so nothing is owed
+        const transactions = [buildTransaction(1, -5000, true), buildTransaction(2, 5000, true)];
+
+        // When checking whether paying it is optional
+        // Then it is, so it is kept out of the LHN badge, the Search row action and the Pay to-do like a non-reimbursable-only report
+        expect(isPayOptional(expenseReport, transactions)).toBe(true);
+    });
+
+    it('returns true when every expense is non-reimbursable', () => {
+        // Given a report whose only expense is non-reimbursable, so nothing is owed
+        const report: Report = {...expenseReport, total: -5000, nonReimbursableTotal: -5000};
+        const transactions = [buildTransaction(1, -5000, false)];
+
+        // When checking whether paying it is optional
+        // Then it is, matching the existing non-reimbursable-only behavior
+        expect(isPayOptional(report, transactions)).toBe(true);
+    });
+
+    it('returns false when there is reimbursable spend to pay', () => {
+        // Given a report with a $50 reimbursable expense, so money is owed
+        const report: Report = {...expenseReport, total: -5000};
+        const transactions = [buildTransaction(1, -5000, true)];
+
+        // When checking whether paying it is optional
+        // Then it is not, so it keeps its PAY badge, Search row Pay and Pay to-do
+        expect(isPayOptional(report, transactions)).toBe(false);
+    });
+
+    it('returns false for a $0 report without expenses', () => {
+        // Given a $0 report with no expenses, where a zero total does not come from expenses that cancel out
+
+        // When checking whether paying it is optional
+        // Then it is not, since the report can't be paid at all
+        expect(isPayOptional(expenseReport, [])).toBe(false);
     });
 });
 

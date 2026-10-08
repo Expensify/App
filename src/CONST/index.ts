@@ -1663,7 +1663,6 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2214,10 +2213,6 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
-        },
-        SINGLE_EXPENSE_REPORT_VIEW: {
-            EXPENSE: 'expense',
-            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -4543,6 +4538,7 @@ const CONST = {
             OWNER: 'owner',
             ADMIN: 'admin',
             AUDITOR: 'auditor',
+            GUEST: 'guest',
             USER: 'user',
             EDITOR: 'editor',
             CARD_ADMIN: 'cardAdmin',
@@ -4560,6 +4556,7 @@ const CONST = {
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
+            ROOMS: 'rooms',
             ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
             WORKFLOWS: 'workflows',
             WORKFLOWS_APPROVALS: 'workflowsApprovals',
@@ -4668,6 +4665,7 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
             MAKE_AUDITOR: 'makeAuditor',
+            MAKE_GUEST: 'makeGuest',
             MAKE_CARD_ADMIN: 'makeCardAdmin',
             MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
             MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
@@ -5575,6 +5573,11 @@ const CONST = {
              * Name of Card NVP for Campfire custom export accounts
              */
             NVP_CAMPFIRE_EXPORT_ACCOUNT: 'campfire_export_account',
+
+            /**
+             * Name of Card NVP for Business Central custom vendors
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -5632,6 +5635,11 @@ const CONST = {
              * Name of Card NVP for Campfire custom export accounts
              */
             NVP_CAMPFIRE_EXPORT_ACCOUNT_POLICY_ID: 'campfire_export_account_policy_id',
+
+            /**
+             * Name of Card NVP for Business Central custom vendors
+             */
+            NVP_BUSINESS_CENTRAL_EXPORT_VENDOR_POLICY_ID: 'business_central_export_vendor_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -9647,7 +9655,6 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'MoreMenu-ToggleSingleExpenseView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',

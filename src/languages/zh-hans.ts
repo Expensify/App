@@ -1148,6 +1148,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `哎呀！有一个必填字段（“${fieldName}”）尚未映射。请检查后重试。`,
         singleFieldMultipleColumns: (fieldName: string) => `哎呀！你已将单个字段（“${fieldName}”）映射到多个列。请检查后重试。`,
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
+        invalidApprovalLimit: '审批限额必须是工作区币种的有效金额。',
         fieldValueTooLong: (fieldName: string, limit: number) => `哎呀！字段（“${fieldName}”）包含一个或多个超过 ${limit} 个字符的值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
         importCategoriesNoneAddedOrUpdated: '尚未添加或更新任何类别。',
@@ -2616,6 +2617,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: '已设置默认付款方式！',
         deleteAccount: '删除账户',
         deleteConfirmation: '确定要删除此账户吗？',
+        editNickname: '编辑昵称',
+        nickname: '昵称',
+        editNicknameInstruction: '为此银行账户起一个昵称，以便与其他账户区分开来。',
         deleteCard: '删除卡片',
         deleteCardConfirmation: '所有未提交的银行卡交易（包括在未关闭报表中的交易）都将被移除。确定要删除此银行卡吗？此操作无法撤销。',
         error: {
@@ -4707,6 +4711,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             memberAlternateText: '提交并审批报销报告。',
             adminAlternateText: '管理报表和工作区设置。',
             auditorAlternateText: '查看并评论报表。',
+            guestAlternateText: '提交可见性受限的报表。',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4715,12 +4720,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return '访客';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑者';
+                        return '编辑';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return '卡片管理员';
+                        return '卡管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return '人员管理员';
+                        return '人员管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
@@ -6858,6 +6865,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '设为审计员',
                 other: '创建审计员',
             }),
+            makeGuest: () => ({
+                one: '设为访客',
+                other: '设为访客',
+            }),
             makePeopleAdmin: () => ({
                 one: '设为人员管理员',
                 other: '设为人员管理员',
@@ -6890,6 +6901,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             admins: '工作区管理员',
             approvers: '审批人',
             auditors: '审计员',
+            guests: '访客',
             editors: '编辑者',
             emptyRoleFilter: {title: '没有成员符合此筛选条件', subtitle: '邀请成员或更改上方的筛选条件。'},
             configureHRSync: (providerName: string) => `配置 ${providerName} 同步。`,
@@ -9744,8 +9756,6 @@ ${reportName}`,
             category: '类别',
             tag: '标签',
         },
-        switchToTableView: '切换到表格视图',
-        switchToExpenseView: '切换到报销视图',
     },
     report: {
         newReport: {

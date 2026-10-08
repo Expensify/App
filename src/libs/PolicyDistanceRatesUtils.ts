@@ -18,20 +18,24 @@ import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {parseFloatAnyLocale} from './NumberUtils';
 import StringUtils from './StringUtils';
-import {isRequiredFulfilled} from './ValidationUtils';
+import {containsHtmlTag, isRequiredFulfilled} from './ValidationUtils';
 
 type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
 
 type TaxReclaimableForm = typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM;
 
 /** The reason a proposed distance rate name is invalid. Callers translate it via `getDistanceRateNameErrorMessage`. */
-type DistanceRateNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.EXISTING | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+type DistanceRateNameError =
+    | typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED
+    | typeof CONST.INPUT_VALIDATION_ERRORS.EXISTING
+    | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID
+    | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /** The reason a proposed distance rate amount is invalid. Shared by the RHP edit form and inline table editing. */
 type DistanceRateValueError = typeof CONST.INPUT_VALIDATION_ERRORS.INVALID | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LOW;
 
 /**
- * Validates a distance rate name against every rule (required, unique, length). This is the single
+ * Validates a distance rate name against every rule (required, HTML-like characters, unique, length). This is the single
  * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
  * `currentName` when editing so renaming a rate to its own name isn't flagged as a duplicate.
  * Returns an error code, or undefined when the name is valid.
@@ -41,6 +45,11 @@ function getDistanceRateNameError(existingRateNames: readonly string[], newName:
 
     if (StringUtils.isEmptyString(sanitized)) {
         return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    // The Name page rejects these in FormProvider. Inline rename only calls this helper, so `</>` would otherwise save from the table.
+    if (containsHtmlTag(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
 
     if (sanitized !== currentName && existingRateNames.includes(sanitized)) {
@@ -62,6 +71,8 @@ function getDistanceRateNameErrorMessage(translate: LocalizedTranslate, error: D
             return translate('workspace.distanceRates.errors.nameRequired');
         case CONST.INPUT_VALIDATION_ERRORS.EXISTING:
             return translate('workspace.distanceRates.errors.existingRateName');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            return translate('common.error.invalidCharacter');
         case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:
             return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
