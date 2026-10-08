@@ -565,6 +565,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
          */
         isAmountSet?: boolean;
 
+        /** The amount state captured when a draft is created, used to retain the Pay discard baseline across reloads. */
+        initialAmount?: number;
+
+        /** Whether the amount had already been explicitly set when a draft was created. */
+        initialIsAmountSet?: boolean;
+
         /** Whether the merchant has been explicitly set by the user */
         isMerchantSet?: boolean;
 

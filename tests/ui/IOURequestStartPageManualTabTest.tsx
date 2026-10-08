@@ -300,7 +300,7 @@ describe('IOURequestStartPage manual tab content', () => {
         await renderStartPage({
             iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
             iouType: CONST.IOU.TYPE.PAY,
-            transactionDraft: {isAmountSet: true, amount: 5000},
+            transactionDraft: {isAmountSet: true, amount: 5000, initialIsAmountSet: true, initialAmount: 5000},
         });
 
         expect(mockGetHasUnsavedChanges?.()).toBe(false);
@@ -333,6 +333,8 @@ describe('IOURequestStartPage manual tab content', () => {
                 reportID: REPORT_ID,
                 isAmountSet: true,
                 amount: 5000,
+                initialIsAmountSet: true,
+                initialAmount: 5000,
             });
         });
         await waitForBatchedUpdatesWithAct();
