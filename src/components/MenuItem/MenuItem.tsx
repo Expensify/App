@@ -361,6 +361,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the tooltip should hide on scroll */
         shouldHideOnScroll?: boolean;
 
+        /** Whether the tooltip should stay hidden on first display when the item starts off screen */
+        shouldCheckTooltipVisibilityOnFirstDisplay?: boolean;
+
         /** Whether the tooltip should hide when the screen loses navigation focus */
         shouldHideTooltipOnNavigate?: boolean;
 
@@ -536,6 +539,7 @@ function MenuItem({
     shouldRenderTooltip = false,
     shouldDisplayEducationalTooltip,
     shouldHideOnScroll = false,
+    shouldCheckTooltipVisibilityOnFirstDisplay = false,
     shouldHideTooltipOnNavigate = true,
     tooltipAnchorAlignment,
     tooltipWrapperStyle = {},
@@ -797,6 +801,7 @@ function MenuItem({
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
                 shouldHideOnScroll={shouldHideOnScroll}
+                shouldCheckVisibilityOnFirstDisplay={shouldCheckTooltipVisibilityOnFirstDisplay}
                 shouldHideOnNavigate={shouldHideTooltipOnNavigate}
             >
                 <View>
