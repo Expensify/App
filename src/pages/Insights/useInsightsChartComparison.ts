@@ -3,7 +3,6 @@ import type {ChartComparison} from '@components/Search/buildChartSeries';
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -41,7 +40,6 @@ const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADIN
 /** Loads and prepares a chart's previous period when the page compares. */
 function useInsightsChartComparison(chart: InsightsChartSpec, filters: InsightsFilters, queryJSON: Readonly<SearchQueryJSON> | undefined): InsightsChartComparison {
     const theme = useTheme();
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
 
@@ -50,7 +48,7 @@ function useInsightsChartComparison(chart: InsightsChartSpec, filters: InsightsF
     const [previousPeriodSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${previousPeriodQueryJSON?.hash}`);
     // Keep all previous-period groups so current top groups can find their matches.
     const sortedData = useGroupedItems(previousPeriodSnapshot, queryJSON && {...queryJSON, limit: undefined});
-    const windows = resolveComparisonWindows(filters.date, translate);
+    const windows = resolveComparisonWindows(filters.date);
 
     if (!isComparing || !windows) {
         return {isComparing: false, comparison: undefined, blockingState: undefined};
@@ -66,8 +64,8 @@ function useInsightsChartComparison(chart: InsightsChartSpec, filters: InsightsF
         // The page's current and previous periods are the chart's primary and comparison series.
         comparison: {
             rows: data,
-            primaryPeriod: {...windows.current, color: chart.color ?? VictoryTheme.colors.default},
-            comparisonPeriod: {...windows.previous, color: VictoryTheme.colors.getComparisonColor(chart.color ?? VictoryTheme.colors.default, theme.colorScheme)},
+            primaryPeriod: {range: windows.current, color: chart.color ?? VictoryTheme.colors.default},
+            comparisonPeriod: {range: windows.previous, color: VictoryTheme.colors.getComparisonColor(chart.color ?? VictoryTheme.colors.default, theme.colorScheme)},
         },
         blockingState: undefined,
     };

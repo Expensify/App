@@ -46,7 +46,7 @@ function getGroupedBarWidth(slotWidth: number, barCount: number): number {
 }
 
 /** A point as victory-native reads it: the x index plus one entry per series, keyed by the series' key. */
-type VerticalBarChartDatum = Record<string, number>;
+type VerticalBarChartDatum = {x: number} & Record<string, number | undefined>;
 
 function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true}: BarChartProps) {
     const theme = useTheme();
@@ -61,7 +61,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     const primarySeriesKey = seriesKeys.at(0) ?? '';
     const chartData: VerticalBarChartDatum[] = data.map((point, index) => ({
         x: index,
-        ...Object.fromEntries(seriesKeys.map((key) => [key, getSeriesValue(point, key)])),
+        ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
     }));
 
     const yAxisDomain = useDynamicYDomain(data);
@@ -185,6 +185,10 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
 
     /** A lone series takes one palette color per item; compared series keep it and draw the other period a lighter shade. */
     const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, seriesIndex: number) => {
+        // A series with nothing at this point leaves its place in the group empty.
+        if (typeof point.y !== 'number') {
+            return null;
+        }
         const dataIndex = Number(point.xValue);
         const dataPoint = data.at(dataIndex);
         const color = seriesIndex === 0 ? VictoryTheme.colors.getColor(dataIndex) : VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.getColor(dataIndex), theme.colorScheme);

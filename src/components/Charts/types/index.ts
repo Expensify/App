@@ -8,9 +8,6 @@ type ChartSeries = {
     /** Identifies this series' amount in every point's `values` */
     key: string;
 
-    /** Legend and tooltip name, absent for a single unnamed series */
-    label?: string;
-
     /** Left out, a lone series of bars takes a palette color per bar, and anything else the default */
     color?: string;
 };
@@ -27,6 +24,9 @@ type ChartDataPoint = {
 
     /** The point's signed share of total spend, in percentage points */
     percentOfTotal?: number;
+
+    /** Per-series names of what the point covers, like each period's dates, which the tooltip names its rows with */
+    seriesLabels?: Record<string, string>;
 
     /** Marks a time-based point whose period hasn't ended yet, so its total is still changing. Only a line chart's last point is drawn differently. */
     isInProgress?: boolean;

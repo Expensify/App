@@ -38,7 +38,7 @@ import {CartesianChart, Line} from 'victory-native';
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** A point as victory-native reads it: the x index plus one entry per series, keyed by the series' key. */
-type LineChartDatum = Record<string, number>;
+type LineChartDatum = {x: number} & Record<string, number | undefined>;
 
 type LineChartProps = CartesianChartProps & {
     /** Called with the pressed point of the primary series */
@@ -65,11 +65,11 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
     const chartData: LineChartDatum[] = data.map((point, index) => ({
         x: index,
-        ...Object.fromEntries(seriesKeys.map((key) => [key, getSeriesValue(point, key)])),
+        ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
     }));
 
-    /** Canvas y of every series at every point */
-    const seriesPointY = useSharedValue<number[][]>([]);
+    /** Canvas y of every series at every point, undefined where a series has no point */
+    const seriesPointY = useSharedValue<Array<Array<number | undefined>>>([]);
 
     const handlePointPress = (index: number) => {
         if (index < 0 || index >= data.length) {
@@ -189,7 +189,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     });
 
     const activePointX = useDerivedValue(() => activePointPosition.get().x);
-    const activeSeriesY = useDerivedValue(() => seriesPointY.get().map((positions) => positions.at(matchedIndex.get()) ?? 0));
+    const activeSeriesY = useDerivedValue(() => seriesPointY.get().map((positions) => positions.at(matchedIndex.get())));
     const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
 
     /** Stores canvas positions for hover, press and the tooltip */
@@ -197,7 +197,14 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         updateTickPositions(xScale, data.length);
         const [rangeStart, rangeEnd] = xScale.range();
         bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : Math.abs(rangeEnd - rangeStart));
-        seriesPointY.set(seriesKeys.map((key) => data.map((point) => yScale(getSeriesValue(point, key)))));
+        seriesPointY.set(
+            seriesKeys.map((key) =>
+                data.map((point) => {
+                    const value = point.values[key];
+                    return value === undefined ? undefined : yScale(value);
+                }),
+            ),
+        );
         setPointPositions(
             chartData.map((point, index) => xScale(point.x ?? index)),
             // The tooltip follows the primary series.
@@ -216,10 +223,10 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         chartBottom.set(chartBoundsBottom);
         const primaryColor = series.at(0)?.color ?? VictoryTheme.colors.default;
 
-        // The last bucket is still in progress on the x-axis, so every series is dashed into it.
+        // The last bucket is still in progress, so the primary series is dashed into it. A compared period has already ended.
         const getCompletePoints = (seriesKey: string) => {
             const seriesPoints = args.points[seriesKey] ?? [];
-            return shouldDashLastSegment ? seriesPoints.slice(0, -1) : seriesPoints;
+            return shouldDashLastSegment && seriesKey === primarySeriesKey ? seriesPoints.slice(0, -1) : seriesPoints;
         };
 
         return (
@@ -241,7 +248,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                                 strokeJoin="round"
                                 curveType="linear"
                             />
-                            {shouldDashLastSegment && (
+                            {shouldDashLastSegment && seriesItem.key === primarySeriesKey && (
                                 <Line
                                     points={(args.points[seriesItem.key] ?? []).slice(-2)}
                                     color={color}

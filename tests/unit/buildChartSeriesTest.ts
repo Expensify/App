@@ -284,8 +284,8 @@ describe('getSliceColorsByDataIndex', () => {
 });
 
 describe('buildChartSeries with a compared period', () => {
-    const CURRENT_PERIOD = {label: 'YTD 2026', color: '#current', range: {start: '2026-01-01', end: '2026-12-31'}};
-    const PREVIOUS_PERIOD = {label: 'YTD 2025', color: '#previous', range: {start: '2025-01-01', end: '2025-12-31'}};
+    const CURRENT_PERIOD = {color: '#current', range: {start: '2026-01-01', end: '2026-12-31'}};
+    const PREVIOUS_PERIOD = {color: '#previous', range: {start: '2025-01-01', end: '2025-12-31'}};
 
     /** Builds the model of a chart plotting one period against the one before it. */
     function buildComparison(rows: GroupedItem[], previousRows: GroupedItem[], groupBy: SearchGroupBy) {
@@ -400,7 +400,7 @@ describe('buildChartSeries labels for compared time buckets', () => {
     function buildLabels(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
         return buildChartSeries({
             rows,
-            comparison: {rows: [], primaryPeriod: {label: 'Current', color: '#current', range: current}, comparisonPeriod: {label: 'Previous', color: '#previous', range: previous}},
+            comparison: {rows: [], primaryPeriod: {color: '#current', range: current}, comparisonPeriod: {color: '#previous', range: previous}},
             view: CONST.SEARCH.VIEW.BAR,
             groupBy,
             getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
@@ -448,7 +448,28 @@ describe('buildChartSeries labels for compared time buckets', () => {
         const labels = buildLabels([dayGroup('2026-09-06')], CONST.SEARCH.GROUP_BY.DAY, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
 
         // Then the day is named by its number, which the same day of August shares
-        expect(labels).toEqual([['6', '6']]);
+        expect(labels).toEqual([['6th', '6th']]);
+    });
+
+    it('names days by their date when the window spans several months', () => {
+        // Given the last 12 months plotted day by day against the 12 months before
+        const labels = buildLabels([dayGroup('2026-10-05')], CONST.SEARCH.GROUP_BY.DAY, {start: '2025-11-01', end: '2026-10-31'}, {start: '2024-11-01', end: '2025-10-31'});
+
+        // Then the day is named by its date, which the same day a year earlier shares
+        expect(labels).toEqual([['Oct 5', 'Oct 5']]);
+    });
+
+    it('keeps the day of the month for a day the compared month lacks', () => {
+        // Given October plotted by day against September, which has no 31st
+        const labels = buildLabels(
+            [dayGroup('2026-10-30'), dayGroup('2026-10-31')],
+            CONST.SEARCH.GROUP_BY.DAY,
+            {start: '2026-10-01', end: '2026-10-31'},
+            {start: '2026-09-01', end: '2026-09-30'},
+        );
+
+        // Then October 31 is named like the rest, since there is no other day its name has to fit
+        expect(labels.map(([, shortLabel]) => shortLabel)).toEqual(['30th', '31st']);
     });
 
     it('names days by the weekday when the window spans a week', () => {
@@ -475,12 +496,28 @@ describe('buildChartSeries labels for compared time buckets', () => {
         ]);
     });
 
-    it('numbers months when the compared month has a different name', () => {
+    it('numbers months when the compared months have different names', () => {
+        // Given August and September plotted against June and July, so month names would only fit one of the two bars
+        const labels = buildLabels(
+            [monthGroup(2026, 8), monthGroup(2026, 9)],
+            CONST.SEARCH.GROUP_BY.MONTH,
+            {start: '2026-08-01', end: '2026-09-30'},
+            {start: '2026-06-01', end: '2026-07-31'},
+        );
+
+        // Then the months are named by their position in the window, which fits both
+        expect(labels).toEqual([
+            ['Month 1', 'Month 1'],
+            ['Month 2', 'Month 2'],
+        ]);
+    });
+
+    it('names a lone bucket by its unit alone', () => {
         // Given September plotted against August, so a month name would only fit one of the two bars
         const labels = buildLabels([monthGroup(2026, 9)], CONST.SEARCH.GROUP_BY.MONTH, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
 
-        // Then the month is named by its position in the window, which fits both
-        expect(labels).toEqual([['Month 1', 'Month 1']]);
+        // Then it is just "Month", since with nothing beside it a position tells the user nothing
+        expect(labels).toEqual([['Month', 'Month']]);
     });
 
     it('numbers days when a custom range is compared against days with other dates', () => {
@@ -497,6 +534,119 @@ describe('buildChartSeries labels for compared time buckets', () => {
             ['Day 1', 'Day 1'],
             ['Day 3', 'Day 3'],
         ]);
+    });
+
+    /** Builds the plotted values of a chart comparing the window on screen against the one before it, which had no expenses. */
+    function buildValues(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
+        return buildChartSeries({
+            rows,
+            comparison: {rows: [], primaryPeriod: {color: '#current', range: current}, comparisonPeriod: {color: '#previous', range: previous}},
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy,
+            getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+        }).rows.map((row) => row.point.values);
+    }
+
+    it('plots nothing for the compared period where it has no matching day, unlike a day with no expenses', () => {
+        // Given October plotted by day against September, which has no 31st
+        const values = buildValues(
+            [dayGroup('2026-10-30'), dayGroup('2026-10-31')],
+            CONST.SEARCH.GROUP_BY.DAY,
+            {start: '2026-10-01', end: '2026-10-31'},
+            {start: '2026-09-01', end: '2026-09-30'},
+        );
+
+        // Then October 30 is compared with an empty September 30, and October 31 with nothing
+        expect(values).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0}, {[CHART_SERIES_KEY.PRIMARY]: 1000}]);
+    });
+
+    it('compares days with the same date a year earlier, leaving February 29 without a pair', () => {
+        // Given 2028 to date, a leap year, plotted by day against 2027
+        const current = {start: '2028-01-01', end: '2028-03-01'};
+        const previous = {start: '2027-01-01', end: '2027-03-01'};
+
+        // When the days around February 29 are plotted
+        const values = buildValues([dayGroup('2028-02-28'), dayGroup('2028-02-29'), dayGroup('2028-03-01')], CONST.SEARCH.GROUP_BY.DAY, current, previous);
+        const labels = buildLabels([dayGroup('2028-02-28'), dayGroup('2028-02-29'), dayGroup('2028-03-01')], CONST.SEARCH.GROUP_BY.DAY, current, previous);
+
+        // Then February 29 plots only the current year, and March 1 still meets March 1 rather than slipping a day
+        expect(values).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0},
+            {[CHART_SERIES_KEY.PRIMARY]: 1000},
+            {[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0},
+        ]);
+        expect(labels.map(([label]) => label)).toEqual(['Feb 28', 'Feb 29', 'Mar 1']);
+    });
+
+    it('plots nothing for the compared period where it has fewer weeks', () => {
+        // Given August 2026, whose sixth week starts on Sunday August 30, against July, whose last week is its fifth
+        const values = buildValues(
+            [weekGroup('2026-07-26'), weekGroup('2026-08-30')],
+            CONST.SEARCH.GROUP_BY.WEEK,
+            {start: '2026-08-01', end: '2026-08-31'},
+            {start: '2026-07-01', end: '2026-07-31'},
+        );
+
+        // Then the first week is compared, and the sixth plots only the current period
+        expect(values).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0}, {[CHART_SERIES_KEY.PRIMARY]: 1000}]);
+    });
+
+    /** Builds the dates the tooltip shows for each period at every point. */
+    function buildSeriesLabels(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
+        return buildChartSeries({
+            rows,
+            comparison: {rows: [], primaryPeriod: {color: '#current', range: current}, comparisonPeriod: {color: '#previous', range: previous}},
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy,
+            getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+        }).rows.map((row) => row.point.seriesLabels);
+    }
+
+    it('gives each period the dates of its own bucket, cut to the period', () => {
+        // Given September plotted by week against August, whose first weeks both start before the month
+        const labels = buildSeriesLabels([weekGroup('2026-08-30')], CONST.SEARCH.GROUP_BY.WEEK, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
+
+        // Then the tooltip names the days each period actually adds up, rather than the period names
+        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'Sep 1 - Sep 5, 2026', [CHART_SERIES_KEY.COMPARISON]: 'Aug 1, 2026'}]);
+    });
+
+    it('says "so far" on the current period of a bucket still collecting expenses, keeping the bucket name', () => {
+        // Given October plotted by day against September, while October 8 is still in progress
+        const model = buildChartSeries({
+            rows: [dayGroup('2026-10-08')],
+            comparison: {
+                rows: [],
+                primaryPeriod: {color: '#current', range: {start: '2026-10-01', end: '2026-10-31'}},
+                comparisonPeriod: {color: '#previous', range: {start: '2026-09-01', end: '2026-09-30'}},
+            },
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.DAY].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            getInProgressLabel: () => 'Oct 8 so far',
+        });
+        const point = model.rows.at(0)?.point;
+
+        // Then only October's row is marked, since September 8 is over, and the axis keeps naming the day
+        expect(point?.label).toBe('8th');
+        expect(point?.seriesLabels).toEqual({[CHART_SERIES_KEY.PRIMARY]: 'Oct 8, 2026 so far', [CHART_SERIES_KEY.COMPARISON]: 'Sep 8, 2026'});
+        expect(point?.isInProgress).toBe(true);
+    });
+
+    it('names a whole month by its calendar name', () => {
+        // Given September plotted by month against August
+        const labels = buildSeriesLabels([monthGroup(2026, 9)], CONST.SEARCH.GROUP_BY.MONTH, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
+
+        // Then each period is its month
+        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'September 2026', [CHART_SERIES_KEY.COMPARISON]: 'August 2026'}]);
     });
 
     it('keeps the plain labels when nothing is compared', () => {

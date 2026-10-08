@@ -8,8 +8,8 @@ type ActivePointIndicatorProps = {
     /** Canvas x of the active data point */
     x: DerivedValue<number>;
 
-    /** Canvas y of the active data point on each series, in the order of `dotColors` */
-    dotYs: DerivedValue<number[]>;
+    /** Canvas y of the active data point on each series, in the order of `dotColors`, undefined where a series has no point */
+    dotYs: DerivedValue<Array<number | undefined>>;
 
     /** One dot per series, the first drawn on top */
     dotColors: string[];
@@ -25,6 +25,7 @@ type ActivePointIndicatorProps = {
     dotRadius: number;
     guidelineColor: string;
     guidelineOpacity: number;
+    /** Hollows out the first dot, whose series is still in progress at this point */
     isHollow: DerivedValue<boolean>;
 
     /** Painted over the dot's center to hollow it out, so it must match the background behind the chart */
@@ -42,10 +43,11 @@ const HOLLOW_RING_WIDTH = 2;
 
 function ActiveDot({x, dotYs, index, color, dotRadius, isHollow, hollowColor}: ActiveDotProps) {
     const cy = useDerivedValue(() => dotYs.get().at(index) ?? 0);
-    const hollowCenterOpacity = useDerivedValue(() => (isHollow.get() ? 1 : 0));
+    const opacity = useDerivedValue(() => (dotYs.get().at(index) === undefined ? 0 : 1));
+    const hollowCenterOpacity = useDerivedValue(() => (index === 0 && isHollow.get() ? 1 : 0));
 
     return (
-        <>
+        <Group opacity={opacity}>
             <Circle
                 cx={x}
                 cy={cy}
@@ -59,7 +61,7 @@ function ActiveDot({x, dotYs, index, color, dotRadius, isHollow, hollowColor}: A
                 color={hollowColor}
                 opacity={hollowCenterOpacity}
             />
-        </>
+        </Group>
     );
 }
 

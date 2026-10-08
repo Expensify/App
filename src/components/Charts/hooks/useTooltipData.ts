@@ -1,5 +1,4 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
-import {getSeriesValue} from '@components/Charts/utils';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -43,12 +42,16 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series:
 
     return {
         title: dataPoint.label,
-        rows: series.map((seriesItem) => {
-            const value = getSeriesValue(dataPoint, seriesItem.key);
+        // A series with nothing at this point gets no row.
+        rows: series.flatMap((seriesItem) => {
+            const value = dataPoint.values[seriesItem.key];
+            if (value === undefined) {
+                return [];
+            }
 
             return {
                 key: seriesItem.key,
-                label: seriesItem.label,
+                label: dataPoint.seriesLabels?.[seriesItem.key],
                 amount: formatAmount(value),
                 percentage: series.length === 1 && dataPoint.percentOfTotal !== undefined ? formatPercentOfTotal(dataPoint.percentOfTotal, value, preferredLocale) : undefined,
             };
