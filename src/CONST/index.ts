@@ -2838,6 +2838,7 @@ const CONST = {
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
+        SESSION_MISMATCH: 'Expensify\\Error\\Auth\\AccountMismatch',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
@@ -5324,6 +5325,7 @@ const CONST = {
         FEED_BANK_NAME: {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
+            VCF_MOCK: 'vcfmock',
             AMEX: 'gl1025',
             AMEX_1205: 'gl1205',
             STRIPE: 'stripe',
@@ -5554,6 +5556,7 @@ const CONST = {
             AMEX: 'American Express',
             VISA: 'Visa',
             MASTERCARD: 'Mastercard',
+            MOCK_COMMERCIAL: 'Mock Commercial Feed',
             STRIPE: 'Stripe',
             CSV: 'CSV',
         },
