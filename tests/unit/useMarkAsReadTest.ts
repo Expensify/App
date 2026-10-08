@@ -46,7 +46,7 @@ jest.mock('@hooks/useAppFocusEvent', () => ({
 }));
 
 jest.mock('@libs/ReportUtils', () => {
-    const actual = jest.requireActual<typeof import('@libs/ReportUtils')>('@libs/ReportUtils');
+    const actual = jest.requireActual<Record<string, unknown>>('@libs/ReportUtils');
     return {
         ...actual,
         isUnread: () => mockIsUnread,
