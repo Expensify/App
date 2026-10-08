@@ -934,6 +934,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Deze chat is niet meer actief omdat <strong>je</strong> geen lid meer bent van de ${policyName}-werkruimte.`
                 : `Deze chat is niet meer actief omdat ${displayName} geen lid meer is van de ${policyName}-werkruimte.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Deze chat is niet langer actief omdat ${policyName} geen actief werkruimte meer is.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `Deze chat is niet langer actief omdat ${policyName} een gearchiveerde werkruimte is.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Deze chat is niet langer actief omdat ${policyName} geen actief werkruimte meer is.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Deze boeking is gearchiveerd.',
@@ -2042,6 +2043,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Geen verdere actie vereist!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Wijzig de werkruimte van het rapport voor verdere acties.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

@@ -917,6 +917,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Este chat ya no está activo porque <strong>tu</strong> ya no eres miembro del espacio de trabajo ${policyName}.`
                 : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}) => `Este chat está desactivado porque ${policyName} es un espacio de trabajo archivado.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}) => `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está archivada.',
     },
@@ -2013,6 +2014,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (_actor, _actorType, _eta, _etaType) => `Cambia el espacio de trabajo del informe para realizar más acciones.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (actor, actorType, _eta, _etaType, requiredDepositCurrency?: string) => {
                 const account = requiredDepositCurrency ? `cuenta bancaria en ${requiredDepositCurrency}` : 'cuenta bancaria';
                 switch (actorType) {

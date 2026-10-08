@@ -907,6 +907,7 @@ const translations: TranslationDeepObject<typeof en> = {
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou ? `此聊天已不再活跃，因为<strong>你</strong>已不再是 ${policyName} 工作区的成员。` : `此聊天已不再活动，因为${displayName}已不再是${policyName}工作区的成员。`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 是已归档的工作区。`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: '此预订已归档。',
     },
@@ -1966,6 +1967,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `无需执行其他操作！`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `请更改报告的工作区以执行进一步操作。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

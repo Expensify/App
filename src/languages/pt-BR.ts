@@ -934,6 +934,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Este chat não está mais ativo porque <strong>você</strong> não é mais membro do workspace ${policyName}.`
                 : `Este chat não está mais ativo porque ${displayName} não é mais membro do workspace ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Este chat não está mais ativo porque ${policyName} não é mais um espaço de trabalho ativo.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `Este chat não está mais ativo porque ${policyName} é um espaço de trabalho arquivado.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Este chat não está mais ativo porque ${policyName} não é mais um espaço de trabalho ativo.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está arquivada.',
@@ -2035,6 +2036,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Nenhuma ação adicional é necessária!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Altere o espaço de trabalho do relatório para realizar outras ações.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

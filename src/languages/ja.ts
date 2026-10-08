@@ -925,6 +925,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 : `${displayName}さんが${policyName}ワークスペースのメンバーではなくなったため、このチャットはこれ以上利用できません。`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `このチャットは、${policyName} がアクティブなワークスペースではなくなったため、これ以上利用できません。`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) =>
+            `${policyName} はアーカイブされたワークスペースのため、このチャットは現在アクティブではありません。`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `このチャットは、${policyName} がアクティブなワークスペースではなくなったため、これ以上利用できません。`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'この予約はアーカイブされています。',
@@ -2025,6 +2027,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `これ以上の対応は不要です。`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `さらに操作を行うには、レポートのワークスペースを変更してください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,

@@ -954,6 +954,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Αυτή η συνομιλία δεν είναι πλέον ενεργή επειδή <strong>εσείς</strong> δεν είστε πλέον μέλος του χώρου εργασίας ${policyName}.`
                 : `Αυτή η συνομιλία δεν είναι πλέον ενεργή επειδή ο/η ${displayName} δεν είναι πλέον μέλος του χώρου εργασίας ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Αυτή η συνομιλία δεν είναι πλέον ενεργή, επειδή το ${policyName} δεν είναι πλέον ενεργό χώρο εργασίας.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}) => `Αυτή η συνομιλία δεν είναι πλέον ενεργή, επειδή το ${policyName} είναι αρχειοθετημένος χώρος εργασίας.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}) =>
             `Αυτή η συνομιλία δεν είναι πλέον ενεργή, επειδή το ${policyName} δεν είναι πλέον ενεργό χώρο εργασίας.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Αυτή η κράτηση έχει αρχειοθετηθεί.',
@@ -2096,6 +2097,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Δεν απαιτείται καμία περαιτέρω ενέργεια!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Αλλάξτε τον χώρο εργασίας της αναφοράς για περαιτέρω ενέργειες.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
