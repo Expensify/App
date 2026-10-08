@@ -1,3 +1,6 @@
+/**
+ * Modal where an admin describes a rule in plain English and Concierge fills in the open rule editor's form.
+ */
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
