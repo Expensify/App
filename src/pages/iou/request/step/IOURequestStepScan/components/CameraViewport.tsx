@@ -7,6 +7,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getZoomProp} from '@libs/cameraCapture/getWideLensZoom';
+import Log from '@libs/Log';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -16,7 +19,7 @@ import type {LayoutChangeEvent, ViewStyle} from 'react-native';
 import type {GestureType} from 'react-native-gesture-handler';
 import type {PermissionStatus} from 'react-native-permissions';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import type {Camera, CameraDevice, CameraDeviceFormat} from 'react-native-vision-camera';
+import type {CameraDevice, CameraOutput, CameraRef, CameraSessionConfig, Constraint} from 'react-native-vision-camera';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -28,16 +31,14 @@ import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 
 type CameraViewportProps = {
     /** Ref to the underlying Camera instance */
-    camera: RefObject<Camera | null>;
+    camera: RefObject<CameraRef | null>;
 
     /** The active camera device descriptor */
     device: CameraDevice;
 
-    /** The selected camera format (resolution / FPS) */
-    format: CameraDeviceFormat | undefined;
+    outputs: CameraOutput[];
 
-    /** Target frames-per-second for the camera preview */
-    fps?: number;
+    constraints?: Constraint[];
 
     /** Aspect ratio used to size the camera viewfinder */
     cameraAspectRatio: number | undefined;
@@ -63,8 +64,11 @@ type CameraViewportProps = {
     /** Whether a photo has been captured (forces camera inactive) */
     didCapturePhoto?: boolean;
 
-    /** Callback fired when the camera finishes initializing */
-    onInitialized?: () => void;
+    onConfigured?: () => void;
+
+    onStarted?: () => void;
+
+    onSessionConfigSelected?: (config: CameraSessionConfig) => void;
 
     /** Callback fired when the camera preview is laid out */
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -92,8 +96,8 @@ type CameraViewportProps = {
 function CameraViewport({
     camera,
     device,
-    format,
-    fps,
+    outputs,
+    constraints,
     cameraAspectRatio,
     isInLandscapeMode,
     shouldFillPortraitViewport = true,
@@ -102,7 +106,9 @@ function CameraViewport({
     blinkStyle,
     isAttachmentPickerActive,
     didCapturePhoto = false,
-    onInitialized,
+    onConfigured,
+    onStarted,
+    onSessionConfigSelected,
     onLayout,
     shouldShowFlashButton,
     flashSentryLabel = CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH,
@@ -125,17 +131,22 @@ function CameraViewport({
                     <NavigationAwareCamera
                         ref={camera}
                         device={device}
-                        format={format}
-                        fps={fps}
+                        outputs={outputs}
+                        constraints={constraints}
                         style={styles.flex1}
-                        zoom={device.neutralZoom}
-                        photo
+                        zoom={getZoomProp(device)}
                         cameraTabIndex={1}
                         forceInactive={isAttachmentPickerActive || didCapturePhoto}
-                        onInitialized={onInitialized}
+                        onConfigured={onConfigured}
+                        onStarted={onStarted}
+                        onSessionConfigSelected={onSessionConfigSelected}
+                        // VisionCamera's default handler is console.error, which pops LogBox over the camera.
+                        onError={(error) => Log.warn('[Camera] VisionCamera error', {code: error.message.split('\n').at(0)?.trim(), message: error.message})}
                         onLayout={onLayout}
-                        // Use TextureView on Android to fix partially blank images for takeSnapshot()
-                        androidPreviewViewType="texture-view"
+                        // With 'device', a phone held flat keeps its last landscape reading and the photo is saved
+                        // rotated. Following the UI also matches v4, whose snapshots took the preview's orientation.
+                        orientationSource="interface"
+                        implementationMode="compatible"
                     />
                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                     <Animated.View

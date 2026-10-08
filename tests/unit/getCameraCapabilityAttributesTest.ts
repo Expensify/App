@@ -2,116 +2,70 @@ import getCameraCapabilityAttributes from '@pages/iou/request/step/IOURequestSte
 
 import CONST from '@src/CONST';
 
-import type {CameraDevice, CameraDeviceFormat} from 'react-native-vision-camera';
+import type {CameraDevice, DeviceType} from 'react-native-vision-camera';
 
-type FormatOverrides = Partial<
-    Pick<CameraDeviceFormat, 'photoWidth' | 'photoHeight' | 'videoWidth' | 'videoHeight' | 'minFps' | 'maxFps' | 'autoFocusSystem' | 'fieldOfView' | 'minISO' | 'maxISO'>
->;
-type DeviceOverrides = Partial<Pick<CameraDevice, 'formats' | 'minFocusDistance' | 'physicalDevices' | 'neutralZoom'>>;
-
-function createFormat(overrides: FormatOverrides = {}): CameraDeviceFormat {
-    return {
-        photoWidth: 2880,
-        photoHeight: 2160,
-        videoWidth: 2880,
-        videoHeight: 2160,
-        minFps: 30,
-        maxFps: 30,
-        autoFocusSystem: 'contrast-detection',
-        minISO: 34,
-        maxISO: 3264,
-        fieldOfView: 68,
-        supportsVideoHdr: false,
-        supportsPhotoHdr: false,
-        supportsDepthCapture: false,
-        videoStabilizationModes: [],
-        ...overrides,
-    };
+function createLens(type: DeviceType): CameraDevice {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return {type} as CameraDevice;
 }
 
-function createDevice(overrides: DeviceOverrides = {}): Required<DeviceOverrides> {
-    return {
-        formats: [],
-        minFocusDistance: 12,
-        physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
-        neutralZoom: 2,
-        ...overrides,
-    };
+function createDevice(lensTypes: DeviceType[], zoomLensSwitchFactors: number[]): Pick<CameraDevice, 'physicalDevices' | 'zoomLensSwitchFactors'> {
+    return {physicalDevices: lensTypes.map(createLens), zoomLensSwitchFactors};
 }
-
-const CONTRAST_FORMAT = createFormat();
-const INTERCHANGEABLE_PHASE_FORMAT = createFormat({autoFocusSystem: 'phase-detection'});
 
 describe('getCameraCapabilityAttributes', () => {
     it('reports nothing while the device is still loading', () => {
-        expect(getCameraCapabilityAttributes(undefined, CONTRAST_FORMAT)).toEqual({});
+        // Given no device yet
+        // When the attributes are derived
+        // Then the span gets no camera attributes, rather than guessed ones
+        expect(getCameraCapabilityAttributes(undefined)).toEqual({});
     });
 
-    it('reports the lens facts that say whether a lens switch is even possible', () => {
-        const attributes = getCameraCapabilityAttributes(createDevice({formats: [CONTRAST_FORMAT]}), CONTRAST_FORMAT);
+    it('reports the lens count and the zoom of the wide lens on a virtual device', () => {
+        // Given an iPhone's ultra-wide + wide virtual device, which switches to the wide lens at 2x
+        const device = createDevice(['ultra-wide-angle', 'wide-angle'], [2]);
 
-        expect(attributes).toMatchObject({
-            [CONST.TELEMETRY.ATTRIBUTE_MIN_FOCUS_DISTANCE]: 12,
-            [CONST.TELEMETRY.ATTRIBUTE_PHYSICAL_DEVICE_COUNT]: 2,
-            [CONST.TELEMETRY.ATTRIBUTE_NEUTRAL_ZOOM]: 2,
-        });
+        // When the attributes are derived
+        const attributes = getCameraCapabilityAttributes(device);
+
+        // Then the neutral zoom is the wide lens, which is what the camera now opens at
+        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_PHYSICAL_DEVICE_COUNT]).toBe(2);
+        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_NEUTRAL_ZOOM]).toBe(2);
     });
 
-    it('records no focus distance when the device reports 0, which means unknown rather than zero', () => {
-        const attributes = getCameraCapabilityAttributes(createDevice({formats: [CONTRAST_FORMAT], minFocusDistance: 0}), CONTRAST_FORMAT);
+    it('counts a single-lens device as one lens', () => {
+        // Given a physical device, which VisionCamera v5 reports with no physical devices (v4 reported itself)
+        const device = createDevice([], []);
 
-        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_MIN_FOCUS_DISTANCE]).toBeUndefined();
+        // When the attributes are derived
+        const attributes = getCameraCapabilityAttributes(device);
+
+        // Then the count stays comparable with the v4 data, and the zoom is 1
+        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_PHYSICAL_DEVICE_COUNT]).toBe(1);
+        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_NEUTRAL_ZOOM]).toBe(1);
     });
 
-    it('flags an interchangeable phase-detection format when one exists', () => {
-        const device = createDevice({formats: [CONTRAST_FORMAT, INTERCHANGEABLE_PHASE_FORMAT]});
+    it('reports the autofocus system of the configuration the session picked', () => {
+        // Given the session picked a phase-detection configuration
+        const device = createDevice(['ultra-wide-angle', 'wide-angle'], [2]);
 
-        expect(getCameraCapabilityAttributes(device, CONTRAST_FORMAT)).toMatchObject({
-            [CONST.TELEMETRY.ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT]: 1,
-            [CONST.TELEMETRY.ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM]: 'contrast-detection',
-            [CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]: true,
-        });
+        // When the attributes are derived with that autofocus system
+        const attributes = getCameraCapabilityAttributes(device, 'phase-detection');
+
+        // Then it fills the attribute v4 took from the selected format, so the autofocus dashboards keep working
+        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM]).toBe('phase-detection');
     });
 
-    it('does not flag a phase-detection format that differs in resolution', () => {
-        const device = createDevice({formats: [CONTRAST_FORMAT, createFormat({autoFocusSystem: 'phase-detection', photoWidth: 1920, photoHeight: 1440})]});
+    it('leaves the format attributes empty, since VisionCamera v5 has no formats list', () => {
+        // Given any device
+        const device = createDevice(['ultra-wide-angle', 'wide-angle'], [2]);
 
-        expect(getCameraCapabilityAttributes(device, CONTRAST_FORMAT)).toMatchObject({[CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]: false});
-    });
+        // When the attributes are derived
+        const attributes = getCameraCapabilityAttributes(device);
 
-    it('does not flag a phase-detection format that differs in frame rate range', () => {
-        const device = createDevice({formats: [CONTRAST_FORMAT, createFormat({autoFocusSystem: 'phase-detection', maxFps: 60})]});
-
-        expect(getCameraCapabilityAttributes(device, CONTRAST_FORMAT)).toMatchObject({[CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]: false});
-    });
-
-    it('does not flag a phase-detection format that would change the framing', () => {
-        const device = createDevice({formats: [CONTRAST_FORMAT, createFormat({autoFocusSystem: 'phase-detection', fieldOfView: 52})]});
-
-        expect(getCameraCapabilityAttributes(device, CONTRAST_FORMAT)).toMatchObject({[CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]: false});
-    });
-
-    it('does not flag a phase-detection format with a narrower ISO range, which would capture differently in low light', () => {
-        const device = createDevice({formats: [CONTRAST_FORMAT, createFormat({autoFocusSystem: 'phase-detection', maxISO: 1600})]});
-
-        expect(getCameraCapabilityAttributes(device, CONTRAST_FORMAT)).toMatchObject({[CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]: false});
-    });
-
-    it('does not flag anything when the selected format already focuses by phase detection', () => {
-        const device = createDevice({formats: [INTERCHANGEABLE_PHASE_FORMAT, CONTRAST_FORMAT]});
-
-        expect(getCameraCapabilityAttributes(device, INTERCHANGEABLE_PHASE_FORMAT)).toMatchObject({
-            [CONST.TELEMETRY.ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM]: 'phase-detection',
-            [CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]: false,
-        });
-    });
-
-    it('leaves the format questions unanswered when no format is selected yet', () => {
-        const device = createDevice({formats: [CONTRAST_FORMAT, INTERCHANGEABLE_PHASE_FORMAT]});
-        const attributes = getCameraCapabilityAttributes(device, undefined);
-
-        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM]).toBeUndefined();
+        // Then the attributes that came from v4 formats are explicitly undefined, so dashboards see them as missing
+        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT]).toBeUndefined();
         expect(attributes[CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]).toBeUndefined();
-        expect(attributes).toMatchObject({[CONST.TELEMETRY.ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT]: 1});
+        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_MIN_FOCUS_DISTANCE]).toBeUndefined();
     });
 });
