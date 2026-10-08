@@ -323,6 +323,5 @@ function buildOnboardingMessagesWithoutManageTeam(locale?: Locale): OnboardingMe
     return buildOnboardingMessages(undefined, locale);
 }
 
-export default buildOnboardingMessages;
-export {buildOnboardingMessagesWithoutManageTeam};
+export {buildOnboardingMessages, buildOnboardingMessagesWithoutManageTeam};
 export type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTask, OnboardingTaskLinks};

@@ -19,7 +19,7 @@ import Onyx from 'react-native-onyx';
 
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTask, OnboardingTaskLinks} from './buildOnboardingMessages';
 
-import buildOnboardingMessages from './buildOnboardingMessages';
+import {buildOnboardingMessages} from './buildOnboardingMessages';
 
 type GetOnboardingInitialPathParamsType = {
     isUserFromPublicDomain: boolean;
