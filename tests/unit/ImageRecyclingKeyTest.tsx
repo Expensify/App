@@ -221,5 +221,17 @@ describe('Image recyclingKey', () => {
 
             expect(lastExpoImageProps().recyclingKey).toBe(MARKDOWN_URI);
         });
+
+        it('keeps the URI key for an Expensify-hosted markdown image that only carries a positional attachment ID', () => {
+            // The receipt URL makes the renderer treat the image as an attachment for auth, but the ID is still positional
+            renderImage({
+                src: 'https://www.expensify.com/receipts/A.jpg',
+                [CONST.ATTACHMENT_ID_ATTRIBUTE]: '4321_1',
+            });
+
+            const props = lastExpoImageProps();
+            expect(props.recyclingKey).not.toBe('4321_1');
+            expect(props.recyclingKey).toBe(sourceUri(props));
+        });
     });
 });
