@@ -25,13 +25,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 
-import type {ReportDetailsRequestData} from './types';
+import type {CaseID} from './types';
+
+import useReportDetailsDeleteModal from './hooks/useReportDetailsDeleteModal';
 
 type ReportDetailsTaskDeleteActionProps = {
     reportID: string;
-
-    /** Confirms the delete, navigates away and then runs the passed delete */
-    showDeleteModal: (requestData: ReportDetailsRequestData | undefined, onDelete: () => void) => Promise<void>;
+    caseID: CaseID;
 };
 
 type ReportDetailsTaskDeleteActionContentProps = {
@@ -39,12 +39,10 @@ type ReportDetailsTaskDeleteActionContentProps = {
     parentReport: OnyxEntry<OnyxTypes.Report>;
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
     currentUserAccountID: number;
-
-    /** Confirms the delete, navigates away and then runs the passed delete */
-    showDeleteModal: (requestData: ReportDetailsRequestData | undefined, onDelete: () => void) => Promise<void>;
+    caseID: CaseID;
 };
 
-function ReportDetailsTaskDeleteActionContent({report, parentReport, parentReportAction, currentUserAccountID, showDeleteModal}: ReportDetailsTaskDeleteActionContentProps) {
+function ReportDetailsTaskDeleteActionContent({report, parentReport, parentReportAction, currentUserAccountID, caseID}: ReportDetailsTaskDeleteActionContentProps) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const taskDeleteBackTo = Navigation.getTopmostSearchReportRouteParams()?.backTo;
@@ -56,6 +54,7 @@ function ReportDetailsTaskDeleteActionContent({report, parentReport, parentRepor
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isReportArchived = useReportIsArchived(report.reportID);
     const ancestors = useAncestors(report);
+    const showDeleteModal = useReportDetailsDeleteModal(report.reportID, caseID, parentReportAction);
 
     const deleteTransaction = () => {
         deleteTask(
@@ -87,7 +86,7 @@ function ReportDetailsTaskDeleteActionContent({report, parentReport, parentRepor
 }
 
 /** The Delete row of a task, rendered for the default case where no money request data exists */
-function ReportDetailsTaskDeleteAction({reportID, showDeleteModal}: ReportDetailsTaskDeleteActionProps) {
+function ReportDetailsTaskDeleteAction({reportID, caseID}: ReportDetailsTaskDeleteActionProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const parentReportAction = useParentReportAction(report);
@@ -114,7 +113,7 @@ function ReportDetailsTaskDeleteAction({reportID, showDeleteModal}: ReportDetail
             parentReport={parentReport}
             parentReportAction={parentReportAction}
             currentUserAccountID={currentUserAccountID}
-            showDeleteModal={showDeleteModal}
+            caseID={caseID}
         />
     );
 }

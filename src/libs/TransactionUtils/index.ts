@@ -1668,6 +1668,14 @@ function isUnreportedManagedCardTransaction(transaction?: Transaction): boolean 
 }
 
 /**
+ * Whether the expense has no settled value yet: SmartScan is still running, an Expensify Card charge is still pending,
+ * or the scan failed and left required fields empty.
+ */
+function isExpenseValueUnsettled(transaction: Transaction, report: OnyxEntry<Report>, isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning): boolean {
+    return isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report);
+}
+
+/**
  * Check if the initial transaction should be reused for the current file being processed.
  */
 function shouldReuseInitialTransaction(
@@ -1932,6 +1940,7 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isPartialTransaction,
+    isExpenseValueUnsettled,
     isScanningTransaction,
     isScanning,
     isTransactionSubmittable,
