@@ -281,7 +281,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             updateOfficeLocation(routePolicyID, policy?.officeLocations, defaultOfficeID, {isDefault: false});
         });
     };
-    const shouldShowOfficeLocationsSection = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && (!readOnly || shouldShowCompanyAddressOffice || officeLocationEntries.length > 0);
+    const shouldShowOfficeLocationsSection = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && (!readOnly || shouldShowCompanyAddressOffice || officeLocationEntries.length > 0);
     const shouldShowRulesDocumentSubSection = isPolicyAdmin || hasRulesDocument;
 
     const personalDetails = usePersonalDetails();

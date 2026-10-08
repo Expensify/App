@@ -90,7 +90,7 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) || !officeLocation || officeLocation.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) || !officeLocation || officeLocation.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

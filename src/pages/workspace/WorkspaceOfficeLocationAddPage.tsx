@@ -63,7 +63,7 @@ function WorkspaceOfficeLocationAddPage({route}: WorkspaceOfficeLocationAddPageP
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS)}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
