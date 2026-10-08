@@ -10013,6 +10013,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.',
             exportedWarning:
                 'Co najmniej jeden z wybranych raportów został już wyeksportowany do integracji księgowej. Scalenie raportów może spowodować duplikację danych, jeśli zostaną ponownie wyeksportowane.',
+            reportFieldsMismatch: 'Te raporty mają różne wartości pól raportu. Aby je scalić, najpierw ustaw takie same wartości pól w każdym raporcie.',
         },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} wydatków`,
     },

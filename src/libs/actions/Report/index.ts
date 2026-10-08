@@ -132,6 +132,7 @@ import {
     buildTransactionThread,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     computeOptimisticReportName,
+    doReportsHaveMatchingReportFieldValues,
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
@@ -4103,7 +4104,15 @@ function updateReportField({
     const recentlyUsedValuesForField = recentlyUsedReportFields?.[fieldKey];
     const recentlyUsedValues = Array.isArray(recentlyUsedValuesForField) ? recentlyUsedValuesForField : [];
 
-    const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField, accountID);
+    let updatedReportField = reportField;
+    if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST && reportField.value !== previousReportField.value) {
+        const optionField = policy.fieldList?.[fieldKey] ?? reportField;
+        const optionIndex = optionField.values.indexOf(reportField.value ?? '');
+        const externalID = optionIndex !== -1 && optionIndex === optionField.values.lastIndexOf(reportField.value ?? '') ? optionField.externalIDs.at(optionIndex) : undefined;
+        updatedReportField = {...reportField, externalID: externalID ?? null};
+    }
+
+    const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(updatedReportField, previousReportField, accountID);
     const predictedNextStatus = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -4120,8 +4129,9 @@ function updateReportField({
     });
 
     const isInvoiceField = report.type === CONST.REPORT.TYPE.INVOICE && reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
-    const optimisticReportFieldValue = isInvoiceField ? null : reportField;
-    const failureReportFieldValue = isInvoiceField ? null : previousReportField;
+    const optimisticReportFieldValue = isInvoiceField ? null : updatedReportField;
+    const previousReportFieldValue = reportField.type === CONST.REPORT_FIELD_TYPES.LIST ? {...previousReportField, externalID: previousReportField.externalID ?? null} : previousReportField;
+    const failureReportFieldValue = isInvoiceField ? null : previousReportFieldValue;
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -4156,8 +4166,8 @@ function updateReportField({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
-                [fieldKey]: reportField,
-                [reportField.fieldID]: reportField,
+                [fieldKey]: updatedReportField,
+                [reportField.fieldID]: updatedReportField,
             },
         });
     }
@@ -4210,8 +4220,8 @@ function updateReportField({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
-                [fieldKey]: previousReportField,
-                [reportField.fieldID]: previousReportField,
+                [fieldKey]: previousReportFieldValue,
+                [reportField.fieldID]: previousReportFieldValue,
             },
         });
     }
@@ -4268,7 +4278,7 @@ function updateReportField({
 
     const parameters = {
         reportID,
-        reportFields: JSON.stringify({[fieldKey]: reportField}),
+        reportFields: JSON.stringify({[fieldKey]: updatedReportField}),
         reportFieldsActionIDs: JSON.stringify({[fieldKey]: optimisticChangeFieldAction.reportActionID}),
     };
 
@@ -8797,6 +8807,11 @@ function mergeReports({
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
+    const reportsToMerge = [destinationReport, ...sourceReportIDs.map((reportID) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])].filter((report): report is Report => !!report);
+
+    if (reportsToMerge.length !== sourceReportIDs.length + 1 || !doReportsHaveMatchingReportFieldValues(reportsToMerge, policy)) {
+        return;
+    }
 
     const transactionsToMove: Transaction[] = [];
     const transactionIDsToMove: string[] = [];

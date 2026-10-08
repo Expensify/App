@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeReports} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID, isReportExportedOrPending} from '@libs/ReportUtils';
+import {canMergeReports, doReportsHaveMatchingReportFieldValues, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID, isReportExportedOrPending} from '@libs/ReportUtils';
 
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 
@@ -145,6 +145,28 @@ function SearchMergeReports() {
           }, [] as string[])
         : [];
 
+    const reportsForValidation = selectedReports
+        .map(({reportID}) => {
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            const liveReport = allReports?.[reportKey];
+            const snapshotReport = currentSearchResults?.data?.[reportKey];
+            const report = liveReport ?? snapshotReport;
+            if (!report?.reportID) {
+                return undefined;
+            }
+
+            return {
+                ...report,
+                // An empty live field list can reflect deletions; do not restore those fields from an older snapshot.
+                fieldList: liveReport?.fieldList ?? snapshotReport?.fieldList,
+            };
+        })
+        .filter((report) => !!report);
+    const selectedPolicyID = reportsForValidation.at(0)?.policyID;
+    const selectedPolicy = selectedPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`] : undefined;
+    const hasReportFieldMismatch =
+        reportsForValidation.length > 1 && reportsForValidation.length === selectedReports.length && !doReportsHaveMatchingReportFieldValues(reportsForValidation, selectedPolicy);
+
     // Ensure `allReports` and `allReportActions` are fully hydrated before merging reports.
     const isValidForMerge =
         !!allReports &&
@@ -152,7 +174,10 @@ function SearchMergeReports() {
         !!destinationReportID &&
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
-        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules);
+        reportItems.length === selectedReports.length &&
+        reportsForValidation.length === selectedReports.length &&
+        !hasReportFieldMismatch &&
+        canMergeReports(reportsForValidation, currentUserPersonalDetails.accountID, rules, false);
 
     // Search snapshots can contain export actions/report fields that are not hydrated into live Onyx yet, such as immediately after login.
     const shouldShowExportWarning = reportItems.some((report) => {
@@ -163,11 +188,15 @@ function SearchMergeReports() {
     });
 
     const mergeSelectedReports = () => {
-        if (!destinationReportID || !destinationReport || !isValidForMerge) {
+        if (!allReports || !destinationReportID || !destinationReport || !isValidForMerge) {
             return;
         }
 
         const policyID = destinationReport.policyID;
+        const allReportsForMerge = {...allReports};
+        for (const report of reportsForValidation) {
+            allReportsForMerge[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
+        }
 
         mergeReports({
             isVendorMatchingBetaEnabled,
@@ -180,7 +209,7 @@ function SearchMergeReports() {
             policyCategories: policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined,
             policyTagList: policyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {}) : {},
             allTransactionViolation: transactionViolations,
-            allReports,
+            allReports: allReportsForMerge,
             allReportActions,
             allReportsTransactions,
             bankAccountList,
@@ -235,6 +264,8 @@ function SearchMergeReports() {
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.confirm')}
                         onSubmit={mergeSelectedReports}
+                        message={hasReportFieldMismatch ? translate('search.mergeReports.reportFieldsMismatch') : ''}
+                        isAlertVisible={hasReportFieldMismatch}
                         isDisabled={!isValidForMerge}
                         enabledWhenOffline
                         shouldRenderFooterAboveSubmit

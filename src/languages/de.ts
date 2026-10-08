@@ -10077,6 +10077,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
             exportedWarning:
                 'Mindestens einer der ausgewählten Berichte wurde bereits in eine Buchhaltungsintegration exportiert. Wenn die Berichte zusammengeführt und erneut exportiert werden, können doppelte Daten entstehen.',
+            reportFieldsMismatch: 'Diese Berichte haben unterschiedliche Berichtsfeldwerte. Um sie zusammenzuführen, gleiche zuerst die Berichtsfelder in allen Berichten an.',
         },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} der Ausgaben`,
     },

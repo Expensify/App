@@ -9997,6 +9997,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
             exportedWarning:
                 'Een of meer geselecteerde rapporten zijn al geëxporteerd naar een boekhoudintegratie. Als je ze samenvoegt en opnieuw exporteert, kunnen dubbele gegevens ontstaan.',
+            reportFieldsMismatch: 'Deze rapporten hebben verschillende rapportveldwaarden. Maak eerst de rapportvelden in elk rapport gelijk om ze samen te voegen.',
         },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} van de uitgaven`,
     },

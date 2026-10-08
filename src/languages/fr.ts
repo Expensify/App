@@ -10100,6 +10100,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
             exportedWarning:
                 'Une ou plusieurs notes de frais sélectionnées ont déjà été exportées vers une intégration comptable. Les fusionner peut créer des données en double si elles sont exportées à nouveau.',
+            reportFieldsMismatch: 'Ces notes de frais ont des valeurs de champs différentes. Pour les fusionner, commencez par faire correspondre les champs de chaque note de frais.',
         },
         percentOfSpend: ({percent}: {percent: string}) => `${percent} des dépenses`,
     },

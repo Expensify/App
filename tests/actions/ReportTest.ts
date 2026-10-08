@@ -293,6 +293,67 @@ describe('actions/Report', () => {
         PusherHelper.teardown();
     });
 
+    it.each([
+        {values: ['Acme', 'Globex'], externalIDs: ['acme-id', 'globex-id'], expectedID: 'acme-id', previousID: 'globex-id'},
+        {values: ['Acme', 'Globex'], externalIDs: ['acme-id', 'globex-id'], expectedID: 'acme-id', previousID: undefined},
+        {values: ['Acme', 'Globex'], externalIDs: [], expectedID: undefined, previousID: 'globex-id'},
+        {values: ['Acme', 'Acme', 'Globex'], externalIDs: ['acme-id', 'other-id', 'globex-id'], expectedID: undefined, previousID: 'globex-id'},
+    ])('updates dropdown option identity offline with options $externalIDs and previous ID $previousID', async ({values, externalIDs, expectedID, previousID}) => {
+        // Given a saved dropdown selection whose ID must change along with its label.
+        const field = createMock<OnyxTypes.PolicyReportField>({
+            fieldID: 'client',
+            type: CONST.REPORT_FIELD_TYPES.LIST,
+            value: 'Globex',
+            externalID: previousID,
+            values: ['Globex', 'Acme'],
+            externalIDs: ['globex-id', 'acme-id'],
+        });
+        const report = {...createRandomReport(1), fieldList: {expensify_client: field}};
+        const policy = {...createRandomPolicy(1), fieldList: {expensify_client: {...field, values, externalIDs}}};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        const mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
+        mockFetch.pause();
+
+        // When the editor submits a new label while retaining the previous selection's ID.
+        Report.updateReportField({
+            report,
+            reportField: {...field, value: 'Acme'},
+            previousReportField: field,
+            policy,
+            isASAPSubmitBetaEnabled: false,
+            accountID: 1,
+            email: 'user@example.com',
+            hasViolationsParam: false,
+            recentlyUsedReportFields: undefined,
+            shouldFixViolations: false,
+            isTrackIntentUser: false,
+            rules: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then optimistic identity matches current policy options, allowing equivalent selections to merge.
+        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
+        expect(updatedReport?.fieldList?.expensify_client.value).toBe('Acme');
+        expect(updatedReport?.fieldList?.expensify_client.externalID ?? undefined).toBe(expectedID);
+        expect(
+            ReportUtils.doReportsHaveMatchingReportFieldValues(
+                [updatedReport, {...report, fieldList: {expensify_client: {...field, value: 'Acme', externalID: expectedID, values, externalIDs}}}],
+                policy,
+            ),
+        ).toBe(true);
+
+        // When the queued request fails, rollback must also restore an originally absent ID.
+        mockFetch.fail();
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then both the old label and its identity are restored.
+        const restoredReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
+        expect(restoredReport?.fieldList?.expensify_client.value).toBe('Globex');
+        expect(restoredReport?.fieldList?.expensify_client.externalID ?? undefined).toBe(previousID);
+    });
+
     it.each<[string, string, string | undefined, OnyxTypes.Report['chatType'], boolean]>([
         ['Concierge DM', '300', undefined, undefined, true],
         ['Concierge thread', '400', '300', undefined, true],
@@ -11687,6 +11748,72 @@ describe('actions/Report', () => {
         afterEach(() => {
             jest.clearAllMocks();
             PusherHelper.teardown();
+        });
+
+        it('does not merge reports when editable report field values differ', async () => {
+            // Given reports that are otherwise mergeable but have different values for the same editable report field.
+            const makeReportField = (value: string) =>
+                createMock<OnyxTypes.PolicyReportField>({
+                    fieldID: 'client',
+                    name: 'client',
+                    type: CONST.REPORT_FIELD_TYPES.TEXT,
+                    value,
+                    defaultValue: '',
+                    deletable: true,
+                    target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+                    values: [],
+                    keys: [],
+                    externalIDs: [],
+                    disabledOptions: [],
+                    orderWeight: 1,
+                    isTax: false,
+                });
+            const allReportsWithDifferentFields: OnyxCollection<OnyxTypes.Report> = {
+                ...allReports,
+                [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: {
+                    ...destinationReport,
+                    fieldList: {expensify_client: makeReportField('Acme')},
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: {
+                    ...sourceReport1,
+                    fieldList: {expensify_client: makeReportField('Globex')},
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: {
+                    ...sourceReport2,
+                    fieldList: {expensify_client: makeReportField('Acme')},
+                },
+            };
+
+            // When mergeReports is called directly, bypassing the RHP validation.
+            Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                cardList: undefined,
+                destinationReportID: DESTINATION_REPORT_ID,
+                sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+                policy,
+                policyTagList: {},
+                allReports: allReportsWithDifferentFields,
+                allReportActions,
+                bankAccountList: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+            });
+            await waitForBatchedUpdates();
+
+            // Then no API request or optimistic transaction move is performed, preventing source field values from being lost.
+            expect(mockFetch).not.toHaveBeenCalled();
+            const tx1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_1_ID}`);
+            const tx2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_2_ID}`);
+            expect(tx1?.reportID).toBe(SOURCE_REPORT_1_ID);
+            expect(tx2?.reportID).toBe(SOURCE_REPORT_2_ID);
         });
 
         it('handles success case: moves transactions, deletes source reports, and updates parent preview actions in Onyx', async () => {
