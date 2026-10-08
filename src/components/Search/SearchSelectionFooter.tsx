@@ -44,6 +44,15 @@ const EMPTY_FOOTER_SELECTION = {footerCount: undefined, footerTotal: undefined, 
 const EMPTY_REPORT_IDS: string[] = [];
 const EMPTY_SOURCES: Record<string, number> = {};
 
+// The breakdown each search's snapshot was last answered for, by search hash. It outlives the footer on purpose:
+// switching tabs remounts it, and the snapshot it comes back to still holds whichever aggregate answered last, which
+// component state would have forgotten. In memory only, so a reload starts without it.
+const answeredFooterTotalByHash = new Map<number, SearchFooterTotal>();
+
+function resetAnsweredFooterTotalsForTesting() {
+    answeredFooterTotalByHash.clear();
+}
+
 function getGroupCount(group: unknown): number {
     if (group && typeof group === 'object' && 'count' in group && typeof group.count === 'number') {
         return group.count;
@@ -156,6 +165,13 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const isGroupedSearch = !isReportsSearch && !!currentSearchQueryJSON?.groupBy;
 
     const metadata = searchResults?.search;
+
+    const requestedFooterTotal = footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+    const isSettledAnswer = !isOffline && !metadata?.isLoading && metadata?.hash === currentSearchHash;
+    if (isSettledAnswer) {
+        answeredFooterTotalByHash.set(currentSearchHash, requestedFooterTotal);
+    }
+    const refreshedFooterTotal = answeredFooterTotalByHash.get(currentSearchHash) ?? requestedFooterTotal;
     const metadataCount = metadata?.count;
     const metadataReportCount = metadata?.reportCount;
     const metadataCurrency = metadata?.currency;
@@ -736,6 +752,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
     const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isAwaitingBreakdownTotal || (!!metadata?.isLoading && metadata?.offset === 0)));
 
+    const isTotalStale = isOffline && !hasPartialSelection && !shouldUseLiveData && refreshedFooterTotal !== requestedFooterTotal;
+
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.
     // An unreported expense sits on no report — it carries the unreported placeholder ID — so it adds none.
@@ -753,7 +771,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             count={footerCount}
             countType={footerCountType}
             defaultCountType={defaultFooterCountType}
-            total={footerData.total}
+            total={isTotalStale ? undefined : footerData.total}
             totalType={footerTotalType}
             currency={footerData.currency}
             defaultCurrency={searchTargetCurrency}
@@ -767,3 +785,4 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 }
 
 export default SearchSelectionFooter;
+export {resetAnsweredFooterTotalsForTesting};

@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
-import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
+import SearchSelectionFooter, {resetAnsweredFooterTotalsForTesting} from '@components/Search/SearchSelectionFooter';
 import type {SearchFooterCount, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
@@ -15,7 +15,8 @@ import Onyx from 'react-native-onyx';
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+const mockIsOffline = {current: false};
+jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline.current}));
 
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => jest.fn(() => true));
 
@@ -203,6 +204,8 @@ describe('SearchSelectionFooter', () => {
     beforeEach(async () => {
         mockIsFooterSelectorsBetaEnabled.current = true;
         mockShouldUseLiveData.current = false;
+        mockIsOffline.current = false;
+        resetAnsweredFooterTotalsForTesting();
         setSearchQuery('type:expense');
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockExcludedTransactions.current = {};
@@ -480,6 +483,75 @@ describe('SearchSelectionFooter', () => {
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current?.total).toBe(4200);
+        });
+
+        it('hides a total offline once the breakdown has moved on from the one it was answered for', async () => {
+            // Given a billable total answered online
+            setSearchQuery('type:expense footerTotal:billable');
+            mockSelectedTransactions.current = {};
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 229)} />);
+            await waitForBatchedUpdates();
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, total: 229}));
+
+            // When the app goes offline and the query moves to the plain total, which keys the same snapshot
+            mockIsOffline.current = true;
+            setSearchQuery('type:expense');
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 229)} />);
+            await waitForBatchedUpdates();
+
+            // Then the billable figure is not shown as "Total spend", because nothing could refresh it
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: undefined}));
+        });
+
+        it('still hides it after another tab, which remounts the footer on the way back', async () => {
+            // Given a billable total answered online
+            setSearchQuery('type:expense footerTotal:billable');
+            mockSelectedTransactions.current = {};
+            const {unmount} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 229)} />);
+            await waitForBatchedUpdates();
+
+            // When the user leaves for another tab, goes offline, and comes back to the plain query
+            unmount();
+            mockIsOffline.current = true;
+            setSearchQuery('type:expense');
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 229)} />);
+            await waitForBatchedUpdates();
+
+            // Then the fresh footer still knows the figure is the billable one, and does not name it "Total spend"
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: undefined}));
+        });
+
+        it('shows the total again once back online, where the query change refreshes it', async () => {
+            // Given the stale state above
+            setSearchQuery('type:expense footerTotal:billable');
+            mockSelectedTransactions.current = {};
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 229)} />);
+            await waitForBatchedUpdates();
+            mockIsOffline.current = true;
+            setSearchQuery('type:expense');
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 229)} />);
+            await waitForBatchedUpdates();
+
+            // When the network returns and the refreshed plain total lands
+            mockIsOffline.current = false;
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 342)} />);
+            await waitForBatchedUpdates();
+
+            // Then it is shown again
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: 342}));
+        });
+
+        it('keeps a total offline when the breakdown is the one it was answered for', async () => {
+            setSearchQuery('type:expense footerTotal:billable');
+            mockSelectedTransactions.current = {};
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 229)} />);
+            await waitForBatchedUpdates();
+
+            mockIsOffline.current = true;
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 229)} />);
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, total: 229}));
         });
 
         it('offers no total selector on an empty result set', async () => {
