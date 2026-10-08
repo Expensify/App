@@ -121,8 +121,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Styles to apply on the inner row containing the icon and text content */
         innerContainerStyle?: StyleProp<ViewStyle>;
 
-        containerStyle?: StyleProp<ViewStyle>;
-
         /** Used to apply styles specifically to the title */
         titleStyle?: StyleProp<TextStyle>;
 
@@ -442,7 +440,6 @@ function MenuItem({
     titleWrapperStyle,
     innerContainerStyle,
     outerWrapperStyle,
-    containerStyle,
     titleStyle,
     labelStyle,
     descriptionTextStyle,
@@ -817,7 +814,6 @@ function MenuItem({
                                 testID={pressableTestID}
                                 style={({pressed}) =>
                                     [
-                                        containerStyle,
                                         combinedStyle,
                                         !interactive && styles.cursorDefault,
                                         isCompact && styles.alignItemsCenter,
