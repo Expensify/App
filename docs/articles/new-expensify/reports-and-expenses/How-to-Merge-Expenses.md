@@ -56,10 +56,11 @@ Use this method when you already see both duplicate expenses on the Expenses pag
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Expenses**.
 2. Select two expenses to merge.
-3. Choose **Selected**, then select **Merge**.
-4. If both expenses have receipts, select the one you want to keep.
-5. Choose which expense details to apply to the final expense. 
-6. Select **Merge expenses**.
+3. On the selection bar, choose **More**.
+4. Select **Merge**.
+5. If both expenses have receipts, select the one you want to keep.
+6. Choose which expense details to apply to the final expense. 
+7. Select **Merge expenses**.
 
 ---
 
@@ -69,15 +70,21 @@ Use this method when both expenses are inside the same report.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Reports** 
 2. Click the report to open it. 
-3. Select the two expenses you want to merge
-4. Choose **Selected**, then select **Merge**.
-5. If both expenses have receipts, choose which receipt to keep
+3. Select the two expenses you want to merge.
+4. On web, choose **More** on the selection bar, then select **Merge**. On mobile, tap **Selected**, then tap **Merge**.
+5. If both expenses have receipts, choose which receipt to keep.
 6. Choose which expense details to apply to the final expense. 
 7. Select **Merge expenses**.
 
 ---
 
 ![expenses selected within a report > Selected button > Merge highlighted]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_01){:width="100%"}
+
+<!-- SCREENSHOT:
+Suggestion: Replace ExpensifyHelp-ResolveDuplicates_01 with web capture of two expenses selected in a report, showing the selection bar at the bottom of the expense list with More > Merge highlighted.
+Location: Replaces the existing image under "How to merge duplicate expenses from a report".
+Purpose: The current image shows the old Selected dropdown in the report header, which no longer appears on web and may confuse members looking for Merge.
+-->
 
 ---
 
