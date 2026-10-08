@@ -107,6 +107,7 @@ const defaultProps = {
     countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES,
     defaultCountType: CONST.SEARCH.FOOTER_COUNT.EXPENSES,
     totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL,
+    shouldShowTotalSelector: true,
     onTotalChange: () => {},
     total: -192000,
     currency: CONST.CURRENCY.USD,
