@@ -61,6 +61,7 @@ type ReplaceReceipt = {
     delegateAccountID: number | undefined;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    receiptAddedReportActionID?: string;
 };
 // The actor and thread fields are left out because a retry builds a fresh optimistic action,
 // so it has to reflect who is acting and the thread state at retry time rather than when the upload failed.
@@ -239,6 +240,7 @@ function replaceReceipt({
     delegateAccountID,
     currentUserPersonalDetails,
     transactionThreadReport,
+    receiptAddedReportActionID,
 }: ReplaceReceipt) {
     const transactionID = transaction?.transactionID;
 
@@ -260,15 +262,23 @@ function replaceReceipt({
         pageCount: null,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
+
+    // The added-action ID is chosen before the optimistic data is built. A retry passes that same ID back
+    // so it updates the failed action. Nothing is posted for a crop or rotate, or when the thread does not exist yet.
+    const transactionThreadReportID = transactionThreadReport?.reportID;
+    const optimisticReceiptAddedActionID = !isSameReceipt && transactionThreadReportID ? (receiptAddedReportActionID ?? rand64()) : undefined;
     const retryParams: ReplaceReceiptRetryParams = {
         transactionID: transaction.transactionID,
         file: undefined,
         source,
+        state,
+        isSameReceipt,
         transactionPolicy,
         transactionPolicyCategories,
         transactionPolicyTagList,
         transactionViolations,
         isVendorMatchingBetaEnabled,
+        receiptAddedReportActionID: optimisticReceiptAddedActionID,
     };
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
@@ -376,13 +386,10 @@ function replaceReceipt({
         });
     }
 
-    // Show the audit messages now when the thread already exists. A crop or rotate is not a receipt change.
     // A receipt added offline has a file but no receipt ID yet, and that still counts as one being replaced.
-    const transactionThreadReportID = transactionThreadReport?.reportID;
-    const shouldAuditReceiptChange = !isSameReceipt && !!transactionThreadReportID;
     const isReplacingReceipt = !!transaction && (hasReceiptSource(transaction) || hasUploadedReceipt(transaction));
     const created = DateUtils.getDBTime();
-    const optimisticReceiptAddedAction = shouldAuditReceiptChange
+    const optimisticReceiptAddedAction = optimisticReceiptAddedActionID
         ? buildOptimisticReceiptAddedAction(
               transactionThreadReportID,
               transactionID,
@@ -391,11 +398,12 @@ function replaceReceipt({
               currentUserPersonalDetails.avatar,
               delegateAccountID,
               created,
+              optimisticReceiptAddedActionID,
           )
         : undefined;
 
     const optimisticReceiptRemovedAction =
-        shouldAuditReceiptChange && isReplacingReceipt
+        optimisticReceiptAddedActionID && isReplacingReceipt
             ? buildOptimisticReceiptRemovedAction(
                   transactionThreadReportID,
                   transactionID,
@@ -415,7 +423,7 @@ function replaceReceipt({
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: Object.fromEntries(optimisticAuditActions.map((action) => [action.reportActionID, action])),
+                value: Object.fromEntries(optimisticAuditActions.map((action) => [action.reportActionID, {...action, errors: null}])),
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -577,4 +585,4 @@ function clearReceiptUploadError({
 }
 
 export {checkIfLocalFileIsAccessible, clearReceiptUploadError, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
-export type {ReplaceReceiptRetryParams};
+export type {ReplaceReceipt, ReplaceReceiptRetryParams};

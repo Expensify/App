@@ -230,6 +230,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Παρακαλούμε επιλέξτε τη σημερινή ή κάποια μελλοντική ημερομηνία',
             invalidTimeShouldBeFuture: 'Παρακαλούμε επιλέξτε μια ώρα τουλάχιστον ένα λεπτό αργότερα',
             invalidCharacter: 'Μη έγκυρος χαρακτήρας',
+            invalidField: (fieldName) => `Μη έγκυρο πεδίο: ${fieldName}`,
             enterMerchant: 'Εισαγάγετε όνομα εμπόρου',
             enterAmount: 'Εισαγάγετε ποσό',
             missingMerchantName: 'Λείπει το όνομα εμπόρου',
@@ -3446,12 +3447,13 @@ ${amount} για ${merchant} - ${date}`,
         errorSelection: 'Επιλέξτε μια επιλογή για να συνεχίσετε',
         purpose: {
             title: 'Τι θέλετε να κάνετε σήμερα;',
-            errorContinue: 'Πατήστε «συνέχεια» για να ολοκληρώσετε τη ρύθμιση',
-            errorBackButton: 'Ολοκληρώστε τις ερωτήσεις ρύθμισης για να αρχίσετε να χρησιμοποιείτε την εφαρμογή',
+            errorContinue: 'Παρακαλώ πατήστε «συνέχεια» για να ολοκληρωθεί η ρύθμιση',
+            errorBackButton: 'Παρακαλούμε ολοκληρώστε τις ερωτήσεις ρύθμισης για να ξεκινήσετε να χρησιμοποιείτε την εφαρμογή',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Συμμετοχή στον χώρο εργασίας της εταιρείας μου',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Υποβολή εξόδων στον εργοδότη μου',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Διαχείριση των εξόδων της ομάδας μου',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Παρακολουθήστε τα έξοδά μου για την επιχείρησή μου',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Οργάνωση των προσωπικών μου δαπανών',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Παρακολουθήστε τα έξοδα της επιχείρησής σας',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Οργάνωση των προσωπικών μου εξόδων',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Κάτι άλλο',
         },
         personalTrackGoal: {
@@ -3510,6 +3512,8 @@ ${amount} για ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Δεν ήταν δυνατή η προσθήκη της εργασιακής διεύθυνσης email',
             subtitle: (workEmail: string | undefined) => `Δεν ήταν δυνατή η προσθήκη του ${workEmail}. Δοκιμάστε ξανά αργότερα στις ρυθμίσεις ή συνομιλήστε με το Concierge για καθοδήγηση.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Δεν ήταν δυνατή η προσθήκη του ${workEmail}. Για να συγχωνεύσετε αυτούς τους λογαριασμούς, συνδεθείτε ως ${workEmail} και μεταβείτε σε Λογαρια​σμός > Ασφάλεια > Συγχώνευση λογαριασμών για να ολοκληρώσετε τη διαδικασία.`,
             workAccountClosedSubtitle:
                 'Ο επαγγελματικός λογαριασμός που σχετίζεται με αυτό το email είναι κλειστός. Παρακαλούμε επικοινωνήστε με τον διαχειριστή της εταιρείας σας για να τον επανενεργοποιήσει ή εγγραφείτε με διαφορετικό email.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} είναι ένα στοιχείο σύνδεσης ελεγχόμενο από τομέα για έναν υπάρχοντα λογαριασμό Expensify.`,
@@ -3744,6 +3748,34 @@ ${amount} για ${merchant} - ${date}`,
                     Και είστε έτοιμοι!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Προσθέστε το επαγγελματικό σας email',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Ανοίξτε το [Προσθήκη επαγγελματικού email](${workEmailLink}).
+                        2. Εισαγάγετε τη διεύθυνση εταιρικού email σας.
+                        3. Εισαγάγετε τον κωδικό που θα σας στείλουμε με email.
+                        4. Επιλέξτε έναν χώρο εργασίας για να συμμετάσχετε ή κάντε κλικ στο *Αίτημα συμμετοχής* για να στείλετε αίτημα στον ιδιοκτήτη του χώρου εργασίας.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Επικυρώστε το email σας',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Ανοίξτε το [επαληθεύστε τον λογαριασμό σας](${validateEmailLink}).
+                        2. Εισαγάγετε τον κωδικό που στείλαμε στο ${workEmail}.
+                        3. Επιλέξτε έναν χώρο εργασίας για να συμμετάσχετε ή κάντε κλικ στο *αίτημα συμμετοχής* για να στείλετε ένα αίτημα στον ιδιοκτήτη του χώρου εργασίας.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Γίνετε μέλος του χώρου εργασίας της εταιρείας σας',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Ανοίξτε το [Συμμετοχή σε χώρο εργασίας](${joinWorkspaceLink}).
+                        2. Βρείτε την ομάδα σας στη λίστα. Κάθε μία εμφανίζει τον κάτοχό της και πόσα άτομα έχει, με τις μεγαλύτερες πρώτες. Κάντε κλικ στο *Εμφάνιση περισσότερων* αν δεν βλέπετε τη δική σας.
+                        3. Κάντε κλικ στο *Συμμετοχή τώρα* ή στο *Αίτημα συμμετοχής* αν απαιτείται έγκριση διαχειριστή.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Κάντε ένα [test drive](${testDriveURL})` : 'Κάντε μια δοκιμαστική χρήση'),
@@ -3766,6 +3798,14 @@ ${amount} για ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Το να μοιράζεστε λογαριασμούς με φίλους είναι τόσο εύκολο όσο το να στέλνετε ένα μήνυμα. Δείτε πώς.',
             onboardingAdminMessage: 'Μάθετε πώς να διαχειρίζεστε τον χώρο εργασίας της ομάδας σας ως διαχειριστής και να υποβάλλετε τις δικές σας δαπάνες.',
             onboardingTestDriveReceiverMessage: '*Έχετε 3 μήνες δωρεάν! Ξεκινήστε παρακάτω.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Αφού θέλετε να συμμετάσχετε στον χώρο εργασίας της εταιρείας σας, δεν δημιούργησα έναν για εσάς. Προσθέστε το επαγγελματικό σας email και θα ελέγξω σε ποιους χώρους εργασίας της εταιρείας σας μπορείτε να συμμετάσχετε.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Αφού θέλετε να συμμετάσχετε στον χώρο εργασίας της εταιρείας σας, δεν δημιούργησα έναν για εσάς. Επαληθεύστε το email σας και θα ελέγξω σε ποιους χώρους εργασίας στο ${companyDomain} μπορείτε να συμμετάσχετε.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Εφόσον θέλετε να συμμετάσχετε στον χώρο εργασίας της εταιρείας σας, δεν δημιούργησα έναν για εσάς. Η ομάδα σας στο ${companyDomain} βρίσκεται ήδη στο Expensify. [Ρίξτε μια ματιά στους χώρους εργασίας στους οποίους μπορείτε να συμμετάσχετε.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Δεν φαίνεται η εταιρεία σας να έχει διαθέσιμους χώρους εργασίας στους οποίους μπορείτε να συμμετάσχετε. Παρακαλούμε επικοινωνήστε με τον διαχειριστή σας και ζητήστε του να σας προσκαλέσει στον χώρο εργασίας του.',
         },
         workspace: {
             title: 'Μείνετε οργανωμένοι με έναν χώρο εργασίας',
@@ -7930,6 +7970,20 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     invalidAddress: 'Παρακαλούμε εισαγάγετε έγκυρη διεύθυνση',
                     distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.',
                 },
+                workArrangement: {
+                    title: 'Προεπιλεγμένη εργασιακή ρύθμιση',
+                    officeBasedTitle: 'Σε γραφείο',
+                    officeBasedHelp: 'Το μέλος μετακινείται σε ένα γραφείο. Οι συνήθεις μετακινήσεις από και προς την εργασία εξαιρούνται από την αποζημίωση.',
+                    noRegularWorkplaceTitle: 'Απομακρυσμένο ή κινητό',
+                    noRegularWorkplaceHelp: 'Το μέλος εργάζεται από το σπίτι ή ταξιδεύει μεταξύ τοποθεσιών χωρίς σταθερό γραφείο, επομένως οι κανόνες μετακίνησης δεν ισχύουν.',
+                    startingPrompt: {
+                        title: 'Ορίστε μια τυπική εργασιακή ρύθμιση',
+                        prompt: 'Επιλέξτε τη ρύθμιση που ισχύει για τους περισσότερους τρέχοντες μέλη. Μπορείτε να ενημερώσετε τα μέλη μεμονωμένα ή μαζικά αργότερα.',
+                        officeBasedHelp: 'Οι περισσότεροι συμμετέχοντες μετακινούνται καθημερινά σε ένα γραφείο. Οι συνηθισμένες μετακινήσεις από και προς την εργασία εξαιρούνται.',
+                        noRegularWorkplaceHelp: 'Τα περισσότερα μέλη εργάζονται απομακρυσμένα, επομένως οι εξαιρέσεις από το σπίτι προς την εργασία συνήθως δεν ισχύουν.',
+                        confirm: 'Εφαρμογή',
+                    },
+                },
             },
             distance: 'Απόσταση',
             centrallyManage: 'Διαχειριστείτε κεντρικά τις χρεώσεις, παρακολουθήστε σε μίλια ή χιλιόμετρα και ορίστε μια προεπιλεγμένη κατηγορία.',
@@ -9194,6 +9248,13 @@ ${reportName}`,
             noBankAccountsFoundDescription: 'Προσθέστε τραπεζικούς λογαριασμούς στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
             noPaymentMethodsFound: 'Δεν βρέθηκαν μέθοδοι πληρωμής',
             noPaymentMethodsFoundDescription: 'Προσθέστε μεθόδους πληρωμής στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
+            accountsDescription: 'Οι λογαριασμοί σας στο Dynamics 365 Business Central θα εισαχθούν ως κατηγορίες.',
+            dimensionsImportAsTags: 'Όλες οι διαστάσεις του Dynamics 365 Business Central εισάγονται ως ετικέτες',
+            customers: 'Πελάτες',
+            projects: 'Έργα',
+            projectsAndCustomersCannotBeEnabled: 'Δεν είναι δυνατή η ενεργοποίηση έργων και πελατών',
+            projectsAndCustomersCannotBeEnabledDescription: 'Τα έργα και οι πελάτες μπορούν να ενεργοποιηθούν μόνο αν η επιλογή εξαγωγής είναι «Τιμολόγιο αγοράς»',
+            enableNewCategoriesDescription: 'Οι νέοι λογαριασμοί Dynamics 365 Business Central θα είναι διαθέσιμοι ως κατηγορίες.',
         },
     },
     getAssistancePage: {
@@ -9632,6 +9693,11 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
+                `άλλαξε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement} (προηγουμένως ${previousArrangement})`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
                 `αλλάχθηκε ο αποκλεισμός μετακινήσεων από/προς εργασία σε σταθερή απόσταση ανά αίτημα (προηγουμένως ${previousMethod})`,
@@ -10289,6 +10355,8 @@ ${reportName}`,
             title: 'Λήψη κατάστασης',
             oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.',
         },
+        periodSoFar: ({period}: {period: string}) => `${period} μέχρι τώρα`,
+        weekOf: ({date}: {date: string}) => `Εβδομάδα από ${date}`,
         saveEdits: {
             title: 'Αποθήκευση αλλαγών',
             prompt: ({name}: {name: string}) => `Θέλετε να ενημερώσετε τις αλλαγές στο «${name}» ή να δημιουργήσετε νέο;`,
@@ -10347,6 +10415,8 @@ ${reportName}`,
             category: 'Κατηγορία',
             tag: 'Ετικέτα',
         },
+        switchToTableView: 'Εναλλαγή σε προβολή πίνακα',
+        switchToExpenseView: 'Εναλλαγή σε προβολή δαπάνης',
     },
     report: {
         newReport: {
