@@ -3500,7 +3500,7 @@ function getDaySections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionDayGroupListItemType[], number, boolean] {
     const daySections: Record<string, TransactionDayGroupListItemType> = {};
-    const shouldShowYear = doGroupsSpanMultipleYears(data, (group) => ('day' in group && typeof group.day === 'string' ? [getYearOfDate(group.day)] : []));
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('day' in group && typeof group.day === 'string' ? [getYearOfDate(group.day)] : []));
     for (const key in data) {
         if (!isGroupEntry(key)) {
             continue;
@@ -3518,7 +3518,7 @@ function getDaySections(
             transactionsQueryJSON,
             ...dayGroup,
             formattedDay: DateUtils.formatToReadableString(dayGroup.day, dateFnsLocale),
-            shortFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale, shouldShowYear),
+            shortFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale, shouldShowShortLabelYear),
             keyForList: key,
         };
     }
@@ -3539,7 +3539,7 @@ function getMonthSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionMonthGroupListItemType[], number, boolean] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
-    const shouldShowYear = doGroupsSpanMultipleYears(data, (group) => ('year' in group && 'month' in group ? [group.year] : []));
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('year' in group && 'month' in group ? [group.year] : []));
     for (const key in data) {
         if (isGroupEntry(key)) {
             const monthGroup = data[key];
@@ -3557,7 +3557,7 @@ function getMonthSections(
                 keyForList: key,
                 ...monthGroup,
                 formattedMonth: DateUtils.getFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale),
-                shortFormattedMonth: DateUtils.getShortFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale, shouldShowYear),
+                shortFormattedMonth: DateUtils.getShortFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale, shouldShowShortLabelYear),
                 sortKey: monthGroup.year * 100 + monthGroup.month,
             };
         }
@@ -3579,7 +3579,7 @@ function getWeekSections(
     const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
     // Years come from the week as trimmed to the date filter, so a filter starting Jan 1 doesn't count the days before it
     const dateFilters = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-    const shouldShowYear = doGroupsSpanMultipleYears(data, (group) => {
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => {
         if (!('week' in group)) {
             return [];
         }
@@ -3598,7 +3598,7 @@ function getWeekSections(
             const weekStart = dateResult?.start ?? rawRange.start;
             const weekEnd = dateResult?.end ?? rawRange.end;
             const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
-            const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale, shouldShowYear);
+            const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale, shouldShowShortLabelYear);
 
             weekSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
@@ -3654,7 +3654,7 @@ function getQuarterSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionQuarterGroupListItemType[], number, boolean] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
-    const shouldShowYear = doGroupsSpanMultipleYears(data, (group) => ('year' in group && 'quarter' in group ? [group.year] : []));
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data, (group) => ('year' in group && 'quarter' in group ? [group.year] : []));
     for (const key in data) {
         if (isGroupEntry(key)) {
             const quarterGroup = data[key];
@@ -3666,7 +3666,7 @@ function getQuarterSections(
                     ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
                     : undefined;
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
-            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale, shouldShowYear);
+            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale, shouldShowShortLabelYear);
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
