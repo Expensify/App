@@ -136,7 +136,8 @@ describe('TimeSensitiveSection - AddHomeAddress', () => {
         expect(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.title')).toBeTruthy();
     });
 
-    it('hides AddHomeAddress when distance rates are disabled', async () => {
+    it('renders AddHomeAddress when distance rates are disabled but commuter exclusions remain active', async () => {
+        // Given the workspace still has a home and office commuter exclusion, which requires a home address even if Distance rates are off
         await Onyx.set(ONYXKEYS.ACCOUNT, {validated: true});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
             id: '1',
@@ -146,9 +147,11 @@ describe('TimeSensitiveSection - AddHomeAddress', () => {
         });
         await waitForBatchedUpdates();
 
+        // When the time sensitive section renders for the member
         renderTimeSensitiveSection();
 
-        expect(screen.queryByText('homePage.timeSensitiveSection.addHomeAddress.title')).toBeNull();
+        // Then the home address task remains visible because the saved commuter exclusion is still enforced
+        expect(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.title')).toBeTruthy();
     });
 });
 
