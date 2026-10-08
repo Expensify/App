@@ -364,6 +364,60 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current?.currency).toBe(PAYMENT_CURRENCY);
     });
 
+    describe('totals of a grouped search with a cash back row', () => {
+        const SETTLEMENT_A_KEY = `${CONST.SEARCH.GROUP_PREFIX}settlementA` as const;
+        const SETTLEMENT_B_KEY = `${CONST.SEARCH.GROUP_PREFIX}settlementB` as const;
+        const CASH_BACK_KEY = `${CONST.SEARCH.GROUP_PREFIX}cashBack` as const;
+
+        const renderWithSelection = async (selectedTransactions: SelectedTransactions) => {
+            mockSearchQueryContext.current = {
+                currentSearchHash: 1,
+                currentSearchKey: undefined,
+                currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE, groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID},
+            };
+            // The server count only sums expenses (5) while its total nets the credit: 300 + 200 - 25.
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 5, 47500);
+            mockCurrentSearchResults.current = {
+                ...searchResults,
+                data: {
+                    [SETTLEMENT_A_KEY]: makeSettlementGroup({entryID: 1, count: 3, total: 30000}),
+                    [SETTLEMENT_B_KEY]: makeSettlementGroup({entryID: 2, count: 2, total: 20000}),
+                    [CASH_BACK_KEY]: makeSettlementGroup({entryID: 3, count: 0, total: -2500, isCashBack: true}),
+                },
+            };
+            mockSelectedTransactions.current = selectedTransactions;
+
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+        };
+
+        it('shows the selected settlements total instead of the grand total when the cash back row is left out', async () => {
+            // Given every settlement is selected but the cash back row is not
+            // When the footer renders
+            await renderWithSelection({
+                [SETTLEMENT_A_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -30000),
+                [SETTLEMENT_B_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -20000),
+            });
+
+            // Then the selection matches the server's expense count, but the server total also nets the unselected
+            // credit, so the footer must sum the selection rather than fall back to the grand total
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 5, total: 50000}));
+        });
+
+        it('still shows the grand total when the cash back row is selected along with every settlement', async () => {
+            // Given every row on the page is selected, including the cash back row
+            // When the footer renders
+            await renderWithSelection({
+                [SETTLEMENT_A_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -30000),
+                [SETTLEMENT_B_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -20000),
+                [CASH_BACK_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, 2500),
+            });
+
+            // Then the selection is the whole search, so the server's netted total is the right one to show
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 5, total: 47500}));
+        });
+    });
+
     describe('stamping the loaded groups of a grouped search', () => {
         const CASH_BACK_KEY = `${CONST.SEARCH.GROUP_PREFIX}cashBack` as const;
         const SETTLEMENT_KEY = `${CONST.SEARCH.GROUP_PREFIX}settlement` as const;

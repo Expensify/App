@@ -311,6 +311,20 @@ describe('SearchBulkActionsButton group selection label', () => {
         expect(getBarProps().selectedCount).toBe(1);
     });
 
+    it('keeps the all-matching count when the cash back row is unchecked after selecting all', () => {
+        // Given every match is selected and the cash back row is then unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockSearchCount = 50;
+        mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true}};
+        mockExcludedTransactions = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: makeTransaction()};
+
+        // When the selection count renders
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then nothing is taken off the server count, because that count only sums expenses and the credit holds none
+        expect(getBarProps().selectedCount).toBe(50);
+    });
+
     it('adds the cash back row to the expenses of the settlements selected alongside it', () => {
         mockSearchData = {
             [`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true},

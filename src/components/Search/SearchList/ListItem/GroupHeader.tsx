@@ -387,7 +387,7 @@ function GroupHeader({
                 disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
-                role={CONST.ROLE.BUTTON}
+                role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}
                 isNested
                 interactive={!isCashBackWithdrawal}
                 pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
