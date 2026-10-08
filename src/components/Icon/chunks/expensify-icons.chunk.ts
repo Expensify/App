@@ -237,6 +237,7 @@ import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
+import Share from '@assets/images/share.svg';
 import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
@@ -507,6 +508,7 @@ const Expensicons = {
     RotateLeft,
     Scan,
     Send,
+    Share,
     Shield,
     SmartScan,
     Stopwatch,
