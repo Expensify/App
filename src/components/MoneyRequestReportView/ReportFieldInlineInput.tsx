@@ -96,11 +96,14 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         setDraftValue(value);
         setValidationError('');
         setLastSavedValue(value);
-        setHasBeenBlurred(false);
+        // When the new value is the one this input just saved, the user has already left the field, so a violation
+        // the save caused, such as "Field is required" after clearing a required field, stays visible.
+        if (value !== lastSavedValue) {
+            setHasBeenBlurred(false);
+        }
     }
 
     const label = Str.UCFirst(reportField.name);
-    const isRequired = !reportField.deletable;
     const isReadOnly = isDisabled || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
     const violationError = hasBeenBlurred ? errorText : undefined;
 
@@ -118,12 +121,9 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         }
 
         if (trimmedValue === '') {
-            if (isRequired) {
-                setValidationError(translate('common.error.fieldRequired'));
-                return;
-            }
-            // Clearing an optional field is a real change, so the empty value is saved. Any whitespace the user
-            // left behind is normalized away first so the stored value is empty rather than blank.
+            // Clearing a field is a real change, so the empty value is saved even when the field is required. Like
+            // Classic, a required field left empty is flagged by its violation rather than blocked from saving. Any
+            // whitespace the user left behind is normalized away first so the stored value is empty rather than blank.
             setValidationError('');
             setDraftValue('');
             setLastSavedValue('');
