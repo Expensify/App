@@ -124,12 +124,10 @@ function MoneyReportView({
 
     // Only used to decide whether the report field block is worth rendering.
     // `MoneyRequestViewReportFields` builds and resolves the fields it displays itself.
-    const sortedPolicyReportFields = useMemo(() => {
-        const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
-        return Object.values(fieldsByName)
-            .filter((field) => isReportFieldTargetMatchingReport(report, field))
-            .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
-    }, [policy?.fieldList, report, reportNameValuePairs]);
+    const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
+    const sortedPolicyReportFields = Object.values(fieldsByName)
+        .filter((field) => isReportFieldTargetMatchingReport(report, field))
+        .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
 
     const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
