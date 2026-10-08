@@ -1339,6 +1339,7 @@ function openReimbursementAccountPage({stepToOpen = '', subStep = '', localCurre
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: true,
+                    errors: null,
                 },
             },
         ],

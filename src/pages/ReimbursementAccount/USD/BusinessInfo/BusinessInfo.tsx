@@ -20,12 +20,12 @@ import {updateCompanyInformationForBankAccount} from '@userActions/BankAccounts'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {type Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 
 import AddressBusiness from './subSteps/AddressBusiness';
 import ConfirmationBusiness from './subSteps/ConfirmationBusiness';
@@ -46,7 +46,7 @@ type BusinessInfoProps = {
     onSubmit?: () => void;
 
     /** Back to URL for preserving navigation context */
-    backTo?: string;
+    backTo?: Route;
 };
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.BUSINESS_INFO_STEP;
@@ -129,10 +129,16 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
         buildRoute,
     });
 
-    const saveCompanyAddressAndExit =
+    const isAddressOnlySaveAndExitRef = useRef(false);
+    if (
+        !isAddressOnlySaveAndExitRef.current &&
         backTo === ROUTES.HOME &&
         currentPageName === SUB_PAGE_NAMES.ADDRESS &&
-        reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN
+    ) {
+        isAddressOnlySaveAndExitRef.current = true;
+    }
+    const saveCompanyAddressAndExit = isAddressOnlySaveAndExitRef.current;
 
     const markSubmitting = useReimbursementAccountSubmitCallback(saveCompanyAddressAndExit ? exitAfterAddressSave : onSubmit);
 
@@ -153,7 +159,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
                     website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
                 },
                 policyID,
-                true,
+                false,
             );
             markSubmitting();
         },

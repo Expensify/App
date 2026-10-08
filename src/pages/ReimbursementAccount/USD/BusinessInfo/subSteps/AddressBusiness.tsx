@@ -1,11 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import type {FormOnyxValues} from '@components/Form/types';
 import AddressStep from '@components/SubStepForms/AddressStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import type {FormOnyxValues} from '@components/Form/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';

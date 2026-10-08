@@ -6,6 +6,7 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {openReimbursementAccountPage, resetPersonalBankAccountForUpdate} from '@libs/actions/BankAccounts';
@@ -16,8 +17,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type AddBankAccountAddressProps = {
     /** The ID of the bank account missing an address */
@@ -43,6 +45,7 @@ type PendingWorkspaceNavigation = {
 
 function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, policyName, additionalData}: AddBankAccountAddressProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
     const {showConfirmModal} = useConfirmModal();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -57,14 +60,14 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
         ? translate('homePage.timeSensitiveSection.addBankAccountAddress.workspaceSubtitle', {policyName})
         : translate('homePage.timeSensitiveSection.addBankAccountAddress.personalSubtitle');
 
-    const showWorkspaceLoadError = useCallback(() => {
+    const showWorkspaceLoadError = (isOfflineError = false) => {
         showConfirmModal({
-            title: translate('common.oops'),
-            prompt: translate('common.genericErrorMessage'),
+            title: isOfflineError ? translate('common.youAppearToBeOffline') : translate('genericErrorPage.title'),
+            prompt: isOfflineError ? translate('common.thisFeatureRequiresInternet') : translate('common.genericErrorMessage'),
             confirmText: translate('common.ok'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
     useEffect(() => {
         if (!pendingWorkspaceNavigation) {
@@ -79,8 +82,7 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
 
         const loadedBankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
         const loadedPolicyID = reimbursementAccount?.achData?.policyID;
-        const isExpectedAccount =
-            loadedBankAccountID === pendingWorkspaceNavigation.bankAccountID && loadedPolicyID === pendingWorkspaceNavigation.policyID;
+        const isExpectedAccount = loadedBankAccountID === pendingWorkspaceNavigation.bankAccountID && loadedPolicyID === pendingWorkspaceNavigation.policyID;
 
         // Stale reimbursement-account data can still be on disk while OPEN_REIMBURSEMENT_ACCOUNT_PAGE runs; wait for a load cycle unless the cached account already matches.
         if (!hasSeenReimbursementAccountLoadingRef.current && !isExpectedAccount) {
@@ -90,7 +92,7 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
         const navigationTarget = pendingWorkspaceNavigation;
         setPendingWorkspaceNavigation(null);
 
-        if (reimbursementAccount?.errors || !isExpectedAccount) {
+        if (!isEmptyObject(reimbursementAccount?.errors ?? {}) || !isExpectedAccount) {
             showWorkspaceLoadError();
             return;
         }
@@ -109,7 +111,8 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
         reimbursementAccount?.achData?.policyID,
         reimbursementAccount?.errors,
         reimbursementAccount?.isLoading,
-        showWorkspaceLoadError,
+        showConfirmModal,
+        translate,
     ]);
 
     const handleCtaPress = () => {
@@ -145,6 +148,11 @@ function AddBankAccountAddress({bankAccountID, isPersonalAccount, policyID, poli
         }
 
         if (policyID) {
+            if (isOffline) {
+                showWorkspaceLoadError(true);
+                return;
+            }
+
             setPendingWorkspaceNavigation({policyID, bankAccountID});
             openReimbursementAccountPage({
                 policyID,
