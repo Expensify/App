@@ -29,6 +29,11 @@ const avatarSizes = {
     avatarBorderWidthLarge: 4,
 } as const;
 
+// Shared by the editable cell styles and the column measurer, so the padding, border, and button cannot drift apart.
+const editableCellPadding = 4;
+const editableCellBorderWidth = 1;
+const editableCellEditButtonSize = 28;
+
 export default {
     bottomTabHeight: 72,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
@@ -562,10 +567,15 @@ export default {
     searchTableRowCheckboxWidth: 24,
     // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
     statusBadgeChromeWidth: 6 * 2 + 1 * 2,
-    // What an editable cell spends around its value, from `editableCell`'s padding and the border it reserves for its focus ring.
-    editableCellChromeWidth: 4 * 2 + 1 * 2,
-    // What the edit button covers at the trailing edge of an editable cell, from `editableCellEditButton` and the inset it sits at.
-    editableCellEditButtonWidth: 28 + 4,
+    // Padding on every side of an editable cell. The edit button sits at this same inset.
+    editableCellPadding,
+    // Border kept on each side so the focus ring does not shift the value.
+    editableCellBorderWidth,
+    // What an editable cell spends around its value, from its padding and the border it reserves for the focus ring.
+    editableCellChromeWidth: editableCellPadding * 2 + editableCellBorderWidth * 2,
+    // What the edit button covers at the trailing edge of an editable cell, from its size and the inset it sits at.
+    editableCellEditButtonSize,
+    editableCellEditButtonWidth: editableCellEditButtonSize + editableCellPadding,
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
 } as const;

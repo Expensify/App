@@ -1314,18 +1314,18 @@ const staticStyles = (theme: ThemeColors) =>
          * visually aligned with their editable cells.
          */
         editableCellHeader: {
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            paddingHorizontal: 4,
+            paddingHorizontal: variables.editableCellPadding,
         },
 
         editableCell: {
             width: '100%',
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            padding: 4,
+            padding: variables.editableCellPadding,
             height: 'auto',
             minHeight: variables.editableCellHeight,
             overflow: 'hidden',
@@ -1345,16 +1345,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         editableCellEditButtonContainerLeft: {
-            left: 4,
+            left: variables.editableCellPadding,
         },
 
         editableCellEditButtonContainerRight: {
-            right: 4,
+            right: variables.editableCellPadding,
         },
 
         editableCellEditButton: {
-            width: 28,
-            height: 28,
+            width: variables.editableCellEditButtonSize,
+            height: variables.editableCellEditButtonSize,
             borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.buttonDefaultBG,
             justifyContent: 'center',
