@@ -8,30 +8,45 @@ import ScanFooter from '@components/MoneyRequestConfirmationListFooter/variants/
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 
-import React, {useEffect, useState} from 'react';
+import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
+
+import React, {useState} from 'react';
 
 /**
  * Confirms a scanned expense. The only variant that reaches the compact layout, where the receipt fills the
  * screen and the optional fields collapse behind a show-more button, so it owns that state.
  */
 function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const isInLandscapeMode = useIsInLandscapeMode();
+    const {transaction, canEnterScanFieldsManually = false} = props;
 
-    const [showMoreFields, setShowMoreFields] = useState(false);
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const data = useConfirmationListData(props);
     const {transactionID} = data.layoutProps;
 
-    // Reveal the collapsed fields when one of them raises an inline error, or opening the section and pressing
-    // Create looks like it did nothing. Done during render so it survives the remount a multi-scan switch causes.
-    if (INLINE_FIELD_ERROR_KEYS.has(data.footerProps.errorState.formError) && !showMoreFields) {
-        setShowMoreFields(true);
-    }
+    // Multi-scan switches between expenses on the same list, so remember which ones have their fields revealed
+    // instead of holding one flag for the whole surface; an expense the user opened stays open when they come back.
+    const [revealedTransactionIDs, setRevealedTransactionIDs] = useState<string[]>([]);
+    const showMoreFields = !!transactionID && revealedTransactionIDs.includes(transactionID);
+    const setShowMoreFields = (shouldShowMoreFields: boolean) => {
+        if (!transactionID) {
+            return;
+        }
+        setRevealedTransactionIDs((previousIDs) => {
+            if (previousIDs.includes(transactionID) === shouldShowMoreFields) {
+                return previousIDs;
+            }
+            return shouldShowMoreFields ? [...previousIDs, transactionID] : previousIDs.filter((id) => id !== transactionID);
+        });
+    };
 
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- reset show more on transaction change
-        setShowMoreFields(false);
-    }, [transactionID]);
+    // Reveal the collapsed fields when the user already filled one of them in, so those values aren't hidden behind
+    // "Show more", or when one of them raises an inline error, or opening the section and pressing Create looks like
+    // it did nothing. Done during render so the expense never paints collapsed first and it survives a remount.
+    const hasManuallyEnteredFields = canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction);
+    if (transactionID && !showMoreFields && (hasManuallyEnteredFields || INLINE_FIELD_ERROR_KEYS.has(data.footerProps.errorState.formError))) {
+        setRevealedTransactionIDs([...revealedTransactionIDs, transactionID]);
+    }
 
     const isCompactMode = !showMoreFields && !isInLandscapeMode;
 
