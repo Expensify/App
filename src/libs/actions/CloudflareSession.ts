@@ -6,7 +6,7 @@ import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
 import {generatePKCEPair, generateState} from '@libs/CloudflareAccess/generatePKCE';
 import {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} from '@libs/CloudflareAccess/OAuthClient';
 import type {AuthorizationCodeExchange} from '@libs/CloudflareAccess/OAuthClient';
-import {savePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
+import {clearPendingAuthFlows, savePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
 import Log from '@libs/Log';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
@@ -26,10 +26,11 @@ let sessionGeneration = 0;
 
 let codeExchangeErrorMessage: string | undefined;
 
-function resetInMemorySession() {
+function resetSessionState() {
     sessionGeneration++;
     sessionCache = null;
     codeExchangeErrorMessage = undefined;
+    clearPendingAuthFlows();
 }
 
 // Definite assignment: the Promise executor runs synchronously, so this is set before anything reads it
@@ -48,7 +49,7 @@ if (isQAAuthConfigured()) {
         },
     });
     // Onyx.clear wipes the key but its callback is async, so drop the cache synchronously
-    registerSessionCleanupCallback(resetInMemorySession);
+    registerSessionCleanupCallback(resetSessionState);
 } else {
     // Nothing will ever hydrate the cache, so a waiter must not block forever
     sessionCache = null;
@@ -95,10 +96,6 @@ async function startCloudflareSignInRoundTrip(returnURL: string): Promise<never>
     });
 }
 
-/**
- * Navigates this tab to Cloudflare to start the authorize round trip. Stays pending while the page is leaving.
- * Rejects if the round trip could not start, or if Back restores this page from the back/forward cache.
- */
 function redirectToCloudflareSignIn(returnURL: string = window.location.href): Promise<never> {
     redirectPromise ??= startCloudflareSignInRoundTrip(returnURL).finally(() => {
         redirectPromise = null;
@@ -200,7 +197,7 @@ function refreshCloudflareSession(staleAccessToken: string): Promise<CloudflareR
 }
 
 function clearCloudflareSession(): Promise<void> {
-    resetInMemorySession();
+    resetSessionState();
     return Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, null);
 }
 
