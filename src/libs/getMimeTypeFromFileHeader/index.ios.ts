@@ -1,4 +1,5 @@
 import fileURIToPath from '@libs/fileURIToPath';
+import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -26,10 +27,13 @@ async function getMimeTypeFromFileHeader(file: FileObject): Promise<string | und
             return undefined;
         }
         return getMimeTypeFromHeaderBytes(Buffer.from(header, 'base64'));
-    } catch {
+    } catch (error) {
+        Log.warn('[getMimeTypeFromFileHeader] Could not read file header', {error: error instanceof Error ? error.message : String(error)});
         return undefined;
     } finally {
-        ReactNativeBlobUtil.fs.unlink(tempPath).catch(() => {});
+        ReactNativeBlobUtil.fs.unlink(tempPath).catch((error: unknown) => {
+            Log.warn('[getMimeTypeFromFileHeader] Could not delete temp header file', {error: error instanceof Error ? error.message : String(error)});
+        });
     }
 }
 

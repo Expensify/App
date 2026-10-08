@@ -1,3 +1,5 @@
+import Log from '@libs/Log';
+
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import getMimeTypeFromHeaderBytes, {FILE_HEADER_LENGTH} from './getMimeTypeFromHeaderBytes';
@@ -13,7 +15,8 @@ async function getMimeTypeFromFileHeader(file: FileObject): Promise<string | und
     try {
         const header = await file.slice(0, FILE_HEADER_LENGTH).arrayBuffer();
         return getMimeTypeFromHeaderBytes(new Uint8Array(header));
-    } catch {
+    } catch (error) {
+        Log.warn('[getMimeTypeFromFileHeader] Could not read file header', {error: error instanceof Error ? error.message : String(error)});
         return undefined;
     }
 }

@@ -1,4 +1,5 @@
 import fileURIToPath from '@libs/fileURIToPath';
+import Log from '@libs/Log';
 
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -19,7 +20,8 @@ async function getMimeTypeFromFileHeader(file: FileObject): Promise<string | und
     try {
         const header = await RNFS.read(fileURIToPath(file.uri), FILE_HEADER_LENGTH, 0, 'base64');
         return getMimeTypeFromHeaderBytes(Buffer.from(header, 'base64'));
-    } catch {
+    } catch (error) {
+        Log.warn('[getMimeTypeFromFileHeader] Could not read file header', {error: error instanceof Error ? error.message : String(error)});
         return undefined;
     }
 }
