@@ -95,7 +95,7 @@ function createCollectOnlyDepositAccount(parameters: CreateCollectOnlyDepositAcc
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure')},
+                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure', 0)},
             },
         ],
         finallyData: [

@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {getSubmitParameters} from '@libs/CollectDepositAccountUtils';
+import {getLatestError} from '@libs/ErrorUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/CollectDepositAccount/types';
 
@@ -94,7 +95,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
                 />
             ))}
             <ErrorMessageRow
-                errors={personalBankAccount?.errors}
+                errors={getLatestError(personalBankAccount?.errors)}
                 errorRowStyles={[styles.mt3, styles.ph5]}
                 onDismiss={clearPersonalBankAccountErrors}
             />
