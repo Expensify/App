@@ -14,7 +14,7 @@ import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, useCompetingGestures, useHoverGesture, useTapGesture} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {Pie, PolarChart} from 'victory-native';
@@ -92,36 +92,36 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     };
 
     // Hover gesture
-    const hoverGesture = () =>
-        Gesture.Hover()
-            .onBegin((e) => {
-                'worklet';
+    const hoverGesture = useHoverGesture({
+        onBegin: (e) => {
+            'worklet';
 
-                isHovering.set(true);
-                cursorX.set(e.x);
-                cursorY.set(e.y);
-                tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
-                scheduleOnRN(updateActiveSlice, e.x, e.y);
-            })
-            .onUpdate((e) => {
-                'worklet';
+            isHovering.set(true);
+            cursorX.set(e.x);
+            cursorY.set(e.y);
+            tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
+            scheduleOnRN(updateActiveSlice, e.x, e.y);
+        },
+        onUpdate: (e) => {
+            'worklet';
 
-                cursorX.set(e.x);
-                cursorY.set(e.y);
-                tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
-                scheduleOnRN(updateActiveSlice, e.x, e.y);
-            })
-            .onEnd(() => {
-                'worklet';
+            cursorX.set(e.x);
+            cursorY.set(e.y);
+            tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
+            scheduleOnRN(updateActiveSlice, e.x, e.y);
+        },
+        onDeactivate: () => {
+            'worklet';
 
-                isHovering.set(false);
-                scheduleOnRN(setActiveSliceIndex, -1);
-                scheduleOnRN(setIsHoveringOverPie, false);
-            });
+            isHovering.set(false);
+            scheduleOnRN(setActiveSliceIndex, -1);
+            scheduleOnRN(setIsHoveringOverPie, false);
+        },
+    });
 
     // Tap gesture for click/tap navigation
-    const tapGesture = () =>
-        Gesture.Tap().onEnd((e) => {
+    const tapGesture = useTapGesture({
+        onDeactivate: (e) => {
             'worklet';
 
             const {centerX, centerY} = pieGeometry;
@@ -130,10 +130,11 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
             if (sliceIndex >= 0) {
                 scheduleOnRN(handleSlicePress, sliceIndex);
             }
-        });
+        },
+    });
 
     // Combined gestures - Race allows both hover and tap to work independently
-    const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
+    const combinedGesture = useCompetingGestures(hoverGesture, tapGesture);
 
     const renderLegendItem = (slice: PieSlice) => {
         return (
