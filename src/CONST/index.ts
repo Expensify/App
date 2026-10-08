@@ -1877,6 +1877,7 @@ const CONST = {
                     ADD_OFFICE_LOCATION: 'POLICYCHANGELOG_ADD_OFFICE_LOCATION',
                     UPDATE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_OFFICE_LOCATION',
                     DELETE_OFFICE_LOCATION: 'POLICYCHANGELOG_DELETE_OFFICE_LOCATION',
+                    UPDATE_EMPLOYEE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_EMPLOYEE_OFFICE_LOCATION',
                     ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
                     UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
                     REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
@@ -4669,6 +4670,8 @@ const CONST = {
             MAKE_CARD_ADMIN: 'makeCardAdmin',
             MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
             MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
+            CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
+            CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -4824,6 +4827,8 @@ const CONST = {
             ADDRESS: 'address',
             IS_DEFAULT: 'isDefault',
         },
+        // The officeID that assigns a member to the company address, which isn't keyed in the workspace's officeLocations
+        COMPANY_ADDRESS_OFFICE_ID: '1',
         WORK_ARRANGEMENT: {
             OFFICE_BASED: 'officeBased',
             NO_REGULAR_WORKPLACE: 'noRegularWorkplace',

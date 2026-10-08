@@ -7086,6 +7086,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 optionNoRegularWorkspaceHelp: 'メンバーは在宅勤務、または決まったオフィスがなく拠点間を移動しているため、通勤規程は適用されません。',
                 futureOnlyNote: '変更は今後の走行距離計算にのみ適用されます。既存の走行距離経費は再計算されません。',
             },
+            officeLocation: 'オフィスの所在地',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            changeOfficeLocation: 'オフィスの所在地を変更',
+            changeWorkArrangement: '勤務形態を変更',
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -9407,6 +9411,11 @@ ${reportName}`,
             setAsPrimary: ({name}: {name: string}) => `オフィスの所在地「${name}」をメインに設定しました`,
             setCompanyAddressAsPrimary: '会社住所をメインに設定しました',
             removed: ({name}: {name: string}) => `オフィスの所在地「${name}」を削除しました`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `${displayName}さんのオフィスの所在地を${officeLocation}（以前は${previousOfficeLocation}）に変更しました`,
+            quotedName: ({name}: {name: string}) => `「${name}」`,
+            companyAddress: '会社住所',
+            primaryOffice: 'メインのオフィス',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `デフォルトの勤務形態を${arrangement}に設定します`,

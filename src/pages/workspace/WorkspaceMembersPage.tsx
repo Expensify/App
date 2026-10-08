@@ -21,6 +21,7 @@ import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -43,6 +44,7 @@ import {
     downloadMembersCSV,
     openWorkspaceMembersPage,
     removeMembers,
+    setWorkspaceMembersSelectedForBulkEdit,
     updateWorkspaceMembersRole,
 } from '@libs/actions/Policy/Member';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
@@ -54,6 +56,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getAssignableOfficeLocations, getMemberOfficeLocation, hasOfficeLocations} from '@libs/OfficeLocationUtils';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
@@ -72,6 +75,7 @@ import {
     isExpensifyTeam,
     isGroupPolicy,
     isPaidGroupPolicy,
+    isPolicyAdmin,
     isPolicyApprover,
     isSubmitPolicy,
     PAYER_ROLES,
@@ -88,6 +92,7 @@ import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PolicyEmployee} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -118,7 +123,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const policyMemberEmailsToAccountIDs = useMemo(
         () => getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true),
@@ -140,6 +145,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+    const {isBetaEnabled} = usePermissions();
+    const [membersSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {selector: (accountIDs) => accountIDs?.length});
+
+    // A bulk office location or work arrangement change empties the members it was given once it is applied, which
+    // ends the selection here too
+    const [prevMembersSelectedForBulkEditCount, setPrevMembersSelectedForBulkEditCount] = useState(membersSelectedForBulkEditCount);
+    if (prevMembersSelectedForBulkEditCount !== membersSelectedForBulkEditCount) {
+        setPrevMembersSelectedForBulkEditCount(membersSelectedForBulkEditCount);
+        if (!membersSelectedForBulkEditCount) {
+            setSelectedEmployees([]);
+        }
+    }
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -418,6 +435,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
+    const shouldShowOfficeLocations = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && hasOfficeLocations(policy);
+    const shouldShowOfficeLocationColumn = !shouldUseNarrowLayout && shouldShowOfficeLocations;
+    const officeLocations = useMemo(() => getAssignableOfficeLocations(policy, translate, localeCompare), [policy, translate, localeCompare]);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
@@ -462,6 +482,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 email: memberEmail,
                 employeeUserID: policyEmployee.employeeUserID,
                 employeePayrollID: policyEmployee.employeePayrollID,
+                officeLocationName: shouldShowOfficeLocationColumn ? getMemberOfficeLocation(officeLocations, policyEmployee.officeID)?.name : undefined,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 isSelectionDisabled:
                     !canWriteMembers ||
@@ -495,6 +516,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         session?.accountID,
         shouldShowCustomField1Column,
         shouldShowCustomField2Column,
+        shouldShowOfficeLocationColumn,
+        officeLocations,
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
         dismissError,
@@ -603,6 +626,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role);
     };
 
+    const editSelectedEmployees = (bulkEditRoute: Route) => {
+        setWorkspaceMembersSelectedForBulkEdit(selectedEmployees.map((login) => policyMemberEmailsToAccountIDs[login]).filter((accountID) => accountID !== undefined));
+        Navigation.navigate(bulkEditRoute);
+    };
+
     const getBulkActionsButtonOptions = () => {
         const selectedEmployeesRoles = selectedEmployees.map((email) => {
             return policy?.employeeList?.[email]?.role;
@@ -706,6 +734,30 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // Payments Admin is a valid payer role, so the payer may be changed to Payments Admin (Admin and Payments Admin are the two roles that can pay).
         if (hasAtLeastOneNonPaymentsAdminRole && isControlPolicy(policy) && canAssignElevatedRoles) {
             options.push(paymentsAdminOption);
+        }
+
+        // Only policy admins can change office locations and work arrangements, unlike people admins who manage members
+        const isCurrentUserPolicyAdmin = isPolicyAdmin(policy, currentUserLogin);
+        if (shouldShowOfficeLocations && isCurrentUserPolicyAdmin) {
+            options.push({
+                text: translate('workspace.people.changeOfficeLocation'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_OFFICE_LOCATION,
+                icon: icons.Location,
+                onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION.getRoute(policyID)),
+            });
+        }
+
+        if (
+            policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
+            isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) &&
+            isCurrentUserPolicyAdmin
+        ) {
+            options.push({
+                text: translate('workspace.people.changeWorkArrangement'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_WORK_ARRANGEMENT,
+                icon: icons.Building,
+                onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.getRoute(policyID)),
+            });
         }
 
         return options;
@@ -921,6 +973,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         selectedKeys={selectedEmployees}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
+                        shouldShowOfficeLocationColumn={shouldShowOfficeLocationColumn}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
                     />

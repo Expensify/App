@@ -1,19 +1,27 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {deletePolicyDistanceRates, enablePolicyDistanceRates, setEmployeeWorkArrangement, setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate';
+import {
+    deletePolicyDistanceRates,
+    enablePolicyDistanceRates,
+    setEmployeeWorkArrangement,
+    setWorkspaceDistanceAutoUpdate,
+    updateEmployeeOfficeLocation,
+} from '@libs/actions/Policy/DistanceRate';
 import * as API from '@libs/API';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import {isGovernmentRateUnmodified} from '@libs/PolicyDistanceRatesUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GovernmentMileageRate, Policy, Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
+import type {CustomUnit, OfficeLocation, Rate, Unit} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const translate: LocalizedTranslate = (phrase, ...parameters) => {
@@ -38,6 +46,44 @@ describe('DistanceRate', () => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
     });
+
+    function getPolicyFromOnyx(policyID: string): Promise<Policy> {
+        return new Promise<Policy>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
+                // eslint-disable-next-line rulesdir/prefer-early-return
+                callback: (value) => {
+                    if (value !== undefined) {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    }
+                },
+            });
+        });
+    }
+
+    function getReportActionsFromOnyx(reportID: string) {
+        return new Promise<ReportActions>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const,
+                // eslint-disable-next-line rulesdir/prefer-early-return
+                callback: (value) => {
+                    if (value !== undefined) {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    }
+                },
+            });
+        });
+    }
+
+    function getSingleUpdateValue(value: unknown): unknown {
+        if (typeof value !== 'object' || value === null) {
+            return undefined;
+        }
+        const values = Object.values(value);
+        return values.length === 1 ? values.at(0) : undefined;
+    }
 
     describe('deletePolicyDistanceRates', () => {
         it('should set customUnitOutOfPolicy violation only for transactions that have the deleted custom unit rate', async () => {
@@ -246,21 +292,6 @@ describe('DistanceRate', () => {
             return distanceCustomUnit;
         }
 
-        function getPolicyFromOnyx(policyID: string): Promise<Policy> {
-            return new Promise<Policy>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
-                    // eslint-disable-next-line rulesdir/prefer-early-return
-                    callback: (value) => {
-                        if (value !== undefined) {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        }
-                    },
-                });
-            });
-        }
-
         afterEach(() => {
             resetQueue();
             return Onyx.clear();
@@ -399,44 +430,6 @@ describe('DistanceRate', () => {
         afterEach(() => {
             jest.restoreAllMocks();
         });
-
-        function getPolicyFromOnyx(policyID: string): Promise<Policy> {
-            return new Promise<Policy>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
-                    // eslint-disable-next-line rulesdir/prefer-early-return
-                    callback: (value) => {
-                        if (value !== undefined) {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        }
-                    },
-                });
-            });
-        }
-
-        function getReportActionsFromOnyx(reportID: string) {
-            return new Promise<ReportActions>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const,
-                    // eslint-disable-next-line rulesdir/prefer-early-return
-                    callback: (value) => {
-                        if (value !== undefined) {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        }
-                    },
-                });
-            });
-        }
-
-        function getSingleUpdateValue(value: unknown): unknown {
-            if (typeof value !== 'object' || value === null) {
-                return undefined;
-            }
-            const values = Object.values(value);
-            return values.length === 1 ? values.at(0) : undefined;
-        }
 
         async function seedWorkArrangementPolicy(policy: Policy) {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
@@ -674,6 +667,155 @@ describe('DistanceRate', () => {
             expect(reportActions).toEqual({});
 
             resetQueue();
+        });
+    });
+
+    describe('updateEmployeeOfficeLocation', () => {
+        const member1AccountID = 31;
+        const member2AccountID = 32;
+        const member1Email = 'office1@test.com';
+        const member2Email = 'office2@test.com';
+        const personalDetails = {
+            [member1AccountID]: {accountID: member1AccountID, login: member1Email, displayName: 'Member One'},
+            [member2AccountID]: {accountID: member2AccountID, login: member2Email, displayName: 'Member Two'},
+        };
+        const officeLocations: Record<string, OfficeLocation> = {
+            OFFICE1: {name: 'Headquarters', address: {addressStreet: '88 Kearny St', city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US'}, isDefault: true},
+            OFFICE2: {name: 'New Jersey Office', address: {addressStreet: '900 Asbury Ave', city: 'Ocean City', state: 'NJ', zipCode: '08226', country: 'US'}},
+        };
+
+        beforeAll(() => IntlStore.load(CONST.LOCALES.DEFAULT));
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        async function seedOfficeLocationPolicy(policy: Policy) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, {reportID: '2', policyID: policy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS} as Report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`, {});
+            await waitForBatchedUpdates();
+        }
+
+        it('should optimistically assign the members and log one pending change per member that changed', async () => {
+            // Given one member following the primary office and one already assigned to the New Jersey office
+            const policy: Policy = {
+                ...createRandomPolicy(30),
+                officeLocations,
+                employeeList: {
+                    [member1Email]: {email: member1Email},
+                    [member2Email]: {email: member2Email, officeID: 'OFFICE2'},
+                },
+            };
+            await seedOfficeLocationPolicy(policy);
+
+            pause();
+            // When both members are assigned to the New Jersey office
+            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], 'OFFICE2', personalDetails, translateLocal);
+            await waitForBatchedUpdates();
+
+            // Then only the member who changed is updated, and gets one pending change log naming the offices
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, officeID: 'OFFICE2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+            expect(onyxPolicy.employeeList?.[member2Email]).toEqual({email: member2Email, officeID: 'OFFICE2'});
+
+            const actions = Object.values(await getReportActionsFromOnyx('2'));
+            expect(actions).toHaveLength(1);
+            expect(actions.at(0)).toMatchObject({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                message: [{text: `changed Member One's office location to "New Jersey Office" (previously the primary office)`}],
+                originalMessage: {accountID: member1AccountID, email: member1Email, name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office'},
+            });
+
+            resetQueue();
+        });
+
+        it('should send every member that changed in one request, by accountID and by login', async () => {
+            // Given two members following the primary office
+            const policy: Policy = {
+                ...createRandomPolicy(31),
+                officeLocations,
+                employeeList: {[member1Email]: {email: member1Email}, [member2Email]: {email: member2Email}},
+            };
+            await seedOfficeLocationPolicy(policy);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- The API spy records the request, which the paused queue keeps from being sent.
+            const writeSpy = jest.spyOn(API, 'write');
+
+            pause();
+            // When both are assigned to the company address
+            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, personalDetails, translateLocal);
+            await waitForBatchedUpdates();
+
+            // Then one request carries both members, so the logins still match them if an offline invite replaces their accountIDs
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            expect(writeSpy.mock.calls.at(0)?.[1]).toEqual({
+                policyID: policy.id,
+                employeeAccountIDList: `${member1AccountID},${member2AccountID}`,
+                employeeLoginList: `${member1Email},${member2Email}`,
+                officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID,
+            });
+
+            // And each member gets a change log
+            expect(Object.values(await getReportActionsFromOnyx('2'))).toHaveLength(2);
+
+            resetQueue();
+        });
+
+        it('should clear pending states on success', async () => {
+            // Given a member following the primary office
+            const policy: Policy = {
+                ...createRandomPolicy(32),
+                officeLocations,
+                employeeList: {[member1Email]: {email: member1Email}},
+            };
+            await seedOfficeLocationPolicy(policy);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- The API spy captures the action updates without sending a request.
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // When the member is assigned to an office
+            updateEmployeeOfficeLocation(policy, [member1AccountID], 'OFFICE2', personalDetails, translateLocal);
+
+            // Then success clears the pending state of both the member and the change log
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.successData?.[0]).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: {employeeList: {[member1Email]: {pendingAction: null}}},
+            });
+            expect(getSingleUpdateValue(onyxData?.successData?.[1]?.value)).toEqual({pendingAction: null});
+        });
+
+        it('should restore the previous office of each member and drop the change logs on failure', async () => {
+            // Given one member assigned to the New Jersey office and one following the primary office
+            const policy: Policy = {
+                ...createRandomPolicy(33),
+                officeLocations,
+                employeeList: {[member1Email]: {email: member1Email, officeID: 'OFFICE2'}, [member2Email]: {email: member2Email}},
+            };
+            await seedOfficeLocationPolicy(policy);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- The API spy captures the action updates without sending a request.
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // When both are assigned to the company address
+            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, personalDetails, translateLocal);
+
+            // Then failure puts back the New Jersey office, removes the assignment the other member never had, and keeps
+            // UPDATE so dismissing the error keeps the members
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.failureData?.[0]).toMatchObject({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: {
+                    employeeList: {
+                        [member1Email]: {officeID: 'OFFICE2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        [member2Email]: {officeID: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            });
+            const failureReportActions: unknown = onyxData?.failureData?.[1]?.value;
+            expect(typeof failureReportActions === 'object' && failureReportActions !== null ? Object.values(failureReportActions) : undefined).toEqual([null, null]);
         });
     });
 });

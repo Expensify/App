@@ -1482,6 +1482,14 @@ function clearImportedSpreadsheetMemberData() {
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE, null);
 }
 
+function setWorkspaceMembersSelectedForBulkEdit(accountIDs: number[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, accountIDs);
+}
+
+function clearWorkspaceMembersSelectedForBulkEdit() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, []);
+}
+
 export {
     removeMembers,
     buildUpdateWorkspaceMembersRoleOnyxData,
@@ -1512,4 +1520,6 @@ export {
     setImportedSpreadsheetMemberData,
     setImportedSpreadsheetMemberRole,
     clearImportedSpreadsheetMemberData,
+    setWorkspaceMembersSelectedForBulkEdit,
+    clearWorkspaceMembersSelectedForBulkEdit,
 };

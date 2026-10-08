@@ -34,6 +34,9 @@ type WorkspaceMembersTableRowProps = {
     /** Whether the custom field 2 column is visible on web screens or not */
     shouldShowCustomField2Column: boolean;
 
+    /** Whether the office location column is visible on web screens or not */
+    shouldShowOfficeLocationColumn: boolean;
+
     /** Policy used to determine which roles can be assigned from the inline editor */
     policy: OnyxEntry<Policy>;
 };
@@ -43,6 +46,7 @@ export default function WorkspaceMembersTableRow({
     rowIndex,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowOfficeLocationColumn,
     shouldUseNarrowTableLayout,
     policy,
 }: WorkspaceMembersTableRowProps) {
@@ -99,6 +103,22 @@ export default function WorkspaceMembersTableRow({
                             />
                         </View>
                     </View>
+
+                    {!shouldUseNarrowTableLayout && shouldShowOfficeLocationColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.officeLocationName && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.officeLocationName}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            )}
+                        </View>
+                    )}
 
                     {!shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View

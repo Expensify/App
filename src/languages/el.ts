@@ -7348,6 +7348,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 optionNoRegularWorkspaceHelp: 'Το μέλος εργάζεται από το σπίτι ή ταξιδεύει μεταξύ τοποθεσιών χωρίς τακτικό γραφείο, επομένως οι κανόνες μετακίνησης δεν ισχύουν.',
                 futureOnlyNote: 'Οι αλλαγές ισχύουν μόνο για μελλοντικούς υπολογισμούς χιλιομέτρων. Οι υπάρχουσες δαπάνες χιλιομέτρων δεν επανυπολογίζονται.',
             },
+            officeLocation: 'Τοποθεσία γραφείου',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
+            changeWorkArrangement: 'Αλλαγή διευθέτησης εργασίας',
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',
@@ -9717,6 +9721,11 @@ ${reportName}`,
             setAsPrimary: ({name}: {name: string}) => `όρισε την τοποθεσία γραφείου «${name}» ως κύρια`,
             setCompanyAddressAsPrimary: 'όρισε τη διεύθυνση εταιρείας ως κύρια',
             removed: ({name}: {name: string}) => `αφαίρεσε την τοποθεσία γραφείου «${name}»`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `άλλαξε την τοποθεσία γραφείου του/της ${displayName}: ${officeLocation} (προηγουμένως: ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `«${name}»`,
+            companyAddress: 'διεύθυνση εταιρείας',
+            primaryOffice: 'κύρια τοποθεσία γραφείου',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,

@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import type {CompanyAddress, OfficeLocation} from '@src/types/onyx/Policy';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -232,6 +233,67 @@ describe('WorkspaceMemberDetailsPage', () => {
         // Then the member override still takes precedence
         const row = await screen.findByTestId('member-work-arrangement-menu-item');
         expect(within(row).getByText(TestHelper.translateLocal('workspace.people.noRegularWorkspace'))).toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    const setupOfficeLocations = async ({memberOfficeID, hasOffices = true, betaEnabled = true}: {memberOfficeID?: string; hasOffices?: boolean; betaEnabled?: boolean}) => {
+        const typedPolicy = createMock<Policy>(policy);
+        const employeeList = {
+            ...typedPolicy.employeeList,
+            [invitedEmail]: {...typedPolicy.employeeList?.[invitedEmail], officeID: memberOfficeID},
+        };
+        const officeLocations: Record<string, OfficeLocation> = {
+            OFFICE1: {name: 'Headquarters', address: {addressStreet: '88 Kearny St', city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US'}, isDefault: true},
+            OFFICE2: {name: 'New Jersey Office', address: {addressStreet: '900 Asbury Ave', city: 'Ocean City', state: 'NJ', zipCode: '08226', country: 'US'}},
+        };
+        const companyAddress: CompanyAddress = {addressStreet: '1 Market St', city: 'San Francisco', state: 'CA', zipCode: '94105', country: 'US'};
+        const officeLocationsPolicy = createMock<Policy>({
+            ...typedPolicy,
+            address: companyAddress,
+            officeLocations: hasOffices ? officeLocations : undefined,
+            employeeList,
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, betaEnabled ? [CONST.BETAS.COMMUTER_EXCLUSIONS] : []);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, officeLocationsPolicy);
+        });
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+        return unmount;
+    };
+
+    it.each([
+        ['the office assigned to the member', 'OFFICE2', 'New Jersey Office', '900 Asbury Ave, Ocean City, NJ 08226'],
+        ['the company address when the member is assigned to it', CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, 'Company address', '1 Market St, San Francisco, CA 94105'],
+        ['the primary office when the member has no office', undefined, 'Headquarters', '88 Kearny St, San Francisco, CA 94108'],
+    ])('shows %s as the office location', async (_description, memberOfficeID, name, address) => {
+        // Given a workspace with offices and a member with the given office assignment
+        const unmount = await setupOfficeLocations({memberOfficeID});
+
+        // Then the office location item names that office and its address
+        const row = await screen.findByTestId('member-office-location-menu-item');
+        expect(within(row).getByText(TestHelper.translateLocal('workspace.people.officeLocationWithAddress', {name, address}))).toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('hides the office location item when the workspace has no offices besides its company address', async () => {
+        // Given a workspace whose only office is its company address
+        const unmount = await setupOfficeLocations({hasOffices: false});
+
+        // Then there is nothing to choose between, so the office location item is hidden
+        expect(screen.queryByTestId('member-office-location-menu-item')).not.toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('hides the office location item when the beta is disabled', async () => {
+        // Given a workspace with offices but the commuter exclusions beta is disabled
+        const unmount = await setupOfficeLocations({betaEnabled: false});
+
+        // Then the office location item is hidden
+        expect(screen.queryByTestId('member-office-location-menu-item')).not.toBeOnTheScreen();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });

@@ -550,6 +550,9 @@ const ONYXKEYS = {
     /** Selected domain member account IDs for the move-to-group operation */
     RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE: 'domainMembersSelectedForMove',
 
+    /** Account IDs of the workspace members selected for a bulk office location or work arrangement change */
+    RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT: 'workspaceMembersSelectedForBulkEdit',
+
     // The theme setting set by the user in preferences.
     // This can be either "light", "dark", "system", "light-contrast", "dark-contrast" or "system-contrast"
     PREFERRED_THEME: 'nvp_preferredTheme',
@@ -1834,6 +1837,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
+    [ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT]: number[];
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT]: boolean;

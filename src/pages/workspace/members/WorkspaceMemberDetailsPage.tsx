@@ -37,6 +37,7 @@ import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getAssignableOfficeLocations, getMemberOfficeLocation, hasOfficeLocations} from '@libs/OfficeLocationUtils';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
@@ -142,6 +143,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const member = policy?.employeeList?.[memberLogin];
     const memberWorkArrangement = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
+    const memberOfficeLocation = getMemberOfficeLocation(getAssignableOfficeLocations(policy, translate, localeCompare), member?.officeID);
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
@@ -151,6 +153,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
     const isCurrentUserAdmin = policy?.employeeList?.[currentUserLogin]?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserLogin;
+    const shouldShowOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && hasOfficeLocations(policy);
+    const canChangeOfficeLocation = shouldShowOfficeLocation && isCurrentUserAdmin;
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
@@ -422,6 +426,23 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
+                            {shouldShowOfficeLocation && (
+                                <MenuItemWithTopDescription
+                                    disabled={!canChangeOfficeLocation}
+                                    title={
+                                        memberOfficeLocation
+                                            ? translate('workspace.people.officeLocationWithAddress', {name: memberOfficeLocation.name, address: memberOfficeLocation.address})
+                                            : ''
+                                    }
+                                    interactive={canChangeOfficeLocation}
+                                    description={translate('workspace.people.officeLocation')}
+                                    shouldShowRightIcon={canChangeOfficeLocation}
+                                    shouldGreyOutWhenDisabled={false}
+                                    shouldUseDefaultCursorWhenDisabled
+                                    pressableTestID="member-office-location-menu-item"
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.getRoute(policyID, accountID))}
+                                />
+                            )}
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
                                 <MenuItemWithTopDescription
                                     disabled={!canWriteMembers}

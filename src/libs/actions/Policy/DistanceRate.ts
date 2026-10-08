@@ -16,6 +16,7 @@ import type {
     SetPolicyRequireMapOrGPSParams,
     SetPolicyWorkArrangementParams,
     SetWorkspaceDistanceAutoUpdateParams,
+    UpdateEmployeeOfficeLocationParams,
     UpdateOfficeLocationParams,
     UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
@@ -28,6 +29,7 @@ import Log from '@libs/Log';
 import {generateHexadecimalValue, rand64} from '@libs/NumberUtils';
 import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
+import {getUpdatedEmployeeOfficeLocationMessage} from '@libs/ReportActionsUtils';
 import {getRoom} from '@libs/ReportUtils';
 import {getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 
@@ -41,6 +43,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import {generateCustomUnitID} from './Policy';
@@ -847,6 +850,151 @@ function setEmployeeWorkArrangement(
     API.write(WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT, parameters, onyxData);
 }
 
+type OfficeLocationMemberUpdate = {
+    /** The account ID of the workspace member being updated. */
+    accountID: number;
+    /** The member's login, used as the employeeList key and in the changelog action. */
+    email: string;
+    /** The member's display name, used in the changelog message. */
+    name: string;
+    /** The office the member was assigned to, used to restore it if the update fails. */
+    previousOfficeID: string | undefined;
+    /** The ID assigned to this member's optimistic changelog action. */
+    optimisticReportActionID: string;
+};
+
+/**
+ * Assign one or more workspace members to an office, keyed in the workspace's officeLocations, or to the company
+ * address with CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID. The single command covers both individual and bulk updates:
+ * employeeAccountIDList carries every affected accountID, and one optimistic member office location changelog action is
+ * created per member in the workspace admins room.
+ */
+function updateEmployeeOfficeLocation(
+    policy: OnyxEntry<Policy>,
+    employeeAccountIDList: number[],
+    officeID: string,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    translate: LocalizedTranslate,
+) {
+    const policyID = policy?.id;
+    if (!policyID) {
+        return;
+    }
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const updates: OfficeLocationMemberUpdate[] = [];
+    for (const accountID of employeeAccountIDList) {
+        const personalDetail = personalDetails?.[accountID];
+        const login = personalDetail?.login;
+        if (!login) {
+            continue;
+        }
+        const employee = policy?.employeeList?.[login];
+        if (!employee || employee.officeID === officeID) {
+            continue;
+        }
+        updates.push({
+            accountID,
+            email: login,
+            name: personalDetail?.displayName ?? login,
+            previousOfficeID: employee.officeID,
+            optimisticReportActionID: rand64(),
+        });
+    }
+
+    if (updates.length === 0) {
+        return;
+    }
+
+    const created = DateUtils.getDBTime();
+    const employeeListOptimisticUpdate: Record<string, Pick<PolicyEmployee, 'officeID' | 'pendingAction'>> = {};
+    const employeeListSuccessUpdate: Record<string, Pick<PolicyEmployee, 'pendingAction'>> = {};
+    const employeeListFailureUpdate: Record<string, NullishDeep<PolicyEmployee>> = {};
+    for (const update of updates) {
+        employeeListOptimisticUpdate[update.email] = {officeID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+        employeeListSuccessUpdate[update.email] = {pendingAction: null};
+        employeeListFailureUpdate[update.email] = {
+            officeID: update.previousOfficeID ?? null,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+        };
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListOptimisticUpdate},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListSuccessUpdate},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListFailureUpdate},
+        },
+    ];
+
+    const adminsRoom = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID);
+    if (adminsRoom?.reportID) {
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsRoom.reportID}` as const;
+        const optimisticReportActions: Record<string, ReportAction> = {};
+        const successReportActions: Record<string, Pick<ReportAction, 'pendingAction'>> = {};
+        const failureReportActions: Record<string, null> = {};
+        for (const update of updates) {
+            const optimisticReportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION> = {
+                reportActionID: update.optimisticReportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                created,
+                shouldShow: true,
+                automatic: false,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                originalMessage: {
+                    accountID: update.accountID,
+                    email: update.email,
+                    name: update.name,
+                    officeID,
+                    officeName: policy?.officeLocations?.[officeID]?.name ?? '',
+                    oldOfficeID: update.previousOfficeID,
+                    oldOfficeName: update.previousOfficeID ? (policy?.officeLocations?.[update.previousOfficeID]?.name ?? '') : '',
+                },
+            };
+            const text = getUpdatedEmployeeOfficeLocationMessage(translate, optimisticReportAction);
+            optimisticReportActions[update.optimisticReportActionID] = {
+                ...optimisticReportAction,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        html: `<muted-text>${Str.htmlEncode(text)}</muted-text>`,
+                        text,
+                    },
+                ],
+            };
+            successReportActions[update.optimisticReportActionID] = {pendingAction: null};
+            failureReportActions[update.optimisticReportActionID] = null;
+        }
+        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: optimisticReportActions});
+        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: successReportActions});
+        failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: failureReportActions});
+    }
+
+    const parameters: UpdateEmployeeOfficeLocationParams = {
+        policyID,
+        employeeAccountIDList: updates.map((update) => update.accountID).join(','),
+        employeeLoginList: updates.map((update) => update.email).join(','),
+        officeID,
+    };
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {optimisticData, successData, failureData};
+    API.write(WRITE_COMMANDS.UPDATE_EMPLOYEE_OFFICE_LOCATION, parameters, onyxData);
+}
+
 /**
  * Add an office to a workspace. Making it the default clears the flag on the current default office, so callers
  * pass the workspace's current `officeLocations` for the failure path to restore it. An office added without a `name`
@@ -1252,6 +1400,7 @@ export {
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
     setEmployeeWorkArrangement,
+    updateEmployeeOfficeLocation,
     addOfficeLocation,
     updateOfficeLocation,
     deleteOfficeLocation,

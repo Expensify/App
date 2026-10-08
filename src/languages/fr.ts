@@ -7235,6 +7235,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     'Le membre travaille à domicile ou se déplace entre plusieurs sites sans bureau fixe, donc les règles relatives aux trajets domicile-travail ne s’appliquent pas.',
                 futureOnlyNote: 'Les modifications s’appliquent uniquement aux calculs de kilométrage futurs. Les dépenses de kilométrage existantes ne sont pas recalculées.',
             },
+            officeLocation: 'Lieu de travail',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Modifier le lieu de travail',
+            changeWorkArrangement: 'Modifier les modalités de travail',
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -9613,6 +9617,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             setAsPrimary: ({name}: {name: string}) => `a défini le lieu de travail « ${name} » comme principal`,
             setCompanyAddressAsPrimary: 'a défini l’adresse de l’entreprise comme principale',
             removed: ({name}: {name: string}) => `a supprimé le lieu de travail « ${name} »`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `a remplacé le lieu de travail de ${displayName} par ${officeLocation} (auparavant ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `« ${name} »`,
+            companyAddress: 'l’adresse de l’entreprise',
+            primaryOffice: 'le lieu de travail principal',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `définir l’organisation de travail par défaut sur ${arrangement}`,
