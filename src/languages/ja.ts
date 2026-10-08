@@ -925,6 +925,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 : `${displayName}さんが${policyName}ワークスペースのメンバーではなくなったため、このチャットはこれ以上利用できません。`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `このチャットは、${policyName} がアクティブなワークスペースではなくなったため、これ以上利用できません。`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) =>
+            `${policyName} はアーカイブされたワークスペースのため、このチャットは現在アクティブではありません。`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `このチャットは、${policyName} がアクティブなワークスペースではなくなったため、これ以上利用できません。`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'この予約はアーカイブされています。',
@@ -2025,6 +2027,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `これ以上の対応は不要です。`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `さらに操作を行うには、レポートのワークスペースを変更してください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2387,9 +2395,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
+        talkToAHuman: '担当者に相談する',
         helpPage: {
             title: 'ヘルプとサポート',
             description: '24時間いつでもサポートします。',
+            talkToAHumanDescription: '担当者からサポートを受ける',
             helpSite: 'ヘルプサイト',
             helpSiteDescription: '記事、チュートリアルなど',
             conciergeChat: 'Concierge',
@@ -2686,6 +2696,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'デフォルトの支払い方法を設定しました！',
         deleteAccount: 'アカウントを削除',
         deleteConfirmation: 'このアカウントを本当に削除しますか？',
+        editNickname: 'ニックネームを編集',
+        nickname: 'ニックネーム',
+        editNicknameInstruction: 'ほかの口座と区別できるニックネームをこの銀行口座に付けてください。',
         deleteCard: 'カードを削除',
         deleteCardConfirmation: '未提出のカード取引（未提出レポート上の取引を含む）はすべて削除されます。このカードを本当に削除してもよろしいですか？この操作は元に戻せません。',
         error: {
@@ -4763,6 +4776,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'このワークスペースをアーカイブしてもよろしいですか？ すべてのクレジットカードのユーザーへの割り当てが解除され、未申請のカード経費は完全に削除されます。',
             archiveWithExpensifyCardsConfirmation:
                 'このワークスペースをアーカイブしてもよろしいですか？ すべての Expensify カードの利用限度額が $0 に設定され、新しい購入はすべて自動的に拒否されます。',
+            unarchive: 'アーカイブ解除',
+            unarchiveWorkspace: 'ワークスペースのアーカイブを解除',
+            unarchiveConfirmation: 'このワークスペースのアーカイブを解除してもよろしいですか？',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} を削除しますか？`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
@@ -5312,11 +5328,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         label: '最終経費の日付',
                         description: 'レポート内で最新の経費の日付。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'エクスポート日',
                         description: 'レポートが Sage Intacct にエクスポートされた日付。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: '提出日',
                         description: 'レポートが承認申請として提出された日付。',
                     },
@@ -6789,6 +6805,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             emptySubtitle: '会計システムとの同期が完了すると、ここに取引先が表示されます。',
             findVendor: '取引先を検索',
             managedInAccountingSoftware: '取引先は次の場所で管理されます：',
+            enableVendor: 'ベンダーを有効にする',
+            enableVendors: 'ベンダーを有効にする',
+            disableVendor: '取引先を無効にする',
+            disableVendors: '取引先を無効化',
+            updateFailureMessage: '仕入先の更新中にエラーが発生しました。もう一度お試しください。',
         },
         tags: {
             tagName: 'タグ名',
@@ -7196,6 +7217,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7424,6 +7447,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'Campfire データを同期しています';
                         case 'campfireSyncConnection':
                             return 'Campfire への接続を初期化しています';
+                        case 'zohoBooksSyncConnection':
+                            return 'Zoho Books への接続を初期化しています';
                         case 'campfireSyncImportData':
                             return 'データを読み込んでいます';
                         case 'campfireSyncPayments':
@@ -7480,6 +7505,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncTravelInvoicingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>継続的な照合はカードフィードごとに設定されます。設定するフィードを変更するには、フィードを選択してください。</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
@@ -7614,9 +7640,31 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             startDate: '開始日',
             endDate: '終了日',
             autoGeneratedRateTooltip: 'このレートは自動生成されています。',
+            automaticRates: '自動レート',
             autoUpdateGovernmentRate: '政府レートを自動更新',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `${countryPhrase} が新しいガイダンスを公表したときに、新しいレートを自動的に作成します。`,
-            governmentRateCountries: {US: 'アメリカ合衆国', CA: 'カナダ', GB: 'グレートブリテン', AU: 'オーストラリア', NO: 'ノルウェー', SE: 'スウェーデン', ZA: '南アフリカ'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `${countryPhrase} が新しいガイダンスを公表したときに、新しいレートを自動的に作成します。既存のレートは変更されません。`,
+            governmentRateCountries: {
+                US: 'アメリカ合衆国',
+                CA: 'カナダ',
+                GB: 'グレートブリテン',
+                AU: 'オーストラリア',
+                AT: 'オーストリア',
+                BE: 'ベルギー',
+                FI: 'フィンランド',
+                DE: 'ドイツ',
+                NL: 'オランダ',
+                PT: 'ポルトガル',
+                ES: 'スペイン',
+                NO: 'ノルウェー',
+                SE: 'スウェーデン',
+                ZA: '南アフリカ',
+            },
+            governmentRateCountryGeneric: 'お住まいの国',
+            governmentRateSourceCountry: '距離レートのソース国',
+            governmentRateCountrySelectionPrompt: '政府の距離レート自動更新機能を引き続き使用するには、今後使用する国を確認してください。',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `注意！ワークスペースの通貨を${currency}に変更すると、代わりに${countryPhrase}が公表する政府の距離レートが使用されます。続行してもよろしいですか？`,
         },
         editor: {
             descriptionInputLabel: '説明',
@@ -9658,6 +9706,18 @@ ${reportName}`,
         deleteTask: 'タスクを削除',
         deleteConfirmation: 'このタスクを削除してもよろしいですか？',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `サポートチケット、${date}：${customer} と ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `こんにちは、${supportRep}です。問題が完全に解決するまで、私が対応いたします。すでに詳細を共有いただいている場合は、それらを確認してから返信しますので、繰り返していただく必要はありません。新しい問題の場合は、どのようなことでお困りか教えてください。`,
+        checkboxTooltip: '解決されたときに、サポート担当者がこれを確認します。',
+        genericCreateSupportTicketFailureMessage: 'このサポートチケットを作成できませんでした。このエラーを閉じて、もう一度お試しください。',
+        noSupportRepAvailable: '現在対応可能なサポート担当者はいません。Concierge にメッセージを送ってサポートを受けることはできます。',
+        fallbackTitle: 'サポートチケット',
+        resolved: 'このサポートチケットは解決済みです。',
+        surveyPrompt: 'サポートの対応はいかがでしたか？',
+        reopenTicket: 'チケットを再開',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `${year}年${monthName}の明細書`,
     },
@@ -10742,6 +10802,40 @@ ${reportName}`,
             taxOutOfPolicy: '税率が無効になりました',
             taxRateChanged: '税率を変更しました',
             taxRequired: '税率が未設定です',
+        },
+        ruleViolation: {
+            fallback: '経費ポリシー違反',
+            anyExpense: '任意の経費',
+            expense: (adjectives: string) => (adjectives ? `${adjectives}経費` : '経費'),
+            perDiem: '日当',
+            notExpenseType: (expenseType: string) => `${expenseType}ではありません`,
+            billable: {enabled: '請求対象', disabled: '請求不可'},
+            reimbursable: {enabled: '精算対象', disabled: '精算対象外'},
+            withoutCategory: 'カテゴリなし',
+            fromMerchant: (merchant: string) => `${merchant} から`,
+            notFromMerchant: (merchant: string) => `${merchant} 以外`,
+            fromMerchantsContaining: (merchant: string) => `${merchant} を含む加盟店から`,
+            notFromMerchantsContaining: (merchant: string) => `${merchant} を含まない加盟店からのもの`,
+            withVendor: (vendor: string) => `仕入先 ${vendor} と`,
+            withoutVendor: (vendor: string) => `ベンダー ${vendor} なし`,
+            fromVendor: (vendor: string) => `${vendor} から`,
+            notFromVendor: (vendor: string) => `${vendor} 以外`,
+            overAmount: (amount: string) => `${amount} を超える`,
+            amountOrMore: (amount: string) => `${amount} 以上`,
+            underAmount: (amount: string) => `${amount} 未満`,
+            amountOrLess: (amount: string) => `${amount} 以下`,
+            withoutTag: 'タグなし',
+            tagged: (tag: string) => `${tag} をタグ付けしました`,
+            inCurrency: (currency: string) => `${currency}建て`,
+            notInCurrency: (currency: string) => `${currency} 以外`,
+            paidInCurrency: (currency: string) => `${currency} で支払済み`,
+            notPaidInCurrency: (currency: string) => `${currency}で未払い`,
+            attachment: '添付ファイル',
+            attribute: (attribute: string) => `${attribute} を 1 つ`,
+            withAttributes: (attributes: string) => `${attributes} 付き`,
+            withoutAttributes: (attributes: string) => `${attributes} なし`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `${merchantCode} にて`,
         },
     },
     reportViolations: {

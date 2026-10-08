@@ -934,6 +934,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Este chat não está mais ativo porque <strong>você</strong> não é mais membro do workspace ${policyName}.`
                 : `Este chat não está mais ativo porque ${displayName} não é mais membro do workspace ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Este chat não está mais ativo porque ${policyName} não é mais um espaço de trabalho ativo.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `Este chat não está mais ativo porque ${policyName} é um espaço de trabalho arquivado.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Este chat não está mais ativo porque ${policyName} não é mais um espaço de trabalho ativo.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está arquivada.',
@@ -2035,6 +2036,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Nenhuma ação adicional é necessária!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Altere o espaço de trabalho do relatório para realizar outras ações.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2397,9 +2404,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Configurações da conta',
         account: 'Conta',
         general: 'Geral',
+        talkToAHuman: 'Falar com um humano',
         helpPage: {
             title: 'Ajuda e suporte',
             description: 'Estamos aqui para ajudar, 24 horas por dia.',
+            talkToAHumanDescription: 'Receba ajuda de uma pessoa real',
             helpSite: 'Site de ajuda',
             helpSiteDescription: 'Artigos, tutoriais e mais',
             conciergeChat: 'Concierge',
@@ -2698,6 +2707,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Método de pagamento padrão definido!',
         deleteAccount: 'Excluir conta',
         deleteConfirmation: 'Tem certeza de que deseja excluir esta conta?',
+        editNickname: 'Editar apelido',
+        nickname: 'Apelido',
+        editNicknameInstruction: 'Dê um apelido para a conta bancária que a diferencie das outras.',
         deleteCard: 'Excluir cartão',
         deleteCardConfirmation:
             'Todas as transações de cartão não enviadas, incluindo as de relatórios em aberto, serão removidas. Tem certeza de que deseja excluir este cartão? Essa ação não pode ser desfeita.',
@@ -4792,6 +4804,9 @@ ${amount} para ${merchant} - ${date}`,
                 'Tem certeza de que deseja arquivar este workspace? Isso removerá a atribuição de todos os cartões de crédito dos usuários e excluirá permanentemente as despesas de cartão não enviadas.',
             archiveWithExpensifyCardsConfirmation:
                 'Tem certeza de que deseja arquivar este workspace? Isso definirá todos os limites do Expensify Card como $0 e recusará automaticamente novas tentativas de compra.',
+            unarchive: 'Desarquivar',
+            unarchiveWorkspace: 'Desarquivar espaço de trabalho',
+            unarchiveConfirmation: 'Tem certeza de que deseja desarquivar este espaço de trabalho?',
             deleteWorkspaceTitle: (workspaceName: string) => `Excluir ${workspaceName}?`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
@@ -5351,11 +5366,11 @@ ${amount} para ${merchant} - ${date}`,
                         label: 'Data da última despesa',
                         description: 'Data da despesa mais recente no relatório.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Data de exportação',
                         description: 'Data em que o relatório foi exportado para o Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Data de envio',
                         description: 'Data em que o relatório foi enviado para aprovação.',
                     },
@@ -6864,6 +6879,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             emptySubtitle: 'Os fornecedores vão aparecer aqui depois que a sincronização contábil for concluída.',
             findVendor: 'Encontrar fornecedor',
             managedInAccountingSoftware: 'Fornecedores são gerenciados no seu',
+            enableVendor: 'Ativar fornecedor',
+            enableVendors: 'Ativar fornecedores',
+            disableVendor: 'Desativar fornecedor',
+            disableVendors: 'Desativar fornecedores',
+            updateFailureMessage: 'Ocorreu um erro ao atualizar o fornecedor, tente novamente por favor',
         },
         tags: {
             tagName: 'Nome da tag',
@@ -7272,6 +7292,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7499,6 +7521,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando dados do Campfire';
                         case 'campfireSyncConnection':
                             return 'Inicializando conexão com o Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Inicializando conexão com o Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Carregando dados';
                         case 'campfireSyncPayments':
@@ -7556,6 +7580,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>A Conciliação Contínua é configurada por feed de cartão. Selecione um feed para alterar qual você está configurando.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
@@ -7694,9 +7719,32 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             startDate: 'Data de início',
             endDate: 'Data de término',
             autoGeneratedRateTooltip: 'Essa tarifa é gerada automaticamente.',
+            automaticRates: 'Tarifas automáticas',
             autoUpdateGovernmentRate: 'Atualizar automaticamente taxas governamentais',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Crie automaticamente novas taxas quando ${countryPhrase} publicar novas orientações.`,
-            governmentRateCountries: {US: 'Estados Unidos', CA: 'Canadá', GB: 'Grã-Bretanha', AU: 'Austrália', NO: 'Noruega', SE: 'Suécia', ZA: 'África do Sul'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `Crie automaticamente novas taxas quando ${countryPhrase} publicar novas orientações. Não modifica as taxas existentes.`,
+            governmentRateCountries: {
+                US: 'Estados Unidos',
+                CA: 'Canadá',
+                GB: 'Grã-Bretanha',
+                AU: 'Austrália',
+                AT: 'Áustria',
+                BE: 'Bélgica',
+                FI: 'Finlândia',
+                DE: 'Alemanha',
+                NL: 'os Países Baixos',
+                PT: 'Portugal',
+                ES: 'Espanha',
+                NO: 'Noruega',
+                SE: 'Suécia',
+                ZA: 'África do Sul',
+            },
+            governmentRateCountryGeneric: 'seu país',
+            governmentRateSourceCountry: 'País de origem das taxas de distância',
+            governmentRateCountrySelectionPrompt:
+                'Para continuar usando o recurso de atualização automática de taxas de distância governamentais, confirme qual país você deseja usar daqui em diante.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Atenção! Alterar a moeda do espaço de trabalho para ${currency} passará a usar as taxas de quilometragem governamentais que ${countryPhrase} publica. Tem certeza de que deseja continuar?`,
         },
         editor: {
             descriptionInputLabel: 'Descrição',
@@ -9763,6 +9811,18 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         deleteTask: 'Excluir tarefa',
         deleteConfirmation: 'Tem certeza de que deseja excluir esta tarefa?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Chamado de suporte, ${date}: ${customer} e ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Oi, eu sou ${supportRep} e vou trabalhar com você até que isso seja completamente resolvido. Se você já compartilhou detalhes com a gente, vou analisá-los antes de responder para que você não precise se repetir. Se este for um novo problema, me conte com o que você precisa de ajuda.`,
+        checkboxTooltip: 'Seu representante de suporte vai marcar isso quando for resolvido.',
+        genericCreateSupportTicketFailureMessage: 'Não foi possível criar este tíquete de suporte. Feche este erro e tente novamente.',
+        noSupportRepAvailable: 'Não há representantes de suporte disponíveis no momento. Você ainda pode enviar uma mensagem para a Concierge para obter ajuda.',
+        fallbackTitle: 'Chamado de suporte',
+        resolved: 'Este chamado de suporte foi resolvido.',
+        surveyPrompt: 'Como foi sua experiência com o suporte?',
+        reopenTicket: 'Reabrir chamado',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `Extrato de ${monthName} de ${year}`,
     },
@@ -10863,6 +10923,40 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             taxOutOfPolicy: 'Alíquota de imposto não é mais válida',
             taxRateChanged: 'Alíquota de imposto modificada',
             taxRequired: 'Alíquota de imposto ausente',
+        },
+        ruleViolation: {
+            fallback: 'Viola a política de despesas',
+            anyExpense: 'Qualquer despesa',
+            expense: (adjectives: string) => (adjectives ? `despesa ${adjectives}` : 'Despesa'),
+            perDiem: 'diária',
+            notExpenseType: (expenseType: string) => `não é um(a) ${expenseType}`,
+            billable: {enabled: 'Faturável', disabled: 'Não faturável'},
+            reimbursable: {enabled: 'Reembolsável', disabled: 'Não reembolsável'},
+            withoutCategory: 'sem categoria',
+            fromMerchant: (merchant: string) => `de ${merchant}`,
+            notFromMerchant: (merchant: string) => `não de ${merchant}`,
+            fromMerchantsContaining: (merchant: string) => `de estabelecimentos que contêm ${merchant}`,
+            notFromMerchantsContaining: (merchant: string) => `não de estabelecimentos que contenham ${merchant}`,
+            withVendor: (vendor: string) => `com o fornecedor ${vendor}`,
+            withoutVendor: (vendor: string) => `sem fornecedor ${vendor}`,
+            fromVendor: (vendor: string) => `de ${vendor}`,
+            notFromVendor: (vendor: string) => `não é de ${vendor}`,
+            overAmount: (amount: string) => `mais de ${amount}`,
+            amountOrMore: (amount: string) => `${amount} ou mais`,
+            underAmount: (amount: string) => `abaixo de ${amount}`,
+            amountOrLess: (amount: string) => `${amount} ou menos`,
+            withoutTag: 'sem uma tag',
+            tagged: (tag: string) => `marcado como ${tag}`,
+            inCurrency: (currency: string) => `em ${currency}`,
+            notInCurrency: (currency: string) => `não em ${currency}`,
+            paidInCurrency: (currency: string) => `pago em ${currency}`,
+            notPaidInCurrency: (currency: string) => `não pago em ${currency}`,
+            attachment: 'um anexo',
+            attribute: (attribute: string) => `um(a) ${attribute}`,
+            withAttributes: (attributes: string) => `com ${attributes}`,
+            withoutAttributes: (attributes: string) => `sem ${attributes}`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `em ${merchantCode}`,
         },
     },
     reportViolations: {

@@ -2534,6 +2534,10 @@ const ROUTES = {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
     },
+    SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME: {
+        route: 'settings/wallet/:bankAccountID/edit-nickname',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/edit-nickname` as const,
+    },
     SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW: 'settings/wallet/add-personal-card',
     SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION: {
         route: 'settings/wallet/personal-card/:cardID/fix-connection',
@@ -3104,6 +3108,24 @@ const ROUTES = {
             }
             const query = params.toString();
             return `workspaces/${policyID}/overview/currency${query ? `?${query}` : ''}` as const;
+        },
+    },
+    WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY: {
+        route: 'workspaces/:policyID/overview/currency/government-rate-country/:currencyCode',
+        getRoute: (
+            policyID: string,
+            currencyCode: string,
+            {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {},
+        ) => {
+            const params = new URLSearchParams();
+            if (isForcedToChangeCurrency) {
+                params.set('isForcedToChangeCurrency', 'true');
+            }
+            if (shouldStartExpensifyCardEnrollment) {
+                params.set('shouldStartExpensifyCardEnrollment', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/overview/currency/government-rate-country/${currencyCode}${query ? `?${query}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
@@ -3961,6 +3983,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATES_UNIT: {
         route: 'workspaces/:policyID/distance-rates/settings/unit',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/unit` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY: {
+        route: 'workspaces/:policyID/distance-rates/settings/government-rate-country',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/government-rate-country` as const,
     },
     WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS: {
         route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions',

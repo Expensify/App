@@ -12,6 +12,7 @@ import type {
     AddCommentOrAttachmentParams,
     AddWorkspaceRoomParams,
     CompleteGuidedSetupParams,
+    CreateSupportTicketParams,
     DeleteAppReportParams,
     DeleteCommentParams,
     ExpandURLPreviewParams,
@@ -4870,6 +4871,36 @@ function createNewReport(
     return {...optimisticReportData, reportPreviewReportActionID};
 }
 
+const NO_SUPPORT_REP_AVAILABLE_MESSAGE = 'No support rep is available to take this ticket.';
+
+function isNoSupportRepAvailableResponse(response: {jsonCode?: number | string; message?: string} | void): boolean {
+    return response?.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message === NO_SUPPORT_REP_AVAILABLE_MESSAGE;
+}
+
+function openSupportTicket(resolvedSupportTicketReportID?: string) {
+    const newSupportTicketReportID = resolvedSupportTicketReportID ? undefined : generateReportID();
+    const parameters: CreateSupportTicketParams = resolvedSupportTicketReportID ? {resolvedSupportTicketReportID, idempotencyKey: Str.guid()} : {newSupportTicketReportID};
+
+    if (!resolvedSupportTicketReportID) {
+        Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
+    }
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- reopening must wait for the server-selected report ID before navigating.
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then((response) => {
+        if (resolvedSupportTicketReportID && response?.reportID) {
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
+        }
+        return response;
+    });
+}
+
+function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${supportTicketReportID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${supportTicketReportID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${supportTicketReportID}`, null);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: null});
+}
+
 /**
  * Removes the report after failure to create. Also removes it's related report actions and next step from Onyx.
  */
@@ -9037,6 +9068,9 @@ export {
     completeOnboarding,
     extractRHPVariantFromResponse,
     createNewReport,
+    openSupportTicket,
+    isNoSupportRepAvailableResponse,
+    dismissFailedSupportTicket,
     clearAllReportActionDrafts,
     deleteReportComment,
     deleteReportField,

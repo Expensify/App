@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteExpensifyCardRule} from '@libs/actions/Card';
 import {deletePolicyCategoryTaxes, openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
-import {deleteMerchantRule} from '@libs/actions/Policy/Rules';
+import {deleteRule} from '@libs/actions/Policy/Rules';
 import {getCategoryNameFromTaxRuleKey, isCategoryTaxRuleKey} from '@libs/CategoryTaxRulesUtils';
 import {deleteFlagForReviewRule, getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
 import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/MerchantTypeRulesUtils';
@@ -266,7 +266,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
                 continue;
             }
 
-            deleteMerchantRule(policyID, ruleID, rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]);
+            deleteRule(ruleID, rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]);
         }
 
         if (selectedCategoryNames.length > 0) {
