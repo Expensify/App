@@ -183,6 +183,8 @@ jest.mock('@hooks/useReportActionsScroll', () =>
         initialScrollIndex: undefined,
         initialScrollIndexParams: undefined,
         onLoad: jest.fn(),
+        onItemSizeChanged: jest.fn(),
+        stopLinkedMessagePositioning: jest.fn(),
     })),
 );
 jest.mock('@pages/inbox/report/FloatingMessageCounter', () => jest.fn(() => null));
@@ -584,6 +586,33 @@ describe('ReportActionsList (body)', () => {
         } finally {
             requestAnimationFrameSpy.mockRestore();
         }
+    });
+
+    it('keeps linked positioning active through automatic scroll metrics until the reader drags', () => {
+        // Given a measured linked target can cause automatic scroll compensation before its preview settles.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as ReturnType<typeof useReportActionsScroll>;
+        const stopLinkedPositioning = scrollHookResult.stopLinkedMessagePositioning;
+        const listProps = getCapturedListProps();
+
+        // When layout compensation moves the list without a user gesture.
+        act(() => {
+            for (const offset of [200, 100]) {
+                listProps?.onScroll?.({
+                    nativeEvent: {
+                        contentOffset: {x: 0, y: offset},
+                        contentSize: {height: 2000, width: 300},
+                        layoutMeasurement: {height: 100, width: 300},
+                    },
+                });
+            }
+        });
+
+        // Then later preview measurements can still correct the target, until the reader takes over.
+        expect(stopLinkedPositioning).not.toHaveBeenCalled();
+        act(() => listProps?.onScrollBeginDrag?.());
+        expect(stopLinkedPositioning).toHaveBeenCalledTimes(1);
     });
 
     it('does not duplicate the composer spacing inside the chronological list', () => {

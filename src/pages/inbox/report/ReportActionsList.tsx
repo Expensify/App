@@ -439,7 +439,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         initialScrollIndex,
         initialScrollIndexParams,
         onLoad,
+        onItemSizeChanged,
+        stopLinkedMessagePositioning,
     } = useReportActionsScroll({
+        listID,
         reportID,
         conciergeChat,
         report,
@@ -476,6 +479,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         }
         cancelAnimationFrame(endCorrectionFrameRef.current);
         endCorrectionFrameRef.current = undefined;
+    };
+
+    const handleScrollBeginDrag = () => {
+        stopLinkedMessagePositioning();
+        stopFollowingEnd();
     };
 
     const scheduleEndCorrection = () => {
@@ -764,7 +772,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     keyboardShouldPersistTaps="handled"
                     onLayout={recordTimeToMeasureItemLayout}
                     onScroll={trackScrollPositionAndThreshold}
-                    onScrollBeginDrag={stopFollowingEnd}
+                    onScrollBeginDrag={handleScrollBeginDrag}
                     onStartReached={loadOlderChatsOnStartReached}
                     onStartReachedThreshold={PAGINATION_THRESHOLD}
                     onViewableItemsChanged={updateVisibleItemOverflow}
@@ -780,6 +788,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     maintainScrollAtEndThreshold={MAINTAIN_SCROLL_AT_END_THRESHOLD}
                     maintainVisibleContentPosition
                     onReady={handleListReady}
+                    onItemSizeChanged={onItemSizeChanged}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                         scheduleEndCorrection();

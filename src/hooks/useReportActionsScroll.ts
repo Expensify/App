@@ -31,12 +31,16 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useState} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLinkedReportActionScroll from './useLinkedReportActionScroll';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportScrollManager from './useReportScrollManager';
 
 type UseReportActionsScrollParams = {
+    /** Identifies the mounted list, including linked-message and hydration remounts. */
+    listID: string;
+
     /** The Concierge chat report */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
@@ -117,9 +121,14 @@ type UseReportActionsScrollResult = {
 
     /** onLoad handler that enables pill tracking after initial positioning settles */
     onLoad: () => void;
+
+    onItemSizeChanged: (info: {index: number; size: number; previous: number}) => void;
+
+    stopLinkedMessagePositioning: () => void;
 };
 
 function useReportActionsScroll({
+    listID,
     conciergeChat,
     reportID,
     report,
@@ -292,7 +301,38 @@ function useReportActionsScroll({
         return () => handle?.cancel();
     }, [lastAction]);
 
+    // Decide where the list should be positioned on mount.
+    // 1. If we're opening a linked or unread message, find that action in the chronological list.
+    // 2. Otherwise, aligned-to-top reports start at the first action.
+    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
+    let initialScrollIndex: number | undefined;
+    let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
+    if (targetIndex >= 0) {
+        initialScrollIndex = targetIndex;
+        // A linked final action can be taller than the viewport, so show its highlighted end.
+        // Unread actions still start at the New marker. Omit viewOffset for bottom alignment so
+        // LegendList includes the footer (for example, Concierge's thinking indicator).
+        initialScrollIndexParams =
+            initialScrollKey === linkedReportActionID && targetIndex === renderedVisibleReportActions.length - 1
+                ? {viewPosition: 1}
+                : {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
+    } else if (shouldFocusToTopOnMount) {
+        initialScrollIndex = 0;
+    }
+
+    const {
+        onReady,
+        onItemSizeChanged,
+        stopPositioning: stopLinkedMessagePositioning,
+    } = useLinkedReportActionScroll({
+        listID,
+        linkedReportActionID: initialScrollKey === linkedReportActionID ? linkedReportActionID : undefined,
+        targetIndex,
+        isLastAction: targetIndex === renderedVisibleReportActions.length - 1,
+    });
+
     const scrollToBottomAndMarkReportAsRead = () => {
+        stopLinkedMessagePositioning();
         setIsFloatingMessageCounterVisible(false);
 
         if (unreadMarkerReportActionIndex >= 0) {
@@ -327,41 +367,21 @@ function useReportActionsScroll({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
+        stopLinkedMessagePositioning();
         // `animated` is explicit because native defaults to an instant jump, which would teleport the list and lose the user's place.
         reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {animated: true, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
     };
 
-    // Data is ready when LegendList finishes its first render.
     const onLoad = () => {
+        onReady();
         if (!shouldDisablePillTracking) {
             return;
         }
-
-        // Wait one frame so the initial positioning can settle, then disable it.
         requestAnimationFrame(() => {
             setShouldDisablePillTracking(false);
             updatePillVisibility();
         });
     };
-
-    // Decide where the list should be positioned on mount.
-    // 1. If we're opening a linked or unread message, find that action in the chronological list.
-    // 2. Otherwise, aligned-to-top reports start at the first action.
-    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
-    let initialScrollIndex: number | undefined;
-    let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
-    if (targetIndex >= 0) {
-        initialScrollIndex = targetIndex;
-        // A linked final action can be taller than the viewport, so show its highlighted end.
-        // Unread actions still start at the New marker. Omit viewOffset for bottom alignment so
-        // LegendList includes the footer (for example, Concierge's thinking indicator).
-        initialScrollIndexParams =
-            initialScrollKey === linkedReportActionID && targetIndex === renderedVisibleReportActions.length - 1
-                ? {viewPosition: 1}
-                : {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
-    } else if (shouldFocusToTopOnMount) {
-        initialScrollIndex = 0;
-    }
 
     return {
         trackVerticalScrolling,
@@ -374,6 +394,8 @@ function useReportActionsScroll({
         initialScrollIndex,
         initialScrollIndexParams,
         onLoad,
+        onItemSizeChanged,
+        stopLinkedMessagePositioning,
     };
 }
 

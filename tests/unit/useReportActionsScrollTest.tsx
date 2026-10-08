@@ -82,7 +82,15 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
     default: {
         runAfterTransitions: jest.fn(({callback}: {callback: () => void}) => {
             mockTransitionCallbacks.push(callback);
-            return {cancel: jest.fn()};
+            return {
+                cancel: jest.fn(() => {
+                    const index = mockTransitionCallbacks.indexOf(callback);
+                    if (index < 0) {
+                        return;
+                    }
+                    mockTransitionCallbacks.splice(index, 1);
+                }),
+            };
         }),
     },
 }));
@@ -115,11 +123,13 @@ jest.mock('@userActions/Report', () => ({
 
 // --- react-navigation route ---
 let mockRouteParams: {reportActionID?: string; backTo?: string; shouldScrollToLatest?: string} = {};
+let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
         useRoute: () => ({params: mockRouteParams}),
+        useIsFocused: () => mockIsFocused,
     };
 });
 
@@ -171,6 +181,7 @@ function makeAction(reportActionID: string, overrides: Partial<ReportAction> = {
 
 function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
     return {
+        listID: REPORT_ID,
         reportID: REPORT_ID,
         conciergeChat: undefined,
         report: createMockReport({reportID: REPORT_ID}),
@@ -209,7 +220,7 @@ async function renderScroll(overrides: Partial<ScrollParams> = {}) {
 
 function flushTransitions() {
     act(() => {
-        for (const callback of mockTransitionCallbacks) {
+        for (const callback of mockTransitionCallbacks.splice(0)) {
             callback();
         }
     });
@@ -226,6 +237,7 @@ describe('useReportActionsScroll', () => {
         await waitForBatchedUpdates();
         mockTransitionCallbacks.length = 0;
         mockRouteParams = {};
+        mockIsFocused = true;
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
         mockIsActionBadgeAboveViewport = false;
@@ -357,6 +369,170 @@ describe('useReportActionsScroll', () => {
 
             // Then it leaves unrelated route parameters alone.
             expect(mockSetParams).not.toHaveBeenCalledWith({shouldScrollToLatest: undefined});
+        });
+    });
+
+    describe('linked message positioning', () => {
+        it('repositions the linked parent message when returning from a thread', async () => {
+            // Given the linked parent report stays mounted while its thread is open.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const actions = [makeAction(LINKED_ACTION_ID), makeAction('999')];
+            const params = buildParams({sortedVisibleReportActions: actions.toReversed(), renderedVisibleReportActions: actions});
+            const {result, rerender} = await renderScroll(params);
+            act(() => result.current.onLoad());
+            flushTransitions();
+            mockIsFocused = false;
+            rerender(params);
+            mockScrollToIndex.mockClear();
+
+            // When the parent link returns to that same report and the navigation transition finishes.
+            mockIsFocused = true;
+            rerender(params);
+            flushTransitions();
+
+            // Then the linked parent is positioned again instead of keeping the thread's stale offset.
+            expect(mockScrollToIndex).toHaveBeenCalledWith(0, {
+                animated: false,
+                viewPosition: 0,
+                viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET,
+            });
+        });
+
+        it('repositions a linked PDF after its preview or preceding rows change height', async () => {
+            // Given the linked PDF is initially positioned using estimated row heights.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const actions = [makeAction('123'), makeAction(LINKED_ACTION_ID), makeAction('999')];
+            const {result} = await renderScroll(buildParams({renderedVisibleReportActions: actions}));
+            act(() => result.current.onLoad());
+            flushTransitions();
+            mockScrollToIndex.mockClear();
+
+            // When the preview above it finishes measuring, then the PDF itself expands.
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 80, size: 350}));
+            flushTransitions();
+            expect(mockScrollToIndex).toHaveBeenCalledWith(1, {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            mockScrollToIndex.mockClear();
+            act(() => result.current.onItemSizeChanged({index: 1, previous: 80, size: 350}));
+            flushTransitions();
+
+            // Then the measured target is positioned again, keeping its highlight in view.
+            expect(mockScrollToIndex).toHaveBeenCalledWith(1, {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        });
+
+        it('lets the reader scroll away before a pending preview correction runs', async () => {
+            // Given a preview resize has scheduled a linked-message correction.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const {result, rerender} = await renderScroll(buildParams({renderedVisibleReportActions: [makeAction(LINKED_ACTION_ID)]}));
+            act(() => result.current.onLoad());
+            flushTransitions();
+            mockScrollToIndex.mockClear();
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 80, size: 350}));
+
+            // When the reader takes over scrolling before the navigation/layout callback runs.
+            act(() => result.current.stopLinkedMessagePositioning());
+            flushTransitions();
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 350, size: 500}));
+            rerender(buildParams({renderedVisibleReportActions: [makeAction(LINKED_ACTION_ID)]}));
+            flushTransitions();
+
+            // Then later measurements and ordinary rerenders do not reclaim the linked position.
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+        });
+
+        it.each(['latest', 'badge'] as const)('stops linked corrections after explicitly jumping to the %s target', async (destination) => {
+            // Given a linked message still has late preview measurements to process.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const {result} = await renderScroll(buildParams({renderedVisibleReportActions: [makeAction(LINKED_ACTION_ID), makeAction('999')], actionBadgeTargetIndex: 1}));
+            act(() => result.current.onLoad());
+            flushTransitions();
+
+            // When the reader selects another scroll destination.
+            act(() => {
+                if (destination === 'latest') {
+                    result.current.scrollToBottomAndMarkReportAsRead();
+                    return;
+                }
+                result.current.scrollToActionBadgeTarget();
+            });
+            mockScrollToIndex.mockClear();
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 80, size: 350}));
+            flushTransitions();
+
+            // Then a later measurement does not pull the list back to the old linked message.
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+        });
+
+        it('does not reposition for measurements below the linked message', async () => {
+            // Given the linked message is already positioned.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const {result} = await renderScroll(buildParams({renderedVisibleReportActions: [makeAction(LINKED_ACTION_ID), makeAction('999')]}));
+            act(() => result.current.onLoad());
+            flushTransitions();
+            mockScrollToIndex.mockClear();
+
+            // When only a later message changes height.
+            act(() => result.current.onItemSizeChanged({index: 1, previous: 80, size: 350}));
+            flushTransitions();
+
+            // Then the reader's viewport is left in place.
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+        });
+
+        it('leaves following a new reply to the list after positioning a linked final action', async () => {
+            // Given the linked final action has been positioned at the bottom.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const linkedAction = makeAction(LINKED_ACTION_ID);
+            const {result, rerender} = await renderScroll(buildParams({renderedVisibleReportActions: [linkedAction]}));
+            act(() => result.current.onLoad());
+            flushTransitions();
+            expect(mockScrollToIndex).toHaveBeenCalledWith(0, {animated: false, viewPosition: 1});
+            mockScrollToIndex.mockClear();
+
+            // When a new reply arrives while normal end-following is active.
+            rerender(buildParams({renderedVisibleReportActions: [linkedAction, makeAction('999')]}));
+            flushTransitions();
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 80, size: 350}));
+            flushTransitions();
+
+            // Then the linked action does not reclaim the viewport from the new reply.
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+        });
+
+        it('cancels pending positioning when the report loses focus', async () => {
+            // Given a linked action has a correction waiting for navigation to finish.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const params = buildParams({renderedVisibleReportActions: [makeAction(LINKED_ACTION_ID)]});
+            const {result, rerender} = await renderScroll(params);
+            act(() => result.current.onLoad());
+
+            // When another report takes focus before the callback runs.
+            mockIsFocused = false;
+            rerender(params);
+            flushTransitions();
+
+            // Then the background list is not scrolled by a stale navigation callback.
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+        });
+
+        it('waits for the replacement list to be ready after hydration', async () => {
+            // Given the cached list is ready and its linked message has been positioned.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const params = buildParams({renderedVisibleReportActions: [makeAction(LINKED_ACTION_ID)]});
+            const {result, rerender} = await renderScroll(params);
+            act(() => result.current.onLoad());
+            flushTransitions();
+            mockScrollToIndex.mockClear();
+
+            // When hydration replaces that list with a newly mounted instance.
+            rerender({...params, listID: `${REPORT_ID}:hydrated`});
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 80, size: 350}));
+            flushTransitions();
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+            act(() => result.current.onLoad());
+            flushTransitions();
+
+            // Then the correction uses the replacement list only after it is ready.
+            expect(mockScrollToIndex).toHaveBeenCalledWith(0, {animated: false, viewPosition: 1});
         });
     });
 

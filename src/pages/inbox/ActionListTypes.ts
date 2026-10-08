@@ -22,6 +22,7 @@ type ActionListRef = {
     scrollToOffset: (params: ScrollToOffsetParams) => void;
     scrollToEnd: (params?: ScrollToEndParams) => void;
     getNativeScrollRef?: () => unknown;
+    getScrollableNode?: () => unknown;
 };
 
 /** Ref to the underlying list instance attached via `ref={}`. */
