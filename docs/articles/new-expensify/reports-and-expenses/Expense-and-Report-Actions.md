@@ -148,7 +148,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Duplicate report** | Any report owned by submitter | Submitter | Creates a copy of the report |
 | **Download report** | Any report | All roles | Downloads a PDF copy |
 | **Print** | Any report except Draft | All roles | Opens print view |
-| **Reject** | Submitted reports | Approver, Workspace Admin | Sends report back for changes |
+| **Reject** | Submitted reports | Approver, Admin | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
 | **View details** | Any report | All roles | Opens report details |
 | **Cancel payment** | Before payment processing | Payer, or a Payments admin on a workspace that tracks payments made elsewhere | Cancels a pending payment |
