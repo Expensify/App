@@ -86,7 +86,7 @@ Yes. Once a workspace admin manually assigns a vendor to an expense, Expensify p
 
 ## Why don't I see any vendors to choose from?
 
-The vendor selector shows **No vendors found** when your Intuit Enterprise Suite vendor list is empty. Add the vendors in Intuit Enterprise Suite, then sync the connection again.
+If your Intuit Enterprise Suite vendor list is empty, you won't see any vendors to choose from. Add vendors in Intuit Enterprise Suite, then sync the connection again.
 
 ## How do I know why Expensify assigned a vendor automatically?
 
