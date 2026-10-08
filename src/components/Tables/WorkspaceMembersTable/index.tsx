@@ -137,6 +137,8 @@ export default function WorkspaceMembersTable({
                 getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
                 // A role is one of a short, known set of labels, so the column always shows them in full.
                 shouldFitContent: true,
+                // Padding and border sit inside the track. A role is pinned to its text, so that chrome has to be measured or the label clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
