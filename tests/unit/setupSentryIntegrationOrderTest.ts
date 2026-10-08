@@ -37,8 +37,11 @@ describe('setupSentry integration order', () => {
     });
 
     it.each(['ClassCallCheckNoiseFilter', 'GoogleTranslateRecursionNoiseFilter'])('registers thirdPartyErrorFilter before %s, whose predicate reads its tag', (filterName) => {
+        // Given a noise filter that reads the `third_party_code` tag
+        // When setupSentry builds its integration list
         const names = initIntegrationNames();
 
+        // Then the tagger runs first, or the filter would see untagged events and go inert
         expect(names).toContain('ThirdPartyErrorsFilter');
         expect(names).toContain(filterName);
         expect(names.indexOf('ThirdPartyErrorsFilter')).toBeLessThan(names.indexOf(filterName));

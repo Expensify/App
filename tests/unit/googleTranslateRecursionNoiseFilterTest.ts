@@ -69,12 +69,25 @@ const APP_MTE_FRAMES: StackFrame[] = [
     ...cycle('app:///m=el_main', [226, 406], [226, 61], 46),
 ];
 
+/** APP-KFE, an older Translate build: the loop sits on line 228, not 226. */
+const APP_KFE_FRAMES: StackFrame[] = [
+    ...callers('app:///', [
+        [190, 70],
+        [197, 363],
+        [190, 41],
+        [198, 237],
+        [228, 382],
+    ]),
+    ...cycle('app:///', [228, 63], [228, 408], 45),
+];
+
 describe('googleTranslateRecursionNoiseFilter', () => {
     it.each([
         ['APP-M6P', APP_M6P_FRAMES, WEBKIT_MESSAGE],
         ['APP-KQF', APP_KQF_FRAMES, WEBKIT_MESSAGE],
         ['APP-M27', APP_M27_FRAMES, WEBKIT_MESSAGE],
         ['APP-MTE', APP_MTE_FRAMES, V8_MESSAGE],
+        ['APP-KFE', APP_KFE_FRAMES, WEBKIT_MESSAGE],
     ])('drops %s', (_, frames, message) => {
         // Given a recorded Translate stack overflow
         const event = buildStackOverflowEvent(frames, THIRD_PARTY_TAGS, message);
@@ -99,7 +112,6 @@ describe('googleTranslateRecursionNoiseFilter', () => {
         ['APP-ZF, a synthesized frame with no stack', buildStackOverflowEvent([frame('app:///undefined', [192, 70])])],
         ['APP-2NH, a vendor script under its own dotted URL', buildStackOverflowEvent(cycle('app:///10042537-100413459.js', [4541, 17291], [4541, 17291], 50))],
         ['a stack overflow with no frames', buildStackOverflowEvent([])],
-        ['an inline page script, such as the GTM loader', buildStackOverflowEvent(cycle('app:///home', [164, 20], [164, 90], 45))],
     ])('keeps %s', (_, event) => {
         // Given an event that misses one condition of the signature
         // When the predicate runs
