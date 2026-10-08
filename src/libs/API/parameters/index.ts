@@ -272,6 +272,7 @@ export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEve
 export type {default as TransferWalletBalanceParams} from './TransferWalletBalanceParams';
 export type {default as DeleteWorkspaceParams} from './DeleteWorkspaceParams';
 export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
+export type {default as UnarchivePolicyParams} from './UnarchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
 export type {default as CreateJoinWorkspaceOnboardingContentParams} from './CreateJoinWorkspaceOnboardingContentParams';

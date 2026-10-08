@@ -4610,6 +4610,7 @@ const CONST = {
         THREE_DOT_MENU_ACTION: {
             LEAVE: 'leave',
             TRANSFER_OWNERSHIP: 'transferOwnership',
+            UNARCHIVE: 'unarchive',
         },
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
