@@ -10171,7 +10171,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topMerchants: 'Najważniejsi sprzedawcy',
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
-        mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
+        mergeReports: {
+            title: 'Połącz raporty',
+            description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.',
+            exportedWarning:
+                'Co najmniej jeden z wybranych raportów został już wyeksportowany do integracji księgowej. Połączenie ich może spowodować zduplikowanie danych, jeśli zostaną wyeksportowane ponownie.',
+            reportFieldsMismatch: 'Te raporty mają różne wartości pól raportu. Żeby je scalić, najpierw ustaw identyczne pola raportu w każdym raporcie.',
+        },
         periodSoFar: ({period}: {period: string}) => `${period} do tej pory`,
         weekOf: ({date}: {date: string}) => `Tydzień od ${date}`,
         saveEdits: {

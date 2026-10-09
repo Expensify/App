@@ -10049,7 +10049,12 @@ ${reportName}`,
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
-        mergeReports: {title: 'Combinar informes', description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.'},
+        mergeReports: {
+            title: 'Combinar informes',
+            description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.',
+            exportedWarning: 'Uno o más informes seleccionados ya se han exportado a una integración contable. Combinarlos puede causar datos duplicados si se vuelven a exportar.',
+            reportFieldsMismatch: 'Estos informes tienen diferentes valores en los campos del informe. Para combinarlos, haz que los campos del informe coincidan en cada informe primero.',
+        },
         periodSoFar: ({period}: {period: string}) => `${period} hasta ahora`,
         weekOf: ({date}: {date: string}) => `Semana del ${date}`,
         saveEdits: {
