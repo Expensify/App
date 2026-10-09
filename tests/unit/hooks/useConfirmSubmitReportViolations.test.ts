@@ -4,11 +4,9 @@ import SubmitViolationsList from '@components/SubmitViolationsList';
 
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 
-import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type * as MockUseConfirmModalUtil from '../../utils/mockUseConfirmModal';
 
@@ -37,10 +35,6 @@ jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({convertToDisplayString: (amount: number, currency: string) => `${amount} ${currency}`}),
 }));
 
-jest.mock('@userActions/Transaction', () => ({
-    markPendingRTERTransactionsAsCash: jest.fn(),
-}));
-
 // Run TransitionTracker callbacks immediately, there is no real modal transition to wait for in a unit test.
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     __esModule: true,
@@ -54,14 +48,12 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
     },
 }));
 
-// Every test passes transactions/violationsCollection/reportActions explicitly (the hook's override path), so the
-// internal useTransactionsAndViolationsForReport call never needs real data - just a safe default so its
+// Every test passes transactions/violationsCollection explicitly (the hook's override path), so the internal
+// useTransactionsAndViolationsForReport call never needs real data - just a safe default so its
 // useAllReportsTransactionsAndViolations() call (which throws outside a real OnyxListItemProvider) doesn't blow up.
 jest.mock('@components/OnyxListItemProvider', () => ({
     useAllReportsTransactionsAndViolations: jest.fn(() => undefined),
 }));
-
-const mockMarkPendingRTERTransactionsAsCash = jest.mocked(markPendingRTERTransactionsAsCash);
 
 function violationsKey(transactionID: string) {
     return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
@@ -72,7 +64,6 @@ function violation(name: TransactionViolation['name'], data?: TransactionViolati
 }
 
 const transaction1 = createMock<Transaction>({transactionID: '1'});
-const reportActions: ReportAction[] = [];
 // A reportID with no corresponding report in Onyx, used by every test below that doesn't need real report data.
 const NO_REPORT_ID = '1';
 
@@ -86,13 +77,12 @@ function getPromptViolations(): string[] {
 describe('useConfirmSubmitReportViolations', () => {
     beforeEach(() => {
         resetMockConfirmModal();
-        mockMarkPendingRTERTransactionsAsCash.mockClear();
     });
 
     it('calls onProceed immediately with no flag when there are no violations', () => {
         // Given a report with no transaction violations at all
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection: {}, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection: {}}),
         );
         const onProceed = jest.fn();
 
@@ -108,7 +98,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
         );
         const onProceed = jest.fn();
 
@@ -122,11 +112,11 @@ describe('useConfirmSubmitReportViolations', () => {
         expect(onProceed).not.toHaveBeenCalled();
     });
 
-    it('does not call onProceed or mark-as-cash when the user cancels a rejected-expense violation', async () => {
+    it('does not call onProceed when the user cancels a rejected-expense violation', async () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
         );
         const onProceed = jest.fn();
 
@@ -139,18 +129,18 @@ describe('useConfirmSubmitReportViolations', () => {
         await Promise.resolve();
         await Promise.resolve();
 
-        // Then the report must stay a draft: neither the submit callback nor the cash-marking side effect may run,
-        // so Cancel really means "make no changes" as promised by the modal copy
+        // Then the report must stay a draft: Cancel must mean "make no changes" as promised by the modal copy, with
+        // no exception for any violation type
         expect(onProceed).not.toHaveBeenCalled();
-        expect(mockMarkPendingRTERTransactionsAsCash).not.toHaveBeenCalled();
     });
 
-    it('still proceeds without marking as cash when the user cancels and a pending card match is the only violation', async () => {
-        // Given a report whose only violation is a pending card match - on main this never blocked Submit, it only
-        // asked whether to mark the match as cash first, and either answer still submitted
+    it('does not call onProceed when the user cancels and a pending card match is the only violation', async () => {
+        // Given a report whose only violation is a pending card match. Cancel always just returns the user to the
+        // report so they can resolve it manually (e.g. via the separate explicit "Mark as cash" action) - there is
+        // no exception that lets a pending-card-match-only summary proceed on cancel
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
         );
         const onProceed = jest.fn();
 
@@ -161,18 +151,15 @@ describe('useConfirmSubmitReportViolations', () => {
         await Promise.resolve();
         await Promise.resolve();
 
-        // Then submission must still proceed (without the acknowledged flag, since nothing was resolved), and the
-        // match must stay pending rather than being marked as cash - otherwise a card transaction that later tries
-        // to match this expense could no longer merge into it
-        expect(onProceed).toHaveBeenCalledWith(undefined);
-        expect(mockMarkPendingRTERTransactionsAsCash).not.toHaveBeenCalled();
+        // Then submission must not proceed
+        expect(onProceed).not.toHaveBeenCalled();
     });
 
-    it('marks pending RTER transactions as cash and calls onProceed(true) when the user confirms', async () => {
-        // Given a report with a pending RTER card-match violation
+    it('calls onProceed(false) without resolving when the user confirms and a pending card match is the only violation', async () => {
+        // Given a report whose only violation is a pending card match
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
         );
         const onProceed = jest.fn();
 
@@ -180,75 +167,60 @@ describe('useConfirmSubmitReportViolations', () => {
         result.current(onProceed);
         resolveShowConfirmModal({action: MockModalActions.CONFIRM});
 
-        // Then the pending card-match must be resolved as cash before submitting, and the caller must be told to set
-        // shouldResolveAcknowledgedViolations so the backend knows this violation was explicitly acknowledged. The
-        // confirm-modal promise resolves through an extra microtask hop (showConfirmModalAfterMoreMenuDismiss's own
-        // internal .then), so wait for it rather than assuming a single `await Promise.resolve()` tick is enough.
-        await waitFor(() => {
-            expect(onProceed).toHaveBeenCalledWith(true);
-        });
-        expect(mockMarkPendingRTERTransactionsAsCash).toHaveBeenCalledWith([transaction1], violationsCollection, reportActions);
-    });
-
-    it('marks as cash using rawViolationsCollection instead of the (possibly display-filtered) violationsCollection', async () => {
-        // Given a caller that passes a display-filtered violationsCollection for the summary/modal (e.g. with a
-        // dismissed or role-hidden violation already removed), plus the real, unfiltered rawViolationsCollection -
-        // a caller that already subscribes to a shared context and has both readily available
-        const filteredViolationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
-        const rawViolationsCollection = {
-            [violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true}), violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)],
-        };
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({
-                reportID: NO_REPORT_ID,
-                report: undefined,
-                policy: undefined,
-                transactions: [transaction1],
-                violationsCollection: filteredViolationsCollection,
-                rawViolationsCollection,
-                reportActions,
-            }),
-        );
-        const onProceed = jest.fn();
-
-        // When the user confirms "Submit anyway"
-        result.current(onProceed);
-        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
-
-        // Then mark-as-cash must write back the raw collection, not the filtered one - writing the filtered one would
-        // silently drop the over-category-limit violation (and anything else filtered out for display) from Onyx
-        await waitFor(() => {
-            expect(onProceed).toHaveBeenCalledWith(true);
-        });
-        expect(mockMarkPendingRTERTransactionsAsCash).toHaveBeenCalledWith([transaction1], rawViolationsCollection, reportActions);
-    });
-
-    it('calls onProceed(false) without marking as cash when the only violation is an "other" violation', async () => {
-        // Given a report whose only violation is an "other" one (e.g. over category limit), which is informational only
-        // and has nothing for the backend to resolve, unlike rejected-expense or pending-card-match
-        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]};
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
-        );
-        const onProceed = jest.fn();
-
-        // When the user confirms "Submit anyway"
-        result.current(onProceed);
-        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
-
-        // Then shouldResolveAcknowledgedViolations must stay false even though the user confirmed the modal, and cash-marking
-        // must not run, since there's no rejected-expense or pending-card-match violation for the backend to resolve
+        // Then submission must proceed, but shouldResolveAcknowledgedViolations must stay false: only the
+        // rejected-expense violation is ever resolved this way, so the pending card match must stay on the expense
+        // for the approver to review. The confirm-modal promise resolves through an extra microtask hop
+        // (showConfirmModalAfterMoreMenuDismiss's own internal .then), so wait for it rather than assuming a single
+        // `await Promise.resolve()` tick is enough.
         await waitFor(() => {
             expect(onProceed).toHaveBeenCalledWith(false);
         });
-        expect(mockMarkPendingRTERTransactionsAsCash).not.toHaveBeenCalled();
+    });
+
+    it('calls onProceed(true) when the user confirms a rejected-expense violation', async () => {
+        // Given a report whose only transaction has a rejected-expense violation
+        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
+        const {result} = renderHook(() =>
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
+        );
+        const onProceed = jest.fn();
+
+        // When the user confirms "Submit anyway"
+        result.current(onProceed);
+        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+
+        // Then shouldResolveAcknowledgedViolations must be true: acknowledging the modal is enough to confirm the
+        // submitter saw the rejection, so the backend can resolve it
+        await waitFor(() => {
+            expect(onProceed).toHaveBeenCalledWith(true);
+        });
+    });
+
+    it('calls onProceed(false) when the only violation is an "other" violation', async () => {
+        // Given a report whose only violation is an "other" one (e.g. over category limit), which is informational only
+        // and has nothing for the backend to resolve, unlike a rejected expense
+        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]};
+        const {result} = renderHook(() =>
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
+        );
+        const onProceed = jest.fn();
+
+        // When the user confirms "Submit anyway"
+        result.current(onProceed);
+        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+
+        // Then shouldResolveAcknowledgedViolations must stay false even though the user confirmed the modal, since
+        // there's no rejected-expense violation for the backend to resolve
+        await waitFor(() => {
+            expect(onProceed).toHaveBeenCalledWith(false);
+        });
     });
 
     it('renders the violations with SubmitViolationsList (dot icon, not a unicode bullet) and keeps the danger button variant', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection, reportActions}),
+            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
         );
         const onProceed = jest.fn();
 
@@ -278,7 +250,6 @@ describe('useConfirmSubmitReportViolations', () => {
                 policy: undefined,
                 transactions: [transaction1],
                 violationsCollection: {},
-                reportActions,
             }),
         );
         const onProceed = jest.fn();

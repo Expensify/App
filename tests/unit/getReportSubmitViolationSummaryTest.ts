@@ -74,8 +74,8 @@ describe('getReportSubmitViolationSummary', () => {
         const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]}, undefined, undefined, '', 0);
 
         // When the summary is built
-        // Then it must land in the dedicated "pending card match" bucket, since that's the one the caller uses to
-        // decide whether to call markPendingRTERTransactionsAsCash on submit
+        // Then it must land in the dedicated "pending card match" bucket, since that's the one the modal uses to
+        // show the pending-card-match bullet and gate the shouldResolveAcknowledgedViolations flag
         expect(summary.hasPendingCardMatch).toBe(true);
         expect(summary.hasRejectedExpense).toBe(false);
     });
@@ -99,8 +99,8 @@ describe('getReportSubmitViolationSummary', () => {
         );
 
         // When the summary is built
-        // Then it must not be treated as a pending card match (markPendingRTERTransactionsAsCash would be wrong here),
-        // and it must still be visible to the user as an informational "other" bullet instead of disappearing
+        // Then it must not be treated as a pending card match (the pending-card-match bullet copy would be wrong
+        // here), and it must still be visible to the user as an informational "other" bullet instead of disappearing
         expect(summary.hasPendingCardMatch).toBe(false);
         expect(summary.hasRejectedExpense).toBe(false);
         expect(summary.otherViolations).toEqual(new Map([[CONST.VIOLATIONS.RTER, rterViolation]]));
