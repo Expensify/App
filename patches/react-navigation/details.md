@@ -30,7 +30,7 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12751 (`route.history` + `pushParams`, added upstream for this use case); originating issue https://github.com/react-navigation/react-navigation/issues/12460. On the v8 upgrade, evaluate adopting `pushParams` to shrink this patch.
 - E/App issue: [#21356](https://github.com/Expensify/App/issues/21356)
 - PR Introducing Patch: [#24165](https://github.com/Expensify/App/pull/24165)
-- PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155) [#101339](https://github.com/Expensify/App/pull/101339)
+- PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155) [#103346](https://github.com/Expensify/App/pull/103346)
 
 ### [@react-navigation+stack+7.8.5+001+edge-drag-gesture.patch](@react-navigation+stack+7.8.5+001+edge-drag-gesture.patch)
 
@@ -67,7 +67,7 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/11145
 - E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
 - PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)
-- PR Updating Patch: [#101339](https://github.com/Expensify/App/pull/101339)
+- PR Updating Patch: [#103346](https://github.com/Expensify/App/pull/103346)
 - Note: Upstream raised the timeout to 1000ms in `@react-navigation/native` 7.5.0, so this patch can be dropped on the bump to 7.5.0 or newer.
 
 ### [@react-navigation+bottom-tabs+7.18.16+002+active-indicator-color-precedence.patch](@react-navigation+bottom-tabs+7.18.16+002+active-indicator-color-precedence.patch)
@@ -95,4 +95,4 @@
 - PR Updating Patch: N/A
 - Note: Not gated to the RHP. Every stack now clips inactive cards one level lower, so the built-in `styles.shadow` edge view inside `Card` is clipped on inactive cards too. The active card covers that edge.
 - Note: Upstream shipped the fix in `@react-navigation/stack` 7.11.2, first release containing https://github.com/react-navigation/react-navigation/pull/13255. Their shape differs from ours: `CardA11yWrapper` drops `overflow` completely, and `CardContainer` passes `pageOverflowEnabled: active && headerMode !== 'float' && presentation !== 'modal'`, so the clip lands in `CardContent`, whose `styles.card` still carries `overflow: 'hidden'`. Inactive cards stay clipped and the stacked RHP shadow survives, but the clip sits one level below ours, which leaves the built-in `styles.shadow` edge view unclipped on inactive cards.
-- Note: Drop this patch by moving to `stack` 7.11.2 or newer, see #101715 above. It cannot be bumped on its own: `createStackNavigator` there reads `render` from `useNavigationBuilder`, which starts in `core` 7.22.1, and `elements` 2.9.43 plus every sibling declare `native ^7.4.1` as a peer, so npm rejects 7.11.2 next to our `native` 7.1.33. `stack+001+edge-drag-gesture` and `stack+002+dontDetachScreen` need hand-porting to 7.11.2 because it rewrote the gesture and animation lifecycle in `Card.js` and switched the gesture wrapper to `pointerEvents: "auto"`.
+- Note: Drop this patch by moving to `stack` 7.11.2 or newer, see #101715 above. It cannot be bumped on its own: `createStackNavigator` there reads `render` from `useNavigationBuilder`, which starts in `core` 7.22.1, and `elements` 2.9.43 plus every sibling declare `native ^7.4.1` as a peer, so npm rejects 7.11.2 next to our `native` 7.3.16. `stack+001+edge-drag-gesture` and `stack+002+dontDetachScreen` need hand-porting to 7.11.2 because it rewrote the gesture and animation lifecycle in `Card.js` and switched the gesture wrapper to `pointerEvents: "auto"`.

@@ -63,7 +63,7 @@ index 0000000..290e96f
 +}
 +//# sourceMappingURL=findFocusedRouteKey.js.map
 diff --git a/node_modules/@react-navigation/native/lib/module/useLinking.js b/node_modules/@react-navigation/native/lib/module/useLinking.js
-index 66b73b5..6c201fd 100644
+index 66b73b5..99b630d 100644
 --- a/node_modules/@react-navigation/native/lib/module/useLinking.js
 +++ b/node_modules/@react-navigation/native/lib/module/useLinking.js
 @@ -4,6 +4,7 @@ import { CommonActions, findFocusedRoute, getActionFromState as getActionFromSta
@@ -166,7 +166,7 @@ index 66b73b5..6c201fd 100644
              }
  
              // Store the updated state as well as fix the path if incorrect
-@@ -446,10 +503,22 @@ export function useLinking(ref, {
+@@ -446,10 +503,26 @@ export function useLinking(ref, {
            }
          } else {
            // If history length is unchanged, we want to replaceState
@@ -184,11 +184,15 @@ index 66b73b5..6c201fd 100644
 +              state
 +            });
 +          } else {
-+            await history.go(-staleHistoryDiff);
-+            history.push({
-+              path,
-+              state
-+            });
++            try {
++              await history.go(-staleHistoryDiff);
++              history.push({
++                path,
++                state
++              });
++            } catch (e) {
++              // The navigation was interrupted
++            }
 +          }
          }
        } else {
