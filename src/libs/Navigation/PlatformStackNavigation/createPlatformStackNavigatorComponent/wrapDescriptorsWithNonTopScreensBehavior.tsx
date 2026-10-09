@@ -1,3 +1,4 @@
+import {isLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {NonTopScreenBehavior, PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {ParamListBase} from '@react-navigation/native';
@@ -9,6 +10,7 @@ import type NonTopScreenWrapperProps from './nonTopScreenWrapperTypes';
 
 import ScreenActivityWrapper from './ScreenActivityWrapper';
 import ScreenFreezeWrapper from './ScreenFreezeWrapper';
+import WideTabPreMountPreloadedBoundary from './WideTabPreMountPreloadedBoundary';
 
 type Descriptor = {
     /** Route object containing the screen name, used to check if the screen is persistent */
@@ -46,10 +48,20 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
         result ??= {...descriptors};
         const NonTopScreenWrapper = WRAPPER_FOR_BEHAVIOR[behavior];
         // The state always carries a top route, but a missing key must leave every screen visible instead of blurring the whole stack.
-        const isScreenBlurred = topRouteKey !== undefined && key !== topRouteKey;
+        // A wide submit pre-mount keeps its wrapper, so the reveal does not remount it, but must render while covered.
+        const isLivePreMount = isLiveWideTabPreMountRouteKey(key);
+        const isScreenBlurred = topRouteKey !== undefined && key !== topRouteKey && !isLivePreMount;
+
+        // Only covers a pre-mount under the focused tab's top screen. In another tab it is the top route, and the
+        // preloaded-tab flag holds it instead.
+        const isHiddenPreMount = isLivePreMount && key !== topRouteKey;
         result[key] = {
             ...descriptor,
-            render: () => <NonTopScreenWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</NonTopScreenWrapper>,
+            render: () => (
+                <NonTopScreenWrapper isScreenBlurred={isScreenBlurred}>
+                    <WideTabPreMountPreloadedBoundary isHiddenPreMount={isHiddenPreMount}>{descriptor.render()}</WideTabPreMountPreloadedBoundary>
+                </NonTopScreenWrapper>
+            ),
         };
     }
     return result ?? descriptors;
