@@ -13,12 +13,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useVerticalScrollbarWidth from '@hooks/useVerticalScrollbarWidth';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {resetTableColumnWidths} from '@libs/actions/TableColumnWidths';
 import getPlatform from '@libs/getPlatform';
 import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
 import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -281,6 +283,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
     const {isBetaEnabled} = usePermissions();
     const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
+    const activeColumnResizingID = isColumnResizingEnabled ? columnResizingID : undefined;
 
     // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
     // searches or filters instead of reflowing on every keystroke.
@@ -303,7 +306,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     });
 
     const columnResize = useColumnResize({
-        columnResizingID: isColumnResizingEnabled ? columnResizingID : undefined,
+        columnResizingID: activeColumnResizingID,
         resizableColumnKeys,
         resolvedColumnWidths,
         dragMinWidths,
@@ -436,6 +439,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         scrollWidth: dynamicScrollWidth,
         rowWidth: dynamicRowWidth,
         columnResize,
+        resetColumnWidths: activeColumnResizingID && !isEmptyObject(columnWidthOverrides) ? () => resetTableColumnWidths(activeColumnResizingID) : undefined,
         tableWidth: contentWidth,
         filterConfig: filters,
         activeFilters: currentFilters,

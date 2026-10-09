@@ -22,6 +22,7 @@ type ShouldShowTableDisplaySettingsTriggerParams = {
     columns: Array<TableColumn<string>>;
     shouldUseNarrowTableLayout: boolean;
     narrowLayoutSortColumn: string | undefined;
+    canResetColumnWidths: boolean;
 };
 
 const DISPLAY_POPOVER_ANCHOR_ALIGNMENT = {
@@ -30,10 +31,10 @@ const DISPLAY_POPOVER_ANCHOR_ALIGNMENT = {
 } as const;
 
 // On narrow layouts, tables with a narrowLayoutSortColumn ignore user sorting entirely, so a sort control would be a no-op.
-function shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn}: ShouldShowTableDisplaySettingsTriggerParams): boolean {
+function shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn, canResetColumnWidths}: ShouldShowTableDisplaySettingsTriggerParams): boolean {
     const hasSortableColumns = columns.some((column) => column.sortable);
     const isSortingLockedByLayout = shouldUseNarrowTableLayout && !!narrowLayoutSortColumn;
-    return hasSortableColumns && !isSortingLockedByLayout;
+    return (hasSortableColumns && !isSortingLockedByLayout) || canResetColumnWidths;
 }
 
 // FilterPopupButton invokes PopoverComponent as a plain function during its own render, so the popover must be
@@ -51,9 +52,9 @@ export default function TableDisplaySettingsTrigger() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
-    const {columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn} = useTableContext();
+    const {columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn, resetColumnWidths} = useTableContext();
 
-    if (!shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn})) {
+    if (!shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn, canResetColumnWidths: !!resetColumnWidths})) {
         return null;
     }
 
