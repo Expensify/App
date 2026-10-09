@@ -3,6 +3,7 @@ export type {default as ImportCSVTransactionsParams} from './ImportCSVTransactio
 export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTagsParams';
 export type {default as ImportCSVCompanyCardsParams} from './ImportCSVCompanyCardsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
+export type {default as CreateSupportTicketParams} from './CreateSupportTicketParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
 export type {default as ApproveDigitalWalletCardAdditionParams} from './ApproveDigitalWalletCardAdditionParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
@@ -672,7 +673,8 @@ export type {default as ChangeDomainSecurityGroupParams} from './ChangeDomainSec
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
 export type {default as SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams} from './SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams';
-export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
+export type {default as SetRuleParams} from './SetRuleParams';
+export type {default as DeleteRuleParams} from './DeleteRuleParams';
 export type {default as SetApprovalWorkflowParams} from './SetApprovalWorkflowParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';

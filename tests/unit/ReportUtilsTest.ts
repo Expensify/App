@@ -60,6 +60,7 @@ import {
     canAddTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
+    canCreateTaskInReport,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
@@ -195,6 +196,7 @@ import {
     isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
+    isResolvedSupportTicket,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
@@ -214,6 +216,7 @@ import {
     shouldDisableRename,
     shouldDisableThread,
     shouldDisplayReportFields,
+    shouldDisplayThreadReplies,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldCreateNewMoneyRequestReport,
@@ -6953,7 +6956,51 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('shouldDisplayThreadReplies', () => {
+        it.each([
+            [CONST.REPORT.TYPE.SUPPORT_TICKET, false],
+            [CONST.REPORT.TYPE.CHAT, true],
+            [CONST.REPORT.TYPE.TASK, true],
+        ] as const)('child report type %s shows the replies footer: %s', (childType, expected) => {
+            // Given a parent action whose child report has comments
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89018),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                childType,
+                childVisibleActionCount: 5,
+                childCommenterCount: 2,
+            };
+
+            // When the parent action is displayed in its original conversation
+            const shouldShowReplies = shouldDisplayThreadReplies(reportAction, false);
+
+            // Then support-ticket previews omit the footer, while other threads keep it
+            expect(shouldShowReplies).toBe(expected);
+        });
+    });
+
     describe('canEditReportAction', () => {
+        it.each([
+            [CONST.REPORT.TYPE.SUPPORT_TICKET, false],
+            [CONST.REPORT.TYPE.CHAT, true],
+            [undefined, true],
+        ] as const)('comment with childType %s has edit permission %s', (childType, expected) => {
+            // Given an action attributed to the current user, with or without a child report
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89019),
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                childType,
+                message: [{type: 'COMMENT', html: 'Support ticket', text: 'Support ticket'}],
+            };
+
+            // When edit permission is checked for menus or the keyboard shortcut
+            const canEdit = canEditReportAction(reportAction, undefined, undefined, undefined);
+
+            // Then support-ticket previews are read-only, while ordinary comments remain editable
+            expect(canEdit).toBe(expected);
+        });
+
         it('should use the passed reportActions to determine whether the money request report was forwarded since the last submit', async () => {
             const reportID = '89020';
             const transactionID = '89020-transaction';
@@ -10936,7 +10983,7 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
-        it('should return true for workspace task report', async () => {
+        it('should return false for workspace task report', async () => {
             // Given a parent report that is a policy expense chat
             const parentReport = createPolicyExpenseChat(1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
@@ -10945,8 +10992,8 @@ describe('ReportUtils', () => {
             const report = createWorkspaceTaskReport(2, [currentUserAccountID, 1], parentReport.reportID);
 
             // When we check if the report should show a subscript
-            // Then it should return true because isWorkspaceTaskReport() returns true
-            expect(shouldReportShowSubscript(report)).toBe(true);
+            // Then it should return false because a task always shows its owner alone, even when assigned in a workspace chat
+            expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return true for invoice room', () => {
@@ -27119,6 +27166,34 @@ describe('getPendingChatMembers', () => {
         const result = getPendingChatMembers(accountIDs, previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
         expect(result).toEqual(previousPendingChatMembers);
+    });
+});
+
+describe('support tickets', () => {
+    const openSupportTicket: Report = {
+        reportID: 'support-ticket',
+        type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    };
+
+    it('uses the resolved parent preview when the ticket is not loaded', () => {
+        // Given a support ticket that has not loaded yet
+        expect(
+            isResolvedSupportTicket(null, {
+                ...createRandomReportAction(1),
+                childType: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            }),
+        ).toBe(true);
+    });
+
+    it('does not allow task creation in support tickets', () => {
+        // Given an open support ticket
+        // When task availability is checked
+        // Then task creation is unavailable
+        expect(canCreateTaskInReport(openSupportTicket)).toBe(false);
     });
 });
 

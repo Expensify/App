@@ -205,6 +205,7 @@ import {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
+    isCreatedSupportTicketReportAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -1510,6 +1511,22 @@ function isTaskReport(report: OnyxInputOrEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.TASK;
 }
 
+function isSupportTicket(report: OnyxInputOrEntry<Report>): boolean {
+    return report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
+}
+
+function isResolvedSupportTicket(report: OnyxInputOrEntry<Report>, parentReportAction?: OnyxEntry<ReportAction>): boolean {
+    if (!report) {
+        return (
+            parentReportAction?.childType === CONST.REPORT.TYPE.SUPPORT_TICKET &&
+            parentReportAction.childStateNum === CONST.REPORT.STATE_NUM.APPROVED &&
+            parentReportAction.childStatusNum === CONST.REPORT.STATUS_NUM.CLOSED
+        );
+    }
+
+    return isSupportTicket(report) && report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+}
+
 /**
  * Checks if a task has been cancelled
  * When a task is deleted, the parentReportAction is updated to have a isDeletedParentAction deleted flag
@@ -1875,7 +1892,7 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
  * so inviting is limited to the submitter and policy admins, and only while the report is still open.
  */
 function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean, currentUserAccountID?: number): boolean {
-    if (isReportArchived) {
+    if (isReportArchived || isSupportTicket(report)) {
         return false;
     }
     if (isGroupChat(report)) {
@@ -2473,6 +2490,10 @@ function isExpensifyOnlyParticipantInReport(report: OnyxEntry<Report>): boolean 
  *
  */
 function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
+    if (isSupportTicket(report)) {
+        return false;
+    }
+
     const otherParticipants = Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
@@ -3776,7 +3797,7 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
     let finalReport: OnyxEntry<Report> = report;
     // In 1:1 chat threads, the participants will be the same as parent report. If a report is specifically a 1:1 chat thread then we will
     // get parent report and use its participants array.
-    if (isThread(report) && !(isTaskReport(report) || isMoneyRequestReport(report))) {
+    if (isThread(report) && !(isTaskReport(report) || isSupportTicket(report) || isMoneyRequestReport(report))) {
         const parentReport = getReport(report?.parentReportID, deprecatedAllReports);
         if (isOneOnOneChat(parentReport)) {
             finalReport = parentReport;
@@ -4326,6 +4347,18 @@ function getIconsForTaskReport(
 }
 
 /**
+ * Helper function to get the icon for a support ticket. Only to be used in getIcons().
+ */
+function getIconsForSupportTicketReport(
+    report: OnyxInputOrEntry<Report>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
+): Icon[] {
+    return [getParticipantIcon(report?.managerID, personalDetails, formatPhoneNumber, translate, true)];
+}
+
+/**
  * Helper function to get the icons for a domain room. Only to be used in getIcons().
  */
 function getIconsForDomainRoom(report: OnyxInputOrEntry<Report>): Icon[] {
@@ -4551,6 +4584,9 @@ function getIcons(
     }
     if (isTaskReport(report)) {
         return getIconsForTaskReport(report, personalDetails, policy, formatPhoneNumber, translate);
+    }
+    if (isSupportTicket(report)) {
+        return getIconsForSupportTicketReport(report, personalDetails, formatPhoneNumber, translate);
     }
     if (isDomainRoom(report)) {
         return getIconsForDomainRoom(report);
@@ -6151,6 +6187,7 @@ function canEditReportAction(
         !isOptimisticAttachment &&
         !isDeletedAction(reportAction) &&
         !isCreatedTaskReportAction(reportAction) &&
+        !isCreatedSupportTicketReportAction(reportAction) &&
         reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
 }
@@ -11337,7 +11374,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxInputOrEntry<Repo
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[], rules: OnyxCollection<Rule>, currentUserAccountID?: number): boolean {
     // User cannot submit expenses in a chat thread, task report or in a chat room
-    if (isChatThread(report) || isTaskReport(report) || isChatRoom(report) || isSelfDM(report) || isGroupChat(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isSupportTicket(report) || isChatRoom(report) || isSelfDM(report) || isGroupChat(report)) {
         return false;
     }
 
@@ -11427,7 +11464,7 @@ function getMoneyRequestOptions(
     const isTeachersUniteReportValue = isTeachersUniteReport(report);
 
     // In any thread, task report or trip room, we do not allow any new expenses
-    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report) || isReportArchived || isTripRoom(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isSupportTicket(report) || isInvoiceReport(report) || isSystemChat(report) || isReportArchived || isTripRoom(report)) {
         return [];
     }
 
@@ -11613,10 +11650,6 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived =
         return true;
     }
 
-    if (isWorkspaceTaskReport(report)) {
-        return true;
-    }
-
     if (isWorkspaceThread(report)) {
         return true;
     }
@@ -11789,7 +11822,7 @@ function canCreateRequest(
 ): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
 
-    if (!canUserPerformWriteAction(report, isReportArchived)) {
+    if (isSupportTicket(report) || !canUserPerformWriteAction(report, isReportArchived)) {
         return false;
     }
 
@@ -12332,7 +12365,7 @@ function hasOnlyHeldExpenses(allReportTransactions: Transaction[]): boolean {
  */
 function shouldDisplayThreadReplies(reportAction: OnyxInputOrEntry<ReportAction>, isThreadReportParentAction: boolean): boolean {
     const hasReplies = (reportAction?.childVisibleActionCount ?? 0) > 0;
-    return hasReplies && !!reportAction?.childCommenterCount && !isThreadReportParentAction;
+    return hasReplies && !!reportAction?.childCommenterCount && !isThreadReportParentAction && !isCreatedSupportTicketReportAction(reportAction);
 }
 
 /**
@@ -15249,6 +15282,8 @@ export {
     isOneTransactionThread,
     isOpenExpenseReport,
     isOpenTaskReport,
+    isResolvedSupportTicket,
+    isSupportTicket,
     isOptimisticPersonalDetail,
     isGroupPolicyExpenseReport,
     isPayer,

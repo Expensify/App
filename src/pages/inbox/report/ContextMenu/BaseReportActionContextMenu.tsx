@@ -291,6 +291,7 @@ function BaseReportActionContextMenu({
                 menuTarget: anchor,
                 isChronosReport,
                 reportID,
+                report,
                 isPinnedChat,
                 isUnreadChat,
                 isThreadReportParentAction,
