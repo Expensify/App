@@ -21,9 +21,11 @@ const FIRST_RENDER_FALLBACK_DELAY_MS = 100;
  * covered screen that is still shown (for example dimmed under the RHP overlay) does not disappear, and it takes
  * that content out of accessibility and touch handling while it is covered.
  *
- * StrictMode is the qualification gate for screens that opt into Activity. Its double effect mount in dev exercises
- * the same cleanup and re-run lifecycle as a hide and reveal cycle, so an effect that would misbehave under a cover
- * fails during development instead. StrictModeMountGate commits StrictMode one commit ahead of the screen content,
+ * StrictMode is the qualification gate for screens that opt into Activity. Its double effect mount in dev puts an
+ * ordinary effect through the cleanup and re-run that a hide and reveal cycle puts it through, so an effect that would
+ * misbehave under a cover fails during development instead. An effect written with useScreenActivityEffect is the
+ * exception: React never double-invokes the insertion effect it relies on, so the gate leaves it alone and checks the
+ * plain effects of the screen only. StrictModeMountGate commits StrictMode one commit ahead of the screen content,
  * which is what makes React run that cycle for a StrictMode nested below the root.
  *
  * The mode does not simply mirror the covered state, because a covered screen sometimes has to render as visible.
