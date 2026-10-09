@@ -36,6 +36,7 @@ import type {GovernmentMileageRate, PersonalDetailsList, Policy, PolicyEmployee,
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CommuterExclusions, CompanyAddress, CustomUnit, OfficeLocation, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -972,10 +973,18 @@ function updateOfficeLocation(
 
 /**
  * Delete a workspace office. Deleting the default office makes the company address the default, or, in a workspace
- * without a company address, the server makes another office the default.
+ * without a company address, the server makes another office the default. An office whose addition failed was never
+ * stored by the server, so it is only removed locally.
  */
-function deleteOfficeLocation(policyID: string, officeID: string) {
+function deleteOfficeLocation(policyID: string, officeID: string, officeLocation: OfficeLocation | undefined) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    if (officeLocation?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(officeLocation.errors)) {
+        Onyx.merge(policyKey, {officeLocations: {[officeID]: null}});
+        return;
+    }
+
+    // An office that hasn't reached the server yet stays pending addition, so dismissing the error still removes it
+    const failedPendingAction = officeLocation?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -1001,7 +1010,7 @@ function deleteOfficeLocation(policyID: string, officeID: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    officeLocations: {[officeID]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}},
+                    officeLocations: {[officeID]: {pendingAction: failedPendingAction, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}},
                 },
             },
         ],
