@@ -24,9 +24,9 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useRef, useState} from 'react';
 
 import type {CreateTransactionParams} from './submission/types';
+import type {SubmitLock} from './submission/useSubmitLock';
 import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 
 import useDistanceDraftData from './submission/useDistanceDraftData';
@@ -96,6 +96,9 @@ type UseExpenseSubmissionParams = {
      * the pre-mounted report if validation then bails with no write.
      */
     onExpenseWriteWillStart?: () => void;
+
+    /** The page-owned submit lock, shared with the page's destination pre-mount. */
+    submitLock: SubmitLock;
 };
 
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
@@ -129,16 +132,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         privateIsArchivedMap,
         backToReport,
         onExpenseWriteWillStart,
+        submitLock,
     } = params;
-
-    const [isConfirmed, setIsConfirmed] = useState(false);
-    const formHasBeenSubmitted = useRef(false);
-
-    // formHasBeenSubmitted is never reset on its own, so a submit that returns without writing has to hand the page back or every later tap is swallowed.
-    const releaseSubmitLock = () => {
-        formHasBeenSubmitted.current = false;
-        setIsConfirmed(false);
-    };
+    const {setIsConfirmed, releaseSubmitLock, acquireSubmitLock} = submitLock;
 
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
     const selectedParticipants = participants.filter((participant) => participant.selected);
@@ -420,21 +416,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return false;
         }
 
-        setIsConfirmed(true);
-
-        // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
-        if (formHasBeenSubmitted.current) {
+        if (!acquireSubmitLock()) {
             return false;
         }
-
-        formHasBeenSubmitted.current = true;
 
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
         return submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation, writeBarrier});
     }
 
-    return {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted};
+    return {createTransaction, sendMoney};
 }
 
 export default useExpenseSubmission;

@@ -6,7 +6,8 @@ import Log from '@libs/Log';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
 
-import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
+import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
+import useExpenseSubmissionWithLock from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +20,11 @@ import type * as Split from '../../../src/libs/actions/IOU/Split';
 
 import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+
+/** The page owns the submit lock, so mount a fresh one next to the hook the same way the page does. */
+function useExpenseSubmission(params: Omit<Parameters<typeof useExpenseSubmissionWithLock>[0], 'submitLock'>) {
+    return useExpenseSubmissionWithLock({...params, submitLock: useSubmitLock()});
+}
 
 const mockRequestMoneyAction = jest.fn();
 const mockTrackExpenseAction = jest.fn();
