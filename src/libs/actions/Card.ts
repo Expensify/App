@@ -776,7 +776,8 @@ function updateSettlementAccount(
         ...(shouldClearSettlementAccountError && {errorFields: {paymentBankAccountID: null}}),
     };
 
-    const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false};
+    // Clears a marker left by an earlier queued change that failed after this one's optimistic clear
+    const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID, errorFields: {paymentBankAccountID: null}}, isLoading: false};
 
     const failureValue = {
         // Kept under the program so it marks a card failure without touching the root field Travel Billing reads
