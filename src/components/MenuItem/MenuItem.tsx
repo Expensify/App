@@ -119,12 +119,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         outerWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
         wrapperStyle?: StyleProp<ViewStyle>;
-        titleWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Styles to apply on the inner row containing the icon and text content */
         innerContainerStyle?: StyleProp<ViewStyle>;
-
-        containerStyle?: StyleProp<ViewStyle>;
 
         /** Used to apply styles specifically to the title */
         titleStyle?: StyleProp<TextStyle>;
@@ -402,8 +399,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
-        rootWrapperStyle?: StyleProp<ViewStyle>;
-
         /** The accessibility role to use for this menu item */
         role?: Role;
 
@@ -416,8 +411,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether item should be focusable with keyboard */
         tabIndex?: 0 | -1;
-
-        rightIconWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Whether to ignore compact popover menu styling for this item */
         shouldIgnoreCompactStyle?: boolean;
@@ -448,10 +441,8 @@ function MenuItem({
     shouldShowBadgeBelow = false,
     style,
     wrapperStyle,
-    titleWrapperStyle,
     innerContainerStyle,
     outerWrapperStyle,
-    containerStyle,
     titleStyle,
     labelStyle,
     descriptionTextStyle,
@@ -566,11 +557,9 @@ function MenuItem({
     isFocused,
     shouldUseNativeHoverEvents = false,
     sentryLabel,
-    rootWrapperStyle,
     role = CONST.ROLE.BUTTON,
     shouldBeAccessible = true,
     tabIndex = 0,
-    rightIconWrapperStyle,
     titleAccessibilityRole,
     shouldIgnoreCompactStyle = false,
 }: MenuItemProps) {
@@ -813,10 +802,7 @@ function MenuItem({
     const hasRightIconAccount = !!rightIconAccountID && rightIconAccountIDNumber > 0;
 
     return (
-        <View
-            style={rootWrapperStyle}
-            onBlur={onBlur}
-        >
+        <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
@@ -864,7 +850,6 @@ function MenuItem({
                                 testID={pressableTestID}
                                 style={({pressed}) =>
                                     [
-                                        containerStyle,
                                         combinedStyle,
                                         !interactive && styles.cursorDefault,
                                         isCompact && styles.alignItemsCenter,
@@ -1035,7 +1020,7 @@ function MenuItem({
                                                         {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (
                                                             <View
-                                                                style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
+                                                                style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
@@ -1199,7 +1184,6 @@ function MenuItem({
                                                             hasSubMenuItems && styles.pl6,
                                                             !isHovered && shouldDimIconRight && styles.opacitySemiTransparent,
                                                             styles.alignItemsEnd,
-                                                            rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon

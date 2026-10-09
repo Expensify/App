@@ -31,9 +31,11 @@ type MockMenuItemWithTopDescriptionProps = {
     title?: string;
     interactive?: boolean;
     descriptionTextStyle?: StyleProp<TextStyle>;
+    errorText?: string;
+    brickRoadIndicator?: string;
 };
 
-const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive}: MockMenuItemWithTopDescriptionProps) => {
+const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive, errorText, brickRoadIndicator}: MockMenuItemWithTopDescriptionProps) => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
 
     return (
@@ -46,9 +48,23 @@ const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive
                     <RN.Text>{title}</RN.Text>
                 </RN.View>
             )}
+            {errorText !== undefined && (
+                <RN.View testID={`menu-item-error-${description}`}>
+                    <RN.Text>{errorText}</RN.Text>
+                </RN.View>
+            )}
+            {brickRoadIndicator !== undefined && (
+                <RN.View testID={`menu-item-indicator-${description}`}>
+                    <RN.Text>{brickRoadIndicator}</RN.Text>
+                </RN.View>
+            )}
         </>
     );
 });
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    isHybridApp: jest.fn(() => false),
+}));
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -699,6 +715,35 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows a negative tax amount for a negative expense on an expense report', async () => {
+        // Given a negative expense on an expense report. Expense reports store amounts with the opposite sign,
+        // so a -$9.50 expense with -$0.95 tax is stored as amount 950 and taxAmount 95.
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                amount: 950,
+                taxCode: 'TAX_10',
+                taxAmount: 95,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the tax amount keeps the negative sign instead of being shown as an absolute value
+        await waitFor(() => {
+            expect(screen.getByLabelText('iou.taxAmount, USD-95')).toBeOnTheScreen();
+        });
+    });
+
     it('does NOT append "Converted" to the Tax amount description when the converted tax is zero (tax exempt)', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -1091,6 +1136,55 @@ describe('MoneyRequestView edit fields', () => {
             const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
             expect(vendorTitle).toHaveTextContent(/Stale Intacct Vendor/);
             expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
+        });
+    });
+
+    it('shows the vendor-field error when assigned vendor is disabled in policyVendors', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        const disabledVendorID = 'disabled-vendor-id';
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
+                [disabledVendorID]: {
+                    externalID: disabledVendorID,
+                    name: 'Disabled Vendor',
+                    enabled: false,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: disabledVendorID, wasManuallySet: false}},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: [{id: disabledVendorID, name: 'Disabled Vendor', currency: 'USD', email: 'vendor@example.com'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toHaveTextContent('violations.inactiveVendor.');
+            expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
         });
     });
 

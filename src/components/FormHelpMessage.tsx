@@ -107,7 +107,9 @@ function FormHelpMessage({
             return '';
         }
 
-        const replacedText = Parser.replace(message, {shouldEscapeText: false});
+        // Messages that are already HTML (for example a saved category description hint) must not be parsed again,
+        // or ExpensiMark re-wraps their mentions and the mention renders blank.
+        const replacedText = Parser.isHTML(message) ? message : Parser.replace(message, {shouldEscapeText: false});
 
         if (isError) {
             return `<alert-text>${replacedText}</alert-text>`;
