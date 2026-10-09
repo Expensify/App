@@ -27,6 +27,40 @@ describe('CSVDateUtils', () => {
             expect(parseCSVDate('2025')).toBe('2025-01-01');
         });
 
+        it('parses two-digit years into the current century instead of years 1-99', () => {
+            // Given CSV dates with two-digit years in every supported separator and month-name layout, since bank exports
+            // commonly shorten years and the `yyyy` formats would otherwise read `26` as AD 26, which the backend drops
+            const twoDigitYearDates = ['9/22/26', '09/22/26', '22/09/26', '09-22-26', '22-09-26', 'Sep 22, 26', '22 Sep 26'];
+
+            // When each value is parsed
+            const parsedDates = twoDigitYearDates.map((date) => parseCSVDate(date));
+            const parsedShortDate = parseCSVDate('1/2/25');
+
+            // Then every value resolves to the same date in the current century, including day and month values without leading zeros
+            for (const parsedDate of parsedDates) {
+                expect(parsedDate).toBe('2026-09-22');
+            }
+            expect(parsedShortDate).toBe('2025-01-02');
+        });
+
+        it('rejects dates with implausibly old years', () => {
+            // Given dates just before, well before, and exactly at the minimum year of 1900, because years that old are never
+            // real transaction dates and only come from misread short years
+            const ancientDate = '0026-09-22';
+            const dayBeforeMinimumYear = '1899-12-31';
+            const firstDayOfMinimumYear = '1900-01-01';
+
+            // When each value is parsed
+            const parsedAncientDate = parseCSVDate(ancientDate);
+            const parsedDayBeforeMinimumYear = parseCSVDate(dayBeforeMinimumYear);
+            const parsedFirstDayOfMinimumYear = parseCSVDate(firstDayOfMinimumYear);
+
+            // Then dates before 1900 are rejected so they are never sent to the backend, while 1900 itself is still accepted
+            expect(parsedAncientDate).toBeNull();
+            expect(parsedDayBeforeMinimumYear).toBeNull();
+            expect(parsedFirstDayOfMinimumYear).toBe('1900-01-01');
+        });
+
         it('returns null for invalid input', () => {
             expect(parseCSVDate('not a date')).toBeNull();
             expect(parseCSVDate('')).toBeNull();

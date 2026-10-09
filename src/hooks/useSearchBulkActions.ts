@@ -58,6 +58,7 @@ import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} fro
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
+    canIOUBePaid,
     canMergeReports,
     getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
@@ -117,7 +118,6 @@ import variables from '@styles/variables';
 
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
-import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -157,6 +157,7 @@ import usePermissions from './usePermissions';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
@@ -666,13 +667,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
-    const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
     const [isExpensifyCardStatementPDFModalVisible, setIsExpensifyCardStatementPDFModalVisible] = useState(false);
     const [expensifyCardStatementPDFParams, setExpensifyCardStatementPDFParams] = useState<ExpensifyCardStatementParams | undefined>(undefined);
     const [isExpensifyCardStatementMultiFeedAlertVisible, setIsExpensifyCardStatementMultiFeedAlertVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
+    const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -2584,8 +2584,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     await exportReportToPDF({reportID: reportIDForPDF});
-                    setPdfReportID(reportIDForPDF);
-                    setIsPdfModalVisible(true);
+                    showReportPDFDownloadModal({reportID: reportIDForPDF});
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
                     return;
                 }
                 exportReportsToPDF(selectedReportIDs);
@@ -3309,6 +3310,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
         rules,
+        showReportPDFDownloadModal,
     ]);
 
     // When the dropdown surfaces the export options directly there is no "Export" row above them, so on its own the
@@ -3325,11 +3327,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const handleDownloadErrorModalClose = useCallback(() => {
         setIsDownloadErrorModalVisible(false);
     }, [setIsDownloadErrorModalVisible]);
-
-    const handlePdfModalHide = useCallback(() => {
-        setPdfReportID(undefined);
-        clearSelectedTransactions();
-    }, [clearSelectedTransactions]);
 
     const handleExpensifyCardStatementPDFModalHide = useCallback(() => {
         setExpensifyCardStatementPDFParams(undefined);
@@ -3381,10 +3378,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        isPdfModalVisible,
-        setIsPdfModalVisible,
-        pdfReportID,
-        handlePdfModalHide,
         isExpensifyCardStatementPDFModalVisible,
         setIsExpensifyCardStatementPDFModalVisible,
         expensifyCardStatementPDFParams,
