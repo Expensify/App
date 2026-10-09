@@ -1,7 +1,10 @@
 /**
  * Centralized styles and layout constants for the chart components.
  */
+import type {ColorScheme} from '@styles/index';
 import colors from '@styles/theme/colors';
+
+import CONST from '@src/CONST';
 
 import {CHART_FONT_FAMILY_NAMES} from './utils/chartFontConstants';
 
@@ -46,6 +49,18 @@ function getChartColor(index: number): string {
     return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
 }
 
+/** Shade of an item's comparison color: the same hue as its own color, lighter in light mode and darker in dark mode. */
+const CHART_COMPARISON_SHADE = 200;
+const CHART_COMPARISON_SHADE_DARK = 700;
+
+/** The color a compared period is drawn in, for an item or series drawn in `color`. Falls back to `color` itself. */
+function getComparisonColor(color: string, colorScheme: ColorScheme): string {
+    // Matches only shaded names like `green400`, since an unshaded alias like `green` can share the same hex.
+    const paletteName = Object.keys(colors).find((name) => /^[a-z]+\d+$/i.test(name) && colors[name] === color);
+    const hue = paletteName?.replace(/\d+$/, '');
+    return (hue && colors[`${hue}${colorScheme === CONST.COLOR_SCHEME.DARK ? CHART_COMPARISON_SHADE_DARK : CHART_COMPARISON_SHADE}`]) ?? color;
+}
+
 /** Index of the default single-color chart color (green400). */
 const DEFAULT_CHART_COLOR_INDEX = 3;
 
@@ -55,6 +70,7 @@ const VictoryTheme = {
         /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
         default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
         getColor: getChartColor,
+        getComparisonColor,
     },
     fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),
     axis: {

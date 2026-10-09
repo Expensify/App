@@ -3,6 +3,15 @@ import type {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 import type {SkParagraph} from '@shopify/react-native-skia';
 import type {ValueOf} from 'type-fest';
 
+/** One plotted dataset: a line, or one bar of every group. */
+type ChartSeries = {
+    /** Identifies this series' amount in every point's `values` */
+    key: string;
+
+    /** Left out, a lone series of bars takes a palette color per bar, and anything else the default */
+    color?: string;
+};
+
 type ChartDataPoint = {
     /** Full label for the data point (e.g., "Amazon", "November 2025") */
     label: string;
@@ -10,17 +19,17 @@ type ChartDataPoint = {
     /** Compact label for the x-axis (e.g., "Nov ’25"). Defaults to `label`. */
     shortLabel?: string;
 
-    /** Total amount (pre-formatted, e.g., dollars not cents) */
-    total: number;
+    /** One amount per series (pre-formatted, e.g., dollars not cents), keyed by that series' key */
+    values: Record<string, number>;
 
     /** The point's signed share of total spend, in percentage points */
     percentOfTotal?: number;
 
+    /** Per-series names of what the point covers, like each period's dates, which the tooltip names its rows with */
+    seriesLabels?: Record<string, string>;
+
     /** Marks a time-based point whose period hasn't ended yet, so its total is still changing. Only a line chart's last point is drawn differently. */
     isInProgress?: boolean;
-
-    /** Query string for navigation when data point is clicked (optional) */
-    onClickQuery?: string;
 };
 
 /**
@@ -34,6 +43,10 @@ type UnitPosition = 'left' | 'right';
 
 type ChartProps = {
     data: ChartDataPoint[];
+
+    /** The datasets plotted, in drawing order. The first one is the chart's primary series. */
+    series: ChartSeries[];
+
     isLoading?: boolean;
 };
 
@@ -78,4 +91,4 @@ type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
 type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
-export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};
+export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};

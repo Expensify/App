@@ -20,6 +20,7 @@ import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsig
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import useInsightsChartComparison from '@pages/Insights/useInsightsChartComparison';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -59,10 +60,15 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
 
     const {isOffline} = useNetwork();
     const sortedData = useGroupedItems(snapshot, queryJSON);
-    const {data, state} = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
+    const {data, state: currentPeriodState} = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
+    const {isComparing, comparison, blockingState} = useInsightsChartComparison(chart, filters, queryJSON);
+    // Show a compared chart only once both periods resolve.
+    const state = currentPeriodState === INSIGHTS_CHART_STATE.READY && blockingState ? blockingState : currentPeriodState;
     const groupBy = chart.groupBy ?? filters.groupBy;
+    // Pies show one period, so compared pies render as bars.
+    const view = isComparing && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
-    const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
+    const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
     const groupByControl = onGroupByChange ? (
         <InsightsGroupByDropdown
@@ -90,6 +96,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
 
     return (
         <WidgetContainer
+            containerStyles={styles.overflowVisible}
             title={translate(chart.titleKey)}
             titleRightContent={
                 !!groupByControl || !!headerMenu ? (
@@ -107,17 +114,19 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                 <View style={cardPaddingBottom}>
                     <SearchChartView
                         queryJSON={queryJSON}
-                        view={chart.view}
+                        view={view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={isLoading}
+                        comparison={comparison}
                         chartContainerStyle={cardPaddingHorizontal}
                         shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
-                                ? (rows) => (
+                                ? ({rows, series}) => (
                                       <InsightsDataTable
                                           rows={rows}
+                                          series={series}
                                           isLoading={isLoading}
                                       />
                                   )

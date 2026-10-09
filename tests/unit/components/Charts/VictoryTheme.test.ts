@@ -3,6 +3,8 @@ import type * as VictoryThemeModule from '@components/Charts/VictoryTheme';
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
+
 /**
  * Loads VictoryTheme after each module reset so individual tests can mock
  * `@styles/theme/colors` before the module's IIFE runs.
@@ -15,6 +17,37 @@ function loadVictoryTheme(): typeof VictoryThemeModule.default {
 describe('VictoryTheme', () => {
     beforeEach(() => {
         jest.resetModules();
+    });
+
+    describe('colors.getComparisonColor', () => {
+        it('lightens each color to the 200 shade of the same hue', () => {
+            // Given the 400 shades items and series are drawn in
+            const VictoryTheme = loadVictoryTheme();
+
+            // When getting the colors their compared periods are drawn in, in light mode
+            const comparisonColors = [colors.yellow400, colors.blue400, colors.pink600].map((color) => VictoryTheme.colors.getComparisonColor(color, CONST.COLOR_SCHEME.LIGHT));
+
+            // Then each keeps its hue, so the two bars or lines of a comparison read as one item
+            expect(comparisonColors).toEqual([colors.yellow200, colors.blue200, colors.pink200]);
+        });
+
+        it('resolves the hue from the shaded name, though an unshaded alias shares its hex', () => {
+            // Given the default chart color, green400, whose hex the `green` alias also has
+            const VictoryTheme = loadVictoryTheme();
+
+            // When getting its comparison color
+            // Then it is green200, rather than the color itself the alias would have led to
+            expect(VictoryTheme.colors.getComparisonColor(colors.green400, CONST.COLOR_SCHEME.LIGHT)).toBe(colors.green200);
+        });
+
+        it('darkens to the 700 shade in dark mode', () => {
+            // Given a color drawn on a dark background
+            const VictoryTheme = loadVictoryTheme();
+
+            // When getting its comparison color in dark mode
+            // Then it is the 700 shade, since a 200 shade would wash out against the dark card
+            expect(VictoryTheme.colors.getComparisonColor(colors.blue400, CONST.COLOR_SCHEME.DARK)).toBe(colors.blue700);
+        });
     });
 
     describe('colors.palette', () => {

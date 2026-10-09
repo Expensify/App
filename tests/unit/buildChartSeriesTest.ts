@@ -1,11 +1,21 @@
 import type {ChartDataPoint} from '@components/Charts/types';
-import {processDataIntoSlices} from '@components/Charts/utils';
+import {getSeriesValue, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
-import {buildChartSeries, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
-import type {TransactionMerchantGroupListItemType, TransactionQuarterGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {GroupedItem} from '@components/Search/types';
+import {buildChartSeries, CHART_SERIES_KEY, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
+import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import type {
+    TransactionDayGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionWeekGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
+import type {ChartView, GroupedItem, SearchGroupBy} from '@components/Search/types';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+
+import {translateLocal} from '../utils/TestHelper';
 
 /** A grouped merchant result, carrying the fields the series is built from. */
 function merchantGroup(merchant: string, total: number, count = 1, percentOfTotal?: number): TransactionMerchantGroupListItemType {
@@ -39,8 +49,29 @@ function quarterGroup(quarter: number, total: number): TransactionQuarterGroupLi
     };
 }
 
+/** The same quarter bucket a year earlier, which the compared period returns. */
+function previousQuarterGroup(quarter: number, total: number): TransactionQuarterGroupListItemType {
+    return {...quarterGroup(quarter, total), year: 2025, keyForList: `group_2025_Q${quarter}`};
+}
+
 const getLabel = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : '');
 const getCurrencyDecimals = () => 2;
+
+/** Builds the rows of a chart plotting one period, which is every case but a comparison. */
+function buildRows(data: GroupedItem[], view: ChartView, getShortLabel?: (item: GroupedItem) => string | undefined) {
+    return buildChartSeries({rows: data, view, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT, getLabel, getShortLabel, getCurrencyDecimals, translate: translateLocal, dateFnsLocale: undefined})
+        .rows;
+}
+
+/** The amount the chart plots for a row's period on screen. */
+function getPlottedValue(dataPoint: ChartDataPoint) {
+    return getSeriesValue(dataPoint, CHART_SERIES_KEY.PRIMARY);
+}
+
+/** A point as the chart reads it, plotting one period. */
+function point(label: string, total: number, percentOfTotal?: number): ChartDataPoint {
+    return {label, values: {[CHART_SERIES_KEY.PRIMARY]: total}, percentOfTotal};
+}
 
 describe('buildChartSeries', () => {
     it('turns group totals in cents into plotted values, keeping the search order', () => {
@@ -48,12 +79,12 @@ describe('buildChartSeries', () => {
         const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
 
         // When the series is built for a bar chart
-        const rows = buildChartSeries({data, view: CONST.SEARCH.VIEW.BAR, getLabel, getCurrencyDecimals});
+        const rows = buildRows(data, CONST.SEARCH.VIEW.BAR);
 
         // Then every value is scaled down to the currency unit, because the chart axis reads in dollars, not cents,
         // and the rows stay in the order the search returned so the chart and the inline table line up row for row
         expect(rows.map((row) => row.point.label)).toEqual(['Person', 'Target']);
-        expect(rows.map((row) => row.point.total)).toEqual([4800, 1900]);
+        expect(rows.map((row) => getPlottedValue(row.point))).toEqual([4800, 1900]);
     });
 
     it('keeps each row pointing at the group it was built from', () => {
@@ -61,7 +92,7 @@ describe('buildChartSeries', () => {
         const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
 
         // When the series is built for a line chart
-        const rows = buildChartSeries({data, view: CONST.SEARCH.VIEW.LINE, getLabel, getCurrencyDecimals});
+        const rows = buildRows(data, CONST.SEARCH.VIEW.LINE);
 
         // Then each row still references its own group object, because pressing a row has to open that group's
         // transactions and a copied object would lose the identity the rest of Search matches on
@@ -74,13 +105,7 @@ describe('buildChartSeries', () => {
         const data = [merchantGroup('Coffee Shop', 42000)];
 
         // When the series is built with a group-by that offers a shortened label
-        const rows = buildChartSeries({
-            data,
-            view: CONST.SEARCH.VIEW.BAR,
-            getLabel,
-            getShortLabel: () => 'Coffee',
-            getCurrencyDecimals,
-        });
+        const rows = buildRows(data, CONST.SEARCH.VIEW.BAR, () => 'Coffee');
 
         // Then the short label is carried on the point, because the axis renders that one instead of truncating
         // the full label itself
@@ -92,7 +117,7 @@ describe('buildChartSeries', () => {
         const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
 
         // When the series is built for a line chart
-        const rows = buildChartSeries({data, view: CONST.SEARCH.VIEW.LINE, getLabel, getCurrencyDecimals});
+        const rows = buildRows(data, CONST.SEARCH.VIEW.LINE);
 
         // Then no row carries a color, because a line chart draws one continuous stroke and the inline table
         // must not show color swatches that nothing on the canvas corresponds to
@@ -104,7 +129,7 @@ describe('buildChartSeries', () => {
         const data = [merchantGroup('Person', 190000), merchantGroup('Target', 480000)];
 
         // When the series is built for a bar chart
-        const rows = buildChartSeries({data, view: CONST.SEARCH.VIEW.BAR, getLabel, getCurrencyDecimals});
+        const rows = buildRows(data, CONST.SEARCH.VIEW.BAR);
 
         // Then colors follow the array order rather than the totals, because that is how the bar canvas assigns
         // them and the inline table swatches have to match what is drawn
@@ -116,7 +141,7 @@ describe('buildChartSeries', () => {
         const data = [merchantGroup('Small', 10000), merchantGroup('Large', 900000), merchantGroup('Medium', 50000)];
 
         // When the series is built for a pie chart
-        const rows = buildChartSeries({data, view: CONST.SEARCH.VIEW.PIE, getLabel, getCurrencyDecimals});
+        const rows = buildRows(data, CONST.SEARCH.VIEW.PIE);
 
         // Then each row takes the palette color of its slice, because the pie canvas sorts slices by size before
         // coloring them, so `Large` gets the first color regardless of sitting second in the array
@@ -130,7 +155,7 @@ describe('buildChartSeries', () => {
         const data = [merchantGroup('Refund', -900000), merchantGroup('Target', 190000)];
 
         // When the series is built for a pie chart
-        const rows = buildChartSeries({data, view: CONST.SEARCH.VIEW.PIE, getLabel, getCurrencyDecimals});
+        const rows = buildRows(data, CONST.SEARCH.VIEW.PIE);
 
         // Then the refund is ranked first, because the pie draws slices sized by absolute value and ranking on the
         // signed total would push the biggest slice to the end of the palette
@@ -143,7 +168,7 @@ describe('buildChartSeries', () => {
         const data = [merchantGroup('Person', 480000, 12, 71.6), merchantGroup('Target', 190000, 41, 28.4)];
 
         // When the series is built for a pie chart
-        const rows = buildChartSeries({data, view: CONST.SEARCH.VIEW.PIE, getLabel, getCurrencyDecimals});
+        const rows = buildRows(data, CONST.SEARCH.VIEW.PIE);
 
         // Then the point carries the backend share untouched, because the chart tooltip and the inline table both
         // read it from here and recomputing it in either place is what let them disagree
@@ -155,7 +180,7 @@ describe('buildChartSeries', () => {
         const data = [quarterGroup(1, 75000), quarterGroup(2, 25000)];
 
         // When the series is built for a line chart
-        const rows = buildChartSeries({data, view: CONST.SEARCH.VIEW.LINE, getLabel, getCurrencyDecimals});
+        const rows = buildRows(data, CONST.SEARCH.VIEW.LINE);
 
         // Then the point carries no share, because the only share we quote is the one the search measured against
         // its own total, and a share derived from the groups on hand would disagree with it as soon as the
@@ -168,7 +193,7 @@ describe('buildChartSeries', () => {
         const data: GroupedItem[] = [];
 
         // When the series is built for a pie chart
-        const rows = buildChartSeries({data, view: CONST.SEARCH.VIEW.PIE, getLabel, getCurrencyDecimals});
+        const rows = buildRows(data, CONST.SEARCH.VIEW.PIE);
 
         // Then there is nothing to plot, because the empty state is the view's job and the chart must not be handed
         // placeholder rows to draw
@@ -181,11 +206,14 @@ describe('buildChartSeries', () => {
         const quarterLabel = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : '');
 
         // When the series is built with a label for the in-progress group
-        const rows = buildChartSeries({
-            data,
+        const {rows} = buildChartSeries({
+            rows: data,
             view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             getLabel: quarterLabel,
             getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
             getInProgressLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 4 ? 'Q4 so far' : undefined),
         });
 
@@ -199,18 +227,14 @@ describe('buildChartSeries', () => {
 describe('getSliceColorsByDataIndex', () => {
     it('agrees with the colors the pie canvas draws for the same data', () => {
         // Given points whose totals are out of order, so slice rank and array index differ
-        const points: ChartDataPoint[] = [
-            {label: 'Small', total: 100},
-            {label: 'Large', total: 9000},
-            {label: 'Medium', total: 500},
-        ];
+        const points: ChartDataPoint[] = [point('Small', 100), point('Large', 9000), point('Medium', 500)];
 
         // When the colors are resolved back to the order the data came in
         const colors = getSliceColorsByDataIndex(points);
 
         // Then every color matches the slice the canvas actually draws for that point, because the inline table and
         // the pie are colored by two separate code paths and a mismatch would silently mislabel the legend
-        const slices = processDataIntoSlices(points, {centerX: 100, centerY: 100, radius: 100, innerRadius: 60});
+        const slices = processDataIntoSlices(points, CHART_SERIES_KEY.PRIMARY, {centerX: 100, centerY: 100, radius: 100, innerRadius: 60});
         for (const slice of slices) {
             expect(colors.at(slice.originalIndex)).toBe(slice.color);
         }
@@ -218,10 +242,7 @@ describe('getSliceColorsByDataIndex', () => {
 
     it('leaves a group the donut does not draw without a color', () => {
         // Given a group whose share the table prints as ~0%, so the donut leaves its slice out
-        const points: ChartDataPoint[] = [
-            {label: 'Large', total: 10000, percentOfTotal: 99.99},
-            {label: 'Sliver', total: 1, percentOfTotal: 0.01},
-        ];
+        const points: ChartDataPoint[] = [point('Large', 10000, 99.99), point('Sliver', 1, 0.01)];
 
         // When the colors are resolved back to the order the data came in
         const colors = getSliceColorsByDataIndex(points);
@@ -235,18 +256,14 @@ describe('getSliceColorsByDataIndex', () => {
     it('ranks the palette over the drawn slices only', () => {
         // Given a dropped group that is not the smallest slice by absolute value, so ranking before dropping would
         // hand the drawn slices the wrong palette entries
-        const points: ChartDataPoint[] = [
-            {label: 'Spend', total: 5000, percentOfTotal: 5000},
-            {label: 'Rounding', total: 400, percentOfTotal: 0.01},
-            {label: 'Refund', total: -4900, percentOfTotal: -4900},
-        ];
+        const points: ChartDataPoint[] = [point('Spend', 5000, 5000), point('Rounding', 400, 0.01), point('Refund', -4900, -4900)];
 
         // When the colors are resolved back to the order the data came in
         const colors = getSliceColorsByDataIndex(points);
 
         // Then the two drawn groups take the first two palette entries, matching what the canvas colors them,
         // because `processDataIntoSlices` colors by position among the slices it actually draws
-        const slices = processDataIntoSlices(points, {centerX: 100, centerY: 100, radius: 100, innerRadius: 60});
+        const slices = processDataIntoSlices(points, CHART_SERIES_KEY.PRIMARY, {centerX: 100, centerY: 100, radius: 100, innerRadius: 60});
         for (const slice of slices) {
             expect(colors.at(slice.originalIndex)).toBe(slice.color);
         }
@@ -263,5 +280,389 @@ describe('getSliceColorsByDataIndex', () => {
         // Then no colors come back, because the caller indexes into this array per row and a padded array would
         // hand a color to a row that does not exist
         expect(colors).toEqual([]);
+    });
+});
+
+describe('buildChartSeries with a compared period', () => {
+    const CURRENT_PERIOD = {color: '#current', range: {start: '2026-01-01', end: '2026-12-31'}};
+    const PREVIOUS_PERIOD = {color: '#previous', range: {start: '2025-01-01', end: '2025-12-31'}};
+
+    /** Builds the model of a chart plotting one period against the one before it. */
+    function buildComparison(rows: GroupedItem[], previousRows: GroupedItem[], groupBy: SearchGroupBy) {
+        return buildChartSeries({
+            rows,
+            comparison: {rows: previousRows, primaryPeriod: CURRENT_PERIOD, comparisonPeriod: PREVIOUS_PERIOD},
+            view: CONST.SEARCH.VIEW.BAR,
+            groupBy,
+            getLabel: (item) => {
+                if (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
+                    return item.formattedMerchant ?? '';
+                }
+                if (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER) {
+                    return item.formattedQuarter ?? '';
+                }
+                return '';
+            },
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+        });
+    }
+
+    it('pairs ranking rows by the group they describe, not by the order they were ranked in', () => {
+        // Given the same two merchants ranked differently in each period
+        const rows = [merchantGroup('Person', 300000), merchantGroup('Target', 100000)];
+        const previousRows = [merchantGroup('Target', 250000), merchantGroup('Person', 50000)];
+
+        // When the periods are plotted against each other
+        const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.MERCHANT);
+
+        // Then each merchant is measured against itself
+        expect(model.rows.at(0)?.point.values).toEqual({[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 500});
+        expect(model.rows.at(1)?.point.values).toEqual({[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 2500});
+    });
+
+    it('pairs time buckets by their position in their own period, so a gap cannot shift the rest', () => {
+        // Given a period missing its second quarter, which a search returns no bucket for
+        const rows = [quarterGroup(1, 100000), quarterGroup(3, 300000)];
+        const previousRows = [previousQuarterGroup(1, 10000), previousQuarterGroup(2, 20000), previousQuarterGroup(3, 30000)];
+
+        // When the two periods are plotted against each other
+        const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.QUARTER);
+
+        // Then Q1 meets Q1 and Q3 meets Q3, rather than Q3 sliding onto Q2
+        expect(model.rows.at(0)?.point.values).toEqual({[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 100});
+        expect(model.rows.at(1)?.point.values).toEqual({[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300});
+    });
+
+    it('draws a group the compared period has nothing for at zero', () => {
+        // Given a merchant that only appears in the period on screen
+        const model = buildComparison([merchantGroup('Person', 300000)], [merchantGroup('Target', 250000)], CONST.SEARCH.GROUP_BY.MERCHANT);
+
+        // Then its comparison bar is empty and no row is invented for it
+        expect(model.rows).toHaveLength(1);
+        expect(model.rows.at(0)?.point.values[CHART_SERIES_KEY.COMPARISON]).toBe(0);
+        expect(model.rows.at(0)?.comparisonItem).toBeUndefined();
+    });
+
+    it('keeps the rows behind both values, so a press can be traced back to a period', () => {
+        // Given a merchant present in both periods
+        const primaryItem = merchantGroup('Person', 300000);
+        const comparisonItem = merchantGroup('Person', 50000);
+
+        // When the periods are plotted against each other
+        const model = buildComparison([primaryItem], [comparisonItem], CONST.SEARCH.GROUP_BY.MERCHANT);
+
+        // Then the row holds the grouped item each of its values was read from
+        expect(model.rows.at(0)?.item).toBe(primaryItem);
+        expect(model.rows.at(0)?.comparisonItem).toBe(comparisonItem);
+    });
+
+    it('keeps the per-group palette, since each item keeps its color in both periods', () => {
+        // Given two merchants plotted against the period before
+        const model = buildComparison([merchantGroup('Person', 300000), merchantGroup('Target', 100000)], [], CONST.SEARCH.GROUP_BY.MERCHANT);
+
+        // Then each row carries its palette color, the one its current-period bar is drawn in
+        expect(model.rows.map((row) => row.color)).toEqual([VictoryTheme.colors.getColor(0), VictoryTheme.colors.getColor(1)]);
+    });
+});
+
+describe('buildChartSeries labels for compared time buckets', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+    });
+
+    /** Fields every grouped bucket carries besides its own date */
+    const BUCKET_BASE = {count: 1, total: 100000, currency: CONST.CURRENCY.USD, transactions: []};
+
+    function monthGroup(year: number, month: number): TransactionMonthGroupListItemType {
+        return {
+            ...BUCKET_BASE,
+            groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+            year,
+            month,
+            formattedMonth: `${month}/${year}`,
+            shortFormattedMonth: `${month}`,
+            sortKey: month,
+            keyForList: `month_${year}_${month}`,
+        };
+    }
+
+    function weekGroup(week: string): TransactionWeekGroupListItemType {
+        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.WEEK, week, formattedWeek: week, shortFormattedWeek: week, keyForList: `week_${week}`};
+    }
+
+    function dayGroup(day: string): TransactionDayGroupListItemType {
+        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day, formattedDay: day, shortFormattedDay: day, keyForList: `day_${day}`};
+    }
+
+    /** Builds the labels of a chart plotting the window on screen against the one before it. */
+    function buildLabels(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
+        return buildChartSeries({
+            rows,
+            comparison: {rows: [], primaryPeriod: {color: '#current', range: current}, comparisonPeriod: {color: '#previous', range: previous}},
+            view: CONST.SEARCH.VIEW.BAR,
+            groupBy,
+            getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
+            getShortLabel: CHART_GROUP_BY_CONFIG[groupBy].getShortLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+        }).rows.map((row) => [row.point.label, row.point.shortLabel]);
+    }
+
+    it('names months without their year, since the same month of each year is compared', () => {
+        // Given year to date plotted against the year before
+        const labels = buildLabels(
+            [monthGroup(2026, 1), monthGroup(2026, 2)],
+            CONST.SEARCH.GROUP_BY.MONTH,
+            {start: '2026-01-01', end: '2026-10-01'},
+            {start: '2025-01-01', end: '2025-10-01'},
+        );
+
+        // Then each month is named on its own, which fits both of the bars drawn for it, and shortened on the axis like a lone series
+        expect(labels).toEqual([
+            ['January', 'Jan'],
+            ['February', 'Feb'],
+        ]);
+    });
+
+    it('numbers weeks from the start of the window, since their dates differ from month to month', () => {
+        // Given September 2026, whose first week starts on Sunday August 30 and second on September 6
+        const labels = buildLabels(
+            [weekGroup('2026-08-30'), weekGroup('2026-09-06')],
+            CONST.SEARCH.GROUP_BY.WEEK,
+            {start: '2026-09-01', end: '2026-09-30'},
+            {start: '2026-08-01', end: '2026-08-31'},
+        );
+
+        // Then the weeks are numbered by their position, which August's weeks share although their dates differ
+        expect(labels).toEqual([
+            ['Week 1', 'Week 1'],
+            ['Week 2', 'Week 2'],
+        ]);
+    });
+
+    it('names days by the day of the month when the window spans a month', () => {
+        // Given September 2026 plotted day by day
+        const labels = buildLabels([dayGroup('2026-09-06')], CONST.SEARCH.GROUP_BY.DAY, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
+
+        // Then the day is named by its number, which the same day of August shares
+        expect(labels).toEqual([['6th', '6th']]);
+    });
+
+    it('names days by their date when the window spans several months', () => {
+        // Given the last 12 months plotted day by day against the 12 months before
+        const labels = buildLabels([dayGroup('2026-10-05')], CONST.SEARCH.GROUP_BY.DAY, {start: '2025-11-01', end: '2026-10-31'}, {start: '2024-11-01', end: '2025-10-31'});
+
+        // Then the day is named by its date, which the same day a year earlier shares
+        expect(labels).toEqual([['Oct 5', 'Oct 5']]);
+    });
+
+    it('keeps the day of the month for a day the compared month lacks', () => {
+        // Given October plotted by day against September, which has no 31st
+        const labels = buildLabels(
+            [dayGroup('2026-10-30'), dayGroup('2026-10-31')],
+            CONST.SEARCH.GROUP_BY.DAY,
+            {start: '2026-10-01', end: '2026-10-31'},
+            {start: '2026-09-01', end: '2026-09-30'},
+        );
+
+        // Then October 31 is named like the rest, since there is no other day its name has to fit
+        expect(labels.map(([, shortLabel]) => shortLabel)).toEqual(['30th', '31st']);
+    });
+
+    it('names days by the weekday when the window spans a week', () => {
+        // Given a week plotted day by day against the week before it
+        const labels = buildLabels([dayGroup('2026-09-07')], CONST.SEARCH.GROUP_BY.DAY, {start: '2026-09-06', end: '2026-09-12'}, {start: '2026-08-30', end: '2026-09-05'});
+
+        // Then the day is named by its weekday, which the matching day of the week before shares
+        expect(labels).toEqual([['Mon', 'Mon']]);
+    });
+
+    it('numbers weeks the same whichever weekday they start on', () => {
+        // Given September 2026 grouped into weeks starting on Monday, whose first week starts on August 31
+        const labels = buildLabels(
+            [weekGroup('2026-08-31'), weekGroup('2026-09-07')],
+            CONST.SEARCH.GROUP_BY.WEEK,
+            {start: '2026-09-01', end: '2026-09-30'},
+            {start: '2026-08-01', end: '2026-08-31'},
+        );
+
+        // Then the week holding the first day of the window is still the first one
+        expect(labels).toEqual([
+            ['Week 1', 'Week 1'],
+            ['Week 2', 'Week 2'],
+        ]);
+    });
+
+    it('numbers months when the compared months have different names', () => {
+        // Given August and September plotted against June and July, so month names would only fit one of the two bars
+        const labels = buildLabels(
+            [monthGroup(2026, 8), monthGroup(2026, 9)],
+            CONST.SEARCH.GROUP_BY.MONTH,
+            {start: '2026-08-01', end: '2026-09-30'},
+            {start: '2026-06-01', end: '2026-07-31'},
+        );
+
+        // Then the months are named by their position in the window, which fits both
+        expect(labels).toEqual([
+            ['Month 1', 'Month 1'],
+            ['Month 2', 'Month 2'],
+        ]);
+    });
+
+    it('names a lone bucket by its unit alone', () => {
+        // Given September plotted against August, so a month name would only fit one of the two bars
+        const labels = buildLabels([monthGroup(2026, 9)], CONST.SEARCH.GROUP_BY.MONTH, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
+
+        // Then it is just "Month", since with nothing beside it a position tells the user nothing
+        expect(labels).toEqual([['Month', 'Month']]);
+    });
+
+    it('numbers days when a custom range is compared against days with other dates', () => {
+        // Given September 10 to 25 plotted against the 16 days before it, which start on August 25
+        const labels = buildLabels(
+            [dayGroup('2026-09-10'), dayGroup('2026-09-12')],
+            CONST.SEARCH.GROUP_BY.DAY,
+            {start: '2026-09-10', end: '2026-09-25'},
+            {start: '2026-08-25', end: '2026-09-09'},
+        );
+
+        // Then the days are named by their position, since "10" would be wrong for August 25
+        expect(labels).toEqual([
+            ['Day 1', 'Day 1'],
+            ['Day 3', 'Day 3'],
+        ]);
+    });
+
+    /** Builds the plotted values of a chart comparing the window on screen against the one before it, which had no expenses. */
+    function buildValues(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
+        return buildChartSeries({
+            rows,
+            comparison: {rows: [], primaryPeriod: {color: '#current', range: current}, comparisonPeriod: {color: '#previous', range: previous}},
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy,
+            getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+        }).rows.map((row) => row.point.values);
+    }
+
+    it('plots nothing for the compared period where it has no matching day, unlike a day with no expenses', () => {
+        // Given October plotted by day against September, which has no 31st
+        const values = buildValues(
+            [dayGroup('2026-10-30'), dayGroup('2026-10-31')],
+            CONST.SEARCH.GROUP_BY.DAY,
+            {start: '2026-10-01', end: '2026-10-31'},
+            {start: '2026-09-01', end: '2026-09-30'},
+        );
+
+        // Then October 30 is compared with an empty September 30, and October 31 with nothing
+        expect(values).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0}, {[CHART_SERIES_KEY.PRIMARY]: 1000}]);
+    });
+
+    it('compares days with the same date a year earlier, leaving February 29 without a pair', () => {
+        // Given 2028 to date, a leap year, plotted by day against 2027
+        const current = {start: '2028-01-01', end: '2028-03-01'};
+        const previous = {start: '2027-01-01', end: '2027-03-01'};
+
+        // When the days around February 29 are plotted
+        const values = buildValues([dayGroup('2028-02-28'), dayGroup('2028-02-29'), dayGroup('2028-03-01')], CONST.SEARCH.GROUP_BY.DAY, current, previous);
+        const labels = buildLabels([dayGroup('2028-02-28'), dayGroup('2028-02-29'), dayGroup('2028-03-01')], CONST.SEARCH.GROUP_BY.DAY, current, previous);
+
+        // Then February 29 plots only the current year, and March 1 still meets March 1 rather than slipping a day
+        expect(values).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0},
+            {[CHART_SERIES_KEY.PRIMARY]: 1000},
+            {[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0},
+        ]);
+        expect(labels.map(([label]) => label)).toEqual(['Feb 28', 'Feb 29', 'Mar 1']);
+    });
+
+    it('plots nothing for the compared period where it has fewer weeks', () => {
+        // Given August 2026, whose sixth week starts on Sunday August 30, against July, whose last week is its fifth
+        const values = buildValues(
+            [weekGroup('2026-07-26'), weekGroup('2026-08-30')],
+            CONST.SEARCH.GROUP_BY.WEEK,
+            {start: '2026-08-01', end: '2026-08-31'},
+            {start: '2026-07-01', end: '2026-07-31'},
+        );
+
+        // Then the first week is compared, and the sixth plots only the current period
+        expect(values).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0}, {[CHART_SERIES_KEY.PRIMARY]: 1000}]);
+    });
+
+    /** Builds the dates the tooltip shows for each period at every point. */
+    function buildSeriesLabels(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
+        return buildChartSeries({
+            rows,
+            comparison: {rows: [], primaryPeriod: {color: '#current', range: current}, comparisonPeriod: {color: '#previous', range: previous}},
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy,
+            getLabel: CHART_GROUP_BY_CONFIG[groupBy].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+        }).rows.map((row) => row.point.seriesLabels);
+    }
+
+    it('gives each period the dates of its own bucket, cut to the period', () => {
+        // Given September plotted by week against August, whose first weeks both start before the month
+        const labels = buildSeriesLabels([weekGroup('2026-08-30')], CONST.SEARCH.GROUP_BY.WEEK, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
+
+        // Then the tooltip names the days each period actually adds up, rather than the period names
+        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'Sep 1 - Sep 5, 2026', [CHART_SERIES_KEY.COMPARISON]: 'Aug 1, 2026'}]);
+    });
+
+    it('says "so far" on the current period of a bucket still collecting expenses, keeping the bucket name', () => {
+        // Given October plotted by day against September, while October 8 is still in progress
+        const model = buildChartSeries({
+            rows: [dayGroup('2026-10-08')],
+            comparison: {
+                rows: [],
+                primaryPeriod: {color: '#current', range: {start: '2026-10-01', end: '2026-10-31'}},
+                comparisonPeriod: {color: '#previous', range: {start: '2026-09-01', end: '2026-09-30'}},
+            },
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.DAY].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            getInProgressLabel: () => 'Oct 8 so far',
+        });
+        const point = model.rows.at(0)?.point;
+
+        // Then only October's row is marked, since September 8 is over, and the axis keeps naming the day
+        expect(point?.label).toBe('8th');
+        expect(point?.seriesLabels).toEqual({[CHART_SERIES_KEY.PRIMARY]: 'Oct 8, 2026 so far', [CHART_SERIES_KEY.COMPARISON]: 'Sep 8, 2026'});
+        expect(point?.isInProgress).toBe(true);
+    });
+
+    it('names a whole month by its calendar name', () => {
+        // Given September plotted by month against August
+        const labels = buildSeriesLabels([monthGroup(2026, 9)], CONST.SEARCH.GROUP_BY.MONTH, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
+
+        // Then each period is its month
+        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'September 2026', [CHART_SERIES_KEY.COMPARISON]: 'August 2026'}]);
+    });
+
+    it('keeps the plain labels when nothing is compared', () => {
+        // Given a single month plotted on its own
+        const labels = buildChartSeries({
+            rows: [monthGroup(2026, 1)],
+            view: CONST.SEARCH.VIEW.BAR,
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getLabel,
+            getShortLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getShortLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+        }).rows.map((row) => [row.point.label, row.point.shortLabel]);
+
+        // Then it keeps its own label with the year, since there is no other period it needs to fit
+        expect(labels).toEqual([['1/2026', '1']]);
     });
 });

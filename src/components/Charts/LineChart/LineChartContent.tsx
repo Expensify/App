@@ -15,8 +15,9 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
+    useScaleChangeHandler,
 } from '@components/Charts/hooks';
-import {getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getDomainPaddingForEdgeSpace, getSeriesValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -36,11 +37,15 @@ import {CartesianChart, Line} from 'victory-native';
 
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
+/** A point as victory-native reads it: the x index plus one entry per series, keyed by the series' key. */
+type LineChartDatum = {x: number} & Record<string, number | undefined>;
+
 type LineChartProps = CartesianChartProps & {
+    /** Called with the pressed point of the primary series */
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
-function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -50,14 +55,21 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const [boundsRight, setBoundsRight] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
+    const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const primarySeriesKey = seriesKeys.at(0) ?? '';
+    // The primary series is drawn last so it sits over the period it is compared against.
+    const seriesBackToFront = series.toReversed();
     const isLastPointInProgress = !!data.at(-1)?.isInProgress;
 
     // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
     const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
-    const chartData = data.map((point, index) => ({
+    const chartData: LineChartDatum[] = data.map((point, index) => ({
         x: index,
-        y: point.total,
+        ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
     }));
+
+    /** Canvas y of every series at every point, undefined where a series has no point */
+    const seriesPointY = useSharedValue<Array<Array<number | undefined>>>([]);
 
     const handlePointPress = (index: number) => {
         if (index < 0 || index >= data.length) {
@@ -176,53 +188,80 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         chartBottom,
     });
 
+    const activePointX = useDerivedValue(() => activePointPosition.get().x);
+    const activeSeriesY = useDerivedValue(() => seriesPointY.get().map((positions) => positions.at(matchedIndex.get())));
     const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
 
-    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+    /** Stores canvas positions for hover, press and the tooltip */
+    const updateHitPositions = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
         const [rangeStart, rangeEnd] = xScale.range();
         bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : Math.abs(rangeEnd - rangeStart));
+        seriesPointY.set(
+            seriesKeys.map((key) =>
+                data.map((point) => {
+                    const value = point.values[key];
+                    return value === undefined ? undefined : yScale(value);
+                }),
+            ),
+        );
         setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            chartData.map((point) => yScale(point.y)),
+            chartData.map((point, index) => xScale(point.x ?? index)),
+            // The tooltip follows the primary series.
+            data.map((point) => yScale(getSeriesValue(point, primarySeriesKey))),
         );
     };
+
+    const handleScaleChange = useScaleChangeHandler(updateHitPositions, data, series);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
-    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+    const renderOutside = (args: CartesianChartRenderArg<LineChartDatum, string>) => {
         const chartBoundsBottom = args.chartBounds.bottom;
         chartBottom.set(chartBoundsBottom);
-        const completePoints = shouldDashLastSegment ? args.points.y.slice(0, -1) : args.points.y;
+        const primaryColor = series.at(0)?.color ?? VictoryTheme.colors.default;
+
+        // The last bucket is still in progress, so the primary series is dashed into it. A compared period has already ended.
+        const getCompletePoints = (seriesKey: string) => {
+            const seriesPoints = args.points[seriesKey] ?? [];
+            return shouldDashLastSegment && seriesKey === primarySeriesKey ? seriesPoints.slice(0, -1) : seriesPoints;
+        };
 
         return (
             <>
                 <AreaGradient
-                    points={completePoints}
+                    points={getCompletePoints(primarySeriesKey)}
                     baselineY={chartBoundsBottom}
-                    color={VictoryTheme.colors.default}
+                    color={primaryColor}
                 />
-                <Line
-                    points={completePoints}
-                    color={VictoryTheme.colors.default}
-                    strokeWidth={VictoryTheme.line.strokeWidth}
-                    strokeCap="round"
-                    strokeJoin="round"
-                    curveType="linear"
-                />
-                {shouldDashLastSegment && (
-                    <Line
-                        points={args.points.y.slice(-2)}
-                        color={VictoryTheme.colors.default}
-                        strokeWidth={VictoryTheme.line.strokeWidth}
-                        strokeCap="round"
-                        curveType="linear"
-                    >
-                        <DashPathEffect intervals={DASH_INTERVALS} />
-                    </Line>
-                )}
+                {seriesBackToFront.map((seriesItem) => {
+                    const color = seriesItem.color ?? VictoryTheme.colors.default;
+                    return (
+                        <React.Fragment key={seriesItem.key}>
+                            <Line
+                                points={getCompletePoints(seriesItem.key)}
+                                color={color}
+                                strokeWidth={VictoryTheme.line.strokeWidth}
+                                strokeCap="round"
+                                strokeJoin="round"
+                                curveType="linear"
+                            />
+                            {shouldDashLastSegment && seriesItem.key === primarySeriesKey && (
+                                <Line
+                                    points={(args.points[seriesItem.key] ?? []).slice(-2)}
+                                    color={color}
+                                    strokeWidth={VictoryTheme.line.strokeWidth}
+                                    strokeCap="round"
+                                    curveType="linear"
+                                >
+                                    <DashPathEffect intervals={DASH_INTERVALS} />
+                                </Line>
+                            )}
+                        </React.Fragment>
+                    );
+                })}
                 {xAxisLabelHeight !== undefined && !!fontManager && (
                     <ChartXAxisLabels
                         labels={originalLabels}
@@ -252,13 +291,14 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     />
                 )}
                 <ActivePointIndicator
-                    position={activePointPosition}
+                    x={activePointX}
+                    dotYs={activeSeriesY}
+                    dotColors={series.map((seriesItem) => seriesItem.color ?? VictoryTheme.colors.default)}
                     isActive={isTooltipActive}
                     top={args.chartBounds.top}
                     bottom={chartBoundsBottom}
                     dotRadius={VictoryTheme.line.activeDotRadius}
-                    dotColor={VictoryTheme.colors.default}
-                    guidelineColor={VictoryTheme.colors.default}
+                    guidelineColor={primaryColor}
                     guidelineOpacity={VictoryTheme.line.guidelineOpacity}
                     isHollow={isActivePointHollow}
                     hollowColor={theme.cardBG}
@@ -299,7 +339,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     <CartesianChart
                         xKey="x"
                         padding={chartPadding}
-                        yKeys={['y']}
+                        yKeys={seriesKeys}
                         domainPadding={domainPadding}
                         onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
@@ -337,6 +377,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
                     data={data}
+                    series={series}
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}

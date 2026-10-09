@@ -484,6 +484,9 @@ type SearchChartDataRow = {
     /** The grouped search result the point was built from */
     item: GroupedItem;
 
+    /** Comparison period's row paired with `item` */
+    comparisonItem?: GroupedItem;
+
     /** Palette color the chart assigns this group */
     color?: string;
 };

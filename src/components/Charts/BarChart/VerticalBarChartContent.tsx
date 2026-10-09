@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {BAR_CORNER_RADIUS, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
+import {BAR_CORNER_RADIUS, BAR_GROUP_INNER_GAP, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
@@ -13,8 +13,9 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
+    useScaleChangeHandler,
 } from '@components/Charts/hooks';
-import {getBarLayout, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {getBarLayout, getSeriesValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -33,7 +34,21 @@ import {Bar, CartesianChart} from 'victory-native';
 
 import type BarChartProps from './types';
 
-function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true}: BarChartProps) {
+/** A lone bar is rounded at both ends; grouped bars are rounded only on the end carrying the value. */
+const BAR_ROUNDED_CORNERS = {topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS};
+
+/** victory-native flips these for a bar that hangs below the axis, so the flat end always meets the axis. */
+const GROUPED_BAR_ROUNDED_CORNERS = {topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: 0, bottomRight: 0};
+
+/** Width of each bar when `barCount` bars share a slot `slotWidth` wide */
+function getGroupedBarWidth(slotWidth: number, barCount: number): number {
+    return (slotWidth - BAR_GROUP_INNER_GAP * (barCount - 1)) / barCount;
+}
+
+/** A point as victory-native reads it: the x index plus one entry per series, keyed by the series' key. */
+type VerticalBarChartDatum = {x: number} & Record<string, number | undefined>;
+
+function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -42,12 +57,25 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
 
-    const chartData = data.map((point, index) => ({
+    const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const primarySeriesKey = seriesKeys.at(0) ?? '';
+    const chartData: VerticalBarChartDatum[] = data.map((point, index) => ({
         x: index,
-        y: point.total,
+        ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
     }));
 
     const yAxisDomain = useDynamicYDomain(data);
+
+    // Each slot holds one bar, or one group of bars when several series are compared.
+    const barLayout = getBarLayout(barAreaWidth, data.length);
+    const groupedBarWidth = getGroupedBarWidth(barLayout.barWidth, seriesKeys.length);
+
+    const slotHitHalfWidth = useSharedValue(0);
+    const plotTop = useSharedValue(0);
+    const plotBottom = useSharedValue(0);
+
+    /** Canvas x of each slot's center */
+    const slotCenters = useSharedValue<number[]>([]);
 
     const handleBarPress = (index: number) => {
         if (index < 0 || index >= data.length) {
@@ -62,8 +90,6 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     const handleLayout = (event: LayoutChangeEvent) => {
         setChartWidth(event.nativeEvent.layout.width);
     };
-
-    const barLayout = getBarLayout(barAreaWidth, data.length);
 
     // Empty label data makes the measurement and layout hooks return early instead of laying out labels nobody sees.
     const labelData = shouldShowLabels ? data : [];
@@ -88,9 +114,6 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
         unitPosition: yAxisUnitPosition,
     });
 
-    const barHitHalfWidth = useSharedValue(0);
-    const plotTop = useSharedValue(0);
-    const plotBottom = useSharedValue(0);
     const chartBottom = useSharedValue(0);
     const yZero = useSharedValue(0);
 
@@ -106,7 +129,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         const domainWidth = bounds.right - bounds.left;
         const {barWidth, gap} = getBarLayout(domainWidth, data.length);
-        barHitHalfWidth.set(barWidth > 0 ? barWidth / 2 + gap * BAR_HIT_GAP_RATIO : 0);
+        slotHitHalfWidth.set(barWidth > 0 ? barWidth / 2 + gap * BAR_HIT_GAP_RATIO : 0);
         plotTop.set(bounds.top);
         plotBottom.set(bounds.bottom);
         yZero.set(0);
@@ -118,12 +141,13 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
-        // The target spans the full plot height.
-        const halfWidth = barHitHalfWidth.get();
+        // The target spans the full plot height and the whole slot, covering every bar of a group.
+        const halfWidth = slotHitHalfWidth.get();
         if (halfWidth === 0) {
             return false;
         }
-        const isWithinX = Math.abs(args.cursorX - args.targetX) <= halfWidth;
+        const slotCenter = slotCenters.get().at(args.targetIndex) ?? args.targetX;
+        const isWithinX = Math.abs(args.cursorX - slotCenter) <= halfWidth;
         return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
@@ -136,37 +160,69 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
         yZero,
     });
 
-    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+    /** Stores canvas positions for hover, press and the tooltip */
+    const updateHitPositions = (xScale: Scale, yScale: Scale) => {
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);
+        const centers = chartData.map((point, index) => xScale(point.x ?? index));
+        slotCenters.set(centers);
+
+        // The tooltip sits above the primary series' bar, which is the first bar of a group.
+        const [rangeStart, rangeEnd] = xScale.range();
+        const slot = getBarLayout(Math.abs(rangeEnd - rangeStart), data.length).barWidth;
+        const primaryBarOffset = seriesKeys.length > 1 ? (getGroupedBarWidth(slot, seriesKeys.length) - slot) / 2 : 0;
         setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            chartData.map((point) => yScale(point.y)),
+            centers.map((center) => center + primaryBarOffset),
+            data.map((point) => yScale(getSeriesValue(point, primarySeriesKey))),
         );
     };
+
+    const handleScaleChange = useScaleChangeHandler(updateHitPositions, data, series);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
 
-    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds) => {
+    /** A lone series takes one palette color per item; compared series keep it and draw the other period a lighter shade. */
+    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, seriesIndex: number) => {
+        // A series with nothing at this point leaves its place in the group empty.
+        if (typeof point.y !== 'number') {
+            return null;
+        }
         const dataIndex = Number(point.xValue);
         const dataPoint = data.at(dataIndex);
+        const color = seriesIndex === 0 ? VictoryTheme.colors.getColor(dataIndex) : VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.getColor(dataIndex), theme.colorScheme);
 
+        if (series.length === 1) {
+            return (
+                <Bar
+                    key={`bar-${dataPoint?.label}`}
+                    points={[point]}
+                    chartBounds={chartBounds}
+                    color={color}
+                    barWidth={barLayout.barWidth}
+                    barCount={data.length}
+                    roundedCorners={BAR_ROUNDED_CORNERS}
+                />
+            );
+        }
+
+        // Each bar of a group is shifted from the slot's center to its own place within the slot.
+        const offset = -barLayout.barWidth / 2 + seriesIndex * (groupedBarWidth + BAR_GROUP_INNER_GAP) + groupedBarWidth / 2;
         return (
             <Bar
-                key={`bar-${dataPoint?.label}`}
-                points={[point]}
+                key={`bar-${seriesKeys.at(seriesIndex)}-${dataPoint?.label}`}
+                points={[{...point, x: point.x + offset}]}
                 chartBounds={chartBounds}
-                color={VictoryTheme.colors.getColor(dataIndex)}
-                barWidth={barLayout.barWidth}
+                color={color}
+                barWidth={groupedBarWidth}
                 barCount={data.length}
-                roundedCorners={{topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS}}
+                roundedCorners={GROUPED_BAR_ROUNDED_CORNERS}
             />
         );
     };
 
-    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+    const renderOutside = (args: CartesianChartRenderArg<VerticalBarChartDatum, string>) => {
         if (!fontManager || xAxisLabelHeight === undefined) {
             return null;
         }
@@ -236,7 +292,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                     <CartesianChart
                         xKey="x"
                         padding={chartPadding}
-                        yKeys={['y']}
+                        yKeys={seriesKeys}
                         domain={{x: barLayout.xDomain}}
                         domainPadding={VERTICAL_BAR_DOMAIN_PADDING}
                         onChartBoundsChange={handleChartBoundsChange}
@@ -269,7 +325,8 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                                     chartBounds={chartBounds}
                                     color={theme.border}
                                 />
-                                {points.y.map((point) => renderBar(point, chartBounds))}
+                                {(series.length === 1 || groupedBarWidth > 0) &&
+                                    series.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesIndex)))}
                             </>
                         )}
                     </CartesianChart>
@@ -278,6 +335,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
                     data={data}
+                    series={series}
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
