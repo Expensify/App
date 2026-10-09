@@ -28,7 +28,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 
 type SearchNLFilterContentProps = {
     /** Called with the destination route once the query is successfully parsed */
@@ -118,6 +118,9 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                     value={nlQuery}
                     onChangeText={setNlQuery}
                     onKeyPress={(e) => {
+                        if (Platform.OS !== 'web') {
+                            return;
+                        }
                         // On web, nativeEvent is a native DOM KeyboardEvent; the cast is safe for IME composition detection.
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                         if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey) || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
