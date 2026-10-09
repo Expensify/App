@@ -3,6 +3,8 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 
+import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -28,7 +30,24 @@ jest.mock('@components/NumberWithSymbolForm', () => {
         </>
     );
 });
-let mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
+jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
+    const {Pressable, Text} =
+        jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
+    return ({onInputChange}: {onInputChange: (currency: string) => void}) => (
+        <Pressable
+            accessibilityRole="button"
+            onPress={() => onInputChange('EUR')}
+        >
+            <Text>Pick EUR</Text>
+        </Pressable>
+    );
+});
+let mockTransactionSlice: {transactionID: string; amount: number; currency: string; isAmountMissing: boolean; isAmountSet?: boolean} = {
+    transactionID: '1',
+    amount: 0,
+    currency: 'USD',
+    isAmountMissing: false,
+};
 jest.mock('@components/MoneyRequestConfirmationList/sections/useTransactionSelector', () => () => mockTransactionSlice);
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
@@ -36,7 +55,12 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, p
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({getCurrencyDecimals: () => 2, getCurrencySymbol: () => '$'})}));
 jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => true}));
-jest.mock('@libs/actions/IOU/MoneyRequest', () => ({getMoneyRequestParticipantsFromReport: () => [], setMoneyRequestAmount: jest.fn(), clearMoneyRequestAmount: jest.fn()}));
+jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
+    getMoneyRequestParticipantsFromReport: () => [],
+    setMoneyRequestAmount: jest.fn(),
+    setMoneyRequestCurrency: jest.fn(),
+    clearMoneyRequestAmount: jest.fn(),
+}));
 jest.mock('@userActions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
 
 const amountFieldProps: React.ComponentProps<typeof AmountField> = {
@@ -161,5 +185,61 @@ describe('AmountField split-bill error clearing', () => {
 
         fireEvent.press(screen.getByText('Enter one'));
         expect(clearFormErrors).toHaveBeenCalledWith(['common.error.invalidAmount']);
+    });
+});
+
+describe('AmountField currency change', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
+    });
+
+    it('only updates the currency on a scan whose amount is still left to SmartScan', () => {
+        // Given a scan expense whose amount field is empty because SmartScan will fill it in
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+                canEnterScanFieldsManually
+            >
+                <AmountField {...amountFieldProps} />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // When the user changes the currency without entering an amount
+        fireEvent.press(screen.getByText('Pick EUR'));
+
+        // Then only the currency is written, so isAmountSet stays unset and the scan isn't turned into a partially
+        // entered manual expense that blocks creation until amount, merchant and date are all filled in
+        expect(setMoneyRequestCurrency).toHaveBeenCalledWith('1', 'EUR');
+        expect(setMoneyRequestAmount).not.toHaveBeenCalled();
+    });
+
+    it('keeps the entered amount when the currency changes after the user set one', () => {
+        // Given a scan expense where the user has already entered an amount themselves
+        mockTransactionSlice = {transactionID: '1', amount: 1000, currency: 'USD', isAmountMissing: false, isAmountSet: true};
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+                canEnterScanFieldsManually
+            >
+                <AmountField
+                    {...amountFieldProps}
+                    amount={1000}
+                />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // When the user changes the currency
+        fireEvent.press(screen.getByText('Pick EUR'));
+
+        // Then the entered amount is saved together with the new currency, since the amount is the user's own
+        expect(setMoneyRequestAmount).toHaveBeenCalledWith('1', 1000, 'EUR');
+        expect(setMoneyRequestCurrency).not.toHaveBeenCalled();
     });
 });

@@ -16,10 +16,10 @@ describe('tableColumnWidthsSelector', () => {
         expect(tableColumnWidthsSelector(TAGS_TABLE_ID)(storedWidths)).toEqual({name: 240, enabled: 120});
     });
 
-    // Given a table that hasn't opted into resizing, which is most of them and every table on native
+    // Given a resizable table the user has never dragged
     // When its widths are selected
-    // Then there are none regardless of what is stored, so another table's drag never re-renders them
-    it('returns nothing for a table that has not opted into resizing', () => {
-        expect(tableColumnWidthsSelector(undefined)(storedWidths)).toBeUndefined();
+    // Then there are none, so it lays out from its column defaults instead of another table's widths
+    it('returns nothing for a table with no stored widths', () => {
+        expect(tableColumnWidthsSelector('workspaceCategories')(storedWidths)).toBeUndefined();
     });
 });

@@ -10,6 +10,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
 import type {TableColumn, TableData} from './types';
 
@@ -104,10 +106,26 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
 }
 
 /**
+ * Whether the header draws `editableCellHeader`, which reserves the same padding and border as the cell.
+ * That chrome is inside the track, so a header wider than the cell text clips unless the measurement includes it.
+ */
+function headerReservesEditableCellChrome(containerStyles: StyleProp<ViewStyle> | undefined, editableCellHeaderStyle: ViewStyle): boolean {
+    if (!containerStyles) {
+        return false;
+    }
+
+    if (Array.isArray(containerStyles)) {
+        return containerStyles.includes(editableCellHeaderStyle);
+    }
+
+    return containerStyles === editableCellHeaderStyle;
+}
+
+/**
  * Measures how wide a column's header label renders, or `null` when the platform can't measure text. The label is
  * measured in the bold font the header uses while the column is sorted, so sorting a column never truncates its label.
  */
-function measureHeaderLabelWidth(label: string, sortIconWidth: number): number | null {
+function measureHeaderLabelWidth(label: string, sortIconWidth: number, chromeWidth = 0): number | null {
     const width = measureTextWidth(label, {fontSize: fontScale.micro, fontWeight: '700'});
 
     if (width === null) {
@@ -115,7 +133,7 @@ function measureHeaderLabelWidth(label: string, sortIconWidth: number): number |
     }
 
     // Rounded up for the same reason as the cell content above.
-    return width === 0 ? 0 : Math.ceil(width + sortIconWidth);
+    return width === 0 ? 0 : Math.ceil(width + sortIconWidth + chromeWidth);
 }
 
 /**
@@ -197,7 +215,8 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
     for (const column of dynamicColumns) {
         const contentWidth = measureColumnContentWidth(column, data);
-        const headerLabelWidth = measureHeaderLabelWidth(column.label, variables.iconSizeExtraSmall + styles.ml1.marginLeft);
+        const headerChromeWidth = headerReservesEditableCellChrome(column.styling?.containerStyles, styles.editableCellHeader) ? variables.editableCellChromeWidth : 0;
+        const headerLabelWidth = measureHeaderLabelWidth(column.label, variables.iconSizeExtraSmall + styles.ml1.marginLeft, headerChromeWidth);
 
         // Text measurement is unavailable (native), so the table keeps its static, content-independent tracks.
         if (contentWidth === null || headerLabelWidth === null) {
