@@ -10,7 +10,7 @@ import InsightsGroupCurrencyControl from '@pages/Insights/controls/InsightsGroup
 import InsightsPageControls from '@pages/Insights/controls/InsightsPageControls';
 import InsightsWorkspaceControl from '@pages/Insights/controls/InsightsWorkspaceControl';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {getInsightsGroupByOptions} from '@pages/Insights/insightsGroupByOptions';
+import {getInsightsGroupByOptions} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -20,7 +20,7 @@ import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsig
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByOptions';
+import {getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

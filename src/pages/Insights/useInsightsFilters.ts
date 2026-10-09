@@ -13,7 +13,7 @@ import type {InsightsFilters} from './insightsFilters';
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 import {parseInsightsFilters} from './insightsFilterParsing';
 import DEFAULT_INSIGHTS_FILTERS from './insightsFilters';
-import {getFittingGroupBy, getInsightsGroupByOptions} from './insightsGroupByOptions';
+import {getFittingGroupBy, getInsightsGroupByOptions} from './insightsGroupByUtils';
 import {buildInsightsQueryString} from './insightsQueries';
 
 type UseInsightsFiltersResult = {

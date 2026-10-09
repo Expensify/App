@@ -10,9 +10,7 @@ import {INSIGHTS_GROUP_BY_OPTIONS} from './insightsFilters';
 
 type InsightsGroupBy = InsightsFilters['groupBy'];
 
-/** Longest range, in days, still readable one point per day */
 const MAX_DAYS_GROUPED_BY_DAY = 62;
-
 const MIN_DAYS_GROUPED_BY_WEEK = 14;
 const MIN_MONTHS_BY_GROUP_BY = {
     [CONST.SEARCH.GROUP_BY.MONTH]: 2,
@@ -28,6 +26,8 @@ function getInsightsGroupByOptions(date: InsightsFilters['date']): InsightsGroup
     }
 
     const boundaries = 'from' in date ? {start: date.from, end: date.to} : getDateRangeForPreset(date.preset);
+
+    // Presets like "never" have no fixed range, so there's no length to fit a grouping to
     if (!boundaries.start || !boundaries.end) {
         return [];
     }

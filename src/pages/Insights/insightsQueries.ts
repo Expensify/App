@@ -10,7 +10,7 @@ import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
-import {getQueryGroupBy} from './insightsGroupByOptions';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans (Typical on the ranking charts) */
 const COMPARE_TYPICAL_PERIOD_COUNT = 1;

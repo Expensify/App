@@ -1,12 +1,12 @@
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {getFittingGroupBy, getInsightsGroupByOptions} from '@pages/Insights/insightsGroupByOptions';
+import {getFittingGroupBy, getInsightsGroupByOptions} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
 
 const {DAY, WEEK, MONTH, QUARTER, YEAR} = CONST.SEARCH.GROUP_BY;
 const {THIS_MONTH, LAST_MONTH, YEAR_TO_DATE, LAST_12_MONTHS} = CONST.SEARCH.DATE_PRESETS;
 
-describe('insightsGroupByOptions', () => {
+describe('insightsGroupByUtils', () => {
     beforeEach(() => {
         jest.useFakeTimers();
         jest.setSystemTime(new Date(2026, 9, 8));

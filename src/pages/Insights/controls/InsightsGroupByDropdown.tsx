@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS from '@pages/Insights/insightsFilters';
-import {getFittingGroupBy} from '@pages/Insights/insightsGroupByOptions';
+import {getFittingGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
 import variables from '@styles/variables';
 
