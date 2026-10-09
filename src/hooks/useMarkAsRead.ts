@@ -314,6 +314,18 @@ function useMarkAsRead({
         markNewestActionAsRead();
     };
 
+    const completeSkippedReadAtEnd = useEffectEvent(() => {
+        // Informational actions have no divider to trigger the viewability callback, but reaching the end still reads them.
+        if (!isScrolledToEnd || hasNewerActions || !isFocused || !Visibility.isVisible() || !Visibility.hasFocus() || reportID !== getScopeReportID(scopeKey)) {
+            return;
+        }
+        completeSkippedMarkAsRead();
+    });
+
+    useEffect(() => {
+        completeSkippedReadAtEnd();
+    }, [isScrolledToEnd, hasNewerActions]);
+
     return {markNewestActionAsRead, completeSkippedMarkAsRead};
 }
 

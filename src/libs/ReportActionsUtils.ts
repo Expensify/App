@@ -1437,6 +1437,18 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>, isOffline: b
     return !isOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/** Informational exports and reimbursements for other accounts must not create unread dividers. */
+function canReportActionTriggerUnreadMarker(reportAction: ReportAction, currentUserAccountID: number): boolean {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+        const originalMessage = getOriginalMessage(reportAction);
+        const actionableForAccountIDs = originalMessage?.actionableForAccountIDs;
+        // Older reimbursement actions lack recipient metadata, so preserve their marker eligibility.
+        return !actionableForAccountIDs || actionableForAccountIDs.includes(currentUserAccountID);
+    }
+
+    return !isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION);
+}
+
 /**
  * Checks if a report action is visible using the pre-computed derived value when available,
  * falling back to runtime calculation if not.
@@ -5528,6 +5540,7 @@ export {
     isResolvedActionableWhisper,
     isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
+    canReportActionTriggerUnreadMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,

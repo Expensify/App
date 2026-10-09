@@ -7014,93 +7014,6 @@ describe('ReportActionsUtils', () => {
                 }),
             ).toBe(true);
         });
-
-        it('anchors the marker on the explicitly marked-unread action even after its confirmed created drifts before unreadMarkerTime', () => {
-            // The offline→online case: the confirmed `created` lands before unreadMarkerTime, so the timestamp
-            // check reads the action as "read" and only the stable id can still anchor the marker.
-            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'marked-action-id', pendingAction: null, created: '2023-01-01 09:00:00.000'});
-            const prevSortedVisibleReportActionsObjects = {
-                [message.reportActionID]: makeAction({
-                    actorAccountID: currentUserAccountID,
-                    reportActionID: 'marked-action-id',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                }),
-            };
-            expect(
-                shouldDisplayNewMarkerOnReportAction({
-                    ...baseParams,
-                    message,
-                    prevSortedVisibleReportActionsObjects,
-                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
-                    isOffline: false,
-                }),
-            ).toBe(true);
-        });
-
-        it('does not anchor the marker on a just-sent self-message when no action is marked unread', () => {
-            // Same confirmed self-message, but with nothing marked unread the just-sent suppression still applies,
-            // keeping the #91443 fix intact.
-            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'confirmed-action-id', pendingAction: null});
-            const prevSortedVisibleReportActionsObjects = {
-                [message.reportActionID]: makeAction({
-                    actorAccountID: currentUserAccountID,
-                    reportActionID: 'confirmed-action-id',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                }),
-            };
-            expect(
-                shouldDisplayNewMarkerOnReportAction({
-                    ...baseParams,
-                    message,
-                    prevSortedVisibleReportActionsObjects,
-                    manuallyMarkedUnreadReportActionID: null,
-                    isOffline: false,
-                }),
-            ).toBe(false);
-        });
-
-        it('keeps the marker on the explicitly marked-unread action even when a newer message is present', () => {
-            // The marked action is the oldest unread by construction (lastReadTime = its created - 1ms), so a
-            // newer message arriving after the mark must not steal the marker off it.
-            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'marked-action-id', created: '2023-01-01 11:00:00.000'});
-            const nextMessage = makeAction({created: '2023-01-01 11:30:00.000'});
-            expect(
-                shouldDisplayNewMarkerOnReportAction({
-                    ...baseParams,
-                    message,
-                    nextMessage,
-                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
-                    isOffline: false,
-                }),
-            ).toBe(true);
-        });
-
-        it('returns false for any action that is not the marked one while a manual mark is active (sole anchor)', () => {
-            // The marked action is the sole anchor, so even an unread message from another user is suppressed.
-            const message = makeAction({actorAccountID: 99, reportActionID: 'other-action-id', created: '2023-01-01 11:00:00.000'});
-            expect(
-                shouldDisplayNewMarkerOnReportAction({
-                    ...baseParams,
-                    message,
-                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
-                    isOffline: false,
-                }),
-            ).toBe(false);
-        });
-
-        it('returns false for the earliest-received-offline message while a different action is marked unread', () => {
-            // The manual mark takes precedence over the earliest-received-offline branch.
-            const message = makeAction({actorAccountID: 99, reportActionID: 'offline-action-id', created: '2023-01-01 11:00:00.000'});
-            expect(
-                shouldDisplayNewMarkerOnReportAction({
-                    ...baseParams,
-                    message,
-                    isEarliestReceivedOfflineMessage: true,
-                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
-                    isOffline: false,
-                }),
-            ).toBe(false);
-        });
     });
 
     describe('getUnreadMarkerReportAction', () => {
@@ -7124,6 +7037,134 @@ describe('ReportActionsUtils', () => {
             isOffline: false,
             isReversed: false,
         };
+
+        it('skips a reimbursement that is not actionable for the current user', () => {
+            const reimbursement = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: 'reimbursement',
+                originalMessage: {actionableForAccountIDs: [2]},
+            });
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [reimbursement],
+                }),
+            ).toEqual([null, -1]);
+        });
+
+        it('shows a marker for a reimbursement that is actionable for the current user', () => {
+            const reimbursement = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: 'reimbursement',
+                originalMessage: {actionableForAccountIDs: [currentUserAccountID]},
+            });
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [reimbursement]})).toEqual(['reimbursement', 0]);
+        });
+
+        it('keeps older reimbursements without recipient metadata eligible for a marker', () => {
+            const reimbursement = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, reportActionID: 'legacy-reimbursement'});
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [reimbursement]})).toEqual(['legacy-reimbursement', 0]);
+        });
+
+        it('skips an export when finding the oldest eligible unread action', () => {
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export',
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [comment, exportAction]})).toEqual(['comment', 0]);
+        });
+
+        it('does not show a marker when an export is the only unread action', () => {
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'qbo-export',
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [exportAction]})).toEqual([null, -1]);
+        });
+
+        it.each([false, true])('keeps original list indexes when exports separate unread comments (isReversed: %s)', (isReversed) => {
+            const older = makeAction({reportActionID: 'older'});
+            const exportAction = makeAction({reportActionID: 'export', actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION});
+            const newer = makeAction({reportActionID: 'newer', created: '2023-01-01 12:00:00.000'});
+            const actions = isReversed ? [older, exportAction, newer] : [newer, exportAction, older];
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: actions, isReversed})).toEqual(['older', isReversed ? 0 : 2]);
+        });
+
+        it('does not substitute a newer action for the supplied offline boundary', () => {
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export',
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [comment, exportAction],
+                    earliestReceivedOfflineMessageIndex: 1,
+                }),
+            ).toEqual([null, -1]);
+        });
+
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 12:00:00.000'}},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [2]}},
+        ])('keeps an older unread marker when only a filtered $actionName arrives offline', ({actionName, originalMessage}) => {
+            const filteredAction = makeAction({reportActionID: 'filtered', created: '2023-01-01 12:00:00.000', actionName, originalMessage});
+            const olderUnread = makeAction({reportActionID: 'older-unread'});
+            const readAction = makeAction({reportActionID: 'read', created: '2023-01-01 09:00:00.000'});
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [filteredAction, olderUnread, readAction],
+                    earliestReceivedOfflineMessageIndex: 0,
+                    prevUnreadMarkerReportActionID: olderUnread.reportActionID,
+                }),
+            ).toEqual(['older-unread', 1]);
+        });
+
+        it('allows an explicitly marked unread export to anchor the marker', () => {
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export',
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [exportAction],
+                    manuallyMarkedUnreadReportActionID: exportAction.reportActionID,
+                }),
+            ).toEqual(['export', 0]);
+        });
+
+        it('keeps a manual anchor after confirmation shifts its timestamp, even with newer offline messages', () => {
+            const markedAction = makeAction({reportActionID: 'marked', actorAccountID: currentUserAccountID, created: '2023-01-01 09:00:00.000'});
+            const newerAction = makeAction({reportActionID: 'newer'});
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [newerAction, markedAction],
+                    manuallyMarkedUnreadReportActionID: markedAction.reportActionID,
+                    earliestReceivedOfflineMessageIndex: 0,
+                }),
+            ).toEqual(['marked', 1]);
+        });
+
+        it('relocates the marker when its manual anchor is pending deletion', () => {
+            const markedAction = makeAction({reportActionID: 'marked', created: '2023-01-01 09:00:00.000', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            const newerAction = makeAction({reportActionID: 'newer', created: '2023-01-01 12:00:00.000'});
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [newerAction, markedAction],
+                    manuallyMarkedUnreadReportActionID: markedAction.reportActionID,
+                }),
+            ).toEqual(['newer', 0]);
+        });
 
         it('short-circuits to [null, -1] for an anonymous user', () => {
             const visibleReportActions = [makeAction({reportActionID: 'a'})];
@@ -7186,6 +7227,17 @@ describe('ReportActionsUtils', () => {
                     isReversed: true,
                 }),
             ).toEqual(['unread-newer', 1]);
+        });
+
+        it('preserves the concierge greeting as a marker candidate when isReversed is true', () => {
+            const visibleReportActions = [makeAction({reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID}), makeAction({reportActionID: 'unread-newer', created: '2023-01-01 12:00:00.000'})];
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    isReversed: true,
+                }),
+            ).toEqual([CONST.CONCIERGE_GREETING_ACTION_ID, 0]);
         });
 
         it("clears the marker entirely when the only unread action is the current user's own new message", () => {
