@@ -66,4 +66,3 @@ function useRequire2FAOverlayVisibility(): Require2FAOverlayVisibility {
 
 export default useRequire2FAOverlayVisibility;
 export {REQUIRE_2FA_ABOVE_PORTAL_HOST, REQUIRE_2FA_FOCUSED_SCREEN, getRequire2FAFocusedScreen};
-export type {Require2FAFocusedScreen};
