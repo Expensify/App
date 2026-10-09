@@ -1,13 +1,11 @@
 ---
 title: Agent Trigger Reference
-description: Every event your agent can react to, with ready-to-copy instruction phrases for your agent's prompt.
+description: Every event your Agent can react to, with ready-to-copy instruction phrases for your agent's prompt.
 keywords: [Custom Agent, Agent, agent triggers, report_activity, agent instructions, expense report events, workspace automation, when to trigger agent, report submitted, report approved, Expensify automation]
-internalScope: Audience is workspace admins configuring agents. Covers all expose-level report_activity events. Does not cover chat message triggers or report-received triggers.
-contentType: topic
-order: 9
+internalScope: Audience is workspace admins configuring Agents. Covers all expose-level report_activity events. Does not cover chat message triggers or report-received triggers.
 ---
 
-An agent reacts to expense report events when its instructions match what happened. This reference lists every event your agent can respond to, along with example phrases you can paste directly into your prompt.
+An Agent reacts to expense report events when its instructions match what happened. This reference lists every event your agent can respond to, along with example phrases you can paste directly into your prompt.
 
 # Agent Trigger Reference
 
@@ -350,7 +348,7 @@ To react to this event, include phrases like:
 To react to this event, include phrases like:
 - When someone leaves a comment or message in a report
 - When a user asks a question or leaves a note in the conversation
-- When someone @mentions an agent in a report
+- When someone @mentions an Agent in a report
 
 **An approver at an intermediate step in a multi-level approval chain approved the expense report and forwarded it to the next approver.**
 
@@ -636,6 +634,12 @@ To react to this event, include phrases like:
 - When QuickBooks / NetSuite / Xero sync fails
 - When the accounting connection breaks
 
+**A running count of how many of the workspace's reports are currently failing to export. There is one of these per workspace in its #admins room, kept up to date in place as reports start and stop failing, and addressed to the workspace's configured exporter.**
+
+To react to this event, include phrases like:
+- When reports fail to export to accounting
+- How many reports failed to export
+
 **An accounting integration export failed for a specific report. This notification appears on the expense report itself, not in #admins.**
 
 To react to this event, include phrases like:
@@ -920,4 +924,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 126 events AI agents can react to.*
+*This reference covers all 127 events AI Agents can react to.*
