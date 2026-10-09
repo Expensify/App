@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
@@ -61,12 +62,13 @@ type InsightsDashboardContentProps = {
 
 function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
-    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, styles.ph5, styles.pb5], true);
+    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], true);
 
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
@@ -128,7 +130,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             {...scrollProps}
             addBottomSafeAreaPadding
         >
-            <View style={styles.insightsDashboardLayout}>
+            <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
                 <InsightsChartWidget
                     chart={headlineChart.chart}
                     queryJSON={headlineChart.queryJSON}
@@ -137,12 +139,12 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     onRetry={onRetry}
                     onGroupByChange={onGroupByChange}
                 />
-                <View style={styles.insightsChartGrid}>
+                <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
                     {columns.map((columnCharts, columnIndex) => (
                         <View
                             // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
                             key={columnIndex}
-                            style={[styles.flex1, styles.insightsChartColumn]}
+                            style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                         >
                             {columnCharts.map(({chart, queryJSON, snapshot}) => (
                                 <InsightsChartWidget

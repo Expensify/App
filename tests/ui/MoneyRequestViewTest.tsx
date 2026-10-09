@@ -23,6 +23,10 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    isHybridApp: jest.fn(() => false),
+}));
+
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => key),
@@ -59,7 +63,19 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 // the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
+    return ({
+        description,
+        title,
+        interactive,
+        errorText,
+        brickRoadIndicator,
+    }: {
+        description?: string;
+        title?: string;
+        interactive?: boolean;
+        errorText?: string;
+        brickRoadIndicator?: string;
+    }) => (
         <>
             <RN.View testID={`menu-item-${description}`}>
                 <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
@@ -67,6 +83,16 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
             {title !== undefined && (
                 <RN.View testID={`menu-item-title-${description}`}>
                     <RN.Text>{title}</RN.Text>
+                </RN.View>
+            )}
+            {errorText !== undefined && (
+                <RN.View testID={`menu-item-error-${description}`}>
+                    <RN.Text>{errorText}</RN.Text>
+                </RN.View>
+            )}
+            {brickRoadIndicator !== undefined && (
+                <RN.View testID={`menu-item-indicator-${description}`}>
+                    <RN.Text>{brickRoadIndicator}</RN.Text>
                 </RN.View>
             )}
         </>
@@ -108,7 +134,7 @@ const transactionID = 'txn_mrv_test';
 
 const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
-const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
+const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>, readonly = false) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
@@ -125,6 +151,7 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                         ...policy,
                     })}
                     shouldShowAnimatedBackground={false}
+                    readonly={readonly}
                 />
             </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>,
@@ -607,6 +634,35 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows a negative tax amount for a negative expense on an expense report', async () => {
+        // Given a negative expense on an expense report. Expense reports store amounts with the opposite sign,
+        // so a -$9.50 expense with -$0.95 tax is stored as amount 950 and taxAmount 95.
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                amount: 950,
+                taxCode: 'TAX_10',
+                taxAmount: 95,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the tax amount keeps the negative sign instead of being shown as an absolute value
+        await waitFor(() => {
+            expect(screen.getByLabelText('iou.taxAmount, USD-95')).toBeOnTheScreen();
+        });
+    });
+
     it('does NOT append "Converted" to the Tax amount description when the converted tax is zero (tax exempt)', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -761,6 +817,57 @@ describe('MoneyRequestView edit fields', () => {
             expect(screen.getByLabelText(fieldLabel('common.supplier'))).toHaveTextContent(/Acme Xero/);
         });
         expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        {isBetaEnabled: false, reimbursable: false, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: false, shouldShowVendor: true},
+        {isBetaEnabled: true, reimbursable: false, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: false, shouldShowVendor: true},
+        {isBetaEnabled: false, reimbursable: true, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: false, shouldShowVendor: false},
+        {isBetaEnabled: false, reimbursable: false, reportType: CONST.REPORT.TYPE.INVOICE, readonly: false, shouldShowVendor: false},
+        {isBetaEnabled: false, reimbursable: false, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: true, shouldShowVendor: true},
+    ])('preserves Campfire vendor field eligibility for %j', async ({isBetaEnabled, reimbursable, reportType, readonly, shouldShowVendor}) => {
+        // Given an expense with a synced Campfire vendor and the selected expense and access restrictions
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, isBetaEnabled ? [CONST.BETAS.VENDOR_MATCHING] : []);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {type: reportType});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable,
+                comment: {vendor: {externalID: 'campfire-vendor', wasManuallySet: false}},
+            });
+        });
+
+        // When the expense renders on a configured Campfire workspace
+        renderMoneyRequestView(
+            threadReport,
+            {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {isConfigured: true},
+                        data: {vendors: [{id: 'campfire-vendor', name: 'Campfire Supplies', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR}]},
+                    },
+                },
+            },
+            readonly,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then beta enrollment does not bypass the expense eligibility or editing restrictions
+        if (!shouldShowVendor) {
+            expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
+            return;
+        }
+        expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Campfire Supplies/);
+        if (readonly) {
+            expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: fieldLabel('common.vendor')})).not.toBeOnTheScreen();
+        } else {
+            expect(screen.getByRole(CONST.ROLE.BUTTON, {name: fieldLabel('common.vendor')})).toBeOnTheScreen();
+        }
     });
 
     it('hides the vendor row on Business Central without the vendorMatching beta because Business Central is still beta-gated', async () => {
@@ -948,6 +1055,55 @@ describe('MoneyRequestView edit fields', () => {
             const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
             expect(vendorTitle).toHaveTextContent(/Stale Intacct Vendor/);
             expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
+        });
+    });
+
+    it('shows the vendor-field error when assigned vendor is disabled in policyVendors', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        const disabledVendorID = 'disabled-vendor-id';
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
+                [disabledVendorID]: {
+                    externalID: disabledVendorID,
+                    name: 'Disabled Vendor',
+                    enabled: false,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: disabledVendorID, wasManuallySet: false}},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: [{id: disabledVendorID, name: 'Disabled Vendor', currency: 'USD', email: 'vendor@example.com'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toHaveTextContent('violations.inactiveVendor.');
+            expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
         });
     });
 
