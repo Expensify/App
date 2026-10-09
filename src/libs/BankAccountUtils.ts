@@ -97,7 +97,7 @@ function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; 
         return false;
     }
 
-    if (bankAccount.isExpensifyCardSettlementAccount) {
+    if (bankAccount.isExpensifyCardSettlementAccount || bankAccount.accountData?.isExpensifyCardSettlementAccount) {
         return true;
     }
 
