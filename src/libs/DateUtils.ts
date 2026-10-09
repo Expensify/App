@@ -15,6 +15,7 @@ import {
     addMilliseconds,
     addMinutes,
     differenceInDays,
+    differenceInMinutes,
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
@@ -228,6 +229,22 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
     const date = getLocalDateFromDatetime(locale, currentSelectedTimezone, datetime);
     const now = getLocalDateFromDatetime(locale, currentSelectedTimezone);
     return formatDistance(date, now, {addSuffix: true, locale: IntlStore.getDateFnsLocale(locale)});
+}
+
+/**
+ * Formats a datetime as a compact relative time, e.g. "5m ago", "3h ago" or "7d ago".
+ */
+function datetimeToShortRelative(translate: LocalizedTranslate, datetime: string, currentSelectedTimezone: SelectedTimezone): string {
+    const date = getLocalDateFromDatetime(undefined, currentSelectedTimezone, datetime);
+    const now = getLocalDateFromDatetime(undefined, currentSelectedTimezone);
+    const minutes = Math.max(differenceInMinutes(now, date), 1);
+    if (minutes < 60) {
+        return translate('reportHistoryPage.minutesAgo', minutes);
+    }
+    if (minutes < 60 * 24) {
+        return translate('reportHistoryPage.hoursAgo', Math.floor(minutes / 60));
+    }
+    return translate('reportHistoryPage.daysAgo', Math.floor(minutes / (60 * 24)));
 }
 
 /**
@@ -1293,6 +1310,7 @@ const DateUtils = {
     formatToReadableString,
     getZoneAbbreviation,
     datetimeToRelative,
+    datetimeToShortRelative,
     datetimeToCalendarTime,
     startCurrentDateUpdater,
     getLocalDateFromDatetime,

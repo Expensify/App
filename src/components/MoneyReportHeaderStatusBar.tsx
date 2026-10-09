@@ -17,17 +17,22 @@ import type {ValueOf} from 'type-fest';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
+import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
     nextStep: ReportNextStep | undefined;
+
+    /** Opens the report history. When provided, the status bar becomes pressable and shows a chevron */
+    onPress?: () => void;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
 
-function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
+function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -52,7 +57,13 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         return buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
     }, [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber]);
 
-    return (
+    const message = (
+        <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
+            <RenderHTML html={messageContent} />
+        </View>
+    );
+
+    const content = (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
                 <Icon
@@ -62,10 +73,23 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
                     fill={nextStep?.iconFill ?? theme.icon}
                 />
             </View>
-            <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
-                <RenderHTML html={messageContent} />
-            </View>
+            {onPress ? <CaretWrapper style={styles.flexShrink1}>{message}</CaretWrapper> : message}
         </View>
+    );
+
+    if (!onPress) {
+        return content;
+    }
+
+    return (
+        <PressableWithFeedback
+            onPress={onPress}
+            accessibilityLabel={translate('reportHistoryPage.title')}
+            role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_NEXT_STEP}
+        >
+            {content}
+        </PressableWithFeedback>
     );
 }
 
