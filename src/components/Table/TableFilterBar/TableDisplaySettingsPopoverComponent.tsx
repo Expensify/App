@@ -8,7 +8,6 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import useColumnWidthsReset from '@components/Table/columnResize/useColumnWidthsReset';
 import type {ActiveSorting} from '@components/Table/middlewares/sorting';
 import {useTableContext} from '@components/Table/TableContext';
 
@@ -100,8 +99,8 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
         initialSortColumn,
         initialSortOrder,
         tableMethods: {updateSorting},
+        resetColumnWidths,
     } = useTableContext();
-    const resetColumnWidths = useColumnWidthsReset();
     const [selectedSetting, setSelectedSetting] = useState<'sortBy' | 'sortOrder' | null>(null);
 
     const defaultSorting: ActiveSorting<string> = {

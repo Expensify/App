@@ -4,7 +4,6 @@ import {ListFilterHeightContextProvider} from '@components/Search/FilterComponen
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
-import useColumnWidthsReset from '@components/Table/columnResize/useColumnWidthsReset';
 import {useTableContext} from '@components/Table/TableContext';
 import type {TableColumn} from '@components/Table/types';
 
@@ -53,8 +52,7 @@ export default function TableDisplaySettingsTrigger() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
-    const {columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn} = useTableContext();
-    const resetColumnWidths = useColumnWidthsReset();
+    const {columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn, resetColumnWidths} = useTableContext();
 
     if (!shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn, canResetColumnWidths: !!resetColumnWidths})) {
         return null;

@@ -1,6 +1,5 @@
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SearchFiltersResetButton from '@components/Search/SearchPageHeader/SearchFiltersResetButton';
-import useColumnWidthsReset from '@components/Table/columnResize/useColumnWidthsReset';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -27,8 +26,8 @@ type TableFilterBarProps = PropsWithChildren<{
 export default function TableFilterBar({label, shouldShowResetFiltersButton, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
-    const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
-    const resetColumnWidths = useColumnWidthsReset();
+    const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout, resetColumnWidths} =
+        useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
     const showsDisplaySettingsTrigger = shouldShowTableDisplaySettingsTrigger({
