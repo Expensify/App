@@ -4770,6 +4770,29 @@ describe('ReportActionsUtils', () => {
         ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
             expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
         });
+
+        it('formats the previous distance using its original unit after a unit change', () => {
+            // Given a unit-only commuter exclusion change from 5 miles to 5 kilometers
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    updatedField: CONST.POLICY.COMMUTER_EXCLUSION_TYPE.FIXED_DISTANCE,
+                    newValue: 5,
+                    oldValue: 5,
+                    unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    oldUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                message: [],
+            } as ReportAction;
+
+            // When NewDot formats the workspace audit action
+            const message = getUpdatedCommuterExclusionsMessage(translateLocal, action);
+
+            // Then it preserves each value's own unit in the message
+            expect(message).toBe('changed fixed distance exclusion to 5.00 kilometers per claim (previously 5.00 miles)');
+        });
     });
 
     describe('getPolicyWorkArrangementMessage', () => {
