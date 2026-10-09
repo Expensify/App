@@ -2077,8 +2077,17 @@ const DYNAMIC_ROUTES = {
     MONEY_REQUEST_UPGRADE: {
         path: 'money-request-upgrade',
         entryScreens: ['*'],
-        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string; upgradeBackTo?: string; shouldSubmitExpense?: boolean; upgradePath?: string}) => {
-            const {action, iouType, transactionID, reportID, upgradeBackTo, shouldSubmitExpense, upgradePath} = params;
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string;
+            reportID: string;
+            upgradeBackTo?: string;
+            shouldSubmitExpense?: boolean;
+            upgradePath?: string;
+            shouldReturnToConfirmation?: boolean;
+        }) => {
+            const {action, iouType, transactionID, reportID, upgradeBackTo, shouldSubmitExpense, upgradePath, shouldReturnToConfirmation} = params;
             return getUrlWithParams('money-request-upgrade', {
                 action,
                 iouType,
@@ -2087,9 +2096,10 @@ const DYNAMIC_ROUTES = {
                 upgradeBackTo,
                 shouldSubmitExpense: shouldSubmitExpense ? 'true' : undefined,
                 upgradePath,
+                shouldReturnToConfirmation: shouldReturnToConfirmation ? 'true' : undefined,
             });
         },
-        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath'],
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath', 'shouldReturnToConfirmation'],
     },
 } as const satisfies DynamicRoutes;
 
@@ -3110,6 +3120,24 @@ const ROUTES = {
             return `workspaces/${policyID}/overview/currency${query ? `?${query}` : ''}` as const;
         },
     },
+    WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY: {
+        route: 'workspaces/:policyID/overview/currency/government-rate-country/:currencyCode',
+        getRoute: (
+            policyID: string,
+            currencyCode: string,
+            {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {},
+        ) => {
+            const params = new URLSearchParams();
+            if (isForcedToChangeCurrency) {
+                params.set('isForcedToChangeCurrency', 'true');
+            }
+            if (shouldStartExpensifyCardEnrollment) {
+                params.set('shouldStartExpensifyCardEnrollment', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/overview/currency/government-rate-country/${currencyCode}${query ? `?${query}` : ''}` as const;
+        },
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export',
         getRoute: (policyID: string | undefined) => {
@@ -3961,6 +3989,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATES_UNIT: {
         route: 'workspaces/:policyID/distance-rates/settings/unit',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/unit` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY: {
+        route: 'workspaces/:policyID/distance-rates/settings/government-rate-country',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/government-rate-country` as const,
     },
     WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS: {
         route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions',
