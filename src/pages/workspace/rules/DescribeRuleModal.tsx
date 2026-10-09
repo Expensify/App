@@ -27,7 +27,8 @@ import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/Gener
 import type {TextInputKeyPressEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useRef} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React,{useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type NewRulePromptFormID = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM;
@@ -91,7 +92,16 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
         close();
     }, [close, generatedRuleID, generatedRuleState, generatedRuleValues, onRuleGenerated, policyCategories]);
 
-    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+    // Focus only after the open animation, because focusing mid-animation blurs the input on mWeb and native
+    useFocusEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        const focusTimeout = setTimeout(() => inputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
+        return () => clearTimeout(focusTimeout);
+    });
+
+    const submitFormOnModEnter =(event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {
             return;
         }
@@ -117,7 +127,6 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
         <Modal
             isVisible={isVisible}
             onClose={close}
-            onModalShow={() => inputRef.current?.focus()}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             avoidKeyboard
@@ -135,8 +144,6 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 shouldUseScrollView={false}
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
-                // On native the autofocused input can blur while the modal opens, which would show the required error before the user types
-                shouldValidateOnBlur={false}
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
