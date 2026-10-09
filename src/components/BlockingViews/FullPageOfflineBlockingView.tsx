@@ -10,10 +10,7 @@ import React from 'react';
 import BlockingView from './BlockingView';
 
 type FullPageOfflineBlockingViewProps = ChildrenProps & {
-    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 

@@ -31,16 +31,13 @@ type BeneficialOwnerSubPageProps = SubPageProps & {
 const pages = [
     {pageName: SUB_PAGE_NAMES.LEGAL_NAME, component: LegalNameUBO},
     {pageName: SUB_PAGE_NAMES.DATE_OF_BIRTH, component: DateOfBirthUBO},
-    {pageName: SUB_PAGE_NAMES.SSN, component: SocialSecurityNumberUBO},
+    {pageName: SUB_PAGE_NAMES.SSN_LAST_4, component: SocialSecurityNumberUBO},
     {pageName: SUB_PAGE_NAMES.ADDRESS, component: AddressUBO},
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: ConfirmationUBO},
 ];
 
 type BeneficialOwnerDetailsFormPagesProps = {
-    /** ID of current policy */
     policyID?: string;
-
-    /** ID of the beneficial owner being modified */
     beneficialOwnerBeingModifiedID: string;
 
     /** Setter for the beneficial owner being modified */

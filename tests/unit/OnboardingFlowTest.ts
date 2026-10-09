@@ -1,9 +1,25 @@
-import {getOnboardingInitialPath, getRequired2FAOnboardingResumePath} from '@libs/actions/Welcome/OnboardingFlow';
+import {getOnboardingInitialPath, getOnboardingMessages, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    getRootState: jest.fn(),
+    resetRoot: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => jest.fn());
 
 describe('OnboardingFlow', () => {
+    beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
     describe('getOnboardingInitialPath', () => {
         it('should return the onboarding fallback path when the last visited path is null', () => {
             const params: GetOnboardingInitialPathParamsType = {
@@ -220,6 +236,32 @@ describe('OnboardingFlow', () => {
         });
     });
 
+    describe('getOnboardingMessages', () => {
+        it('should link the workspace list in the join-workspace message', () => {
+            const joinWorkspaceMessage = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.joinWorkspace.message;
+
+            expect(typeof joinWorkspaceMessage === 'function' && joinWorkspaceMessage({companyDomain: 'example.com', joinWorkspaceLink: 'onboarding/join-workspaces'})).toContain(
+                '[Take a look at the workspaces you can join.](onboarding/join-workspaces)',
+            );
+        });
+
+        it('should not duplicate the join-workspace task marker', () => {
+            const joinWorkspaceTask = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.joinWorkspace.tasks.at(0);
+            const description =
+                typeof joinWorkspaceTask?.description === 'function' && joinWorkspaceTask.description({joinWorkspaceLink: 'onboarding/join-workspaces?isJoinWorkspaceTask=true'});
+
+            expect(description).toContain('[Join a workspace](onboarding/join-workspaces?isJoinWorkspaceTask=true)');
+            expect(description).not.toContain('isJoinWorkspaceTask=true?isJoinWorkspaceTask=true');
+        });
+
+        it('should use the no-workspaces message without a task', () => {
+            const emptyMessage = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.empty;
+
+            expect(emptyMessage.message).toBe("It doesn't look like your company has any joinable workspaces. Please reach out to your admin and have them invite you to their workspace.");
+            expect(emptyMessage.tasks).toEqual([]);
+        });
+    });
+
     describe('getRequired2FAOnboardingResumePath', () => {
         it('returns personal-details for private domain users with accessible policies and no saved path', () => {
             const params: GetOnboardingInitialPathParamsType = {
@@ -258,6 +300,58 @@ describe('OnboardingFlow', () => {
             };
 
             expect(getRequired2FAOnboardingResumePath(params)).toBe('/onboarding/work-email/validation');
+        });
+    });
+
+    describe('startOnboardingFlow', () => {
+        /* eslint-disable @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding */
+        const mockedGetRootState = jest.mocked(navigationRef.getRootState);
+        const mockedResetRoot = jest.mocked(navigationRef.resetRoot);
+        /* eslint-enable @typescript-eslint/unbound-method */
+        const mockedGetAdaptedStateFromPath = jest.mocked(getAdaptedStateFromPath);
+
+        const params: GetOnboardingInitialPathParamsType = {
+            isUserFromPublicDomain: false,
+            hasAccessiblePolicies: true,
+            currentOnboardingPurposeSelected: undefined,
+            currentOnboardingCompanySize: undefined,
+            onboardingInitialPath: '/onboarding/private-domain',
+            onboardingValues: undefined,
+            // resumePath bypasses getOnboardingInitialPath so the test drives the resolved target directly.
+            resumePath: '/onboarding/personal-details',
+        };
+
+        // getRootState's return type requires a full NavigationState, so build a minimal-but-complete one.
+        const buildRootState = (routes: NativeNavigation.NavigationState['routes']): NativeNavigation.NavigationState => ({
+            key: 'root',
+            index: Math.max(routes.length - 1, 0),
+            routeNames: routes.map((route) => route.name),
+            routes,
+            type: 'stack',
+            stale: false,
+        });
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            mockedGetAdaptedStateFromPath.mockReturnValue({routes: [{name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]} as ReturnType<typeof getAdaptedStateFromPath>);
+        });
+
+        it('should not call resetRoot when the onboarding navigator is already mounted (no-op that would still fire replaceState)', () => {
+            // Onboarding navigator already in the root state, so there is nothing to mount and resetRoot must be skipped.
+            mockedGetRootState.mockReturnValue(buildRootState([{key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]));
+
+            startOnboardingFlow(params);
+
+            expect(mockedResetRoot).not.toHaveBeenCalled();
+        });
+
+        it('should call resetRoot to mount the onboarding navigator when it is not yet in the root state', () => {
+            // Onboarding navigator not yet in root state, so resetRoot runs to mount it.
+            mockedGetRootState.mockReturnValue(buildRootState([{key: 'home', name: SCREENS.HOME}]));
+
+            startOnboardingFlow(params);
+
+            expect(mockedResetRoot).toHaveBeenCalledTimes(1);
         });
     });
 });

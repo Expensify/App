@@ -15,6 +15,7 @@ import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
+import containsHtmlTag from './containsHtmlTag';
 import DateUtils from './DateUtils';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -818,6 +819,27 @@ function isInvalidMerchantValue(merchant?: string): boolean {
     return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
 }
 
+type MerchantValidationError = {type: 'required'} | {type: 'invalidValue'} | {type: 'tooLong'; byteLength: number};
+
+/**
+ * Returns the first merchant validation error (required, invalid value, or too long), or `undefined` if the merchant is valid.
+ */
+function getMerchantError(merchant: string | undefined, isMerchantRequired: boolean): MerchantValidationError | undefined {
+    const trimmedMerchant = merchant?.trim() ?? '';
+
+    if (isMerchantRequired && !trimmedMerchant) {
+        return {type: 'required'};
+    }
+    if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+        return {type: 'invalidValue'};
+    }
+    const {isValid: isLengthValid, byteLength} = isValidInputLength(trimmedMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
+    if (!isLengthValid) {
+        return {type: 'tooLong', byteLength};
+    }
+    return undefined;
+}
+
 /**
  * Checks if a merchant is a placeholder the user never typed: the flow seeded the "Expense" / "(none)" value,
  * so it should be treated as empty rather than as an invalid entry the user is responsible for.
@@ -835,44 +857,6 @@ function isValidPIN(pin: string): boolean {
         return false;
     }
     return !(CONST.EXPENSIFY_CARD.PIN.INVALID_PINS as readonly string[]).includes(pin);
-}
-
-/**
- * Returns true if the given string contains a non-whitelisted HTML-like tag.
- *
- * Mirrors the HTML-tag check in FormProvider.onValidate so callers that don't go through
- * FormProvider (e.g. inline edit-in-place sections) can produce the same `Invalid character`
- * error for inputs like `<script>...</script>` while still allowing the harmless tokens listed
- * in CONST.WHITELISTED_TAGS (`<>`, `<->`, `<br>`, etc.).
- *
- * @param strict - When true, uses STRICT_VALIDATE_FOR_HTML_TAG_REGEX, which also flags
- * non-standard angle-bracket content (e.g. `<✓>`). Defaults to the non-strict variant
- * to match FormProvider's default.
- */
-function containsHtmlTag(value: string, strict = false): boolean {
-    if (!value) {
-        return false;
-    }
-    const tagRegex = strict ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
-    const foundHtmlTagIndex = value.search(tagRegex);
-    const leadingSpaceIndex = value.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
-
-    if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
-        return false;
-    }
-
-    const matchedHtmlTags = value.match(tagRegex);
-    let isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(value));
-    if (matchedHtmlTags) {
-        for (const htmlTag of matchedHtmlTags) {
-            isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
-            if (!isWhitelisted) {
-                break;
-            }
-        }
-    }
-
-    return !(isWhitelisted && leadingSpaceIndex === -1);
 }
 
 export {
@@ -934,6 +918,7 @@ export {
     isValidInputLength,
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
+    getMerchantError,
     isUntypedPlaceholderMerchant,
     isValidPIN,
     containsHtmlTag,

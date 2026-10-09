@@ -1,10 +1,11 @@
-import {clearPersonalBankAccount, connectBankAccountWithPlaid, openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
+import {clearPersonalBankAccount, connectBankAccountWithPlaid, initiateBankAccountUnlock, openPersonalBankAccountSetupView, updateBankAccountName} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
@@ -72,13 +73,15 @@ describe('actions/BankAccounts', () => {
             } as Partial<ReimbursementAccountForm>);
 
             // When we connect with Plaid for Chase on a new account
-            connectBankAccountWithPlaid(CONST.DEFAULT_NUMBER_ID, getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]), POLICY_ID);
+            const didStartRequest = connectBankAccountWithPlaid(CONST.DEFAULT_NUMBER_ID, getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]), POLICY_ID);
             await waitForBatchedUpdates();
 
             // Then we should not call the backend, and should move user to manual with cleared account/routing draft fields
             const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
             const reimbursementAccountDraft = await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
+            // ...and report that no request was started, so the caller does not arm deferred navigation
+            expect(didStartRequest).toBe(false);
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, 0);
             expect(reimbursementAccount?.achData?.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             expect(reimbursementAccount?.achData?.subStep).toBe(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
@@ -96,9 +99,10 @@ describe('actions/BankAccounts', () => {
             const selectedPlaidBankAccount = getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]);
 
             // When we connect with Plaid
-            connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount, POLICY_ID);
+            const didStartRequest = connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount, POLICY_ID);
             return waitForBatchedUpdates().then(() => {
-                // Then we should call the existing API command
+                // Then we should call the existing API command and report that a request was started
+                expect(didStartRequest).toBe(true);
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, 1);
                 const call = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID).at(0);
                 if (!call) {
@@ -125,6 +129,27 @@ describe('actions/BankAccounts', () => {
                     }),
                 );
             });
+        });
+
+        test('does not short-circuit a new account when the bank is not Chase', async () => {
+            // Given a new (bankAccountID 0) non-Chase bank account in Plaid setup
+            await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                achData: {
+                    currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+                    subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                },
+            });
+
+            // When we connect with Plaid
+            const didStartRequest = connectBankAccountWithPlaid(CONST.DEFAULT_NUMBER_ID, getPlaidBankAccount('Wells Fargo'), POLICY_ID);
+            await waitForBatchedUpdates();
+
+            // Then we should call the API, report that a request was started, and stay in the Plaid sub step
+            expect(didStartRequest).toBe(true);
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, 1);
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.achData?.subStep).toBe(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
         });
     });
 
@@ -174,6 +199,14 @@ describe('actions/BankAccounts', () => {
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
         });
+
+        test('carries shouldSetUpUSBankAccount to the verify account page when the user is not validated', async () => {
+            openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: true, isUserValidated: false});
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, true)));
+            expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('shouldSetUpUSBankAccount=true'));
+        });
     });
 
     describe('clearPersonalBankAccount', () => {
@@ -207,6 +240,119 @@ describe('actions/BankAccounts', () => {
             const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
 
             expect(personalBankAccount).toEqual({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
+        });
+    });
+
+    describe('updateBankAccountName', () => {
+        const bankAccountID = 1234;
+        const oldName = 'Chase Checking';
+        const newName = 'Payroll account';
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    title: oldName,
+                    methodID: bankAccountID,
+                    bankCurrency: CONST.CURRENCY.USD,
+                    bankCountry: CONST.COUNTRY.US,
+                    accountData: {bankAccountID, addressName: oldName, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                },
+            });
+        });
+
+        test('optimistically renames the bank account and sends UpdateBankAccount with the new addressName', async () => {
+            // Given the request is held so the optimistic state can be observed
+            mockFetch.pause?.();
+
+            // When the bank account is renamed
+            updateBankAccountName(bankAccountID, newName, oldName);
+            await waitForBatchedUpdates();
+
+            // Then both the Wallet row title and addressName show the new name while the update is pending
+            let bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(bankAccountList?.[bankAccountID]?.title).toBe(newName);
+            expect(bankAccountList?.[bankAccountID]?.accountData?.addressName).toBe(newName);
+            expect(bankAccountList?.[bankAccountID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // And the backend receives the bank account ID with the new name as addressName
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_BANK_ACCOUNT, 1);
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.UPDATE_BANK_ACCOUNT).at(0)?.[1]?.body;
+            expect(body instanceof FormData ? Object.fromEntries(body) : {}).toEqual(expect.objectContaining({bankAccountID: `${bankAccountID}`, addressName: newName}));
+
+            // When the request succeeds
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the new name is kept and the pending state is cleared
+            bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(bankAccountList?.[bankAccountID]?.title).toBe(newName);
+            expect(bankAccountList?.[bankAccountID]?.pendingAction).toBeFalsy();
+            expect(bankAccountList?.[bankAccountID]?.errors).toBeFalsy();
+        });
+
+        test('restores the previous name and shows an error when the request fails', async () => {
+            // Given the backend rejects the rename
+            mockFetch.fail?.();
+
+            // When the bank account is renamed
+            updateBankAccountName(bankAccountID, newName, oldName);
+            await waitForBatchedUpdates();
+
+            // Then the previous name is restored so the Wallet does not show a name the backend never saved
+            const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(bankAccountList?.[bankAccountID]?.title).toBe(oldName);
+            expect(bankAccountList?.[bankAccountID]?.accountData?.addressName).toBe(oldName);
+            expect(bankAccountList?.[bankAccountID]?.pendingAction).toBeFalsy();
+            expect(bankAccountList?.[bankAccountID]?.errors).toBeTruthy();
+        });
+
+        test('clears the optimistic name when the request fails and there was no previous name', async () => {
+            // Given a bank account with no title, so there is no previous name to restore
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    accountData: {bankAccountID, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                },
+            });
+            mockFetch.fail?.();
+
+            // When the bank account is renamed and the backend rejects it
+            updateBankAccountName(bankAccountID, newName, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the optimistic name is removed, because Onyx merge would ignore an undefined rollback value
+            const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(bankAccountList?.[bankAccountID]?.title).toBeUndefined();
+            expect(bankAccountList?.[bankAccountID]?.accountData?.addressName).toBeUndefined();
+            expect(bankAccountList?.[bankAccountID]?.errors).toBeTruthy();
+        });
+    });
+
+    describe('initiateBankAccountUnlock', () => {
+        test('clears both pendingAction and isOptimisticAction on the Concierge unlock message after success', async () => {
+            // Given an optimistic Concierge unlock message, as written when the user presses a locked bank account
+            const conciergeReportID = '98765';
+            const optimisticReportActionID = '12345';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {
+                [optimisticReportActionID]: {
+                    reportActionID: optimisticReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-01-01 00:00:00.000',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    isOptimisticAction: true,
+                },
+            });
+
+            // When the unlock request succeeds
+            initiateBankAccountUnlock(123, conciergeReportID, optimisticReportActionID);
+            await waitForBatchedUpdates();
+
+            // Then the message is no longer optimistic, so it is not dimmed on later offline transitions
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, 1);
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`);
+            const reportAction = reportActions?.[optimisticReportActionID];
+            expect(reportAction?.pendingAction).toBeFalsy();
+            expect(reportAction?.isOptimisticAction).toBeFalsy();
         });
     });
 });

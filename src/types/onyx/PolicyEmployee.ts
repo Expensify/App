@@ -16,7 +16,6 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Custom field 2 of the member in the policy */
     employeePayrollID?: string;
 
-    /** Email of the user */
     email?: string;
 
     /** Determines if this employee should approve a report. If report total > approvalLimit, next approver will be 'overLimitForwardsTo', otherwise 'forwardsTo'. Set to null to clear. */
@@ -30,6 +29,12 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Email of the user this user forwards all reports to when the report total is over the 'approvalLimit' */
     overLimitForwardsTo?: string;
+
+    /** Whether the member holds an active Expensify Card on this workspace, which blocks removing them from it */
+    hasActiveExpensifyCard?: boolean;
+
+    /** Whether the member is based in an office. When absent, the workspace default applies. */
+    hasOfficeWorkArrangement?: boolean;
 
     /**
      * Errors from api calls on the specific user

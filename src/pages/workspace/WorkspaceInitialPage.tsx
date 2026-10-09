@@ -26,6 +26,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {getRules} from '@libs/actions/Policy/Rules';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,6 +45,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {LayoutChangeEvent} from 'react-native';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
+import {createHasExpenseDefaultRuleErrorsSelector} from '@selectors/Rule';
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -83,8 +85,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const policyID = policy?.id;
+    const routePolicyID = route.params?.policyID;
+
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${routePolicyID}`);
+    const [hasMerchantRuleErrors] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createHasExpenseDefaultRuleErrorsSelector(policyID)});
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policyID);
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
@@ -97,7 +102,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Document',
         'ExpensifyAppIcon',
         'ExpensifyCard',
-        'Feed',
         'Folder',
         'Gear',
         'Hashtag',
@@ -111,6 +115,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'LuggageWithLines',
         'Clock',
         'Bolt',
+        'Bot',
+        'UserPlus',
     ]);
 
     const policyName = policy?.name ?? '';
@@ -141,10 +147,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevShouldShowNotFoundPage = usePrevious(computedShouldShowNotFoundPage);
     const shouldShowNotFoundPage = computedShouldShowNotFoundPage || !!prevShouldShowNotFoundPage;
     const fetchPolicyData = () => {
-        if (policyDraft?.id || !isFocused) {
+        if (policyDraft?.id || !isFocused || !routePolicyID) {
             return;
         }
-        openPolicyInitialPage(route.params.policyID);
+        openPolicyInitialPage(routePolicyID);
+        // Deliberately not `useRulesPrefetch`, which fetches once per session for screens that only need a count.
+        // Opening a workspace is the point at which its rules have to be current, including after a reconnect.
+        getRules();
     };
     useNetwork({onReconnect: fetchPolicyData});
     useFocusEffect(
@@ -177,11 +186,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         icons: expensifyIcons,
         isConnectionInProgress: isConnectionInProgress(connectionSyncProgress, policy),
         policyCategories,
+        hasMerchantRuleErrors,
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
         shouldShowRBR,
-        isRulesRevampBetaEnabled: isBetaEnabled(CONST.BETAS.RULES_REVAMP),
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         convertToDisplayString,
     }).map((item) => ({
         ...item,
@@ -241,9 +251,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     policyAvatar={policyAvatar}
                     policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    shouldDisplayAccountButton
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14]}>
+                <ScrollView contentContainerStyle={styles.flexColumn}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}
@@ -289,3 +300,4 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 }
 
 export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);
+export {WorkspaceInitialPage};

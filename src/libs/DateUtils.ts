@@ -42,7 +42,7 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
-import {enGB} from 'date-fns/locale/en-GB';
+import {enUS} from 'date-fns/locale/en-US';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
@@ -257,7 +257,35 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
  * @returns Sunday, July 9, 2023
  */
 function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
+    const date = new Date(datetime);
+    if (!isValid(date)) {
+        return '';
+    }
+    return format(date, CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
+}
+
+/**
+ * Format date to a long date format with weekday but without the year
+ *
+ * @returns Sunday, July 9
+ */
+function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR, {locale: dateFnsLocale});
+}
+
+/**
+ * Get the time-of-day greeting key based on the hour of the given (already timezone-adjusted) date.
+ * Ranges: morning 4am to 12pm, afternoon 12pm to 5pm, evening 5pm to 4am.
+ */
+function getTimeOfDayGreetingKey(date: Date): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
+    const hour = date.getHours();
+    if (hour >= 4 && hour < 12) {
+        return 'goodMorning';
+    }
+    if (hour >= 12 && hour < 17) {
+        return 'goodAfternoon';
+    }
+    return 'goodEvening';
 }
 
 /**
@@ -299,11 +327,9 @@ function startCurrentDateUpdater() {
 }
 
 function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
-    const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (timezone.automatic && timezone.selected !== currentTimezone) {
-        return {...timezone, selected: currentTimezone as SelectedTimezone, automatic: timezone.automatic ?? false};
-    }
-    return {selected: timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic: timezone.automatic ?? false};
+    const automatic = timezone.automatic ?? false;
+    const currentTimezone = automatic ? formatToSupportedTimezone({selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone}).selected : undefined;
+    return {selected: currentTimezone ?? timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic};
 }
 
 /**
@@ -397,7 +423,10 @@ function getRemainingSecondsInWindow(requestedAt: number | undefined, windowMs: 
     if (!requestedAt) {
         return 0;
     }
-    return Math.max(0, Math.ceil((windowMs - (Date.now() - requestedAt)) / CONST.MILLISECONDS_PER_SECOND));
+    const remainingSeconds = Math.ceil((windowMs - (Date.now() - requestedAt)) / CONST.MILLISECONDS_PER_SECOND);
+
+    // A backward clock correction leaves `requestedAt` in the future, which would otherwise report more than the window.
+    return Math.min(Math.ceil(windowMs / CONST.MILLISECONDS_PER_SECOND), Math.max(0, remainingSeconds));
 }
 
 /**
@@ -464,10 +493,12 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
         return '';
     }
     const date = new Date(dateTimeString);
-    // get12HourTimeObjectFromDate parses this back with the same default locale, so the format and the parse stay
-    // in step in every language.
-    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- see above
-    return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a');
+    // Pinned to English, not the active language. This value is the TimePicker's wire format: it is parsed back by
+    // `get12HourTimeObjectFromDate`, and the period it yields is compared against the English `CONST.TIME_PERIOD` that
+    // the AM/PM buttons write and `combineDateAndTime` parses. Both ends of that round trip have to agree on one
+    // language, and English is the one the rest of the protocol already uses. Relying on the active locale instead
+    // worked only because the parse omitted a locale too, so the pair silently depended on a mutable global.
+    return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', {locale: enUS});
 }
 
 /**
@@ -479,7 +510,7 @@ function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLo
         return '';
     }
     const date = new Date(dateTimeString);
-    return format(date, 'yyyy-MM-dd hh:mm a', {locale: dateFnsLocale});
+    return format(date, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale});
 }
 
 /**
@@ -583,7 +614,7 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
     } else if (updatedTime.includes(':')) {
         // it's in "hh:mm a" format
         // The picker always submits English AM/PM markers, which the app's active date-fns locale may not parse.
-        const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enGB});
+        const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enUS});
         if (isValid(tempTime)) {
             parsedTime = tempTime;
         }
@@ -635,7 +666,10 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
             period: 'PM',
         };
     }
-    const parsedTime = parse(dateTime, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', new Date());
+    // The counterpart to `extractTime12Hour`'s format: same pattern, same pinned locale. Passing a locale to only one
+    // of the two would make this parse return an invalid date, and `getHours()` would then be NaN — so `period` would
+    // quietly come back as AM for every time of day.
+    const parsedTime = parse(dateTime, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', new Date(), {locale: enUS});
     return {
         hour: format(parsedTime, 'hh'),
         minute: format(parsedTime, 'mm'),
@@ -699,6 +733,23 @@ const getDayValidationErrorKey = (translate: LocalizedTranslate, inputDate: Date
  */
 const isFutureDay = (inputDate: Date): boolean => {
     return isAfter(startOfDay(inputDate), startOfDay(new Date()));
+};
+
+/**
+ * Whether a transaction's date is further ahead than the backend tolerates.
+ *
+ * Mirrors the backend rule `DATETIME(COALESCE(modifiedCreated, created)) <= DATETIME('NOW', '+14 hours')`. A
+ * transaction date is a plain calendar date with no time or offset, so the backend cannot know the sender's local
+ * date and allows up to the furthest timezone (UTC+14) before flagging it.
+ */
+const isTransactionDateFuture = (transactionDate: string): boolean => {
+    if (!transactionDate) {
+        return false;
+    }
+
+    const thresholdDate = formatMachineDateWithUTCTimeZone(addHours(new Date(), 14).toISOString());
+
+    return formatMachineDateWithUTCTimeZone(transactionDate) > thresholdDate;
 };
 
 /**
@@ -820,6 +871,9 @@ function getFormattedDateRange(translate: LocalizedTranslate, dateFnsLocale: Dat
  * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
  */
 function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date1: Date, date2: Date): string {
+    if (!isValid(date1) || !isValid(date2)) {
+        return '';
+    }
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
         return format(date1, 'EEEE, MMM d', {locale: dateFnsLocale});
@@ -843,10 +897,13 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFns
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date: Date): string {
-    if (isThisYear(date)) {
-        return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, 'hh:mm a', {locale: dateFnsLocale})}`;
+    if (!isValid(date)) {
+        return '';
     }
-    return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, 'hh:mm a', {locale: dateFnsLocale})}`;
+    if (isThisYear(date)) {
+        return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
+    }
+    return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
 }
 
 /**
@@ -856,15 +913,18 @@ function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale:
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
 function getFormattedTransportDateAndHour(date: Date, dateFnsLocale: DateFnsLocale | undefined): {date: string; hour: string} {
+    if (!isValid(date)) {
+        return {date: '', hour: ''};
+    }
     if (isThisYear(date)) {
         return {
             date: format(date, 'EEEE, MMM d', {locale: dateFnsLocale}),
-            hour: format(date, 'h:mm a', {locale: dateFnsLocale}),
+            hour: format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}),
         };
     }
     return {
         date: format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale}),
-        hour: format(date, 'h:mm a', {locale: dateFnsLocale}),
+        hour: format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}),
     };
 }
 
@@ -898,7 +958,7 @@ function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: Date
     const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
     const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
     const date = new Date(isoDateString);
-    const pattern = isThisYear(date) ? 'EEEE, MMM d h:mm a' : 'EEEE, MMM d, yyyy h:mm a';
+    const pattern = isThisYear(date) ? `EEEE, MMM d ${CONST.DATE.LOCAL_TIME_FORMAT}` : `EEEE, MMM d, yyyy ${CONST.DATE.LOCAL_TIME_FORMAT}`;
     // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
     // `+07:00`, so the timezone label is derived from the offset and appended manually.
     return `${formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale})}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
@@ -908,6 +968,9 @@ function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: Date
  * Returns a formatted layover duration in format "2h 30m".
  */
 function getFormattedDurationBetweenDates(translateParam: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
+    if (!isValid(start) || !isValid(end)) {
+        return;
+    }
     const {days, hours, minutes} = intervalToDuration({start, end});
 
     if (days && days > 0) {
@@ -1118,6 +1181,21 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
     return datePart >= monthStart && datePart <= monthEnd;
 }
 
+/** Returns a compact day label, e.g. "Sep 15, ’26". */
+function getShortFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    return format(parse(day, 'yyyy-MM-dd', new Date()), shouldShowYear ? 'MMM d, ’yy' : 'MMM d', {locale: dateFnsLocale});
+}
+
+/** Returns a month label, e.g. "September 2025". */
+function getFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
+    return format(new Date(year, month - 1, 1), 'LLLL yyyy', {locale: dateFnsLocale});
+}
+
+/** Returns a compact month label, e.g. "Sep ’25". */
+function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    return format(new Date(year, month - 1, 1), shouldShowYear ? 'LLL ’yy' : 'LLL', {locale: dateFnsLocale});
+}
+
 /**
  * Returns a formatted date range.
  */
@@ -1131,6 +1209,18 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, date
         return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d', {locale: dateFnsLocale})}`;
     }
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+}
+
+/** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
+function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    const start = parse(startDate, 'yyyy-MM-dd', new Date());
+    const end = parse(endDate, 'yyyy-MM-dd', new Date());
+    if (!isSameYear(start, end)) {
+        return `${format(start, 'MMM d, ’yy', {locale: dateFnsLocale})} - ${format(end, 'MMM d, ’yy', {locale: dateFnsLocale})}`;
+    }
+    const yearSuffix = shouldShowYear ? ', ’yy' : '';
+    const formattedEnd = format(end, isSameMonth(start, end) ? `d${yearSuffix}` : `MMM d${yearSuffix}`, {locale: dateFnsLocale});
+    return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${formattedEnd}`;
 }
 
 function getYearDateRange(year: number): {start: string; end: string} {
@@ -1160,7 +1250,22 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
     // This ensures the dates are created in the current/local timezone, not UTC
     const quarterStart = set(new Date(), {year, month: startMonth - 1, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
     const quarterEnd = set(new Date(), {year, month: endMonth, date: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
-    return `Q${quarter} ${year} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
+    // `QQQ` is the locale's own abbreviated quarter, such as `Q1` in English, `T1` in Spanish, `K1` in Dutch,
+    // `I kw.` in Polish and `第一季` in Chinese. `Intl.DateTimeFormat` has no quarter option at all, so date-fns is
+    // the only way to localize this. The quarter still comes before the year by hand, because neither library has
+    // a canned pattern pairing the two.
+    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
+}
+
+/**
+ * Returns a compact quarter label, e.g. "Q3 ’25".
+ */
+function getShortFormattedQuarterForSearch(year: number, quarter: number, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    // Same reasoning as `getFormattedQuarterForSearch`. The quarter label has to come from `QQQ` rather than a
+    // hand-built `Q${quarter}`, because every locale names quarters differently and `Intl.DateTimeFormat` has no
+    // quarter option to fall back on.
+    const quarterStart = set(new Date(), {year, month: (quarter - 1) * 3, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+    return format(quarterStart, shouldShowYear ? 'QQQ ’yy' : 'QQQ', {locale: dateFnsLocale});
 }
 
 function getNextNthOfMonth(nth: number) {
@@ -1182,6 +1287,8 @@ const DateUtils = {
     isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
+    formatToLongDateWithWeekdayWithoutYear,
+    getTimeOfDayGreetingKey,
     formatToLocalTime,
     formatToReadableString,
     getZoneAbbreviation,
@@ -1236,6 +1343,7 @@ const DateUtils = {
     getFormattedDuration,
     formatCountdownTimer,
     isFutureDay,
+    isTransactionDateFuture,
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
@@ -1246,10 +1354,15 @@ const DateUtils = {
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,
+    getShortFormattedDayForSearch,
+    getFormattedMonthForSearch,
+    getShortFormattedMonthForSearch,
     getFormattedDateRangeForSearch,
+    getShortFormattedDateRangeForSearch,
     getYearDateRange,
     getQuarterDateRange,
     getFormattedQuarterForSearch,
+    getShortFormattedQuarterForSearch,
     getNextNthOfMonth,
 };
 

@@ -26,9 +26,6 @@ type BaseMiniContextMenuItemProps = WithSentryLabel & {
      */
     tooltipText: string;
 
-    /**
-     * Callback to fire on press
-     */
     onPress: () => void;
 
     /**
@@ -45,9 +42,6 @@ type BaseMiniContextMenuItemProps = WithSentryLabel & {
      */
     shouldPreventDefaultFocusOnPress?: boolean;
 
-    /**
-     * Reference to the outer element
-     */
     ref?: PressableRef;
 };
 
@@ -98,7 +92,7 @@ function BaseMiniContextMenuItem({
                 sentryLabel={sentryLabel}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete), true),
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed, isComplete: isDelayButtonStateComplete}), true),
                     isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >

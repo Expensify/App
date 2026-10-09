@@ -10,7 +10,9 @@ import Onyx from 'react-native-onyx';
 
 import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
 
-const ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
+// Cached attachments are re-downloadable, so they live in Caches, which the OS may purge
+// and which is never exposed to the user via the iOS Files app (unlike Documents)
+const ATTACHMENT_DIR = `${RNFS.CachesDirectoryPath}/attachments`;
 
 async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
     const isLocalFile = uri.startsWith('file://');
@@ -22,6 +24,8 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
         const destPath = `${ATTACHMENT_DIR}/${fileName}`;
 
         try {
+            // The OS can purge Caches wholesale, so the directory may need recreating
+            await RNFS.mkdir(ATTACHMENT_DIR);
             await RNFS.copyFile(uri, destPath);
             await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                 attachmentID,
@@ -56,6 +60,8 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
 
         const fileName = `${attachmentID}.${attachmentFileExtension}`;
         const filePath = `${ATTACHMENT_DIR}/${fileName}`;
+        // The OS can purge Caches wholesale, so the directory may need recreating
+        await RNFS.mkdir(ATTACHMENT_DIR);
         await RNFetchBlob.config({path: filePath}).fetch('GET', uri);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
@@ -78,7 +84,17 @@ async function getCachedAttachment({attachmentID, attachment, currentSource}: Ge
 
     const localSource = attachment?.source;
     if (localSource) {
-        return localSource;
+        // The OS can purge Caches while the Onyx record survives, so verify the file still
+        // exists. If it was purged, fall back to the current source and re-cache it.
+        const localFileExists = await RNFS.exists(localSource);
+        if (localFileExists) {
+            // The path is stored without a scheme so RNFS file operations (exists/unlink) accept it, but
+            // React Native's <Image> on Android only loads a local file when it carries a `file://`
+            // scheme (a bare path renders as a broken thumbnail), so add the scheme before the path
+            // reaches the image renderer.
+            return localSource.startsWith('file://') ? localSource : `file://${localSource}`;
+        }
+        cacheAttachment({attachmentID, uri: currentSource});
     }
 
     return currentSource;

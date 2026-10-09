@@ -11,9 +11,9 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
-import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
+import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
@@ -22,6 +22,8 @@ import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/componen
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
+import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
+import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -43,7 +45,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a react-native-vision-camera viewfinder with shutter, flash toggle, gallery picker, and focus gesture.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit}: CameraProps) {
+function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit, canUpgradeReceiptQuality = true}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -61,6 +63,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     const onFocusCleanup = () => {
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     };
 
@@ -81,16 +84,16 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
 
-    // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
-    // format. videoResolution is platform-specific:
-    //  - iOS: match the photo target — `takeSnapshot` reads from the video pipeline, so a smaller
-    //    video resolution would degrade the snapshot capture quality.
+    // photoResolution picks the format; videoResolution only breaks ties. videoResolution is platform-specific:
+    //  - iOS: `takeSnapshot` returns the raw video frame, so prefer a video size close to 6 MP.
     //  - Android: keep screen dimensions — `takeSnapshot` is a GPU screenshot of the preview surface
     //    and doesn't depend on video resolution; constraining to screen size avoids burning GPU on a
     //    higher-than-needed preview.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
-        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        Platform.OS === 'ios'
+            ? {photoResolution: {width: CONST.RECEIPT_CAMERA.IOS_STILL_WIDTH, height: CONST.RECEIPT_CAMERA.IOS_STILL_HEIGHT}}
+            : {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
         Platform.OS === 'ios'
             ? {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}}
             : {videoResolution: {width: windowHeight, height: windowWidth}},
@@ -109,7 +112,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         HapticFeedback.press();
     };
 
-    const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device});
+    const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device, format});
+    const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
 
     const maybeCancelShutterSpan = () => {
         if (isMultiScanEnabled) {
@@ -117,6 +121,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         }
 
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     };
 
@@ -125,7 +130,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE},
             });
         }
 
@@ -154,7 +159,13 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
+                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: shouldTakePhoto({flash, hasFlash, isInLandscapeMode})
+                    ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO
+                    : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
+                [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
+            },
         });
 
         isCapturingPhoto.current = true;
@@ -162,9 +173,21 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         const path = getReceiptsUploadFolderPath();
 
-        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
+        const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+
+        // The snapshot goes first so its request reaches the native queue ahead of the still. On iOS it
+        // reads the most recent video frame, which a photo capture can interrupt.
+        const receiptCapture = captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode});
+
+        receiptCapture
             .then((photo: PhotoFile) => {
-                endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+                endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+                    [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
+                    [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
+                });
+                if (!isMultiScanEnabled) {
+                    startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.NATIVE);
+                }
                 return ReceiptStorage.adopt(photo.path);
             })
             .then((durableName) => {
@@ -181,6 +204,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     type: 'image/jpeg',
                 };
 
+                if (shouldUpgradeToPhoto) {
+                    upgradeReceiptWithPhoto(durableName);
+                }
+
                 onCapture(cameraFile, source);
             })
             .catch((error: string) => {
@@ -188,7 +215,12 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 maybeCancelShutterSpan();
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
+                discardPendingPhoto();
             });
+
+        if (shouldUpgradeToPhoto) {
+            startPhotoCapture(camera.current);
+        }
     };
 
     // Wait for camera permission status to render
@@ -231,12 +263,17 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             blinkStyle={blinkStyle}
                             isAttachmentPickerActive={isAttachmentPickerActive}
                             didCapturePhoto={didCapturePhoto}
+                            hasPendingPhotoCapture={hasPendingPhotoCapture}
                             onInitialized={handleCameraInitialized}
-                            canUseMultiScan={canUseMultiScan}
+                            shouldShowFlashButton={canUseMultiScan}
                             cameraPermissionStatus={cameraPermissionStatus}
                             flash={flash}
                             hasFlash={hasFlash}
                             setFlash={setFlash}
+                            // "preview" turns every capture to match the screen, the way the preview is drawn. The default "device" follows the
+                            // phone's physical orientation instead, so a phone held flat over a receipt keeps its last landscape reading and the
+                            // photo comes out sideways.
+                            outputOrientation="preview"
                         />
                     )}
                 </View>

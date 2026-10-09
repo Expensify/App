@@ -5,6 +5,7 @@ import useNetwork from '@hooks/useNetwork';
 
 import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
 import {getSearchOptions} from '@libs/OptionsListUtils';
+import type * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,8 +23,14 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+
+jest.mock('@components/OnyxListItemProvider', () => ({
+    useCardList: () => ({}),
+    useWorkspaceCardList: () => ({}),
+}));
 jest.mock('@libs/actions/Search', () => ({openSearchCategoryFiltersPage: jest.fn()}));
 
+const mockConvertToDisplayString = jest.fn(() => '$0.00');
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListState: () => ({
         currencyList: {
@@ -35,6 +42,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
             RETIRED_CURRENCY: {symbol: 'X', name: 'Retired', retired: true},
         },
     }),
+    useCurrencyListActions: () => ({convertToDisplayString: mockConvertToDisplayString}),
 }));
 
 jest.mock('@libs/SearchAutocompleteUtils', () => ({
@@ -47,6 +55,7 @@ jest.mock('@libs/SearchAutocompleteUtils', () => ({
         {taxRateName: 'VAT 20%', taxRateIds: ['vat20']},
         {taxRateName: 'GST 10%', taxRateIds: ['gst10']},
     ]),
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
 }));
 
 jest.mock('@libs/OptionsListUtils', () => ({
@@ -100,7 +109,6 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: ['QuickBooks Online', 'Xero', 'NetSuite'],
-        combinedUniqueExportTemplates: [],
         connectedIntegrationNames: new Set<string>(),
     }),
 }));
@@ -118,8 +126,9 @@ const defaultParams: Params = {
     allCards: {},
     allFeeds: {},
     options: {reports: [], personalDetails: []},
+    getReportByID: () => undefined,
     draftComments: {},
-    betas: [],
+    isDefaultRoomsBetaEnabled: false,
     countryCode: 1,
     loginList: {},
     policies: {},

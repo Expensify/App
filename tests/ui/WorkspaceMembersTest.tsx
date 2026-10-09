@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -152,6 +153,8 @@ describe('WorkspaceMembers', () => {
 
             // Click the "1 selected" button to open the menu
             const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
+            const bulkActionsDropdown = screen.UNSAFE_getAllByType(ButtonWithDropdownMenu).find(({props}) => props.testID === dropdownMenuButtonTestID);
+            expect(bulkActionsDropdown?.props.shouldPopoverUseScrollView).toBe(true);
             fireEvent.press(dropdownButton);
 
             await waitForBatchedUpdatesWithAct();
@@ -171,6 +174,11 @@ describe('WorkspaceMembers', () => {
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
+
+            // Find and verify "Make guest" dropdown menu item
+            const makeGuestText = TestHelper.translateLocal('workspace.people.makeGuest', {count: 1});
+            const makeGuestMenuItem = screen.getByTestId(`PopoverMenuItem-${makeGuestText}`);
+            expect(makeGuestMenuItem).toBeOnTheScreen();
 
             // Find and verify "Make card admin" dropdown menu item
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
@@ -429,11 +437,10 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should hide role-change options when the selected member is the Authorized Payer resolved via policy.reimburser', async () => {
+        it('should hide demotions but offer Make payments admin when the selected member is the Authorized Payer resolved via policy.reimburser', async () => {
             // Given a workspace whose Authorized Payer is an admin configured through policy.reimburser
-            // (the canonical resolution) rather than achAccount.reimburser. On the buggy code the guard
-            // only read achAccount.reimburser, so it failed to recognize this payer and wrongly offered
-            // the role-change options.
+            // (the canonical resolution) rather than achAccount.reimburser. Demotions to roles that cannot
+            // pay must stay hidden, but changing to Payments Admin (the other valid payer role) must be offered.
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -459,7 +466,7 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
             });
 
-            // ...and none of the role-change options are offered for the payer
+            // ...the demotions that would strip the payer of pay capability are hidden
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
             expect(screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`)).not.toBeOnTheScreen();
 
@@ -469,16 +476,18 @@ describe('WorkspaceMembers', () => {
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
             expect(screen.queryByTestId(`PopoverMenuItem-${makeCardAdminText}`)).not.toBeOnTheScreen();
 
+            // ...but Make payments admin IS offered — Payments Admin is a valid payer role
+            const makePaymentsAdminText = TestHelper.translateLocal('workspace.people.makePaymentsAdmin', {count: 1});
+            expect(screen.getByTestId(`PopoverMenuItem-${makePaymentsAdminText}`)).toBeOnTheScreen();
+
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should hide the Make workspace admin option when the selected member is a Payments Admin who is the Authorized Payer', async () => {
-            // Given a Payments Admin who is also the Authorized Payer. PAYMENTS_ADMIN is the only non-admin
-            // role with write access to WORKFLOWS_PAYMENTS, so it is the sole role that can hold the payer
-            // role without already being an admin — which makes it the only path that can reach the
-            // "Make workspace admin" option. Every other role-change option is already gated on the payer,
-            // but adminOption was not, so it was wrongly offered for this payer.
+        it('should offer Make workspace admin but hide demotions when the selected member is a Payments Admin who is the Authorized Payer', async () => {
+            // Given a Payments Admin who is also the Authorized Payer. Admin and Payments Admin are both valid
+            // payer roles, so promoting this payer to Admin keeps them a valid payer and must be offered.
+            // Every demotion to a role that cannot pay (Member, Auditor, Card Admin) stays gated on the payer.
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -507,9 +516,16 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
             });
 
-            // ...but "Make workspace admin" is hidden for the payer, even though their role is not admin
+            // ...and "Make workspace admin" IS offered — Admin is a valid payer role
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+            expect(screen.getByTestId(`PopoverMenuItem-${makeAdminText}`)).toBeOnTheScreen();
+
+            // ...but the demotions that would strip the payer of pay capability stay hidden
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`)).not.toBeOnTheScreen();
+
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -629,6 +645,35 @@ describe('WorkspaceMembers', () => {
         });
     });
 
+    describe('Secondary login invite', () => {
+        it('hides an empty employeeList entry and still shows a member whose personal details are missing', async () => {
+            // Given a secondary login left as an empty object after the backend nulls it and successData clears pendingAction,
+            // plus a real member who has no personal details
+            const secondaryEmail = 'secondary@example.com';
+            const memberWithoutDetails = 'nodetails@example.com';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {
+                        [secondaryEmail]: {},
+                        [memberWithoutDetails]: {email: memberWithoutDetails, role: CONST.POLICY.ROLE.USER},
+                    },
+                });
+            });
+
+            // When the members page renders
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the empty secondary entry is not a row, and the member without personal details still is
+            await waitFor(() => {
+                expect(screen.getAllByText(memberWithoutDetails).length).toBeGreaterThan(0);
+            });
+            expect(screen.queryAllByText(secondaryEmail)).toHaveLength(0);
+
+            unmount();
+        });
+    });
+
     describe('Role display on Submit workspaces', () => {
         it('should show the workspace owner as Editor instead of Owner', async () => {
             // Given a Submit workspace, where every member (including the owner) uses the flat Editor role
@@ -647,6 +692,92 @@ describe('WorkspaceMembers', () => {
             const ownerLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
             expect(within(ownerRow).getByText(editorLabel)).toBeOnTheScreen();
             expect(within(ownerRow).queryByText(ownerLabel)).not.toBeOnTheScreen();
+
+            unmount();
+        });
+    });
+
+    describe('Selection and search', () => {
+        it('should clear a Select All made inside a search once the search field is cleared', async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+
+            // Given a search that narrows the list to a subset of the members
+            const searchInput = screen.getByPlaceholderText(TestHelper.translateLocal('workspace.people.findMember'));
+            fireEvent.changeText(searchInput, auditorEmail);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByText(ADMIN_OPTION)).not.toBeOnTheScreen();
+
+            // When every visible row is selected via the header checkbox
+            // The table renders a second, hidden header for width measurement, so the label is not unique
+            const selectAllLabel = TestHelper.translateLocal('workspace.common.selectAll');
+            const getSelectAllCheckbox = () => {
+                const checkbox = screen.getAllByLabelText(selectAllLabel).at(0);
+                if (!checkbox) {
+                    throw new Error('No Select all checkbox rendered');
+                }
+                return checkbox;
+            };
+            fireEvent.press(getSelectAllCheckbox());
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).toBeOnTheScreen();
+
+            // Then clearing the search drops the selection, because it only ever applied to the searched rows
+            fireEvent.changeText(searchInput, '');
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            expect(screen.queryByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).not.toBeOnTheScreen();
+            expect(getSelectAllCheckbox()).not.toBeChecked();
+
+            unmount();
+        });
+    });
+
+    describe('Inline role editing', () => {
+        it('lets a just-invited member be role-edited before their account resolves', async () => {
+            // Given a member invited with optimistic personal details, which is how a new invite stays until the
+            // account resolves, including while the invite is still offline
+            const invitedEmail = 'invited@example.com';
+            const invitedAccountID = 424242;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                    [invitedAccountID]: {
+                        ...TestHelper.buildPersonalDetails(invitedEmail, invitedAccountID, 'Invited'),
+                        isOptimisticPersonalDetail: true,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {
+                        [invitedEmail]: {
+                            email: invitedEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    },
+                });
+            });
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+                createMock<ResponsiveLayoutResult>({
+                    isSmallScreenWidth: false,
+                    shouldUseNarrowLayout: false,
+                    isMediumScreenWidth: false,
+                    isLargeScreenWidth: true,
+                }),
+            );
+
+            // When the members table renders that invite on a wide layout, where the role cell can be edited inline
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            const invitedRow = await screen.findByLabelText(new RegExp(`^Invited User, ${invitedEmail}`));
+
+            // Then the role cell is editable, matching the member details pane, which does not wait for the account to resolve
+            await waitFor(() => {
+                expect(within(invitedRow).UNSAFE_getAllByProps({accessibilityLabel: TestHelper.translateLocal('common.edit')}).length).toBeGreaterThan(0);
+            });
 
             unmount();
         });

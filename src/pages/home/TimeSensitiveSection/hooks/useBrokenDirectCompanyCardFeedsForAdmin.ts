@@ -2,7 +2,7 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 
 import {getCardFeedWithDomainID, isBrokenConnectionPastDismissThreshold, isDirectFeed} from '@libs/CardUtils';
 
-import type {Policy} from '@src/types/onyx';
+import type {TimeSensitiveAdminPolicy} from '@selectors/Policy';
 
 import {useMemo} from 'react';
 
@@ -25,7 +25,7 @@ type BrokenCompanyCardConnection = {
  * where the current user is an admin. Commercial feeds (vcf/cdf/etc.) are excluded because they
  * are file-based and not user-fixable via bank login.
  */
-function useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies: Policy[] | undefined): BrokenCompanyCardConnection[] {
+function useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies: TimeSensitiveAdminPolicy[] | undefined): BrokenCompanyCardConnection[] {
     const {cardsWithBrokenFeedConnection} = useCardFeedErrors();
 
     return useMemo(() => {

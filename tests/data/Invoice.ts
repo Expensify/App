@@ -11,7 +11,6 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
     role: 'admin',
     owner: 'a1@53019.com',
     ownerAccountID: 32,
-    isPolicyExpenseChatEnabled: true,
     outputCurrency: 'USD',
     autoReporting: true,
     autoReportingFrequency: 'instant',

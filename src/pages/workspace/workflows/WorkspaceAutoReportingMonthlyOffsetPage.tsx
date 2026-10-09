@@ -4,12 +4,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -36,16 +39,20 @@ type AutoReportingOffsetKeys = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET
 type WorkspaceAutoReportingMonthlyOffsetPageItem = {
     text: string;
     keyForList: string;
+    value: string;
     isSelected: boolean;
     isNumber?: boolean;
 };
 
 function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoReportingMonthlyOffsetProps) {
     const {translate, toLocaleOrdinal} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const policyID = policy?.id;
     const offset = policy?.autoReportingOffset ?? 1;
     const [userSelectedOffset, setUserSelectedOffset] = useState<number | AutoReportingOffsetKeys | undefined>();
     const selectedOffset = userSelectedOffset ?? offset;
+    // Freeze the day selected when the page opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialOffset = useInitialSelection(selectedOffset, {resetOnFocus: true});
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
 
@@ -55,25 +62,30 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
         return {
             text: toLocaleOrdinal(day),
             keyForList: day.toString(), // we have to cast it as string for <ListItem> to work
+            value: day.toString(),
             isSelected: day === selectedOffset,
             isNumber: true,
         };
     }).concat([
         {
             keyForList: 'lastDayOfMonth',
+            value: 'lastDayOfMonth',
             text: translate('workflowsPage.frequencies.lastDayOfMonth'),
             isSelected: selectedOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
             isNumber: false,
         },
         {
             keyForList: 'lastBusinessDayOfMonth',
+            value: 'lastBusinessDayOfMonth',
             text: translate('workflowsPage.frequencies.lastBusinessDayOfMonth'),
             isSelected: selectedOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
             isNumber: false,
         },
     ]);
 
-    const filteredDaysOfMonth = daysOfMonth.filter((dayItem) => dayItem.text.toLowerCase().includes(trimmedText));
+    // Pin the frozen initial day to the top of the full list before search filtering, so it stays pinned while searching.
+    const orderedDaysOfMonth = moveInitialSelectionToTop(daysOfMonth, [String(initialOffset)]);
+    const filteredDaysOfMonth = orderedDaysOfMonth.filter((dayItem) => dayItem.text.toLowerCase().includes(trimmedText));
 
     const onSelectDayOfMonth = (item: WorkspaceAutoReportingMonthlyOffsetPageItem) => {
         setUserSelectedOffset(item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
@@ -83,9 +95,9 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
         if (!policyID) {
             return;
         }
-        setWorkspaceAutoReportingMonthlyOffset(policyID, selectedOffset, policy?.autoReportingOffset);
+        setWorkspaceAutoReportingMonthlyOffset(policyID, selectedOffset, policy?.autoReportingOffset, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID));
-    }, [policyID, policy?.autoReportingOffset, selectedOffset]);
+    }, [policyID, policy?.autoReportingOffset, selectedOffset, getReviewWorkspaceSettingsTaskCompletion]);
 
     const confirmButtonOptions = useMemo(
         () => ({
@@ -133,8 +145,11 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                         onSelectRow={onSelectDayOfMonth}
                         textInputOptions={textInputOptions}
                         confirmButtonOptions={confirmButtonOptions}
-                        initiallyFocusedItemKey={offset.toString()}
+                        initiallyFocusedItemKey={String(initialOffset)}
                         shouldSingleExecuteRowSelect
+                        shouldScrollToFocusedIndexOnMount={false}
+                        shouldUpdateFocusedIndex
+                        disableMaintainingScrollPosition
                         addBottomSafeAreaPadding
                         showScrollIndicator
                     />

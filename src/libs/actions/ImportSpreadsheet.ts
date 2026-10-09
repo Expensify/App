@@ -1,3 +1,5 @@
+import {getCompanyCardColumnMappings} from '@libs/importSpreadsheetUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
@@ -203,35 +205,24 @@ function applySavedColumnMappings(spreadsheetData: string[][], savedLayout: Save
 }
 
 /**
- * Applies saved company card column mappings to the spreadsheet data.
+ * Applies the auto-detected company card column mapping to the freshly uploaded spreadsheet.
+ *
+ * The mapping is computed in a single coordinated pass (header-first, with the saved layout as a positional fallback)
+ * so that a property is never pre-selected on more than one column. The complete map - including the columns that stay
+ * `ignore` - is written so re-running (e.g. when the file or the selectable roles change) fully replaces any prior
+ * auto-selection instead of leaving stale duplicates behind.
  *
  * @param spreadsheetData - The spreadsheet data in column-major format
  * @param savedColumnMappings - Saved mappings from uploadLayoutSettings, keyed by field role with a column index value
  * @param availableColumnRoles - The field roles currently selectable in the mapping UI
  */
-function applyCompanyCardSavedColumnMappings(spreadsheetData: string[][], savedColumnMappings: Record<string, string>, availableColumnRoles: string[]): void {
-    if (!savedColumnMappings) {
+function applyCompanyCardColumnMappings(spreadsheetData: string[][], savedColumnMappings: Record<string, string> | undefined, availableColumnRoles: string[]): void {
+    if (!Array.isArray(spreadsheetData) || spreadsheetData.length === 0) {
         return;
     }
 
-    const validRoles = new Set(availableColumnRoles);
-    const numColumns = spreadsheetData.length;
-    const columnUpdates: Record<number, string> = {};
-
-    for (const [role, indexValue] of Object.entries(savedColumnMappings)) {
-        if (role === CONST.CSV_IMPORT_COLUMNS.IGNORE || !validRoles.has(role)) {
-            continue;
-        }
-        const index = Number(indexValue);
-        if (!Number.isInteger(index) || index < 0 || index >= numColumns) {
-            continue;
-        }
-        columnUpdates[index] = role;
-    }
-
-    if (Object.keys(columnUpdates).length > 0) {
-        Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {columns: columnUpdates});
-    }
+    const columns = getCompanyCardColumnMappings(spreadsheetData, savedColumnMappings, availableColumnRoles);
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {columns});
 }
 
 export {
@@ -243,7 +234,7 @@ export {
     setImportTransactionCurrency,
     setImportTransactionSettings,
     applySavedColumnMappings,
-    applyCompanyCardSavedColumnMappings,
+    applyCompanyCardColumnMappings,
     getImportFailedFinalModal,
     getImportFinalModalID,
     getImportFinalModalOnyxData,

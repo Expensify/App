@@ -12,15 +12,34 @@ import type {ValueOf} from 'type-fest';
 import {useEffect} from 'react';
 
 type FieldAutoSelectorProps = {
+    /** ID of the transaction being confirmed */
     transactionID: string | undefined;
+
+    /** Transaction being confirmed */
     transaction: OnyxEntry<Transaction>;
+
+    /** Categories of the resolved policy */
     policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** Tag lists of the resolved policy */
     policyTagLists: Array<ValueOf<PolicyTagLists>>;
+
+    /** Tags of the resolved policy */
     policyTags: OnyxEntry<PolicyTagLists>;
+
+    /** The resolved policy */
     policy: OnyxEntry<Policy>;
+
+    /** Whether the category field is shown for this expense */
     shouldShowCategories: boolean;
+
+    /** Whether the policy requires a category */
     isCategoryRequired: boolean;
-    iouCategory: string | undefined;
+
+    /** Category currently set on the transaction */
+    iouCategory: string;
+
+    /** Whether the expense is being moved off a track expense */
     isMovingTransactionFromTrackExpense: boolean;
 };
 
@@ -83,3 +102,4 @@ function FieldAutoSelector({
 FieldAutoSelector.displayName = 'FieldAutoSelector';
 
 export default FieldAutoSelector;
+export type {FieldAutoSelectorProps};

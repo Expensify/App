@@ -45,7 +45,7 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () =>
 jest.mock('@navigation/helpers/isRHPOnSearchMoneyRequestReportPage', () => () => false);
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: jest.fn(() => false)}),
+    default: () => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)}),
 }));
 
 const mockCreateNewReport = jest.mocked(createNewReport);
@@ -82,7 +82,6 @@ async function seedBaseOnyx(policyOverrides?: Partial<Policy>) {
         name: POLICY_NAME,
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.TEAM,
-        isPolicyExpenseChatEnabled: true,
         owner: EMAIL,
         employeeList: {[EMAIL]: {email: EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
         pendingAction: null,
