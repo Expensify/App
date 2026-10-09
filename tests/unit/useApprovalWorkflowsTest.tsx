@@ -45,7 +45,7 @@ const buildPolicy = (policy: Partial<Policy>): Policy => ({
     ...policy,
 });
 
-/** Build the index-keyed object shape the rules API uses for lists */
+/** Build the index-keyed object shape, the rules API uses for lists */
 const indexMap = <T,>(...values: T[]): Record<string, T> => Object.fromEntries(values.map((value, index) => [String(index), value]));
 
 /**

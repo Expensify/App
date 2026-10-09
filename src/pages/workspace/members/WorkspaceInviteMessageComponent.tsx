@@ -124,11 +124,8 @@ function WorkspaceInviteMessageComponent({
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
-    // Derive whether a custom approval workflow exists instead of trusting `policy.approvalMode`: that flag is
-    // written optimistically by several paths and drifts from the real workflow structure, so it can say ADVANCED
-    // for a freshly upgraded workspace with no custom workflow, and stay BASIC for one that has several.
-    // A Dynamic External Workflow set to hide people keeps the approval workflows out of the customer's hands, so
-    // there is no approver for them to pick here either.
+    // `approvalMode` can drift from the actual workflow structure because it is updated optimistically.
+    // Dynamic external workflows that hide people also have no selectable approver.
     const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy);
     const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
 

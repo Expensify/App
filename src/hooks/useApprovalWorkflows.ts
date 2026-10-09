@@ -45,13 +45,9 @@ type UseApprovalWorkflowsResult = {
 };
 
 /**
- * Derives a workspace's approval workflows from the source of truth (the policy employees, or the
- * approval-workflow rules when the `MULTIPLE_APPROVERS` beta is on) and reports whether the workspace actually
- * has a custom (advanced) approval workflow.
+ * Derives approval workflows from policy employees or approval rules when `MULTIPLE_APPROVERS` is enabled.
  *
- * Prefer `isAdvanceApproval` over reading `policy.approvalMode === ADVANCED`: the stored flag is written
- * optimistically by many code paths and drifts from the real workflow structure, so it can say ADVANCED for a
- * workspace with no custom workflow (e.g. right after an upgrade) and stay BASIC for one that has several.
+ * Prefer `isAdvanceApproval` over `policy.approvalMode`: the stored value is updated optimistically and can drift from the actual workflow structure.
  */
 function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsResult {
     const policyID = policy?.id;
