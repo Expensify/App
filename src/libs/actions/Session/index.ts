@@ -1,3 +1,4 @@
+import {getFreshMarketingAttribution} from '@libs/actions/MarketingAttribution';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {
@@ -75,6 +76,7 @@ import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
 import type {Report, TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
@@ -658,9 +660,9 @@ function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
 
 /**
  * Creates an account for the new user and signs them into the application with the newly created account.
- *
+ * The marketing attribution captured from the landing URL is sent with the request and cleared once signup succeeds.
  */
-function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean) {
+function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -674,7 +676,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT> | PersonalDetailsOnyxUpdate> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.MARKETING_ATTRIBUTION> | PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -683,6 +685,12 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
             },
         },
         onyxOperationToCleanUpAnonymousUser,
+        // The attribution is stored on the new account, so clear it to avoid sending it again on a later signup
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.MARKETING_ATTRIBUTION,
+            value: null,
+        },
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
@@ -696,7 +704,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo};
+        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
         if (hasSMSMarketingConsent !== undefined) {
             params.hasSMSMarketingConsent = hasSMSMarketingConsent;
         }
@@ -858,28 +866,43 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
 }
 
 /**
+ * Builds the Onyx data for a Google or Apple sign in. These can create a new account, so on success we clear the marketing
+ * attribution sent with the request, the same way signUpUser does, so it isn't sent again on a later signup.
+ */
+function getThirdPartySignInOnyxData(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.MARKETING_ATTRIBUTION> {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    return {
+        optimisticData,
+        successData: [...(successData ?? []), {onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.MARKETING_ATTRIBUTION, value: null}],
+        failureData,
+    };
+}
+
+/**
  * Given an idToken from Sign in with Apple, checks the API to see if an account
  * exists for that email address and signs the user in if so.
+ * The marketing attribution captured from the landing URL is sent along, since this can create a new account.
  */
-function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: Locale | undefined) {
-    const {optimisticData, successData, failureData} = signInAttemptState();
+function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: Locale | undefined, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
+    const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo};
-        API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, {optimisticData, successData, failureData});
+        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, onyxData);
     });
 }
 
 /**
  * Shows Google sign-in process, and if an auth token is successfully obtained,
- * passes the token on to the Expensify API to sign in with
+ * passes the token on to the Expensify API to sign in with.
+ * The marketing attribution captured from the landing URL is sent along, since this can create a new account.
  */
-function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undefined) {
-    const {optimisticData, successData, failureData} = signInAttemptState();
+function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undefined, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
+    const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo};
-        API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, {optimisticData, successData, failureData});
+        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, onyxData);
     });
 }
 
@@ -887,7 +910,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitTo: string | undefined, login: string | undefined) {
+function signInWithShortLivedAuthToken(authToken: string, currentAuthToken: string | undefined, isSAML: boolean, exitTo: string | undefined, login: string | undefined) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
     // Set the in-flight guard synchronously, before awaiting device info. optimisticData below (which also sets this key)
@@ -896,12 +919,20 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitT
     // re-fires and loops. This key is RAM-only (resets on reload), so setting it early carries no stuck-state risk; the
     // optimisticData re-sets it and finallyData reverts it exactly as before.
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
-    Device.getDeviceInfoWithID().then((deviceInfo) => {
-        API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
-    });
     NetworkStore.setLastShortAuthToken(authToken);
+
+    const signInPromise = Device.getDeviceInfoWithID().then((deviceInfo) =>
+        // We use makeRequestWithSideEffects here because the caller needs to inspect the response to detect a SESSION_MISMATCH error
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+            {authToken, skipReauthentication: true, authMethod, deviceInfo, currentAuthToken},
+            {optimisticData, failureData, finallyData},
+        ),
+    );
+
     if (!exitTo) {
-        return;
+        return signInPromise;
     }
 
     // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
@@ -919,6 +950,8 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitT
             Log.warn('Unable to return to the last visited path after SAML sign in', {error});
         }
     });
+
+    return signInPromise;
 }
 
 /**
