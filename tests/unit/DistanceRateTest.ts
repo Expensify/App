@@ -1,6 +1,12 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {deletePolicyDistanceRates, enablePolicyDistanceRates, setEmployeeWorkArrangement, setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate';
+import {
+    deletePolicyDistanceRates,
+    enablePolicyDistanceRates,
+    setEmployeeWorkArrangement,
+    setPolicyDistanceRatesUnit,
+    setWorkspaceDistanceAutoUpdate,
+} from '@libs/actions/Policy/DistanceRate';
 import * as API from '@libs/API';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import {isGovernmentRateUnmodified} from '@libs/PolicyDistanceRatesUtils';
@@ -383,6 +389,66 @@ describe('DistanceRate', () => {
             expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             // Disabling only stops future propagation
             expect(onyxPolicy.customUnits?.[customUnitID].rates[existingRateID]).toMatchObject({rate: 72.5, startDate: '2026-01-01'});
+        });
+    });
+
+    describe('setPolicyDistanceRatesUnit', () => {
+        const customUnitID = '5A55C2B68DDCB';
+
+        function getPolicyFromOnyx(policyID: string): Promise<Policy> {
+            return new Promise<Policy>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
+                    callback: (value) => {
+                        if (!value) {
+                            return;
+                        }
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+        }
+
+        afterEach(() => {
+            resetQueue();
+            return Onyx.clear();
+        });
+
+        it('optimistically updates the commuter exclusion unit without converting its distance', async () => {
+            // Given a fixed-distance commuter exclusion saved in miles
+            const customUnit: CustomUnit = {
+                customUnitID,
+                name: 'Distance',
+                enabled: true,
+                rates: {},
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(5),
+                customUnits: {[customUnitID]: customUnit},
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 5,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When the workspace unit changes while the request is queued offline
+            pause();
+            setPolicyDistanceRatesUnit(policy.id, customUnit, {...customUnit, attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}}, policy.commuterExclusions);
+            await waitForBatchedUpdates();
+
+            // Then both displayed units update immediately while the configured distance stays unchanged
+            const optimisticPolicy = await getPolicyFromOnyx(policy.id);
+            expect(optimisticPolicy.customUnits?.[customUnitID].attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(optimisticPolicy.commuterExclusions).toMatchObject({
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 5,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            });
+            expect(optimisticPolicy.pendingFields?.commuterExclusions).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
         });
     });
 
