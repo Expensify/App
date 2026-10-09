@@ -335,7 +335,6 @@ export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspac
 export type {default as UpdateWorkspaceClientIDParams} from './UpdateWorkspaceClientIDParams';
 export type {default as UpdateWorkspaceMembersRoleParams} from './UpdateWorkspaceMembersRoleParams';
 export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspaceCategoriesEnabledParams';
-export type {default as SetPolicyVendorsEnabledParams} from './SetPolicyVendorsEnabledParams';
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
@@ -673,8 +672,7 @@ export type {default as ChangeDomainSecurityGroupParams} from './ChangeDomainSec
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
 export type {default as SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams} from './SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams';
-export type {default as SetRuleParams} from './SetRuleParams';
-export type {default as DeleteRuleParams} from './DeleteRuleParams';
+export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
 export type {default as SetApprovalWorkflowParams} from './SetApprovalWorkflowParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';

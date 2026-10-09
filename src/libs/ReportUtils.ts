@@ -783,6 +783,7 @@ type BaseOptimisticMoneyRequestEntities = {
     existingTransactionThreadReportID?: string;
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
+    optimisticIOUCreatedReportActionID?: string;
     reportActionID?: string;
     currentUserAccountID: number;
     // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
@@ -10241,6 +10242,7 @@ function buildOptimisticMoneyRequestEntities({
     existingTransactionThreadReportID,
     linkedTrackedExpenseReportAction,
     optimisticCreatedReportActionID,
+    optimisticIOUCreatedReportActionID,
     shouldGenerateTransactionThreadReport = true,
     reportActionID,
     currentUserAccountID,
@@ -10260,6 +10262,7 @@ function buildOptimisticMoneyRequestEntities({
     const createdActionForIOUReport = buildOptimisticCreatedReportAction({
         emailCreatingAction: payeeEmail,
         created: DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1),
+        optimisticReportActionID: optimisticIOUCreatedReportActionID,
     });
 
     const iouAction = buildOptimisticIOUReportAction({

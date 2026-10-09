@@ -4039,6 +4039,15 @@ ${amount} für ${merchant} – ${date}`,
         unlockAlreadyRequestedTitle: 'Anfrage bereits eingereicht',
         unlockAlreadyRequestedDescription: 'Ihre Anfrage zur Entsperrung dieses Bankkontos wurde bereits gesendet. Concierge meldet sich bei Ihnen, falls noch etwas benötigt wird.',
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Muss mindestens ${minLength} Zeichen lang sein`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
+            invalidOption: 'Wähle eine der verfügbaren Optionen',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
         countrySelectionStepHeader: 'Wo befindet sich dein Bankkonto?',
@@ -6952,11 +6961,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             emptySubtitle: 'Anbieter werden hier angezeigt, nachdem Ihre Buchhaltungssynchronisierung abgeschlossen ist.',
             findVendor: 'Lieferanten finden',
             managedInAccountingSoftware: 'Lieferanten werden verwaltet in Ihrem',
-            enableVendor: 'Lieferanten aktivieren',
-            enableVendors: 'Anbieter aktivieren',
-            disableVendor: 'Lieferanten deaktivieren',
-            disableVendors: 'Lieferanten deaktivieren',
-            updateFailureMessage: 'Beim Aktualisieren des Lieferanten ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
         },
         tags: {
             tagName: 'Tag-Name',
@@ -10270,6 +10274,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         mergeReports: {
             title: 'Berichte zusammenführen',
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
+            listPage: {noEligibleReportsFound: 'Keine berechtigten Berichte gefunden', noEligibleReportsFoundSubtitle: 'Sie haben keine Berichte, die zusammengeführt werden können.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} bisher`,
         weekOf: ({date}: {date: string}) => `Woche vom ${date}`,

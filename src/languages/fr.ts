@@ -4046,6 +4046,15 @@ ${amount} pour ${merchant} - ${date}`,
         unlockAlreadyRequestedTitle: 'Demande déjà soumise',
         unlockAlreadyRequestedDescription: 'Votre demande de déverrouillage de ce compte bancaire a déjà été envoyée. Concierge vous contactera si autre chose est nécessaire.',
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Exemple : ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Doit contenir au moins ${minLength} caractères`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Format invalide. Exemple : ${example}` : 'Format invalide'),
+            invalidOption: "Choisissez l'une des options disponibles",
+            outOfRange: ({min, max}: {min: number; max: number}) => `Saisissez une valeur entre ${min} et ${max}`,
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Le code SWIFT/BIC doit comporter 8 ou 11 caractères, avec 6 lettres suivies de 2 ou 5 lettres ou chiffres.',
         countrySelectionStepHeader: 'Où se situe votre compte bancaire ?',
@@ -6970,11 +6979,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             emptySubtitle: 'Les fournisseurs apparaîtront ici une fois la synchronisation comptable terminée.',
             findVendor: 'Trouver un fournisseur',
             managedInAccountingSoftware: 'Les fournisseurs sont gérés dans votre',
-            enableVendor: 'Activer le fournisseur',
-            enableVendors: 'Activer les fournisseurs',
-            disableVendor: 'Désactiver le fournisseur',
-            disableVendors: 'Désactiver les fournisseurs',
-            updateFailureMessage: 'Une erreur s’est produite lors de la mise à jour du fournisseur, veuillez réessayer',
         },
         tags: {
             tagName: 'Nom du tag',
@@ -10294,6 +10298,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         mergeReports: {
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
+            listPage: {noEligibleReportsFound: 'Aucune note de frais éligible trouvée', noEligibleReportsFoundSubtitle: 'Vous n’avez aucune note de frais pouvant être fusionnée.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} jusqu’à présent`,
         weekOf: ({date}: {date: string}) => `Semaine du ${date}`,
