@@ -1,9 +1,9 @@
 import type {NumericEditingKeyPressEvent, NumericEditingSelection} from '@components/NumericEditingController/types';
-import {getMagnitude, getSignedValue, getWasNumberReplaced, getWasSignTyped} from '@components/NumericEditingController/utils';
 
+import {getMagnitude, restoreSign} from '../signedMagnitude';
 import useNumericEditingController from './useNumericEditingController';
 
-type UseSignedMagnitudeEditingControllerParams = {
+type UseDetachedSignEditingControllerParams = {
     /** Canonical signed value. Only an empty value resets editing state. */
     value?: string;
 
@@ -25,23 +25,11 @@ type UseSignedMagnitudeEditingControllerParams = {
  * value keeps its sign: typing a minus toggles it, pasting a signed number sets it, replacing the whole number clears it,
  * and backspace at the start of the magnitude removes it.
  */
-function useSignedMagnitudeEditingController({value, onInputChange, allowNegative = false, decimals, maxLength}: UseSignedMagnitudeEditingControllerParams) {
-    const toDisplayText = (canonicalValue: string) => getMagnitude(canonicalValue, allowNegative);
+function useDetachedSignEditingController({value, onInputChange, allowNegative = false, decimals, maxLength}: UseDetachedSignEditingControllerParams) {
+    const toDisplayText = (canonicalValue: string) => (allowNegative ? getMagnitude(canonicalValue) : canonicalValue);
 
-    const toCanonicalValue = (displayText: string, previousCanonicalValue: string, previousSelection: NumericEditingSelection) => {
-        if (!allowNegative) {
-            return displayText;
-        }
-
-        const previousDisplayText = toDisplayText(previousCanonicalValue);
-
-        return getSignedValue(
-            displayText,
-            previousCanonicalValue.startsWith('-'),
-            getWasSignTyped(displayText, previousDisplayText, previousSelection),
-            getWasNumberReplaced(previousDisplayText, previousSelection),
-        );
-    };
+    const toCanonicalValue = (displayText: string, previousCanonicalValue: string, previousSelection: NumericEditingSelection) =>
+        allowNegative ? restoreSign(displayText, previousCanonicalValue, previousSelection) : displayText;
 
     const controller = useNumericEditingController({value, onInputChange, allowNegative, decimals, maxLength, toDisplayText, toCanonicalValue});
 
@@ -66,12 +54,22 @@ function useSignedMagnitudeEditingController({value, onInputChange, allowNegativ
     };
 
     // The sign sits before the magnitude, so backspace with nothing before the caret deletes the sign instead
-    const handleKeyPress = (event: NumericEditingKeyPressEvent) => {
-        const key = event.nativeEvent.key.toLowerCase();
+    const deleteSignBeforeCaret = () => {
         const isCaretAtStart = controller.selection.start === 0 && controller.selection.end === 0;
 
-        if ((!controller.formattedNumber || isCaretAtStart) && key === 'backspace' && isNegative) {
+        if ((!controller.formattedNumber || isCaretAtStart) && isNegative) {
             clearSign();
+            return true;
+        }
+
+        return false;
+    };
+
+    const handleKeyPress = (event: NumericEditingKeyPressEvent) => {
+        const key = event.nativeEvent.key.toLowerCase();
+
+        if (key === 'backspace') {
+            deleteSignBeforeCaret();
         }
 
         controller.handleKeyPress(event);
@@ -81,9 +79,9 @@ function useSignedMagnitudeEditingController({value, onInputChange, allowNegativ
         ...controller,
         isNegative,
         toggleSign,
-        clearSign,
+        deleteSignBeforeCaret,
         handleKeyPress,
     };
 }
 
-export default useSignedMagnitudeEditingController;
+export default useDetachedSignEditingController;

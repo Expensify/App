@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useSignedMagnitudeEditingController from '@components/NumericEditingController/hooks/useSignedMagnitudeEditingController';
+import useDetachedSignEditingController from '@components/NumericEditingController/hooks/useDetachedSignEditingController';
 import type {NumericEditingKeyPressEvent} from '@components/NumericEditingController/types';
 
 import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually/types';
@@ -34,14 +34,14 @@ const buildKeyPressEvent = (key: string): NumericEditingKeyPressEvent => ({nativ
 
 function renderController({value, allowNegative = true, decimals = 2}: Partial<HookProps> & {value: string}) {
     const onInputChange = jest.fn();
-    const hook = renderHook((props: HookProps) => useSignedMagnitudeEditingController({...props, onInputChange}), {
+    const hook = renderHook((props: HookProps) => useDetachedSignEditingController({...props, onInputChange}), {
         initialProps: {value, allowNegative, decimals},
     });
 
     return {...hook, onInputChange};
 }
 
-describe('useSignedMagnitudeEditingController', () => {
+describe('useDetachedSignEditingController', () => {
     it('displays only the magnitude of a negative value', () => {
         // Given a negative canonical value
         const value = '-12';
@@ -167,7 +167,7 @@ describe('useSignedMagnitudeEditingController', () => {
         expect(result.current.value).toBe('-12');
     });
 
-    it('toggles and clears the sign through its actions', () => {
+    it('toggles the sign and deletes it before the caret through its actions', () => {
         // Given a positive value
         const {result} = renderController({value: '5'});
 
@@ -177,8 +177,12 @@ describe('useSignedMagnitudeEditingController', () => {
         // Then the value is negative
         expect(result.current.value).toBe('-5');
 
-        // When the sign is cleared
-        act(() => result.current.clearSign());
+        // When the caret is at the start and the sign before caret is deleted
+        act(() => result.current.handleSelectionChange(0, 0));
+        act(() => {
+            const deleted = result.current.deleteSignBeforeCaret();
+            expect(deleted).toBe(true);
+        });
 
         // Then the value is positive again
         expect(result.current.value).toBe('5');

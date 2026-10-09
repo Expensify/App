@@ -73,46 +73,4 @@ function toCanonicalValueDefault(displayText: string): string {
     return displayText;
 }
 
-/** The magnitude of a canonical value, displayed when the sign is rendered outside the input. */
-function getMagnitude(canonicalValue: string, allowNegative: boolean): string {
-    return allowNegative && canonicalValue.startsWith('-') ? canonicalValue.slice(1) : canonicalValue;
-}
-
-/**
- * Because the sign is rendered outside the input, this function restores it in the canonical value. Typing a minus
- * toggles the current sign, while a pasted minus sets it. A minus typed inside the magnitude is rejected as an invalid
- * edit. Replacing the whole number with a positive or empty value clears the sign.
- */
-function getSignedValue(displayText: string, wasNegative: boolean, wasSignTyped: boolean, wasNumberReplaced: boolean): string {
-    if (displayText.startsWith('-')) {
-        const magnitude = displayText.slice(1);
-        return wasSignTyped && wasNegative && !wasNumberReplaced ? magnitude : `-${magnitude}`;
-    }
-
-    return wasNegative && !wasNumberReplaced ? `-${displayText}` : displayText;
-}
-
-/** An edit that replaced a selection spanning the whole magnitude replaced the number rather than amending it. */
-function getWasNumberReplaced(previousDisplayText: string, previousSelection: NumericEditingSelection): boolean {
-    return !!previousDisplayText && previousSelection.start === 0 && previousSelection.end === previousDisplayText.length;
-}
-
-/** Whether the edit inserted a single minus at the previous selection, rather than pasting a signed number. */
-function getWasSignTyped(displayText: string, previousDisplayText: string, previousSelection: NumericEditingSelection): boolean {
-    return displayText === `${previousDisplayText.slice(0, previousSelection.start)}-${previousDisplayText.slice(previousSelection.end)}`;
-}
-
-export {
-    clampSelection,
-    collapseSelection,
-    getMagnitude,
-    getSelectionAfterEdit,
-    getSelectionAtOffset,
-    getSignedValue,
-    getWasNumberReplaced,
-    getWasSignTyped,
-    isForwardDeleteKeyPress,
-    normalizeNumericInput,
-    toCanonicalValueDefault,
-    toDisplayTextDefault,
-};
+export {clampSelection, collapseSelection, getSelectionAfterEdit, getSelectionAtOffset, isForwardDeleteKeyPress, normalizeNumericInput, toCanonicalValueDefault, toDisplayTextDefault};

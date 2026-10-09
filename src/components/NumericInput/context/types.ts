@@ -36,13 +36,13 @@ type NumericInputActionsContextValue = {
     /** Toggles the sign of the canonical value and notifies the parent. */
     toggleSign: () => void;
 
-    /** Removes the negative sign from the canonical value and notifies the parent. */
-    clearSign: () => void;
+    /** Removes the negative sign when backspace is triggered with nothing before the caret. */
+    deleteSignBeforeCaret: () => boolean;
 
     /** Applies a native selection change, dropping stale events from manual updates. */
     handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
 
-    /** Tracks forward-delete key presses for caret positioning. */
+    /** Tracks forward-delete key presses for caret positioning and clears the sign on backspace at the start. */
     handleKeyPress: (event: NumericEditingKeyPressEvent) => void;
 
     /** Focuses the underlying text input. */
