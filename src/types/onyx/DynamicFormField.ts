@@ -2,6 +2,31 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import type {InputModeOptions} from 'react-native';
 
+/** Met while the answer to `key` is one of `equals` */
+type DynamicFormCondition = {
+    key: string;
+    equals: string[];
+};
+
+/** A title between fields in a page's content. It has no `type`, which is what tells it apart from a field. */
+type DynamicFormHeading = {
+    /** Can match a field's key, since headings and fields are told apart by `type` */
+    key: string;
+
+    /** The schema author's wording, shown when there is no titleKey */
+    title?: string;
+
+    titleKey?: TranslationPaths;
+
+    /** The schema author's wording, shown when there is no descriptionKey */
+    description?: string;
+
+    descriptionKey?: TranslationPaths;
+
+    /** Hides the title only. The fields after it still show, since a heading marks a place rather than containing fields. */
+    showWhen?: DynamicFormCondition;
+};
+
 /** One allowed value of a select or radio field */
 type DynamicFormFieldOption = Pick<DynamicFormFieldBase, 'label' | 'labelKey'> & {
     /** Value submitted to the server */
@@ -23,16 +48,6 @@ type DynamicFormFieldBase = {
 
     descriptionKey?: TranslationPaths;
 
-    /** The page the field is asked on. Wise's requirement key, so fields sharing it are saved together. */
-    group?: string;
-
-    groupLabelKey?: TranslationPaths;
-
-    /** Consecutive fields sharing a section render under one title */
-    section?: string;
-
-    sectionLabelKey?: TranslationPaths;
-
     required: boolean;
 
     /** Never written to the form draft, for SSNs and account numbers */
@@ -44,11 +59,8 @@ type DynamicFormFieldBase = {
     /** Changing the answer changes which other fields are required, so the screen fetches the schema again */
     refreshOnChange?: boolean;
 
-    /** Shown only while another answer is one of these values */
-    showWhen?: {
-        key: string;
-        equals: string[];
-    };
+    /** Shown only while the condition is met */
+    showWhen?: DynamicFormCondition;
 };
 
 /** Free text, checked by regex, length and an optional named rule */
@@ -118,7 +130,20 @@ type DynamicFormField =
 /** A field as the schema sends it, which can be of a type this App version does not know */
 type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
 
+/** A heading or a field of a page */
+type DynamicFormContentItem = DynamicFormHeading | DynamicFormSchemaField;
+
 /** Every type the renderer and validator handle */
 type DynamicFormFieldType = DynamicFormField['type'];
 
-export type {DynamicFormChoiceField, DynamicFormField, DynamicFormFieldOption, DynamicFormFieldType, DynamicFormNumberField, DynamicFormSchemaField, DynamicFormTextField};
+export type {
+    DynamicFormChoiceField,
+    DynamicFormContentItem,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormHeading,
+    DynamicFormNumberField,
+    DynamicFormSchemaField,
+    DynamicFormTextField,
+};

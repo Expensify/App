@@ -84,9 +84,11 @@ import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type {
     DynamicFormChoiceField,
+    DynamicFormContentItem,
     DynamicFormField,
     DynamicFormFieldOption,
     DynamicFormFieldType,
+    DynamicFormHeading,
     DynamicFormNumberField,
     DynamicFormSchemaField,
     DynamicFormTextField,
@@ -451,9 +453,11 @@ export type {
     CorpayFields,
     CorpayFormField,
     DynamicFormChoiceField,
+    DynamicFormContentItem,
     DynamicFormField,
     DynamicFormFieldOption,
     DynamicFormFieldType,
+    DynamicFormHeading,
     DynamicFormNumberField,
     DynamicFormSchemaField,
     DynamicFormTextField,

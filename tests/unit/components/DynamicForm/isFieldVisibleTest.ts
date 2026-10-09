@@ -1,6 +1,6 @@
 import {isFieldVisible} from '@components/DynamicForm/utils/getVisibleFields';
 
-import type {DynamicFormField} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormHeading} from '@src/types/onyx';
 
 const legalType: DynamicFormField = {
     key: 'legalType',
@@ -50,6 +50,31 @@ describe('isFieldVisible', () => {
 
         // Then companyNumber stays hidden, because the question it depends on is hidden
         expect(isFieldVisible(companyNumber, values, fields)).toBe(false);
+    });
+
+    it('hides a heading while its controlling field is hidden', () => {
+        // Given a heading that depends on companyName, which is shown only for business recipients
+        const companyDetails: DynamicFormHeading = {key: 'companyDetails', title: 'Company details', showWhen: {key: 'companyName', equals: ['Acme']}};
+        const fields = [legalType, companyName];
+
+        // When companyName keeps a matching answer from before the user switched to a private recipient
+        const values = {legalType: 'PRIVATE', companyName: 'Acme'};
+
+        // Then the heading follows the same rule as a field and stays hidden
+        expect(isFieldVisible(companyDetails, values, fields)).toBe(false);
+    });
+
+    it('checks the whole controller chain of a heading that shares its key with a field', () => {
+        // Given an address field shown only for business recipients, a country field shown only for one address, and a heading keyed "address" that depends on the country
+        const address: DynamicFormField = {key: 'address', type: 'text', required: true, showWhen: {key: 'legalType', equals: ['BUSINESS']}};
+        const country: DynamicFormField = {key: 'country', type: 'country', required: true, showWhen: {key: 'address', equals: ['1 Main St']}};
+        const addressHeading: DynamicFormHeading = {key: 'address', title: 'Address', showWhen: {key: 'country', equals: ['GB']}};
+
+        // When the address keeps an answer from before the user switched to a private recipient
+        const values = {legalType: 'PRIVATE', address: '1 Main St', country: 'GB'};
+
+        // Then the heading is hidden, since the shared key must not stop the check of whether the address field is hidden
+        expect(isFieldVisible(addressHeading, values, [legalType, address, country])).toBe(false);
     });
 
     it('stops on a showWhen cycle instead of recursing forever', () => {

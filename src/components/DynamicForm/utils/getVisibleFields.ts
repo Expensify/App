@@ -1,14 +1,23 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 
-import type {DynamicFormField} from '@src/types/onyx';
+import type {DynamicFormContentItem, DynamicFormField, DynamicFormHeading} from '@src/types/onyx';
 
-function isFieldVisibleWithin(field: DynamicFormField, values: DynamicFormValues, allFields: DynamicFormField[], checkedKeys: Set<string>): boolean {
-    if (!field.showWhen) {
+import getContentFields from './getContentFields';
+import isHeading from './isHeading';
+import isSupportedField from './isSupportedField';
+import logSchemaProblem from './logSchemaProblem';
+
+type DynamicFormVisibleItem = DynamicFormHeading | DynamicFormField;
+
+function isFieldVisibleWithin(item: DynamicFormVisibleItem, values: DynamicFormValues, allFields: DynamicFormField[], checkedKeys: Set<string>): boolean {
+    if (!item.showWhen) {
         return true;
     }
-    const {key, equals} = field.showWhen;
+    const {key, equals} = item.showWhen;
     const controller = allFields.find((candidate) => candidate.key === key);
-    if (controller && !checkedKeys.has(controller.key) && !isFieldVisibleWithin(controller, values, allFields, new Set([...checkedKeys, field.key]))) {
+    // A heading can share its key with a field, and it is never a controller, so only field keys mark the chain
+    const chainKeys = isHeading(item) ? checkedKeys : new Set([...checkedKeys, item.key]);
+    if (controller && !checkedKeys.has(controller.key) && !isFieldVisibleWithin(controller, values, allFields, chainKeys)) {
         return false;
     }
     const controllingValue = values[key];
@@ -22,14 +31,52 @@ function isFieldVisibleWithin(field: DynamicFormField, values: DynamicFormValues
     return equals.includes(String(controllingValue));
 }
 
-/** A field stays hidden while its controlling field is hidden, so an answer left on a hidden field cannot reveal its dependents */
-function isFieldVisible(field: DynamicFormField, values: DynamicFormValues, allFields: DynamicFormField[]): boolean {
-    return isFieldVisibleWithin(field, values, allFields, new Set());
+/** A field or heading stays hidden while its controlling field is hidden, so an answer left on a hidden field cannot reveal its dependents */
+function isFieldVisible(item: DynamicFormVisibleItem, values: DynamicFormValues, allFields: DynamicFormField[]): boolean {
+    return isFieldVisibleWithin(item, values, allFields, new Set());
 }
 
 /** The fields the user sees right now, which are also the only ones validated. `allFields` is the whole form when `fields` is one page of it, since a controlling field can sit on another page. */
 function getVisibleFields(fields: DynamicFormField[], values: DynamicFormValues, allFields = fields): DynamicFormField[] {
     return fields.filter((field) => isFieldVisible(field, values, allFields));
+}
+
+/** Fields of a type this App version does not know and headings with no text are left out, so they neither render nor block submission */
+function isSupportedItem(item: DynamicFormContentItem): item is DynamicFormVisibleItem {
+    if (!isHeading(item)) {
+        return isSupportedField(item);
+    }
+    if ([item.title, item.titleKey, item.description, item.descriptionKey].some((text) => !!text)) {
+        return true;
+    }
+    logSchemaProblem('Heading without text', {key: item.key});
+    return false;
+}
+
+/**
+ * The headings and fields the user sees right now. A heading with no visible field before the next shown heading is left out, so a hidden or unknown field never leaves an orphan title.
+ * `allFields` is the whole form when `content` is one page of it, since a controlling field can sit on another page.
+ */
+function getVisibleContent(content: DynamicFormContentItem[], values: DynamicFormValues, allFields?: DynamicFormField[]): DynamicFormVisibleItem[] {
+    const supportedContent = content.filter(isSupportedItem);
+    const controllers = allFields ?? getContentFields(supportedContent);
+    const visibleContent: DynamicFormVisibleItem[] = [];
+    let pendingHeading: DynamicFormHeading | undefined;
+    for (const item of supportedContent) {
+        if (!isFieldVisible(item, values, controllers)) {
+            continue;
+        }
+        if (isHeading(item)) {
+            pendingHeading = item;
+            continue;
+        }
+        if (pendingHeading) {
+            visibleContent.push(pendingHeading);
+            pendingHeading = undefined;
+        }
+        visibleContent.push(item);
+    }
+    return visibleContent;
 }
 
 /** The page's only question, if it has one. Fields it reveals, such as an "Other" description, do not count, so the layout stays put when they appear. */
@@ -40,4 +87,4 @@ function getLoneField(visibleFields: DynamicFormField[]): DynamicFormField | und
 }
 
 export default getVisibleFields;
-export {getLoneField, isFieldVisible};
+export {getLoneField, getVisibleContent, isFieldVisible};

@@ -12,7 +12,7 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import CONST from '@src/CONST';
-import type {DynamicFormField, DynamicFormFieldType, DynamicFormSchemaField} from '@src/types/onyx';
+import type {DynamicFormContentItem, DynamicFormField, DynamicFormFieldType, DynamicFormHeading, DynamicFormSchemaField} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
 
@@ -56,11 +56,11 @@ type RenderFieldsOptions = {
     onRefreshRequirements?: (inputID: string, value: unknown) => void;
 };
 
-function renderFields(fields: DynamicFormSchemaField[], values: DynamicFormValues = {}, {currency, onRefreshRequirements}: RenderFieldsOptions = {}) {
+function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, onRefreshRequirements}: RenderFieldsOptions = {}) {
     mockInputWrapper.mockClear();
     render(
         <DynamicFormFields
-            fields={fields}
+            content={content}
             values={values}
             currency={currency}
             onRefreshRequirements={onRefreshRequirements}
@@ -191,26 +191,75 @@ describe('DynamicFormFields', () => {
         expect(screen.getByText('allCountries.GB')).toBeOnTheScreen();
     });
 
-    it('titles a run of fields sharing a section once', () => {
-        // Given two consecutive fields in the same section
-        const firstName: DynamicFormField = {
-            key: 'firstName',
-            type: 'text',
-            required: true,
-            section: 'Legal name',
-        };
-        const lastName: DynamicFormField = {
-            key: 'lastName',
-            type: 'text',
-            required: true,
-            section: 'Legal name',
-        };
+    it('draws a heading with its description above the fields that follow it', () => {
+        // Given a heading item, which has no type, followed by two fields
+        const legalName: DynamicFormHeading = {key: 'legalName', title: 'Legal name', description: 'As on your ID'};
+        const firstName: DynamicFormField = {key: 'firstName', type: 'text', required: true};
+        const lastName: DynamicFormField = {key: 'lastName', type: 'text', required: true};
 
-        // When the fields render
-        renderFields([firstName, lastName]);
+        // When the content renders
+        const rendered = renderFields([legalName, firstName, lastName]);
 
-        // Then the section title appears once, heading the run rather than each field
-        expect(screen.getAllByText('Legal name')).toHaveLength(1);
+        // Then the heading is drawn as a title screen readers can jump to, not as an input, and both fields still get theirs
+        expect(screen.getByRole(CONST.ROLE.HEADER, {name: 'Legal name'})).toBeOnTheScreen();
+        expect(screen.getByText('As on your ID')).toBeOnTheScreen();
+        expect([...rendered.keys()]).toEqual(['firstName', 'lastName']);
+    });
+
+    it('leaves out a heading over a field of an unknown type', () => {
+        // Given a name field, then a "Home address" heading over an address field this App version does not know
+        const accountHolderName: DynamicFormField = {key: 'accountHolderName', type: 'text', required: true};
+        const homeAddress: DynamicFormHeading = {key: 'homeAddress', title: 'Home address'};
+        const address: DynamicFormSchemaField = {key: 'address', type: 'address', required: true};
+
+        // When the content renders
+        const rendered = renderFields([accountHolderName, homeAddress, address]);
+
+        // Then the name field renders and the heading does not, since a title over nothing would be an orphan
+        expect([...rendered.keys()]).toEqual(['accountHolderName']);
+        expect(screen.queryByText('Home address')).not.toBeOnTheScreen();
+    });
+
+    it('leaves out a heading over a hidden field', () => {
+        // Given a heading over a field shown only for business recipients
+        const companyHeading: DynamicFormHeading = {key: 'company', title: 'Company'};
+        const companyName: DynamicFormField = {key: 'companyName', type: 'text', required: true, showWhen: {key: 'legalType', equals: ['BUSINESS']}};
+
+        // When the content renders for a private recipient
+        renderFields([companyHeading, companyName], {legalType: 'PRIVATE'});
+
+        // Then the heading is not drawn, since a title over nothing would be an orphan
+        expect(screen.queryByText('Company')).not.toBeOnTheScreen();
+    });
+
+    it('leaves out a heading whose own condition does not match, but keeps the fields after it', () => {
+        // Given a heading shown only for business recipients, followed by a field with no condition
+        const businessHeading: DynamicFormHeading = {key: 'business', title: 'Business details', showWhen: {key: 'legalType', equals: ['BUSINESS']}};
+        const email: DynamicFormField = {key: 'email', type: 'text', required: true};
+
+        // When the content renders for a private recipient
+        const rendered = renderFields([businessHeading, email], {legalType: 'PRIVATE'});
+
+        // Then the heading is hidden, and the field still renders since a heading marks a place rather than containing fields
+        expect(screen.queryByText('Business details')).not.toBeOnTheScreen();
+        expect([...rendered.keys()]).toEqual(['email']);
+    });
+
+    it('renders a heading and a field that share a key without a duplicate key warning', () => {
+        // Given a heading keyed like the field under it, which the schema allows since only fields need unique keys
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const addressHeading: DynamicFormHeading = {key: 'address', title: 'Address'};
+        const address: DynamicFormField = {key: 'address', type: 'text', required: true};
+
+        // When the content renders
+        const rendered = renderFields([addressHeading, address]);
+
+        // Then both render and React reports no duplicate key, which would let it mix up the two rows
+        expect(screen.getByText('Address')).toBeOnTheScreen();
+        expect([...rendered.keys()]).toEqual(['address']);
+        const loggedArguments: unknown[] = consoleError.mock.calls.flat();
+        expect(loggedArguments.some((argument) => typeof argument === 'string' && argument.includes('same key'))).toBe(false);
+        consoleError.mockRestore();
     });
 
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
