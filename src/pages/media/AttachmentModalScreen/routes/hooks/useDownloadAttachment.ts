@@ -3,7 +3,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import fileDownload from '@libs/fileDownload';
+import downloadAttachmentFile from '@libs/fileDownload/downloadAttachmentFile';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 
 import type {DownloadAttachmentCallback} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -36,7 +36,7 @@ function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: 
             if (typeof sourceURL === 'string') {
                 const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
                 const shouldUnlink = !draftTransactionID;
-                fileDownload(translate, sourceURL, fileName ?? '', undefined, undefined, undefined, undefined, undefined, shouldUnlink);
+                downloadAttachmentFile(translate, sourceURL, fileName ?? '', shouldUnlink);
             }
 
             // At ios, if the keyboard is open while opening the attachment, then after downloading
