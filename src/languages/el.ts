@@ -876,7 +876,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το ${type};`;
+            return `Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το ${type};${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Όλες οι δαπάνες σε αυτήν την αναφορά θα γίνουν μη υποβληθείσες.' : ''}`;
         },
         onlyVisible: 'Ορατό μόνο σε',
         explain: 'Εξηγήστε',
@@ -1541,6 +1541,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την αναφορά;',
             other: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτές τις αναφορές;',
         }),
+        deleteExpenseReportConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την αναφορά; Όλες οι δαπάνες σε αυτήν την αναφορά θα γίνουν μη υποβληθείσες.',
         settledExpensify: 'Πληρωμένο',
         paidStatusMarkedAsPaid: 'Επισημάνθηκε ως πληρωμένο',
         paidStatusWithdrawing: 'Ανάληψη',
@@ -1704,6 +1705,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Παρακαλούμε εισαγάγετε ένα μη μηδενικό ποσό για τη διαίρεσή σας',
             noParticipantSelected: 'Παρακαλούμε επιλέξτε έναν συμμετέχοντα',
             other: 'Απρόσμενο σφάλμα. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
+            payFailedExpenseDeleted: 'Η πληρωμή απέτυχε επειδή η έκθεση εξόδων διαγράφηκε.',
             genericCreateFailureMessage: 'Μη αναμενόμενο σφάλμα κατά την αποστολή αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericCreateInvoiceFailureMessage: 'Προέκυψε απροσδόκητο σφάλμα κατά την αποστολή αυτού του τιμολογίου. Παρακαλούμε προσπαθήστε ξανά αργότερα.',
             genericHoldExpenseFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την κράτηση αυτής της δαπάνης. Δοκιμάστε ξανά αργότερα.',
@@ -4084,6 +4086,15 @@ ${amount} για ${merchant} - ${date}`,
         unlockAlreadyRequestedTitle: 'Το αίτημα έχει ήδη υποβληθεί',
         unlockAlreadyRequestedDescription:
             'Το αίτημά σας για ξεκλείδωμα αυτού του τραπεζικού λογαριασμού έχει ήδη αποσταλεί. Το Concierge θα επικοινωνήσει μαζί σας αν χρειαστεί οτιδήποτε άλλο.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
+            invalidOption: 'Επιλέξτε μία από τις διαθέσιμες επιλογές',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -7836,6 +7847,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 groups: {
                     title: 'Ομάδες',
                     description: 'Επιλέξτε τις ομάδες υπαλλήλων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    staleSelectionError: (providerName: string) =>
+                        `Ορισμένες από τις ομάδες που επιλέξατε δεν υπάρχουν πλέον στο ${providerName}, επομένως οι εργαζόμενοι τους έχουν σταματήσει να συγχρονίζονται.`,
+                    updateSelectionLink: 'Ενημερώστε τις ομάδες σας.',
+                    noGroupsFound: 'Δεν βρέθηκαν ομάδες',
+                    noGroupsFoundDescription:
+                        'Δεν υπάρχουν ομάδες για επιλογή αυτή τη στιγμή. Αποθηκεύστε χωρίς επιλεγμένες ομάδες για να συγχρονίσετε όλους τους υπαλλήλους ή συγχρονίστε ξανά τη σύνδεση μόλις δημιουργηθούν νέες ομάδες.',
+                    unnamedGroup: (groupID: string) => `Ομάδα χωρίς όνομα (${groupID})`,
                 },
             },
         },
@@ -9160,11 +9178,6 @@ ${reportName}`,
             emptySubtitle: 'Οι προμηθευτές θα εμφανιστούν εδώ μετά την ολοκλήρωση του συγχρονισμού λογιστικής σας.',
             findVendor: 'Εύρεση προμηθευτή',
             managedInAccountingSoftware: 'Οι προμηθευτές διαχειρίζονται στο',
-            enableVendor: 'Ενεργοποίηση προμηθευτή',
-            enableVendors: 'Ενεργοποίηση προμηθευτών',
-            disableVendor: 'Απενεργοποίηση προμηθευτή',
-            disableVendors: 'Απενεργοποίηση προμηθευτών',
-            updateFailureMessage: 'Προέκυψε σφάλμα κατά την ενημέρωση του προμηθευτή, δοκιμάστε ξανά',
         },
         campfire: {
             campfireSetup: 'Ρύθμιση campfire',
@@ -10430,6 +10443,7 @@ ${reportName}`,
         mergeReports: {
             title: 'Συγχώνευση αναφορών',
             description: 'Επιλέξτε την αναφορά που θέλετε να κρατήσετε. Όλες οι δαπάνες θα μετακινηθούν σε αυτήν και οι άλλες αναφορές θα διαγραφούν.',
+            listPage: {noEligibleReportsFound: 'Δεν βρέθηκαν κατάλληλες αναφορές', noEligibleReportsFoundSubtitle: 'Δεν έχετε καμία αναφορά που να μπορεί να συγχωνευθεί.'},
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
         mySavedSearch: 'Οι δαπάνες μου',

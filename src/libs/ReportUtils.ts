@@ -210,6 +210,8 @@ import {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isDeletedReportPreviewWithError,
+    getVisibleReportActionErrors,
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
@@ -250,6 +252,7 @@ import {
     getCardName,
     getCategory,
     getConvertedAmount,
+    getConvertedTaxAmount,
     getCurrency,
     getDescription,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
@@ -284,10 +287,12 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
+    isCorporateCardTransaction,
     isDeletedTransaction,
     isDemoTransaction,
     isDistanceRequest,
     isExpenseValueUnsettled,
+    isExpensifyCardTransaction,
     isFailedScanAmountPlaceholder,
     isFetchingWaypointsFromServer,
     isManagedCardTransaction,
@@ -839,6 +844,7 @@ type TransactionDetails = {
     odometerStart?: number;
     odometerEnd?: number;
     convertedAmount: number;
+    convertedTaxAmount?: number;
     gpsCoordinates?: string;
 };
 
@@ -3625,6 +3631,10 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
 }
 
 function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, cardList: OnyxEntry<CardList>): boolean {
+    if (isExpensifyCardTransaction(transaction)) {
+        return false;
+    }
+
     const isCardTransaction = isManagedCardTransaction(transaction);
     if (!isCardTransaction) {
         return true;
@@ -3667,6 +3677,18 @@ function canDeleteMoneyRequestReport(
         return true;
     }
 
+    const hasExpensifyCardTransaction = reportTransactions.some(isExpensifyCardTransaction);
+    const hasRestrictedCorporateCardTransaction = reportTransactions.some(isCorporateCardTransaction);
+    // Expensify Card transactions cannot be deleted or unreported, including by workspace admins.
+    if (isReportLevelDelete && hasExpensifyCardTransaction) {
+        return false;
+    }
+
+    // Admins can delete reports containing third-party card expenses because those expenses become unreported.
+    if (isReportLevelDelete && !isReportPolicyAdmin && hasRestrictedCorporateCardTransaction) {
+        return false;
+    }
+
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy, cardList);
 
@@ -3675,7 +3697,6 @@ function canDeleteMoneyRequestReport(
     }
 
     // Admins can delete a draft report even when they are not its submitter, but not its individual expenses.
-    // Card liability does not apply here: deleting a draft report leaves its expenses unreported rather than deleting them.
     const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
     if (isDraft && isReportPolicyAdmin && isReportLevelDelete) {
         return true;
@@ -5643,6 +5664,7 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         convertedAmount: getConvertedAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
+        convertedTaxAmount: getConvertedTaxAmount(transaction, isFromExpenseReport),
         postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isDistanceRequest(transaction) && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
@@ -10774,13 +10796,15 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
 ): ReportErrorsAndReportActionThatRequiresAttention {
-    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
+    // Keep a preview errored because its report was deleted. It still has to mark the chat as needing attention.
+    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action) || isDeletedReportPreviewWithError(action));
     const reportActionErrors: ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
-        if (action && !isEmptyValueObject(action.errors)) {
-            Object.assign(reportActionErrors, action.errors);
+        const actionErrors = getVisibleReportActionErrors(action);
+        if (action && !isEmptyValueObject(actionErrors)) {
+            Object.assign(reportActionErrors, actionErrors);
 
             if (!reportAction) {
                 reportAction = action;
