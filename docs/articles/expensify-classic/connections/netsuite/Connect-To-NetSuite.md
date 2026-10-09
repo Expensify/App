@@ -12,7 +12,7 @@ Expensify integrates directly with NetSuite to automate report exports, customiz
 
 # Before You Connect NetSuite to Expensify
 
-- **OAuth 2.0** is how new connections are set up. You set it up in New Expensify, and you need two-factor authentication enabled on your Expensify account.
+- **OAuth 2.0** is how new connections are set upm which you can set up in New Expensify.
 - You must have **administrator access** in NetSuite to initiate the connection.
 - **Control Plan** in Expensify is required for this integration.
 - Employees do not need NetSuite access or a license to submit expense reports; the integration is managed by the Workspace Admin.
