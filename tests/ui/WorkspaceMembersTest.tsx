@@ -4,9 +4,10 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import * as useConfirmModalModule from '@hooks/useConfirmModal';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -27,6 +28,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -175,10 +177,10 @@ describe('WorkspaceMembers', () => {
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
-            // Find and verify "Make guest" dropdown menu item
+            // Guest role assignment is temporarily blocked, so the "Make guest" item is not present
             const makeGuestText = TestHelper.translateLocal('workspace.people.makeGuest', {count: 1});
-            const makeGuestMenuItem = screen.getByTestId(`PopoverMenuItem-${makeGuestText}`);
-            expect(makeGuestMenuItem).toBeOnTheScreen();
+            const makeGuestMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeGuestText}`);
+            expect(makeGuestMenuItem).not.toBeOnTheScreen();
 
             // Find and verify "Make card admin" dropdown menu item
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
@@ -570,6 +572,44 @@ describe('WorkspaceMembers', () => {
             expect(screen.getByText(warningPrompt)).toBeOnTheScreen();
 
             unmount();
+        });
+
+        it('should reassign the submitters of a removed approver whose personal details are missing', async () => {
+            // Given an approver with no personal details loaded, who a member submits to
+            const approverWithoutDetails = 'nodetails@example.com';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    employeeList: {
+                        [approverWithoutDetails]: {email: approverWithoutDetails, role: CONST.POLICY.ROLE.USER},
+                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: approverWithoutDetails},
+                    },
+                });
+            });
+            // The admin confirms the removal prompt
+            const showConfirmModal = jest.fn(() => Promise.resolve({action: ModalActions.CONFIRM}));
+            const confirmModalSpy = jest.spyOn(useConfirmModalModule, 'default').mockReturnValue(createMock<ReturnType<typeof useConfirmModalModule.default>>({showConfirmModal}));
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin removes that approver
+            const row = await screen.findByLabelText(new RegExp(`^${approverWithoutDetails}`));
+            fireEvent.press(within(row).getByLabelText(TestHelper.translateLocal('common.select')));
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+            const removeMenuItem = screen.getByText(TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1}));
+            fireEvent.press(removeMenuItem, {nativeEvent: {}, type: 'press', target: removeMenuItem, currentTarget: removeMenuItem});
+            await waitForBatchedUpdatesWithAct();
+            expect(showConfirmModal).toHaveBeenCalledTimes(1);
+
+            // Then the approver is removed and the member is moved to the workspace owner, instead of being left
+            // submitting to someone no longer on the workspace
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[approverWithoutDetails]).toBeUndefined();
+            expect(updatedPolicy?.employeeList?.[userEmail]?.submitsTo).toBe(ownerEmail);
+
+            unmount();
+            confirmModalSpy.mockRestore();
         });
     });
 

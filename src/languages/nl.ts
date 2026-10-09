@@ -628,6 +628,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
         signIn: 'Meld je opnieuw aan.',
+        notValid: 'Ongeldige link.',
+        sessionMismatch: 'De link waarop je hebt geklikt is niet geldig voor je huidige sessie.',
+        switchAccount: {
+            title: 'Van account wisselen?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Je bent aangemeld als ${currentEmail}. Deze actie meldt je in plaats daarvan aan als ${newEmail}.`,
+            confirm: 'Van account wisselen',
+            staySignedIn: 'Niet van account wisselen',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -848,7 +857,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Weet je zeker dat je deze ${type} wilt verwijderen?`;
+            return `Weet je zeker dat je deze ${type} wilt verwijderen?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Alle uitgaven in dit rapport krijgen de status Niet gerapporteerd.' : ''}`;
         },
         onlyVisible: 'Alleen zichtbaar voor',
         explain: 'Uitleg',
@@ -1482,6 +1491,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Weet u zeker dat u dit rapport wilt verwijderen?',
             other: 'Weet u zeker dat u deze rapporten wilt verwijderen?',
         }),
+        deleteExpenseReportConfirmation: 'Weet u zeker dat u dit rapport wilt verwijderen? Alle uitgaven in dit rapport krijgen de status Niet gerapporteerd.',
         settledExpensify: 'Betaald',
         paidStatusMarkedAsPaid: 'Gemarkeerd als betaald',
         paidStatusWithdrawing: 'Opnemen',
@@ -1624,6 +1634,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Voer een ander bedrag dan nul in voor je verdeling',
             noParticipantSelected: 'Selecteer een deelnemer',
             other: 'Onverwachte fout. Probeer het later opnieuw.',
+            payFailedExpenseDeleted: 'De betaling is mislukt omdat de declaratie is verwijderd.',
             genericCreateFailureMessage: 'Onverwachte fout bij het indienen van deze uitgave. Probeer het later opnieuw.',
             genericCreateInvoiceFailureMessage: 'Onverwachte fout bij het verzenden van deze factuur. Probeer het later opnieuw.',
             genericHoldExpenseFailureMessage: 'Onverwachte fout bij het vasthouden van deze uitgave. Probeer het later opnieuw.',
@@ -2986,6 +2997,9 @@ ${amount} voor ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Dit lid behoort al tot een andere goedkeuringsworkflow. Alle updates hier worden daar ook doorgevoerd.',
+        approverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur of verwijder deze workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur.',
+        overLimitApproverNotWorkspaceMember: 'De extra fiatteur voor rapporten boven de limiet is geen lid meer van de workspace. Kies een nieuwe extra fiatteur.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> keurt al rapporten goed voor <strong>${name2}</strong>. Kies een andere fiatteur om een cirkelstroom te voorkomen.`,
         emptyContent: {
@@ -3402,12 +3416,11 @@ ${amount} voor ${merchant} - ${date}`,
         errorSelection: 'Selecteer een optie om verder te gaan',
         purpose: {
             title: 'Wat wil je vandaag doen?',
-            errorContinue: 'Druk op doorgaan om alles in te stellen',
-            errorBackButton: 'Beantwoord eerst de installatievragen om de app te gebruiken',
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Word lid van de werkruimte van mijn bedrijf',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Declaraties indienen bij mijn werkgever',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Beheer de uitgaven van mijn team',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Uitgaven voor mijn bedrijf bijhouden',
+            errorContinue: 'Druk op ‘Doorgaan’ om de installatie te voltooien',
+            errorBackButton: 'Beantwoord eerst de instelvragen om de app te kunnen gebruiken',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Onkosten indienen bij mijn werkgever',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'De onkosten van mijn team beheren',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Zakelijke uitgaven bijhouden',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Mijn persoonlijke uitgaven organiseren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Iets anders',
         },
@@ -3465,8 +3478,6 @@ ${amount} voor ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Werkmail kon niet worden toegevoegd',
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `We konden ${workEmail} niet toevoegen. Om deze accounts samen te voegen, log je in als ${workEmail} en ga je naar Account > Beveiliging > Accounts samenvoegen om het proces te voltooien.`,
             workAccountClosedSubtitle:
                 'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is een door het domein beheerde login voor een bestaand Expensify-account.`,
@@ -3705,34 +3716,6 @@ ${amount} voor ${merchant} - ${date}`,
                     En je bent klaar!
                 `),
             },
-            addWorkEmailTask: {
-                title: 'Voeg je werk-e-mailadres toe',
-                description: ({workEmailLink = ''}) =>
-                    Str.dedent(`
-                        1. Open [Werkmail toevoegen](${workEmailLink}).
-                        2. Voer je zakelijke e-mailadres in.
-                        3. Voer de code in die we je mailen.
-                        4. Kies een workspace om je bij aan te sluiten, of klik op *Verzoek om lid te worden* om een verzoek naar de eigenaar van de workspace te sturen.
-                    `),
-            },
-            validateEmailTask: {
-                title: 'Bevestig je e-mailadres',
-                description: ({validateEmailLink = '', workEmail = ''}) =>
-                    Str.dedent(`
-                        1. Open [Valideer je account](${validateEmailLink}).
-                        2. Voer de code in die we naar ${workEmail} hebben gestuurd.
-                        3. Kies een workspace om je bij aan te sluiten, of klik op *Verzoek om lid te worden* om een verzoek naar de eigenaar van de workspace te sturen.
-                    `),
-            },
-            joinWorkspaceTask: {
-                title: 'Word lid van de workspace van je bedrijf',
-                description: ({joinWorkspaceLink = ''}) =>
-                    Str.dedent(`
-                        1. Open [Lid worden van een werkruimte](${joinWorkspaceLink}).
-                        2. Zoek je team in de lijst. Bij elk team zie je de eigenaar en hoeveel mensen erin zitten, de grootste eerst. Klik op *Meer weergeven* als je die van jou niet ziet.
-                        3. Klik op *Nu deelnemen*, of op *Verzoek om deelname* als er goedkeuring van een beheerder nodig is.
-                    `),
-            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Maak een [proefrit](${testDriveURL})` : 'Maak een proefrit'),
@@ -3755,14 +3738,6 @@ ${amount} voor ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo makkelijk als het sturen van een bericht. Zo werkt het.',
             onboardingAdminMessage: 'Leer hoe je als beheerder de werkruimte van je team beheert en je eigen onkosten indient.',
             onboardingTestDriveReceiverMessage: '*Je krijgt 3 maanden gratis! Ga hieronder aan de slag.*',
-            onboardingJoinWorkspaceAddWorkEmailMessage:
-                'Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Voeg je zakelijke e‑mail toe en dan kijk ik welke workspaces bij jouw bedrijf je kunt joinen.',
-            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Omdat je je bij de workspace van je bedrijf wilt aansluiten, heb ik er geen voor je aangemaakt. Bevestig je e-mailadres, dan kijk ik welke workspaces bij ${companyDomain} je kunt joinen.`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Je team bij ${companyDomain} zit al op Expensify. [Bekijk de workspaces waarbij je je kunt aansluiten.](${joinWorkspaceLink})`,
-            onboardingJoinWorkspaceEmptyMessage:
-                'Het lijkt er niet op dat je bedrijf joinbare werkruimtes heeft. Neem contact op met je beheerder en vraag of die je wil uitnodigen voor de werkruimte.',
         },
         workspace: {
             title: 'Blijf georganiseerd met een werkruimte',
@@ -4004,6 +3979,15 @@ ${amount} voor ${merchant} - ${date}`,
         },
         unlockAlreadyRequestedTitle: 'Verzoek al ingediend',
         unlockAlreadyRequestedDescription: 'Je verzoek om deze bankrekening te deblokkeren is al verzonden. Concierge neemt contact met je op als er nog iets anders nodig is.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Voorbeeld: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
+            invalidOption: 'Kies een van de beschikbare opties',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Voer een waarde in tussen ${min} en ${max}`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -6877,11 +6861,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             emptySubtitle: 'Leveranciers verschijnen hier zodra je boekhoudkundige synchronisatie is voltooid.',
             findVendor: 'Leverancier zoeken',
             managedInAccountingSoftware: 'Leveranciers worden beheerd in je',
-            enableVendor: 'Leverancier inschakelen',
-            enableVendors: 'Leveranciers inschakelen',
-            disableVendor: 'Leverancier uitschakelen',
-            disableVendors: 'Leveranciers uitschakelen',
-            updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de leverancier, probeer het alsjeblieft opnieuw',
         },
         tags: {
             tagName: 'Tagnaam',
@@ -8814,7 +8793,17 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Instellen voltooien</a>` : 'Configuratie voltooien'} om werknemers te importeren.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Groepen', description: 'Kies de groepen werknemers die je met deze workspace wilt synchroniseren'},
+                groups: {
+                    title: 'Groepen',
+                    description: 'Kies de groepen werknemers die je met deze workspace wilt synchroniseren',
+                    staleSelectionError: (providerName: string) =>
+                        `Een aantal van de groepen die je hebt geselecteerd bestaan niet meer in ${providerName}, waardoor de werknemers in die groepen niet meer worden gesynchroniseerd.`,
+                    updateSelectionLink: 'Werk je groepen bij.',
+                    noGroupsFound: 'Geen groepen gevonden',
+                    noGroupsFoundDescription:
+                        'Er zijn op dit moment geen groepen om te selecteren. Sla op zonder groepen te selecteren om alle werknemers te synchroniseren, of synchroniseer de verbinding opnieuw zodra er nieuwe groepen zijn.',
+                    unnamedGroup: (groupID: string) => `Groep zonder naam (${groupID})`,
+                },
             },
         },
         recruiting: {
@@ -10147,6 +10136,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         mergeReports: {
             title: 'Rapporten samenvoegen',
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+            listPage: {noEligibleReportsFound: 'Geen in aanmerking komende rapporten gevonden', noEligibleReportsFoundSubtitle: 'Je hebt geen rapporten die kunnen worden samengevoegd.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} tot nu toe`,
         weekOf: ({date}: {date: string}) => `Week van ${date}`,

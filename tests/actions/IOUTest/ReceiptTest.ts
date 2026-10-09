@@ -582,10 +582,12 @@ describe('actions/IOU/Receipt', () => {
         });
 
         it('should store isSameReceipt and receiptState in the receipt error retry params', async () => {
+            // Given an expense with a receipt
             const writeSpy = mockApiWrite();
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
 
             try {
+                // When the receipt is cropped or rotated, which passes isSameReceipt and the current scan state
                 replaceReceipt({
                     isVendorMatchingBetaEnabled: false,
                     transaction,
@@ -601,6 +603,7 @@ describe('actions/IOU/Receipt', () => {
                 });
                 await waitForBatchedUpdates();
 
+                // Then the receipt error stores both, which a retry needs to stay a same-receipt update
                 const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
                 const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
                 const receiptError: Partial<ReceiptError> | undefined = Object.values(transactionFailure.value.errors ?? {}).at(0);
@@ -668,12 +671,14 @@ describe('actions/IOU/Receipt', () => {
         });
 
         it('should reuse the failed "added a receipt" action on retry and clear its error', async () => {
+            // Given a retry of an upload whose "added a receipt" action failed and kept an error
             const failedActionID = '1234567890';
             const threadReport = {...createRandomReport(2, undefined), reportID: 'replaceReceiptRetryThreadReportID'};
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
             const writeSpy = mockApiWrite();
 
             try {
+                // When replaceReceipt is called again with that action's ID
                 replaceReceipt({
                     isVendorMatchingBetaEnabled: false,
                     transaction,
@@ -688,6 +693,7 @@ describe('actions/IOU/Receipt', () => {
                 });
                 await waitForBatchedUpdates();
 
+                // Then the same action is sent and overwritten without its error, and its ID is stored again for another retry
                 const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
                 const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.reportID}`, Onyx.METHOD.MERGE, true);
                 const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
