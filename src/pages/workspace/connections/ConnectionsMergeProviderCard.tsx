@@ -4,32 +4,23 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Header from '@components/Header';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
-import TextLink from '@components/TextLink';
-import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 
-import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {clearMergeConnectionErrorField} from '@libs/actions/connections/merge';
-import {showMergeManualSyncLimitModalIfReached} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import type {MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
+import useMergeProviderCardDetails from '@pages/workspace/merge/useMergeProviderCardDetails';
 
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
-
-import type {ReactNode} from 'react';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -58,111 +49,18 @@ type ConnectionsMergeProviderCardProps = {
 };
 
 function ConnectionsMergeProviderCard({card, policy, handleConnect, onDisconnect, onBackButtonPress, canWriteMoreFeatures, showReadOnlyModal}: ConnectionsMergeProviderCardProps) {
-    const {translate, datetimeToRelative} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {environmentURL} = useEnvironment();
-    const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan', 'Building', 'CheckCircle']);
-    const {showConfirmModal} = useConfirmModal();
-
-    const fallbackIcon = icons.Building;
-    const cardIcon = card.icon || fallbackIcon;
-
-    let connectionDescription: string;
-    if (card.isSyncInProgress) {
-        connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', card.syncStageInProgress) : translate(`workspace.${card.category}.syncing`);
-    } else if (!card.successfulDate) {
-        connectionDescription = translate('workspace.merge.notSync');
-    } else {
-        connectionDescription = translate('workspace.merge.lastSync', datetimeToRelative(card.successfulDate));
-    }
-
-    let lastSyncErrorMessage: ReactNode | undefined;
-    if (card.needsReconnect) {
-        lastSyncErrorMessage = (
-            <>
-                {`${translate('workspace.merge.authenticationError', card.displayName)} `}
-                {!isOffline && (
-                    <TextLink
-                        style={[styles.link, styles.fontSizeLabel]}
-                        onPress={handleConnect}
-                    >
-                        {translate('workspace.merge.reconnectLink')}
-                    </TextLink>
-                )}
-            </>
-        );
-    } else if (card.hasError) {
-        const genericError = translate('workspace.merge.syncError', card.displayName);
-        lastSyncErrorMessage = card.lastSyncErrorMessage ? `${genericError} ("${card.lastSyncErrorMessage}")` : genericError;
-    }
-
-    const getPrimaryMenuItem = (): ThreeDotsMenuProps['menuItems'][number] => {
-        if (card.needsReconnect) {
-            return {
-                icon: icons.Sync,
-                text: translate('workspace.merge.reconnect'),
-                onSelected: handleConnect,
-                disabled: isOffline,
-            };
-        }
-        if (card.completeSetupRoute) {
-            return {
-                icon: icons.CheckCircle,
-                text: translate('workspace.merge.completeSetup'),
-                onSelected: () => {
-                    if (!canWriteMoreFeatures) {
-                        showReadOnlyModal();
-                        return;
-                    }
-                    if (card.completeSetupRoute) {
-                        Navigation.navigate(card.completeSetupRoute);
-                    }
-                },
-                disabled: isOffline,
-            };
-        }
-        return {
-            icon: icons.Sync,
-            text: translate('workspace.merge.syncNow'),
-            onSelected: () => {
-                if (showMergeManualSyncLimitModalIfReached(policy, card.connectionName, translate, showConfirmModal)) {
-                    return;
-                }
-                syncConnection(policy, card.connectionName);
-            },
-            disabled: isOffline,
-            shouldCallAfterModalHide: true,
-        };
-    };
-
-    const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
-        getPrimaryMenuItem(),
-        {
-            icon: icons.Trashcan,
-            text: translate('workspace.merge.disconnect'),
-            onSelected: () => {
-                showConfirmModal({
-                    title: translate('workspace.merge.disconnectTitle', card.displayName),
-                    prompt: translate('workspace.merge.disconnectPrompt', card.displayName),
-                    confirmText: translate('workspace.merge.disconnect'),
-                    cancelText: translate('common.cancel'),
-                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                }).then((result) => {
-                    if (result?.action !== ModalActions.CONFIRM || !policy) {
-                        return;
-                    }
-                    onDisconnect?.();
-                    removePolicyConnection(policy, card.connectionName);
-                });
-            },
-            shouldCallAfterModalHide: true,
-        },
-    ];
-
-    // While the setup is incomplete only the rows that failed to save are shown, so the admin is steered to the setup flow first.
-    const visibleConfigRows = card.isConnected && !card.isInitialSyncInProgress ? (card.configRows ?? []).filter((row) => !card.completeSetupRoute || !!row.errors) : [];
+    const {cardIcon, connectionDescription, lastSyncErrorMessage, overflowMenu, visibleConfigRows} = useMergeProviderCardDetails({
+        card,
+        policy,
+        handleConnect,
+        canWriteMoreFeatures,
+        showReadOnlyModal,
+        onDisconnect,
+    });
 
     return (
         <>

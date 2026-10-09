@@ -4,19 +4,13 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
-import useConfirmModal from '@hooks/useConfirmModal';
-import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import usePolicy from '@hooks/usePolicy';
-import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,125 +21,46 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useReceiptPartnersSettings from '@pages/workspace/receiptPartners/useReceiptPartnersSettings';
 import getSynchronizationErrorMessage from '@pages/workspace/receiptPartners/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-
-import {openExternalLink} from '@userActions/Link';
-import {openPolicyReceiptPartnersPage, removePolicyReceiptPartnersConnection, togglePolicyUberAutoInvite, togglePolicyUberAutoRemove} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import type {ValueOf} from 'type-fest';
-
-import React, {useEffect} from 'react';
+import React from 'react';
 
 type ConnectionsReceiptPartnersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS>;
 
 function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageProps) {
     const policyID = route.params.policyID;
-    const icons = useMemoizedLazyExpensifyIcons(['Key', 'Mail', 'NewWindow', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Mail']);
     const {translate} = useLocalize();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {showConfirmModal} = useConfirmModal();
-    const policy = usePolicy(policyID);
     const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const {
+        policy,
+        integrations,
+        isAutoInvite,
+        isAutoRemove,
+        isUberConnected,
+        shouldShowEnterCredentialsError,
+        getReceiptPartnersIntegrationData,
+        canWriteMoreFeatures,
+        withReadOnlyFallback,
+        toggleUberAutoInvite,
+        toggleUberAutoRemove,
+        getOverflowMenu,
+    } = useReceiptPartnersSettings(policyID, {
+        // These settings have nothing to show once Uber is disconnected
+        onDisconnectConfirmed: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)),
+    });
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
-    const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const isLoading = policy?.isLoading;
-    const integrations = policy?.receiptPartners;
-    const isAutoRemove = !!integrations?.uber?.autoRemove;
-    const isAutoInvite = !!integrations?.uber?.autoInvite;
     const centralBillingAccountEmail = !!integrations?.uber?.centralBillingAccountEmail;
-    const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
-
-    const startIntegrationFlow = ({name}: {name: string}) => {
-        switch (name) {
-            case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
-                openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    };
-
-    const fetchReceiptPartners = () => {
-        openPolicyReceiptPartnersPage(policyID);
-    };
-
-    const {isOffline} = useNetwork({onReconnect: fetchReceiptPartners});
-
-    useEffect(() => {
-        openPolicyReceiptPartnersPage(policyID);
-    }, [policyID]);
-
-    const toggleWorkspaceUberAutoInvite = () => {
-        togglePolicyUberAutoInvite(policyID, !isAutoInvite);
-    };
-
-    const toggleWorkspaceUberAutoRemove = () => {
-        togglePolicyUberAutoRemove(policyID, !isAutoRemove);
-    };
-
-    const disconnectPartner = (partner: ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.NAME>) => {
-        if (!policyID) {
-            return;
-        }
-        removePolicyReceiptPartnersConnection(policyID, partner, integrations?.[partner]);
-        fetchReceiptPartners();
-    };
-
-    const getOverflowMenu = (integration: string) => {
-        switch (integration) {
-            case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER:
-                if (shouldShowEnterCredentialsError) {
-                    return [
-                        {
-                            icon: icons.Key,
-                            text: translate('workspace.accounting.enterCredentials'),
-                            onSelected: () =>
-                                startIntegrationFlow({
-                                    name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
-                                }),
-                            shouldCallAfterModalHide: true,
-                            disabled: isOffline,
-                            iconRight: icons.NewWindow,
-                        },
-                    ];
-                }
-
-                return [
-                    {
-                        icon: icons.Trashcan,
-                        text: translate('workspace.accounting.disconnect'),
-                        onSelected: () => {
-                            showConfirmModal({
-                                title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
-                                prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.description'),
-                                confirmText: translate('workspace.accounting.disconnect'),
-                                cancelText: translate('common.cancel'),
-                                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                            }).then(({action}) => {
-                                if (action !== ModalActions.CONFIRM) {
-                                    return;
-                                }
-                                // These settings have nothing to show once Uber is disconnected
-                                Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID));
-                                disconnectPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
-                            });
-                        },
-                        shouldCallAfterModalHide: true,
-                    },
-                ];
-            default:
-                return [];
-        }
-    };
 
     const uberData = policyID ? getReceiptPartnersIntegrationData(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER) : undefined;
 
@@ -206,7 +121,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                                         titleStyle={styles.pr3}
                                         title={translate('workspace.receiptPartners.uber.autoInvite')}
                                         switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoInvite')}
-                                        onToggle={toggleWorkspaceUberAutoInvite}
+                                        onToggle={toggleUberAutoInvite}
                                         isActive={isAutoInvite}
                                         disabled={!canWriteMoreFeatures}
                                         disabledAction={withReadOnlyFallback()}
@@ -219,7 +134,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                                         titleStyle={styles.pr3}
                                         title={translate('workspace.receiptPartners.uber.autoRemove')}
                                         switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoRemove')}
-                                        onToggle={toggleWorkspaceUberAutoRemove}
+                                        onToggle={toggleUberAutoRemove}
                                         isActive={isAutoRemove}
                                         disabled={!canWriteMoreFeatures}
                                         disabledAction={withReadOnlyFallback()}

@@ -4,20 +4,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
-import useConfirmModal from '@hooks/useConfirmModal';
-import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import usePolicy from '@hooks/usePolicy';
-import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
@@ -33,9 +27,6 @@ import type {MenuItemData} from '@pages/workspace/accounting/types';
 import withUnifiedConnectionsBeta from '@pages/workspace/connections/withUnifiedConnectionsBeta';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {openExternalLink} from '@userActions/Link';
-import {openPolicyReceiptPartnersPage, removePolicyReceiptPartnersConnection, togglePolicyUberAutoInvite, togglePolicyUberAutoRemove} from '@userActions/Policy/Policy';
-
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -43,61 +34,45 @@ import type {AnchorPosition} from '@src/styles';
 
 import type {ComponentRef} from 'react';
 
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
+import useReceiptPartnersSettings from './useReceiptPartnersSettings';
 import getSynchronizationErrorMessage from './utils';
 
 type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS>;
 
 function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps) {
     const policyID = route.params.policyID;
-    const icons = useMemoizedLazyExpensifyIcons(['Key', 'Mail', 'NewWindow', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Mail']);
     const {translate} = useLocalize();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {showConfirmModal} = useConfirmModal();
-    const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
-    const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
+    const receiptPartnerIntegrations = Object.values(CONST.POLICY.RECEIPT_PARTNERS.NAME);
     const threeDotsMenuContainerRef = useRef<ComponentRef<typeof View>>(null);
-    const policy = usePolicy(policyID);
+    const {
+        policy,
+        integrations,
+        isAutoInvite,
+        isAutoRemove,
+        isUberConnected,
+        shouldShowEnterCredentialsError,
+        getReceiptPartnersIntegrationData,
+        isOffline,
+        canWriteMoreFeatures,
+        showReadOnlyModal,
+        withReadOnlyFallback,
+        startIntegrationFlow,
+        toggleUberAutoInvite,
+        toggleUberAutoRemove,
+        getOverflowMenu,
+    } = useReceiptPartnersSettings(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
-    const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const isLoading = policy?.isLoading;
-    const integrations = policy?.receiptPartners;
-    const isAutoRemove = !!integrations?.uber?.autoRemove;
-    const isAutoInvite = !!integrations?.uber?.autoInvite;
     const centralBillingAccountEmail = !!integrations?.uber?.centralBillingAccountEmail;
     // Track focus and connection change to route to the invite flow once after successful connection
     const prevIsUberConnected = usePrevious(isUberConnected);
-    const {canWrite: canWriteMoreFeatures, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
-
-    const startIntegrationFlow = useCallback(
-        ({name}: {name: string}) => {
-            switch (name) {
-                case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
-                    openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
-                    break;
-                }
-                default: {
-                    break;
-                }
-            }
-        },
-        [integrations?.uber?.connectFormData],
-    );
-
-    const fetchReceiptPartners = useCallback(() => {
-        openPolicyReceiptPartnersPage(policyID);
-    }, [policyID]);
-
-    const {isOffline} = useNetwork({onReconnect: fetchReceiptPartners});
-
-    useEffect(() => {
-        fetchReceiptPartners();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     // When Uber connection status flips from false -> true, navigate to the invite flow once
     useEffect(() => {
@@ -107,7 +82,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)));
     }, [prevIsUberConnected, isUberConnected, policyID, canWriteMoreFeatures, buildDynamicRoute]);
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
+    const calculateAndSetThreeDotsMenuPosition = () => {
         if (shouldUseNarrowLayout) {
             return Promise.resolve({horizontal: 0, vertical: 0});
         }
@@ -119,76 +94,9 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 });
             });
         });
-    }, [shouldUseNarrowLayout]);
+    };
 
-    const toggleWorkspaceUberAutoInvite = useCallback(() => {
-        togglePolicyUberAutoInvite(policyID, !isAutoInvite);
-    }, [isAutoInvite, policyID]);
-
-    const toggleWorkspaceUberAutoRemove = useCallback(() => {
-        togglePolicyUberAutoRemove(policyID, !isAutoRemove);
-    }, [isAutoRemove, policyID]);
-
-    const disconnectPartner = useCallback(
-        (partner: (typeof receiptPartnerNames)[keyof typeof receiptPartnerNames]) => {
-            if (!policyID) {
-                return;
-            }
-            removePolicyReceiptPartnersConnection(policyID, partner, integrations?.[partner]);
-            fetchReceiptPartners();
-        },
-        [policyID, integrations, fetchReceiptPartners],
-    );
-
-    const getOverflowMenu = useCallback(
-        (integration: string) => {
-            switch (integration) {
-                case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER:
-                    if (shouldShowEnterCredentialsError) {
-                        return [
-                            {
-                                icon: icons.Key,
-                                text: translate('workspace.accounting.enterCredentials'),
-                                onSelected: () =>
-                                    startIntegrationFlow({
-                                        name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
-                                    }),
-                                shouldCallAfterModalHide: true,
-                                disabled: isOffline,
-                                iconRight: icons.NewWindow,
-                            },
-                        ];
-                    }
-
-                    return [
-                        {
-                            icon: icons.Trashcan,
-                            text: translate('workspace.accounting.disconnect'),
-                            onSelected: () => {
-                                showConfirmModal({
-                                    title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
-                                    prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.description'),
-                                    confirmText: translate('workspace.accounting.disconnect'),
-                                    cancelText: translate('common.cancel'),
-                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                                }).then(({action}) => {
-                                    if (action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-                                    disconnectPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
-                                });
-                            },
-                            shouldCallAfterModalHide: true,
-                        },
-                    ];
-                default:
-                    return [];
-            }
-        },
-        [icons.Key, icons.NewWindow, icons.Trashcan, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow, showConfirmModal, disconnectPartner],
-    );
-
-    const connectionsMenuItems: MenuItemData[] = useMemo(() => {
+    const getConnectionsMenuItems = (): MenuItemData[] => {
         if (policyID) {
             return receiptPartnerIntegrations
                 .map((integration) => {
@@ -271,24 +179,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         }
 
         return [];
-    }, [
-        policyID,
-        receiptPartnerIntegrations,
-        getReceiptPartnersIntegrationData,
-        getOverflowMenu,
-        canWriteMoreFeatures,
-        shouldShowEnterCredentialsError,
-        translate,
-        styles,
-        shouldUseNarrowLayout,
-        isUberConnected,
-        calculateAndSetThreeDotsMenuPosition,
-        policy?.receiptPartners?.uber,
-        policy?.isLoadingReceiptPartners,
-        isOffline,
-        startIntegrationFlow,
-        showReadOnlyModal,
-    ]);
+    };
+    const connectionsMenuItems = getConnectionsMenuItems();
 
     return (
         <AccessOrNotFoundWrapper
@@ -348,7 +240,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     titleStyle={styles.pr3}
                                                     title={translate('workspace.receiptPartners.uber.autoInvite')}
                                                     switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoInvite')}
-                                                    onToggle={toggleWorkspaceUberAutoInvite}
+                                                    onToggle={toggleUberAutoInvite}
                                                     isActive={isAutoInvite}
                                                     disabled={!canWriteMoreFeatures}
                                                     disabledAction={withReadOnlyFallback()}
@@ -362,7 +254,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     titleStyle={styles.pr3}
                                                     title={translate('workspace.receiptPartners.uber.autoRemove')}
                                                     switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoRemove')}
-                                                    onToggle={toggleWorkspaceUberAutoRemove}
+                                                    onToggle={toggleUberAutoRemove}
                                                     isActive={isAutoRemove}
                                                     disabled={!canWriteMoreFeatures}
                                                     disabledAction={withReadOnlyFallback()}
