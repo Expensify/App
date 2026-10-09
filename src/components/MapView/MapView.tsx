@@ -64,6 +64,8 @@ function MapView({
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
     const currentPosition = userLocation ?? initialLocation;
+    const currentPositionLongitude = currentPosition?.longitude;
+    const currentPositionLatitude = currentPosition?.latitude;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
     const isAccessTokenReady = useAccessToken({accessToken});
@@ -151,7 +153,19 @@ function MapView({
     // which in turn triggers the callback.
     useFocusEffect(
         useCallback(() => {
-            if (!waypoints || waypoints.length === 0 || !isIdle) {
+            if (!isIdle) {
+                return;
+            }
+
+            if (!waypoints || waypoints.length === 0) {
+                if (currentPositionLongitude === undefined || currentPositionLatitude === undefined) {
+                    return;
+                }
+                cameraRef.current?.setCamera({
+                    zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
+                    animationMode: 'none',
+                    centerCoordinate: [currentPositionLongitude, currentPositionLatitude],
+                });
                 return;
             }
 
@@ -174,7 +188,7 @@ function MapView({
                     animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
                 });
             }
-        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates]),
+        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude]),
     );
 
     useEffect(() => {
