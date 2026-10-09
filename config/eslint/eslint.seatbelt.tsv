@@ -301,7 +301,7 @@
 "../../src/components/ReimbursementAccountLoadingIndicator.tsx"	"no-restricted-imports"	1
 "../../src/components/ReportActionAvatars/useReportPreviewSenderID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/IssueCardMessage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/ReportActionItem/MoneyReportView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/components/ReportActionItem/MoneyReportView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/receiptHoverUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -958,7 +958,6 @@
 "../../src/pages/domain/Members/DomainMembersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/domain/Members/MoveUserBetweenGroupsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/domain/Members/MoveUsersBetweenGroupsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicFlagCommentPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicNewReportWorkspaceSelectionPage.tsx"	"no-restricted-imports"	1
