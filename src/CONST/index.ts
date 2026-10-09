@@ -3485,6 +3485,7 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
+            HIRING_MANAGER: 'hiringManager',
             RECRUITING_COORDINATOR: 'coordinator',
         },
         ATS_FILTER_TYPE: {

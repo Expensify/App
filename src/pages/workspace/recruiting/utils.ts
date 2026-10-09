@@ -31,6 +31,8 @@ function getApproverFieldName(approverField: MergeATSApproverField | undefined, 
     switch (approverField) {
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER:
             return translate('workspace.recruiting.approverFields.recruiter');
+        case CONST.MERGE.ATS_APPROVER_FIELD.HIRING_MANAGER:
+            return translate('workspace.recruiting.approverFields.hiringManager');
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR:
             return translate('workspace.recruiting.approverFields.recruitingCoordinator');
         default:
