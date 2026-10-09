@@ -263,7 +263,7 @@ function MapView({
 
     // Localize the map labels to the user's preferred app locale so they match the rest of the app.
     const localizeLabels = useMemo<{locale: string} | undefined>(() => {
-        const language = utils.getMapboxLanguage(preferredLocale);
+        const language = utils.getNativeMapboxLanguage(preferredLocale);
         return language ? {locale: language} : undefined;
     }, [preferredLocale]);
 

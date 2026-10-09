@@ -227,6 +227,28 @@ describe('MapView utils', () => {
         });
     });
 
+    describe('getNativeMapboxLanguage', () => {
+        it('returns the Mapbox language for locales the native SDKs can localize labels to', () => {
+            // Given app locales whose Mapbox language is one of the Mapbox Streets languages the native SDKs support
+
+            // When each locale is mapped to the language the native map labels are rendered in
+            const languages = [utils.getNativeMapboxLanguage('en'), utils.getNativeMapboxLanguage('ja'), utils.getNativeMapboxLanguage('pt-BR'), utils.getNativeMapboxLanguage('zh-hans')];
+
+            // Then the same language as on web is returned, so the native labels match the app's language
+            expect(languages).toEqual(['en', 'ja', 'pt', 'zh-Hans']);
+        });
+
+        it('returns undefined for locales the native SDKs reject', () => {
+            // Given app locales whose language the native Mapbox SDKs don't support, which makes iOS throw and Android log a warning
+
+            // When each locale is mapped to the language the native map labels are rendered in
+            const languages = [utils.getNativeMapboxLanguage('nl'), utils.getNativeMapboxLanguage('pl'), utils.getNativeMapboxLanguage('el')];
+
+            // Then no language is returned, so the native map keeps its default labels without raising an error
+            expect(languages).toEqual([undefined, undefined, undefined]);
+        });
+    });
+
     describe('getMapboxWorldview', () => {
         it('passes country codes Mapbox defines a worldview for through unchanged', () => {
             // Given countries that Mapbox draws disputed borders for from their own point of view

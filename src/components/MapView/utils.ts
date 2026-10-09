@@ -10,15 +10,30 @@ const LOCALE_TO_MAPBOX_LANGUAGE: Partial<Record<Locale, string>> = {
 };
 
 /**
+ * Languages the native Mapbox Maps SDKs can localize labels to, i.e. the Mapbox Streets v8 `name_*` fields.
+ * Unlike mapbox-gl on web, the native SDKs reject any other language: iOS throws and Android logs a warning on every map load.
+ */
+const NATIVE_MAPBOX_SUPPORTED_LANGUAGES = new Set(['ar', 'en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'vi', 'zh-Hans', 'zh-Hant']);
+
+/**
  * Maps an app locale to the BCP-47 language code Mapbox uses to localize map labels.
  * Most app locales are already valid Mapbox codes, so only a couple need remapping.
- * Unsupported codes fall back to each label's local language on the Mapbox side.
+ * On web, unsupported codes fall back to each label's local language on the Mapbox side.
  */
 function getMapboxLanguage(locale: Locale | undefined): string | undefined {
     if (!locale) {
         return undefined;
     }
     return LOCALE_TO_MAPBOX_LANGUAGE[locale] ?? locale;
+}
+
+/**
+ * Maps an app locale to the language the native Mapbox SDKs localize labels to, or undefined when they can't.
+ * Leaving the language unset keeps the style's default labels instead of raising a native error.
+ */
+function getNativeMapboxLanguage(locale: Locale | undefined): string | undefined {
+    const language = getMapboxLanguage(locale);
+    return language && NATIVE_MAPBOX_SUPPORTED_LANGUAGES.has(language) ? language : undefined;
 }
 
 /** A worldview is an ISO 3166-1 alpha-2 country code, so anything that isn't two letters can't be one. */
@@ -288,5 +303,6 @@ export default {
     convertSegmentedRouteToSingleSegmentRoute,
     getCoordinatesFromAllDirections,
     getMapboxLanguage,
+    getNativeMapboxLanguage,
     getMapboxWorldview,
 };
