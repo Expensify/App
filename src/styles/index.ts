@@ -792,15 +792,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.androidNativeTabBarHeight,
         },
 
-        // Lays a tab root screen's copy of the floating bar over the bottom of its content.
-        floatingTabBarOverlay: {
-            position: 'absolute',
-            right: 0,
-            bottom: 0,
-            left: 0,
-            overflow: 'visible',
-        },
-
         // The floating bar is laid over the bottom of a tab root screen, so the offline indicator floats above it
         // without shrinking the content that runs under the bar.
         floatingTabBarOfflineIndicator: {

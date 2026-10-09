@@ -37,7 +37,6 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
 
     // The tint only reaches the labels, since the icons arrive already recolored (react-native-screens patch 003).
     const screenOptions: NativeBottomTabNavigationOptions = {
-        headerShown: false,
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textSupporting,
         tabBarLabelStyle: {fontFamily: styles.textSmall.fontFamily, fontSize: styles.textSmall.fontSize},

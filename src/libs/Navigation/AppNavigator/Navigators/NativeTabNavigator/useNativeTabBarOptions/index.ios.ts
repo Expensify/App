@@ -42,7 +42,6 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
     const labelMaxWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
 
     const screenOptions: NativeBottomTabNavigationOptions = {
-        headerShown: false,
         // The labels are drawn into the icons.
         tabBarLabel: '',
         tabBarActiveTintColor: theme.iconMenu,

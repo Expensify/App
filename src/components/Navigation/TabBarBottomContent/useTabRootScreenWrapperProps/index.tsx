@@ -19,7 +19,7 @@ function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['sel
 
     return {
         bottomContent: <TabBarBottomContent selectedTab={selectedTab} />,
-        bottomContentStyle: shouldUseNarrowLayout ? styles.floatingTabBarOverlay : styles.overflowVisible,
+        bottomContentStyle: shouldUseNarrowLayout ? [styles.stickToBottom, styles.overflowVisible] : styles.overflowVisible,
         offlineIndicatorStyle: shouldUseNarrowLayout ? styles.floatingTabBarOfflineIndicator : undefined,
     };
 }
