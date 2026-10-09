@@ -636,7 +636,7 @@ function PaymentMethodList({
             return {
                 ...paymentMethod,
                 title: rowTitle,
-                onPress: paymentMethodPress,
+                onPress: onFixPress ?? paymentMethodPress,
                 onThreeDotsMenuPress: paymentMethodThreeDotsPress,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
