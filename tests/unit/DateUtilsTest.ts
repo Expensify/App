@@ -473,6 +473,54 @@ describe('DateUtils', () => {
             expect(DateUtils.getFormattedTransportDateAndHour(thisYear, de)).toEqual({date: 'Dienstag, März 17', hour: '08:00'});
             expect(DateUtils.getFormattedTransportDateAndHour(pastYear, de)).toEqual({date: 'Freitag, März 17, 2023', hour: '20:30'});
         });
+
+        it('should leave the date and hour blank when a booking has no date', () => {
+            // Given an incomplete reservation with an empty date from the travel parser
+            const missingDate = new Date('');
+
+            // When trip details format the unavailable departure or arrival
+            const result = DateUtils.getFormattedTransportDateAndHour(missingDate, undefined);
+
+            // Then opening the reservation does not throw or show an invented date
+            expect(result).toEqual({date: '', hour: ''});
+        });
+
+        it('should leave trip-room departure labels blank when a booking has no date', () => {
+            // Given a flight or rail reservation with no departure date
+            const missingDate = new Date('');
+
+            // When the trip room formats the departure label for each transit type
+            const flightDate = DateUtils.getFormattedTransportDate(translateLocal, undefined, missingDate);
+            const railDate = DateUtils.formatToLongDateWithWeekday(missingDate, undefined);
+
+            // Then both labels remain blank rather than crashing the trip room
+            expect(flightDate).toBe('');
+            expect(railDate).toBe('');
+        });
+
+        it.each(['start', 'end'] as const)('should omit a reservation date range when its %s date is missing', (missingDate) => {
+            // Given a hotel or car reservation with one unavailable date
+            const start = missingDate === 'start' ? new Date('') : thisYear;
+            const end = missingDate === 'end' ? new Date('') : thisYear;
+
+            // When the trip room formats the booking date range
+            const result = DateUtils.getFormattedReservationRangeDate(translateLocal, undefined, start, end);
+
+            // Then no invalid date range is displayed
+            expect(result).toBe('');
+        });
+
+        it.each(['start', 'end'] as const)('should omit a duration when the booking %s date is missing', (missingDate) => {
+            // Given a train or connecting flight with one unavailable date
+            const start = missingDate === 'start' ? new Date('') : thisYear;
+            const end = missingDate === 'end' ? new Date('') : thisYear;
+
+            // When trip details calculate the duration or layover
+            const result = DateUtils.getFormattedDurationBetweenDates(translateLocal, start, end);
+
+            // Then no invalid duration is displayed
+            expect(result).toBeUndefined();
+        });
     });
 
     describe('getStatusUntilDate', () => {
@@ -962,6 +1010,17 @@ describe('DateUtils', () => {
     describe('Search day formatting', () => {
         test('formats a compact day label', () => {
             expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined)).toBe('Sep 15, ’26');
+        });
+
+        test('formats compact labels without the year when asked to', () => {
+            // Given a chart whose points all fall in one year, so the year is left out of each axis label
+            // When each compact formatter is asked to leave the year out
+            // Then only the day, month, quarter or range remains
+            expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined, false)).toBe('Sep 15');
+            expect(DateUtils.getShortFormattedMonthForSearch(2026, 9, undefined, false)).toBe('Sep');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 3, undefined, false)).toBe('Q3');
+            expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-01', '2026-09-07', undefined, false)).toBe('Sep 1 - 7');
+            expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-28', '2026-10-04', undefined, false)).toBe('Sep 28 - Oct 4');
         });
     });
 });

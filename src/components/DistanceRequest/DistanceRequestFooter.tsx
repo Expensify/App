@@ -114,30 +114,32 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
         <>
             {(numberOfFilledWaypoints >= 2 || shouldShowReuseRoute) && (
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.pv2, styles.gap2]}>
-                    <PressableWithFeedback
-                        onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
-                        disabled={isAddStopDisabled}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('distance.addStop')}
-                        sentryLabel="DistanceRequestFooter-AddStop"
-                        style={[styles.searchFiltersResetButton]}
-                        hoverStyle={isAddStopDisabled ? undefined : styles.hoveredComponentBG}
-                        disabledStyle={styles.buttonOpacityDisabled}
-                    >
-                        <Icon
-                            src={expensifyIcons.Plus}
-                            size={CONST.ICON_SIZE.EXTRA_SMALL}
-                            fill={theme.icon}
-                        />
-                        <Text style={[styles.textMicroBoldSupporting]}>{translate('distance.addStop')}</Text>
-                    </PressableWithFeedback>
+                    {numberOfFilledWaypoints >= 2 && (
+                        <PressableWithFeedback
+                            onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
+                            disabled={isAddStopDisabled}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('distance.addStop')}
+                            sentryLabel="DistanceRequestFooter-AddStop"
+                            style={[styles.searchFiltersBarButton]}
+                            hoverStyle={isAddStopDisabled ? undefined : styles.hoveredComponentBG}
+                            disabledStyle={styles.buttonOpacityDisabled}
+                        >
+                            <Icon
+                                src={expensifyIcons.Plus}
+                                size={CONST.ICON_SIZE.EXTRA_SMALL}
+                                fill={theme.icon}
+                            />
+                            <Text style={[styles.textMicroBoldSupporting]}>{translate('distance.addStop')}</Text>
+                        </PressableWithFeedback>
+                    )}
                     {shouldShowReuseRoute && (
                         <PressableWithFeedback
                             onPress={navigateToReuseRoutePage}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('distance.reuseRoute')}
                             sentryLabel="DistanceRequestFooter-ReuseRoute"
-                            style={[styles.searchFiltersResetButton]}
+                            style={[styles.searchFiltersBarButton]}
                             hoverStyle={styles.hoveredComponentBG}
                         >
                             <Icon
