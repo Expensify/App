@@ -2,14 +2,14 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import CategoryFieldDropdown from '@components/MoneyRequestConfirmationList/sections/CategoryFieldDropdown';
+import type PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type TextComponent from '@components/Text';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-import type * as ReactNative from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -25,7 +25,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 // Holds the post-transition work until the test runs it, standing in for the pop-over finishing its close.
-let mockRunPendingTransition: (() => void) | undefined;
+let mockRunPendingTransition: Parameters<typeof TransitionTracker.runAfterTransitions>[0]['callback'] | undefined;
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     runAfterTransitions: ({callback}: Parameters<typeof TransitionTracker.runAfterTransitions>[0]): ReturnType<typeof TransitionTracker.runAfterTransitions> => {
         mockRunPendingTransition = callback;
@@ -36,7 +36,8 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 jest.mock('@hooks/useUpdateTransactionCategory', () => () => ({updateCategory: jest.fn()}));
 
 jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
-    const {Pressable, Text} = jest.requireActual<typeof ReactNative>('react-native');
+    const {default: Pressable} = jest.requireActual<{default: typeof PressableWithoutFeedback}>('@components/Pressable/PressableWithoutFeedback');
+    const {default: Text} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
     return ({onAddCategory}: {onAddCategory?: () => void}) =>
         onAddCategory ? (
             <Pressable
