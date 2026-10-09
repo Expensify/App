@@ -12,8 +12,9 @@ import type TabRootScreenWrapperProps from './types';
 
 /**
  * On narrow layouts the content of a tab root screen runs under the translucent UITabBar, down to the bottom edge of
- * the screen, so the ScreenWrapper adds no bottom padding. Each tab root's list lets UIKit inset its end past the bar,
- * and the offline indicator sits above the bar. Account drawn over the tabs hides the bar.
+ * the screen, so the ScreenWrapper runs edge to edge and adds no bottom padding, to the screen or to the offline
+ * indicator. Each tab root's list lets UIKit inset its end past the bar, and the offline indicator sits above the bar.
+ * Account drawn over the tabs hides the bar.
  */
 function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['selectedTab']): TabRootScreenWrapperProps {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -25,7 +26,10 @@ function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['sel
         return {};
     }
 
-    return {includeSafeAreaPaddingBottom: false, offlineIndicatorStyle: styles.iosNativeTabBarOfflineIndicator(getFloatingButtonsBottom(bottomInset))};
+    return {
+        enableEdgeToEdgeBottomSafeAreaPadding: false,
+        offlineIndicatorStyle: styles.iosNativeTabBarOfflineIndicator(getFloatingButtonsBottom(bottomInset)),
+    };
 }
 
 export default useTabRootScreenWrapperProps;
