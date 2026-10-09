@@ -96,6 +96,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     shouldRenderFooterAboveSubmit?: boolean;
 
     isLoading?: boolean;
+
+    /** Server error message to show on the submit alert, e.g. from reimbursement account API failures */
+    additionalServerErrorMessage?: string;
     addBottomSafeAreaPadding?: boolean;
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
     shouldSubmitButtonStickToBottom?: boolean;
@@ -142,6 +145,7 @@ function FormProvider({
     allowHTML = false,
     shouldPreserveCustomValidationErrors = false,
     isLoading: isOnyxLoading = false,
+    additionalServerErrorMessage,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
@@ -179,7 +183,8 @@ function FormProvider({
     // Cancel any in-flight blur transition callback on unmount so it doesn't fire after the form is gone.
     useEffect(() => () => blurTransitionHandle.current?.cancel(), []);
 
-    const errorMessage = formState && !shouldHideServerError ? getLatestErrorMessage(formState) : undefined;
+    const formServerErrorMessage = formState && !shouldHideServerError ? getLatestErrorMessage(formState) : undefined;
+    const errorMessage = additionalServerErrorMessage ?? formServerErrorMessage;
     const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
     const firstFieldErrorMessage = useMemo(() => {
         for (const errorMsg of Object.values(errors)) {

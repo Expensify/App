@@ -1004,6 +1004,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'ウォレット',
             },
             addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '追加'},
+            addBankAccountAddress: {
+                workspaceTitle: 'ビジネス用銀行口座の住所を追加してください',
+                personalTitle: '銀行口座の住所を追加してください',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'ウォレット',
+                cta: '住所を追加',
+            },
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
             payOverdueInvoice: {
                 cta: 'レビュー',

@@ -1016,6 +1016,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portafoglio',
             },
             addVirtualCardPersonalDetails: {title: 'Aggiungi i tuoi dati per visualizzare e iniziare a usare la tua Carta Expensify.', subtitle: 'Carta Expensify', cta: 'Aggiungi'},
+            addBankAccountAddress: {
+                workspaceTitle: 'Aggiungi l’indirizzo del tuo conto bancario aziendale',
+                personalTitle: 'Aggiungi l’indirizzo del tuo conto bancario',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Portafoglio',
+                cta: 'Aggiungi indirizzo',
+            },
             enterSignerInfo: {title: 'Informazioni del firmatario necessarie', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conto bancario ${bankAccountLastFour}`},
             payOverdueInvoice: {
                 cta: 'Rivedi',

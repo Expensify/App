@@ -1008,6 +1008,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Billetera',
             },
+            addBankAccountAddress: {
+                workspaceTitle: 'Añade la dirección de tu cuenta bancaria empresarial',
+                personalTitle: 'Añade la dirección de tu cuenta bancaria',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Billetera',
+                cta: 'Añadir dirección',
+            },
             enterSignerInfo: {title: 'Se necesita la información del firmante', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Cuenta bancaria ${bankAccountLastFour}`},
             payOverdueInvoice: {
                 cta: 'Revisar',
