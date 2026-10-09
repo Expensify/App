@@ -4087,6 +4087,15 @@ ${amount} για ${merchant} - ${date}`,
         unlockAlreadyRequestedDescription:
             'Το αίτημά σας για ξεκλείδωμα αυτού του τραπεζικού λογαριασμού έχει ήδη αποσταλεί. Το Concierge θα επικοινωνήσει μαζί σας αν χρειαστεί οτιδήποτε άλλο.',
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
+            invalidOption: 'Επιλέξτε μία από τις διαθέσιμες επιλογές',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
         countrySelectionStepHeader: 'Πού βρίσκεται ο τραπεζικός σας λογαριασμός;',

@@ -82,6 +82,17 @@ import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type {
+    DynamicFormChoiceField,
+    DynamicFormContentItem,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormHeading,
+    DynamicFormNumberField,
+    DynamicFormSchemaField,
+    DynamicFormTextField,
+} from './DynamicFormField';
 import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -451,6 +462,15 @@ export type {
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
+    DynamicFormChoiceField,
+    DynamicFormContentItem,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormHeading,
+    DynamicFormNumberField,
+    DynamicFormSchemaField,
+    DynamicFormTextField,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,

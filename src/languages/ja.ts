@@ -3985,6 +3985,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         unlockAlreadyRequestedTitle: 'リクエストは既に送信されています',
         unlockAlreadyRequestedDescription: 'この銀行口座のロック解除リクエストは既に送信されています。追加で必要なことがある場合は、Concierge からご連絡します。',
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `例：${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
+            invalidOption: '利用可能な選択肢から選んでください',
+            outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
         countrySelectionStepHeader: '銀行口座はどこにありますか？',
