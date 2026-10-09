@@ -179,6 +179,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Account ID of the report manager */
         managerID?: number;
 
+        /** Calendar link for the support rep assigned to a support ticket */
+        supportTicketCalendarLink?: string;
+
         lastVisibleActionLastModified?: string;
 
         /** HTML content of the last message in the report */
