@@ -28,7 +28,7 @@ import type {MapMouseEvent, MapRef, ViewState} from 'react-map-gl/mapbox';
 // For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
 // we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Map, {Marker} from 'react-map-gl/mapbox';
 import {View} from 'react-native';
 
@@ -55,7 +55,6 @@ function MapViewImpl({
     interactive = true,
     distanceInMeters,
     unit,
-    ref,
     shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
     // Coordinates of every rendered route (the main one and the alternate one, if any), used to frame the map around all of them.
@@ -146,6 +145,7 @@ function MapViewImpl({
             center: [currentPosition.longitude, currentPosition.latitude],
             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
             animate: shouldAnimatePan,
+            speed: CONST.MAPBOX.FLY_TO_SPEED,
         });
     }, [currentPosition, mapRef, prevUserPosition.longitude, prevUserPosition.latitude, shouldPanMapToCurrentPosition]);
 
@@ -170,6 +170,7 @@ function MapViewImpl({
             mapRef.flyTo({
                 center: waypoints.at(0)?.coordinate,
                 zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                speed: CONST.MAPBOX.FLY_TO_SPEED,
             });
             return;
         }
@@ -180,7 +181,7 @@ function MapViewImpl({
             waypoints.map((waypoint) => waypoint.coordinate),
             allDirectionCoordinates,
         );
-        map.fitBounds([northEast, southWest], {padding: mapPadding});
+        map.fitBounds([northEast, southWest], {padding: mapPadding, speed: CONST.MAPBOX.FLY_TO_SPEED});
     }, [waypoints, mapRef, mapPadding, allDirectionCoordinates]);
 
     // The ResizeObserver outlives renders, so it reads the latest reset logic through a ref.
@@ -231,20 +232,6 @@ function MapViewImpl({
         };
     }, [accessToken, isOffline]);
 
-    useImperativeHandle(
-        ref,
-        () => ({
-            flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
-                mapRef?.flyTo({
-                    center: location,
-                    zoom: zoomLevel,
-                    duration: animationDuration,
-                }),
-            fitBounds: (northEast: [number, number], southWest: [number, number]) => mapRef?.fitBounds([northEast, southWest]),
-        }),
-        [mapRef],
-    );
-
     const centerMap = useCallback(() => {
         if (!mapRef) {
             return;
@@ -253,7 +240,7 @@ function MapViewImpl({
         if (waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1) {
             const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
             const map = mapRef?.getMap();
-            map?.fitBounds([southWest, northEast], {padding: mapPadding, animate: true, duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME});
+            map?.fitBounds([southWest, northEast], {padding: mapPadding, speed: CONST.MAPBOX.FLY_TO_SPEED});
             return;
         }
 
@@ -261,8 +248,7 @@ function MapViewImpl({
             center: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
             zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
             bearing: 0,
-            animate: true,
-            duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+            speed: CONST.MAPBOX.FLY_TO_SPEED,
         });
     }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapRef, waypoints, mapPadding]);
 
