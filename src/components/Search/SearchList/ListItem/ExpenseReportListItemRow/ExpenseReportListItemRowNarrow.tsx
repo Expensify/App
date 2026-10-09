@@ -29,7 +29,7 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
                     onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
                     isChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
-                    containerStyle={styles.m0}
+                    containerStyle={styles.checkboxContainerTableRow}
                     disabled={isDisabledCheckbox}
                     accessibilityLabel={item.reportName ?? ''}
                     shouldStopMouseDownPropagation
