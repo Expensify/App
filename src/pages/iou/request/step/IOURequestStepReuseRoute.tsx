@@ -183,31 +183,26 @@ function IOURequestStepReuseRoute({
             testID="IOURequestStepReuseRoute"
             includeSafeAreaPaddingBottom
         >
-            {({didScreenTransitionEnd}) => {
-                if (!didScreenTransitionEnd) {
-                    return null;
-                }
-                return (
-                    <>
-                        <Text style={[styles.ph5, styles.pb2, styles.textSupporting]}>{translate('distance.choosePreviousRoute')}</Text>
-                        <SelectionList
-                            data={data}
-                            onSelectRow={selectRoute}
-                            textInputOptions={{
-                                label: translate('distance.findARoute'),
-                                value: searchValue,
-                                onChangeText: setSearchValue,
-                                headerMessage,
-                            }}
-                            ListItem={ReuseRouteListItem}
-                            shouldShowLoadingPlaceholder={!!isLoadingReusableDistanceRoutes && routes.length === 0}
-                            customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
-                            shouldShowListEmptyContent={false}
-                            shouldSingleExecuteRowSelect
-                        />
-                    </>
-                );
-            }}
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <Text style={[styles.ph5, styles.pb2, styles.textSupporting]}>{translate('distance.choosePreviousRoute')}</Text>
+                    <SelectionList
+                        data={data}
+                        onSelectRow={selectRoute}
+                        textInputOptions={{
+                            label: translate('distance.findARoute'),
+                            value: searchValue,
+                            onChangeText: setSearchValue,
+                            headerMessage,
+                        }}
+                        ListItem={ReuseRouteListItem}
+                        shouldShowLoadingPlaceholder={!didScreenTransitionEnd || (!!isLoadingReusableDistanceRoutes && routes.length === 0)}
+                        customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
+                        shouldShowListEmptyContent={false}
+                        shouldSingleExecuteRowSelect
+                    />
+                </>
+            )}
         </StepScreenWrapper>
     );
 }
