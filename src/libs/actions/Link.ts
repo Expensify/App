@@ -9,6 +9,7 @@ import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
+import {setPendingShareIntent} from '@libs/Navigation/helpers/pendingShareIntent';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
@@ -502,8 +503,17 @@ function openReportFromDeepLink(
         return;
     }
 
+    const isShareIntentRoute = normalizePath(route) === normalizePath(ROUTES.SHARE_ROOT);
+
     // Navigate to the report after sign-in/sign-up.
     waitForUserSignIn().then(() => {
+        // A share received while signed out never reached react-navigation (see linkingConfig.filter). Park it, so it
+        // opens once we know whether the user has to onboard first. Navigating now would flash the share page.
+        if (isShareIntentRoute && !isAuthenticated) {
+            setPendingShareIntent();
+            return;
+        }
+
         // A Submit-via-PDF secure access link must reach the report regardless of onboarding status: the report screen
         // is where JoinReportViaSecureLink runs, and onboarding is suppressed for secure-link visitors. The generic
         // handling below intentionally drops deep links for users who still need to onboard, so branch out first.
