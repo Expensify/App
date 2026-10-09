@@ -1,0 +1,265 @@
+diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+index 32e6b11..4009770 100644
+--- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+@@ -24,8 +24,9 @@ const dp2Pixel = (pd, rect) => {
+   };
+ };
+ class WebGLRenderer {
+-  constructor(canvas) {
++  constructor(canvas, getPixelDensity) {
+     this.canvas = canvas;
++    this.getPixelDensity = getPixelDensity;
+     _defineProperty(this, "surface", null);
+     _defineProperty(this, "grContext", null);
+     _defineProperty(this, "contextHandle", 0);
+@@ -85,7 +86,7 @@ class WebGLRenderer {
+     if (!this.grContext && !this.canUseSoftware) {
+       return;
+     }
+-    this.pd = window.devicePixelRatio;
++    this.pd = this.getPixelDensity();
+     canvas.width = canvas.clientWidth * this.pd;
+     canvas.height = canvas.clientHeight * this.pd;
+     (_this$surface = this.surface) === null || _this$surface === void 0 || _this$surface.ref.delete();
+@@ -170,8 +171,9 @@ class WebGLRenderer {
+   }
+ }
+ class StaticWebGLRenderer {
+-  constructor(canvas) {
++  constructor(canvas, getPixelDensity) {
+     this.canvas = canvas;
++    this.getPixelDensity = getPixelDensity;
+     _defineProperty(this, "cachedImage", null);
+     _defineProperty(this, "pd", 1);
+   }
+@@ -179,7 +181,7 @@ class StaticWebGLRenderer {
+     this.cachedImage = null;
+   }
+   renderPictureToSurface(picture) {
+-    this.pd = window.devicePixelRatio;
++    this.pd = this.getPixelDensity();
+     if (this.canvas.clientWidth === 0 || this.canvas.clientHeight === 0) {
+       return null;
+     }
+@@ -359,6 +361,11 @@ const SkiaPictureView = props => {
+   (0, _react.useLayoutEffect)(() => {
+     onLayoutRef.current = onLayout;
+   }, [onLayout]);
++  const pixelDensityRef = (0, _react.useRef)(props.pixelDensity);
++  (0, _react.useLayoutEffect)(() => {
++    pixelDensityRef.current = props.pixelDensity;
++  }, [props.pixelDensity]);
++  const resizeRef = (0, _react.useRef)(null);
+   const flushRedraw = (0, _react.useCallback)(() => {
+     flushScheduledRef.current = false;
+     if (redrawPendingRef.current && rendererRef.current && pictureRef.current) {
+@@ -427,7 +434,8 @@ const SkiaPictureView = props => {
+     if (!canvas) {
+       return undefined;
+     }
+-    const renderer = isStatic ? new StaticWebGLRenderer(canvas) : new WebGLRenderer(canvas);
++    const getPixelDensity = () => pixelDensityRef.current !== undefined ? pixelDensityRef.current : window.devicePixelRatio;
++    const renderer = isStatic ? new StaticWebGLRenderer(canvas, getPixelDensity) : new WebGLRenderer(canvas, getPixelDensity);
+     rendererRef.current = renderer;
+     const drawPicture = () => {
+       if (pictureRef.current) {
+@@ -441,11 +449,11 @@ const SkiaPictureView = props => {
+     // changed in between.
+     let lastWidth = canvas.clientWidth;
+     let lastHeight = canvas.clientHeight;
+-    let lastPixelDensity = window.devicePixelRatio;
++    let lastPixelDensity = getPixelDensity();
+     const resizeIfNeeded = () => {
+       const width = canvas.clientWidth;
+       const height = canvas.clientHeight;
+-      const pixelDensity = window.devicePixelRatio;
++      const pixelDensity = getPixelDensity();
+       if (width === lastWidth && height === lastHeight && pixelDensity === lastPixelDensity) {
+         return;
+       }
+@@ -455,6 +463,7 @@ const SkiaPictureView = props => {
+       renderer.onResize();
+       drawPicture();
+     };
++    resizeRef.current = resizeIfNeeded;
+     const observer = new ResizeObserver(entries => {
+       resizeIfNeeded();
+       const layoutHandler = onLayoutRef.current;
+@@ -503,11 +512,19 @@ const SkiaPictureView = props => {
+       var _media2;
+       observer.disconnect();
+       (_media2 = media) === null || _media2 === void 0 || _media2.removeEventListener("change", onPixelDensityChange);
++      resizeRef.current = null;
+       rendererRef.current = null;
+       renderer.dispose();
+     };
+   }, [isStatic]);
+ 
++  // A pixelDensity prop change resizes nothing, so no observer fires for it.
++  (0, _react.useLayoutEffect)(() => {
++    if (resizeRef.current) {
++      resizeRef.current();
++    }
++  }, [props.pixelDensity]);
++
+   // No flush cancellation is needed on unmount: a microtask queued before
+   // unmount runs within the same task, and flushRedraw no-ops once the
+   // layout-effect cleanup has nulled rendererRef.
+@@ -550,6 +567,7 @@ const SkiaPictureView = props => {
+     onLayout: _onLayout,
+     picture: _picture,
+     __destroyWebGLContextAfterRender: _isStatic,
++    pixelDensity: _pixelDensity,
+     ...viewProps
+   } = props;
+   return /*#__PURE__*/_react.default.createElement(_Platform.Platform.View, viewProps, /*#__PURE__*/_react.default.createElement("canvas", {
+diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+index 53df381..436ba0d 100644
+--- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+@@ -18,8 +18,9 @@ const dp2Pixel = (pd, rect) => {
+   };
+ };
+ class WebGLRenderer {
+-  constructor(canvas) {
++  constructor(canvas, getPixelDensity) {
+     this.canvas = canvas;
++    this.getPixelDensity = getPixelDensity;
+     _defineProperty(this, "surface", null);
+     _defineProperty(this, "grContext", null);
+     _defineProperty(this, "contextHandle", 0);
+@@ -79,7 +80,7 @@ class WebGLRenderer {
+     if (!this.grContext && !this.canUseSoftware) {
+       return;
+     }
+-    this.pd = window.devicePixelRatio;
++    this.pd = this.getPixelDensity();
+     canvas.width = canvas.clientWidth * this.pd;
+     canvas.height = canvas.clientHeight * this.pd;
+     (_this$surface = this.surface) === null || _this$surface === void 0 || _this$surface.ref.delete();
+@@ -164,8 +165,9 @@ class WebGLRenderer {
+   }
+ }
+ class StaticWebGLRenderer {
+-  constructor(canvas) {
++  constructor(canvas, getPixelDensity) {
+     this.canvas = canvas;
++    this.getPixelDensity = getPixelDensity;
+     _defineProperty(this, "cachedImage", null);
+     _defineProperty(this, "pd", 1);
+   }
+@@ -173,7 +175,7 @@ class StaticWebGLRenderer {
+     this.cachedImage = null;
+   }
+   renderPictureToSurface(picture) {
+-    this.pd = window.devicePixelRatio;
++    this.pd = this.getPixelDensity();
+     if (this.canvas.clientWidth === 0 || this.canvas.clientHeight === 0) {
+       return null;
+     }
+@@ -353,6 +355,11 @@ export const SkiaPictureView = props => {
+   useLayoutEffect(() => {
+     onLayoutRef.current = onLayout;
+   }, [onLayout]);
++  const pixelDensityRef = useRef(props.pixelDensity);
++  useLayoutEffect(() => {
++    pixelDensityRef.current = props.pixelDensity;
++  }, [props.pixelDensity]);
++  const resizeRef = useRef(null);
+   const flushRedraw = useCallback(() => {
+     flushScheduledRef.current = false;
+     if (redrawPendingRef.current && rendererRef.current && pictureRef.current) {
+@@ -421,7 +428,8 @@ export const SkiaPictureView = props => {
+     if (!canvas) {
+       return undefined;
+     }
+-    const renderer = isStatic ? new StaticWebGLRenderer(canvas) : new WebGLRenderer(canvas);
++    const getPixelDensity = () => pixelDensityRef.current !== undefined ? pixelDensityRef.current : window.devicePixelRatio;
++    const renderer = isStatic ? new StaticWebGLRenderer(canvas, getPixelDensity) : new WebGLRenderer(canvas, getPixelDensity);
+     rendererRef.current = renderer;
+     const drawPicture = () => {
+       if (pictureRef.current) {
+@@ -435,11 +443,11 @@ export const SkiaPictureView = props => {
+     // changed in between.
+     let lastWidth = canvas.clientWidth;
+     let lastHeight = canvas.clientHeight;
+-    let lastPixelDensity = window.devicePixelRatio;
++    let lastPixelDensity = getPixelDensity();
+     const resizeIfNeeded = () => {
+       const width = canvas.clientWidth;
+       const height = canvas.clientHeight;
+-      const pixelDensity = window.devicePixelRatio;
++      const pixelDensity = getPixelDensity();
+       if (width === lastWidth && height === lastHeight && pixelDensity === lastPixelDensity) {
+         return;
+       }
+@@ -449,6 +457,7 @@ export const SkiaPictureView = props => {
+       renderer.onResize();
+       drawPicture();
+     };
++    resizeRef.current = resizeIfNeeded;
+     const observer = new ResizeObserver(entries => {
+       resizeIfNeeded();
+       const layoutHandler = onLayoutRef.current;
+@@ -497,11 +506,19 @@ export const SkiaPictureView = props => {
+       var _media2;
+       observer.disconnect();
+       (_media2 = media) === null || _media2 === void 0 || _media2.removeEventListener("change", onPixelDensityChange);
++      resizeRef.current = null;
+       rendererRef.current = null;
+       renderer.dispose();
+     };
+   }, [isStatic]);
+ 
++  // A pixelDensity prop change resizes nothing, so no observer fires for it.
++  useLayoutEffect(() => {
++    if (resizeRef.current) {
++      resizeRef.current();
++    }
++  }, [props.pixelDensity]);
++
+   // No flush cancellation is needed on unmount: a microtask queued before
+   // unmount runs within the same task, and flushRedraw no-ops once the
+   // layout-effect cleanup has nulled rendererRef.
+@@ -544,6 +561,7 @@ export const SkiaPictureView = props => {
+     onLayout: _onLayout,
+     picture: _picture,
+     __destroyWebGLContextAfterRender: _isStatic,
++    pixelDensity: _pixelDensity,
+     ...viewProps
+   } = props;
+   return /*#__PURE__*/React.createElement(Platform.View, viewProps, /*#__PURE__*/React.createElement("canvas", {
+diff --git a/node_modules/@shopify/react-native-skia/lib/typescript/src/renderer/Canvas.d.ts b/node_modules/@shopify/react-native-skia/lib/typescript/src/renderer/Canvas.d.ts
+index b0f7819..88dd693 100644
+--- a/node_modules/@shopify/react-native-skia/lib/typescript/src/renderer/Canvas.d.ts
++++ b/node_modules/@shopify/react-native-skia/lib/typescript/src/renderer/Canvas.d.ts
+@@ -36,5 +36,11 @@ export interface CanvasProps extends Omit<ViewProps, "onLayout"> {
+     ref?: React.Ref<CanvasRef>;
+     androidWarmup?: boolean;
+     __destroyWebGLContextAfterRender?: boolean;
++    /**
++     * Web only. The pixel density the canvas is rendered at, defaults to
++     * `window.devicePixelRatio`. Set it when the canvas is painted at a
++     * different size than its layout size, under a CSS transform for instance.
++     */
++    pixelDensity?: number;
+ }
+ export declare const Canvas: ({ debug, opaque, children, onSize, colorSpace, highBitDepth, androidWarmup, ref, onLayout, ...viewProps }: CanvasProps) => React.JSX.Element;
+diff --git a/node_modules/@shopify/react-native-skia/lib/typescript/src/views/types.d.ts b/node_modules/@shopify/react-native-skia/lib/typescript/src/views/types.d.ts
+index cc5ee4e..b37ac66 100644
+--- a/node_modules/@shopify/react-native-skia/lib/typescript/src/views/types.d.ts
++++ b/node_modules/@shopify/react-native-skia/lib/typescript/src/views/types.d.ts
+@@ -33,6 +33,12 @@ export interface SkiaBaseViewProps extends ViewProps {
+      */
+     highBitDepth?: boolean;
+     __destroyWebGLContextAfterRender?: boolean;
++    /**
++     * Web only. The pixel density the canvas is rendered at, defaults to
++     * `window.devicePixelRatio`. Set it when the canvas is painted at a
++     * different size than its layout size, under a CSS transform for instance.
++     */
++    pixelDensity?: number;
+ }
+ export interface SkiaPictureViewNativeProps extends SkiaBaseViewProps {
+     picture?: SkPicture;
