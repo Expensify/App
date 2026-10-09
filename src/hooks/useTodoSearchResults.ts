@@ -1,4 +1,7 @@
+import type {SearchFooterTotal} from '@components/Search/types';
+
 import type {SearchKey} from '@libs/SearchKeyUtils';
+import {doesTransactionMatchFooterTotal} from '@libs/SearchUIUtils';
 import {getTodoReportsForSearchKey} from '@libs/TodosUtils';
 
 import CONST from '@src/CONST';
@@ -24,7 +27,12 @@ type TodoMetadata = {
     currency: string | undefined;
 };
 
-function computeMetadata(reports: Report[], transactionsByReportID: Record<string, Transaction[]>): TodoMetadata {
+/**
+ * The count and total the footer shows for a live to-do search. `footerTotal` is the breakdown the query asks for:
+ * the total covers only the expenses that belong in it, while the count stays every expense the search matched,
+ * which is how the backend answers a snapshot search.
+ */
+function computeMetadata(reports: Report[], transactionsByReportID: Record<string, Transaction[]>, footerTotal: SearchFooterTotal | undefined): TodoMetadata {
     let count = 0;
     let total = 0;
     let currency: string | undefined;
@@ -39,7 +47,7 @@ function computeMetadata(reports: Report[], transactionsByReportID: Record<strin
             count += reportTransactions.length;
 
             for (const transaction of reportTransactions) {
-                if (transaction.groupAmount) {
+                if (transaction.groupAmount && doesTransactionMatchFooterTotal(transaction, footerTotal)) {
                     total -= transaction.groupAmount;
                 }
 
@@ -131,7 +139,7 @@ function buildSearchResultsData(
  * Returns `undefined` (and skips all classification work) when `searchKey` is not provided, so the app-wide
  * SearchResultsProvider only does work while a to-do search is actually being viewed.
  */
-function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSearchResultsData; metadata: TodoMetadata} | undefined {
+function useTodoSearchResults(searchKey: SearchKey | undefined, footerTotal: SearchFooterTotal | undefined): {data: TodoSearchResultsData; metadata: TodoMetadata} | undefined {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -166,7 +174,7 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
         rules,
     });
 
-    const metadata = computeMetadata(reports, transactionsByReportID);
+    const metadata = computeMetadata(reports, transactionsByReportID, footerTotal);
     const data = buildSearchResultsData(reports, transactionsByReportID, allPolicies, allReportActions, allReportNameValuePairs, personalDetailsList, allTransactionViolations);
 
     return {data, metadata};
