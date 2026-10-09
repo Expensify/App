@@ -628,6 +628,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
         signIn: 'Meld je opnieuw aan.',
+        notValid: 'Ongeldige link.',
+        sessionMismatch: 'De link waarop je hebt geklikt is niet geldig voor je huidige sessie.',
+        switchAccount: {
+            title: 'Van account wisselen?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Je bent aangemeld als ${currentEmail}. Deze actie meldt je in plaats daarvan aan als ${newEmail}.`,
+            confirm: 'Van account wisselen',
+            staySignedIn: 'Niet van account wisselen',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -934,6 +943,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Deze chat is niet meer actief omdat <strong>je</strong> geen lid meer bent van de ${policyName}-werkruimte.`
                 : `Deze chat is niet meer actief omdat ${displayName} geen lid meer is van de ${policyName}-werkruimte.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Deze chat is niet langer actief omdat ${policyName} geen actief werkruimte meer is.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `Deze chat is niet langer actief omdat ${policyName} een gearchiveerde werkruimte is.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Deze chat is niet langer actief omdat ${policyName} geen actief werkruimte meer is.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Deze boeking is gearchiveerd.',
@@ -2042,6 +2052,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Geen verdere actie vereist!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Wijzig de werkruimte van het rapport voor verdere acties.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2405,9 +2421,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Accountinstellingen',
         account: 'Account',
         general: 'Algemeen',
+        talkToAHuman: 'Praat met een medewerker',
         helpPage: {
             title: 'Hulp en ondersteuning',
             description: 'We zijn er 24/7 om je te helpen.',
+            talkToAHumanDescription: 'Krijg hulp van een echt persoon',
             helpSite: 'Hulpwebsite',
             helpSiteDescription: 'Artikelen, handleidingen en meer',
             conciergeChat: 'Concierge',
@@ -2977,6 +2995,9 @@ ${amount} voor ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Dit lid behoort al tot een andere goedkeuringsworkflow. Alle updates hier worden daar ook doorgevoerd.',
+        approverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur of verwijder deze workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur.',
+        overLimitApproverNotWorkspaceMember: 'De extra fiatteur voor rapporten boven de limiet is geen lid meer van de workspace. Kies een nieuwe extra fiatteur.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> keurt al rapporten goed voor <strong>${name2}</strong>. Kies een andere fiatteur om een cirkelstroom te voorkomen.`,
         emptyContent: {
@@ -4803,6 +4824,9 @@ ${amount} voor ${merchant} - ${date}`,
                 'Weet je zeker dat je deze werkruimte wilt archiveren? Hiermee worden alle creditcards van gebruikers losgekoppeld en worden alle niet-ingediende kaartuitgaven permanent verwijderd.',
             archiveWithExpensifyCardsConfirmation:
                 'Weet je zeker dat je deze werkruimte wilt archiveren? Hiermee worden alle Expensify Card-limieten op $0 gezet en worden nieuwe aankooppogingen automatisch geweigerd.',
+            unarchive: 'Dearchiveren',
+            unarchiveWorkspace: 'Werkruimte dearchiveren',
+            unarchiveConfirmation: 'Weet je zeker dat je deze werkruimte wilt dearchiveren?',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} verwijderen?`,
             deleteConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen?',
             deleteWithCardsConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen? Hiermee worden alle kaartfeeds en toegewezen kaarten verwijderd.',
@@ -5360,11 +5384,11 @@ ${amount} voor ${merchant} - ${date}`,
                         label: 'Datum van laatste uitgave',
                         description: 'Datum van de meest recente uitgave in het rapport.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Exportdatum',
                         description: 'Datum waarop het rapport is geëxporteerd naar Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Ingediend op datum',
                         description: 'Datum waarop het rapport ter goedkeuring is ingediend.',
                     },
@@ -7277,6 +7301,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7504,6 +7530,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Campfire-gegevens synchroniseren';
                         case 'campfireSyncConnection':
                             return 'Verbinding met Campfire initialiseren';
+                        case 'zohoBooksSyncConnection':
+                            return 'Verbinding met Zoho Books initialiseren';
                         case 'campfireSyncImportData':
                             return 'Gegevens laden';
                         case 'campfireSyncPayments':
@@ -7561,6 +7589,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Doorlopende afstemming wordt per kaartfeed geconfigureerd. Selecteer een feed om te wijzigen welke je configureert.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
@@ -7696,9 +7725,32 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             startDate: 'Startdatum',
             endDate: 'Einddatum',
             autoGeneratedRateTooltip: 'Dit tarief is automatisch gegenereerd.',
+            automaticRates: 'Automatische tarieven',
             autoUpdateGovernmentRate: 'Overheidspercentages automatisch bijwerken',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Maak automatisch nieuwe tarieven aan wanneer ${countryPhrase} nieuwe richtlijnen publiceert.`,
-            governmentRateCountries: {US: 'de Verenigde Staten', CA: 'Canada', GB: 'Groot-Brittannië', AU: 'Australië', NO: 'Noorwegen', SE: 'Zweden', ZA: 'Zuid-Afrika'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `Maak automatisch nieuwe tarieven aan wanneer ${countryPhrase} nieuwe richtlijnen publiceert. Bestaande tarieven worden niet gewijzigd.`,
+            governmentRateCountries: {
+                US: 'de Verenigde Staten',
+                CA: 'Canada',
+                GB: 'Groot-Brittannië',
+                AU: 'Australië',
+                AT: 'Oostenrijk',
+                BE: 'België',
+                FI: 'Finland',
+                DE: 'Duitsland',
+                NL: 'Nederland',
+                PT: 'Portugal',
+                ES: 'Spanje',
+                NO: 'Noorwegen',
+                SE: 'Zweden',
+                ZA: 'Zuid-Afrika',
+            },
+            governmentRateCountryGeneric: 'uw land',
+            governmentRateSourceCountry: 'Bronland voor afstandstarieven',
+            governmentRateCountrySelectionPrompt:
+                'Om de functie voor het automatisch bijwerken van overheidsafstandstarieven te blijven gebruiken, bevestig welk land je vanaf nu wilt gebruiken.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Let op! Als je de valuta van de werkruimte wijzigt naar ${currency}, worden voortaan de overheidskilometertarieven gebruikt die ${countryPhrase} publiceert. Weet je zeker dat je door wilt gaan?`,
         },
         editor: {
             descriptionInputLabel: 'Beschrijving',
@@ -9771,6 +9823,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericCreateTaskFailureMessage: 'Er is een fout opgetreden bij het maken van deze taak. Probeer het later opnieuw.',
         deleteTask: 'Taak verwijderen',
         deleteConfirmation: 'Weet je zeker dat je deze taak wilt verwijderen?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Supportticket, ${date}: ${customer} en ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Hoi, ik ben ${supportRep}, en ik help je totdat dit helemaal is opgelost. Als je de details al met ons hebt gedeeld, bekijk ik die eerst voordat ik reageer, zodat je jezelf niet hoeft te herhalen. Als dit een nieuw probleem is, laat me dan weten waarmee je hulp nodig hebt.`,
+        checkboxTooltip: 'Je supportmedewerker vinkt dit aan zodra het is opgelost.',
+        genericCreateSupportTicketFailureMessage: 'We konden dit supportticket niet aanmaken. Sluit deze foutmelding en probeer het opnieuw.',
+        noSupportRepAvailable: 'Er zijn momenteel geen supportmedewerkers beschikbaar. Je kunt Concierge nog steeds een bericht sturen voor hulp.',
+        fallbackTitle: 'Supportticket',
+        resolved: 'Dit supportticket is opgelost.',
+        surveyPrompt: 'Hoe was je ervaring met de ondersteuning?',
+        reopenTicket: 'Ticket opnieuw openen',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Overzicht van ${monthName} ${year}`,

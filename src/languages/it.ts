@@ -628,6 +628,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Avvio di Expensify',
         expired: 'La tua sessione è scaduta.',
         signIn: 'Accedi di nuovo.',
+        notValid: 'Link non valido.',
+        sessionMismatch: 'Il link che hai cliccato non è valido per la tua sessione attuale.',
+        switchAccount: {
+            title: 'Passare ad un altro account?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Hai eseguito l’accesso come ${currentEmail}. Questa azione ti farà accedere come ${newEmail} invece.`,
+            confirm: 'Cambia account',
+            staySignedIn: 'Non cambiare account',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -935,6 +944,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Questa chat non è più attiva perché <strong>tu</strong> non fai più parte dello spazio di lavoro ${policyName}.`
                 : `Questa chat non è più attiva perché ${displayName} non fa più parte dello spazio di lavoro ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Questa chat non è più attiva perché ${policyName} non è più uno spazio di lavoro attivo.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `Questa chat non è più attiva perché ${policyName} è uno spazio di lavoro archiviato.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Questa chat non è più attiva perché ${policyName} non è più uno spazio di lavoro attivo.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Questa prenotazione è archiviata.',
@@ -2044,6 +2054,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Nessuna ulteriore azione richiesta!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Cambia lo spazio di lavoro del rendiconto per ulteriori azioni.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2407,9 +2423,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Impostazioni account',
         account: 'Account',
         general: 'Generale',
+        talkToAHuman: 'Parla con una persona',
         helpPage: {
             title: 'Aiuto e supporto',
             description: 'Siamo qui per aiutarti, a qualsiasi ora.',
+            talkToAHumanDescription: 'Ricevi assistenza da una persona reale',
             helpSite: 'Sito di assistenza',
             helpSiteDescription: 'Articoli, tutorial e altro',
             conciergeChat: 'Concierge',
@@ -2973,6 +2991,9 @@ ${amount} per ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Questo membro appartiene già a un altro flusso di approvazione. Qualsiasi aggiornamento effettuato qui verrà applicato anche lì.',
+        approverNotWorkspaceMember: 'Questo approvatore non è più un membro dello spazio di lavoro. Scegli un nuovo approvatore oppure elimina questo workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Questo approvatore non è più un membro dello spazio di lavoro. Scegli un nuovo approvatore.',
+        overLimitApproverNotWorkspaceMember: 'L’approvatore aggiuntivo per i report oltre il limite non è più un membro dello spazio di lavoro. Scegli un nuovo approvatore aggiuntivo.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approva già i report per <strong>${name2}</strong>. Scegli un altro approvatore per evitare un flusso di lavoro circolare.`,
         emptyContent: {
@@ -4802,6 +4823,9 @@ ${amount} per ${merchant} - ${date}`,
                 'Sei sicuro di voler archiviare questo spazio di lavoro? Questa azione annullerà l’assegnazione di tutte le carte di credito agli utenti ed eliminerà definitivamente le spese con carta non inviate.',
             archiveWithExpensifyCardsConfirmation:
                 'Sei sicuro di voler archiviare questo spazio di lavoro? Questa azione imposterà tutti i limiti delle Expensify Card a 0 $ e rifiuterà automaticamente qualsiasi nuovo tentativo di acquisto.',
+            unarchive: 'Ripristina dall’archivio',
+            unarchiveWorkspace: 'Ripristina spazio di lavoro dall’archivio',
+            unarchiveConfirmation: 'Sei sicuro di voler ripristinare questo spazio di lavoro dall’archivio?',
             deleteWorkspaceTitle: (workspaceName: string) => `Eliminare ${workspaceName}?`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
@@ -5361,11 +5385,11 @@ ${amount} per ${merchant} - ${date}`,
                         label: "Data dell'ultima spesa",
                         description: 'Data della spesa più recente nel rendiconto.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Data di esportazione',
                         description: 'Data in cui il report è stato esportato in Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Data di invio',
                         description: "Data in cui il report è stato inviato per l'approvazione.",
                     },
@@ -7293,6 +7317,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7520,6 +7546,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Sincronizzazione dei dati Campfire';
                         case 'campfireSyncConnection':
                             return 'Inizializzazione della connessione a Campfire';
+                        case 'zohoBooksSyncConnection':
+                            return 'Inizializzazione della connessione a Zoho Books';
                         case 'campfireSyncImportData':
                             return 'Caricamento dei dati';
                         case 'campfireSyncPayments':
@@ -7577,6 +7605,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>La Riconciliazione continua è configurata per ogni flusso di carte. Seleziona un flusso per cambiare quello che stai configurando.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
@@ -7715,9 +7744,32 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             startDate: 'Data di inizio',
             endDate: 'Data di fine',
             autoGeneratedRateTooltip: 'Questa tariffa è generata automaticamente.',
+            automaticRates: 'Tariffe automatiche',
             autoUpdateGovernmentRate: 'Aggiorna automaticamente le aliquote governative',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Crea automaticamente nuove aliquote quando ${countryPhrase} pubblica nuove linee guida.`,
-            governmentRateCountries: {US: 'gli Stati Uniti', CA: 'Canada', GB: 'Gran Bretagna', AU: 'Australia', NO: 'Norvegia', SE: 'Svezia', ZA: 'Sudafrica'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `Crea automaticamente nuove aliquote quando ${countryPhrase} pubblica nuove linee guida. Non modifica le aliquote esistenti.`,
+            governmentRateCountries: {
+                US: 'gli Stati Uniti',
+                CA: 'Canada',
+                GB: 'Gran Bretagna',
+                AU: 'Australia',
+                AT: "l'Austria",
+                BE: 'il Belgio',
+                FI: 'la Finlandia',
+                DE: 'la Germania',
+                NL: 'i Paesi Bassi',
+                PT: 'il Portogallo',
+                ES: 'la Spagna',
+                NO: 'Norvegia',
+                SE: 'Svezia',
+                ZA: 'Sudafrica',
+            },
+            governmentRateCountryGeneric: 'il tuo paese',
+            governmentRateSourceCountry: 'Paese di origine delle aliquote chilometriche',
+            governmentRateCountrySelectionPrompt:
+                'Per continuare a usare la funzione di aggiornamento automatico delle aliquote chilometriche governative, conferma quale paese vuoi usare in futuro.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Attenzione! Cambiando la valuta dello spazio di lavoro in ${currency}, verranno utilizzate le aliquote chilometriche governative che ${countryPhrase} pubblica. Sei sicuro di voler procedere?`,
         },
         editor: {
             descriptionInputLabel: 'Descrizione',
@@ -9804,6 +9856,18 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         genericCreateTaskFailureMessage: 'Si è verificato un errore durante la creazione di questa attività. Riprova più tardi.',
         deleteTask: 'Elimina attività',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa attività?',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Ticket di assistenza, ${date}: ${customer} e ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Ciao, sono ${supportRep} e lavorerò con te finché il problema non sarà completamente risolto. Se ci hai già fornito dei dettagli, li esaminerò prima di risponderti così non dovrai ripeterti. Se invece si tratta di un nuovo problema, fammi sapere di cosa hai bisogno.`,
+        checkboxTooltip: 'Il tuo addetto all’assistenza lo contrassegnerà come risolto quando il problema sarà stato risolto.',
+        genericCreateSupportTicketFailureMessage: 'Non siamo riusciti a creare questo ticket di supporto. Chiudi questo errore e riprova.',
+        noSupportRepAvailable: 'Al momento non sono disponibili rappresentanti dell’assistenza. Puoi comunque inviare un messaggio a Concierge per ricevere aiuto.',
+        fallbackTitle: 'Ticket di supporto',
+        resolved: 'Questo ticket di assistenza è risolto.',
+        surveyPrompt: 'Com’è stata la tua esperienza con l’assistenza?',
+        reopenTicket: 'Riapri ticket',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `Estratto conto di ${monthName} ${year}`,

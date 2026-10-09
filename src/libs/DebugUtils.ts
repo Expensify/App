@@ -606,6 +606,10 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 data: 'object',
                 errors: 'object',
             });
+        case 'supportTicketCalendarLink':
+            return validateString(value);
+        case 'reopenedAsReportID':
+            return validateString(value);
         case 'calendlyCalls':
             return validateArray<ArrayElement<ReportNameValuePairs, 'calendlyCalls'>>(value, {
                 status: 'string',
@@ -709,6 +713,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 origin: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 conciergeFeedbackForReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                supportTicketCalendarLink: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reopenedAsReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
@@ -1537,6 +1543,7 @@ function getReasonForShowingRowInLHN({
     conciergeReportID,
     hasGuidesEmails,
     derivedIsEmptyReport,
+    transactionViolations,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1551,6 +1558,7 @@ function getReasonForShowingRowInLHN({
     hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
     derivedIsEmptyReport: boolean | undefined;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1573,6 +1581,7 @@ function getReasonForShowingRowInLHN({
         conciergeReportID,
         derivedIsEmptyReport,
         hasGuidesEmails,
+        transactionViolations,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1601,12 +1610,14 @@ function getReasonAndReportActionForGBRInLHNRow(
     currentUserLogin: string,
     currentUserAccountID: number,
     isReportArchived = false,
+    transactionViolations?: OnyxCollection<TransactionViolation[]>,
 ): GBRReasonAndReportAction | null {
     if (!report) {
         return null;
     }
 
-    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, undefined, isReportArchived) ?? {};
+    const {reason, reportAction} =
+        getReasonAndReportActionThatRequiresAttention({optionOrReport: report, currentUserLogin, currentUserAccountID, transactionViolations, isReportArchived}) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};
