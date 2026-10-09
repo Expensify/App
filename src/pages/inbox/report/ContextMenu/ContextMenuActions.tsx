@@ -17,6 +17,7 @@ import getClipboardText from '@libs/Clipboard/getClipboardText';
 import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
+import {getDownloadFileName} from '@libs/fileDownload/FileUtils';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -1667,13 +1668,15 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (closePopover, {reportAction, translate, encryptedAuthToken}) => {
             const html = getActionHtml(reportAction);
-            const {originalFileName, sourceURL} = getAttachmentDetails(html);
+            const {originalFileName, sourceURL} = getAttachmentDetails(html, reportAction?.reportActionID);
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '', encryptedAuthToken);
             const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
             setDownload(sourceID, true);
             const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
             const isAnchorTag = anchorRegex.test(html);
-            fileDownload(translate, sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
+            fileDownload(translate, sourceURLWithAuth, getDownloadFileName(originalFileName ?? '', sourceURL ?? ''), '', isAnchorTag && isMobileSafari()).then(() =>
+                setDownload(sourceID, false),
+            );
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
