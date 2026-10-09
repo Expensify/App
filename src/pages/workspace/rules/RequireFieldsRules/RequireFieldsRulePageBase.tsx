@@ -96,6 +96,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     // Fields the user toggled directly — category reassignment marks touchedFields for save/display
     // without meaning the user caused coupling, so tooltips key off this set instead.
     const [couplingInteractionFields, setCouplingInteractionFields] = useState<Set<RequireFieldsRuleSettingFieldKey>>(() => new Set());
+    const [generatedCategoryName, setGeneratedCategoryName] = useState<string>();
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
@@ -115,8 +116,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         setSelectionCategoryName(selectedCategoryName);
     } else if (selectionCategoryName !== selectedCategoryName) {
         const previousCategoryName = selectionCategoryName;
-        const didChangeSelectedCategory = previousCategoryName !== undefined && selectedCategoryName !== undefined;
+        const isGeneratedCategory = selectedCategoryName === generatedCategoryName;
+        const didChangeSelectedCategory = previousCategoryName !== undefined && selectedCategoryName !== undefined && !isGeneratedCategory;
         setSelectionCategoryName(selectedCategoryName);
+        setGeneratedCategoryName(undefined);
 
         if (didChangeSelectedCategory) {
             const previousCategory = previousCategoryName ? policyCategories?.[previousCategoryName] : undefined;
@@ -430,6 +433,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
         setDraftRequireFieldsRule(values);
+        setGeneratedCategoryName(values.category);
         setTouchedFields(new Set(SETTING_FIELD_KEYS.filter((fieldKey) => values[fieldKey] !== undefined)));
     };
 
