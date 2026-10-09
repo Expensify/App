@@ -190,6 +190,7 @@ function MoneyRequestReceiptView({
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
@@ -356,6 +357,8 @@ function MoneyRequestReceiptView({
                     isMarkAsCash,
                     routeDistanceMeters,
                     distanceUnit,
+                    policyVendors,
+                    transactionCurrency: transaction?.currency,
                 });
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
@@ -376,6 +379,8 @@ function MoneyRequestReceiptView({
         isMarkAsCash,
         routeDistanceMeters,
         distanceUnit,
+        policyVendors,
+        transaction?.currency,
         dateFnsLocale,
     ]);
 
@@ -611,8 +616,8 @@ function MoneyRequestReceiptView({
     // Expanding only opens the receipt to look at, so it asks for none of the permission above
     const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
 
-    // Show the count badge only after a multi-page PDF receipt loads.
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !(isMapDistanceRequest && isPendingReceiptRegeneration);
+    // Map distance receipts render as an e-receipt card, so their stored PDF page count is never shown.
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !isMapDistanceRequest;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
