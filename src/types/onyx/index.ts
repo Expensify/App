@@ -151,7 +151,6 @@ import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
-import type {PolicyVendor} from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -333,7 +332,6 @@ export type {
     PolicyCategories,
     PolicyCategory,
     PolicyDataLoadingState,
-    PolicyVendor,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
