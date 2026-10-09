@@ -5745,22 +5745,23 @@ describe('OptionsListUtils', () => {
             });
 
             // When we call filterAndOrderOptions with the localized word the current user uses to refer to themselves
-            const filteredOptions = filterAndOrderOptions(
+            const filteredOptions = filterAndOrderOptions({
                 options,
-                'me',
-                COUNTRY_CODE,
+                searchInputValue: 'me',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-                {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
-                translateLocal,
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID: undefined,
+            });
 
             // Then the self DM should be returned so the current user can find their own chat
             expect(filteredOptions.recentReports.some((option) => option.isSelfDM)).toBe(true);
