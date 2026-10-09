@@ -314,12 +314,19 @@ function initSplitExpenseItemData(
             }
         }
         // The tax is computed from the whole split amount, matching every other split tax recalculation in this file.
+        // Distance tax is only reclaimable on part of the mileage amount, so the rate's claimable percentage is applied
+        // the same way DistanceRequestUtils.getTaxableAmount does.
         if (liveTaxValue !== undefined) {
             const splitAmount = Math.abs(amount ?? transactionDetails?.amount ?? 0);
+            const splitCustomUnitRateID = splitCustomUnit?.customUnitRateID;
+            const splitCustomUnitRate = splitCustomUnitRateID ? getDistanceRateCustomUnitRate(policy, splitCustomUnitRateID) : undefined;
+            const taxableAmount = isDistanceRequestTransactionUtils(transaction)
+                ? splitAmount * (splitCustomUnitRate?.attributes?.taxClaimablePercentage ?? CONST.DEFAULT_NUMBER_ID)
+                : splitAmount;
             const splitCurrency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
             resolvedTaxCode = liveTaxCode;
             resolvedTaxValue = liveTaxValue;
-            resolvedTaxAmount = convertToBackendAmount(calculateTaxAmount(liveTaxValue, splitAmount, getCurrencyDecimals(splitCurrency)));
+            resolvedTaxAmount = convertToBackendAmount(calculateTaxAmount(liveTaxValue, taxableAmount, getCurrencyDecimals(splitCurrency)));
         } else {
             // No selectable rate resolves, so clear all three fields, the same as removing the tax by hand. Keeping the
             // parent's stored trio would send a tax code the policy no longer accepts, and the split request would fail.
