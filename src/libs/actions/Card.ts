@@ -768,14 +768,15 @@ function updateSettlementAccount(
         return;
     }
 
-    const optimisticValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true};
+    const optimisticValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true, errorFields: {paymentBankAccountID: null}};
 
     const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false};
 
     const failureValue = {
         [programKey]: {paymentBankAccountID: currentSettlementBankAccountID},
         isLoading: false,
-        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+        // Key 0 sorts below the backend's actionable error in the same field, so the generic copy only shows when the backend sends none
+        errorFields: {paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0)},
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -808,6 +809,10 @@ function updateSettlementAccount(
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT, parameters, {optimisticData, successData, failureData});
+}
+
+function clearSettlementAccountError(workspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {errorFields: {paymentBankAccountID: null}});
 }
 
 function getCardDefaultName(userName?: string) {
@@ -2078,6 +2083,7 @@ export {
     unfreezeCard,
     updateExpensifyCardTitle,
     updateSettlementAccount,
+    clearSettlementAccountError,
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
