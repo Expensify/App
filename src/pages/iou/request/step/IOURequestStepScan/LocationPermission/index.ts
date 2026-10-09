@@ -24,13 +24,17 @@ function requestLocationPermission(): Promise<PermissionStatus> {
 function getLocationPermission(): Promise<PermissionStatus> {
     return new Promise((resolve) => {
         if (navigator.geolocation) {
-            navigator.permissions.query({name: 'geolocation'}).then((result) => {
-                if (result.state === 'prompt') {
-                    resolve(RESULTS.DENIED);
-                    return;
-                }
-                resolve(result.state === 'granted' ? RESULTS.GRANTED : RESULTS.BLOCKED);
-            });
+            navigator.permissions
+                .query({name: 'geolocation'})
+                .then((result) => {
+                    if (result.state === 'prompt') {
+                        resolve(RESULTS.DENIED);
+                        return;
+                    }
+                    resolve(result.state === 'granted' ? RESULTS.GRANTED : RESULTS.BLOCKED);
+                })
+                // Some browsers reject a geolocation query, and the scan submit waits on this result
+                .catch(() => resolve(RESULTS.UNAVAILABLE));
         } else {
             resolve(RESULTS.UNAVAILABLE);
         }

@@ -1,6 +1,7 @@
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+import SupportTicketView from '@components/ReportActionItem/SupportTicketView';
 import TaskView from '@components/ReportActionItem/TaskView';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
@@ -13,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isTaskReport} from '@libs/ReportUtils';
+import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isSupportTicket, isTaskReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -141,6 +142,19 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                     />
                     {renderThreadDivider}
                 </View>
+            </View>
+        );
+    }
+
+    if (isSupportTicket(report)) {
+        return (
+            <View style={styles.pRelative}>
+                <AnimatedEmptyStateBackground />
+                <SupportTicketView
+                    report={report}
+                    action={action}
+                />
+                {renderThreadDivider}
             </View>
         );
     }
