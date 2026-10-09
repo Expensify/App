@@ -55,8 +55,8 @@ function getFittingGroupBy(groupBy: InsightsGroupBy, options: InsightsGroupBy[])
         return groupBy;
     }
 
-    const distanceFromSelection = (option: InsightsGroupBy) => Math.abs(INSIGHTS_GROUP_BY_OPTIONS.indexOf(option) - INSIGHTS_GROUP_BY_OPTIONS.indexOf(groupBy));
-    return options.reduce((nearest, option) => (distanceFromSelection(option) < distanceFromSelection(nearest) ? option : nearest));
+    const getDistanceFromSelection = (option: InsightsGroupBy) => Math.abs(INSIGHTS_GROUP_BY_OPTIONS.indexOf(option) - INSIGHTS_GROUP_BY_OPTIONS.indexOf(groupBy));
+    return options.reduce((nearest, option) => (getDistanceFromSelection(option) < getDistanceFromSelection(nearest) ? option : nearest));
 }
 
 export {getFittingGroupBy, getInsightsGroupByOptions};

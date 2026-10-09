@@ -30,7 +30,7 @@ type UseInsightsFiltersResult = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
-function withFittingGroupBy(filters: InsightsFilters): InsightsFilters {
+function normalizeInsightsFilters(filters: InsightsFilters): InsightsFilters {
     return {...filters, groupBy: getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date))};
 }
 
@@ -45,10 +45,10 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
         ...DEFAULT_INSIGHTS_FILTERS,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
-    const filters = withFittingGroupBy({...defaultFilters, ...parseInsightsFilters(storedQuery)});
+    const filters = normalizeInsightsFilters({...defaultFilters, ...parseInsightsFilters(storedQuery)});
 
     const setFilters = (update: Partial<InsightsFilters>) => {
-        setInsightsFilters(searchKey, buildInsightsQueryString(withFittingGroupBy({...filters, ...update})));
+        setInsightsFilters(searchKey, buildInsightsQueryString(normalizeInsightsFilters({...filters, ...update})));
     };
 
     return {
