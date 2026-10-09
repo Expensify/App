@@ -16,6 +16,7 @@ const stableSortDataDefault = <TValue>(data: TValue[]) => data;
  * @param filterData - Predicate that decides whether a datum matches the current search input.
  * @param sortData - Optional comparator used to sort the filtered results. Defaults to identity (no sort).
  * @param preFilter - Optional filter applied before text search (e.g. group/category filter).
+ * @returns The search input, its setter, the results, and the search text the results were filtered by. That last one lags the input by the debounce window.
  */
 function useSearchResults<TValue>(
     data: TValue[],
@@ -40,7 +41,7 @@ function useSearchResults<TValue>(
         setInputValue('');
     }, [data.length, prevData.length, setInputValue]);
 
-    return [inputValue, setInputValue, result] as const;
+    return [inputValue, setInputValue, result, searchQuery] as const;
 }
 
 export default useSearchResults;

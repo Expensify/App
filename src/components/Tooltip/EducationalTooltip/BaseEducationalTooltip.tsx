@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type {HostInstance, LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 
 import {NavigationContext, useIsFocused} from '@react-navigation/native';
-import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 
 import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipCoordinate';
@@ -29,6 +29,7 @@ function BaseEducationalTooltip({
     shouldDisplayTooltip,
     shouldHideOnNavigate = true,
     shouldHideOnScroll = false,
+    shouldCheckVisibilityOnFirstDisplay = false,
     uniqueID,
     ...props
 }: EducationalTooltipProps) {
@@ -151,6 +152,14 @@ function BaseEducationalTooltip({
         };
     }, []);
 
+    const showOnFirstDisplay = useEffectEvent(() => {
+        if (shouldCheckVisibilityOnFirstDisplay) {
+            renderTooltip();
+            return;
+        }
+        show.current?.();
+    });
+
     useEffect(() => {
         if (!shouldMeasure || shouldSuppressTooltip || !shouldShowTooltip) {
             return;
@@ -161,7 +170,7 @@ function BaseEducationalTooltip({
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
-            show.current?.();
+            showOnFirstDisplay();
             // Mark the first display as done only once it has actually happened, so paths that re-measure
             // on a later layout (e.g. rotation) don't fire against a still-animating layout beforehand.
             hasDisplayedTooltipRef.current = true;
