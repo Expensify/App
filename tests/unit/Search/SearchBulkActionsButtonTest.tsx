@@ -294,20 +294,26 @@ describe('SearchBulkActionsButton group selection label', () => {
     };
 
     it('counts the expenses a selected settlement group holds', () => {
+        // Given a selected settlement that holds 12 expenses
         mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cleared`]: {count: 12}};
         selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cleared`);
 
+        // When the selection count renders
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
+        // Then the count reflects the expenses inside the settlement
         expect(getBarProps().selectedCount).toBe(12);
     });
 
     it('counts a selected cash back group as one item even though it holds no expenses', () => {
+        // Given a selected cash back row, which holds no expenses
         mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true}};
         selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cashBack`);
 
+        // When the selection count renders
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
+        // Then it still counts as one selected item, so the header never says 0 selected
         expect(getBarProps().selectedCount).toBe(1);
     });
 
@@ -326,14 +332,17 @@ describe('SearchBulkActionsButton group selection label', () => {
     });
 
     it('adds the cash back row to the expenses of the settlements selected alongside it', () => {
+        // Given a cash back row selected alongside a settlement of 12 expenses
         mockSearchData = {
             [`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true},
             [`${CONST.SEARCH.GROUP_PREFIX}cleared`]: {count: 12},
         };
         selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cashBack`, `${CONST.SEARCH.GROUP_PREFIX}cleared`);
 
+        // When the selection count renders
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
+        // Then the cash back row adds one to the settlement's expenses
         expect(getBarProps().selectedCount).toBe(13);
     });
 });

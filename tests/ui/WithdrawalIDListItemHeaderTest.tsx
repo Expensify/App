@@ -142,42 +142,56 @@ describe('WithdrawalIDListItemHeader', () => {
 
     describe('Cash back row', () => {
         it('should show the Cash back badge instead of the settlement status', async () => {
-            // state 8 would otherwise render "Cleared", so cash back has to win over the settlement state.
+            // Given a cash back row carrying state 8, which on its own would render "Cleared"
+            // When the header renders
             renderHeader(createWithdrawalItem({isCashBack: true, count: 0, total: -2500, state: 8}));
             await waitForBatchedUpdatesWithAct();
 
+            // Then the cash back badge wins over the settlement state
             expect(screen.getByText('Cash back')).toBeOnTheScreen();
             expect(screen.queryByText('Cleared')).not.toBeOnTheScreen();
         });
 
         it('should leave the Expenses cell blank rather than showing a count', async () => {
+            // Given a cash back row, which holds no expenses
+            // When the header renders
             renderHeader(createWithdrawalItem({isCashBack: true, count: 0, total: -2500}));
             await waitForBatchedUpdatesWithAct();
 
+            // Then the Expenses cell stays empty, since a 0 would read as an empty settlement
             expect(screen.queryByText('0')).not.toBeOnTheScreen();
         });
 
         it('should render the backend-signed total as a negative amount', async () => {
+            // Given a cash back row whose total the backend already signs negative
+            // When the header renders
             renderHeader(createWithdrawalItem({isCashBack: true, count: 0, total: -2500}));
             await waitForBatchedUpdatesWithAct();
 
+            // Then the credit shows as a negative amount without the client flipping it again
             expect(screen.getByText('-$25.00')).toBeOnTheScreen();
         });
     });
 
     describe('Settlement row is unaffected', () => {
         it('should show the settlement status badge', async () => {
+            // Given a cleared settlement row
+            // When the header renders
             renderHeader(createWithdrawalItem({count: 4, total: 40000, state: 8}));
             await waitForBatchedUpdatesWithAct();
 
+            // Then it keeps its settlement status, so the cash back badge only applies to credits
             expect(screen.getByText('Cleared')).toBeOnTheScreen();
             expect(screen.queryByText('Cash back')).not.toBeOnTheScreen();
         });
 
         it('should show the expense count and a positive total', async () => {
+            // Given a settlement row with 4 expenses
+            // When the header renders
             renderHeader(createWithdrawalItem({count: 4, total: 40000}));
             await waitForBatchedUpdatesWithAct();
 
+            // Then its count and positive total are unchanged by the cash back handling
             expect(screen.getByText('4')).toBeOnTheScreen();
             expect(screen.getByText('$400.00')).toBeOnTheScreen();
         });
@@ -202,16 +216,22 @@ describe('WithdrawalIDListItemHeader', () => {
         });
 
         it('should render the arrow for a settlement row', async () => {
+            // Given a settlement row on a narrow layout, which has expenses to expand into
+            // When the header renders
             renderHeader(createWithdrawalItem({count: 4, total: 40000}), jest.fn());
             await waitForBatchedUpdatesWithAct();
 
+            // Then the expand arrow is shown
             expect(screen.getByLabelText('Expand')).toBeOnTheScreen();
         });
 
         it('should not render the arrow for a cash back row', async () => {
+            // Given a cash back row on a narrow layout, which has nothing to expand into
+            // When the header renders
             renderHeader(createWithdrawalItem({isCashBack: true, count: 0, total: -2500}));
             await waitForBatchedUpdatesWithAct();
 
+            // Then no expand arrow is shown
             expect(screen.queryByLabelText('Expand')).not.toBeOnTheScreen();
         });
     });

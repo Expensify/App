@@ -8315,7 +8315,7 @@ describe('SearchUIUtils', () => {
                 state,
                 ...(isCashBack ? {isCashBack} : {}),
             });
-            // Both cash back rows carry state 8, the same state a cleared settlement carries.
+            // Given two cash back rows carrying state 8, the same state a cleared settlement carries, among settlements in every state
             const data: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
                 [`${CONST.SEARCH.GROUP_PREFIX}cashBackA` as const]: statusGroup(8, true),
@@ -8326,6 +8326,7 @@ describe('SearchUIUtils', () => {
                 [`${CONST.SEARCH.GROUP_PREFIX}pending` as const]: statusGroup(1),
             };
 
+            // When the rows are built and sorted by withdrawal status in each direction
             const [sections] = getSectionsByType(
                 SearchUIUtils.getSections({
                     dateFnsLocale: undefined,
@@ -8356,6 +8357,7 @@ describe('SearchUIUtils', () => {
                     CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 ).map((group) => group.keyForList);
 
+            // Then cash back sorts past every settlement state instead of sitting between the cleared settlements
             expect(sortGroups(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['group_pending', 'group_failed', 'group_cleared8', 'group_cleared9', 'group_cashBackA', 'group_cashBackB']);
             expect(sortGroups(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_cashBackA', 'group_cashBackB', 'group_cleared9', 'group_cleared8', 'group_failed', 'group_pending']);
         });
@@ -14827,21 +14829,35 @@ describe('isCashBackWithdrawalGroup', () => {
     });
 
     it('returns true for a withdrawal group flagged as cash back', () => {
+        // Given a withdrawal group the backend flags as cash back
+        // When it is checked
+        // Then it is a cash back row
         expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup({isCashBack: true}))).toBe(true);
     });
 
     it('returns false for a normal settlement withdrawal group', () => {
+        // Given withdrawal groups without the flag or with it set to false
+        // When they are checked
+        // Then neither is a cash back row
         expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup())).toBe(false);
         expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup({isCashBack: false}))).toBe(false);
     });
 
     it('stays false for a group of another type that happens to carry the flag', () => {
+        // Given a card group that carries the flag
         const cardGroup = {...withdrawalGroup({isCashBack: true}), groupedBy: CONST.SEARCH.GROUP_BY.CARD};
+
+        // When it is checked
+        // Then it is not a cash back row, since only withdrawal groups can be
         expect(SearchUIUtils.isCashBackWithdrawalGroup(cardGroup)).toBe(false);
     });
 
     it('stays false for a row that is not a transaction group at all', () => {
+        // Given a plain list row
         const plainRow: ListItem = {keyForList: 'not-a-group'};
+
+        // When it is checked
+        // Then it is not a cash back row
         expect(SearchUIUtils.isCashBackWithdrawalGroup(plainRow)).toBe(false);
     });
 });

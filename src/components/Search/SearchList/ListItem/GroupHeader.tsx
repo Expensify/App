@@ -390,6 +390,7 @@ function GroupHeader({
                 role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}
                 isNested
                 interactive={!isCashBackWithdrawal}
+                focusable={!isCashBackWithdrawal}
                 pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
                 hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}

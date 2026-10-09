@@ -244,21 +244,23 @@ describe('GroupHeader', () => {
             // When the row is pressed
             fireEvent.press(screen.getByLabelText(groupKey));
 
-            // Then it expands, and is exposed as a button because pressing it does something
+            // Then it expands, and is exposed as a focusable button because pressing it does something
             expect(onToggle).toHaveBeenCalledTimes(1);
             expect(screen.getByRole(CONST.ROLE.BUTTON, {name: groupKey})).toBeTruthy();
+            expect(screen.getByLabelText(groupKey)).toHaveProp('focusable', true);
         });
 
-        it('does not expand a cash back row or announce it as a button', () => {
+        it('does not expand, announce or tab to a cash back row', () => {
             // Given a cash back row, which holds no expenses
             const {onToggle, groupKey} = renderWithdrawalRow(true);
 
             // When the row is pressed
             fireEvent.press(screen.getByLabelText(groupKey));
 
-            // Then nothing opens, and screen readers are not told it is a button that would do something
+            // Then nothing opens, and neither screen readers nor the Tab key treat it as a control that does something
             expect(onToggle).not.toHaveBeenCalled();
             expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: groupKey})).toBeNull();
+            expect(screen.getByLabelText(groupKey)).toHaveProp('focusable', false);
         });
     });
 });
