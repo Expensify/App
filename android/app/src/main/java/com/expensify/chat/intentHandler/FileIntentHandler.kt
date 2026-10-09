@@ -6,31 +6,40 @@ import android.net.Uri
 import com.expensify.chat.utils.FileUtils
 
 class FileIntentHandler(private val context: Context) : AbstractIntentHandler() {
-    override fun handle(intent: Intent): Boolean {
+    override fun handle(intent: Intent, shouldLaunchActivity: Boolean): Boolean {
         super.clearTemporaryFiles(context)
         when(intent.action) {
              Intent.ACTION_SEND -> {
-                 handleSingleFileIntent(intent, context)
-                 onCompleted()
+                 handleSingleFileIntent(intent, context, shouldLaunchActivity)
+                 // Open the Share screen even if persisting the attachment fails so it can display an error instead of silently discarding the share.
+                 if (shouldLaunchActivity) {
+                     onCompleted()
+                 }
                  return true
              }
          }
          return false
     }
 
-    private fun handleSingleFileIntent(intent: Intent, context: Context) {
-        (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { fileUri ->
-            val resultingPath: String? = FileUtils.copyUriToStorage(fileUri, context)
-
-            if (resultingPath != null) {
-                val shareFileObject = ShareFileObject(resultingPath, intent.type)
-
-                val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
-                editor.putString(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
-                editor.apply()
-            }
+    private fun handleSingleFileIntent(intent: Intent, context: Context, shouldLaunchActivity: Boolean) {
+        val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM) ?: return
+        val resultingPath = FileUtils.copyUriToStorage(fileUri, context) ?: return
+        val mimeType = intent.type ?: try {
+            context.contentResolver.getType(fileUri)
+        } catch (exception: Exception) {
+            null
         }
+        val shareFileObject = ShareFileObject(resultingPath, mimeType)
+
+        val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
+        if (shouldLaunchActivity) {
+            editor.apply()
+            return
+        }
+
+        editor.commit()
     }
 
     override fun onCompleted() {
