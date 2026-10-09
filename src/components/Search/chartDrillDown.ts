@@ -68,11 +68,7 @@ function getBucketDrillDownRange(queryJSON: Readonly<SearchQueryJSON>, bucketRan
 
 /** Builds the Spend table query behind a chart's "View on Spend", which opens the rows the chart plots as they are grouped and sorted, over the whole period. */
 function buildViewOnSpendQuery(queryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
-    return buildSearchQueryString({
-        ...queryJSON,
-        limit: undefined,
-        view: CONST.SEARCH.VIEW.TABLE,
-    });
+    return buildSearchQueryString({...queryJSON, limit: undefined, view: CONST.SEARCH.VIEW.TABLE});
 }
 
 export {buildChartDrillDownQuery, buildViewOnSpendQuery, getBucketDrillDownRange};

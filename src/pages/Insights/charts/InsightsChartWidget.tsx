@@ -87,12 +87,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                     {
                         text: translate('insightsPage.viewOnSpend'),
                         icon: icons.Expand,
-                        onSelected: () =>
-                            Navigation.navigate(
-                                ROUTES.SEARCH_ROOT.getRoute({
-                                    query: buildViewOnSpendQuery(queryJSON),
-                                }),
-                            ),
+                        onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
                         shouldCallAfterModalHide: true,
                     },
                 ]}
