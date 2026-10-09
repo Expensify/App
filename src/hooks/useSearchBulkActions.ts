@@ -2823,6 +2823,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                     const areAllSelectedReportsBlocked = blockedReportIDs.size > 0 && blockedReportIDs.size === transactionsByReportID.size;
 
+                    const buildReportSubmitViolationSummary = (report: OnyxEntry<Report>, reportID: string | undefined, policyOverride?: OnyxEntry<Policy>) => {
+                        const policy = policyOverride ?? (report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined);
+                        const reportOwnerLogin = getLoginByAccountID(report?.ownerAccountID, personalDetails);
+                        const reportTransactions = reportID ? (transactionsByReportID.get(reportID) ?? []) : [];
+                        const violationsCollection: OnyxCollection<TransactionViolations> = {};
+                        for (const transaction of reportTransactions) {
+                            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
+                            violationsCollection[violationsKey] =
+                                getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, report, reportOwnerLogin, policy) ?? [];
+                        }
+                        return getReportSubmitViolationSummary(reportTransactions, violationsCollection, report, policy, email ?? '', accountID);
+                    };
+
                     const selectedReportForSubmit = selectedReports.at(0);
                     const reportIDForSubmit = selectedReportForSubmit?.reportID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).find((id): id is string => !!id);
                     const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
@@ -2837,6 +2850,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
 
                         if (snapshotReport) {
+                            const summaryForSubmit = buildReportSubmitViolationSummary(snapshotReport, reportIDForSubmit, policyForSubmit);
+
                             const openPopoverForSubmit = (shouldResolveViolations?: boolean) => {
                                 openSearchReportSubmitToPopover(reportIDForSubmit, {
                                     shouldResolveAcknowledgedViolations: shouldResolveViolations,
@@ -2865,23 +2880,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 });
                             };
 
-                            const reportOwnerLoginForSubmit = getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails);
-                            const reportTransactionsForSubmit = transactionsByReportID.get(reportIDForSubmit) ?? [];
-                            const reportViolationsCollectionForSubmit: OnyxCollection<TransactionViolations> = {};
-                            for (const transaction of reportTransactionsForSubmit) {
-                                const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
-                                reportViolationsCollectionForSubmit[violationsKey] =
-                                    getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, snapshotReport, reportOwnerLoginForSubmit, policyForSubmit) ?? [];
-                            }
-                            const summaryForSubmit = getReportSubmitViolationSummary(
-                                reportTransactionsForSubmit,
-                                reportViolationsCollectionForSubmit,
-                                snapshotReport,
-                                policyForSubmit,
-                                email ?? '',
-                                accountID,
-                            );
-
                             confirmSubmitViolationsThenProceed({
                                 summary: summaryForSubmit,
                                 showConfirmModal,
@@ -2901,21 +2899,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // One summary per report, each with that report's own report/policy so getReportSubmitViolationSummary
                     // can apply its usual shouldShowViolation filtering and whole-report-rejection check itself, merged
                     // afterwards into a single summary for one modal covering every report being submitted.
-                    const perReportSummaries = [...reportIDsToSubmit].map((reportID) => {
-                        const reportForViolations = getReportFromSearchSnapshot(reportID, searchResults?.data, allReports);
-                        const policyForViolations = reportForViolations?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportForViolations.policyID}`] : undefined;
-                        const reportOwnerLogin = getLoginByAccountID(reportForViolations?.ownerAccountID, personalDetails);
-                        const reportTransactions = transactionsByReportID.get(reportID) ?? [];
-                        const reportViolationsCollection: OnyxCollection<TransactionViolations> = {};
-
-                        for (const transaction of reportTransactions) {
-                            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
-                            reportViolationsCollection[violationsKey] =
-                                getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, reportForViolations, reportOwnerLogin, policyForViolations) ?? [];
-                        }
-
-                        return getReportSubmitViolationSummary(reportTransactions, reportViolationsCollection, reportForViolations, policyForViolations, email ?? '', accountID);
-                    });
+                    const perReportSummaries = [...reportIDsToSubmit].map((reportID) =>
+                        buildReportSubmitViolationSummary(getReportFromSearchSnapshot(reportID, searchResults?.data, allReports), reportID),
+                    );
                     const summary = mergeReportSubmitViolationSummaries(perReportSummaries);
 
                     const runSubmit = (shouldResolveViolations?: boolean) => {
