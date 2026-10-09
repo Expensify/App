@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,8 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {updateMergeHRGroups} from '@libs/actions/connections/MergeHR';
-import {isMergeHRConnected} from '@libs/HRUtils';
+import {updateMergeHRGroups} from '@libs/actions/connections/merge/HR';
+import {isMergeConnected} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -56,6 +56,7 @@ function MergeHRGroupsPage({
         keyForList: group.id,
         value: group.id,
         isSelected: selectedIds.has(group.id),
+        itemStyle: styles.pv4,
     }));
 
     const toggleItem = (item: GroupListItem) => {
@@ -95,7 +96,7 @@ function MergeHRGroupsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!!policy && !isMergeHRConnected(policy)}
+            shouldBeBlocked={!!policy && !isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -117,7 +118,7 @@ function MergeHRGroupsPage({
                             onChangeText: setSearchText,
                             style: {containerStyle: styles.pb5},
                         }}
-                        style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting, listItemWrapperStyle: styles.pv4}}
+                        style={{listHeaderSelectAllTextStyle: styles.textLabelSupporting}}
                     />
                     <FixedFooter
                         style={styles.mtAuto}

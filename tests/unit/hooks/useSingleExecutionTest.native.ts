@@ -2,6 +2,10 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
+import type {PropsWithChildren} from 'react';
+
+import {Activity, createElement} from 'react';
+
 type NavigationListener = (event: {data: Record<string, unknown>}) => void;
 type UseSingleExecution = () => {
     isExecuting: boolean;
@@ -97,6 +101,102 @@ describe('useSingleExecution (native)', () => {
         });
 
         expect(action).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores stale release callbacks after Activity hides the hook and a second async action starts', async () => {
+        let resolveFirstAction: () => void = () => {};
+        let resolveSecondAction: () => void = () => {};
+        const firstAction = jest.fn(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveFirstAction = resolve;
+                }),
+        );
+        const secondAction = jest.fn(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveSecondAction = resolve;
+                }),
+        );
+        let activityMode: 'visible' | 'hidden' = 'visible';
+        const wrapper = ({children}: PropsWithChildren) => {
+            const activityProps = {mode: activityMode, children};
+            return createElement(Activity, activityProps);
+        };
+        const {result, rerender} = renderHook(() => useSingleExecution(), {wrapper});
+
+        act(() => {
+            result.current.singleExecution(firstAction)();
+        });
+
+        act(() => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(result.current.isExecuting).toBe(true);
+
+        activityMode = 'hidden';
+        rerender({});
+
+        activityMode = 'visible';
+        rerender({});
+
+        act(() => {
+            result.current.singleExecution(secondAction)();
+        });
+
+        act(() => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(firstAction).toHaveBeenCalledTimes(1);
+        expect(secondAction).toHaveBeenCalledTimes(1);
+        expect(result.current.isExecuting).toBe(true);
+
+        await act(async () => {
+            resolveFirstAction();
+            await Promise.resolve();
+        });
+
+        expect(result.current.isExecuting).toBe(true);
+
+        await act(async () => {
+            resolveSecondAction();
+            await Promise.resolve();
+        });
+
+        expect(result.current.isExecuting).toBe(false);
+    });
+
+    it('resets execution when Activity hides the hook before the unlock callback runs', () => {
+        const action = jest.fn();
+        let activityMode: 'visible' | 'hidden' = 'visible';
+        const wrapper = ({children}: PropsWithChildren) => {
+            const activityProps = {mode: activityMode, children};
+            return createElement(Activity, activityProps);
+        };
+        const {result, rerender} = renderHook(() => useSingleExecution(), {wrapper});
+
+        act(() => {
+            result.current.singleExecution(action)();
+        });
+
+        expect(result.current.isExecuting).toBe(true);
+
+        activityMode = 'hidden';
+        rerender({});
+
+        activityMode = 'visible';
+        rerender({});
+        act(() => {
+            result.current.singleExecution(action)();
+        });
+
+        expect(action).toHaveBeenCalledTimes(2);
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
     });
 
     it('cancels the pending transition handle on unmount', () => {

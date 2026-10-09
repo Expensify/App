@@ -1,5 +1,5 @@
 import Log from '@libs/Log';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import {config} from '@libs/Navigation/linkingConfig/config';
 
 import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -15,13 +15,14 @@ import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDyna
 import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
+import normalizePath from './normalizePath';
 
 /**
  * @param path - The path to parse
  * @returns - It's possible that there is no navigation action for the given path
  */
 function getStateFromPath(path: Route): PartialState<NavigationState> {
-    const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    const normalizedPath = normalizePath(path);
     const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // Collect all syntactic matches and validate each one against entryScreens.
@@ -71,7 +72,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     }
 
     // This function is used in the linkTo function where we want to use default getStateFromPath function.
-    const state = RNGetStateFromPath(normalizedPathAfterRedirection, linkingConfig.config);
+    const state = RNGetStateFromPath(normalizedPathAfterRedirection, config);
 
     if (!state) {
         throw new Error('Failed to parse the path to a navigation state.');

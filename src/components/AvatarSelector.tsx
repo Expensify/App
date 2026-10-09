@@ -12,13 +12,12 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Avatar from './Avatar';
+import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 import UserInitialsAvatar from './UserInitialsAvatar';
 
 type AvatarSelectorProps = {
-    /** Currently selected avatar ID */
     selectedID?: string;
 
     /** Called when an avatar is selected */
@@ -62,13 +61,17 @@ function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.X
                             onPress={() => onSelect(id)}
                             style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
                         >
-                            <Avatar
-                                type={CONST.ICON_TYPE_AVATAR}
-                                source={local}
-                                size={size}
-                                containerStyles={styles.avatarSelectorContainer}
+                            <View
+                                style={styles.avatarSelectorContainer}
                                 testID={`AvatarSelector_${id}`}
-                            />
+                            >
+                                <Icon
+                                    src={local}
+                                    width={iconSize}
+                                    height={iconSize}
+                                    additionalStyles={StyleUtils.getAvatarBorderStyle(size, CONST.AVATAR_SHAPE.CIRCLE)}
+                                />
+                            </View>
                         </PressableWithFeedback>
                     );
                 })}

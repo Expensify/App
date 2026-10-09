@@ -37,6 +37,7 @@ function ChatSearchView({
     columns,
     canSelectMultiple,
     isActionColumnWide,
+    columnSizeOptions,
     isMobileSelectionModeEnabled,
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
@@ -47,6 +48,7 @@ function ChatSearchView({
     onEndReached,
     onLayout,
     onScroll,
+    onViewableItemsChanged,
     contentContainerStyle,
     containerStyle,
 }: ChatSearchViewProps) {
@@ -79,7 +81,6 @@ function ChatSearchView({
                 item={item}
                 isDisabled={isRowDeleted(item)}
                 onFocus={onFocus}
-                keyForList={item.keyForList}
             />
         </AnimatedExitRow>
     );
@@ -92,6 +93,7 @@ function ChatSearchView({
             columns={columns}
             type={type}
             isActionColumnWide={isActionColumnWide}
+            columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
             isKeyboardShown={isKeyboardShown}
@@ -118,6 +120,7 @@ function ChatSearchView({
                 onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
+                onViewableItemsChanged={onViewableItemsChanged}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}

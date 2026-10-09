@@ -54,6 +54,7 @@ function buildSelected(...keys: string[]): SelectedTransactions {
             reportID: 'report_1',
             policyID: 'policy_1',
             amount: 100,
+            displayAmount: 100,
             currency: 'USD',
         };
         return acc;
@@ -102,6 +103,9 @@ function renderHarness({
             () => ({
                 setCurrentSelectedTransactionReportID: () => {},
                 setSelectedTransactions: () => {},
+                getSelectedTransactions: () => ({}),
+                getExcludedTransactions: () => ({}),
+                getAreAllMatchingItemsSelected: () => false,
                 applySelection: () => {},
                 setSelectedReports,
                 removeTransaction: () => {},

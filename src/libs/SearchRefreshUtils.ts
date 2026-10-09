@@ -1,6 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import type {SearchKey} from './SearchUIUtils';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {search} from './actions/Search';
 
@@ -21,7 +21,6 @@ function refreshSearchAfterReportAction({currentSearchQueryJSON, currentSearchKe
         shouldCalculateTotals,
         offset: 0,
         queryJSON: currentSearchQueryJSON,
-        isOffline,
         isLoading,
     });
 }

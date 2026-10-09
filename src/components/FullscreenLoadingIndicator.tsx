@@ -12,22 +12,20 @@ import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
+import Button from './Button';
 import Text from './Text';
 
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
 
 type FullScreenLoadingIndicatorProps = {
-    /** Styles of the outer view */
     style?: StyleProp<ViewStyle>;
-
-    /** Size of the icon */
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
     /** Whether the "Go Back" button appears after a timeout. */
     shouldUseGoBackButton?: boolean;
 
-    /** The ID of the test to be used for testing */
+    onGoBack?: () => void;
+
     testID?: string;
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
@@ -38,6 +36,7 @@ function FullScreenLoadingIndicator({
     style,
     iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
     shouldUseGoBackButton = false,
+    onGoBack = Navigation.goBack,
     testID = '',
     extraLoadingContext,
 }: FullScreenLoadingIndicatorProps) {
@@ -69,7 +68,7 @@ function FullScreenLoadingIndicator({
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>
                         </View>
-                        <Button onPress={() => Navigation.goBack()}>
+                        <Button onPress={() => onGoBack()}>
                             <Button.Text>{translate('common.goBack')}</Button.Text>
                         </Button>
                     </View>

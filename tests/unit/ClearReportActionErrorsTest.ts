@@ -1,5 +1,6 @@
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
 
@@ -53,7 +54,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with null reportAction
-            clearAllRelatedReportActionErrors(REPORT_ID, null, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, null, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified
@@ -65,7 +66,7 @@ describe('ClearReportActionErrors', () => {
             // Given no initial state
 
             // When clearAllRelatedReportActionErrors is called with undefined reportAction
-            clearAllRelatedReportActionErrors(REPORT_ID, undefined, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, undefined, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified
@@ -78,7 +79,7 @@ describe('ClearReportActionErrors', () => {
             const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: undefined});
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified
@@ -91,7 +92,7 @@ describe('ClearReportActionErrors', () => {
             const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: {error1: 'Error message'}});
 
             // When clearAllRelatedReportActionErrors is called with undefined reportID
-            clearAllRelatedReportActionErrors(undefined, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(undefined, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified
@@ -110,7 +111,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with specific keys to clear
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, undefined, ['error1', 'error2']);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false, undefined, ['error1', 'error2']);
             await waitForBatchedUpdates();
 
             // Then only the specified errors should be cleared, leaving error3
@@ -132,7 +133,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then the entire report action should be deleted (not just errors cleared)
@@ -163,12 +164,48 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called on the child action
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then the parent action's matching error should also be cleared
             const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
             expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.errors).toEqual({});
+        });
+
+        it('should clear the mirrored pay error on the chat preview without deleting the preview itself', async () => {
+            // Given a failed payment: the optimistic pay action inside the IOU report and the chat's report preview
+            // both carry the same error key, which is what links them.
+            const iouReport = createMockReport({
+                parentReportID: PARENT_REPORT_ID,
+                parentReportActionID: PARENT_REPORT_ACTION_ID,
+            });
+            const payAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
+                // A failed optimistic pay action keeps its ADD pending state, so dismissing it removes the action.
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: 'Unexpected error. Please try again later.'},
+            });
+            const reportPreviewAction = getFakeReportAction(Number(PARENT_REPORT_ACTION_ID), {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: 'Unexpected error. Please try again later.'},
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: payAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {[PARENT_REPORT_ACTION_ID]: reportPreviewAction});
+            await waitForBatchedUpdates();
+
+            // When the payer dismisses the error from inside the expense report
+            clearAllRelatedReportActionErrors(REPORT_ID, payAction, REPORT_ID, false);
+            await waitForBatchedUpdates();
+
+            // Then the copy on the chat preview is cleared too, so a dismissed error cannot resurface later when the
+            // expense is deleted and that preview becomes visible again.
+            const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
+            expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.errors).toEqual({});
+
+            // And the preview survives. It is a real server action, so it must not take the optimistic-delete path.
+            expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]).toBeTruthy();
+            expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
         });
 
         it('should not clear parent errors when ignore is set to parent', async () => {
@@ -194,7 +231,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with ignore='parent'
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, 'parent');
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false, 'parent');
             await waitForBatchedUpdates();
 
             // Then the parent action's error should remain unchanged
@@ -222,7 +259,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with ignore='child'
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, 'child');
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false, 'child');
             await waitForBatchedUpdates();
 
             // Then the child action's error should remain unchanged
@@ -253,7 +290,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then the parent action's error should remain because the keys don't match
@@ -272,7 +309,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called with different reportID and originalReportID
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, originalReportID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, originalReportID, false);
             await waitForBatchedUpdates();
 
             // Then the errors should be cleared from the originalReportID location
@@ -285,7 +322,7 @@ describe('ClearReportActionErrors', () => {
             const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: {}});
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then no report actions should be created or modified (early return)
@@ -303,7 +340,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then the report action should remain unchanged (early return due to missing reportActionID)
@@ -339,7 +376,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then all child actions with matching error keys should have their errors cleared
@@ -368,7 +405,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When clearAllRelatedReportActionErrors is called
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
+            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID, false);
             await waitForBatchedUpdates();
 
             // Then only matching errors should be cleared, leaving non-matching errors intact

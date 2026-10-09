@@ -36,6 +36,7 @@ function TaskSearchView({
     columns,
     canSelectMultiple,
     isActionColumnWide,
+    columnSizeOptions,
     isMobileSelectionModeEnabled,
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
@@ -46,6 +47,7 @@ function TaskSearchView({
     onEndReached,
     onLayout,
     onScroll,
+    onViewableItemsChanged,
     contentContainerStyle,
     containerStyle,
 }: TaskSearchViewProps) {
@@ -76,7 +78,6 @@ function TaskSearchView({
                 item={item}
                 isDisabled={isRowDeleted(item)}
                 onFocus={onFocus}
-                keyForList={item.keyForList}
                 isLastItem={index === lastVisibleIndex && !ListFooterComponent}
             />
         </AnimatedExitRow>
@@ -90,6 +91,7 @@ function TaskSearchView({
             columns={columns}
             type={type}
             isActionColumnWide={isActionColumnWide}
+            columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
             isKeyboardShown={isKeyboardShown}
@@ -116,6 +118,7 @@ function TaskSearchView({
                 onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
+                onViewableItemsChanged={onViewableItemsChanged}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}

@@ -36,7 +36,7 @@ class ShareViewController: UIViewController {
         os_log("Saving file to: %@", filePath.path)
         
         do {
-            try fileData.write(to: filePath, options: .completeFileProtection)
+            try fileData.write(to: filePath)
             os_log("File saved successfully at: %@", filePath.path)
             return filePath
         } catch {

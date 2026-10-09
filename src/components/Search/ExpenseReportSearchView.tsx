@@ -43,6 +43,7 @@ function ExpenseReportSearchView({
     columns,
     canSelectMultiple,
     isActionColumnWide,
+    columnSizeOptions,
     isMobileSelectionModeEnabled,
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
@@ -53,6 +54,7 @@ function ExpenseReportSearchView({
     onEndReached,
     onLayout,
     onScroll,
+    onViewableItemsChanged,
     contentContainerStyle,
     containerStyle,
 }: ExpenseReportSearchViewProps) {
@@ -112,7 +114,6 @@ function ExpenseReportSearchView({
                 userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                 ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                 onFocus={onFocus}
-                keyForList={item.keyForList}
                 isFirstItem={index === firstVisibleIndex}
                 isLastItem={index === lastVisibleIndex && !ListFooterComponent}
             />
@@ -127,8 +128,10 @@ function ExpenseReportSearchView({
             columns={columns}
             type={type}
             isActionColumnWide={isActionColumnWide}
+            columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
+            data={data}
             isKeyboardShown={isKeyboardShown}
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
@@ -153,6 +156,7 @@ function ExpenseReportSearchView({
                 onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
+                onViewableItemsChanged={onViewableItemsChanged}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}

@@ -1,6 +1,6 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchData, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -9,22 +9,25 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
-import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type {PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useMemo} from 'react';
 
 import useLiveFilteredReportActions from './useLiveFilteredReportActions';
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
+import useSearchColumnsToShow from './useSearchColumnsToShow';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 type OptimisticTrackingReturn = ReturnType<typeof useOptimisticSearchTracking>;
@@ -42,7 +45,7 @@ type SearchSnapshotResult = {
     data: SearchListItem[];
     /** Sorted row items BEFORE optimistic stabilization. The chart view consumes this, not `data`. */
     chartData: SearchListItem[];
-    /** Group-enriched sections before sort. Consumed for selection counts and bulk-action wiring. */
+    /** Group-enriched sections before sort, capped to `visibleRowLimit`. Consumed for selection counts and bulk-action wiring. */
     filteredData: SearchData;
     /** Length of the base (pre-sort) sections (used as `prevReportsLength` when firing the next search). */
     filteredDataLength: number;
@@ -60,6 +63,10 @@ type SearchSnapshotResult = {
     hasLoadedAllTransactions: boolean;
     /** True while the cached optimistic row is being re-injected across a snapshot-replacement gap. */
     hasCachedOptimisticItem: boolean;
+    /** Every policy's categories, already read here for sorting and reused to size the category GL code column. */
+    policyCategories: OnyxCollection<PolicyCategories>;
+    /** Every policy's tag lists, already read here for sorting and reused to size the tag GL code column. */
+    policyTags: OnyxCollection<PolicyTagLists>;
 } & Pick<
     OptimisticTrackingReturn,
     'showPendingExpensePlaceholder' | 'shouldDeferHeavySearchWork' | 'setShouldDeferHeavySearchWork' | 'hasPendingWriteOnMountRef' | 'skipDeferralOnFocusRef' | 'rearmTracking'
@@ -74,12 +81,35 @@ type UseSearchSnapshotParams = {
      *  full-collection reads. */
     transactions: OptimisticTrackingParams['transactions'];
     reportActions: OptimisticTrackingParams['reportActions'];
+    /** Row cap for `data`. Live (to-do) searches page on this instead of a server cursor; their rows are all report groups. */
+    visibleRowLimit?: number;
+
+    /** Rows ticked here stay rendered past `visibleRowLimit`. */
+    selectedTransactions?: SelectedTransactions;
 };
 
 const EMPTY_DATA: SearchListItem[] = [];
-const EMPTY_COLUMNS: SearchColumnType[] = [];
 const EMPTY_HASHES: string[] = [];
 const EMPTY_GROUP_ITEMS: TransactionGroupListItemType[] = [];
+
+/** How many leading rows the cap keeps: `rowLimit` rows on screen, stretched down to the last ticked row. */
+function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransactions: SelectedTransactions | undefined, isOffline: boolean): number {
+    const isKeySelected = (key: string | undefined) => !!key && !!selectedTransactions?.[key]?.isSelected;
+    let shownRowCount = 0;
+    let end = 0;
+    for (const [index, row] of rows.entries()) {
+        // online, a row being deleted is hidden, so it doesn't use up the cap
+        if (!isOffline && row.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        shownRowCount += 1;
+        const isRowSelected = isKeySelected(row.keyForList) || (isTransactionGroupListItemType(row) && row.transactions.some((transaction) => isKeySelected(transaction.keyForList)));
+        if (shownRowCount <= rowLimit || isRowSelected) {
+            end = index + 1;
+        }
+    }
+    return end;
+}
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
@@ -91,7 +121,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * the optimistic-row resilience. Returns the sorted rows plus the list-level meta and the
  * optimistic-tracking carriers that `<Search>` consumes.
  */
-function useSearchSnapshot({queryJSON, searchResults, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
+function useSearchSnapshot({queryJSON, searchResults, transactions, reportActions, visibleRowLimit, selectedTransactions}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -107,7 +137,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
 
     const exportReportActions = useLiveFilteredReportActions();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [onyxPersonalDetailsList] = useAllPersonalDetails();
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -116,7 +146,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
     // immediately.
@@ -154,7 +184,6 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     // There's a race condition in Onyx which makes it return data from the previous Search, so in
     // addition to checking that the data is loaded we also check that the snapshot matches the query.
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
-    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
 
     // Mirror the legacy `<Search>` gate: skip the heavy projection while deferring, before data is
     // loaded, or for the invalid group-by-on-chat/task combo. Drives every stage below.
@@ -191,6 +220,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
             translate,
             formatPhoneNumber,
             bankAccountList,
+            rules,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
@@ -224,6 +254,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         translate,
         formatPhoneNumber,
         bankAccountList,
+        rules,
         validGroupBy,
         exportReportActions,
         currentSearchKey,
@@ -271,6 +302,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                 currentAccountID: accountID,
                 currentUserEmail: email ?? '',
                 bankAccountList,
+                rules,
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
@@ -280,10 +312,11 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                 reportActions: exportReportActions,
                 reportAttributesDerivedValue: undefined,
             });
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
+            const typedGroupTransactions = groupTransactions as TransactionListItemType[];
             return {
                 ...item,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
-                transactions: groupTransactions as TransactionListItemType[],
+                transactions: getSortedTransactionData(typedGroupTransactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC),
             };
         });
     }, [
@@ -295,7 +328,9 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         accountID,
         email,
         bankAccountList,
+        rules,
         translate,
+        localeCompare,
         formatPhoneNumber,
         isActionLoadingSet,
         cardFeeds,
@@ -332,21 +367,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     // Not memoized: unlike the data chain above, `columns` is not part of the render loop, and its
     // reference is already stabilized downstream by `columnsToShow` in <Search> (which preserves the
     // previous array when contents are equal). The compiler leaves this fresh per render, which is fine.
-    const columns = ((): SearchColumnType[] => {
-        if (!searchResults?.data) {
-            return EMPTY_COLUMNS;
-        }
-        return getColumnsToShow({
-            currentAccountID: accountID,
-            data: searchResults.data,
-            visibleColumns,
-            type: searchDataType,
-            groupBy: validGroupBy,
-            shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
-            fallbackPolicyID: policyForMovingExpensesID,
-            sortBy: queryJSON.sortBy,
-        });
-    })();
+    const columns = useSearchColumnsToShow(queryJSON, searchResults);
 
     // Non-grouped views are always fully loaded; grouped views require every group's sub-snapshot to
     // report no further results.
@@ -358,10 +379,17 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
               return item.transactions.length === 0 || !subSnapshot || !subSnapshot?.search?.hasMoreResults;
           });
 
+    // slice after the sort so page 2 continues the order on screen
+    const rowLimitEnd = visibleRowLimit === undefined ? stableSortedData.length : getRowLimitEnd(stableSortedData, visibleRowLimit, selectedTransactions, isOffline);
+    const isRowLimitApplied = rowLimitEnd < stableSortedData.length;
+    const visibleData = isRowLimitApplied ? stableSortedData.slice(0, rowLimitEnd) : stableSortedData;
+    // selection runs off this, so cap it too or "select all" reaches rows that were never rendered; live rows are all report groups
+    const visibleFilteredData = isRowLimitApplied ? visibleData.filter(isTransactionGroupListItemType) : filteredData;
+
     return {
-        data: stableSortedData,
+        data: visibleData,
         chartData,
-        filteredData,
+        filteredData: visibleFilteredData,
         filteredDataLength,
         allDataLength,
         hasDeletedTransaction,
@@ -376,6 +404,8 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
+        policyCategories,
+        policyTags,
     };
 }
 

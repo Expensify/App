@@ -1,11 +1,11 @@
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
@@ -18,6 +18,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {TaskListItemProps, TaskListItemType} from './types';
 
@@ -49,8 +50,8 @@ function TaskListItem<TItem extends ListItem>({
     const liveTaskItem: TaskListItemType =
         liveParentReportAttributeName && liveParentReportAttributeName !== taskItem.parentReportName ? {...taskItem, parentReportName: liveParentReportAttributeName} : taskItem;
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {isSelected} = useRowSelection(item.keyForList);
@@ -75,34 +76,36 @@ function TaskListItem<TItem extends ListItem>({
     const fsClass = FS.getChatFSClass(parentReport);
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
             pressableStyle={listItemPressableStyle}
-            wrapperStyle={listItemWrapperStyle}
-            containerStyle={!isLargeScreenWidth && [styles.mb2]}
+            containerStyle={!isLargeScreenWidth && styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
-            pendingAction={item.pendingAction}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
-                {backgroundColor: theme.highlightBG, ...(!isLargeScreenWidth && {borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth)})},
+                pageGutterMargin,
+                StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                !isLargeScreenWidth && styles.br2,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
             ]}
-            forwardedFSClass={fsClass}
         >
-            <TaskListItemRow
-                item={liveTaskItem}
-                showTooltip={showTooltip}
-            />
-        </BaseListItem>
+            <View
+                style={listItemWrapperStyle}
+                fsClass={fsClass}
+            >
+                <TaskListItemRow
+                    item={liveTaskItem}
+                    showTooltip={showTooltip}
+                />
+            </View>
+        </ListItemComposed>
     );
 }
 

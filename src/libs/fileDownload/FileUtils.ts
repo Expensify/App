@@ -160,6 +160,23 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
 };
 
 /**
+ * Returns the file name, reading it from the URI when the picker returns none, as the iOS document picker can.
+ * Falls back to `defaultFileName` only when the URI has no extension either, as with Android's `content://` URIs.
+ */
+function getFileNameWithFallback(fileName: string | null | undefined, uri: string, defaultFileName: string): string {
+    if (fileName) {
+        return fileName;
+    }
+
+    const fileNameFromURI = getFileName(uri);
+    if (!splitExtensionFromFileName(fileNameFromURI).fileExtension) {
+        return defaultFileName;
+    }
+
+    return fileNameFromURI;
+}
+
+/**
  * Returns the MIME type for a given file extension.
  * Falls back to 'application/octet-stream' for unrecognized extensions.
  */
@@ -664,10 +681,13 @@ const createFile = (file: File): FileObject => {
             type: file.type,
         };
     }
-    return new File([file], file.name, {
+    const clonedFile = new File([file], file.name, {
         type: file.type,
         lastModified: file.lastModified,
     });
+    // `uri` is a custom property that the File constructor doesn't copy, and attachment previews need it
+    clonedFile.uri = file.uri;
+    return clonedFile;
 };
 
 const resizeImageIfNeeded = (file: FileObject) => {
@@ -735,9 +755,9 @@ const normalizeFileObject = async (file: FileObject): Promise<FileObject> => {
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
-    const isNativePlatform = isAndroidNative || isIOSNative;
+    const isNative = isAndroidNative || isIOSNative;
 
-    if (!isNativePlatform || 'size' in file) {
+    if (!isNative || 'size' in file) {
         return file;
     }
 
@@ -790,12 +810,8 @@ const getFileValidationErrorText = (
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.sizeLimitExceeded', maxSize / 1024 / 1024),
                 };
-            case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
-                return {
-                    title: translate('attachmentPicker.attachmentError'),
-                    reason: translate('attachmentPicker.folderNotAllowedMessage'),
-                };
             case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
+                // This error can only occur for a multi-file selection, so it intentionally has no single-file case below.
                 return {
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.maxFileLimitExceeded'),
@@ -806,6 +822,11 @@ const getFileValidationErrorText = (
     }
 
     switch (validationError.error) {
+        case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
+            return {
+                title: translate(validationError.isValidatingMultipleFiles ? 'attachmentPicker.someFilesCantBeUploaded' : 'attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.folderNotAllowedMessage'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
                 title: translate('attachmentPicker.wrongFileType'),
@@ -945,6 +966,7 @@ export {
     splitExtensionFromFileName,
     getMimeType,
     getFileName,
+    getFileNameWithFallback,
     getFileType,
     cleanFileName,
     getExportFileName,
