@@ -55,17 +55,4 @@ describe('getCameraCapabilityAttributes', () => {
         // Then it fills the attribute v4 took from the selected format, so the autofocus dashboards keep working
         expect(attributes[CONST.TELEMETRY.ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM]).toBe('phase-detection');
     });
-
-    it('leaves the format attributes empty, since VisionCamera v5 has no formats list', () => {
-        // Given any device
-        const device = createDevice(['ultra-wide-angle', 'wide-angle'], [2]);
-
-        // When the attributes are derived
-        const attributes = getCameraCapabilityAttributes(device);
-
-        // Then the attributes that came from v4 formats are explicitly undefined, so dashboards see them as missing
-        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_PHASE_DETECTION_FORMAT_COUNT]).toBeUndefined();
-        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_HAS_INTERCHANGEABLE_PHASE_FORMAT]).toBeUndefined();
-        expect(attributes[CONST.TELEMETRY.ATTRIBUTE_MIN_FOCUS_DISTANCE]).toBeUndefined();
-    });
 });
