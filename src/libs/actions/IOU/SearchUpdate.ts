@@ -1,9 +1,10 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
+import {getTransactionDisplayAmount, isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchSuggestionUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
+import {getCurrency} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -236,11 +237,14 @@ function getSearchOnyxUpdate({
         if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM && !alreadyInSnapshot) {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}` as const;
             const existingGroup = existingSnapshot?.data?.[groupKey];
+            // The group total is in the group's currency, so we can't add an amount in a different currency to it
+            const transactionCurrency = getCurrency(transaction);
+            const isSameCurrencyAsGroup = !existingGroup?.currency || transactionCurrency === existingGroup.currency;
             snapshotData[groupKey] = {
                 accountID: fromAccountID,
                 count: (existingGroup?.count ?? 0) + 1,
-                total: (existingGroup?.total ?? 0) + (transaction.amount ?? 0),
-                currency: existingGroup?.currency ?? transaction.currency ?? CONST.CURRENCY.USD,
+                total: (existingGroup?.total ?? 0) + (isSameCurrencyAsGroup ? getTransactionDisplayAmount(transaction, iouReport, policy) : 0),
+                currency: existingGroup?.currency ?? transactionCurrency,
             };
         }
 
