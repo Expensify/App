@@ -113,6 +113,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: undefined,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: true,
+            arePoliciesLoaded: true,
         });
 
         await act(async () => {
@@ -174,6 +175,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: false,
+            arePoliciesLoaded: true,
         });
 
         // Set up multiple eligible group workspaces
@@ -212,6 +214,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: false,
+            arePoliciesLoaded: true,
         });
 
         await act(async () => {
@@ -245,6 +248,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: false,
+            arePoliciesLoaded: true,
         });
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
@@ -320,6 +324,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: false,
+            arePoliciesLoaded: true,
         });
 
         await act(async () => {
@@ -350,6 +355,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: false,
+            arePoliciesLoaded: true,
         });
 
         await act(async () => {
@@ -391,6 +397,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: false,
+            arePoliciesLoaded: true,
         });
 
         await act(async () => {
@@ -430,6 +437,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: false,
+            arePoliciesLoaded: true,
         });
 
         await act(async () => {
@@ -472,6 +480,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
             shouldNavigateToUpgradePath: false,
+            arePoliciesLoaded: true,
         });
 
         await act(async () => {
