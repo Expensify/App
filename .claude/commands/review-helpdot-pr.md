@@ -13,6 +13,7 @@ Perform a comprehensive HelpDot documentation review using two specialized subag
 Use the helpdot-inline-reviewer agent to:
 - Scan all changed documentation files
 - Create inline comments for violations of the governance rules above
+- Focus on line-specific, actionable feedback
 
 ## Step 2: Summary Review  
 Use the helpdot-summary-reviewer agent to:
