@@ -29,11 +29,11 @@ function useMCPConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[
 
     const connectors = [
         {key: MCP_CONNECTOR.CLAUDE, icon: icons.ClaudeSquare, title: translate('workspace.mcp.claude.title'), url: CONST.CLAUDE_CONNECT_URL},
-        {key: MCP_CONNECTOR.CHATGPT, icon: icons.ChatGPTSquare, title: translate('workspace.mcp.chatgpt.title'), url: CONST.CHATGPT_CONNECT_URL},
         {key: MCP_CONNECTOR.CURSOR, icon: icons.CursorSquare, title: translate('workspace.mcp.cursor.title'), url: CONST.CURSOR_MCP_HELP_URL},
+        {key: MCP_CONNECTOR.CHATGPT, icon: icons.ChatGPTSquare, title: translate('workspace.mcp.chatgpt.title'), url: CONST.CHATGPT_CONNECT_URL},
     ];
 
-    return connectors.map(({key, icon, title, url}) => ({
+    const assistantListings: ConnectionListing[] = connectors.map(({key, icon, title, url}) => ({
         key,
         category: CONST.TAB.CONNECTIONS.AI,
         title,
@@ -47,6 +47,16 @@ function useMCPConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[
             openExternalLink(url);
         },
     }));
+
+    // Any other MCP client connects by following the guide, so this card opens it without turning anything on
+    const mcpGuideListing: ConnectionListing = {
+        key: MCP_CONNECTOR.MCP,
+        category: CONST.TAB.CONNECTIONS.AI,
+        title: translate('workspace.moreFeatures.mcp.title'),
+        onConnect: () => openExternalLink(CONST.MCP_HELP_URL),
+    };
+
+    return [...assistantListings, mcpGuideListing];
 }
 
 export default useMCPConnectionListings;

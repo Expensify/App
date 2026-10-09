@@ -40,6 +40,19 @@ describe('useMCPConnectionListings', () => {
         expect(openExternalLink).toHaveBeenCalledWith(CONST.CLAUDE_CONNECT_URL);
     });
 
+    it('should open the MCP guide from the MCP card without turning anything on', () => {
+        // Given the AI tab, which lists a general MCP card for clients without their own card
+        const {result} = renderHook(() => useMCPConnectionListings(policy));
+        const mcpGuide = result.current.find((listing) => listing.key === 'mcp');
+
+        // When the admin presses "+" on it
+        mcpGuide?.onConnect();
+
+        // Then the guide opens, since the client is set up by following it rather than by connecting from here
+        expect(openExternalLink).toHaveBeenCalledWith(CONST.MCP_HELP_URL);
+        expect(enablePolicyFeatureForConnection).not.toHaveBeenCalled();
+    });
+
     it('should only show the read-only modal to a member who cannot edit the workspace', () => {
         // Given a member without write access to the workspace features
         mockCanWrite = false;

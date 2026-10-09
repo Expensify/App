@@ -12,6 +12,7 @@ const MCP_CONNECTOR = {
     CLAUDE: 'claude',
     CHATGPT: 'chatgpt',
     CURSOR: 'cursor',
+    MCP: 'mcp',
 } as const;
 
 type GetSyncStatusMessageParams = {

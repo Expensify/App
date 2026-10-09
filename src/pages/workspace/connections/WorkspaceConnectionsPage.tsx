@@ -16,7 +16,6 @@ import TabSelectorContextProvider from '@components/TabSelector/TabSelectorConte
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import TextLink from '@components/TextLink';
 
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
@@ -48,7 +47,6 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 
 import variables from '@styles/variables';
 
-import {openExternalLink} from '@userActions/Link';
 import {openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
@@ -105,7 +103,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'QuestionMark']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -343,20 +341,6 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                 ) : (
                     <View style={styles.mt4}>
                         <ConnectionsGrid listings={visibleListings} />
-                    </View>
-                )}
-                {!shouldShowEmptyState && selectedTab === CONST.TAB.CONNECTIONS.AI && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
-                        <Icon
-                            src={icons.QuestionMark}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                            fill={theme.icon}
-                            additionalStyles={styles.mr3}
-                        />
-                        <Text style={[styles.textSupporting, styles.flex1]}>
-                            {translate('workspace.mcp.helpPrompt')} <TextLink onPress={() => openExternalLink(CONST.MCP_HELP_URL)}>{translate('workspace.mcp.helpLink')}</TextLink>
-                        </Text>
                     </View>
                 )}
                 {!shouldShowEmptyState && (
