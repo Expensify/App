@@ -8895,7 +8895,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     toggleTitle: 'Uffici',
                     allSelected: 'Tutti gli uffici',
                 },
-                enableJobStagesOrTags: 'Abilita le fasi di lavoro o i tag per continuare',
+                enableJobStagesOrTags: 'Seleziona almeno una fase del lavoro o un tag per continuare',
             },
             subtitle: 'Collega gli strumenti di recruiting e mantieni sincronizzate le approvazioni dei candidati.',
             syncResults: {

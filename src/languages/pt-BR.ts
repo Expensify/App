@@ -8877,7 +8877,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     toggleTitle: 'Escritórios',
                     allSelected: 'Todos os escritórios',
                 },
-                enableJobStagesOrTags: 'Ative Estágios de Trabalho ou Tags para continuar',
+                enableJobStagesOrTags: 'Selecione pelo menos um estágio de trabalho ou etiqueta para continuar',
             },
             subtitle: 'Conecte ferramentas de recrutamento e mantenha as aprovações de candidatos em sincronia.',
             syncResults: {

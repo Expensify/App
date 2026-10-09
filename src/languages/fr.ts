@@ -8970,7 +8970,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     toggleTitle: 'Bureaux',
                     allSelected: 'Tous les bureaux',
                 },
-                enableJobStagesOrTags: 'Activez les étapes de mission ou les Tags pour continuer',
+                enableJobStagesOrTags: 'Sélectionnez au moins une étape de poste ou un tag pour continuer',
             },
             subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
             syncResults: {

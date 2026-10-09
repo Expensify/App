@@ -7620,7 +7620,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     toggleTitle: 'Oficinas',
                     allSelected: 'Todas las oficinas',
                 },
-                enableJobStagesOrTags: 'Habilita las etapas de trabajo o las etiquetas para continuar',
+                enableJobStagesOrTags: 'Selecciona al menos una etapa de trabajo o etiqueta para continuar',
             },
             subtitle: 'Conecta herramientas de selección y mantén sincronizadas las aprobaciones de candidatos.',
             syncResults: {
