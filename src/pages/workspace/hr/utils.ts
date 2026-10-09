@@ -6,9 +6,9 @@ import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import {getMergeSetupLink} from '@libs/actions/connections/merge';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {formatList} from '@libs/Localize';
-import {getConnectedHRProvider, getHRApprovalMode, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
+import {getConnectedHRProvider, getHRApprovalMode, hasStaleMergeHRGroups, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
 import type {HRConnectionName} from '@libs/merge/HRUtils';
-import {getMergeFinalApproverDisplayName} from '@libs/merge/MergeUtils';
+import {getMergeFinalApproverDisplayName, hasMergeSyncError} from '@libs/merge/MergeUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 
 import type {MergeProviderCardDescriptor, MergeProviderConfigRow} from '@pages/workspace/merge/types';
@@ -46,7 +46,7 @@ function getMergeHRSyncState(policy: OnyxEntry<Policy>) {
     return {
         isSyncInProgress,
         isInitialSyncInProgress: isSyncInProgress && lastSync?.syncType === CONST.MERGE.SYNC_TYPE.INITIAL,
-        hasError: lastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.FAILED,
+        hasError: hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
         syncStageInProgress: undefined,
         successfulDate: lastSync?.successfulDate,
     };
@@ -149,6 +149,7 @@ const STATIC_HR_PROVIDERS = [
         iconParam: 'gustoIcon',
         approvalModeRoute: ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE,
         finalApproverRoute: ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER,
+        customApprovalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM,
         getSetupLink: getGustoSetupLink,
     },
     {
@@ -158,6 +159,7 @@ const STATIC_HR_PROVIDERS = [
         iconParam: 'trinetIcon',
         approvalModeRoute: ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE,
         finalApproverRoute: ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER,
+        customApprovalMode: CONST.ZENEFITS.APPROVAL_MODE.CUSTOM,
         getSetupLink: getZenefitsSetupLink,
     },
 ] as const;
@@ -208,6 +210,21 @@ function getHRCards({
         const {connectionName} = provider;
         const state = getHRCardState({policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime});
         const config = getCardConfig(policy, connectionName);
+
+        // In Custom approval the connection sets no approvers, so it has no final approver either
+        const isCustomApproval = getHRApprovalMode(policy, connectionName) === provider.customApprovalMode;
+        const finalApproverRows: MergeProviderConfigRow[] = isCustomApproval
+            ? []
+            : [
+                  {
+                      field: 'finalApprover',
+                      description: translate('workspace.merge.finalApprover'),
+                      title: getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                      route: provider.finalApproverRoute.getRoute(policyID),
+                      pendingAction: config?.pendingFields?.finalApprover,
+                      errors: config?.errorFields?.finalApprover,
+                  },
+              ];
         cards.push({
             key: provider.key,
             category: CONST.POLICY.CONNECTIONS.CATEGORY.HR,
@@ -226,14 +243,7 @@ function getHRCards({
                               pendingAction: config?.pendingFields?.approvalMode,
                               errors: config?.errorFields?.approvalMode,
                           },
-                          {
-                              field: 'finalApprover',
-                              description: translate('workspace.merge.finalApprover'),
-                              title: getMergeFinalApproverDisplayName(config?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
-                              route: provider.finalApproverRoute.getRoute(policyID),
-                              pendingAction: config?.pendingFields?.finalApprover,
-                              errors: config?.errorFields?.finalApprover,
-                          },
+                          ...finalApproverRows,
                       ]
                     : [],
             ...state,
@@ -247,7 +257,23 @@ function getHRCards({
         const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
         const mergeConfig = state.isConnected ? policy?.connections?.merge_hris?.config : undefined;
         const needsSetup = state.isConnected && !state.needsReconnect && isMergeHRCompleteSetupNeeded(policy);
+        const hasStaleGroups = state.isConnected && !state.needsReconnect && !needsSetup && hasStaleMergeHRGroups(policy);
         const groupsRoute = ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID);
+
+        // In Custom approval the connection sets no approvers, so it has no final approver either
+        const isCustomApproval = mergeConfig?.approvalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM;
+        const finalApproverRows: MergeProviderConfigRow[] = isCustomApproval
+            ? []
+            : [
+                  {
+                      field: 'finalApprover',
+                      description: translate('workspace.merge.finalApprover'),
+                      title: getMergeFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+                      route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
+                      pendingAction: mergeConfig?.pendingFields?.finalApprover,
+                      errors: mergeConfig?.errorFields?.finalApprover,
+                  },
+              ];
 
         const configRows: MergeProviderConfigRow[] =
             state.isConnected && !state.needsReconnect
@@ -259,6 +285,7 @@ function getHRCards({
                           route: groupsRoute,
                           pendingAction: mergeConfig?.pendingFields?.groups,
                           errors: mergeConfig?.errorFields?.groups,
+                          hasInvalidValue: hasStaleGroups,
                       },
                       {
                           field: 'approvalMode',
@@ -268,14 +295,7 @@ function getHRCards({
                           pendingAction: mergeConfig?.pendingFields?.approvalMode,
                           errors: mergeConfig?.errorFields?.approvalMode,
                       },
-                      {
-                          field: 'finalApprover',
-                          description: translate('workspace.merge.finalApprover'),
-                          title: getMergeFinalApproverDisplayName(mergeConfig?.finalApprover, policyEmployeePersonalDetails, translate, formatPhoneNumber),
-                          route: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
-                          pendingAction: mergeConfig?.pendingFields?.finalApprover,
-                          errors: mergeConfig?.errorFields?.finalApprover,
-                      },
+                      ...finalApproverRows,
                   ]
                 : [];
 
@@ -288,6 +308,7 @@ function getHRCards({
             setupLink: getMergeSetupLink(policyID, slug, CONST.MERGE.CATEGORY.HRIS),
             ...(state.isConnected ? state : disconnectedState),
             completeSetupRoute: needsSetup ? groupsRoute : undefined,
+            staleGroupsRoute: hasStaleGroups ? groupsRoute : undefined,
             configRows,
         });
     }

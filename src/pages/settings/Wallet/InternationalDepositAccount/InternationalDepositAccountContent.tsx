@@ -172,7 +172,7 @@ function InternationalDepositAccountContent({
             shouldShowOfflineIndicatorInWideScreen={pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             {isRedirecting || isAccountLoading ? (
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator onGoBack={handleBackButtonPress} />
             ) : (
                 <>
                     <HeaderWithBackButton

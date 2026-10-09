@@ -18,9 +18,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearErrors, inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -153,7 +154,7 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
     };
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const headerMessage = getHeaderMessage(allMembersWithState.length !== 0, false, searchValue, countryCode, false);
+    const headerMessage = getHeaderMessage(translate, allMembersWithState.length !== 0, false, searchValue, countryCode, false);
 
     const handleConfirm = () => {
         if (selectedOptions.length === 0) {

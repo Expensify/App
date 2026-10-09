@@ -298,8 +298,9 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
 function DynamicWorkspaceInvitePage(props: WorkspaceInvitePageProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${props.route.params.policyID}`);
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
     if (isLoadingOnyxValue(policyMetadata, invitedEmailsToAccountIDsDraftMetadata)) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(dynamicBackPath)} />;
     }
     return (
         <DynamicWorkspaceInvitePageContent

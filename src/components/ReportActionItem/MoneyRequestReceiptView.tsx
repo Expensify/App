@@ -29,6 +29,7 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -43,7 +44,8 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
-import retryReceiptUpload, {canBuildRetryPayload} from '@libs/ReceiptUploadRetryHandler';
+import ReceiptStorage from '@libs/ReceiptStorage';
+import retryReceiptUpload, {canRetryReceiptUpload} from '@libs/ReceiptUploadRetryHandler';
 import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
@@ -95,6 +97,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
@@ -168,6 +171,7 @@ function MoneyRequestReceiptView({
     const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
 
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
+    const reportsParentHierarchy = useReportsParentHierarchy();
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
@@ -183,7 +187,12 @@ function MoneyRequestReceiptView({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
+        selector: transactionThreadReportIDSelector(transaction?.transactionID),
+    });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
@@ -232,7 +241,7 @@ function MoneyRequestReceiptView({
         }
     }, [isLoading, hoverBind]);
 
-    const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
+    const displayedReceiptSource = ReceiptStorage.resolve(transaction?.receipt?.localSource) ?? transaction?.receipt?.source;
     const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
     useEffect(() => {
@@ -350,6 +359,8 @@ function MoneyRequestReceiptView({
                     isMarkAsCash,
                     routeDistanceMeters,
                     distanceUnit,
+                    policyVendors,
+                    transactionCurrency: transaction?.currency,
                 });
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
@@ -370,6 +381,8 @@ function MoneyRequestReceiptView({
         isMarkAsCash,
         routeDistanceMeters,
         distanceUnit,
+        policyVendors,
+        transaction?.currency,
         dateFnsLocale,
     ]);
 
@@ -443,10 +456,14 @@ function MoneyRequestReceiptView({
               delegateAccountID,
               formatPhoneNumber,
               getCurrencyDecimals,
+              transactionReport,
+              transactionThreadReport,
+              transactionViolations: rawTransactionViolations,
+              currentUserPersonalDetails: currentUserPersonalDetail,
           }
         : undefined;
 
-    const canRetryUpload = !!receiptRetryContext && canBuildRetryPayload(receiptRetryContext);
+    const canRetryUpload = !!receiptRetryContext && canRetryReceiptUpload(receiptRetryContext);
 
     const retryReceiptUploadAndClearError = () => {
         if (!receiptRetryContext) {
@@ -553,7 +570,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
+            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -561,7 +578,7 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
+            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {
@@ -601,8 +618,8 @@ function MoneyRequestReceiptView({
     // Expanding only opens the receipt to look at, so it asks for none of the permission above
     const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
 
-    // Show the count badge only after a multi-page PDF receipt loads.
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !(isMapDistanceRequest && isPendingReceiptRegeneration);
+    // Map distance receipts render as an e-receipt card, so their stored PDF page count is never shown.
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !isMapDistanceRequest;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
@@ -632,6 +649,9 @@ function MoneyRequestReceiptView({
             transactionPolicyTagList: policyTagList,
             transactionViolations: rawTransactionViolations,
             transactionReport,
+            delegateAccountID,
+            currentUserPersonalDetails: currentUserPersonalDetail,
+            transactionThreadReport,
         });
     };
 

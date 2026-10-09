@@ -51,7 +51,7 @@
     Fix: keep the renderer alive without a GrDirectContext and fall back to
     CanvasKit.MakeSWCanvasSurface in onResize, so the chart still renders (on the
     CPU) instead of crashing the page. If that also fails, leave this.surface null -
-    the constructor already initialises it to null and both draw() and
+    the constructor already initializes it to null and both draw() and
     makeImageSnapshot() null-check it. This mirrors the sibling
     renderPictureToSurface path, which already treats a failed WebGL surface as
     recoverable rather than fatal. Charts on capable clients are unaffected and
@@ -159,3 +159,64 @@
 - Upstream PR/issue:
 - E/App issue: https://github.com/Expensify/App/issues/95221
 - PR introducing patch:
+
+### [@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch](@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch)
+
+- Reason:
+
+    ```
+    Makes LoadSkiaWeb fail closed when CanvasKit comes up without its bindings
+    (Sentry APP-M73 / APP-M7F: "PictureRecorder is not a constructor"), and stops
+    it from caching a rejected init forever (APP-M6B / APP-M76: the LinkError was
+    re-thrown on every later chart mount in the tab).
+
+    Both come from pairing canvaskit.js glue from one canvaskit-wasm release with
+    canvaskit.wasm from another. Newer glue plus an older binary fails to link
+    (the binary declares an import the glue no longer supplies). Older glue plus a
+    newer binary is worse: it links, because the newer binary's imports are a
+    subset of what the old glue provides, but the glue then reads the exports
+    under stale minified names, the embind constructors never register, and
+    CanvasKitInit resolves with an object that has no classes at all.
+    LoadSkiaWeb stored that object on global.CanvasKit, Skia.web.ts wrapped it,
+    and the first draw threw from a worklet queue where no React error boundary
+    can reach it. The App side fixes the pairing itself (the binary is served
+    under a versioned URL); this patch is the safety net for tabs that still hit
+    a mismatch.
+
+    LoadSkiaWeb now checks that the resolved module has its PictureRecorder and
+    Paint constructors before publishing it, throwing otherwise so the failure
+    surfaces inside WithSkiaWeb's lazy() and reaches the chart's error boundary.
+    It also clears ckSharedPromise when the init rejects or fails that check, so
+    the next mount gets a fresh attempt instead of the cached failure.
+    ```
+
+- Upstream PR/issue:
+- E/App issue: https://github.com/Expensify/App/issues/102042
+- PR introducing patch: https://github.com/Expensify/App/pull/102138
+
+### [@shopify+react-native-skia+2.11.2+006+redraw-texture-view-when-window-visible.patch](@shopify+react-native-skia+2.11.2+006+redraw-texture-view-when-window-visible.patch)
+
+- Reason:
+
+    ```
+    Fixes a Skia canvas going blank on Android when it lives in a Modal and the
+    app is minimized and reopened (e.g. the expanded Concierge chart).
+
+    When the activity stops, Android destroys the hardware resources of every
+    window sharing its token, Dialog windows included. For a TextureView that
+    only drops the texture layer: the SurfaceTexture is kept, so no
+    onSurfaceTextureDestroyed/Available callback reaches Skia. On restart a new
+    layer is attached to the old SurfaceTexture, but it only latches a frame once
+    a new one is queued or the view gets onVisibilityChanged(VISIBLE). Activity
+    views get the latter because ActivityThread toggles the decor view's
+    visibility. A Dialog's decor is never toggled, and a static Skia picture
+    never queues a new frame, so the canvas stays blank. iOS is unaffected
+    because a CAMetalLayer keeps its contents across backgrounding.
+
+    SkiaTextureView now redraws when its window becomes visible again, through
+    the existing size-changed path, which queues a fresh frame for the new layer.
+    ```
+
+- Upstream PR/issue: https://github.com/wcandillon/react-native-skia/issues/2135
+- E/App issue: https://github.com/Expensify/App/issues/101396
+- PR introducing patch: https://github.com/Expensify/App/pull/103398

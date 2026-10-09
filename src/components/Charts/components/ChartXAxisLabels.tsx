@@ -84,7 +84,7 @@ function ChartXAxisLabels({
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
 
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
-    const labelY = chartBoundsBottom + VictoryTheme.axis.labelGap + rotatedLabelYOffset(ascent, descent, angleRad);
+    const labelY = chartBoundsBottom + VictoryTheme.axis.xAxisLabelGap + rotatedLabelYOffset(ascent, descent, angleRad);
 
     return truncatedLabels.map((label, i) => {
         if (i % labelSkipInterval !== 0 || label.length === 0) {

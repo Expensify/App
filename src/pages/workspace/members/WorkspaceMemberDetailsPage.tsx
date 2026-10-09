@@ -22,6 +22,7 @@ import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -38,11 +39,12 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
 import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
-    getReimburserEmail,
+    hasActiveExpensifyCard,
     isControlPolicy,
     isPolicyApprover,
     PAYER_ROLES,
@@ -52,6 +54,7 @@ import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
+import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -116,6 +119,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer']);
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
@@ -136,6 +141,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const member = policy?.employeeList?.[memberLogin];
+    const memberWorkArrangement = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
@@ -148,14 +154,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const policyOwnerDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const memberLoginToCopy = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin;
-    const reimburserEmail = getReimburserEmail(policy);
-    const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
+    const isReimburser = isPolicyReimburser(policy, memberLogin);
+    const isExpensifyCardholder = hasActiveExpensifyCard(policy, memberLogin);
     // Only let the Authorized Payer change roles when there is another payer role they can actually move to.
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
@@ -193,7 +199,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
 
-    if (isReimburser) {
+    if (isExpensifyCardholder) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptExpensifyCard', {
+            memberName: displayName,
+        });
+    } else if (isReimburser) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptReimburser', {
             memberName: displayName,
         });
@@ -232,11 +242,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = () => {
-        const ownerEmail = ownerDetails?.login;
-        const removedApprover = personalDetails?.[accountID];
+        // Fall back to the policy owner, so submitters are still reassigned when personal details aren't loaded.
+        const ownerEmail = ownerDetails?.login ?? policy?.owner;
 
         // If the user is not an approver, proceed with member removal
-        if (!isPolicyApprover(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+        if (!memberLogin || !isPolicyApprover(policy, memberLogin) || !ownerEmail) {
             removeMemberAndCloseModal();
             return;
         }
@@ -244,7 +254,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         // Update approval workflows after approver removal
         const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
             approvalWorkflows,
-            removedApprover,
+            removedApproverEmail: memberLogin,
+            ownerEmail,
             ownerDetails,
         });
 
@@ -282,7 +293,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             showRuleBotGuardModal('remove', policyID);
             return;
         }
-        if (isReimburser) {
+        if (isExpensifyCardholder || isReimburser) {
             showConfirmModal({
                 shouldShowCancelButton: false,
                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
@@ -412,6 +423,19 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
+                            {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
+                                <MenuItemWithTopDescription
+                                    disabled={!canWriteMembers}
+                                    title={getWorkArrangementLabel(translate, memberWorkArrangement)}
+                                    interactive={canWriteMembers}
+                                    description={translate('workspace.people.workArrangement')}
+                                    shouldShowRightIcon={canWriteMembers}
+                                    shouldGreyOutWhenDisabled={false}
+                                    shouldUseDefaultCursorWhenDisabled
+                                    pressableTestID="member-work-arrangement-menu-item"
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID))}
+                                />
+                            )}
                             {isControlPolicy(policy) && (
                                 <>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>

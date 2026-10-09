@@ -111,6 +111,9 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
+    rhpFloatingCardMargin: 12,
+    // The frame width compensates for this border.
+    rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
     receiptPaneRHPMaxWidth: 465,
@@ -120,14 +123,18 @@ export default {
     widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
     centeredContentMaxWidth: 1200,
-    insightsCardGap: 20,
     insightsEmptyStateIllustrationSize: 136,
     minScanTooltipWidth: 320,
+    chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
     inboxSideBarWidth: 360,
-    superWideRHPLeftMargin: 147,
+    superWideRHPLeftMargin: 360,
+    // RHP panel width. Kept separate from sideBarWidth (the LHN) so the two can differ.
+    rhpWidth: 440,
+    // The expense report's right pane can differ from the skinny RHP.
+    wideRHPRightPaneWidth: 460,
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
@@ -137,6 +144,8 @@ export default {
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
+    popoverSearchInputHeight: 64,
+    popoverVerticalPadding: 32,
     tableHeaderContentHeight: 20,
     tableRowHeight: 56,
     tableRowHeightCompact: 60,
@@ -168,6 +177,8 @@ export default {
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
+    // Lighter scrim for the floating RHP card. Other modal backdrops keep overlayOpacity.
+    rhpOverlayOpacity: 0.5,
     // fontSizeExtraSmall is fixed at 9, so the line height must never scale below the font's natural line height (~1.18em = 10.62),
     // otherwise Android clamps the descent and clips descenders and underlines at small device font scales.
     lineHeightXSmall: Math.max(getValueUsingPixelRatio(11, 17), 11),
@@ -295,6 +306,7 @@ export default {
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
+    growlNotificationZIndex: 10001,
     popoverZIndex: 10000,
     modalBaseZIndex: 9999,
     autoCompleteSuggestionsZIndex: 9999,
@@ -302,9 +314,14 @@ export default {
     modalRightDockedZIndex: 9997,
     modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
-    sectionMargin: 20,
     workspaceSectionMaxWidth: 680,
     sectionIllustrationHeight: 220,
+    earlyRenewalOfferHeroWidth: 268,
+    earlyRenewalOfferHeroHeight: 194,
+    earlyRenewalOfferOptionIllustrationSize: 68,
+    earlyRenewalOfferBackgroundWidth: 628,
+    earlyRenewalOfferBackgroundHeight: 368,
+    earlyRenewalOfferBackgroundOffsetTop: -24,
     tripsIllustrationW: 168,
     tripsIllustrationH: 150,
     restrictedActionIllustrationHeight: 136,
@@ -550,9 +567,14 @@ export default {
     searchTableRowCheckboxWidth: 24,
     // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
     statusBadgeChromeWidth: 6 * 2 + 1 * 2,
-    // What an editable cell spends around its value, from `editableCell`'s padding and the border it reserves for its focus ring.
+    // Padding on every side of an editable cell. The edit button sits at this same inset.
+    editableCellPadding: 4,
+    // Border kept on each side so the focus ring does not shift the value.
+    editableCellBorderWidth: 1,
+    // What an editable cell spends around its value, from its padding and the border it reserves for the focus ring.
     editableCellChromeWidth: 4 * 2 + 1 * 2,
-    // What the edit button covers at the trailing edge of an editable cell, from `editableCellEditButton` and the inset it sits at.
+    // What the edit button covers at the trailing edge of an editable cell, from its size and the inset it sits at.
+    editableCellEditButtonSize: 28,
     editableCellEditButtonWidth: 28 + 4,
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
