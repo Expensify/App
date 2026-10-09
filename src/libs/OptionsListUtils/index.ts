@@ -63,6 +63,7 @@ import {
     isOneOnOneChat as reportUtilsIsOneOnOneChat,
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
+    isSupportTicket as reportUtilsIsSupportTicket,
     isSystemChat as reportUtilsIsSystemChat,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
@@ -1946,6 +1947,7 @@ function isValidReport(
         conciergeReportID,
         hasGuidesEmails,
         derivedIsEmptyReport,
+        transactionViolations,
     });
 
     if (!shouldBeInOptionList) {
@@ -2887,28 +2889,35 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
+function getHeaderMessage(
+    translate: LocalizedTranslate,
+    hasSelectableOptions: boolean,
+    hasUserToInvite: boolean,
+    searchValue: string,
+    countryCode: number,
+    hasMatchedParticipant = false,
+): string {
     const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone && !hasSelectableOptions) {
-        return translateLocal('messages.errorMessageInvalidPhone');
+        return translate('messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue) && !isValidPhone) {
-            return translateLocal('messages.errorMessageInvalidPhone');
+            return translate('messages.errorMessageInvalidPhone');
         }
         if (/@/.test(searchValue) && !isValidEmail) {
-            return translateLocal('messages.errorMessageInvalidEmail');
+            return translate('messages.errorMessageInvalidEmail');
         }
         if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
             return '';
         }
-        return translateLocal('common.noResultsFound');
+        return translate('common.noResultsFound');
     }
 
     return '';
@@ -2917,9 +2926,9 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
 /**
  * Helper method for non-user lists (eg. categories and tags) that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchValue: string): string {
+function getHeaderMessageForNonUserList(translate: LocalizedTranslate, hasSelectableOptions: boolean, searchValue: string): string {
     if (searchValue && !hasSelectableOptions) {
-        return translateLocal('common.noResultsFound');
+        return translate('common.noResultsFound');
     }
     return '';
 }
@@ -3368,6 +3377,7 @@ function shouldUseFullTitleForOption(option: OptionData): boolean {
         !!option.isChatRoom ||
         !!option.isPolicyExpenseChat ||
         !!option.isTaskReport ||
+        reportUtilsIsSupportTicket(option) ||
         !!option.isThread ||
         !!option.isMoneyRequestReport ||
         !!option.isInvoiceReport ||
