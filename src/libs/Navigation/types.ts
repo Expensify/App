@@ -357,6 +357,12 @@ type SettingsNavigatorParamList = {
         isForcedToChangeCurrency?: boolean;
         shouldStartExpensifyCardEnrollment?: boolean;
     };
+    [SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY]: {
+        policyID: string;
+        currencyCode: string;
+        isForcedToChangeCurrency?: boolean;
+        shouldStartExpensifyCardEnrollment?: boolean;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: {
         policyID: string;
         country?: Country | '';
@@ -821,6 +827,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_UNIT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
@@ -2669,6 +2678,7 @@ type MoneyRequestNavigatorParamList = {
         upgradeBackTo?: Routes;
         upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
         shouldSubmitExpense?: boolean;
+        shouldReturnToConfirmation?: boolean;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: {
         action: IOUAction;

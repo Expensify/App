@@ -703,6 +703,14 @@ const translations = {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+        notValid: 'Invalid link.',
+        sessionMismatch: "The link you clicked isn't valid for your current session.",
+        switchAccount: {
+            title: 'Switch accounts?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `You're signed in as ${currentEmail}. This action will sign you in as ${newEmail} instead.`,
+            confirm: 'Switch accounts',
+            staySignedIn: "Don't switch accounts",
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -935,7 +943,7 @@ const translations = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Are you sure you want to delete this ${type}?`;
+            return `Are you sure you want to delete this ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' All expenses in this report will become unreported.' : ''}`;
         },
         onlyVisible: 'Only visible to',
         explain: 'Explain',
@@ -1613,6 +1621,7 @@ const translations = {
             one: 'Are you sure that you want to delete this report?',
             other: 'Are you sure that you want to delete these reports?',
         }),
+        deleteExpenseReportConfirmation: 'Are you sure that you want to delete this report? All expenses in this report will become unreported.',
         settledExpensify: 'Paid',
         paidStatusMarkedAsPaid: 'Marked as paid',
         paidStatusWithdrawing: 'Withdrawing',
@@ -1772,6 +1781,7 @@ const translations = {
             invalidSplitYourself: 'Please enter a non-zero amount for your split',
             noParticipantSelected: 'Please select a participant',
             other: 'Unexpected error. Please try again later.',
+            payFailedExpenseDeleted: 'The payment failed because the expense report was deleted.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending this invoice. Please try again later.',
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
@@ -3131,6 +3141,9 @@ const translations = {
             },
         },
         approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
+        approverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver or delete this workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver.',
+        overLimitApproverNotWorkspaceMember: 'The additional approver for reports over the limit is no longer a workspace member. Choose a new additional approver.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
         emptyContent: {
@@ -4181,6 +4194,15 @@ const translations = {
             deletePaymentBankAccount:
                 "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge.",
             sameDepositAndWithdrawalAccount: 'The deposit and withdrawal accounts are the same.',
+        },
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Example: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Must be at least ${minLength} characters`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
+            invalidOption: 'Choose one of the available options',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
         },
     },
     addPersonalBankAccount: {
@@ -7299,11 +7321,6 @@ const translations = {
             emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
             findVendor: 'Find vendor',
             managedInAccountingSoftware: 'Vendors are managed in your',
-            enableVendor: 'Enable vendor',
-            enableVendors: 'Enable vendors',
-            disableVendor: 'Disable vendor',
-            disableVendors: 'Disable vendors',
-            updateFailureMessage: 'An error occurred while updating the vendor, please try again',
         },
         tags: {
             tagName: 'Tag name',
@@ -8073,6 +8090,12 @@ const translations = {
                 groups: {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
+                    staleSelectionError: (providerName: string) => `Some of the groups you selected no longer exist in ${providerName}, so their employees have stopped syncing.`,
+                    updateSelectionLink: 'Update your groups.',
+                    noGroupsFound: 'No groups found',
+                    noGroupsFoundDescription:
+                        'There are no groups to select right now. Save with no groups selected to sync all employees, or sync the connection again once new groups exist.',
+                    unnamedGroup: (groupID: string) => `Unnamed group (${groupID})`,
                 },
             },
         },
@@ -8304,17 +8327,30 @@ const translations = {
             startDate: 'Start date',
             endDate: 'End date',
             autoGeneratedRateTooltip: 'This rate is auto-generated.',
-            autoUpdateGovernmentRate: 'Auto-update government rates',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Automatically create new rates when ${countryPhrase} publishes new guidance.`,
+            automaticRates: 'Automatic rates',
+            autoUpdateGovernmentRate: 'Auto-update government rate',
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Automatically create new rates when ${countryPhrase} publishes new guidance. Doesn't modify existing rates.`,
             governmentRateCountries: {
                 US: 'the United States',
                 CA: 'Canada',
                 GB: 'Great Britain',
                 AU: 'Australia',
+                AT: 'Austria',
+                BE: 'Belgium',
+                FI: 'Finland',
+                DE: 'Germany',
+                NL: 'the Netherlands',
+                PT: 'Portugal',
+                ES: 'Spain',
                 NO: 'Norway',
                 SE: 'Sweden',
                 ZA: 'South Africa',
             },
+            governmentRateCountryGeneric: 'your country',
+            governmentRateSourceCountry: 'Distance rates source country',
+            governmentRateCountrySelectionPrompt: 'To continue using the auto-update government distance rates feature, please confirm which country you want to use going forward.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Heads up! Changing the workspace currency to ${currency} will start using the government mileage rates ${countryPhrase} publishes instead. Are you sure you want to proceed?`,
             errors: {
                 rateNameRequired: 'Rate name is required',
                 existingRateName: 'A distance rate with this name already exists',
@@ -10470,6 +10506,10 @@ const translations = {
         mergeReports: {
             title: 'Merge reports',
             description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            listPage: {
+                noEligibleReportsFound: 'No eligible reports found',
+                noEligibleReportsFoundSubtitle: "You don't have any reports that can be merged.",
+            },
         },
     },
     genericErrorPage: {

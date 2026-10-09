@@ -116,7 +116,7 @@ function ConnectionsMergeProviderCard({card, policy, handleConnect, onDisconnect
                                 icon={row.icon}
                                 numberOfLinesTitle={row.numberOfLinesTitle}
                                 shouldShowRightIcon={canWriteMoreFeatures}
-                                brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                brickRoadIndicator={row.errors || row.hasInvalidValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 onPress={() => Navigation.navigate(row.route)}
                                 interactive={canWriteMoreFeatures}
                             />

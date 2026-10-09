@@ -628,6 +628,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Avvio di Expensify',
         expired: 'La tua sessione è scaduta.',
         signIn: 'Accedi di nuovo.',
+        notValid: 'Link non valido.',
+        sessionMismatch: 'Il link che hai cliccato non è valido per la tua sessione attuale.',
+        switchAccount: {
+            title: 'Passare ad un altro account?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Hai eseguito l’accesso come ${currentEmail}. Questa azione ti farà accedere come ${newEmail} invece.`,
+            confirm: 'Cambia account',
+            staySignedIn: 'Non cambiare account',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -849,7 +858,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Sei sicuro di voler eliminare questo/questa ${type}?`;
+            return `Sei sicuro di voler eliminare questo/questa ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Tutte le spese in questo report risulteranno non rendicontate.' : ''}`;
         },
         onlyVisible: 'Visibile solo a',
         explain: 'Spiega',
@@ -1481,6 +1490,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questo report?',
             other: 'Sei sicuro di voler eliminare questi report?',
         }),
+        deleteExpenseReportConfirmation: 'Sei sicuro di voler eliminare questo report? Tutte le spese in questo report risulteranno non rendicontate.',
         settledExpensify: 'Pagato',
         paidStatusMarkedAsPaid: 'Segnato come pagato',
         paidStatusWithdrawing: 'Prelievo',
@@ -1624,6 +1634,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Inserisci un importo diverso da zero per la tua suddivisione',
             noParticipantSelected: 'Seleziona un partecipante',
             other: 'Errore imprevisto. Riprova più tardi.',
+            payFailedExpenseDeleted: 'Il pagamento non è riuscito perché la nota spese è stata eliminata.',
             genericCreateFailureMessage: 'Errore imprevisto durante l’invio di questa nota spese. Riprova più tardi.',
             genericCreateInvoiceFailureMessage: 'Errore imprevisto nell’invio di questa fattura. Riprova più tardi.',
             genericHoldExpenseFailureMessage: 'Errore imprevisto durante il blocco di questa spesa. Riprova più tardi.',
@@ -2982,6 +2993,9 @@ ${amount} per ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Questo membro appartiene già a un altro flusso di approvazione. Qualsiasi aggiornamento effettuato qui verrà applicato anche lì.',
+        approverNotWorkspaceMember: 'Questo approvatore non è più un membro dello spazio di lavoro. Scegli un nuovo approvatore oppure elimina questo workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Questo approvatore non è più un membro dello spazio di lavoro. Scegli un nuovo approvatore.',
+        overLimitApproverNotWorkspaceMember: 'L’approvatore aggiuntivo per i report oltre il limite non è più un membro dello spazio di lavoro. Scegli un nuovo approvatore aggiuntivo.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approva già i report per <strong>${name2}</strong>. Scegli un altro approvatore per evitare un flusso di lavoro circolare.`,
         emptyContent: {
@@ -4002,6 +4016,15 @@ ${amount} per ${merchant} - ${date}`,
         },
         unlockAlreadyRequestedTitle: 'Richiesta già inviata',
         unlockAlreadyRequestedDescription: 'La tua richiesta di sblocco di questo conto bancario è già stata inviata. Concierge ti contatterà se servirà altro.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Esempio: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Deve contenere almeno ${minLength} caratteri`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Formato non valido. Esempio: ${example}` : 'Formato non valido'),
+            invalidOption: 'Scegli una delle opzioni disponibili',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Inserisci un valore tra ${min} e ${max}`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Lo SWIFT/BIC deve essere lungo 8 o 11 caratteri, con 6 lettere seguite da 2 oppure 5 lettere o numeri.',
@@ -6918,11 +6941,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             emptySubtitle: 'I fornitori verranno visualizzati qui al termine della sincronizzazione contabile.',
             findVendor: 'Trova fornitore',
             managedInAccountingSoftware: 'I fornitori sono gestiti nel tuo',
-            enableVendor: 'Abilita fornitore',
-            enableVendors: 'Abilita fornitori',
-            disableVendor: 'Disabilita fornitore',
-            disableVendors: 'Disattiva fornitori',
-            updateFailureMessage: "Si è verificato un errore durante l'aggiornamento del fornitore, riprova per favore",
         },
         tags: {
             tagName: 'Nome tag',
@@ -7758,9 +7776,32 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             startDate: 'Data di inizio',
             endDate: 'Data di fine',
             autoGeneratedRateTooltip: 'Questa tariffa è generata automaticamente.',
+            automaticRates: 'Tariffe automatiche',
             autoUpdateGovernmentRate: 'Aggiorna automaticamente le aliquote governative',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Crea automaticamente nuove aliquote quando ${countryPhrase} pubblica nuove linee guida.`,
-            governmentRateCountries: {US: 'gli Stati Uniti', CA: 'Canada', GB: 'Gran Bretagna', AU: 'Australia', NO: 'Norvegia', SE: 'Svezia', ZA: 'Sudafrica'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `Crea automaticamente nuove aliquote quando ${countryPhrase} pubblica nuove linee guida. Non modifica le aliquote esistenti.`,
+            governmentRateCountries: {
+                US: 'gli Stati Uniti',
+                CA: 'Canada',
+                GB: 'Gran Bretagna',
+                AU: 'Australia',
+                AT: "l'Austria",
+                BE: 'il Belgio',
+                FI: 'la Finlandia',
+                DE: 'la Germania',
+                NL: 'i Paesi Bassi',
+                PT: 'il Portogallo',
+                ES: 'la Spagna',
+                NO: 'Norvegia',
+                SE: 'Svezia',
+                ZA: 'Sudafrica',
+            },
+            governmentRateCountryGeneric: 'il tuo paese',
+            governmentRateSourceCountry: 'Paese di origine delle aliquote chilometriche',
+            governmentRateCountrySelectionPrompt:
+                'Per continuare a usare la funzione di aggiornamento automatico delle aliquote chilometriche governative, conferma quale paese vuoi usare in futuro.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Attenzione! Cambiando la valuta dello spazio di lavoro in ${currency}, verranno utilizzate le aliquote chilometriche governative che ${countryPhrase} pubblica. Sei sicuro di voler procedere?`,
         },
         editor: {
             descriptionInputLabel: 'Descrizione',
@@ -8838,7 +8879,17 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connesso. ${setupLink ? `<a href="${setupLink}">Completa la configurazione</a>` : 'Completa configurazione'} per importare i dipendenti.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Gruppi', description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro'},
+                groups: {
+                    title: 'Gruppi',
+                    description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro',
+                    staleSelectionError: (providerName: string) =>
+                        `Alcuni dei gruppi che hai selezionato non esistono più in ${providerName}, quindi i rispettivi dipendenti hanno smesso di sincronizzarsi.`,
+                    updateSelectionLink: 'Aggiorna i tuoi gruppi.',
+                    noGroupsFound: 'Nessun gruppo trovato',
+                    noGroupsFoundDescription:
+                        'Al momento non ci sono gruppi da selezionare. Salva senza selezionare gruppi per sincronizzare tutti i dipendenti oppure sincronizza di nuovo la connessione quando esisteranno nuovi gruppi.',
+                    unnamedGroup: (groupID: string) => `Gruppo senza nome (${groupID})`,
+                },
             },
         },
         recruiting: {
@@ -10180,7 +10231,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             topMerchants: 'Principali esercenti',
             violationsBySubmitter: 'Violazioni da parte dell’autore dell’invio',
         },
-        mergeReports: {title: 'Unisci report', description: 'Seleziona il report da mantenere. Tutte le spese verranno spostate al suo interno e gli altri report verranno eliminati.'},
+        mergeReports: {
+            title: 'Unisci report',
+            description: 'Seleziona il report da mantenere. Tutte le spese verranno spostate al suo interno e gli altri report verranno eliminati.',
+            listPage: {noEligibleReportsFound: 'Nessun report idoneo trovato', noEligibleReportsFoundSubtitle: 'Non hai nessun report che possa essere unito.'},
+        },
         periodSoFar: ({period}: {period: string}) => `${period} finora`,
         weekOf: ({date}: {date: string}) => `Settimana del ${date}`,
         saveEdits: {

@@ -628,6 +628,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
         signIn: 'Meld je opnieuw aan.',
+        notValid: 'Ongeldige link.',
+        sessionMismatch: 'De link waarop je hebt geklikt is niet geldig voor je huidige sessie.',
+        switchAccount: {
+            title: 'Van account wisselen?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Je bent aangemeld als ${currentEmail}. Deze actie meldt je in plaats daarvan aan als ${newEmail}.`,
+            confirm: 'Van account wisselen',
+            staySignedIn: 'Niet van account wisselen',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -848,7 +857,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Weet je zeker dat je deze ${type} wilt verwijderen?`;
+            return `Weet je zeker dat je deze ${type} wilt verwijderen?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Alle uitgaven in dit rapport krijgen de status Niet gerapporteerd.' : ''}`;
         },
         onlyVisible: 'Alleen zichtbaar voor',
         explain: 'Uitleg',
@@ -1482,6 +1491,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Weet u zeker dat u dit rapport wilt verwijderen?',
             other: 'Weet u zeker dat u deze rapporten wilt verwijderen?',
         }),
+        deleteExpenseReportConfirmation: 'Weet u zeker dat u dit rapport wilt verwijderen? Alle uitgaven in dit rapport krijgen de status Niet gerapporteerd.',
         settledExpensify: 'Betaald',
         paidStatusMarkedAsPaid: 'Gemarkeerd als betaald',
         paidStatusWithdrawing: 'Opnemen',
@@ -1624,6 +1634,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Voer een ander bedrag dan nul in voor je verdeling',
             noParticipantSelected: 'Selecteer een deelnemer',
             other: 'Onverwachte fout. Probeer het later opnieuw.',
+            payFailedExpenseDeleted: 'De betaling is mislukt omdat de declaratie is verwijderd.',
             genericCreateFailureMessage: 'Onverwachte fout bij het indienen van deze uitgave. Probeer het later opnieuw.',
             genericCreateInvoiceFailureMessage: 'Onverwachte fout bij het verzenden van deze factuur. Probeer het later opnieuw.',
             genericHoldExpenseFailureMessage: 'Onverwachte fout bij het vasthouden van deze uitgave. Probeer het later opnieuw.',
@@ -2986,6 +2997,9 @@ ${amount} voor ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Dit lid behoort al tot een andere goedkeuringsworkflow. Alle updates hier worden daar ook doorgevoerd.',
+        approverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur of verwijder deze workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur.',
+        overLimitApproverNotWorkspaceMember: 'De extra fiatteur voor rapporten boven de limiet is geen lid meer van de workspace. Kies een nieuwe extra fiatteur.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> keurt al rapporten goed voor <strong>${name2}</strong>. Kies een andere fiatteur om een cirkelstroom te voorkomen.`,
         emptyContent: {
@@ -4004,6 +4018,15 @@ ${amount} voor ${merchant} - ${date}`,
         },
         unlockAlreadyRequestedTitle: 'Verzoek al ingediend',
         unlockAlreadyRequestedDescription: 'Je verzoek om deze bankrekening te deblokkeren is al verzonden. Concierge neemt contact met je op als er nog iets anders nodig is.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Voorbeeld: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
+            invalidOption: 'Kies een van de beschikbare opties',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Voer een waarde in tussen ${min} en ${max}`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -6903,11 +6926,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             emptySubtitle: 'Leveranciers verschijnen hier zodra je boekhoudkundige synchronisatie is voltooid.',
             findVendor: 'Leverancier zoeken',
             managedInAccountingSoftware: 'Leveranciers worden beheerd in je',
-            enableVendor: 'Leverancier inschakelen',
-            enableVendors: 'Leveranciers inschakelen',
-            disableVendor: 'Leverancier uitschakelen',
-            disableVendors: 'Leveranciers uitschakelen',
-            updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de leverancier, probeer het alsjeblieft opnieuw',
         },
         tags: {
             tagName: 'Tagnaam',
@@ -7739,9 +7757,32 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             startDate: 'Startdatum',
             endDate: 'Einddatum',
             autoGeneratedRateTooltip: 'Dit tarief is automatisch gegenereerd.',
+            automaticRates: 'Automatische tarieven',
             autoUpdateGovernmentRate: 'Overheidspercentages automatisch bijwerken',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Maak automatisch nieuwe tarieven aan wanneer ${countryPhrase} nieuwe richtlijnen publiceert.`,
-            governmentRateCountries: {US: 'de Verenigde Staten', CA: 'Canada', GB: 'Groot-Brittannië', AU: 'Australië', NO: 'Noorwegen', SE: 'Zweden', ZA: 'Zuid-Afrika'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `Maak automatisch nieuwe tarieven aan wanneer ${countryPhrase} nieuwe richtlijnen publiceert. Bestaande tarieven worden niet gewijzigd.`,
+            governmentRateCountries: {
+                US: 'de Verenigde Staten',
+                CA: 'Canada',
+                GB: 'Groot-Brittannië',
+                AU: 'Australië',
+                AT: 'Oostenrijk',
+                BE: 'België',
+                FI: 'Finland',
+                DE: 'Duitsland',
+                NL: 'Nederland',
+                PT: 'Portugal',
+                ES: 'Spanje',
+                NO: 'Noorwegen',
+                SE: 'Zweden',
+                ZA: 'Zuid-Afrika',
+            },
+            governmentRateCountryGeneric: 'uw land',
+            governmentRateSourceCountry: 'Bronland voor afstandstarieven',
+            governmentRateCountrySelectionPrompt:
+                'Om de functie voor het automatisch bijwerken van overheidsafstandstarieven te blijven gebruiken, bevestig welk land je vanaf nu wilt gebruiken.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Let op! Als je de valuta van de werkruimte wijzigt naar ${currency}, worden voortaan de overheidskilometertarieven gebruikt die ${countryPhrase} publiceert. Weet je zeker dat je door wilt gaan?`,
         },
         editor: {
             descriptionInputLabel: 'Beschrijving',
@@ -8817,7 +8858,17 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Instellen voltooien</a>` : 'Configuratie voltooien'} om werknemers te importeren.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Groepen', description: 'Kies de groepen werknemers die je met deze workspace wilt synchroniseren'},
+                groups: {
+                    title: 'Groepen',
+                    description: 'Kies de groepen werknemers die je met deze workspace wilt synchroniseren',
+                    staleSelectionError: (providerName: string) =>
+                        `Een aantal van de groepen die je hebt geselecteerd bestaan niet meer in ${providerName}, waardoor de werknemers in die groepen niet meer worden gesynchroniseerd.`,
+                    updateSelectionLink: 'Werk je groepen bij.',
+                    noGroupsFound: 'Geen groepen gevonden',
+                    noGroupsFoundDescription:
+                        'Er zijn op dit moment geen groepen om te selecteren. Sla op zonder groepen te selecteren om alle werknemers te synchroniseren, of synchroniseer de verbinding opnieuw zodra er nieuwe groepen zijn.',
+                    unnamedGroup: (groupID: string) => `Groep zonder naam (${groupID})`,
+                },
             },
         },
         recruiting: {
@@ -10150,6 +10201,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         mergeReports: {
             title: 'Rapporten samenvoegen',
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+            listPage: {noEligibleReportsFound: 'Geen in aanmerking komende rapporten gevonden', noEligibleReportsFoundSubtitle: 'Je hebt geen rapporten die kunnen worden samengevoegd.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} tot nu toe`,
         weekOf: ({date}: {date: string}) => `Week van ${date}`,

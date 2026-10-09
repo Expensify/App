@@ -123,7 +123,7 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
                                     numberOfLinesTitle={row.numberOfLinesTitle}
                                     style={styles.sectionMenuItemTopDescription}
                                     shouldShowRightIcon={canWriteMoreFeatures}
-                                    brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={row.errors || row.hasInvalidValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={() => Navigation.navigate(row.route)}
                                     interactive={canWriteMoreFeatures}
                                 />

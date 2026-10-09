@@ -629,6 +629,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melde dich erneut an.',
+        notValid: 'Ungültiger Link.',
+        sessionMismatch: 'Der Link, den Sie angeklickt haben, ist für Ihre aktuelle Sitzung nicht gültig.',
+        switchAccount: {
+            title: 'Konten wechseln?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Sie sind als ${currentEmail} angemeldet. Diese Aktion meldet Sie stattdessen als ${newEmail} an.`,
+            confirm: 'Konten wechseln',
+            staySignedIn: 'Nicht das Konto wechseln',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -849,7 +858,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?`;
+            return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Alle Ausgaben in diesem Bericht werden als nicht gemeldet markiert.' : ''}`;
         },
         onlyVisible: 'Nur sichtbar für',
         explain: 'Erklären',
@@ -1484,6 +1493,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Möchten Sie diesen Bericht wirklich löschen?',
             other: 'Möchten Sie diese Berichte wirklich löschen?',
         }),
+        deleteExpenseReportConfirmation: 'Möchten Sie diesen Bericht wirklich löschen? Alle Ausgaben in diesem Bericht werden als nicht gemeldet markiert.',
         settledExpensify: 'Bezahlt',
         paidStatusMarkedAsPaid: 'Als bezahlt markiert',
         paidStatusWithdrawing: 'Abhebung läuft',
@@ -1628,6 +1638,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Bitte gib für deine Aufteilung einen von null verschiedenen Betrag ein',
             noParticipantSelected: 'Bitte wählen Sie eine:n Teilnehmende:n aus',
             other: 'Unerwarteter Fehler. Bitte versuchen Sie es später erneut.',
+            payFailedExpenseDeleted: 'Die Zahlung ist fehlgeschlagen, weil die Spesenabrechnung gelöscht wurde.',
             genericCreateFailureMessage: 'Unerwarteter Fehler beim Einreichen dieser Ausgabe. Bitte versuche es später noch einmal.',
             genericCreateInvoiceFailureMessage: 'Unerwarteter Fehler beim Senden dieser Rechnung. Bitte versuche es später noch einmal.',
             genericHoldExpenseFailureMessage: 'Unerwarteter Fehler beim Zurückhalten dieser Ausgabe. Bitte versuche es später erneut.',
@@ -2996,6 +3007,10 @@ ${amount} für ${merchant} – ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Dieses Mitglied gehört bereits zu einem anderen Genehmigungsworkflow. Alle Aktualisierungen hier werden sich auch dort auswirken.',
+        approverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person oder löschen Sie diesen Workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person.',
+        overLimitApproverNotWorkspaceMember:
+            'Die zusätzliche genehmigende Person für Berichte über dem Limit ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue zusätzliche genehmigende Person.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> genehmigt bereits Berichte für <strong>${name2}</strong>. Bitte wähle eine andere approvierende Person, um einen zirkulären Workflow zu vermeiden.`,
         emptyContent: {
@@ -4023,6 +4038,15 @@ ${amount} für ${merchant} – ${date}`,
         },
         unlockAlreadyRequestedTitle: 'Anfrage bereits eingereicht',
         unlockAlreadyRequestedDescription: 'Ihre Anfrage zur Entsperrung dieses Bankkontos wurde bereits gesendet. Concierge meldet sich bei Ihnen, falls noch etwas benötigt wird.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Muss mindestens ${minLength} Zeichen lang sein`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
+            invalidOption: 'Wähle eine der verfügbaren Optionen',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -6958,11 +6982,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             emptySubtitle: 'Anbieter werden hier angezeigt, nachdem Ihre Buchhaltungssynchronisierung abgeschlossen ist.',
             findVendor: 'Lieferanten finden',
             managedInAccountingSoftware: 'Lieferanten werden verwaltet in Ihrem',
-            enableVendor: 'Lieferanten aktivieren',
-            enableVendors: 'Anbieter aktivieren',
-            disableVendor: 'Lieferanten deaktivieren',
-            disableVendors: 'Lieferanten deaktivieren',
-            updateFailureMessage: 'Beim Aktualisieren des Lieferanten ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
         },
         tags: {
             tagName: 'Tag-Name',
@@ -7802,9 +7821,32 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             startDate: 'Startdatum',
             endDate: 'Enddatum',
             autoGeneratedRateTooltip: 'Dieser Satz wurde automatisch erzeugt.',
+            automaticRates: 'Automatische Sätze',
             autoUpdateGovernmentRate: 'Regierungssätze automatisch aktualisieren',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Neue Sätze automatisch erstellen, wenn ${countryPhrase} neue Richtlinien veröffentlicht.`,
-            governmentRateCountries: {US: 'die Vereinigten Staaten', CA: 'Kanada', GB: 'Großbritannien', AU: 'Australien', NO: 'Norwegen', SE: 'Schweden', ZA: 'Südafrika'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `Neue Sätze automatisch erstellen, wenn ${countryPhrase} neue Richtlinien veröffentlicht. Bestehende Sätze werden nicht geändert.`,
+            governmentRateCountries: {
+                US: 'die Vereinigten Staaten',
+                CA: 'Kanada',
+                GB: 'Großbritannien',
+                AU: 'Australien',
+                AT: 'Österreich',
+                BE: 'Belgien',
+                FI: 'Finnland',
+                DE: 'Deutschland',
+                NL: 'die Niederlande',
+                PT: 'Portugal',
+                ES: 'Spanien',
+                NO: 'Norwegen',
+                SE: 'Schweden',
+                ZA: 'Südafrika',
+            },
+            governmentRateCountryGeneric: 'Ihr Land',
+            governmentRateSourceCountry: 'Quellland der Entfernungssätze',
+            governmentRateCountrySelectionPrompt:
+                'Um die Funktion zur automatischen Aktualisierung staatlicher Entfernungssätze weiterhin zu nutzen, bestätigen Sie bitte, welches Land Sie künftig verwenden möchten.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Achtung! Wenn Sie die Währung des Arbeitsbereichs auf ${currency} ändern, werden stattdessen die staatlichen Kilometersätze verwendet, die ${countryPhrase} veröffentlicht. Möchten Sie wirklich fortfahren?`,
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',
@@ -8894,7 +8936,17 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
+                groups: {
+                    title: 'Gruppen',
+                    description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten',
+                    staleSelectionError: (providerName: string) =>
+                        `Einige der Gruppen, die Sie ausgewählt haben, existieren in ${providerName} nicht mehr, daher werden deren Mitarbeitende nicht mehr synchronisiert.`,
+                    updateSelectionLink: 'Aktualisieren Sie Ihre Gruppen.',
+                    noGroupsFound: 'Keine Gruppen gefunden',
+                    noGroupsFoundDescription:
+                        'Es gibt derzeit keine Gruppen zum Auswählen. Speichern Sie ohne ausgewählte Gruppen, um alle Mitarbeitenden zu synchronisieren, oder synchronisieren Sie die Verbindung erneut, sobald neue Gruppen vorhanden sind.',
+                    unnamedGroup: (groupID: string) => `Unbenannte Gruppe (${groupID})`,
+                },
             },
         },
         recruiting: {
@@ -10230,6 +10282,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         mergeReports: {
             title: 'Berichte zusammenführen',
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
+            listPage: {noEligibleReportsFound: 'Keine berechtigten Berichte gefunden', noEligibleReportsFoundSubtitle: 'Sie haben keine Berichte, die zusammengeführt werden können.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} bisher`,
         weekOf: ({date}: {date: string}) => `Woche vom ${date}`,
