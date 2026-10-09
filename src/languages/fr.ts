@@ -858,7 +858,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Voulez-vous vraiment supprimer ce ${type} ?`;
+            return `Voulez-vous vraiment supprimer ce ${type} ?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Toutes les dépenses de ce rapport seront considérées comme non déclarées.' : ''}`;
         },
         onlyVisible: 'Visible uniquement par',
         explain: 'Expliquer',
@@ -1499,6 +1499,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Êtes-vous sûr de vouloir supprimer ce rapport ?',
             other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?',
         }),
+        deleteExpenseReportConfirmation: 'Êtes-vous sûr de vouloir supprimer ce rapport ? Toutes les dépenses de ce rapport seront considérées comme non déclarées.',
         settledExpensify: 'Payé',
         paidStatusMarkedAsPaid: 'Marqué comme payé',
         paidStatusWithdrawing: 'Retrait',
