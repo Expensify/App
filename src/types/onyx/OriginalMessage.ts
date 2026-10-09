@@ -1239,6 +1239,9 @@ type OriginalMessageReimbursed = {
 
     /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
     creditedCurrency?: string;
+
+    /** The Concierge reasoning for the action */
+    reasoning?: string;
 };
 
 /** Model of `trip room preview` report action */
