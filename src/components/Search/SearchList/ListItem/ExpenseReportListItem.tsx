@@ -16,6 +16,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -98,6 +99,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     /*
@@ -251,7 +253,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
-        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -323,7 +324,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             allViolations: liveViolationsForSnapshotTransactions,
             rules,
             conciergeChat,
-            bankAccountList,
         });
     }, [
         currentSearchHash,
@@ -368,7 +368,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         liveViolationsForSnapshotTransactions,
         rules,
         conciergeChat,
-        bankAccountList,
         shouldShowMarkAsDoneCopy,
     ]);
 
@@ -488,7 +487,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
+                pageGutterMargin,
                 StyleUtils.getSearchRowBackgroundStyle(isSelected),
                 !isLargeScreenWidth && styles.br0,
                 isPendingDelete && styles.cursorDisabled,

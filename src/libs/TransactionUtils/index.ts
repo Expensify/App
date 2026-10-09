@@ -533,17 +533,32 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
 }
 
 /**
- * Return the tax amount field from the transaction.
+ * Convert a stored tax amount to the sign we display.
  */
-function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
+function normalizeTaxAmountSign(rawAmount: number | undefined, isFromExpenseReport: boolean): number {
     // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
-        return Math.abs(transaction?.taxAmount ?? 0);
+        return Math.abs(rawAmount ?? 0);
     }
 
     // To avoid -0 being shown, lets only change the sign if the value is other than 0.
-    const amount = transaction?.taxAmount ?? 0;
+    const amount = rawAmount ?? 0;
     return amount ? -amount : 0;
+}
+
+/**
+ * Return the tax amount field from the transaction.
+ */
+function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
+    return normalizeTaxAmountSign(transaction?.taxAmount, isFromExpenseReport);
+}
+
+/**
+ * Return the converted tax amount field from the transaction.
+ * It follows the same sign convention as `getTaxAmount`.
+ */
+function getConvertedTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
+    return normalizeTaxAmountSign(transaction?.convertedTaxAmount, isFromExpenseReport);
 }
 
 /**
@@ -1227,7 +1242,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: On
 
     // Check if manual request is being created
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        return true;
+        return transaction.wasAutoCategorizeEnabledOnCreation !== false;
     }
 
     // Check if within auto-categorization grace period
@@ -1668,6 +1683,14 @@ function isUnreportedManagedCardTransaction(transaction?: Transaction): boolean 
 }
 
 /**
+ * Whether the expense has no settled value yet: SmartScan is still running, an Expensify Card charge is still pending,
+ * or the scan failed and left required fields empty.
+ */
+function isExpenseValueUnsettled(transaction: Transaction, report: OnyxEntry<Report>, isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning): boolean {
+    return isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report);
+}
+
+/**
  * Check if the initial transaction should be reused for the current file being processed.
  */
 function shouldReuseInitialTransaction(
@@ -1761,7 +1784,8 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
     }
 
     const selectedRouteKey = getSelectedRouteKey(transaction);
-    return transaction?.routes?.[selectedRouteKey]?.distance ?? undefined;
+    const reusedRouteDistance = transaction?.isReusedRoute ? transaction.comment?.customUnit?.routeDistanceMeters : undefined;
+    return transaction?.routes?.[selectedRouteKey]?.distance ?? reusedRouteDistance ?? undefined;
 }
 
 /**
@@ -1784,6 +1808,14 @@ function hasManualDistanceOverride(transaction: OnyxInputOrEntry<Transaction>): 
     // re-fetch can return a slightly different distance for the same route, which must not read as an override.
     const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
     return !quantityMatchesDistance(selectedRouteDistanceInMeters) && !(routeDistanceMeters && quantityMatchesDistance(routeDistanceMeters));
+}
+
+function isTransactionOwner(transaction: OnyxEntry<Transaction>, cardList: OnyxEntry<CardList>) {
+    /**
+     * The transaction should belong to the current user if its card is in Onyx. Note that cash transactions are also
+     * linked to a "cash card".
+     */
+    return !!cardList?.[transaction?.cardID ?? CONST.DEFAULT_NUMBER_ID];
 }
 
 export {
@@ -1923,6 +1955,7 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isPartialTransaction,
+    isExpenseValueUnsettled,
     isScanningTransaction,
     isScanning,
     isTransactionSubmittable,
@@ -1959,6 +1992,7 @@ export {
     getMCCForDisplay,
     hasDisplayableMCC,
     getConvertedAmount,
+    getConvertedTaxAmount,
     isTimeRequest,
     getExpenseTypeTranslationKey,
     getDetailedExpenseTypeTranslationKey,
@@ -1973,6 +2007,7 @@ export {
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,
     getReservationNights,
+    isTransactionOwner,
 };
 
 export type {ManuallyEnteredScanFields};

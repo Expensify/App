@@ -138,7 +138,7 @@ function ReportDetailsNameSectionContent({report}: ReportDetailsNameSectionConte
     const {reportName} = useReportDetailsReportName(report, parentReport, parentReportAction);
 
     const isGroupChat = isGroupChatUtil(report);
-    const canRename = !shouldDisableRenameUtil(report, isReportArchived);
+    const canRename = !shouldDisableRenameUtil(report, isReportArchived, policy);
     const name = StringUtils.lineBreaksToSpaces(reportName);
 
     // Group chats and rooms show their name as a labeled field, every other report as a centered header

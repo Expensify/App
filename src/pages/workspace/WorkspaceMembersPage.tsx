@@ -14,6 +14,7 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
@@ -32,6 +33,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {updateMemberRoleInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearAddMemberError,
     clearDeleteMemberError,
@@ -54,14 +56,18 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
 import {
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
+    canMemberRead,
     canMemberWrite,
+    canRolePay,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    hasActiveExpensifyCard,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
@@ -69,6 +75,7 @@ import {
     isPaidGroupPolicy,
     isPolicyApprover,
     isSubmitPolicy,
+    PAYER_ROLES,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
@@ -120,9 +127,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const getWorkspaceMembers = () => {
+        if (!canMemberRead(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS)) {
+            return;
+        }
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
         openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
     };
@@ -162,7 +173,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevAccountIDs = usePrevious(accountIDs);
     const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -237,21 +248,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
 
         if (hasApprovers) {
-            const ownerEmail = ownerDetails.login;
+            // Fall back to the employeeList email and policy owner, so submitters are still reassigned when personal
+            // details aren't loaded. Skipping it would leave them submitting to someone no longer on the workspace.
+            const ownerEmail = ownerDetails?.login ?? policy?.owner;
             let currentWorkflows = approvalWorkflows;
             for (const login of selectedEmployees) {
-                if (!isPolicyApprover(policy, login)) {
+                if (!isPolicyApprover(policy, login) || !ownerEmail) {
                     continue;
                 }
 
-                const accountID = policyMemberEmailsToAccountIDs[login];
-                const removedApprover = personalDetails?.[accountID];
-                if (!removedApprover?.login || !ownerEmail) {
-                    continue;
-                }
                 const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
                     approvalWorkflows: currentWorkflows,
-                    removedApprover,
+                    removedApproverEmail: login,
+                    ownerEmail,
                     ownerDetails,
                 });
                 currentWorkflows = updatedWorkflows.filter((workflow) => !workflow.removeApprovalWorkflow);
@@ -280,6 +289,21 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return;
         }
 
+        const cardholderEmail = selectedEmployees.find((email) => hasActiveExpensifyCard(policy, email));
+        if (cardholderEmail) {
+            showConfirmModal({
+                shouldShowCancelButton: false,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
+                prompt: translate('workspace.people.removeMemberPromptExpensifyCard', {
+                    memberName: getDisplayNameForParticipant({accountID: policyMemberEmailsToAccountIDs[cardholderEmail], formatPhoneNumber, hiddenTranslation: translate('common.hidden')}),
+                }),
+                confirmText: translate('common.buttonConfirm'),
+                cancelText: translate('common.cancel'),
+            });
+            return;
+        }
+
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
@@ -293,7 +317,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             removeUsers();
         });
-    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, policyID, showConfirmModal, showRuleBotGuardModal, translate]);
+    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, policyID, showConfirmModal, showRuleBotGuardModal, translate, formatPhoneNumber]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -328,6 +352,24 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         },
         [route.params.policyID],
     );
+
+    const changeMemberRole = (login: string, accountID: number, currentRole: string | undefined, newRole: ValueOf<typeof CONST.POLICY.ROLE>) => {
+        if (newRole === currentRole || !canMemberAssignRole(policy, currentUserLogin ?? '', newRole)) {
+            return;
+        }
+
+        // A reimburser must stay a valid payer, so reject any role that cannot pay.
+        if (getReimburserEmail(policy) === login && !canRolePay(newRole)) {
+            return;
+        }
+
+        if (newRole !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
+            showRuleBotGuardModal('changeRole', policyID);
+            return;
+        }
+
+        updateMemberRoleInline(policy, login, accountID, currentRole, newRole);
+    };
 
     const policyOwner = policy?.owner;
     const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
@@ -382,15 +424,35 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
 
+    const isSelectionModeActive = selectedEmployees.length > 0 || isMobileSelectionModeEnabled;
+    // Role assignment is a Collect/Control capability. Submit locks every member to Editor.
+    const canAssignMemberRole = isGroupPolicy(policy) && !isSubmitWorkspace;
+
     const data: WorkspaceMemberRowData[] = useMemo(() => {
         const ownerDisplayRole = isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.OWNER;
+        const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
+        const policyRoles = Object.values(CONST.POLICY.ROLE);
+
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
-            const role = policy?.owner === details.login ? ownerDisplayRole : policyEmployee.role;
+            const employeeRole = policyRoles.find((policyRole) => policyRole === policyEmployee.role);
+            const role = policy?.owner === details.login ? ownerDisplayRole : employeeRole;
 
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
+            const isOwner = policy?.owner === login;
+            const isCurrentUser = accountID === session?.accountID;
+            const isReimburser = isPolicyReimburser(policy, login);
+            const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== policyEmployee.role);
+            const canEditRole =
+                canAssignMemberRole &&
+                !isSelectionModeActive &&
+                !isPendingDeleteOrError &&
+                !isOwner &&
+                !isCurrentUser &&
+                canMemberAssignRole(policy, currentUserLogin ?? '', policyEmployee.role) &&
+                (!isReimburser || canReimburserChangeRole);
 
             return {
                 keyForList: login,
@@ -412,6 +474,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 errors: getLatestErrorMessageField(policyEmployee),
                 pendingAction: policyEmployee.pendingAction,
                 disabled: isPendingDeleteOrError,
+                canEditRole,
+                onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
                 action: () => openMemberDetails(accountID, login),
@@ -422,9 +486,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         filteredMembers,
         canEditWorkspaceSettings,
         canWriteMembers,
+        canAssignMemberRole,
         currentUserLogin,
         policy,
         isSubmitWorkspace,
+        isSelectionModeActive,
         formatPhoneNumber,
         translate,
         session?.accountID,
@@ -433,6 +499,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
         dismissError,
+        changeMemberRole,
     ]);
 
     useEffect(() => {
@@ -579,6 +646,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
+        const guestOption = {
+            text: translate('workspace.people.makeGuest', {count: selectedEmployees.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_GUEST,
+            icon: icons.User,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.GUEST),
+        };
         const cardAdminOption = {
             text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
@@ -602,6 +676,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
+        const hasAtLeastOneNonGuestRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.GUEST);
         const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonPeopleAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PEOPLE_ADMIN);
         const hasAtLeastOneNonPaymentsAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PAYMENTS_ADMIN);
@@ -627,6 +702,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.AUDITOR)
         ) {
             options.push(auditorOption);
+        }
+
+        if (
+            hasAtLeastOneNonGuestRole &&
+            isControlPolicy(policy) &&
+            !hasAtLeastOnePayer &&
+            canManageSelectedEmployees &&
+            canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.GUEST)
+        ) {
+            options.push(guestOption);
         }
 
         if (hasAtLeastOneNonCardAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
@@ -825,7 +910,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
-                    {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{getHeaderButtons()}</View>}
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}
