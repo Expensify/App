@@ -2345,6 +2345,53 @@ describe('SearchUIUtils', () => {
             expect(transactionActions).toStrictEqual([CONST.SEARCH.ACTION_TYPES.VIEW]);
         });
 
+        test('Should keep `Pay` action for the expense of a single-line invoice the current user can pay', () => {
+            // Given a submitted single-line invoice sent to the current user
+            const invoiceReportID = 'invoice-report-pay';
+            const invoiceChatReportID = 'invoice-chat-pay';
+            const invoiceTransactionID = 'invoice-transaction-pay';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${invoiceReportID}`]: {
+                    ...searchResults.data[`report_${reportID3}`],
+                    reportID: invoiceReportID,
+                    chatReportID: invoiceChatReportID,
+                    policyID: 'invoice-sender-policy',
+                    type: CONST.REPORT.TYPE.INVOICE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    transactionCount: 1,
+                },
+                [`report_${invoiceChatReportID}`]: {
+                    ...searchResults.data[`report_${reportID4}`],
+                    reportID: invoiceChatReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                    invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: adminAccountID},
+                },
+                [`transactions_${invoiceTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID3}`],
+                    transactionID: invoiceTransactionID,
+                    reportID: invoiceReportID,
+                },
+            };
+
+            // When the actions are computed for its invoice row
+            const action = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `transactions_${invoiceTransactionID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                adminAccountID,
+                {},
+                {},
+                undefined,
+            ).at(0);
+
+            // Then invoice rows still offer Pay since only expense rows drop report level actions
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+        });
+
         test('Should show `View` and no Pay capability on the Expenses tab for a non-reimbursable single-expense report', async () => {
             // Given report3 is ready to be paid and holds a single non-reimbursable expense
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});

@@ -2161,7 +2161,7 @@ function getActions(
     }
 
     // Submit/Approve/Pay are report level actions, so expense rows only offer View.
-    if (isTransaction) {
+    if (isTransaction && !isInvoiceReport(report)) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
@@ -2177,11 +2177,22 @@ function getActions(
     }
 
     const allActions: SearchTransactionAction[] = [];
-    const allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
+    let allReportTransactions: OnyxTypes.Transaction[];
+    if (isReportEntry(key)) {
+        allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
+    } else {
+        allReportTransactions = transaction ? [transaction] : [];
+    }
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
 
     const isChatReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`]);
+
+    // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
+    // If this condition is not met, return early for performance reasons
+    if (isTransaction && !isOneTransactionReport(report)) {
+        return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
+    }
 
     const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
         isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
