@@ -44,6 +44,7 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
+import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -190,6 +191,8 @@ function MerchantRulePageBase({
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
+    // The footer remounts when it moves on rotation, so the page owns the modal to keep it open
+    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const seededCategoryTaxRuleRef = useRef<string | undefined>(undefined);
     const didSeedInitialCategoryRef = useRef(false);
 
@@ -708,10 +711,8 @@ function MerchantRulePageBase({
                 footerContent={
                     shouldShowDescribeRule && (
                         <DescribeRuleButton
-                            policyID={policyID}
-                            ruleType={CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DESCRIBE}
-                            onRuleGenerated={applyGeneratedRule}
+                            onPress={() => setIsDescribeRuleModalVisible(true)}
                         />
                     )
                 }
@@ -810,6 +811,15 @@ function MerchantRulePageBase({
                     {isInLandscapeMode && footer}
                 </ScrollView>
                 {!isInLandscapeMode && footer}
+                {shouldShowDescribeRule && (
+                    <DescribeRuleModal
+                        isVisible={isDescribeRuleModalVisible}
+                        onClose={() => setIsDescribeRuleModalVisible(false)}
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
+                        onRuleGenerated={applyGeneratedRule}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
