@@ -3,7 +3,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import {useCallback} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 
 import useChartInteractionState from './useChartInteractionState';
 
@@ -98,13 +98,6 @@ type UseChartInteractionsProps = {
     /** Optional shared value containing the y-axis zero position */
     yZero?: SharedValue<number>;
 
-    /**
-     * Optional worklet to override the default tooltip anchor. Receives the matched point's canvas
-     * position and the y-axis zero, and returns the tooltip anchor. Defaults to anchoring above the
-     * top of a vertical bar. Horizontal bar charts pass this to anchor above the bar's tip instead.
-     */
-    resolveTooltipPosition?: (targetX: number, targetY: number, currentYZero: number) => {x: number; y: number};
-
     /** Scale applied to the rendered chart container */
     coordinateScale?: number;
 };
@@ -113,6 +106,12 @@ function normalizeChartCoordinate(coordinate: number, coordinateScale: number): 
     'worklet';
 
     return Number.isFinite(coordinateScale) && coordinateScale > 0 ? coordinate / coordinateScale : coordinate;
+}
+
+function denormalizeChartCoordinate(coordinate: number, coordinateScale: number): number {
+    'worklet';
+
+    return Number.isFinite(coordinateScale) && coordinateScale > 0 ? coordinate * coordinateScale : coordinate;
 }
 
 /**
@@ -172,7 +171,6 @@ function useChartInteractions({
     resolveLabelTouchX,
     chartBottom,
     yZero,
-    resolveTooltipPosition,
     coordinateScale = 1,
 }: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
@@ -305,6 +303,40 @@ function useChartInteractions({
         return updateInteractionFlags(hitTestArgs.targetIndex, hitTestArgs.cursorX, hitTestArgs.cursorY, hitTestArgs.chartBottom);
     };
 
+    /** Moves the hover cursor to the given chart position and updates the matched target and the tooltip visibility */
+    const updateHoverAt = (cursorX: number, cursorY: number) => {
+        'worklet';
+
+        chartInteractionState.cursor.x.set(cursorX);
+        chartInteractionState.cursor.y.set(cursorY);
+        const bottom = chartBottom?.get() ?? cursorY;
+        const isOverCurrentTarget = updateCurrentInteractionFlags();
+        // Only update the matched index when the cursor is not over the current target.
+        // This keeps the active index locked while hovering over a bar/point/label,
+        // preventing it from jumping to a different point during continuous movement.
+        if (!isOverCurrentTarget) {
+            const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
+            const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
+            applyTargetIndex(targetIndex);
+            updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+        }
+    };
+
+    /** The page scrolling moves the chart under a still cursor without any hover event, so the hover is checked again at the cursor's new chart position */
+    const handleChartMoved = (deltaX: number, deltaY: number) => {
+        'worklet';
+
+        if (!chartInteractionState.isActive.get()) {
+            return;
+        }
+        updateHoverAt(
+            chartInteractionState.cursor.x.get() - normalizeChartCoordinate(deltaX, coordinateScale),
+            chartInteractionState.cursor.y.get() - normalizeChartCoordinate(deltaY, coordinateScale),
+        );
+    };
+
+    const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
+
     /**
      * Hover gesture to be placed on the full-height outer container (chart + label area).
      * Clamps the y coordinate to chartBottom before passing to Victory so that hovering
@@ -332,21 +364,7 @@ function useChartInteractions({
             .onUpdate((e) => {
                 'worklet';
 
-                const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
-                const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
-                chartInteractionState.cursor.x.set(cursorX);
-                chartInteractionState.cursor.y.set(cursorY);
-                const bottom = chartBottom?.get() ?? cursorY;
-                const isOverCurrentTarget = updateCurrentInteractionFlags();
-                // Only update the matched index when the cursor is not over the current target.
-                // This keeps the active index locked while hovering over a bar/point/label,
-                // preventing it from jumping to a different point during continuous movement.
-                if (!isOverCurrentTarget) {
-                    const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
-                    const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
-                    applyTargetIndex(targetIndex);
-                    updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
-                }
+                updateHoverAt(normalizeChartCoordinate(e.x, coordinateScale), normalizeChartCoordinate(e.y, coordinateScale));
             })
             .onEnd(() => {
                 'worklet';
@@ -396,17 +414,21 @@ function useChartInteractions({
         const targetX = chartInteractionState.x.position.get();
         const targetY = chartInteractionState.y.y.position.get();
         const currentYZero = yZero?.get() ?? targetY;
-        if (resolveTooltipPosition) {
-            return resolveTooltipPosition(targetX, targetY, currentYZero);
-        }
         // Position tooltip at the top of the bar (min of targetY and yZero)
         const barTopY = Math.min(targetY, currentYZero);
 
+        // Chart tooltip is drawn outside the chart's scale transform
         return {
-            x: targetX,
-            y: barTopY - TOOLTIP_BAR_GAP,
+            x: denormalizeChartCoordinate(targetX, coordinateScale),
+            y: denormalizeChartCoordinate(barTopY, coordinateScale) - TOOLTIP_BAR_GAP,
         };
     });
+
+    /** Canvas position of the matched data point, for drawing hover indicators inside the chart canvas */
+    const activePointPosition = useDerivedValue(() => ({
+        x: chartInteractionState.x.position.get(),
+        y: chartInteractionState.y.y.position.get(),
+    }));
 
     const customGestures = Gesture.Race(hoverGesture(), tapGesture());
 
@@ -426,6 +448,10 @@ function useChartInteractions({
         isCursorOverClickable,
         /** Raw tooltip positioning data */
         initialTooltipPosition,
+        /** Canvas position of the matched data point */
+        activePointPosition,
+        /** Call with how far the chart moved in the window, e.g. on page scroll, to re-check the hover under a still cursor */
+        onChartMoved,
     };
 }
 

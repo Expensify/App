@@ -1,19 +1,18 @@
+import {EditableCell, useInlineEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToBackendAmount, convertToFrontendAmountAsString, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import {formatToParts} from '@libs/NumberFormatUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getTransactionDisplayAmount, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
-import {getCurrency as getTransactionCurrency, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
+import {getTransactionDisplayAmount, isInvoiceReport, isSettled, shouldEnableNegative} from '@libs/ReportUtils';
+import {getCurrency as getTransactionCurrency, isExpenseUnreported, isFailedScanAmountPlaceholder, isScanning} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
@@ -50,9 +49,12 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     const effectiveReport = report ?? transactionItem.report;
     const effectivePolicy = policy ?? transactionItem.policy;
     const amount = getTransactionDisplayAmount(transactionItem, effectiveReport, effectivePolicy);
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(transactionItem, isSettled(effectiveReport));
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
         amountToDisplay = translate('iou.receiptStatusTitle');
+    } else if (hasFailedScanAmountPlaceholder) {
+        amountToDisplay = '';
     }
 
     const iouType = getTransactionItemIouType({...transactionItem, report: effectiveReport});
@@ -63,6 +65,9 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     const absoluteAmount = Math.abs(amount ?? 0);
     const isOriginalAmountNegative = (amount ?? 0) < 0;
     const [isNegative, setIsNegative] = useState(isOriginalAmountNegative);
+    // Tracks whether the user actually typed in this edit session, so that merely opening and
+    // closing the cell without input isn't mistaken for an explicit confirmation of the amount.
+    const hasUserTypedRef = useRef(false);
 
     const getNormalizedValue = (amountString: string, isAmountNegative: boolean) => {
         const parsedValue = parseFloatAnyLocale(amountString);
@@ -88,7 +93,11 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
                   onSave(normalizedValue);
               }
             : undefined,
-        (value, originalValue) => getNormalizedValue(value, isNegative) === getNormalizedValue(originalValue, isOriginalAmountNegative),
+        // A failed-scan placeholder amount that the user actually typed into is treated as changed so that
+        // explicitly re-entering 0 still submits and clears the scan-failure error, mirroring submitEditAmount in
+        // IOUAmountSubmission.ts. Merely opening and blurring the cell without typing is left as a no-op.
+        (value, originalValue) =>
+            !(hasFailedScanAmountPlaceholder && hasUserTypedRef.current) && getNormalizedValue(value, isNegative) === getNormalizedValue(originalValue, isOriginalAmountNegative),
     );
 
     // Ref used to programmatically focus the input when edit mode starts
@@ -101,14 +110,21 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
 
     const handleStartEditing = () => {
         setIsNegative(isOriginalAmountNegative);
+        hasUserTypedRef.current = false;
         startEditing();
     };
 
     const handleAmountChange = (amountString: string) => {
+        hasUserTypedRef.current = true;
         setLocalValue(amountString);
     };
 
     const onFormatAmount = (amountAsInt: number, currencyParam?: string) => {
+        // Seed the edit input as empty for a failed-scan placeholder, matching the blanked display above and the
+        // same falsy-amount-is-blank convention MoneyRequestAmountForm already uses for an unset amount.
+        if (hasFailedScanAmountPlaceholder) {
+            return '';
+        }
         const decimals = getCurrencyDecimals(currencyParam);
         return convertToFrontendAmountAsString(amountAsInt, decimals);
     };
@@ -122,16 +138,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
         inputRef.current?.blur();
     };
 
-    // Some currencies display with a space between symbol and amount (e.g., "CZK 100.00") in convertToDisplayString (in preview).
-    // We detect this spacing and apply matching padding to the input to prevent visual flicker when entering edit mode.
-    // See: https://github.com/Expensify/App/pull/83127#issuecomment-4240055145
-    const sanitizedCurrency = sanitizeCurrencyCode(currency);
-    const hasSymbolSpaceInPreview = formatToParts(preferredLocale, 0, {
-        style: 'currency',
-        currency: sanitizedCurrency,
-        minimumFractionDigits: getCurrencyDecimals(sanitizedCurrency),
-        maximumFractionDigits: CONST.DEFAULT_CURRENCY_DECIMALS,
-    }).some((part) => part.type === 'literal' && part.value.trim() === '');
+    const hasSymbolSpaceInPreview = hasSpaceBetweenSymbolAndAmount(preferredLocale, currency);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing});
 
