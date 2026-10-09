@@ -3,6 +3,8 @@ import type TabBarBottomContentProps from '@components/Navigation/TabBarBottomCo
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import React from 'react';
 
 import type TabRootScreenWrapperProps from './types';
@@ -20,7 +22,7 @@ function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['sel
     return {
         bottomContent: <TabBarBottomContent selectedTab={selectedTab} />,
         bottomContentStyle: shouldUseNarrowLayout ? [styles.stickToBottom, styles.overflowVisible] : styles.overflowVisible,
-        offlineIndicatorStyle: shouldUseNarrowLayout ? styles.floatingTabBarOfflineIndicator : undefined,
+        offlineIndicatorStyle: shouldUseNarrowLayout ? styles.tabBarOfflineIndicator(variables.floatingTabBarHeight + variables.floatingTabBarBottomInset) : undefined,
     };
 }
 

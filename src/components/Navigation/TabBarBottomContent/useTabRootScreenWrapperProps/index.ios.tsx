@@ -28,7 +28,7 @@ function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['sel
 
     return {
         enableEdgeToEdgeBottomSafeAreaPadding: false,
-        offlineIndicatorStyle: styles.iosNativeTabBarOfflineIndicator(getFloatingButtonsBottom(bottomInset)),
+        offlineIndicatorStyle: styles.tabBarOfflineIndicator(getFloatingButtonsBottom(bottomInset)),
     };
 }
 

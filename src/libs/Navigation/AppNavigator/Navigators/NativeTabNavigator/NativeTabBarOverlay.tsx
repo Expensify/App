@@ -8,13 +8,15 @@ import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
+
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
@@ -30,6 +32,13 @@ function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 's
     const {bottom: bottomInset} = useSafeAreaInsets();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
+
+    // Cancel any in-flight tab-navigation span that doesn't match the new focused tab. The new tab's span is started at
+    // the tap, before navigation, so it is kept. On wide layouts the JS side bar does this.
+    useEffect(() => {
+        cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPANS[selectedTab]);
+    }, [selectedTab]);
+
     // The buttons follow whatever the navigator decided for the bar itself.
     const shouldShowNativeTabBar = !!activeRoute && descriptors[activeRoute.key]?.options.tabBarStyle?.display !== 'none';
 

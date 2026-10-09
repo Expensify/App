@@ -2,7 +2,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
-import getTabIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
+import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import useTabAvatarImage from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage';
 
@@ -24,10 +24,6 @@ const getFloatingButtonsBottom = (bottomInset: number) => variables.androidNativ
 const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconBottomBar,
     avatarSize: variables.iconBottomBar,
-    dotRadius: variables.nativeTabIconDotRadius,
-    dotCutout: variables.nativeTabIconDotCutout,
-    labelGap: 0,
-    labelFontSize: 0,
 };
 
 function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
@@ -46,18 +42,16 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
         tabBarStyle: {display: shouldShowNativeTabBar ? 'flex' : 'none', backgroundColor: theme.appBG},
     };
 
-    const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => {
+    const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => ({
+        tabBarLabel: tabLabels[name],
         // The active indicator pill marks the selected tab, so the avatar is the same image in both selection states.
-        const tabAvatar = name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined;
-        const dotColor = dotColors[name];
-        const inactiveIcon = getTabIcon(TAB_ICON_LAYOUT, {name, color: theme.icon, avatar: tabAvatar, dotColor});
-        const activeIcon = getTabIcon(TAB_ICON_LAYOUT, {name, color: theme.iconMenu, avatar: tabAvatar, dotColor});
-        return {
-            tabBarLabel: tabLabels[name],
-            // A function, because React Navigation derives the selected icon only from a function.
-            tabBarIcon: inactiveIcon && activeIcon ? ({focused}) => (focused ? activeIcon : inactiveIcon) : undefined,
-        };
-    };
+        tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
+            name,
+            color: isSelected ? theme.iconMenu : theme.icon,
+            avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
+            dotColor: dotColors[name],
+        })),
+    });
 
     return {screenOptions, getTabOptions};
 }

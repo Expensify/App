@@ -2,7 +2,7 @@ import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
-import getTabIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
+import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import useTabAvatarImage from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage';
 
@@ -21,11 +21,6 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOS,
     // A circle reads smaller than a glyph of the same box, so the avatar is drawn a little larger than the glyphs.
     avatarSize: variables.avatarNativeTabBarIOS,
-    dotRadius: variables.nativeTabIconDotRadius,
-    // A cutout rather than a border in the bar's color, because the iOS 26 bar is glass and has no single color.
-    dotCutout: variables.nativeTabIconDotCutout,
-    labelGap: variables.nativeTabIconLabelGap,
-    labelFontSize: variables.fontSizeSmall,
 };
 
 /**
@@ -54,23 +49,24 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
         tabBarMinimizeBehavior: 'none',
     };
 
-    const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => {
-        const getIcon = (isSelected: boolean) =>
-            getTabIcon(TAB_ICON_LAYOUT, {
-                name,
-                color: isSelected ? theme.iconMenu : theme.icon,
-                avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
-                dotColor: dotColors[name],
-                label: {text: tabLabels[name], color: isSelected ? theme.text : theme.textSupporting, isBold: isSelected, maxWidth: labelMaxWidth},
-            });
-        const inactiveIcon = getIcon(false);
-        const activeIcon = getIcon(true);
-        return {
-            tabBarIcon: inactiveIcon && activeIcon ? ({focused}) => (focused ? activeIcon : inactiveIcon) : undefined,
-            // The label is drawn into the icon, so VoiceOver reads it from here.
-            tabBarAccessibilityLabel: tabLabels[name],
-        };
-    };
+    const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => ({
+        tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
+            name,
+            color: isSelected ? theme.iconMenu : theme.icon,
+            avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
+            dotColor: dotColors[name],
+            label: {
+                text: tabLabels[name],
+                color: isSelected ? theme.text : theme.textSupporting,
+                isBold: isSelected,
+                fontSize: variables.fontSizeSmall,
+                gap: variables.nativeTabIconLabelGap,
+                maxWidth: labelMaxWidth,
+            },
+        })),
+        // The label is drawn into the icon, so VoiceOver reads it from here.
+        tabBarAccessibilityLabel: tabLabels[name],
+    });
 
     return {screenOptions, getTabOptions};
 }

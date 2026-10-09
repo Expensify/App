@@ -1,21 +1,17 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
+import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useChatTabBrickRoad} from '@hooks/useSidebarOrderedReports';
-import useTheme from '@hooks/useTheme';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
-import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -30,7 +26,7 @@ import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
 import getTabWithoutBarItem from './getTabWithoutBarItem';
-import {isInboxTabAtChatList} from './tabScreenListeners';
+import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
 /**
@@ -53,8 +49,7 @@ function useNativeTabNavigator() {
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
     const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const tabWithoutBarItem = getTabWithoutBarItem(isInsightsTabVisible);
-    const theme = useTheme();
-    const chatTabBrickRoad = useChatTabBrickRoad();
+    const {indicatorColor: inboxDotColor} = useInboxTabIndicatorStatus();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {indicatorColor: accountIndicatorColor, status: accountIndicatorStatus} = useAccountTabIndicatorStatus();
     const navigation = useNavigation();
@@ -66,7 +61,6 @@ function useNativeTabNavigator() {
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
     const activeTabRoute = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index] : undefined;
-    const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeTabRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
     const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
     const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
@@ -74,10 +68,6 @@ function useNativeTabNavigator() {
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
     const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
 
-    let inboxDotColor: string | undefined;
-    if (chatTabBrickRoad) {
-        inboxDotColor = chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger;
-    }
     const dotColors: Record<string, string | undefined> = {
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
         [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesIndicatorStatus ? workspacesIndicatorColor : undefined,
@@ -117,15 +107,6 @@ function useNativeTabNavigator() {
         Navigation.navigate(ROUTES.HOME, {forceReplace: true});
     }, [isInsightsTabFocusedWithoutBeta]);
 
-    // Cancel any in-flight tab-navigation span that doesn't match the new focused tab. The new tab's span is started at
-    // the tap, before navigation, so it is kept. On wide layouts the JS side bar does this.
-    useEffect(() => {
-        if (!shouldUseNarrowLayout) {
-            return;
-        }
-        cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPANS[selectedTab]);
-    }, [selectedTab, shouldUseNarrowLayout]);
-
     // The slicing optimization in useCustomRootStackNavigatorState can unmount and later remount
     // this TAB_NAVIGATOR. Without restoration it would default to index 0. We restore the saved
     // state by overriding the bottom-tab router's getInitialState, the same pattern SplitRouter
@@ -141,7 +122,9 @@ function useNativeTabNavigator() {
 
     const isAccountAvatarShown = shouldUseNarrowLayout && tabWithoutBarItem !== NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
 
-    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored};
+    const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
+
+    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
 }
 
 export default useNativeTabNavigator;

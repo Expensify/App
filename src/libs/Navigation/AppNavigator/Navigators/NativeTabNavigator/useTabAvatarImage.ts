@@ -51,3 +51,4 @@ function useTabAvatarImage(isShown: boolean): TabAvatarImage | undefined {
 }
 
 export default useTabAvatarImage;
+export type {TabAvatarImage};

@@ -792,16 +792,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.androidNativeTabBarHeight,
         },
 
-        // The floating bar is laid over the bottom of a tab root screen, so the offline indicator floats above it
-        // without shrinking the content that runs under the bar.
-        floatingTabBarOfflineIndicator: {
-            position: 'absolute',
-            right: 0,
-            bottom: variables.floatingTabBarHeight + variables.floatingTabBarBottomInset,
-            left: 0,
-            backgroundColor: theme.appBG,
-        },
-
         // The gap between the floating bar and the bottom edge of the screen.
         floatingTabBarBottomInset: {
             paddingBottom: variables.floatingTabBarBottomInset,
@@ -6996,8 +6986,9 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
-        // Measured from the bottom of the screen, because only some tab roots pad the indicator's container with the inset.
-        iosNativeTabBarOfflineIndicator: (bottom: number) =>
+        // The tab bar is laid over the bottom of a tab root screen, so the offline indicator floats above it without
+        // shrinking the content that runs under the bar.
+        tabBarOfflineIndicator: (bottom: number) =>
             ({
                 position: 'absolute',
                 right: 0,

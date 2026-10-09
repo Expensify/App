@@ -29,13 +29,8 @@ function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBa
 
 // Same as screenLayoutWrapper above, but for bottom-tab navigators, JS and native. No cast needed here - their
 // `navigation` props' `addListener` structurally satisfies TransitionAwareNavigation.
-function bottomTabScreenLayoutWrapper({navigation, ...rest}: ScreenLayoutProps) {
-    return (
-        <ScreenLayout
-            {...rest}
-            navigation={navigation}
-        />
-    );
+function bottomTabScreenLayoutWrapper(props: ScreenLayoutProps) {
+    return <ScreenLayout {...props} />;
 }
 
 type ScreenLayoutProps = ScreenLayoutArgs<

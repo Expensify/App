@@ -15,7 +15,7 @@ import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
-import tabScreenListeners, {isNativeTabSelectionEnabled} from './NativeTabNavigator/tabScreenListeners';
+import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
 import ReportsSplitNavigator from './ReportsSplitNavigator';
@@ -35,8 +35,7 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored} =
-        useNativeTabNavigator();
+    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels});
     // A tab with no bar item draws no icon.
     const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
@@ -45,7 +44,7 @@ function TabNavigator() {
             : {
                   ...screenOptions,
                   ...getTabOptions(route.name),
-                  tabBarSelectionEnabled: isNativeTabSelectionEnabled(route.name, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored}),
+                  tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
               };
 
     return (

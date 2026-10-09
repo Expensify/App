@@ -1,12 +1,14 @@
 import FontUtils from '@styles/utils/FontUtils';
+import variables from '@styles/variables';
 
-import type {NativeBottomTabIcon} from '@react-navigation/bottom-tabs/unstable';
+import type {NativeBottomTabIcon, NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
 import type {SkCanvas, SkImage, SkParagraph, SkPath} from '@shopify/react-native-skia';
 
 import {BlendMode, ClipOp, FillType, FilterMode, FontWeight, ImageFormat, MipmapMode, Skia, TextAlign} from '@shopify/react-native-skia';
 import {PixelRatio} from 'react-native';
 
 import type {NativeTabGlyph, NativeTabName} from './NATIVE_TAB_GLYPHS';
+import type {TabAvatarImage} from './useTabAvatarImage';
 
 import NATIVE_TAB_GLYPHS from './NATIVE_TAB_GLYPHS';
 
@@ -15,20 +17,15 @@ type TabIconLayout = {
     glyphSize: number;
     /** Side of the account avatar's box. */
     avatarSize: number;
-    /** Radius of the status dot drawn at the content's top right corner. */
-    dotRadius: number;
-    /** Width of the transparent ring cut out of the content around the status dot. */
-    dotCutout: number;
-    /** Gap between the glyph box and the label drawn under it. */
-    labelGap: number;
-    /** Font size of the label drawn under the glyph. */
-    labelFontSize: number;
 };
 
 type TabIconLabel = {
     text: string;
     color: string;
     isBold: boolean;
+    fontSize: number;
+    /** Gap between the glyph box and the label. */
+    gap: number;
     /** Width of the tab's slot in the bar, past which the label is truncated with an ellipsis. */
     maxWidth: number;
 };
@@ -37,7 +34,7 @@ type TabIconParams = {
     /** The glyph drawn unless an avatar is given. */
     name: NativeTabName;
     color: string;
-    avatar?: {uri: string; image: SkImage};
+    avatar?: TabAvatarImage;
     dotColor?: string;
     label?: TabIconLabel;
 };
@@ -70,7 +67,7 @@ function getGlyphPaths(name: NativeTabName): SkPath[] {
 }
 
 /** A paragraph rather than a single font, because only a paragraph falls back to a system font for scripts Expensify Neue lacks. */
-function makeLabelParagraph({text, color, isBold, maxWidth}: TabIconLabel, fontSize: number, scale: number): SkParagraph {
+function makeLabelParagraph({text, color, isBold, fontSize, maxWidth}: TabIconLabel, scale: number): SkParagraph {
     const paragraph = Skia.ParagraphBuilder.Make({maxLines: 1, ellipsis: '…', textAlign: TextAlign.Left})
         .pushStyle({
             color: Skia.Color(color),
@@ -121,16 +118,16 @@ function drawCircularImage(canvas: SkCanvas, image: SkImage, left: number, top: 
     circle.dispose();
 }
 
-function drawStatusDot(canvas: SkCanvas, right: number, top: number, radius: number, cutout: number, color: string) {
+/** A cutout rather than a border in the bar's color, because the iOS 26 bar is glass and has no single color. */
+function drawStatusDot(canvas: SkCanvas, right: number, top: number, scale: number, color: string) {
+    const radius = variables.nativeTabIconDotRadius * scale;
     const centerX = right - radius;
     const centerY = top + radius;
     const paint = Skia.Paint();
     paint.setAntiAlias(true);
-    if (cutout > 0) {
-        paint.setBlendMode(BlendMode.Clear);
-        canvas.drawCircle(centerX, centerY, radius + cutout, paint);
-        paint.setBlendMode(BlendMode.SrcOver);
-    }
+    paint.setBlendMode(BlendMode.Clear);
+    canvas.drawCircle(centerX, centerY, radius + variables.nativeTabIconDotCutout * scale, paint);
+    paint.setBlendMode(BlendMode.SrcOver);
     paint.setColor(Skia.Color(color));
     canvas.drawCircle(centerX, centerY, radius, paint);
     paint.dispose();
@@ -142,8 +139,8 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
     // With a label, every tab shares one row as tall as the avatar, so glyphs and the avatar share a centre and
     // every label lands at the same height.
     const rowSize = label ? Math.max(layout.glyphSize, layout.avatarSize) * scale : contentSize;
-    const labelTop = (rowSize + layout.glyphSize * scale) / 2 + layout.labelGap * scale;
-    const paragraph = label ? makeLabelParagraph(label, layout.labelFontSize, scale) : undefined;
+    const labelTop = (rowSize + layout.glyphSize * scale) / 2 + (label?.gap ?? 0) * scale;
+    const paragraph = label ? makeLabelParagraph(label, scale) : undefined;
     const labelWidth = paragraph?.getLongestLine() ?? 0;
     const labelHeight = paragraph?.getHeight() ?? 0;
     const canvasWidth = Math.ceil(Math.max(contentSize, labelWidth));
@@ -164,7 +161,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
         drawGlyph(canvas, name, contentLeft, contentTop, contentSize, color);
     }
     if (dotColor) {
-        drawStatusDot(canvas, contentLeft + contentSize, contentTop, layout.dotRadius * scale, layout.dotCutout * scale, dotColor);
+        drawStatusDot(canvas, contentLeft + contentSize, contentTop, scale, dotColor);
     }
     if (paragraph) {
         paragraph.paint(canvas, (canvasWidth - labelWidth) / 2, labelTop);
@@ -190,19 +187,8 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
  */
 function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomTabIcon | undefined {
     const {name, color, avatar, dotColor, label} = params;
-    const key = [
-        name,
-        avatar?.uri ?? color,
-        dotColor,
-        label?.text,
-        label?.color,
-        label?.isBold,
-        label?.maxWidth,
-        layout.glyphSize,
-        layout.avatarSize,
-        layout.dotRadius,
-        layout.dotCutout,
-    ].join('|');
+    // The layout and the label's font are fixed per platform, so they are left out of the key.
+    const key = [name, avatar?.uri ?? color, dotColor, label?.text, label?.color, label?.isBold, label?.maxWidth].join('|');
     if (iconCache.has(key)) {
         return iconCache.get(key);
     }
@@ -214,5 +200,12 @@ function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomT
     return icon;
 }
 
-export default getTabIcon;
+/** Both selection states as images, given as a function, because React Navigation derives the selected icon only from a function. */
+function getTabBarIcon(layout: TabIconLayout, getParams: (isSelected: boolean) => TabIconParams): NativeBottomTabNavigationOptions['tabBarIcon'] {
+    const inactiveIcon = getTabIcon(layout, getParams(false));
+    const activeIcon = getTabIcon(layout, getParams(true));
+    return inactiveIcon && activeIcon ? ({focused}) => (focused ? activeIcon : inactiveIcon) : undefined;
+}
+
+export default getTabBarIcon;
 export type {TabIconLayout};

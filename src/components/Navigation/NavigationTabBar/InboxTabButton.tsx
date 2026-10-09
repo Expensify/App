@@ -1,11 +1,10 @@
 import {PressableWithFeedback} from '@components/Pressable';
 
+import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import {useChatTabBrickRoad} from '@hooks/useSidebarOrderedReports';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getTabNavigatorStateKey, isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
@@ -205,17 +204,9 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
 
 function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const chatTabBrickRoad = useChatTabBrickRoad();
+    const {status: chatTabBrickRoad, indicatorColor: statusIndicatorColor} = useInboxTabIndicatorStatus();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
-
-    let statusIndicatorColor: string | undefined;
-    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-        statusIndicatorColor = theme.iconSuccessFill;
-    } else if (chatTabBrickRoad) {
-        statusIndicatorColor = theme.danger;
-    }
 
     const accessibilityLabel = chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox');
 
