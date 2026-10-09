@@ -23,7 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearVendorErrors, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
+import {clearVendorErrors, openPolicyVendorsPage, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -41,7 +41,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type VendorBulkActionsProps = {
@@ -126,7 +126,6 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
-    const {isOffline} = useNetwork();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {canWrite: canWriteVendors, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.VENDORS);
@@ -138,6 +137,22 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+
+    // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
+    const fetchVendors = () => {
+        if (!isFeatureAvailable) {
+            return;
+        }
+        openPolicyVendorsPage(policyID);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchVendors});
+
+    useEffect(() => {
+        fetchVendors();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const connectedIntegration = getActiveVendorMatchingIntegration(policy);
     const currentConnectionName = connectedIntegration ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration] : undefined;
     const defaultVendorID = getDefaultVendorID(policy, connectedIntegration);
