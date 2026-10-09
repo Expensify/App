@@ -18,7 +18,8 @@ const COMPARED_HEADERS = [
     'content-security-policy',
 ];
 
-const NAVIGATION_HEADERS = {'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document'};
+// Node's fetch overwrites Sec-Fetch-Mode. `wrangler dev` restores MF-Sec-Fetch-Mode as Sec-Fetch-Mode; real hosts ignore it.
+const NAVIGATION_HEADERS = {'MF-Sec-Fetch-Mode': 'navigate'};
 
 type PathCheck = {
     label: string;
