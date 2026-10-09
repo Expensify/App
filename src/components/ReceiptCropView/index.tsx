@@ -13,11 +13,11 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+import type {PanGestureActiveEvent} from 'react-native-gesture-handler';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
+import {GestureDetector, GestureHandlerRootView, usePanGesture} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 
@@ -323,112 +323,115 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
     );
 
     /**
-     * Create gesture handler for an edge
+     * Resize the crop area when an edge handle is dragged
      */
-    const createEdgeGesture = useCallback(
-        (edge: EdgePosition) => {
-            return Gesture.Pan()
-                .runOnJS(true)
-                .onChange((event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
-                    const currentX = cropX.get();
-                    const currentY = cropY.get();
-                    const currentWidth = cropWidth.get();
-                    const currentHeight = cropHeight.get();
+    const updateEdge = useCallback(
+        (edge: EdgePosition, event: PanGestureActiveEvent) => {
+            const currentX = cropX.get();
+            const currentY = cropY.get();
+            const currentWidth = cropWidth.get();
+            const currentHeight = cropHeight.get();
 
-                    let newX = currentX;
-                    let newY = currentY;
-                    let newWidth = currentWidth;
-                    let newHeight = currentHeight;
+            let newX = currentX;
+            let newY = currentY;
+            let newWidth = currentWidth;
+            let newHeight = currentHeight;
 
-                    const minSize = variables.cornerHandleSize * 2;
-                    const imgDisplayWidth = displayWidthSV.get();
-                    const imgDisplayHeight = displayHeightSV.get();
-                    const imageLeft = imageOffsetXSV.get();
-                    const imageRight = imageLeft + imgDisplayWidth;
-                    const imageTop = imageOffsetYSV.get();
-                    const imageBottom = imageTop + imgDisplayHeight;
+            const minSize = variables.cornerHandleSize * 2;
+            const imgDisplayWidth = displayWidthSV.get();
+            const imgDisplayHeight = displayHeightSV.get();
+            const imageLeft = imageOffsetXSV.get();
+            const imageRight = imageLeft + imgDisplayWidth;
+            const imageTop = imageOffsetYSV.get();
+            const imageBottom = imageTop + imgDisplayHeight;
 
-                    switch (edge) {
-                        case 'top':
-                            newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                            newHeight = currentHeight - (newY - currentY);
-                            break;
-                        case 'bottom':
-                            newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                            break;
-                        case 'left':
-                            newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                            newWidth = currentWidth - (newX - currentX);
-                            break;
-                        case 'right':
-                            newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                            break;
-                        default:
-                            break;
-                    }
+            switch (edge) {
+                case 'top':
+                    newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                    newHeight = currentHeight - (newY - currentY);
+                    break;
+                case 'bottom':
+                    newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                    break;
+                case 'left':
+                    newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                    newWidth = currentWidth - (newX - currentX);
+                    break;
+                case 'right':
+                    newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                    break;
+                default:
+                    break;
+            }
 
-                    applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
-                });
+            applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
         },
         [cropX, cropY, cropWidth, cropHeight, displayWidthSV, displayHeightSV, imageOffsetXSV, imageOffsetYSV, applyCropBoundsAndNotify, clamp],
     );
 
     /**
-     * Create gesture handler for a corner
+     * Resize the crop area when a corner handle is dragged
      */
-    const createCornerGesture = useCallback(
-        (corner: CornerPosition) => {
-            return Gesture.Pan()
-                .runOnJS(true)
-                .onChange((event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
-                    const currentX = cropX.get();
-                    const currentY = cropY.get();
-                    const currentWidth = cropWidth.get();
-                    const currentHeight = cropHeight.get();
+    const updateCorner = useCallback(
+        (corner: CornerPosition, event: PanGestureActiveEvent) => {
+            const currentX = cropX.get();
+            const currentY = cropY.get();
+            const currentWidth = cropWidth.get();
+            const currentHeight = cropHeight.get();
 
-                    let newX = currentX;
-                    let newY = currentY;
-                    let newWidth = currentWidth;
-                    let newHeight = currentHeight;
+            let newX = currentX;
+            let newY = currentY;
+            let newWidth = currentWidth;
+            let newHeight = currentHeight;
 
-                    const minSize = variables.cornerHandleSize * 2;
-                    const imgDisplayWidth = displayWidthSV.get();
-                    const imgDisplayHeight = displayHeightSV.get();
-                    const imageLeft = imageOffsetXSV.get();
-                    const imageRight = imageLeft + imgDisplayWidth;
-                    const imageTop = imageOffsetYSV.get();
-                    const imageBottom = imageTop + imgDisplayHeight;
+            const minSize = variables.cornerHandleSize * 2;
+            const imgDisplayWidth = displayWidthSV.get();
+            const imgDisplayHeight = displayHeightSV.get();
+            const imageLeft = imageOffsetXSV.get();
+            const imageRight = imageLeft + imgDisplayWidth;
+            const imageTop = imageOffsetYSV.get();
+            const imageBottom = imageTop + imgDisplayHeight;
 
-                    switch (corner) {
-                        case 'topLeft':
-                            newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                            newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                            newWidth = currentWidth - (newX - currentX);
-                            newHeight = currentHeight - (newY - currentY);
-                            break;
-                        case 'topRight':
-                            newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                            newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                            newHeight = currentHeight - (newY - currentY);
-                            break;
-                        case 'bottomLeft':
-                            newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                            newWidth = currentWidth - (newX - currentX);
-                            newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                            break;
-                        case 'bottomRight':
-                            newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                            newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                            break;
-                        default:
-                            break;
-                    }
+            switch (corner) {
+                case 'topLeft':
+                    newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                    newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                    newWidth = currentWidth - (newX - currentX);
+                    newHeight = currentHeight - (newY - currentY);
+                    break;
+                case 'topRight':
+                    newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                    newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                    newHeight = currentHeight - (newY - currentY);
+                    break;
+                case 'bottomLeft':
+                    newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                    newWidth = currentWidth - (newX - currentX);
+                    newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                    break;
+                case 'bottomRight':
+                    newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                    newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                    break;
+                default:
+                    break;
+            }
 
-                    applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
-                });
+            applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
         },
         [cropX, cropY, cropWidth, cropHeight, displayWidthSV, displayHeightSV, imageOffsetXSV, imageOffsetYSV, applyCropBoundsAndNotify, clamp],
     );
+
+    // One gesture per handle, since a gesture can only be attached to a single GestureDetector.
+    // The callbacks run on the JS thread because they report the new crop through onCropChange.
+    const topEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateEdge('top', event)});
+    const bottomEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateEdge('bottom', event)});
+    const leftEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateEdge('left', event)});
+    const rightEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateEdge('right', event)});
+    const topLeftCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateCorner('topLeft', event)});
+    const topRightCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateCorner('topRight', event)});
+    const bottomLeftCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateCorner('bottomLeft', event)});
+    const bottomRightCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateCorner('bottomRight', event)});
 
     const borderStyle = useAnimatedStyle(() => {
         'worklet';
@@ -646,36 +649,36 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
                         />
 
                         {/* Edge handles */}
-                        <GestureDetector gesture={createEdgeGesture('top')}>
+                        <GestureDetector gesture={topEdgeGesture}>
                             <Animated.View style={topEdgeStyle} />
                         </GestureDetector>
-                        <GestureDetector gesture={createEdgeGesture('bottom')}>
+                        <GestureDetector gesture={bottomEdgeGesture}>
                             <Animated.View style={bottomEdgeStyle} />
                         </GestureDetector>
-                        <GestureDetector gesture={createEdgeGesture('left')}>
+                        <GestureDetector gesture={leftEdgeGesture}>
                             <Animated.View style={leftEdgeStyle} />
                         </GestureDetector>
-                        <GestureDetector gesture={createEdgeGesture('right')}>
+                        <GestureDetector gesture={rightEdgeGesture}>
                             <Animated.View style={rightEdgeStyle} />
                         </GestureDetector>
 
                         {/* Corner handles */}
-                        <GestureDetector gesture={createCornerGesture('topLeft')}>
+                        <GestureDetector gesture={topLeftCornerGesture}>
                             <Animated.View style={topLeftCornerStyle}>
                                 <Animated.View style={cornerVisualStyle} />
                             </Animated.View>
                         </GestureDetector>
-                        <GestureDetector gesture={createCornerGesture('topRight')}>
+                        <GestureDetector gesture={topRightCornerGesture}>
                             <Animated.View style={topRightCornerStyle}>
                                 <Animated.View style={cornerVisualStyle} />
                             </Animated.View>
                         </GestureDetector>
-                        <GestureDetector gesture={createCornerGesture('bottomLeft')}>
+                        <GestureDetector gesture={bottomLeftCornerGesture}>
                             <Animated.View style={bottomLeftCornerStyle}>
                                 <Animated.View style={cornerVisualStyle} />
                             </Animated.View>
                         </GestureDetector>
-                        <GestureDetector gesture={createCornerGesture('bottomRight')}>
+                        <GestureDetector gesture={bottomRightCornerGesture}>
                             <Animated.View style={bottomRightCornerStyle}>
                                 <Animated.View style={cornerVisualStyle} />
                             </Animated.View>
