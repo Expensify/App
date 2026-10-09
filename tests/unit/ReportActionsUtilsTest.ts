@@ -1383,6 +1383,55 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getLastVisibleMessage', () => {
+        const REPORT_ID = '90301';
+        const WHISPER_TARGET_ACCOUNT_ID = 111;
+
+        const comment: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+            created: '2026-12-01 10:00:00.000',
+            reportActionID: 'visibleMessageComment',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            originalMessage: {html: 'Older comment'},
+        };
+
+        /** Newer than `comment`, and only the whispered-to account can see it. */
+        const whisper: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+            created: '2026-12-01 12:00:00.000',
+            reportActionID: 'visibleMessageWhisper',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+            originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+        });
+
+        it('should take the message from the whisper when the user is the one it targets', () => {
+            // Given a report whose newest action is a whisper aimed at the user
+            // When the last visible message is resolved for that user
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID);
+
+            // Then the whisper supplies the message
+            expect(result.lastMessageText).toBe('changed the amount');
+        });
+
+        it('should skip the whisper and fall back to the older comment when it targets somebody else', () => {
+            // Given the same report, seen by an account the whisper does not target
+            // When the last visible message is resolved for that account
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID + 1);
+
+            // Then the whisper is invisible and the older comment supplies the message
+            expect(result.lastMessageText).toBe('Older comment');
+        });
+    });
+
     describe('getExportIntegrationActionFragments', () => {
         function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[], reimbursableUrls: string[] = []): ExportedToIntegrationAction {
             const action: ExportedToIntegrationAction = {

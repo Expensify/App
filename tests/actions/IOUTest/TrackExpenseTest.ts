@@ -2633,6 +2633,73 @@ describe('actions/IOU/TrackExpense', () => {
             expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: null})]));
             expect(successData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: null})]));
         });
+
+        it("resolves the chat report's last visible action from the acting user's own visibility", async () => {
+            const CHAT_REPORT_ID = '80101';
+            const WHISPER_TARGET_ACCOUNT_ID = 909;
+
+            const chatReport: Report = {...createRandomReport(80101, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
+            const olderComment: ReportAction = {
+                ...REPORT_ACTION,
+                reportActionID: 'trackOlderComment',
+                reportID: CHAT_REPORT_ID,
+                created: '2026-11-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            };
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper: ReportAction = {
+                ...REPORT_ACTION,
+                reportActionID: 'trackWhisper',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2026-11-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            // The tracked-expense action being deleted. It lives on the chat report too, so it is excluded by its own DELETE pending action.
+            const trackedExpenseAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'trackedExpense',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+                created: '2026-11-01 09:00:00.000',
+                message: [{type: 'COMMENT', html: 'tracked expense', text: 'tracked expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.TRACK, IOUTransactionID: '80102', amount, currency: 'USD'},
+            };
+
+            // Given a chat report whose newest action is a whisper aimed at one account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+                [trackedExpenseAction.reportActionID]: trackedExpenseAction,
+            });
+            await waitForBatchedUpdates();
+
+            const getRestoredCreated = (currentUserAccountID: number) => {
+                const {optimisticData} = getDeleteTrackExpenseInformation({
+                    chatReport,
+                    transactionID: '80102',
+                    reportAction: trackedExpenseAction,
+                    isChatReportArchived: false,
+                    currentUserAccountID,
+                    transactionThreadReportActions: {},
+                });
+                const update = optimisticData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+                const {value} = update ?? {};
+                if (!value || typeof value !== 'object' || !('lastVisibleActionCreated' in value)) {
+                    return undefined;
+                }
+                return value.lastVisibleActionCreated;
+            };
+
+            // When the whispered-to account deletes the expense, the whisper is the newest action they can see
+            expect(getRestoredCreated(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // When somebody the whisper does not target deletes it, the whisper is invisible and the older comment wins
+            expect(getRestoredCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderComment.created);
+        });
     });
 
     describe('deleteTrackExpense', () => {
