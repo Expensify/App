@@ -53,6 +53,7 @@ jest.mock('@hooks/useThemeStyles', () =>
 
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({
+    arePaymentsEnabled: jest.fn(() => true),
     getWorkflowApprovalsUnavailable: jest.fn(() => false),
     isAutoPayApprovedReportsAvailable: jest.fn(
         (policy?: {areWorkflowsEnabled?: boolean; reimbursementChoice?: string; achAccount?: {bankAccountID?: number}}) =>
