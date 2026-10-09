@@ -1066,6 +1066,44 @@ describe('actions/IOU', () => {
             expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'currency'], CONST.CURRENCY.USD);
         });
 
+        it('compares the modified currency of an edited expense with the groupBy:from currency', async () => {
+            // Given a loaded grouped search whose group total is in USD
+            jest.mocked(buildCannedSearchQuery).mockReturnValue('');
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const groupedQuery = `type:expense group-by:from from:${RORY_ACCOUNT_ID}`;
+            const groupedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON(groupedQuery);
+            if (!groupedQueryJSON) {
+                throw new Error('Failed to parse the grouped search query');
+            }
+            const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedQueryJSON.hash}` as const;
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${RORY_ACCOUNT_ID}` as const;
+            await Onyx.merge(groupedSnapshotKey, {
+                search: {hash: groupedQueryJSON.hash, inputQuery: groupedQuery},
+                data: {[groupKey]: {accountID: RORY_ACCOUNT_ID, count: 1, total: 15000, currency: CONST.CURRENCY.USD}},
+            });
+            await waitForBatchedUpdates();
+
+            // When an expense created in EUR but edited to USD is added, since its displayed amount is the modified USD amount
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(groupedQueryJSON);
+            const result = getSearchOnyxUpdate({
+                transaction: {
+                    ...createRandomTransaction(1),
+                    amount: -1000,
+                    currency: CONST.CURRENCY.EUR,
+                    modifiedAmount: -5000,
+                    modifiedCurrency: CONST.CURRENCY.USD,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                },
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                transactionThreadReportID: undefined,
+            });
+
+            // Then the modified USD amount is added to the USD group total
+            const groupedUpdate = result?.optimisticData?.find((update) => update.key === groupedSnapshotKey);
+            expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'count'], 2);
+            expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'total'], 20000);
+        });
+
         it('patches a loaded snapshot that is not the active search using the query recorded on it', async () => {
             // Given a loaded `from:<me>` snapshot that is not the active search, with its query recorded on the
             // snapshot by the search() action, and a second loaded snapshot for the same query that has no recorded query
