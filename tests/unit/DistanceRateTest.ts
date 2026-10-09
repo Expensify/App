@@ -20,6 +20,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const translate: LocalizedTranslate = (phrase, ...parameters) => {
@@ -389,6 +390,103 @@ describe('DistanceRate', () => {
             expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             // Disabling only stops future propagation
             expect(onyxPolicy.customUnits?.[customUnitID].rates[existingRateID]).toMatchObject({rate: 72.5, startDate: '2026-01-01'});
+        });
+
+        it('should only copy the rates of the selected country when the currency is shared and correct the unit', async () => {
+            const deRate: GovernmentMileageRate = {sourceRateID: 'DE_2026-01-01', currency: 'EUR', name: '2026 Germany', rate: 30, startDate: '2026-01-01', enabled: true};
+            const frRate: GovernmentMileageRate = {sourceRateID: 'FR_2026-01-01', currency: 'EUR', name: '2026 France', rate: 32, startDate: '2026-01-01', enabled: true};
+            const usRate: GovernmentMileageRate = {sourceRateID: 'US_2026-01-01', currency: 'USD', name: '2026 United States', rate: 72.5, startDate: '2026-01-01', enabled: true};
+
+            // A EUR workspace on miles picks Germany, whose rates are published in kilometers
+            const policy = buildPolicy({outputCurrency: 'EUR'}, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            pause();
+            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [deRate, frRate, usRate], policy.outputCurrency, 'DE');
+            await waitForBatchedUpdates();
+
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.autoUpdateGovernmentRateCountry).toBe('DE');
+            const sourceRateIDs = Object.values(onyxPolicy.customUnits?.[customUnitID].rates ?? {}).map((rate) => rate.attributes?.governmentRate?.sourceRateID);
+            expect(sourceRateIDs).toEqual(['DE_2026-01-01']);
+            expect(onyxPolicy.customUnits?.[customUnitID].attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        });
+
+        it('should still write the flag and country when the custom unit is not loaded yet', async () => {
+            const deRate: GovernmentMileageRate = {sourceRateID: 'DE_2026-01-01', currency: 'EUR', name: '2026 Germany', rate: 30, startDate: '2026-01-01', enabled: true};
+            const policy = buildPolicy({outputCurrency: 'EUR'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            pause();
+            setWorkspaceDistanceAutoUpdate(policy.id, undefined, true, [deRate], policy.outputCurrency, 'DE');
+            await waitForBatchedUpdates();
+
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
+            expect(onyxPolicy.autoUpdateGovernmentRateCountry).toBe('DE');
+            expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(onyxPolicy.customUnits?.[customUnitID].rates).toStrictEqual({});
+        });
+
+        it('should restore the previous country and keep the flag on when a country change fails', async () => {
+            const deRate: GovernmentMileageRate = {sourceRateID: 'DE_2026-01-01', currency: 'EUR', name: '2026 Germany', rate: 30, startDate: '2026-01-01', enabled: true};
+            const policy = buildPolicy(
+                {outputCurrency: 'EUR', shouldAutoUpdateGovernmentDistanceRates: true, autoUpdateGovernmentRateCountry: 'DE'},
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            const originalFetch = global.fetch;
+            global.fetch = mockFetch;
+            mockFetch.fail();
+            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [deRate], policy.outputCurrency, 'FR', true, 'DE');
+            await waitForBatchedUpdates();
+            global.fetch = originalFetch;
+
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
+            expect(onyxPolicy.autoUpdateGovernmentRateCountry).toBe('DE');
+            expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
+            expect(onyxPolicy.errorFields?.shouldAutoUpdateGovernmentDistanceRates).not.toBeUndefined();
+        });
+
+        it('should clear the flag and keep the stored country when enabling fails', async () => {
+            const deRate: GovernmentMileageRate = {sourceRateID: 'DE_2026-01-01', currency: 'EUR', name: '2026 Germany', rate: 30, startDate: '2026-01-01', enabled: true};
+            const policy = buildPolicy({outputCurrency: 'EUR', autoUpdateGovernmentRateCountry: 'DE'}, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            const originalFetch = global.fetch;
+            global.fetch = mockFetch;
+            mockFetch.fail();
+            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [deRate], policy.outputCurrency, 'DE', false, 'DE');
+            await waitForBatchedUpdates();
+            global.fetch = originalFetch;
+
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
+            expect(onyxPolicy.autoUpdateGovernmentRateCountry).toBe('DE');
+        });
+
+        it('should keep the flag on and the stored country when disabling fails', async () => {
+            const policy = buildPolicy(
+                {outputCurrency: 'EUR', shouldAutoUpdateGovernmentDistanceRates: true, autoUpdateGovernmentRateCountry: 'DE'},
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            const originalFetch = global.fetch;
+            global.fetch = mockFetch;
+            mockFetch.fail();
+            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), false, [], policy.outputCurrency, undefined, true, 'DE');
+            await waitForBatchedUpdates();
+            global.fetch = originalFetch;
+
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
+            expect(onyxPolicy.autoUpdateGovernmentRateCountry).toBe('DE');
         });
     });
 
