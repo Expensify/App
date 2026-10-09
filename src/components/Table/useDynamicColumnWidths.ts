@@ -1,3 +1,4 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
@@ -7,11 +8,15 @@ import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
+
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
 import type {TableColumn, TableData} from './types';
 
-import calculateDynamicColumnWidths from './calculateDynamicColumnWidths';
+import calculateDynamicColumnWidths, {distributeEqualWidths} from './calculateDynamicColumnWidths';
+import getResizableColumnLayout from './columnResize/getResizableColumnLayout';
 
 const {MIN_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
@@ -33,6 +38,32 @@ type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends 
 
     /** Whether the leading selection checkbox column is rendered, since it takes width from the data columns. */
     hasSelectionColumn: boolean;
+
+    /** Whether columns are resizable, which forces px tracks read from custom properties. */
+    isColumnResizingEnabled: boolean;
+
+    /** Widths the user dragged this table's columns to. */
+    columnWidthOverrides: ColumnWidthOverrides | undefined;
+};
+
+type UseDynamicColumnWidthsResult = {
+    /** Grid tracks for the header and rows. `undefined` keeps the static tracks of fixed widths and `1fr` shares. */
+    gridTemplateColumns: string[] | undefined;
+
+    /** Row width when columns overflow. A CSS expression while resizable, so drags scroll without a re-render. */
+    scrollWidth: number | string | undefined;
+
+    /** Row box width while resizable, which is `scrollWidth` minus the outer margin. `undefined` otherwise. */
+    rowWidth: string | undefined;
+
+    /** Keys of the columns whose right edge the user can drag, in column order. Empty unless the columns are resizable. */
+    resizableColumnKeys: string[];
+
+    /** Each column's resolved width, which a drag starts from. */
+    resolvedColumnWidths: Record<string, number>;
+
+    /** Narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
+    dragMinWidths: Record<string, number>;
 };
 
 /**
@@ -72,10 +103,26 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
 }
 
 /**
+ * Whether the header draws `editableCellHeader`, which reserves the same padding and border as the cell.
+ * That chrome is inside the track, so a header wider than the cell text clips unless the measurement includes it.
+ */
+function headerReservesEditableCellChrome(containerStyles: StyleProp<ViewStyle> | undefined, editableCellHeaderStyle: ViewStyle): boolean {
+    if (!containerStyles) {
+        return false;
+    }
+
+    if (Array.isArray(containerStyles)) {
+        return containerStyles.includes(editableCellHeaderStyle);
+    }
+
+    return containerStyles === editableCellHeaderStyle;
+}
+
+/**
  * Measures how wide a column's header label renders, or `null` when the platform can't measure text. The label is
  * measured in the bold font the header uses while the column is sorted, so sorting a column never truncates its label.
  */
-function measureHeaderLabelWidth(label: string, sortIconWidth: number): number | null {
+function measureHeaderLabelWidth(label: string, sortIconWidth: number, chromeWidth = 0): number | null {
     const width = measureTextWidth(label, {fontSize: fontScale.micro, fontWeight: '700'});
 
     if (width === null) {
@@ -83,7 +130,7 @@ function measureHeaderLabelWidth(label: string, sortIconWidth: number): number |
     }
 
     // Rounded up for the same reason as the cell content above.
-    return width === 0 ? 0 : Math.ceil(width + sortIconWidth);
+    return width === 0 ? 0 : Math.ceil(width + sortIconWidth + chromeWidth);
 }
 
 /**
@@ -103,10 +150,20 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     tableWidth,
     isEnabled,
     hasSelectionColumn,
-}: UseDynamicColumnWidthsParams<DataType, ColumnKey>): {gridTemplateColumns: string[] | undefined; scrollWidth: number | undefined} {
+    isColumnResizingEnabled,
+    columnWidthOverrides,
+}: UseDynamicColumnWidthsParams<DataType, ColumnKey>): UseDynamicColumnWidthsResult {
     const styles = useThemeStyles();
+    const {values} = useLayoutSpacing();
 
-    const noDynamicWidths = {gridTemplateColumns: undefined, scrollWidth: undefined};
+    const noDynamicWidths: UseDynamicColumnWidthsResult = {
+        gridTemplateColumns: undefined,
+        scrollWidth: undefined,
+        rowWidth: undefined,
+        resizableColumnKeys: [],
+        resolvedColumnWidths: {},
+        dragMinWidths: {},
+    };
 
     // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
     if (!isEnabled || tableWidth <= 0 || !canMeasureText()) {
@@ -114,6 +171,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     }
 
     const dynamicColumns: Array<TableColumn<ColumnKey, DataType>> = [];
+    const fixedColumnWidths = new Map<ColumnKey, number>();
     let fixedColumnsWidth = 0;
 
     for (const column of columns) {
@@ -124,6 +182,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         }
 
         if (typeof column.width === 'number') {
+            fixedColumnWidths.set(column.key, column.width);
             fixedColumnsWidth += column.width;
         } else {
             dynamicColumns.push(column);
@@ -137,7 +196,9 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     const selectionColumnWidth = hasSelectionColumn ? variables.tableCheckboxColumnWidth : 0;
     const totalColumnCount = columns.length + (hasSelectionColumn ? 1 : 0);
     const totalGapWidth = Math.max(totalColumnCount - 1, 0) * styles.gap3.gap;
-    const rowChromeWidth = (styles.mh5.marginHorizontal + styles.ph3.paddingHorizontal) * 2;
+    const rowMarginWidth = values.pageGutter * 2;
+    const rowPaddingWidth = styles.ph3.paddingHorizontal * 2;
+    const rowChromeWidth = rowMarginWidth + rowPaddingWidth;
     // Floored because the tracks are whole px. A fractional budget leaves a fraction over once they are rounded, and
     // handing it to a column would put a sub-pixel track in the row. Rounding down keeps the columns inside the table.
     const availableWidth = Math.floor(tableWidth - rowChromeWidth - totalGapWidth - fixedColumnsWidth - selectionColumnWidth);
@@ -149,7 +210,8 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
     for (const column of dynamicColumns) {
         const contentWidth = measureColumnContentWidth(column, data);
-        const headerLabelWidth = measureHeaderLabelWidth(column.label, variables.iconSizeExtraSmall + styles.ml1.marginLeft);
+        const headerChromeWidth = headerReservesEditableCellChrome(column.styling?.containerStyles, styles.editableCellHeader) ? variables.editableCellChromeWidth : 0;
+        const headerLabelWidth = measureHeaderLabelWidth(column.label, variables.iconSizeExtraSmall + styles.ml1.marginLeft, headerChromeWidth);
 
         // Text measurement is unavailable (native), so the table keeps its static, content-independent tracks.
         if (contentWidth === null || headerLabelWidth === null) {
@@ -177,31 +239,45 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     }
 
     const {widths, shouldScrollHorizontally} = calculateDynamicColumnWidths(constraints, availableWidth);
-    // The columns fit equally, which is exactly what the static `1fr` tracks already do.
-    if (widths.length === 0) {
+    // Equal columns are what the static `1fr` tracks already do, but a drag needs px widths to start from.
+    if (widths.length === 0 && !isColumnResizingEnabled) {
         return noDynamicWidths;
     }
 
+    const resolvedWidths = widths.length > 0 ? widths : distributeEqualWidths(dynamicColumns.length, availableWidth);
+
     // Keyed by column rather than tracked with a running index, so the tracks can be built without mutating a counter
     // from inside the mapping callback (which the React Compiler can't compile).
-    const widthByColumnKey = new Map<ColumnKey, number>();
+    const resolvedColumnWidths: Record<string, number> = {};
     for (const [index, column] of dynamicColumns.entries()) {
-        widthByColumnKey.set(column.key, widths.at(index) ?? 0);
+        resolvedColumnWidths[column.key] = resolvedWidths.at(index) ?? 0;
     }
 
-    const gridTemplateColumns = columns.map((column) => (typeof column.width === 'number' ? `${column.width}px` : `${widthByColumnKey.get(column.key) ?? 0}px`));
-
-    if (!shouldScrollHorizontally) {
-        return {gridTemplateColumns, scrollWidth: undefined};
+    for (const [columnKey, fixedWidth] of fixedColumnWidths) {
+        resolvedColumnWidths[columnKey] = fixedWidth;
     }
 
-    // The rows are wider than the table, so the caller scrolls them horizontally at exactly the width they need. This
-    // adds back all of the row chrome subtracted above, margin included: the rows keep their horizontal margin inside
-    // the scrolled content, so leaving it out would make the content container too narrow and clip the rows' trailing
-    // edge at the end of the scroll.
-    const scrollWidth = widths.reduce((total, width) => total + width, 0) + fixedColumnsWidth + selectionColumnWidth + totalGapWidth + rowChromeWidth;
+    if (!isColumnResizingEnabled) {
+        const gridTemplateColumns = columns.map((column) => `${resolvedColumnWidths[column.key] ?? 0}px`);
 
-    return {gridTemplateColumns, scrollWidth};
+        if (!shouldScrollHorizontally) {
+            return {...noDynamicWidths, gridTemplateColumns, resolvedColumnWidths};
+        }
+
+        // Rows overflow, so scroll at exactly their width. Margin is included because rows keep it inside the scrolled
+        // content, and without it their trailing edge gets clipped.
+        const scrollWidth = resolvedWidths.reduce((total, width) => total + width, 0) + fixedColumnsWidth + selectionColumnWidth + totalGapWidth + rowChromeWidth;
+
+        return {...noDynamicWidths, gridTemplateColumns, scrollWidth, resolvedColumnWidths};
+    }
+
+    return getResizableColumnLayout({
+        columns,
+        resolvedColumnWidths,
+        columnWidthOverrides,
+        tableWidth,
+        rowChromeWidths: {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth},
+    });
 }
 
 export default useDynamicColumnWidths;

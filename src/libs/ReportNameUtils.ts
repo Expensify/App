@@ -23,6 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {format} from 'date-fns';
 /**
  * This file contains utility functions for managing and computing report names
  */
@@ -37,7 +38,6 @@ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDy
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -163,8 +163,6 @@ import {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getPendingDeleteMemberAccountIDs,
-    getReportMetadata,
     getReportOrDraftReport,
     getTransactionReportName,
     getUnreportedTransactionMessage,
@@ -188,6 +186,7 @@ import {
     isProcessingReport,
     isReportApproved,
     isSelfDM,
+    isSupportTicket,
     isSettled,
     isTaskReport,
     isThread,
@@ -221,6 +220,34 @@ type ComputeReportName = {
     pendingDeleteMemberAccountIDs?: string[];
     rules: OnyxCollection<Rule>;
 };
+
+function getLocalizedSupportTicketReportName(
+    report: Report,
+    personalDetailsList: PersonalDetailsList | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+    translate: LocalizedTranslate,
+): string {
+    const customer = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: report.ownerAccountID ? personalDetailsList?.[report.ownerAccountID] : undefined,
+        defaultValue: '',
+        shouldFallbackToHidden: false,
+        translate,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+    });
+    const supportRep = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: report.managerID ? personalDetailsList?.[report.managerID] : undefined,
+        defaultValue: '',
+        shouldFallbackToHidden: false,
+        translate,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+    });
+
+    if (!report.created || !customer || !supportRep) {
+        return report.reportName ?? translate('supportTicket.fallbackTitle');
+    }
+
+    return translate('supportTicket.title', {date: format(new Date(report.created), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale}), customer, supportRep});
+}
 
 function generateArchivedReportName(reportName: string, translate: LocalizedTranslate): string {
     return `${reportName} (${translate('common.archived')}) `;
@@ -282,6 +309,9 @@ const customCollator = getCollator(CONST.LOCALES.EN);
 
 /**
  * Returns the report name if the report is a group chat
+ *
+ * Callers that pass a `report` must pass `pendingDeleteMemberAccountIDs` too (see pendingDeleteMemberAccountIDsSelector),
+ * otherwise members pending removal are still listed. Callers that pass `participants` instead don't need it.
  */
 function getGroupChatName(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -297,10 +327,7 @@ function getGroupChatName(
         return report.reportName;
     }
 
-    // TODO: Remove the getReportMetadata fallback once https://github.com/Expensify/App/issues/66421 is done
-    const resolvedPendingDeleteMemberAccountIDs = pendingDeleteMemberAccountIDs ?? getPendingDeleteMemberAccountIDs(getReportMetadata(report?.reportID)?.pendingChatMembers);
-
-    const pendingMemberAccountIDs = new Set(resolvedPendingDeleteMemberAccountIDs);
+    const pendingMemberAccountIDs = new Set(pendingDeleteMemberAccountIDs);
     let participantAccountIDs =
         participants?.map((participant) => participant.accountID) ??
         Object.keys(report?.participants ?? {})
@@ -853,12 +880,7 @@ function computeReportNameBasedOnReportAction({
 
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
-
-        // Prefer the account stored on the action: the payer is not always the workspace payer, so the policy's
-        // ACH account can belong to a different bank account than the one the report was actually paid with, and
-        // attributing it to a non-payer admin's payment shows a different account to every other viewer.
-        const policyAccountNumber = wasPaidWithPolicyBankAccount(reportPolicy, parentReportAction?.actorAccountID) ? reportPolicy?.achAccount?.accountNumber : undefined;
-        const last4Digits = (originalMessage?.accountNumber ?? policyAccountNumber)?.slice(-4) ?? '';
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -1238,7 +1260,7 @@ function computeReportName({
             convertToDisplayString,
             convertToDisplayStringWithoutCurrency,
             getCurrencySymbol,
-            // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
+            // Not forwarded: these belong to `report`, and `originalReport` is an expense report, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
             rules,
         });
@@ -1249,6 +1271,10 @@ function computeReportName({
         const taskName = report?.reportName ?? '';
 
         return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
+    }
+
+    if (isSupportTicket(report)) {
+        return getLocalizedSupportTicketReportName(report, personalDetailsList, dateFnsLocale, translate);
     }
 
     const privateIsArchivedValue = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
