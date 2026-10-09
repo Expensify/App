@@ -1,13 +1,11 @@
 ---
 title: Agent Capability Reference
-description: Every action your agent can take, with ready-to-copy instruction phrases and disambiguation notes to avoid common mis-routings.
+description: Every action your Agent can take, with ready-to-copy instruction phrases and disambiguation notes to avoid common mis-routings.
 keywords: [Custom Agent, Agent, agent capabilities, agent actions, submit report, approve report, reject report, add comment, analyze expenses, agent instructions, workspace automation, Expensify automation, Rulebot, rule bot]
-internalScope: Audience is all members configuring agents. Covers all supported ManageReport sub-actions, AddComment, and AnalyzeExpenses. Does not cover read-only report context or NoResponse behavior.
-contentType: topic
-order: 8
+internalScope: Audience is all members configuring Agents. Covers all supported ManageReport sub-actions, AddComment, and AnalyzeExpenses. Does not cover read-only report context or NoResponse behavior.
 ---
 
-An agent acts on expense reports using the actions described below. This reference helps you phrase your instructions so your agent reliably does what you intend — and doesn't accidentally take the wrong action.
+An Agent acts on expense reports using the actions described below. This reference helps you phrase your instructions so your agent reliably does what you intend — and doesn't accidentally take the wrong action.
 
 # Agent Capability Reference
 
@@ -52,6 +50,18 @@ To accomplish this, include phrases like:
 
 ---
 
+## How to write instructions that unapprove expense reports
+
+**Goal:** Undoes the approval of an Approved expense report so it can be reviewed and approved again. The report returns to Outstanding (submitted), or to Draft if the submitter approved it themselves or the workspace uses Bill.com. Requires Workspace Admin role, unless the agent is the approver who gave the final approval. On a workspace that uses Dynamic External Workflow approvals, only a Workspace Admin can unapprove. A report that has already been paid through Expensify cannot be unapproved.
+
+To accomplish this, include phrases like:
+- Unapprove reports over $10,000
+- Unapprove this report so it can be reviewed again
+- Undo the approval on reports that were approved with violations
+- Unapprove reports that were approved while an expense was missing a receipt
+
+---
+
 ## How to write instructions that reject expense reports
 
 **Goal:** Sends an entire Outstanding (submitted) expense report back to the submitter with a user-facing rejection comment explaining why.
@@ -92,7 +102,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that take over a report as approver
 
-**Goal:** Reassigns the agent as the current approver on a report that was routed to someone else, giving the agent the authority to approve or reject it. Requires workspace admin role.
+**Goal:** Reassigns the agent as the current approver on a report that was routed to someone else, giving the agent the authority to approve or reject it. Requires Workspace Admin role.
 
 To accomplish this, include phrases like:
 - Take over reports over $10,000 regardless of who they were submitted to
@@ -104,7 +114,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that route reports to a specific approver
 
-**Goal:** Routes a submitted report to a specific approver by email, replacing the current approver in the workflow. Requires workspace admin role.
+**Goal:** Routes a submitted report to a specific approver by email, replacing the current approver in the workflow. Requires Workspace Admin role.
 
 To accomplish this, include phrases like:
 - Route reports over $5,000 to the finance manager
@@ -140,7 +150,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that export reports to accounting
 
-**Goal:** Exports a report to the workspace's connected accounting integration (QuickBooks, Xero, NetSuite, Sage Intacct, etc.), or marks it as manually exported. Works for expense reports, invoices, and bills. Requires workspace admin role, except that the report's current approver (its manager) can export a report submitted to them, and an invoice's owner can export their own invoice.
+**Goal:** Exports a report to the workspace's connected accounting integration (QuickBooks, Xero, NetSuite, Sage Intacct, etc.), or marks it as manually exported. Works for expense reports, invoices, and bills. Requires Workspace Admin role, except that the report's current approver (its manager) can export a report submitted to them, and an invoice's owner can export their own invoice.
 
 To accomplish this, include phrases like:
 - Export this report to QuickBooks
@@ -177,7 +187,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that delete expense reports
 
-**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only reports that are still open or in draft can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an individual expense rather than a whole report is covered by the edit-expenses capability.
+**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only OPEN or draft reports can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an expense rather than a whole report is handled by EditExpense.
 
 To accomplish this, include phrases like:
 - Delete this report
@@ -236,8 +246,8 @@ To accomplish this, include phrases like:
 To accomplish this, include phrases like:
 - Send each employee a reminder to submit their expenses at the end of the month
 - Message the submitter directly when their report is rejected
-- Notify individual workspace members of a workspace change
-- DM each person with outstanding reports a personalized nudge
+- Notify individual workspace members of a policy change
+- DM each person with outstanding reports a personalised nudge
 - Send a private message to the submitter when a receipt is missing
 - Reach out to each team member individually with their spending summary
 
@@ -268,9 +278,21 @@ To accomplish this, include phrases like:
 
 ---
 
+## How to write instructions that export a report as a PDF
+
+**Goal:** Generates a PDF of an expense report and attaches it to the chat as a downloadable file. When the chat is itself an expense report, it exports that report. From any other chat, such as a Concierge DM, the requester can choose a report by report ID, by submitter, or by what was bought. It does not change the report, and anyone who can view the report can ask for one.
+
+To accomplish this, include phrases like:
+- Send me a PDF of this report
+- Download this expense report as a PDF
+- Export Alice's latest report to PDF
+- Send me a PDF of my most recent report
+
+---
+
 ## How to write instructions that manage workspace settings and members
 
-**Goal:** Inspects workspace configuration, answers membership questions, and — for workspace admins — adds or removes members, lists and assigns company cards from a connected card feed, and modifies workspace settings such as categories and approval rules.
+**Goal:** Inspects Workspace configuration, answers membership questions, reads the Expensify Card limit and remaining spend for anyone allowed to see the Expensify Card, and — for Workspace Admins — adds or removes members, lists and assigns company cards from a connected card feed, and modifies workspace settings such as categories and approval rules.
 
 To accomplish this, include phrases like:
 - Add new employees to the workspace when they join
@@ -280,6 +302,7 @@ To accomplish this, include phrases like:
 - What is the current approval mode for this workspace?
 - Copy the category list from one workspace to another
 - Assign all unassigned company cards to the matching members
+- How much of our Expensify Card limit is left?
 
 ---
 
@@ -297,4 +320,4 @@ To accomplish this, include phrases like:
 
 ---
 
-*This reference covers all 22 AI agent capabilities.*
+*This reference covers all 24 AI Agent capabilities.*
