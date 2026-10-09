@@ -92,6 +92,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useNavigation} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {displayNameOrDefaultSelector} from '@selectors/PersonalDetails';
+import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {useContext, useEffect, useRef, useState} from 'react';
@@ -215,6 +216,13 @@ function ReportActionItem({
 
     const [originalTransactionID] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: originalTransactionIDSelector});
     const [isOriginalTransactionSplitContainer] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {selector: isSplitContainerTransactionSelector});
+
+    // While an agent (e.g. Concierge) is still replying in the thread, the thread has no persisted actions yet, so the
+    // server can return zeroed reply counts. Use the thread's processing indicator to keep the thread row visible.
+    const [threadProcessingAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(action.childReportID)}`, {
+        selector: agentZeroProcessingAgentIDsSelector,
+    });
+    const isAgentProcessingInThread = !isOffline && !!action.childReportID && (threadProcessingAgentIDs?.length ?? 0) > 0;
 
     const {editingMessage, editingReportAction} = useReportActionActiveEdit();
 
@@ -536,7 +544,7 @@ function ReportActionItem({
 
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesUtils(iouReport, transactionsOnIOUReport);
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
-    const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
+    const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction, isAgentProcessingInThread) && !isOnSearch;
 
     const formattedTimestamp = datetimeToCalendarTime(action.created, false);
     const plainMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)
@@ -700,6 +708,7 @@ function ReportActionItem({
                                                                     onSecondaryInteraction={showPopover}
                                                                     isActive={isReportActionActive && !isContextMenuActive}
                                                                     isEditingInline={isEditingInline}
+                                                                    processingAgentIDs={isAgentProcessingInThread ? threadProcessingAgentIDs : undefined}
                                                                 />
                                                             )}
                                                         </ReportActionItemFrame>
