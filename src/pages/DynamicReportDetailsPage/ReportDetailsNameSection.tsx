@@ -133,6 +133,7 @@ function ReportDetailsNameSectionContent({report}: ReportDetailsNameSectionConte
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
     const parentReportAction = useParentReportAction(report);
     const isReportArchived = useReportIsArchived(reportID);
     const {reportName} = useReportDetailsReportName(report, parentReport, parentReportAction);
