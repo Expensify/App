@@ -190,7 +190,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const metadata = searchResults?.search;
 
     const requestedFooterTotal = footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
-    const isSettledAnswer = !isOffline && !metadata?.isLoading && metadata?.hash === currentSearchHash;
+    // A total stamped for another breakdown (a request dropped or overtaken, or a switch made while a selection was summed
+    // locally) is never shown under this one's label: the footer waits on it and asks again below.
+    const isSnapshotTotalForOtherBreakdown = isFooterSelectorsEnabled && !isOffline && !shouldUseLiveData && !!metadata?.footerTotal && metadata.footerTotal !== requestedFooterTotal;
+    const isSettledAnswer = !isOffline && !isAwaitingBreakdownTotal && !isSnapshotTotalForOtherBreakdown && !metadata?.isLoading && metadata?.hash === currentSearchHash;
 
     const answeredFooterTotals = recordAnsweredFooterTotals(currentSearchHash, requestedFooterTotal, metadata?.total, isSettledAnswer);
 
@@ -659,6 +662,14 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         applyFooterSelection({footerTotal: nextTotalType});
     };
 
+    // Asks for the breakdown the snapshot's total does not answer, once nothing the footer sent is still on its way.
+    useEffect(() => {
+        if (!isSnapshotTotalForOtherBreakdown || hasPartialSelection || isAwaitingBreakdownTotal || !currentSearchQueryJSON) {
+            return;
+        }
+        search({queryJSON: currentSearchQueryJSON, searchKey: currentSearchKey, offset: metadata?.offset ?? 0, shouldCalculateTotals: true, isLoading: false, shouldShowLoading: false});
+    }, [currentSearchKey, currentSearchQueryJSON, hasPartialSelection, isAwaitingBreakdownTotal, isSnapshotTotalForOtherBreakdown, metadata?.offset]);
+
     const handleFooterCountChange = (nextCountType: SearchFooterCount) => {
         applyFooterSelection({footerCount: nextCountType});
     };
@@ -780,7 +791,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     }
 
     // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
-    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isAwaitingBreakdownTotal || (!!metadata?.isLoading && metadata?.offset === 0)));
+    const isFooterTotalLoading =
+        isFooterTotalConverting || (!hasPartialSelection && (isAwaitingBreakdownTotal || isSnapshotTotalForOtherBreakdown || (!!metadata?.isLoading && metadata?.offset === 0)));
 
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.

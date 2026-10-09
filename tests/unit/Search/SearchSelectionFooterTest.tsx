@@ -254,7 +254,7 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 8, total: 35800, currency: CONST.CURRENCY.USD}));
     });
 
-    it('takes a report the user unticked off the report count of a select-all', async () => {
+    it('takes a report the user unchecked off the report count of a select-all', async () => {
         // Given a select-all over more reports than are loaded, which is the only way the footer is on the server's count
         setSearchQuery('type:expense-report footerCount:reports');
         mockSelectedTransactions.current = {};
@@ -264,7 +264,7 @@ describe('SearchSelectionFooter', () => {
         ]);
         mockAreAllMatchingItemsSelected.current = true;
 
-        // When one report is unticked, which excludes every expense it holds
+        // When one report is unchecked, which excludes every expense it holds
         mockExcludedTransactions.current = {
             transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
             transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
@@ -277,14 +277,14 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 86}));
     });
 
-    it('takes an empty report the user unticked off the report count of a select-all', async () => {
+    it('takes an empty report the user unchecked off the report count of a select-all', async () => {
         // Given a select-all over more reports than are loaded, with an empty draft report among them
         setSearchQuery('type:expense-report footerCount:reports');
         mockSelectedTransactions.current = {};
         mockTransactionsByReportID.current = new Map([['report1', [{transactionID: 'transaction1'}]]]);
         mockAreAllMatchingItemsSelected.current = true;
 
-        // When the empty report is unticked, which excludes it under its own report key since it holds no expense
+        // When the empty report is unchecked, which excludes it under its own report key since it holds no expense
         mockExcludedTransactions.current = {report2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, 0, 'report2')};
 
         render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
@@ -294,8 +294,8 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 86}));
     });
 
-    it('keeps a part-unticked report in the report count, since the selection still covers it', async () => {
-        // Given the same select-all, with only one of a report's two expenses unticked
+    it('keeps a part-unchecked report in the report count, since the selection still covers it', async () => {
+        // Given the same select-all, with only one of a report's two expenses unchecked
         setSearchQuery('type:expense-report footerCount:reports');
         mockSelectedTransactions.current = {};
         mockTransactionsByReportID.current = new Map([['report1', [{transactionID: 'transaction1'}, {transactionID: 'transaction2'}]]]);
@@ -681,6 +681,47 @@ describe('SearchSelectionFooter', () => {
 
             // Then the skeleton gives way to the figure
             expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
+        });
+
+        it('asks again for a breakdown the snapshot total does not answer, holding the skeleton until it does', async () => {
+            // Given the footer on non-billable, over a snapshot whose total last answered billable, as when the
+            // non-billable request was dropped or overtaken by the billable one
+            const nonBillableQuery = `type:expense footerTotal:${CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE}`;
+            setSearchQuery(nonBillableQuery);
+            mockSelectedTransactions.current = {};
+            const billableResults = buildSearchResults(CONST.CURRENCY.USD, 10, 36000);
+            billableResults.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.BILLABLE;
+
+            const {rerender} = render(<SearchSelectionFooter searchResults={billableResults} />);
+            await waitForBatchedUpdates();
+
+            // Then the billable figure is never shown under the non-billable label, and the footer asks for non-billable
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldCalculateTotals: true, queryJSON: expect.objectContaining({inputQuery: nonBillableQuery})}));
+
+            // When the non-billable answer lands
+            const nonBillableResults = buildSearchResults(CONST.CURRENCY.USD, 10, 12000);
+            nonBillableResults.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE;
+            rerender(<SearchSelectionFooter searchResults={nonBillableResults} />);
+            await waitForBatchedUpdates();
+
+            // Then its figure is shown
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: false, total: 12000}));
+        });
+
+        it('shows a snapshot total that answers the breakdown on display without asking again', async () => {
+            // Given the footer on billable, over a snapshot whose total answers billable
+            setSearchQuery(`type:expense footerTotal:${CONST.SEARCH.FOOTER_TOTAL.BILLABLE}`);
+            mockSelectedTransactions.current = {};
+            const billableResults = buildSearchResults(CONST.CURRENCY.USD, 10, 36000);
+            billableResults.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.BILLABLE;
+
+            render(<SearchSelectionFooter searchResults={billableResults} />);
+            await waitForBatchedUpdates();
+
+            // Then the figure is shown and nothing is asked for
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: false, total: 36000}));
+            expect(mockSearch).not.toHaveBeenCalled();
         });
 
         it('never waits on a search for a to-do search, whose totals are summed from live data', async () => {
