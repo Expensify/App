@@ -858,7 +858,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Sei sicuro di voler eliminare questo/questa ${type}?`;
+            return `Sei sicuro di voler eliminare questo/questa ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Tutte le spese in questo report risulteranno non rendicontate.' : ''}`;
         },
         onlyVisible: 'Visibile solo a',
         explain: 'Spiega',
@@ -1490,6 +1490,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questo report?',
             other: 'Sei sicuro di voler eliminare questi report?',
         }),
+        deleteExpenseReportConfirmation: 'Sei sicuro di voler eliminare questo report? Tutte le spese in questo report risulteranno non rendicontate.',
         settledExpensify: 'Pagato',
         paidStatusMarkedAsPaid: 'Segnato come pagato',
         paidStatusWithdrawing: 'Prelievo',
@@ -4015,6 +4016,15 @@ ${amount} per ${merchant} - ${date}`,
         },
         unlockAlreadyRequestedTitle: 'Richiesta già inviata',
         unlockAlreadyRequestedDescription: 'La tua richiesta di sblocco di questo conto bancario è già stata inviata. Concierge ti contatterà se servirà altro.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Esempio: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Deve contenere almeno ${minLength} caratteri`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Formato non valido. Esempio: ${example}` : 'Formato non valido'),
+            invalidOption: 'Scegli una delle opzioni disponibili',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Inserisci un valore tra ${min} e ${max}`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Lo SWIFT/BIC deve essere lungo 8 o 11 caratteri, con 6 lettere seguite da 2 oppure 5 lettere o numeri.',
@@ -6905,11 +6915,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             emptySubtitle: 'I fornitori verranno visualizzati qui al termine della sincronizzazione contabile.',
             findVendor: 'Trova fornitore',
             managedInAccountingSoftware: 'I fornitori sono gestiti nel tuo',
-            enableVendor: 'Abilita fornitore',
-            enableVendors: 'Abilita fornitori',
-            disableVendor: 'Disabilita fornitore',
-            disableVendors: 'Disattiva fornitori',
-            updateFailureMessage: "Si è verificato un errore durante l'aggiornamento del fornitore, riprova per favore",
         },
         tags: {
             tagName: 'Nome tag',
@@ -8848,7 +8853,17 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connesso. ${setupLink ? `<a href="${setupLink}">Completa la configurazione</a>` : 'Completa configurazione'} per importare i dipendenti.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Gruppi', description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro'},
+                groups: {
+                    title: 'Gruppi',
+                    description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro',
+                    staleSelectionError: (providerName: string) =>
+                        `Alcuni dei gruppi che hai selezionato non esistono più in ${providerName}, quindi i rispettivi dipendenti hanno smesso di sincronizzarsi.`,
+                    updateSelectionLink: 'Aggiorna i tuoi gruppi.',
+                    noGroupsFound: 'Nessun gruppo trovato',
+                    noGroupsFoundDescription:
+                        'Al momento non ci sono gruppi da selezionare. Salva senza selezionare gruppi per sincronizzare tutti i dipendenti oppure sincronizza di nuovo la connessione quando esisteranno nuovi gruppi.',
+                    unnamedGroup: (groupID: string) => `Gruppo senza nome (${groupID})`,
+                },
             },
         },
         recruiting: {
@@ -10190,7 +10205,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             topMerchants: 'Principali esercenti',
             violationsBySubmitter: 'Violazioni da parte dell’autore dell’invio',
         },
-        mergeReports: {title: 'Unisci report', description: 'Seleziona il report da mantenere. Tutte le spese verranno spostate al suo interno e gli altri report verranno eliminati.'},
+        mergeReports: {
+            title: 'Unisci report',
+            description: 'Seleziona il report da mantenere. Tutte le spese verranno spostate al suo interno e gli altri report verranno eliminati.',
+            listPage: {noEligibleReportsFound: 'Nessun report idoneo trovato', noEligibleReportsFoundSubtitle: 'Non hai nessun report che possa essere unito.'},
+        },
         periodSoFar: ({period}: {period: string}) => `${period} finora`,
         weekOf: ({date}: {date: string}) => `Settimana del ${date}`,
         saveEdits: {

@@ -836,7 +836,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `确定要删除此${type}吗？`;
+            return `确定要删除此${type}吗？${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? '此报告中的所有费用都将变为未报销状态。' : ''}`;
         },
         onlyVisible: '仅对以下对象可见',
         explain: '解释',
@@ -1434,6 +1434,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '您确定要删除此报告吗？',
             other: '您确定要删除这些报告吗？',
         }),
+        deleteExpenseReportConfirmation: '您确定要删除此报告吗？此报告中的所有费用都将变为未报销状态。',
         settledExpensify: '已支付',
         paidStatusMarkedAsPaid: '已标记为已支付',
         paidStatusWithdrawing: '提现中',
@@ -3890,6 +3891,15 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         unlockAlreadyRequestedTitle: '请求已提交',
         unlockAlreadyRequestedDescription: '您解锁此银行账户的请求已发送。如需其他信息，Concierge 会与您联系。',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
+            invalidOption: '请从可用选项中选择',
+            outOfRange: ({min, max}: {min: number; max: number}) => `请输入 ${min} 到 ${max} 之间的值`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
@@ -6646,17 +6656,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             invoiceFieldInitialValueRequiredError: '请选择发票字段的初始值',
             addField: '添加字段',
         },
-        vendors: {
-            emptyTitle: '尚无供应商',
-            emptySubtitle: '会计同步完成后，供应商将显示在此处。',
-            findVendor: '查找供应商',
-            managedInAccountingSoftware: '供应商在您的',
-            enableVendor: '启用供应商',
-            enableVendors: '启用供应商',
-            disableVendor: '停用供应商',
-            disableVendors: '禁用供应商',
-            updateFailureMessage: '更新供应商时出错，请重试',
-        },
+        vendors: {emptyTitle: '尚无供应商', emptySubtitle: '会计同步完成后，供应商将显示在此处。', findVendor: '查找供应商', managedInAccountingSoftware: '供应商在您的'},
         tags: {
             tagName: '标签名称',
             requiresTag: '成员必须为所有报销添加标签',
@@ -8517,7 +8517,15 @@ ${reportName}`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
             mergeHR: {
-                groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+                groups: {
+                    title: '群组',
+                    description: '选择要与此工作区同步的员工分组',
+                    staleSelectionError: (providerName: string) => `您选择的部分群组在 ${providerName} 中已不存在，因此其员工已停止同步。`,
+                    updateSelectionLink: '更新你的群组。',
+                    noGroupsFound: '未找到群组',
+                    noGroupsFoundDescription: '目前没有可选择的分组。可在未选择任何分组的情况下保存以同步所有员工，或在新分组创建后再次同步连接。',
+                    unnamedGroup: (groupID: string) => `未命名群组（${groupID}）`,
+                },
             },
         },
         recruiting: {
@@ -9777,7 +9785,11 @@ ${reportName}`,
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
         },
-        mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
+        mergeReports: {
+            title: '合并报表',
+            description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。',
+            listPage: {noEligibleReportsFound: '未找到符合条件的报表', noEligibleReportsFoundSubtitle: '您没有任何可合并的报表。'},
+        },
         periodSoFar: ({period}: {period: string}) => `目前 ${period}`,
         weekOf: ({date}: {date: string}) => `${date} 当周`,
         saveEdits: {title: '保存编辑', prompt: ({name}: {name: string}) => `要更新对“${name}”的更改，还是创建一个新项？`, createNew: '新建', updateExisting: '更新现有内容'},

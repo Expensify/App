@@ -847,7 +847,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `この${type}を削除してもよろしいですか？`;
+            return `この${type}を削除してもよろしいですか？${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? 'このレポート内のすべての経費は未報告になります。' : ''}`;
         },
         onlyVisible: '次のユーザーにのみ表示',
         explain: '説明',
@@ -1476,6 +1476,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'このレポートを削除してもよろしいですか？',
             other: 'これらのレポートを削除してもよろしいですか？',
         }),
+        deleteExpenseReportConfirmation: 'このレポートを削除してもよろしいですか？このレポート内のすべての経費は未報告になります。',
         settledExpensify: '支払い済み',
         paidStatusMarkedAsPaid: '支払済みに設定しました',
         paidStatusWithdrawing: '出金中',
@@ -3983,6 +3984,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         unlockAlreadyRequestedTitle: 'リクエストは既に送信されています',
         unlockAlreadyRequestedDescription: 'この銀行口座のロック解除リクエストは既に送信されています。追加で必要なことがある場合は、Concierge からご連絡します。',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `例：${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
+            invalidOption: '利用可能な選択肢から選んでください',
+            outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
@@ -6818,11 +6828,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             emptySubtitle: '会計システムとの同期が完了すると、ここに取引先が表示されます。',
             findVendor: '取引先を検索',
             managedInAccountingSoftware: '取引先は次の場所で管理されます：',
-            enableVendor: 'ベンダーを有効にする',
-            enableVendors: 'ベンダーを有効にする',
-            disableVendor: '取引先を無効にする',
-            disableVendors: '取引先を無効化',
-            updateFailureMessage: '仕入先の更新中にエラーが発生しました。もう一度お試しください。',
         },
         tags: {
             tagName: 'タグ名',
@@ -8738,7 +8743,16 @@ ${reportName}`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>接続されました。従業員をインポートするには ${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} に接続してください。</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'グループ', description: 'このワークスペースと同期したい従業員グループを選択してください'},
+                groups: {
+                    title: 'グループ',
+                    description: 'このワークスペースと同期したい従業員グループを選択してください',
+                    staleSelectionError: (providerName: string) => `選択されたグループの一部は、${providerName} では既に存在しないため、その従業員の同期が停止しました。`,
+                    updateSelectionLink: 'グループを更新します。',
+                    noGroupsFound: 'グループが見つかりませんでした',
+                    noGroupsFoundDescription:
+                        '現在選択できるグループはありません。グループを選択せずに保存して全従業員を同期するか、新しいグループが作成されてから再度接続を同期してください。',
+                    unnamedGroup: (groupID: string) => `名称未設定のグループ（${groupID}）`,
+                },
             },
         },
         recruiting: {
@@ -10040,7 +10054,11 @@ ${reportName}`,
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
         },
-        mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
+        mergeReports: {
+            title: 'レポートをマージする',
+            description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。',
+            listPage: {noEligibleReportsFound: '対象となるレポートが見つかりませんでした', noEligibleReportsFoundSubtitle: 'マージできるレポートがありません。'},
+        },
         periodSoFar: ({period}: {period: string}) => `これまでの${period}`,
         weekOf: ({date}: {date: string}) => `${date} の週`,
         saveEdits: {
