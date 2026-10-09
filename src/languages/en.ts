@@ -4196,6 +4196,15 @@ const translations = {
             sameDepositAndWithdrawalAccount: 'The deposit and withdrawal accounts are the same.',
         },
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Example: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Must be at least ${minLength} characters`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
+            invalidOption: 'Choose one of the available options',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
         countrySelectionStepHeader: "Where's your bank account located?",
@@ -7286,11 +7295,6 @@ const translations = {
             emptySubtitle: 'Vendors will appear here after your accounting sync completes.',
             findVendor: 'Find vendor',
             managedInAccountingSoftware: 'Vendors are managed in your',
-            enableVendor: 'Enable vendor',
-            enableVendors: 'Enable vendors',
-            disableVendor: 'Disable vendor',
-            disableVendors: 'Disable vendors',
-            updateFailureMessage: 'An error occurred while updating the vendor, please try again',
         },
         tags: {
             tagName: 'Tag name',
@@ -10486,6 +10490,10 @@ const translations = {
         mergeReports: {
             title: 'Merge reports',
             description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            listPage: {
+                noEligibleReportsFound: 'No eligible reports found',
+                noEligibleReportsFoundSubtitle: "You don't have any reports that can be merged.",
+            },
         },
     },
     genericErrorPage: {
