@@ -1,4 +1,4 @@
-import {useSignedMagnitudeEditingController} from '@components/NumericEditingController';
+import {useDetachedSignEditingController} from '@components/NumericEditingController';
 import type {NumericEditingRef} from '@components/NumericEditingController';
 import ScrollView from '@components/ScrollView';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
@@ -51,7 +51,7 @@ function NumericInput({value = '', onInputChange, allowNegative = false, decimal
     const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
-    const controller = useSignedMagnitudeEditingController({value, onInputChange, allowNegative, decimals, maxLength});
+    const controller = useDetachedSignEditingController({value, onInputChange, allowNegative, decimals, maxLength});
 
     useImperativeHandle(ref, () => ({
         clearSelection: controller.clearSelection,
@@ -81,7 +81,7 @@ function NumericInput({value = '', onInputChange, allowNegative = false, decimal
         setNumber: controller.setNumber,
         clearSelection: controller.clearSelection,
         toggleSign: controller.toggleSign,
-        clearSign: controller.clearSign,
+        deleteSignBeforeCaret: controller.deleteSignBeforeCaret,
         handleSelectionChange: controller.handleSelectionChange,
         handleKeyPress: controller.handleKeyPress,
         focusInput,
