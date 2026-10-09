@@ -57,26 +57,9 @@ describe('useInsightsFilters', () => {
     });
 
     beforeEach(async () => {
-        // Only the clock is faked, so the presets cover a known range while Onyx keeps its real timers
-        jest.useFakeTimers({
-            now: new Date(2026, 9, 8),
-            doNotFake: [
-                'nextTick',
-                'setImmediate',
-                'clearImmediate',
-                'setInterval',
-                'clearInterval',
-                'setTimeout',
-                'clearTimeout',
-                'queueMicrotask',
-                'requestAnimationFrame',
-                'cancelAnimationFrame',
-                'requestIdleCallback',
-                'cancelIdleCallback',
-                'hrtime',
-                'performance',
-            ],
-        });
+        // Pin the date, so the presets cover a known range
+        jest.useFakeTimers({doNotFake: ['nextTick', 'setImmediate']});
+        jest.setSystemTime(new Date(2026, 9, 8));
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
