@@ -262,6 +262,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
+                            path: ROUTES.SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW,
                             exact: true,
@@ -561,6 +565,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED]: DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path,
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
+                        },
+                        [SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY]: {
+                            path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN]: DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path,
@@ -1200,6 +1207,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATES_UNIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.route,
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.route,
