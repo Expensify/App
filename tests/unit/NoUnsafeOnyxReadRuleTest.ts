@@ -241,6 +241,51 @@ describe('no-unsafe-onyx-read', () => {
     });
 });
 
+const SNAPSHOT_READER_IMPORT = "import useSnapshotOnyxGet from '@hooks/useSnapshotOnyxGet';";
+
+describe('no-unsafe-onyx-read useSnapshotOnyxGet reader', () => {
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            // Snapshot keys read from handlers
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row({reportID}) { const getOnyx = useSnapshotOnyxGet(); const onPress = async () => getOnyx(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); return <Button onPress={onPress} />; }`,
+            },
+            // A local copy of the reader and a dependency list keep the reader inside the component
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row() { const getOnyx = useSnapshotOnyxGet(); const read = getOnyx; const onPress = async () => read(ONYXKEYS.PERSONAL_DETAILS_LIST); return <Button onPress={onPress} />; }`,
+            },
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row() { const getOnyx = useSnapshotOnyxGet(); const onPress = useCallback(async () => getOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST), [getOnyx]); return <Button onPress={onPress} />; }`,
+            },
+        ],
+        invalid: [
+            // Reads during render or in an effect are refused, as for Onyx.get
+            {code: `${SNAPSHOT_READER_IMPORT} function Row() { const getOnyx = useSnapshotOnyxGet(); getOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST); return null; }`, errors: RENDER_ERRORS},
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row() { const getOnyx = useSnapshotOnyxGet(); useEffect(() => { getOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST); }, [getOnyx]); return null; }`,
+                errors: EFFECT_ERRORS,
+            },
+            // A copy of the reader is still checked, so a copy cannot be called during render
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row() { const getOnyx = useSnapshotOnyxGet(); const read = getOnyx; read(ONYXKEYS.PERSONAL_DETAILS_LIST); return null; }`,
+                errors: RENDER_ERRORS,
+            },
+            // Calling the hook's result on the spot is a read like any other
+            {code: `${SNAPSHOT_READER_IMPORT} function Row() { useSnapshotOnyxGet()(ONYXKEYS.PERSONAL_DETAILS_LIST); return null; }`, errors: RENDER_ERRORS},
+            // The reader leaving the component, where the rule cannot follow it
+            {code: `${SNAPSHOT_READER_IMPORT} function Row() { const getOnyx = useSnapshotOnyxGet(); return <Child read={getOnyx} />; }`, errors: [{messageId: 'noEscapingSnapshotReader'}]},
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row() { const getOnyx = useSnapshotOnyxGet(); const onPress = () => openReport(getOnyx); return <Button onPress={onPress} />; }`,
+                errors: [{messageId: 'noEscapingSnapshotReader'}],
+            },
+            {code: `${SNAPSHOT_READER_IMPORT} function useReader() { const getOnyx = useSnapshotOnyxGet(); return getOnyx; }`, errors: [{messageId: 'noEscapingSnapshotReader'}]},
+            {code: `${SNAPSHOT_READER_IMPORT} function useReader() { const getOnyx = useSnapshotOnyxGet(); return {getOnyx}; }`, errors: [{messageId: 'noEscapingSnapshotReader'}]},
+            {code: `${SNAPSHOT_READER_IMPORT} function useReader() { return useSnapshotOnyxGet(); }`, errors: [{messageId: 'noEscapingSnapshotReader'}]},
+            {code: `${SNAPSHOT_READER_IMPORT} function Row() { return <Child read={useSnapshotOnyxGet()} />; }`, errors: [{messageId: 'noEscapingSnapshotReader'}]},
+        ],
+    });
+});
+
 describe('no-unsafe-onyx-read under the TypeScript parser', () => {
     tsRuleTester.run(ruleModule.name, ruleModule, {
         valid: [
@@ -338,6 +383,7 @@ describe('no-unsafe-onyx-read allowed paths', () => {
                 filename: inRepo('src/libs/Foo.ts'),
                 errors: OUTSIDE_ALLOWED_PATH_ERRORS,
             },
+            {code: `${ONYX_IMPORT} function useSnapshotOnyxGet(key) { Onyx.get(key); }`, filename: inRepo('src/hooks/useSnapshotOnyxGet.ts'), errors: RENDER_ERRORS},
         ],
     });
 });

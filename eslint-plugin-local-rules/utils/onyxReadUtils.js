@@ -56,6 +56,11 @@ const MULTI_READ_METHOD = 'multiGet';
 
 const READ_METHODS = new Set([READ_METHOD, MULTI_READ_METHOD]);
 
+// Marks variables that hold the reader returned by useSnapshotOnyxGet()
+const SNAPSHOT_READ_METHOD = 'snapshotGet';
+
+const SNAPSHOT_READER_HOOK_SOURCE = /(^|\/)useSnapshotOnyxGet$/;
+
 const TYPE_ONLY_EXPRESSIONS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSInstantiationExpression', 'TSTypeAssertion']);
 
 function getStaticName(keyNode, computed) {
@@ -208,12 +213,14 @@ function getKeyListElements(node, scope, seen = new Set()) {
 }
 
 /**
- * Tracks the Onyx default import and Onyx.get / Onyx.multiGet aliases in one file, so every rule that inspects Onyx reads
- * recognizes the same calls.
+ * Tracks the Onyx default import, Onyx.get / Onyx.multiGet aliases and the reader returned by useSnapshotOnyxGet() in one
+ * file, so every rule that inspects Onyx reads recognizes the same calls.
  */
 function createOnyxReadTracker(sourceCode) {
     const onyxImportBindings = new WeakSet();
+    const snapshotReaderHookBindings = new WeakSet();
     const readAliases = new WeakMap();
+    const snapshotReaderVariables = [];
 
     function getDeclaredVariable(node, bindingName) {
         return sourceCode.getDeclaredVariables(node).find((declaredVariable) => declaredVariable.name === bindingName);
@@ -235,6 +242,24 @@ function createOnyxReadTracker(sourceCode) {
         }
     }
 
+    function trackSnapshotReader(node, bindingName) {
+        const variable = getDeclaredVariable(node, bindingName);
+
+        if (variable) {
+            readAliases.set(variable, SNAPSHOT_READ_METHOD);
+            snapshotReaderVariables.push(variable);
+        }
+    }
+
+    function isSnapshotReaderHookCall(node, scope) {
+        if (node?.type !== 'CallExpression' || node.callee.type !== 'Identifier') {
+            return false;
+        }
+
+        const hookVariable = getVariableByName(scope, node.callee.name);
+        return !!hookVariable && snapshotReaderHookBindings.has(hookVariable);
+    }
+
     function getOnyxReadMethod(node, scope) {
         if (node?.type !== 'MemberExpression' || node.object.type !== 'Identifier') {
             return null;
@@ -251,6 +276,10 @@ function createOnyxReadTracker(sourceCode) {
     }
 
     function getCalledReadMethod(callee, scope) {
+        if (isSnapshotReaderHookCall(callee, scope)) {
+            return SNAPSHOT_READ_METHOD;
+        }
+
         const readMethod = getOnyxReadMethod(callee, scope);
 
         if (readMethod) {
@@ -264,6 +293,21 @@ function createOnyxReadTracker(sourceCode) {
 
     const visitors = {
         ImportDeclaration(node) {
+            if (typeof node.source.value === 'string' && SNAPSHOT_READER_HOOK_SOURCE.test(node.source.value)) {
+                for (const specifier of node.specifiers) {
+                    if (specifier.type !== 'ImportDefaultSpecifier') {
+                        continue;
+                    }
+
+                    const variable = getDeclaredVariable(node, specifier.local.name);
+
+                    if (variable) {
+                        snapshotReaderHookBindings.add(variable);
+                    }
+                }
+                return;
+            }
+
             if (!isOnyxModuleSource(node.source.value)) {
                 return;
             }
@@ -302,11 +346,21 @@ function createOnyxReadTracker(sourceCode) {
                 return;
             }
 
+            if (isSnapshotReaderHookCall(node.init, scope)) {
+                trackSnapshotReader(node, node.id.name);
+                return;
+            }
+
             if (node.init?.type === 'Identifier') {
                 const aliasedVariable = getVariableByName(scope, node.init.name);
 
                 if (aliasedVariable && onyxImportBindings.has(aliasedVariable)) {
                     trackImportBinding(node, node.id.name);
+                }
+
+                if (aliasedVariable && readAliases.get(aliasedVariable) === SNAPSHOT_READ_METHOD) {
+                    trackSnapshotReader(node, node.id.name);
+                    return;
                 }
             }
 
@@ -318,7 +372,7 @@ function createOnyxReadTracker(sourceCode) {
         },
     };
 
-    return {visitors, getCalledReadMethod};
+    return {visitors, getCalledReadMethod, isSnapshotReaderHookCall, snapshotReaderVariables};
 }
 
 export {
@@ -328,6 +382,7 @@ export {
     READ_METHOD,
     MULTI_READ_METHOD,
     READ_METHODS,
+    SNAPSHOT_READ_METHOD,
     TYPE_ONLY_EXPRESSIONS,
     getStaticName,
     getStaticPropertyName,

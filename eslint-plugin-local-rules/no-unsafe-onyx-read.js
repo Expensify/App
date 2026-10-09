@@ -12,6 +12,9 @@ const EFFECT_HOOK_NAMES = new Set(['useEffect', 'useLayoutEffect', 'useInsertion
 
 const CALLBACK_HOOK_NAMES = new Set(['useCallback']);
 
+// Hooks whose dependency list may name the useSnapshotOnyxGet() reader without calling it
+const DEPENDENCY_LIST_HOOK_NAMES = new Set([...EFFECT_HOOK_NAMES, ...CALLBACK_HOOK_NAMES, 'useMemo', 'useImperativeHandle']);
+
 const EFFECT_CONTINUATION_NAMES = new Set(['then', 'catch', 'finally', 'setTimeout', 'requestAnimationFrame', 'queueMicrotask', 'runAfterInteractions', 'runAfterTransitions']);
 
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
@@ -45,7 +48,7 @@ const meta = {
     type: 'problem',
     docs: {
         description:
-            'Disallow unsafe Onyx reads: Onyx.get or Onyx.multiGet outside components, pages, hooks and tests, during render, inside effects or at module scope. no-onyx-get-snapshot-key checks which keys are read.',
+            'Disallow unsafe Onyx reads: Onyx.get or Onyx.multiGet outside components, pages, hooks and tests, during render, inside effects or at module scope, and the useSnapshotOnyxGet() reader after it leaves the component. no-onyx-get-snapshot-key checks which keys are read.',
         recommended: 'error',
     },
     schema: [],
@@ -56,6 +59,9 @@ const meta = {
         noOnyxReadAtModuleScope:
             'Do not read Onyx at module scope. A module body runs at import time and cannot await, so the value can only be parked in a module variable through .then(), where it is a one-shot snapshot that never updates when the key changes.\n\n' +
             'Move the read inside the function that needs it, so it runs at event time and reads the current value. If the module genuinely needs to track a key, subscribe with Onyx.connectWithoutView() instead of caching one read.',
+        noEscapingSnapshotReader:
+            'Call the useSnapshotOnyxGet() reader only from this component, inside its event handlers. Do not pass it to another component or function, return it, or store it anywhere but a local variable: this rule cannot follow it there, so it cannot stop a call during render or in an effect.\n\n' +
+            'Call useSnapshotOnyxGet() in the component or hook that handles the event, or pass down a handler that calls the reader.',
         noOnyxReadOutsideAllowedPath:
             'Onyx.get() and Onyx.multiGet() are only allowed in src/components, src/pages, src/hooks and tests.\n\n' +
             'Elsewhere, take the value as a parameter or keep the Onyx.connectWithoutView() subscription. A file joins READ_ALLOWED_FILES only in a PR that removes an Onyx.connectWithoutView() from it.',
@@ -392,12 +398,44 @@ function classifyPosition(ancestors, sourceCode) {
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const filename = context.filename ?? context.getFilename();
-    const {visitors, getCalledReadMethod} = createOnyxReadTracker(sourceCode);
+    const {visitors, getCalledReadMethod, isSnapshotReaderHookCall, snapshotReaderVariables} = createOnyxReadTracker(sourceCode);
+
+    // The reader may only be called, copied to another local variable, or listed as a hook dependency
+    function isAllowedSnapshotReaderReference(identifier) {
+        const parent = identifier.parent;
+
+        if (parent.type === 'CallExpression') {
+            return parent.callee === identifier;
+        }
+
+        if (parent.type === 'VariableDeclarator') {
+            return parent.init === identifier && parent.id.type === 'Identifier';
+        }
+
+        if (parent.type === 'ArrayExpression') {
+            const hookCall = parent.parent;
+            return hookCall.type === 'CallExpression' && hookCall.arguments.includes(parent) && matchesCalleeName(hookCall.callee, DEPENDENCY_LIST_HOOK_NAMES);
+        }
+
+        return false;
+    }
 
     return {
         ...visitors,
         CallExpression(node) {
             const scope = sourceCode.getScope(node);
+
+            // useSnapshotOnyxGet() itself: its result must be bound to a variable or called on the spot
+            if (isSnapshotReaderHookCall(node, scope)) {
+                const parent = node.parent;
+                const isBound = parent.type === 'VariableDeclarator' && parent.init === node && parent.id.type === 'Identifier';
+                const isCalled = parent.type === 'CallExpression' && parent.callee === node;
+
+                if (!isBound && !isCalled) {
+                    context.report({node, messageId: 'noEscapingSnapshotReader'});
+                }
+                return;
+            }
 
             if (!getCalledReadMethod(node.callee, scope)) {
                 return;
@@ -422,6 +460,15 @@ function create(context) {
 
             if (position === EFFECT) {
                 context.report({node, messageId: 'noOnyxReadInEffect'});
+            }
+        },
+        'Program:exit': function () {
+            for (const variable of snapshotReaderVariables) {
+                for (const reference of variable.references) {
+                    if (!reference.init && !isAllowedSnapshotReaderReference(reference.identifier)) {
+                        context.report({node: reference.identifier, messageId: 'noEscapingSnapshotReader'});
+                    }
+                }
             }
         },
     };

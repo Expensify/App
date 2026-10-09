@@ -17,6 +17,8 @@ Do not re-check these:
 | A read during render or at module scope | `no-unsafe-onyx-read` |
 | A read inside an effect, or in a same-file function an effect calls | `no-unsafe-onyx-read` |
 | A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-onyx-get-snapshot-key` |
+| The `useSnapshotOnyxGet()` reader called with a non-snapshot key, a key lint can't resolve, or the Concierge chat | `no-onyx-get-snapshot-key` |
+| The `useSnapshotOnyxGet()` reader passed to another component or function, returned, or stored anywhere but a local variable | `no-unsafe-onyx-read` |
 | A runtime import of `react-native-onyx/dist/OnyxUtils` | `@typescript-eslint/no-restricted-imports` |
 | An inline `eslint-disable` of `no-unsafe-onyx-read`, one over a runtime OnyxUtils import, or a `no-onyx-get-snapshot-key` disable without a reason after `--` | `scripts/checkOnyxConnectBypass.ts` |
 | A missing `await` whose value is then used | `tsc` |
@@ -33,7 +35,7 @@ Mutating a read result writes the cache, since the value is the cached object. `
 
 **D. Output.** A read value that reaches the screen later, through state, a ref or a module variable a component renders, stays frozen at the moment of the read. Flag it when the screen presents it as the current value.
 
-**E. Live read of a snapshot key.** A `no-onyx-get-snapshot-key` disable claims the code wants live data. That holds only when the value it replaces was live too: `useOnyxWithoutSnapshots`, `Onyx.connect`, or a `useOnyx` call that runs outside every `SearchScopeProvider`, such as one in a provider mounted above the Search list. A `useOnyx` read of the same key in a component inside a Search scope showed the snapshot, so reading it live changes what the code acts on.
+**E. Live read of a snapshot key.** A `no-onyx-get-snapshot-key` disable claims the code wants live data. That holds only when the value it replaces was live too: `useOnyxWithoutSnapshots`, `Onyx.connect`, or a `useOnyx` call that runs outside every `SearchScopeProvider`, such as one in a provider mounted above the Search list. A `useOnyx` read of the same key in a component inside a Search scope showed the snapshot, so reading it live changes what the code acts on. Read it with the reader `useSnapshotOnyxGet()` returns instead, which resolves the same snapshot.
 
 ### Incorrect
 
@@ -148,6 +150,10 @@ return <ContactsList onReady={() => saveContacts(countryCode)} />;
 const [theme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
 return <Text>Current theme: {theme}</Text>;
 
+// E: the reader keeps the snapshot a Search row showed.
+const getOnyx = useSnapshotOnyxGet();
+const onPress = async () => approve(await getOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`));
+
 // E: a disable only where the replaced read was already live.
 // Removed: const [report] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 const onPress = async () => {
@@ -182,7 +188,7 @@ const onPress = async () => {
 
 #### E. Live read of a snapshot key
 
-- E1. The diff adds a `no-onyx-get-snapshot-key` disable. Find what the read replaces: a removed `useOnyx` line in the diff, or the hook or context the value came from before. Flag the disable when that was the `@hooks/useOnyx` wrapper reading the same key in a component that renders under a `SearchScopeProvider` (rows under `src/components/Search/`, or anything mounted inside the Search list). Comment on the disable, naming the replaced subscription.
+- E1. The diff adds a `no-onyx-get-snapshot-key` disable. Find what the read replaces: a removed `useOnyx` line in the diff, or the hook or context the value came from before. Flag the disable when that was the `@hooks/useOnyx` wrapper reading the same key in a component that renders under a `SearchScopeProvider` (rows under `src/components/Search/`, or anything mounted inside the Search list). Comment on the disable, naming the replaced subscription and suggesting the `useSnapshotOnyxGet()` reader.
 
 **DO NOT flag if:**
 

@@ -4,6 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Rule} from 'eslint';
 
 import {Linter, RuleTester} from 'eslint';
+import path from 'path';
 import {parser as tsParser} from 'typescript-eslint';
 
 type LocalRuleModule = Rule.RuleModule & {
@@ -52,6 +53,13 @@ const tsRuleTester = new RuleTester({
 });
 
 const ONYX_IMPORT = "import Onyx from 'react-native-onyx';";
+const SNAPSHOT_READER_IMPORT = "import useSnapshotOnyxGet from '@hooks/useSnapshotOnyxGet';";
+
+const REPO_ROOT = path.resolve(__dirname, '../..');
+
+function inRepo(relativePath: string): string {
+    return path.join(REPO_ROOT, relativePath);
+}
 
 const RESTRICTED_ERRORS = [{messageId: 'noRestrictedOnyxKey'}];
 
@@ -91,6 +99,33 @@ describe('no-onyx-get-snapshot-key restricted keys', () => {
     });
 });
 
+describe('no-onyx-get-snapshot-key useSnapshotOnyxGet reader', () => {
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            // Snapshot keys read from handlers
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row({reportID}) { const getOnyx = useSnapshotOnyxGet(); const onPress = async () => getOnyx(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); return <Button onPress={onPress} />; }`,
+            },
+            // A same-named hook from another module is not tracked
+            {
+                code: "import useSnapshotOnyxGet from './somewhereElse/useSnapshotOnyxGetter'; function Row() { const getOnyx = useSnapshotOnyxGet(); const onPress = () => getOnyx(ONYXKEYS.SESSION); return null; }",
+            },
+        ],
+        invalid: [
+            // Keys that never come from a snapshot go through Onyx.get
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row() { const getOnyx = useSnapshotOnyxGet(); const onPress = async () => getOnyx(ONYXKEYS.SESSION); return <Button onPress={onPress} />; }`,
+                errors: [{messageId: 'noNonSnapshotKeyInSnapshotReader', data: {keyPath: 'ONYXKEYS.SESSION'}}],
+            },
+            // Keys the rule cannot resolve
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row({onyxKey}) { const getOnyx = useSnapshotOnyxGet(); const onPress = async () => getOnyx(onyxKey); return <Button onPress={onPress} />; }`,
+                errors: [{messageId: 'noUnresolvableSnapshotReaderKey'}],
+            },
+        ],
+    });
+});
+
 describe('no-onyx-get-snapshot-key Concierge chat key', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
         valid: [
@@ -121,6 +156,25 @@ describe('no-onyx-get-snapshot-key Concierge chat key', () => {
                 code: `${ONYX_IMPORT} export async function submit() { const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID); return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT_ACTIONS}\${conciergeReportID}\`); }`,
                 errors: RESTRICTED_ERRORS,
             },
+            // Snapshots never hold the Concierge chat, so the snapshot reader would return undefined
+            {
+                code: `${SNAPSHOT_READER_IMPORT} function Row() { const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID); const getOnyx = useSnapshotOnyxGet(); const onPress = async () => getOnyx(\`\${ONYXKEYS.COLLECTION.REPORT}\${conciergeReportID}\`); return <Button onPress={onPress} />; }`,
+                errors: [{messageId: 'noConciergeChatInSnapshotReader'}],
+            },
+        ],
+    });
+});
+
+describe('no-onyx-get-snapshot-key useSnapshotOnyxGet file', () => {
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            // useSnapshotOnyxGet resolves snapshot keys itself, so its own reads may use a runtime or snapshot key
+            {code: `${ONYX_IMPORT} function useSnapshotOnyxGet() { return (key) => Onyx.get(key); }`, filename: inRepo('src/hooks/useSnapshotOnyxGet.ts')},
+            {code: `${ONYX_IMPORT} function useSnapshotOnyxGet() { return () => Onyx.get(ONYXKEYS.COLLECTION.REPORT); }`, filename: inRepo('src/hooks/useSnapshotOnyxGet.ts')},
+        ],
+        invalid: [
+            // Other hooks still get the key checks
+            {code: `${ONYX_IMPORT} function useOtherGet() { return (key) => Onyx.get(key); }`, filename: inRepo('src/hooks/useOtherGet.ts'), errors: UNRESOLVABLE_ERRORS},
         ],
     });
 });
