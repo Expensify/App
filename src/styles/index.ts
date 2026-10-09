@@ -4186,9 +4186,18 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.badgeDefaultBG,
         },
 
-        // The minimum width, roughly that of a typical "Page N of N", keeps the pill from resizing as the page number gains a digit.
         receiptPageNavigatorLabelContainer: {
-            minWidth: 60,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // Overlays the hidden widest label that sizes the pill
+        receiptPageNavigatorCurrentLabel: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
             alignItems: 'center',
             justifyContent: 'center',
         },

@@ -101,12 +101,21 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
                 onPress={() => onChangePage(page - 1)}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.PREVIOUS_PAGE_BUTTON}
             />
-            <View
-                style={[styles.receiptPageNavigatorLabelContainer, styles.pointerEventsNone]}
-                accessibilityLiveRegion="polite"
-                role={CONST.ROLE.STATUS}
-            >
-                <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
+            <View style={styles.receiptPageNavigatorLabelContainer}>
+                {/* Hidden copy of the widest label (the last page) that sizes the pill, so it neither clips a long translation nor resizes between pages. */}
+                <Text
+                    style={[labelStyle, styles.opacity0]}
+                    aria-hidden
+                >
+                    {translate('receipt.pageCount', {page: pageCount, pageCount})}
+                </Text>
+                <View
+                    style={styles.receiptPageNavigatorCurrentLabel}
+                    accessibilityLiveRegion="polite"
+                    role={CONST.ROLE.STATUS}
+                >
+                    <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
+                </View>
             </View>
             <PageButton
                 icon={icons.ArrowRight}
