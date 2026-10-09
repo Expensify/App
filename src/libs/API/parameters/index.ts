@@ -335,7 +335,6 @@ export type {default as UpdateWorkspaceDescriptionParams} from './UpdateWorkspac
 export type {default as UpdateWorkspaceClientIDParams} from './UpdateWorkspaceClientIDParams';
 export type {default as UpdateWorkspaceMembersRoleParams} from './UpdateWorkspaceMembersRoleParams';
 export type {default as SetWorkspaceCategoriesEnabledParams} from './SetWorkspaceCategoriesEnabledParams';
-export type {default as SetPolicyVendorsEnabledParams} from './SetPolicyVendorsEnabledParams';
 export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspaceCategoriesParams';
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
