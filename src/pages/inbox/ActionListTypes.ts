@@ -23,6 +23,8 @@ type ActionListRef = {
     scrollToEnd: (params?: ScrollToEndParams) => void;
     getNativeScrollRef?: () => unknown;
     getScrollableNode?: () => unknown;
+    /** Measured item positions supplied by LegendList. Other list implementations can omit this. */
+    getState?: () => {positionByKey: (key: string) => number | undefined} | undefined;
 };
 
 /** Ref to the underlying list instance attached via `ref={}`. */

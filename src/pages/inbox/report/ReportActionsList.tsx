@@ -258,6 +258,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         listRef,
         (): ActionListRef => ({
             getNativeScrollRef: () => legendListRef.current?.getNativeScrollRef(),
+            getScrollableNode: (): unknown => legendListRef.current?.getScrollableNode(),
+            getState: () => legendListRef.current?.getState(),
             scrollToEnd: (options) => {
                 legendListRef.current?.scrollToEnd(options);
             },
@@ -355,7 +357,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // already-visible page mounted until hydration finishes instead of exposing intermediate estimated
     // layouts. The hydrated list then mounts from scratch using the full dataset.
     const initialReportActionsSnapshot = useInitial(renderedVisibleReportActions.length > 0 ? renderedVisibleReportActions : undefined);
-    const shouldKeepInitialSnapshot = isInitialReportLoadPending && !isOffline && !showFullHistory;
+    const [hasReleasedInitialSnapshot, setHasReleasedInitialSnapshot] = useState(isOffline || !isInitialReportLoadPending || showFullHistory);
+    if (!hasReleasedInitialSnapshot && (isOffline || !isInitialReportLoadPending || showFullHistory)) {
+        setHasReleasedInitialSnapshot(true);
+    }
+    const shouldKeepInitialSnapshot = !hasReleasedInitialSnapshot;
     const reportActionsToRender = shouldKeepInitialSnapshot ? (initialReportActionsSnapshot ?? renderedVisibleReportActions) : renderedVisibleReportActions;
 
     // Report actions are stored newest-first. LegendList intentionally has no inverted mode, so
@@ -440,6 +446,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         initialScrollIndexParams,
         onLoad,
         onItemSizeChanged,
+        trackLinkedMessageScroll,
         stopLinkedMessagePositioning,
     } = useReportActionsScroll({
         listID,
@@ -541,6 +548,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     };
 
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        trackLinkedMessageScroll(event);
         const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
         const distanceFromBottom = Math.max(0, contentSize.height - layoutMeasurement.height - contentOffset.y);
         distanceFromBottomRef.current = distanceFromBottom;

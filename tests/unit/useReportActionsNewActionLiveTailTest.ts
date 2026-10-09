@@ -140,6 +140,21 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(result.current.isScrollToBottomEnabled).toBe(true);
     });
 
+    it('clears a pending sent-comment scroll when switching reports', () => {
+        // Given a sent action that has not entered the rendered page yet.
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const params = buildParams({hasNewerActions: false, hasNewestReportAction: true});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+        act(() => newActionHandler?.(true, action, 'local'));
+
+        // When the reader switches reports and returns before the timeout, with the row now loaded.
+        rerender({...params, reportID: '2'});
+        rerender({...params, renderedVisibleReportActions: [action]});
+
+        // Then the old send request does not reclaim the viewport.
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+    });
+
     it('does not scroll for a payload-less realtime echo', () => {
         const {result} = renderHook(() => useReportActionsNewActionLiveTail(buildParams({hasNewerActions: false, hasNewestReportAction: true})));
 

@@ -4,6 +4,8 @@ import {useActionListContext} from '@pages/inbox/ActionListContext';
 
 import CONST from '@src/CONST';
 
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {Platform} from 'react-native';
@@ -107,6 +109,22 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
     }, [getListRef, listID, readyListID]);
 
     const onReady = () => setReadyListID(listID);
+    const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        if (!shouldPositionRef.current || readyListID !== listID || !linkedReportActionID || isLastAction) {
+            return;
+        }
+        const position = getListRef()?.current?.getState?.()?.positionByKey(linkedReportActionID);
+        if (position === undefined) {
+            return;
+        }
+        const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+        const targetOffset = Math.max(0, Math.min(position - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET, contentSize.height - layoutMeasurement.height));
+        // Native anchoring can commit after the row-size correction. Check the resulting viewport
+        // as well, so that late adjustment cannot move a successfully positioned link out of view.
+        if (Math.abs(targetOffset - contentOffset.y) > 1) {
+            setMeasurementVersion((version) => version + 1);
+        }
+    };
     const onItemSizeChanged = ({index, size, previous}: {index: number; size: number; previous: number}) => {
         if (!shouldPositionRef.current || readyListID !== listID || index > targetIndex || size === previous) {
             return;
@@ -114,7 +132,7 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         setMeasurementVersion((version) => version + 1);
     };
 
-    return {onReady, onItemSizeChanged, stopPositioning};
+    return {onReady, onItemSizeChanged, onScroll, stopPositioning};
 }
 
 export default useLinkedReportActionScroll;

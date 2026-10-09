@@ -95,6 +95,12 @@ function useReportActionsNewActionLiveTail({
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [pendingScrollActionID, setPendingScrollActionID] = useState<string>();
+    const [scrollRequestReportID, setScrollRequestReportID] = useState(reportID);
+    if (scrollRequestReportID !== reportID) {
+        setScrollRequestReportID(reportID);
+        setIsScrollToBottomEnabled(false);
+        setPendingScrollActionID(undefined);
+    }
 
     const setShouldScrollToBottom = useCallback((enabled: boolean) => {
         setIsScrollToBottomEnabled(enabled);

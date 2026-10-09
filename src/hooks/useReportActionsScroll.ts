@@ -124,6 +124,8 @@ type UseReportActionsScrollResult = {
 
     onItemSizeChanged: (info: {index: number; size: number; previous: number}) => void;
 
+    trackLinkedMessageScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
     stopLinkedMessagePositioning: () => void;
 };
 
@@ -323,6 +325,7 @@ function useReportActionsScroll({
     const {
         onReady,
         onItemSizeChanged,
+        onScroll: trackLinkedMessageScroll,
         stopPositioning: stopLinkedMessagePositioning,
     } = useLinkedReportActionScroll({
         listID,
@@ -395,6 +398,7 @@ function useReportActionsScroll({
         initialScrollIndexParams,
         onLoad,
         onItemSizeChanged,
+        trackLinkedMessageScroll,
         stopLinkedMessagePositioning,
     };
 }

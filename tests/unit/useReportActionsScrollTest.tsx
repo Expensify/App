@@ -15,6 +15,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -33,6 +34,7 @@ jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameR
 // --- useReportScrollManager ---
 const mockScrollToBottom = jest.fn();
 const mockScrollToIndex = jest.fn();
+let mockLinkedActionPosition = 40;
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
     default: () => ({
@@ -205,7 +207,19 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
 
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
 function buildActionListContextValue() {
-    return {scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef: mockScrollOffsetRef,
+        getScrollOffset: () => mockScrollOffsetRef.current,
+        registerListRef: () => {},
+        getListRef: () => ({
+            current: {
+                scrollToIndex: mockScrollToIndex,
+                scrollToEnd: mockScrollToBottom,
+                scrollToOffset: jest.fn(),
+                getState: () => ({positionByKey: () => mockLinkedActionPosition}),
+            },
+        }),
+    };
 }
 
 function wrapper({children}: {children: ReactNode}) {
@@ -237,6 +251,7 @@ describe('useReportActionsScroll', () => {
         await waitForBatchedUpdates();
         mockTransitionCallbacks.length = 0;
         mockRouteParams = {};
+        mockLinkedActionPosition = 40;
         mockIsFocused = true;
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
@@ -373,6 +388,33 @@ describe('useReportActionsScroll', () => {
     });
 
     describe('linked message positioning', () => {
+        it('restores a linked message moved out of view by a late native scroll adjustment', async () => {
+            // Given the linked message has already landed below a measured long predecessor.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const {result} = await renderScroll({renderedVisibleReportActions: [makeAction(LINKED_ACTION_ID), makeAction('999')]});
+            act(() => result.current.onLoad());
+            flushTransitions();
+            mockScrollToIndex.mockClear();
+
+            // When a native layout adjustment moves its measured position beyond the viewport.
+            mockLinkedActionPosition = 1500;
+            const scrollEvent = createMock<Parameters<typeof result.current.trackLinkedMessageScroll>[0]>({
+                nativeEvent: {contentOffset: {x: 0, y: 0}, contentSize: {width: 300, height: 2000}, layoutMeasurement: {width: 300, height: 600}},
+            });
+            act(() => result.current.trackLinkedMessageScroll(scrollEvent));
+            flushTransitions();
+
+            // Then the linked position is restored even without another row size notification.
+            expect(mockScrollToIndex).toHaveBeenCalledWith(0, {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            mockScrollToIndex.mockClear();
+            act(() => {
+                result.current.stopLinkedMessagePositioning();
+                result.current.trackLinkedMessageScroll(scrollEvent);
+            });
+            flushTransitions();
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+        });
+
         it('repositions the linked parent message when returning from a thread', async () => {
             // Given the linked parent report stays mounted while its thread is open.
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};

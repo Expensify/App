@@ -20,6 +20,8 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 
+import {ActionListContext} from '@pages/inbox/ActionListContext';
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
@@ -145,11 +147,14 @@ const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.
 const mockLegendListMount = jest.fn();
 const mockLegendListUnmount = jest.fn();
 const mockLegendScrollToEnd = jest.fn();
+const mockLegendPositionByKey = jest.fn(() => 1500);
+const mockLegendGetState = jest.fn(() => ({positionByKey: mockLegendPositionByKey}));
+const mockLegendGetScrollableNode = jest.fn(() => ({scrollTop: 0}));
 let mockShouldCallLegendListOnLoad = true;
 jest.mock('@legendapp/list/react-native', () => {
     const reactModule = jest.requireActual<typeof React>('react');
     const MockLegendListContent = reactModule.forwardRef<{scrollToEnd: typeof mockLegendScrollToEnd}, {onLoad?: () => void; onReady?: () => void}>(({onLoad, onReady}, ref) => {
-        reactModule.useImperativeHandle(ref, () => ({scrollToEnd: mockLegendScrollToEnd}), []);
+        reactModule.useImperativeHandle(ref, () => ({scrollToEnd: mockLegendScrollToEnd, getState: mockLegendGetState, getScrollableNode: mockLegendGetScrollableNode}), []);
         reactModule.useEffect(() => {
             mockLegendListMount();
             if (mockShouldCallLegendListOnLoad) {
@@ -173,6 +178,7 @@ jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: 
 jest.mock('@hooks/useReportActionsScroll', () =>
     jest.fn(() => ({
         listRef: {current: null},
+        trackLinkedMessageScroll: jest.fn(),
         trackVerticalScrolling: jest.fn(),
         onViewableItemsChanged: jest.fn(),
         isFloatingMessageCounterVisible: false,
@@ -440,6 +446,34 @@ describe('ReportActionsList (body)', () => {
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    it('publishes measured positions and the scroll element through the action-list adapter', () => {
+        // Given a mounted LegendList with measured rows and its own scroll element.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const registerListRef = jest.fn<void, [ActionListRefType]>();
+        const contextValue = {scrollOffsetRef: {current: 0}, getScrollOffset: () => 0, getListRef: () => null, registerListRef};
+        render(
+            // The shared context intentionally combines stable refs with their accessors.
+            // eslint-disable-next-line rulesdir/context-provider-split-values
+            <ActionListContext.Provider value={contextValue}>
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                />
+            </ActionListContext.Provider>,
+        );
+
+        // When linked positioning reads the registered adapter rather than the raw LegendList ref.
+        const adapter = registerListRef.mock.calls.at(-1)?.at(0)?.current;
+        const position = adapter?.getState?.()?.positionByKey('linked-action');
+        const scrollElement = adapter?.getScrollableNode?.();
+
+        // Then measurement recovery and web input cancellation can reach the real list.
+        expect(position).toBe(1500);
+        expect(mockLegendPositionByKey).toHaveBeenCalledWith('linked-action');
+        expect(scrollElement).toEqual({scrollTop: 0});
+        expect(mockLegendGetScrollableNode).toHaveBeenCalledTimes(1);
     });
 
     it('corrects the initial end position after the latest row has been measured', async () => {
@@ -917,6 +951,42 @@ describe('ReportActionsList (body)', () => {
 
         // Then the new action appears without waiting for hydration
         expect(getCapturedVisibleActions()?.at(-1)?.reportActionID).toBe('new-comment');
+    });
+
+    it('keeps offline additions visible when reconnecting during the initial load', async () => {
+        // Given a cached report whose initial request is still pending.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
+        const view = renderReportActionsList();
+        const existingAction = mockReportActions.at(1);
+        if (!existingAction) {
+            throw new Error('Expected a cached report action');
+        }
+        const renderList = () =>
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+        // When an action is added offline and the connection returns before hydration.
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [{...existingAction, reportActionID: 'offline-comment', created: '2023-01-03'}, ...mockReportActions],
+        });
+        renderList();
+        await waitForBatchedUpdatesWithAct();
+        expect(getCapturedVisibleActions()?.at(-1)?.reportActionID).toBe('offline-comment');
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list does not revert to the earlier cached snapshot.
+        expect(getCapturedVisibleActions()?.at(-1)?.reportActionID).toBe('offline-comment');
     });
 
     it('keeps a hydrated list mounted when its RAM-only loading entry briefly regresses', async () => {
