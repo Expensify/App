@@ -167,6 +167,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                         'defaultBillable',
                         'prohibitedExpenses',
                         'eReceipts',
+                        'requireCompanyCardsEnabled',
                         'isAttendeeTrackingEnabled',
                         'preventSelfApproval',
                         'shouldShowAutoApprovalOptions',
@@ -218,6 +219,25 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.showTagGLCodes).toBe(true);
                 expect(policy?.pendingFields?.glCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                 expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
+
+            it('copies requireCompanyCardsEnabled with rules so the target requires company cards like the source', () => {
+                // Given a source that requires company cards and a target that does not
+                const sourcePolicy = makeSourcePolicy({requireCompanyCardsEnabled: true});
+                const targetPolicy = makeTargetPolicy({requireCompanyCardsEnabled: false});
+
+                // When rules are copied
+                const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['rules'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then the target requires company cards optimistically and the field is marked pending
+                expect(policy?.requireCompanyCardsEnabled).toBe(true);
+                expect(policy?.pendingFields?.requireCompanyCardsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+                // Then success clears the pending marker and failure restores the original value
+                const successPatch = getMergedPolicyPatch(successData.find((entry) => entry.key === POLICY_KEY));
+                expect(successPatch?.pendingFields?.requireCompanyCardsEnabled).toBeNull();
+                expect(getFailurePolicy(failureData)?.requireCompanyCardsEnabled).toBe(false);
             });
 
             it('enables Rules on the target when merchant rules are copied so they are visible while offline', () => {
