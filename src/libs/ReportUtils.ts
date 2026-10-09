@@ -14071,8 +14071,8 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
-    // Moving a report to a workspace creates expenses there, which requires create-expenses permission.
-    if (!canRoleCreateExpenses(getPolicyRole(newPolicy, submitterEmail))) {
+    // Moving a report creates expenses there, so the submitter must hold create-expenses permission.
+    if (!canRoleCreateExpenses(getPolicyRole(newPolicy, submitterEmail, false) ?? newPolicy.role)) {
         return false;
     }
     return !!newPolicy.role && !isPendingDeletePolicy(newPolicy);

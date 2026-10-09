@@ -142,8 +142,8 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
-            // Workspaces where the member lacks create-expenses permission are not expense destinations.
-            canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin)) &&
+            // No login means no member to resolve, so the create-expenses gate only applies per member.
+            (!currentUserLogin || canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin))) &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
     );
