@@ -9477,6 +9477,12 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
+            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
+            DRAG_SLOP: 3,
+
+            /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
+            DOUBLE_CLICK_INTERVAL: 150,
+
             /** Width of the invisible drag strip centred on a column's edge. */
             HANDLE_HIT_WIDTH: 12,
 

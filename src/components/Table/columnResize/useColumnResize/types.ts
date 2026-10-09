@@ -1,3 +1,5 @@
+import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
+
 import type React from 'react';
 
 type UseColumnResizeParams = {
@@ -12,6 +14,12 @@ type UseColumnResizeParams = {
 
     /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths?: Record<string, number>;
+
+    /** Width that fits each column's content, which a click on its edge sizes it to. */
+    fitColumnWidths?: Record<string, number>;
+
+    /** Widths the user already gave this table's columns. */
+    columnWidthOverrides?: ColumnWidthOverrides;
 
     /** Gap between columns, so handles can be centred in it. */
     columnGap: number;
