@@ -7,6 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
+    canCreateCategoryInSitu,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -511,6 +512,45 @@ describe('PolicyUtils', () => {
                 const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
 
                 expect(canEditWorkspaceSettings(policy, memberLogin)).toBe(false);
+            });
+        });
+
+        describe('canCreateCategoryInSitu', () => {
+            const categoriesPolicy = (role: ValueOf<typeof CONST.POLICY.ROLE>, areCategoriesEnabled = true): Policy => ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role,
+                areCategoriesEnabled,
+                connections: undefined,
+            });
+
+            it('lets an admin add a category from the picker when the workspace uses categories', () => {
+                // Given an admin of a workspace with categories on and no accounting integration
+                // When we check whether the category picker can offer to add one
+                // Then it can, as the full-page selector's "+" does
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN))).toBe(true);
+            });
+
+            it('does not let a member add a category', () => {
+                // Given a member, who cannot change workspace settings
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, so the pop-over hides its add button
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.USER))).toBe(false);
+            });
+
+            it('does not offer to add a category when the workspace has categories turned off', () => {
+                // Given an admin of a workspace that has turned categories off
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, because a new category would have nowhere to show
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN, false))).toBe(false);
+            });
+
+            it('does not offer to add a category when the workspace syncs with an accounting integration', () => {
+                // Given an admin of a workspace whose categories come from an accounting integration
+                const policy = {...categoriesPolicy(CONST.POLICY.ROLE.ADMIN), connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}})};
+
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, because new categories have to be created in the integration
+                expect(canCreateCategoryInSitu(policy)).toBe(false);
             });
         });
 

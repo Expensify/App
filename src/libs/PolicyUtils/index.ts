@@ -55,7 +55,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import {canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
+import {canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
 import {canPolicyAccessFeature, isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -1211,6 +1211,11 @@ function shouldHideDynamicExternalWorkflowPeople(policy: OnyxEntry<Policy>): boo
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
     return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy);
+}
+
+/** Whether the user can add a category to the workspace straight from an expense's category picker */
+function canCreateCategoryInSitu(policy: OnyxEntry<Policy>, login?: string) {
+    return canEditWorkspaceSettings(policy, login) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
 }
 
 function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
@@ -2474,6 +2479,7 @@ export {
     goBackFromInvalidPolicy,
     hasAccountingFeatureConnection,
     hasAccountingConnections,
+    canCreateCategoryInSitu,
     shouldShowSyncError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,

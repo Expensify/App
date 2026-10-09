@@ -1,7 +1,9 @@
+import {CATEGORY_PICKER_HEADER_HEIGHT} from '@components/CategoryPicker/CategoryPickerModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -12,6 +14,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {canCreateCategoryInSitu} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -70,6 +73,7 @@ function CategoryField({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
+    const currentUserLogin = useCurrentUserPersonalDetails().login;
     const dropdownRef = useRef<ExpenseFieldDropdownHandle>(null);
     const isFocused = useIsFocused();
     // Where the user is in the workspace step the row sent them to. Scoped to that one departure and return: it
@@ -115,6 +119,7 @@ function CategoryField({
     // The one condition both the row and the effect below open on, so the effect never asks the row to open a
     // list it would refuse and fall back to the full page for.
     const canOpenListInPlace = shouldOpenInDropdown && !isReadOnly && !didConfirm;
+    const canAddCategory = canCreateCategoryInSitu(policy, currentUserLogin);
     const canOpenInDropdownAfterWorkspaceStep = canUseAnchoredFieldDropdowns && shouldUseDropdownRows && isCreatingExpense;
 
     // Blurs move the step along: the first is the departure to the workspace step, the next after returning means
@@ -225,6 +230,7 @@ function CategoryField({
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
                 shouldOpenInDropdown={canOpenListInPlace}
+                listHeaderHeight={canAddCategory ? CATEGORY_PICKER_HEADER_HEIGHT : 0}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (
                         <CategoryFieldDropdown
@@ -232,6 +238,7 @@ function CategoryField({
                             transactionID={transactionID}
                             policy={policy}
                             selectedCategory={selectedCategory}
+                            canAddCategory={canAddCategory}
                         />
                     )
                 }
