@@ -44,13 +44,36 @@ const EMPTY_FOOTER_SELECTION = {footerCount: undefined, footerTotal: undefined, 
 const EMPTY_REPORT_IDS: string[] = [];
 const EMPTY_SOURCES: Record<string, number> = {};
 
-// The breakdown each search's snapshot was last answered for, by search hash. It outlives the footer on purpose:
-// switching tabs remounts it, and the snapshot it comes back to still holds whichever aggregate answered last, which
-// component state would have forgotten. In memory only, so a reload starts without it.
-const answeredFooterTotalByHash = new Map<number, SearchFooterTotal>();
+type AnsweredFooterTotals = {
+    /** The breakdown the snapshot's `total` belongs to */
+    answered: SearchFooterTotal;
 
+    /** Each breakdown's last answered total */
+    totals: Partial<Record<SearchFooterTotal, number>>;
+};
+
+// Breakdown totals answered per search hash, so offline can show the one the query asks for. Not on the snapshot
+// (a search response replaces it) nor in the footer (tab switches remount it). In memory only.
+const answeredFooterTotalsByHash = new Map<number, AnsweredFooterTotals>();
+
+/** Test-only: clears the recorded answers between tests. */
 function resetAnsweredFooterTotalsForTesting() {
-    answeredFooterTotalByHash.clear();
+    answeredFooterTotalsByHash.clear();
+}
+
+/**
+ * Records a settled answer and returns this search's answers. A function, not an inline read: React Compiler would
+ * cache a bare map read on the hash, which a footer switch never changes.
+ */
+function recordAnsweredFooterTotals(searchHash: number, requestedFooterTotal: SearchFooterTotal, total: number | undefined, isSettledAnswer: boolean): AnsweredFooterTotals | undefined {
+    if (isSettledAnswer) {
+        const previous = answeredFooterTotalsByHash.get(searchHash);
+        answeredFooterTotalsByHash.set(searchHash, {
+            answered: requestedFooterTotal,
+            totals: typeof total === 'number' ? {...previous?.totals, [requestedFooterTotal]: total} : (previous?.totals ?? {}),
+        });
+    }
+    return answeredFooterTotalsByHash.get(searchHash);
 }
 
 function getGroupCount(group: unknown): number {
@@ -168,14 +191,15 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     const requestedFooterTotal = footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
     const isSettledAnswer = !isOffline && !metadata?.isLoading && metadata?.hash === currentSearchHash;
-    if (isSettledAnswer) {
-        answeredFooterTotalByHash.set(currentSearchHash, requestedFooterTotal);
-    }
-    const refreshedFooterTotal = answeredFooterTotalByHash.get(currentSearchHash) ?? requestedFooterTotal;
+
+    const answeredFooterTotals = recordAnsweredFooterTotals(currentSearchHash, requestedFooterTotal, metadata?.total, isSettledAnswer);
+
+    // Offline, the snapshot may still hold an earlier breakdown's total: show this breakdown's recorded one, or none.
+    const isSnapshotTotalFromEarlierBreakdown = isOffline && !shouldUseLiveData && !!answeredFooterTotals && answeredFooterTotals.answered !== requestedFooterTotal;
     const metadataCount = metadata?.count;
     const metadataReportCount = metadata?.reportCount;
     const metadataCurrency = metadata?.currency;
-    const metadataTotal = metadata?.total;
+    const metadataTotal = isSnapshotTotalFromEarlierBreakdown ? answeredFooterTotals?.totals[requestedFooterTotal] : metadata?.total;
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const excludedTransactionsKeys = useMemo(() => Object.keys(excludedTransactions), [excludedTransactions]);
     const isExpenseType = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -752,8 +776,6 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
     const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isAwaitingBreakdownTotal || (!!metadata?.isLoading && metadata?.offset === 0)));
 
-    const isTotalStale = isOffline && !hasPartialSelection && !shouldUseLiveData && refreshedFooterTotal !== requestedFooterTotal;
-
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.
     // An unreported expense sits on no report — it carries the unreported placeholder ID — so it adds none.
@@ -771,7 +793,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             count={footerCount}
             countType={footerCountType}
             defaultCountType={defaultFooterCountType}
-            total={isTotalStale ? undefined : footerData.total}
+            total={footerData.total}
             totalType={footerTotalType}
             currency={footerData.currency}
             defaultCurrency={searchTargetCurrency}
