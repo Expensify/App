@@ -1,4 +1,4 @@
-import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import ManualConfirmationList from '@components/MoneyRequestConfirmationList/variants/ManualConfirmationList';
 
 import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -23,7 +23,7 @@ type PayConfirmationProps = Omit<ConfirmationVariantProps, 'orchestratorProps'> 
 
 /**
  * Confirms sending money, through SendMoney. Pay confirms through `onSendMoney` and never calls `onConfirm`, so it
- * doesn't mount SubmitExpenseOrchestrator.
+ * doesn't mount SubmitExpenseOrchestrator. Pay has no request-type tabs, so it is always a manual expense.
  */
 function PayConfirmation({submissionParams, listProps, destinationReportID, optimisticP2PDestinationReportID}: PayConfirmationProps) {
     const {transaction, receiptFiles, report, participants, currentUserPersonalDetails, onExpenseWriteWillStart, submitLock} = submissionParams;
@@ -84,7 +84,7 @@ function PayConfirmation({submissionParams, listProps, destinationReportID, opti
     };
 
     return (
-        <MoneyRequestConfirmationList
+        <ManualConfirmationList
             {...listProps}
             onSendMoney={handleSendMoney}
             isConfirming={false}
