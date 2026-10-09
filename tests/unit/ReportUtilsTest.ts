@@ -58,6 +58,7 @@ import {
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAddTransaction,
+    canDuplicateExpenseIntoSourceReport,
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
@@ -18274,6 +18275,105 @@ describe('ReportUtils', () => {
             const result = shouldCreateNewMoneyRequestReport(report, report, true, false, undefined);
 
             // Then the existing report is reused
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('canDuplicateExpenseIntoSourceReport', () => {
+        const sourcePolicy: Policy = {
+            ...createRandomPolicy(30001),
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            pendingAction: null,
+            autoReporting: false,
+        };
+        const sourceChatReport: Report = {
+            ...createRandomReport(30002, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+            policyID: sourcePolicy.id,
+            ownerAccountID: currentUserAccountID,
+            hasOutstandingChildRequest: false,
+        };
+
+        // An open expense report the current user submitted on an accessible workspace
+        const buildOpenSourceReport = async (overrides: Partial<Report> = {}) => {
+            const report: Report = {
+                ...createRandomReport(30003, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: sourcePolicy.id,
+                chatReportID: sourceChatReport.reportID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                errorFields: undefined,
+                ...overrides,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            return report;
+        };
+
+        const buildParams = (sourceReport: Report, overrides: Partial<Parameters<typeof canDuplicateExpenseIntoSourceReport>[0]> = {}) => ({
+            sourceReport,
+            chatReport: sourceChatReport,
+            policy: sourcePolicy,
+            currentUserLogin: currentUserEmail,
+            isSourceReportArchived: false,
+            isChatReportArchived: false,
+            isASAPSubmitBetaEnabled: false,
+            rules: undefined,
+            ...overrides,
+        });
+
+        it('returns true for an open expense report the current user can add to', async () => {
+            // Given an open expense report the current user submitted on an accessible workspace
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport));
+
+            // Then the duplicate targets the source report
+            expect(result).toBe(true);
+        });
+
+        it('returns false for an approved expense report so a locked report is not reopened', async () => {
+            // Given an approved expense report
+            const sourceReport = await buildOpenSourceReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport));
+
+            // Then the duplicate falls back to the default workspace routing
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the source report is archived', async () => {
+            // Given an open expense report that is archived
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {isSourceReportArchived: true}));
+
+            // Then the duplicate falls back to the default workspace routing
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the source report workspace is not accessible', async () => {
+            // Given an open expense report whose workspace is pending delete
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {policy: {...sourcePolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}));
+
+            // Then the duplicate falls back to the default workspace routing
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the source is not an expense report', () => {
+            // Given a source that is a chat rather than an expense report, like a self-DM tracked expense
+            // When it's checked whether a duplicate can stay on that source
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceChatReport));
+
+            // Then the duplicate keeps its current routing
             expect(result).toBe(false);
         });
     });
