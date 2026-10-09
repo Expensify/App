@@ -1,10 +1,9 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
-import type {SelectorType} from '@components/SelectionScreen';
 
 import {isQBORefreshTokenExpiringSoon} from '@libs/AccountingUtils';
 import {getBankAccountFromID} from '@libs/actions/BankAccounts';
-import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
+import {hasSynchronizationErrorMessage} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getApiRoot} from '@libs/ApiUtils';
@@ -29,21 +28,7 @@ import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {Card, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyCategories, PolicyEmployeeList, Report, TaxRate, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
-import type {
-    Account,
-    ApprovalRule,
-    ConnectionLastSync,
-    CommuterExclusions,
-    ConnectionName,
-    Connections,
-    CustomUnit,
-    NetSuiteConnection,
-    PolicyConnectionSyncProgress,
-    PolicyFeatureName,
-    Rate,
-    TaxRates,
-    Tenant,
-} from '@src/types/onyx/Policy';
+import type {ApprovalRule, CommuterExclusions, ConnectionName, CustomUnit, PolicyFeatureName, Rate, TaxRates} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
@@ -51,10 +36,11 @@ import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
+import {getAccountingConnectionNames, hasAccountingFeatureConnection} from './connections';
 import {canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
 import {canPolicyAccessFeature, isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
@@ -68,14 +54,9 @@ type PolicyWithTaxRates = {
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
 
-type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 type WorkspaceDetails = {
     policyID: string | undefined;
     name: string;
-};
-
-type ConnectionWithLastSyncData = {
-    lastSync?: ConnectionLastSync;
 };
 
 /** The report facts an approval workflow rule is matched against. */
@@ -623,12 +604,6 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
 function hasActiveExpensifyCard(policy: OnyxEntry<Policy>, employeeLogin: string) {
     const primaryLogin = policy?.primaryLoginsInvited?.[employeeLogin];
     return !!policy?.employeeList?.[employeeLogin]?.hasActiveExpensifyCard || (!!primaryLogin && !!policy?.employeeList?.[primaryLogin]?.hasActiveExpensifyCard);
-}
-
-function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
-    const receiptUber = policy?.receiptPartners?.uber;
-
-    return !!receiptUber?.error;
 }
 
 function isExpensifyTeam(email: string | undefined): boolean {
@@ -1204,19 +1179,6 @@ function shouldHideDynamicExternalWorkflowPeople(policy: OnyxEntry<Policy>): boo
     return hasDynamicExternalWorkflow(policy) && !!policy?.dynamicExternalWorkflowHidePeople;
 }
 
-/**
- * Whether the policy has active accounting integration connections.
- * `getCurrentConnectionName` only returns connections supported in NewDot.
- * `hasSupportedOnlyOnOldDotIntegration` detects connections that are supported only on OldDot.
- */
-function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy);
-}
-
-function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
-    return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
-}
-
 function goBackFromInvalidPolicy() {
     Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
@@ -1733,14 +1695,6 @@ function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies
     return getActiveAdminWorkspaces(policies, currentUserLogin).length > 0;
 }
 
-/**
- * Given a list of admin policies for the current user, checks whether any of them
- * has a Xero accounting software integration configured.
- */
-function hasPolicyWithXeroConnection(adminPolicies: Policy[] | undefined) {
-    return adminPolicies?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]) ?? false;
-}
-
 /** Whether the user can send invoice from the workspace */
 function canSendInvoiceFromWorkspace(policy: OnyxEntry<Policy>): boolean {
     return policy?.areInvoicesEnabled ?? false;
@@ -1755,40 +1709,6 @@ function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolea
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
     return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy));
-}
-
-/** Get the Xero organizations connected to the policy */
-function getXeroTenants(policy: Policy | undefined): Tenant[] {
-    return policy?.connections?.xero?.data?.tenants ?? [];
-}
-
-function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organizationID: string | undefined): Tenant | undefined {
-    return tenants?.find((tenant) => tenant.id === organizationID);
-}
-
-function getCurrentXeroOrganizationName(policy: Policy | undefined): string | undefined {
-    return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
-}
-
-function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const bankAccounts = policy?.connections?.xero?.data?.bankAccounts ?? [];
-
-    return (bankAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: selectedBankAccountId === id,
-    }));
-}
-
-/** Only profit and loss accounts can take a currency conversion cost, so these are kept apart from the bank accounts. */
-function getXeroExpenseAccounts(expenseAccounts: Account[] | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
-    return (expenseAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: selectedExpenseAccountID === id,
-    }));
 }
 
 function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
@@ -1810,93 +1730,6 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
         return;
     }
     return pendingFields[key];
-}
-
-function getIntegrationLastSuccessfulDate(
-    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
-    connection?: Connections[keyof Connections],
-    connectionSyncProgress?: PolicyConnectionSyncProgress,
-) {
-    let syncSuccessfulDate;
-    if (!connection) {
-        return undefined;
-    }
-    if ((connection as NetSuiteConnection)?.lastSyncDate) {
-        syncSuccessfulDate = (connection as NetSuiteConnection)?.lastSyncDate;
-    } else {
-        syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
-    }
-
-    const connectionSyncTimeStamp = getLocalDateFromDatetime(connectionSyncProgress?.timestamp).toISOString();
-
-    if (
-        connectionSyncProgress?.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
-        syncSuccessfulDate &&
-        connectionSyncTimeStamp > getLocalDateFromDatetime(syncSuccessfulDate).toISOString()
-    ) {
-        syncSuccessfulDate = connectionSyncTimeStamp;
-    }
-    return syncSuccessfulDate;
-}
-
-function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
-    const currentEntityID = policy?.connections?.intacct?.config?.entity;
-    if (!currentEntityID) {
-        return defaultNameIfNoEntity;
-    }
-    const entities = policy?.connections?.intacct?.data?.entities;
-    return entities?.find((entity) => entity.id === currentEntityID)?.name;
-}
-
-function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
-    const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
-    return (bankAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: selectedBankAccountId === id,
-    }));
-}
-
-function getSageIntacctExpenseAccounts(policy: Policy | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
-    const expenseAccounts = policy?.connections?.intacct?.data?.expenseAccounts ?? [];
-    return expenseAccounts.map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: selectedExpenseAccountID === id,
-    }));
-}
-
-function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
-    const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-    const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id, b.id)) : vendors;
-    return sortedVendors.map(({id, value}) => ({
-        value: id,
-        text: value,
-        keyForList: id,
-        isSelected: selectedVendorId === id,
-    }));
-}
-
-function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): string | undefined {
-    const {
-        nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
-        nonReimbursableVendor: expenseReportDefaultVendor,
-        nonReimbursable,
-    } = policy?.connections?.intacct?.config.export ?? {};
-
-    return nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
-}
-
-function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): SelectorType[] {
-    const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
-    return creditCards.map(({name}) => ({
-        value: name,
-        text: name,
-        keyForList: name,
-        isSelected: name === selectedAccount,
-    }));
 }
 
 /**
@@ -1945,46 +1778,6 @@ function navigateToExpensifyCardPage(policyID: string) {
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
     });
-}
-
-function getAccountingConnectionNames(): AccountingConnectionName[] {
-    return [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES];
-}
-
-function isAccountingConnectionName(connectionName?: ConnectionName): connectionName is AccountingConnectionName {
-    return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
-}
-
-function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
-    return connectionNames.find((integration) => !!policy?.connections?.[integration]);
-}
-
-function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
-    return connectionNames.find((integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration));
-}
-
-function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
-    if (!isAccountingConnectionName(connectedIntegration)) {
-        return false;
-    }
-
-    return policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled ?? false;
-}
-
-function hasUnsupportedIntegration(policy: Policy | undefined) {
-    return Object.values(CONST.POLICY.CONNECTIONS.UNSUPPORTED_NAMES).some((integration) => !!(policy?.connections as Record<string, unknown>)?.[integration]);
-}
-
-function hasSupportedOnlyOnOldDotIntegration(policy: Policy | undefined) {
-    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT as Record<string, string>).some(
-        (integration) => !!(policy?.connections as Record<string, unknown>)?.[integration],
-    );
-}
-
-function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
-    const accountingIntegrations = getAccountingConnectionNames();
-    const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
-    return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
 }
 
 /**
@@ -2301,12 +2094,6 @@ const getDescriptionForPolicyDomainCard = (domainName: string, policies: OnyxCol
     return domainName;
 };
 
-function isPreferredExporter(policy: Policy, currentUserLogin: string) {
-    const exporters = getConnectionExporters(policy);
-
-    return exporters.some((exporter) => exporter && exporter === currentUserLogin);
-}
-
 /** Whether a workspace has been provisioned with a Spotnana entity. */
 function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSettings): boolean {
     return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
@@ -2345,23 +2132,6 @@ function getTravelStep(
         return CONST.TRAVEL.STEPS.REVIEWING_REQUEST;
     }
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
-}
-
-/**
- * Returns an array of connection exporters from the policy's accounting integrations
- */
-function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string | undefined> {
-    return [
-        policy?.connections?.intacct?.config?.export?.exporter,
-        policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
-        policy?.connections?.quickbooksOnline?.config?.export?.exporter,
-        policy?.connections?.xero?.config?.export?.exporter,
-        policy?.connections?.netsuite?.options?.config?.exporter,
-        policy?.connections?.rillet?.config?.export?.exporter,
-        policy?.connections?.dualEntry?.config?.export?.exporter,
-        policy?.connections?.campfire?.config?.export?.exporter,
-        policy?.connections?.businessCentral?.config?.export?.exporter,
-    ];
 }
 
 /**
@@ -2441,9 +2211,6 @@ export {
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getAdminEmployees,
-    getConnectedIntegration,
-    getConnectionExporters,
-    getValidConnectedIntegration,
     getIneligibleInvitees,
     getExcludedUsers,
     getMemberAccountIDsForWorkspace,
@@ -2460,12 +2227,9 @@ export {
     getUnitRateValue,
     getRateDisplayValue,
     goBackFromInvalidPolicy,
-    hasAccountingFeatureConnection,
-    hasAccountingConnections,
     shouldShowSyncError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
-    hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
     shouldShowPolicyError,
@@ -2483,7 +2247,6 @@ export {
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
     canUnarchivePolicy,
-    getUberConnectionErrorDirectlyFromPolicy,
     isPolicyMember,
     isMemberInHomeAndOfficeWorkspace,
     isPolicyPayer,
@@ -2502,18 +2265,7 @@ export {
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
-    getXeroTenants,
-    findCurrentXeroOrganization,
-    getCurrentXeroOrganizationName,
-    getXeroBankAccounts,
-    getXeroExpenseAccounts,
-    hasPolicyWithXeroConnection,
     getEligibleBankAccountShareRecipientEmails,
-    getSageIntacctVendors,
-    getSageIntacctNonReimbursableActiveDefaultVendor,
-    getSageIntacctCreditCards,
-    getSageIntacctBankAccounts,
-    getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
     hasOfficeWorkArrangement,
     getPerDiemCustomUnit,
@@ -2526,15 +2278,12 @@ export {
     removePendingFieldsFromCustomUnit,
     goBackWhenEnableFeature,
     navigateToExpensifyCardPage,
-    getIntegrationLastSuccessfulDate,
-    getCurrentConnectionName,
     getDefaultApprover,
     isNonMemberApprover,
     hasCustomApprovalWorkflow,
     getApprovalWorkflow,
     getReimburserAccountID,
     isAttendeeTrackingEnabled,
-    getCurrentSageIntacctEntityName,
     hasOnlyPersonalPolicies,
     getCurrentTaxID,
     areSettingsInErrorFields,
@@ -2552,7 +2301,6 @@ export {
     getAllTaxRatesNamesAndValues,
     getTagApproverRule,
     getDomainNameForPolicy,
-    hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
     getUserFriendlyWorkspaceType,
     getDefaultWorkspacePlanType,
@@ -2569,7 +2317,6 @@ export {
     getPolicyForAssignedCard,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
-    isPreferredExporter,
     getCustomUnitsForDuplication,
     getActiveEmployeeWorkspaces,
     isPolicyMemberWithoutPendingDelete,
@@ -2608,5 +2355,8 @@ export * from './tag';
 export * from './vendor';
 export * from './policyType';
 export * from './permissions';
+export * from './connections';
+export * from './xero';
+export * from './sageIntacct';
 
 export type {MemberEmailsToAccountIDs};
