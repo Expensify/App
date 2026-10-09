@@ -36,6 +36,7 @@ import {getSearchParamFromUrl} from '@libs/Url';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import {clearStaleExportDownloads} from '@userActions/Export';
+import {setUpPoliciesAndNavigate} from '@userActions/Policy/CreateWorkspaceFlow';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -99,7 +100,6 @@ function AuthScreensInitHandler() {
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -169,8 +169,15 @@ function AuthScreensInitHandler() {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
-        const isSupportalTransition = currentUrl.includes('authTokenType=support');
-        if (isLoggingInAsNewUser && isTransitioning) {
+        const isSupportalTransition = getSearchParamFromUrl(currentUrl, 'authTokenType') === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+
+        // A non-supportal account switch waits for the user to confirm in LogOutPreviousUserPage instead of signing out here.
+        if (isLoggingInAsNewUser && isTransitioning && isSupportalTransition) {
+            Log.info('[AuthScreensInitHandler] Signing out for a transition to another user', false, {
+                isLinkNamingDelegator: SessionUtils.isLoggingInAsDelegate(currentUrl),
+                isDelegateSession: Session.isDelegateSession(session),
+                isSupportalTransition,
+            });
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();
@@ -206,7 +213,6 @@ function AuthScreensInitHandler() {
                 Report.openReport({
                     reportID,
                     introSelected,
-                    betas,
                     conciergeChat,
                     hasReportActions: false,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -222,13 +228,12 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate({
+        setUpPoliciesAndNavigate({
             session,
             introSelected,
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             activePolicy,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             lastWorkspaceNumber,

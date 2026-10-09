@@ -526,9 +526,95 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
         });
 
-        // Xero (R3) is still beta-gated, so it stays hidden when the beta is off.
-        it('hides the Vendors row for a beta-gated integration (Xero) when the beta is disabled', async () => {
-            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {}}}, false);
+        // Xero (R3) is GA, so a connected Xero workspace shows the row regardless of the vendorMatching beta.
+        it('shows the Vendors row locked ON for Xero scoping vendors even with the beta disabled (Xero is GA)', async () => {
+            // Given a configured Xero connection
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {isConfigured: true}}};
+
+            // When the More features page renders without the vendorMatching beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is visible because Xero does not depend on the beta
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('shows the Vendors row locked OFF for Xero not scoping vendors even with the beta disabled (discovery state, Xero is GA)', async () => {
+            // Given a Xero connection that is not configured yet, so it does not scope vendors
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {}}};
+
+            // When the More features page renders without the vendorMatching beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is still visible so admins can discover the feature
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it.each([
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Campfire Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Campfire connection whose configuration determines whether vendor matching is active
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured}}};
+
+            // When the More features page renders with the selected beta state
+            await renderWithVendorMatching(connections, isBetaEnabled);
+
+            // Then the locked row shows without the beta so admins can discover it, and is only on once Campfire is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
+            } else {
+                expect(vendorsSwitch).not.toBeChecked();
+            }
+        });
+
+        // Business Central is still beta-gated, so it stays hidden when the beta is off.
+        it('hides the Vendors row for a beta-gated integration (Business Central) when the beta is disabled', async () => {
+            // Given a configured Business Central connection
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {config: {isConfigured: true}}};
+
+            // When the More features page renders without the vendorMatching beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is hidden because Business Central still depends on the beta
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        // Certinia FFA is beta-gated, so the row follows the vendorMatching beta.
+        it('shows the Vendors row for a configured Certinia FFA connection when the beta is enabled', async () => {
+            // Given a configured Certinia FFA connection and vendor matching beta enabled
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}};
+
+            // When the More features page renders
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row should be visible
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('hides the Vendors row for a configured Certinia FFA connection when the beta is disabled', async () => {
+            // Given a configured Certinia FFA connection with vendor matching beta disabled
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}};
+
+            // When the More features page renders
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row should be hidden
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a Certinia PSA connection even when the beta is enabled', async () => {
+            // Given a Certinia PSA connection with vendor matching beta enabled
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: true}}};
+
+            // When the More features page renders
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row should be hidden because PSA does not support vendor matching
             expect(vendorsSwitchQuery()).toBeNull();
         });
     });

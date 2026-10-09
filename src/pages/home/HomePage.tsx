@@ -8,11 +8,14 @@ import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import openHomePage from '@libs/actions/HomePage';
 
 import variables from '@styles/variables';
 
@@ -21,10 +24,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ComponentRef} from 'react';
 
 import {PortalHost} from '@gorhom/portal';
+import {useFocusEffect} from '@react-navigation/native';
 import {useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import DiscoverSection from './DiscoverSection';
+import EarlyRenewalOfferSection from './EarlyRenewalOfferSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
@@ -40,15 +44,20 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
-    const {isOffline} = useNetwork();
+    const {isOffline} = useNetwork({onReconnect: openHomePage});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     // Offline the underlying commands never send, so the loading flags can stay true forever. Match useLoadingBarVisibility and hide the bar when offline.
     const isForYouLoading = !isOffline && !!(isLoadingApp || isLoadingReportData);
     const shouldShowHomeSkeleton = useAppLoadSkeletonVisibility();
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
+
+    useFocusEffect(() => {
+        openHomePage();
+    });
 
     // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
     // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
@@ -69,7 +78,8 @@ function HomePage() {
     // than replacing the whole layout, which would unmount the Concierge card and interrupt anyone typing in it.
     const homeLayout = shouldUseNarrowLayout ? (
         <>
-            {/* Occupies a slot whether or not it renders, so the card below keeps its index across the swap. */}
+            {/* These occupy slots whether or not they render, so the card below keeps its index across the swap. */}
+            {shouldShowHomeSkeleton ? null : <EarlyRenewalOfferSection />}
             {shouldShowHomeSkeleton ? null : <FreeTrialSection />}
             {forYouSection}
             {shouldShowHomeSkeleton ? (
@@ -84,7 +94,6 @@ function HomePage() {
                     <YourSpendSection />
                     <RecentlyAddedSection />
                     <InsightsSection />
-                    <DiscoverSection />
                 </>
             )}
         </>
@@ -112,11 +121,11 @@ function HomePage() {
                     <HomePageSkeletonRowCards />
                 ) : (
                     <>
+                        <EarlyRenewalOfferSection />
                         <FreeTrialSection />
                         <YourSpendSection />
                         <RecentlyAddedSection />
                         <UpcomingTravelSection />
-                        <DiscoverSection />
                     </>
                 )}
             </View>
@@ -147,7 +156,7 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
-                        contentContainerStyle={styles.homePageContentContainer}
+                        contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

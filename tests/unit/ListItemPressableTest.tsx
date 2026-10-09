@@ -1,14 +1,22 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import {useListItemHovered} from '@components/SelectionList/ListItemContext';
 
 import useHover from '@hooks/useHover';
 
 import CONST from '@src/CONST';
 
+import {View} from 'react-native';
+
 jest.mock('@hooks/useHover', () => jest.fn());
 
 const mockedUseHover = jest.mocked(useHover);
+
+function HoverProbe() {
+    const isHovered = useListItemHovered();
+    return <View testID={`hovered-${isHovered}`} />;
+}
 
 describe('ListItemPressable', () => {
     beforeEach(() => {
@@ -119,5 +127,29 @@ describe('ListItemPressable', () => {
             />,
         );
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`).props.accessibilityState).toEqual(expect.objectContaining({selected: true}));
+    });
+
+    it.each([
+        [false, true],
+        [true, false],
+    ])('should report hover=%s to children through ListItemHoverContext when shouldDisableHoverStyle=%s', (expectedHovered, shouldDisableHoverStyle) => {
+        // Given the pointer is over the row
+        mockedUseHover.mockReturnValue({hovered: true, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+
+        // When the row is rendered with or without hover styling disabled
+        render(
+            <ListItemComposed
+                item={{keyForList: '1'}}
+                onSelectRow={() => {}}
+                shouldShowTooltip={false}
+                isFocused={false}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+            >
+                <HoverProbe />
+            </ListItemComposed>,
+        );
+
+        // Then children only see the hover when hover styling is enabled
+        expect(screen.getByTestId(`hovered-${expectedHovered}`)).toBeVisible();
     });
 });

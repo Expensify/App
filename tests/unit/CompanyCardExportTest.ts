@@ -50,7 +50,7 @@ const QBD_CREDIT_CARD_ACCOUNTS = [
     {id: '80000104-1746639411', name: 'Visa Business (92000)', currency: 'USD'},
 ];
 
-function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '80000103-1746639410'): Policy {
+function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '80000103-1746639410', creditCardAccounts = QBD_CREDIT_CARD_ACCOUNTS): Policy {
     return createMock<Policy>({
         id: MOCK_POLICY_ID,
         name: 'Test Policy',
@@ -72,7 +72,7 @@ function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '
                     },
                 },
                 data: {
-                    creditCardAccounts: QBD_CREDIT_CARD_ACCOUNTS,
+                    creditCardAccounts,
                 },
             },
         },
@@ -172,6 +172,26 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
 
         const selectedOption = result?.data?.find((item) => item.isSelected);
         expect(selectedOption?.text).toBe(defaultCard);
+    });
+
+    it('keys each option by id when two accounts share a display name', () => {
+        // Given a QuickBooks Desktop chart of accounts holding two credit card accounts under the same display name,
+        // which QBD allows whenever they sit under different parents
+        const duplicateNameAccounts = [
+            {id: '80000105-1746639412', name: 'Corporate Card', currency: 'USD'},
+            {id: '80000106-1746639413', name: 'Corporate Card', currency: 'USD'},
+        ];
+        const policy = createQBDPolicy(undefined, '80000105-1746639412', duplicateNameAccounts);
+        const card = createCard('80000106-1746639413');
+
+        // When the export account options are built for a card pointing at the second of those two accounts
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then every option carries a distinct key, because rows sharing one key make the list drop one of them and
+        // leave that account impossible to pick
+        const keys = result?.data?.map((item) => item.keyForList) ?? [];
+        expect(keys).toHaveLength(duplicateNameAccounts.length + 1);
+        expect(new Set(keys).size).toBe(keys.length);
     });
 
     it('uses card.id (not card.name) as the option value for all items', () => {
@@ -333,7 +353,7 @@ describe('getExportMenuItem - QBO', () => {
         const selectedOption = result?.data?.find((item) => item.isSelected);
         expect(selectedOption?.value).toBe('qbo-cc-1');
         expect(selectedOption?.text).toBe('Amex Corporate');
-        expect(selectedOption?.keyForList).toBe('Amex Corporate');
+        expect(selectedOption?.keyForList).toBe('qbo-cc-1');
     });
 
     it('resolves a debit card export against the bank account list and its own NVP', () => {
@@ -716,6 +736,68 @@ describe('getExportMenuItem - DualEntry', () => {
         const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         expect(result?.shouldShowMenuItem).toBeFalsy();
+    });
+});
+
+describe('getExportMenuItem - Business Central', () => {
+    function createBusinessCentralPolicy(nonReimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>) {
+        return createBasePolicy({
+            businessCentral: {
+                config: {export: {nonReimbursable, defaultVendorID: 'bc-vendor-1'}},
+                data: {
+                    vendors: [
+                        {id: 'bc-vendor-1', name: 'Fabrikam', blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.NONE},
+                        {id: 'bc-vendor-2', name: 'Contoso', blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.PAYMENT},
+                        {id: 'bc-vendor-3', name: 'Blocked Supplies', blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL},
+                    ],
+                },
+            },
+        });
+    }
+
+    it.each([CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE, CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY])(
+        'resolves the card vendor override for a %s card export',
+        (nonReimbursable) => {
+            // Given a card with its own vendor, on a workspace that has a vendor blocked for all transactions
+            const policy = createBusinessCentralPolicy(nonReimbursable);
+            const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, 'bc-vendor-2');
+
+            // When the card's export menu item is built
+            const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+            // Then it shows the card's vendor for either destination, since card expenses export against a vendor for both,
+            // and it leaves out the fully blocked vendor that Business Central would reject
+            expect(result?.title).toBe(`${translateLocal('common.exportsTo')} Contoso`);
+            expect(result?.shouldShowMenuItem).toBe(true);
+            expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR);
+            expect(result?.data.map((option) => option.value)).toEqual([translateLocal('workspace.accounting.defaultVendor'), 'bc-vendor-1', 'bc-vendor-2']);
+        },
+    );
+
+    it.each([undefined, CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE])('shows the default vendor label when the NVP is %s', (nvpValue) => {
+        // Given a card that follows the workspace default vendor
+        const policy = createBusinessCentralPolicy(CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE);
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, nvpValue);
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the row and the selected option both show the default vendor
+        expect(result?.title).toBe(`${translateLocal('common.exportsTo')} ${translateLocal('workspace.accounting.defaultVendor')}`);
+        expect(result?.data.find((option) => option.isSelected)?.value).toBe(translateLocal('workspace.accounting.defaultVendor'));
+    });
+
+    it('shows the row as a single "Exports to" line with the Business Central icon', () => {
+        // Given a card on a workspace connected to Business Central
+        const policy = createBusinessCentralPolicy(CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE);
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, 'bc-vendor-2');
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the card details page hides the description and shows the integration icon, as in the design
+        expect(result?.shouldHideMenuItemDescription).toBe(true);
+        expect(result?.shouldShowMenuItemIcon).toBe(true);
     });
 });
 

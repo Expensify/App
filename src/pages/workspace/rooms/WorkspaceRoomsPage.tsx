@@ -8,6 +8,7 @@ import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable'
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,7 +24,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canMemberWrite, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -49,6 +50,7 @@ type WorkspaceRoomsTableSortColumn = 'name' | 'members';
 function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -56,13 +58,12 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const isAdmin = isPolicyAdmin(policy);
-    const isArchived = isArchivedPolicy(policy);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -122,7 +123,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     reportID: report.reportID,
                     introSelected,
                     conciergeChat,
-                    betas,
                     personalDetails,
                     shouldMarkAsRead: false,
                     hasReportActions: !!hasReportActions?.[report.reportID],
@@ -159,9 +159,11 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         setPagination({queryKey: roomsQueryKey, pageNumber: pageNumber + 1});
     };
 
+    const canCreateRooms = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS);
+
     const roomsTableHeader =
-        shouldUseNarrowLayout && !isArchived ? (
-            <View style={[styles.ph5, styles.pb3]}>
+        shouldUseNarrowLayout && canCreateRooms ? (
+            <View style={[pageGutter, styles.pb3]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
@@ -189,7 +191,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     onBackButtonPress={Navigation.goBack}
                     shouldDisplayHelpButton
                 >
-                    {!shouldUseNarrowLayout && !isArchived && (
+                    {!shouldUseNarrowLayout && canCreateRooms && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}

@@ -14,7 +14,8 @@ import {isCollectingDepositAccountsSelector} from '@selectors/Policy';
 const hasDepositAccountSelector = (bankAccountList: OnyxEntry<BankAccountList>): boolean =>
     Object.values(bankAccountList ?? {}).some((bankAccountJSON) => {
         const bankAccount = new BankAccountModel(bankAccountJSON);
-        return bankAccount.isOpen() && bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL;
+        const type = bankAccount.getType();
+        return bankAccount.isOpen() && (type === CONST.BANK_ACCOUNT.TYPE.PERSONAL || type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
     });
 
 function useTimeSensitiveAddDepositAccount() {

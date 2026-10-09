@@ -1,12 +1,13 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
-import {openPersonalBankAccountSetupView} from '@src/libs/actions/BankAccounts';
+import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useTimeSensitiveAddBankAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount';
 import useTimeSensitiveAddDepositAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddDepositAccount';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
+import ROUTES from '@src/ROUTES';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -16,9 +17,6 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
-jest.mock('@src/libs/actions/BankAccounts', () => ({
-    openPersonalBankAccountSetupView: jest.fn(),
-}));
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
@@ -123,17 +121,8 @@ describe('TimeSensitiveSection - AddDepositAccount', () => {
         fireEvent.press(screen.getByText('homePage.timeSensitiveSection.ctaFix'));
 
         expect(screen.getByText('homePage.timeSensitiveSection.addDepositAccount.title')).toBeTruthy();
-        expect(openPersonalBankAccountSetupView).toHaveBeenCalledWith({isUserValidated: true});
-    });
-
-    it('passes the unvalidated state to the setup flow', async () => {
-        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
-        await waitForBatchedUpdates();
-
-        renderTimeSensitiveSection();
-        fireEvent.press(screen.getByText('homePage.timeSensitiveSection.ctaFix'));
-
-        expect(openPersonalBankAccountSetupView).toHaveBeenCalledWith({isUserValidated: false});
+        // Opens the collect deposit account flow, the same one the Wallet page opens for a collecting member
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute());
     });
 
     it('yields to the queued-payment task so the same flow is not offered twice', async () => {
