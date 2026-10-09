@@ -1,13 +1,10 @@
-/**
- * PKCE encoding pinned to the RFC 7636 Appendix B vector, the config security boundary
- * (isQAServerRequest), and the OAuth client's request/response contract.
- */
 import type * as AuthServerMetadataModule from '@libs/CloudflareAccess/AuthServerMetadata';
 import type * as ConfigModule from '@libs/CloudflareAccess/Config/index.ts';
 import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
 import type * as OAuthClientModule from '@libs/CloudflareAccess/OAuthClient';
 import type * as PendingAuthFlowStorageModule from '@libs/CloudflareAccess/PendingAuthFlowStorage';
 
+import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
 
 import {webcrypto} from 'crypto';
@@ -22,19 +19,17 @@ jest.mock('@libs/CloudflareAccess/AuthServerMetadata', () => ({
     getAuthServerEndpoints: jest.fn(),
 }));
 
-// Mutable QA config the '@src/CONFIG' mock closes over. Tests tweak fields per case.
-// The `mock` prefix is what lets the hoisted jest.mock factory reference it.
-const mockQAAuth = {
+const mockDefaultQAAuth = {
     API_ROOT: 'https://qa.example.com/',
+    SECURE_API_ROOT: 'https://qa-secure.example.com/',
     TEAM_DOMAIN: 'team.cloudflareaccess.com',
     CLIENT_ID: 'client-123',
-    CHECK_PATH: 'api/CloudflareAuthProbe',
 };
+const mockQAAuth = {...mockDefaultQAAuth};
 
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: mockQAAuth}}));
 
-// Jest resolves getWebCrypto/index.native.ts (the throwing stub) under the jest-expo preset,
-// so the provider is mocked. The default implementation is Node's real WebCrypto.
+// Jest resolves getWebCrypto/index.native.ts under the jest-expo preset, so the provider is mocked.
 jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
     __esModule: true,
     default: {
@@ -45,19 +40,17 @@ jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
 
 // Lazy-require so the @src/CONFIG mock factory sees an initialized mockQAAuth. Otherwise the
 // hoisted import order would resolve CONFIG.default while mockQAAuth was still in the TDZ.
-// The web implementation explicitly. Jest resolves platform-split modules to their native variant
-const {getQAOrigin, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
-const {clearPendingAuthFlow, consumePendingAuthFlow, savePendingAuthFlow} = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
+const {getQAResource, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
+const {clearPendingAuthFlows, consumePendingAuthFlow, savePendingAuthFlow, sweepExpiredPendingAuthFlows} = require<
+    typeof PendingAuthFlowStorageModule
+>('@libs/CloudflareAccess/PendingAuthFlowStorage');
 const {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
 const {getAuthServerEndpoints} = require<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata');
 const {generatePKCEPair, generateState} = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
 const getWebCrypto = require<{default: {getRandomValues: jest.Mock; sha256: jest.Mock}}>('@libs/CloudflareAccess/getWebCrypto').default;
 
 function resetQAAuthConfig() {
-    mockQAAuth.API_ROOT = 'https://qa.example.com/';
-    mockQAAuth.TEAM_DOMAIN = 'team.cloudflareaccess.com';
-    mockQAAuth.CLIENT_ID = 'client-123';
-    mockQAAuth.CHECK_PATH = 'api/CloudflareAuthProbe';
+    Object.assign(mockQAAuth, mockDefaultQAAuth);
 }
 
 beforeEach(() => {
@@ -136,6 +129,8 @@ describe('pkce', () => {
 describe('config', () => {
     it.each([
         ['the exact configured origin', 'https://qa.example.com/api/OpenApp', true],
+        ['the configured secure origin', 'https://qa-secure.example.com/api/Authenticate', true],
+        ['a lookalike of the secure origin', 'https://qa-secure.example.com.evil.com/api/Authenticate', false],
         ['a lookalike origin', 'https://evil-qa.example.com/api/OpenApp', false],
         ['the http scheme on the right host', 'http://qa.example.com/api/OpenApp', false],
         ['a different port on the right host', 'https://qa.example.com:444/api/OpenApp', false],
@@ -151,7 +146,6 @@ describe('config', () => {
         mockQAAuth.API_ROOT = '';
         mockQAAuth.TEAM_DOMAIN = '';
         mockQAAuth.CLIENT_ID = '';
-        mockQAAuth.CHECK_PATH = '';
         // When configuration is checked, then both the feature flag and the request gate must read off, so no code path can attach a token
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
@@ -167,13 +161,6 @@ describe('config', () => {
     it('treats a partial config as not configured — missing client ID', () => {
         // Given a config missing only the client ID. When checked, then the entire feature must disable, because a flow with no client identity can never be authorized
         mockQAAuth.CLIENT_ID = '';
-        expect(isQAAuthConfigured()).toBe(false);
-        expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
-    });
-
-    it('treats a partial config as not configured — missing auth check path', () => {
-        // Given a config missing only the auth check path. When checked, then the entire feature must disable, because without a probe there is no way to verify access
-        mockQAAuth.CHECK_PATH = '';
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
@@ -198,7 +185,22 @@ describe('config', () => {
 
     it('derives the RFC 8707 resource in origin form (no trailing slash)', () => {
         // Given the configured API root, when the resource indicator is derived, then it must be the bare origin. RFC 8707 resource values are matched literally, so a trailing slash would name a different resource
-        expect(getQAOrigin()).toBe('https://qa.example.com');
+        expect(getQAResource()).toBe('https://qa.example.com');
+    });
+
+    it('drops the secure origin from the allowlist when it is not configured', () => {
+        // Given a config with no secure root. When requests are checked against the allowlist, then it must carry only the primary origin and reject the unconfigured host, because an origin earns the bearer by being configured, never by resembling one that is
+        mockQAAuth.SECURE_API_ROOT = '';
+        expect(isQAAuthConfigured()).toBe(true);
+        expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(true);
+        expect(isQAServerRequest('https://qa-secure.example.com/api/Authenticate')).toBe(false);
+    });
+
+    it.each(['http://qa-secure.example.com/', 'not a url at all'])('a malformed secure root (%s) disables the whole feature', (secureRoot) => {
+        // Given a malformed secure root. When checked, then the entire feature must disable, because the shouldUseSecure commands would otherwise go out without the bearer and 401 unrecoverably
+        mockQAAuth.SECURE_API_ROOT = secureRoot;
+        expect(isQAAuthConfigured()).toBe(false);
+        expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
 });
 
@@ -322,7 +324,6 @@ describe('oAuthClient', () => {
         expect(request?.init.method).toBe('POST');
         expect(request?.init.credentials).toBe('omit');
         expect(request?.init.headers).toEqual([['Content-Type', 'application/x-www-form-urlencoded']]);
-        // A hung endpoint must not hold the cross-tab refresh lock forever
         expect(request?.init.signal).toBeInstanceOf(AbortSignal);
         expect(bodyParams(request?.init)).toEqual(
             Object.fromEntries([
@@ -355,8 +356,7 @@ describe('oAuthClient', () => {
 });
 
 describe('authServerMetadata', () => {
-    // The real Cloudflare response shape, captured from a live team. Built from entries because the
-    // protocol uses snake_case keys, which the naming-convention lint rule forbids as literal properties.
+    // The real Cloudflare response shape, captured from a live team
     const VALID_METADATA_ENTRIES: Array<[string, unknown]> = [
         ['issuer', 'https://team.cloudflareaccess.com'],
         ['authorization_endpoint', 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization'],
@@ -473,38 +473,42 @@ describe('authServerMetadata', () => {
 });
 
 describe('pendingAuthFlowStorage', () => {
-    const STORAGE_KEY = 'QA_AUTH_REDIRECT_FLOW';
     const FLOW = {state: 'state-1', codeVerifier: 'verifier-1', returnURL: 'http://localhost/settings/troubleshoot', createdAt: 1_700_000_000_000};
+    const OTHER_FLOW = {...FLOW, state: 'state-2'};
+    const STORAGE_KEY = `${CONST.LOCAL_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW_PREFIX}${FLOW.state}`;
+    const realLocalStorage = window.localStorage;
 
     let nowSpy: jest.SpyInstance;
 
     beforeEach(() => {
-        window.sessionStorage.clear();
+        window.localStorage.clear();
         nowSpy = jest.spyOn(Date, 'now').mockReturnValue(FLOW.createdAt);
     });
 
     afterEach(() => {
         nowSpy.mockRestore();
-        // Storage.prototype spies below must not survive into the next test, whether or not it asserted cleanly
-        jest.restoreAllMocks();
-        window.sessionStorage.clear();
+        Object.defineProperty(window, 'localStorage', {value: realLocalStorage, writable: true, configurable: true});
+        window.localStorage.clear();
     });
 
     it('round-trips the flow record', () => {
-        // Given a flow parked before the redirect, when it is consumed after the page comes back, then every field must survive. Module memory dies on navigation, so this storage is the only carrier of the verifier across the round trip
+        // Given a flow parked before the redirect
         savePendingAuthFlow(FLOW);
-        expect(consumePendingAuthFlow()).toEqual(FLOW);
+        // When the callback carrying its state consumes it
+        const consumed = consumePendingAuthFlow(FLOW.state);
+        // Then every field survives
+        expect(consumed).toEqual(FLOW);
     });
 
     it('is single-use: the record is removed even before it is validated', () => {
         // Given a saved flow
         savePendingAuthFlow(FLOW);
         // When it is consumed once
-        consumePendingAuthFlow();
+        consumePendingAuthFlow(FLOW.state);
         // Then the record must already be gone from storage. Removal precedes validation by design
-        expect(window.sessionStorage.getItem(STORAGE_KEY)).toBeNull();
+        expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
         // Then a replayed callback URL finds nothing. The verifier can never be reused for a second exchange
-        expect(consumePendingAuthFlow()).toBeNull();
+        expect(consumePendingAuthFlow(FLOW.state)).toBeNull();
     });
 
     it('treats an expired record as absent, so a stale verifier is never exchanged', () => {
@@ -513,46 +517,43 @@ describe('pendingAuthFlowStorage', () => {
         // When the clock moves past the expiry window
         nowSpy.mockReturnValue(FLOW.createdAt + 11 * 60 * 1000);
         // Then the record must read as absent. The expiry bounds how long a parked verifier stays exchangeable, limiting what a forgotten record is worth to an attacker
-        expect(consumePendingAuthFlow()).toBeNull();
+        expect(consumePendingAuthFlow(FLOW.state)).toBeNull();
     });
 
     it.each([
         ['unparsable JSON', 'not json'],
-        ['a missing verifier', JSON.stringify({state: 's', returnURL: '/', createdAt: FLOW.createdAt})],
-        ['an empty state', JSON.stringify({...FLOW, state: ''})],
+        ['a missing verifier', JSON.stringify({state: FLOW.state, returnURL: '/', createdAt: FLOW.createdAt})],
+        ['an empty verifier', JSON.stringify({...FLOW, codeVerifier: ''})],
     ])('returns null for %s, and still clears it', (_label, raw) => {
-        // Given a stored record that is corrupt or incomplete. When it is consumed, then it must read as null and still be removed, so a bad record cannot linger and poison every later flow
-        window.sessionStorage.setItem(STORAGE_KEY, raw);
-        expect(consumePendingAuthFlow()).toBeNull();
-        expect(window.sessionStorage.getItem(STORAGE_KEY)).toBeNull();
+        // Given a stored record that is corrupt or incomplete
+        window.localStorage.setItem(STORAGE_KEY, raw);
+        // When it is consumed
+        const consumed = consumePendingAuthFlow(FLOW.state);
+        // Then it reads as null and is still removed
+        expect(consumed).toBeNull();
+        expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
     });
 
-    it('clearPendingAuthFlow drops a pending record', () => {
-        // Given a saved flow
-        savePendingAuthFlow(FLOW);
-        // When the flow is explicitly abandoned
-        clearPendingAuthFlow();
-        // Then nothing must remain to consume. A leftover verifier could otherwise pair with a later, unrelated callback
-        expect(consumePendingAuthFlow()).toBeNull();
-    });
-
-    it('reports the record absent when reading it throws, rather than taking down the boot it runs in', () => {
-        // Given a hardened configuration that hands back a usable Storage whose methods still throw SecurityError
-        jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    it('reports the record absent and sweeps nothing when storage methods throw, rather than taking down the boot they run in', () => {
+        // Given a hardened configuration whose Storage lists a pending record but throws SecurityError from its methods
+        const throwSecurityError = () => {
             throw new Error('SecurityError');
-        });
-        jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
-            throw new Error('SecurityError');
+        };
+        Object.defineProperty(window, 'localStorage', {
+            value: {[STORAGE_KEY]: JSON.stringify(FLOW), getItem: throwSecurityError, removeItem: throwSecurityError, setItem: throwSecurityError},
+            writable: true,
+            configurable: true,
         });
 
-        // When the record is consumed, then storage errors must read as absence. This runs during boot, and throwing would take app start down for an optional QA feature
-        expect(consumePendingAuthFlow()).toBeNull();
+        // When the boot consumes the callback's record and sweeps the rest
+        // Then storage errors read as absence and the sweep gives up quietly. Both run during boot, and throwing would take app start down for an optional QA feature
+        expect(consumePendingAuthFlow(FLOW.state)).toBeNull();
+        expect(() => sweepExpiredPendingAuthFlows()).not.toThrow();
     });
 
     it('throws when the write fails, so the caller refuses to navigate away without a stored verifier', () => {
-        // Given a sessionStorage whose writes always fail (jsdom's Storage methods are not spy-able, so the whole object is swapped out)
-        const realSessionStorage = window.sessionStorage;
-        Object.defineProperty(window, 'sessionStorage', {
+        // Given a localStorage whose writes always fail (jsdom's Storage methods are not spy-able, so the whole object is swapped out)
+        Object.defineProperty(window, 'localStorage', {
             value: {
                 getItem: () => null,
                 removeItem: () => {},
@@ -564,9 +565,23 @@ describe('pendingAuthFlowStorage', () => {
             configurable: true,
         });
 
-        // When the save is attempted, then it must throw. Swallowing the failure would let the caller navigate away with no stored verifier, stranding the flow on return
+        // When the save is attempted
+        // Then it throws
         expect(() => savePendingAuthFlow(FLOW)).toThrow('QuotaExceededError');
+    });
 
-        Object.defineProperty(window, 'sessionStorage', {value: realSessionStorage, writable: true, configurable: true});
+    it('clears every pending record and nothing else', () => {
+        // Given two round trips in flight and a record another feature keeps in the same origin's localStorage
+        savePendingAuthFlow(FLOW);
+        savePendingAuthFlow(OTHER_FLOW);
+        window.localStorage.setItem('unrelated-key', 'kept');
+
+        // When the pending flows are cleared
+        clearPendingAuthFlows();
+
+        // Then neither round trip can complete any more, while the other feature's record is untouched
+        expect(consumePendingAuthFlow(FLOW.state)).toBeNull();
+        expect(consumePendingAuthFlow(OTHER_FLOW.state)).toBeNull();
+        expect(window.localStorage.getItem('unrelated-key')).toBe('kept');
     });
 });

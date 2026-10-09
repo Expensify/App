@@ -1,3 +1,4 @@
+import type {InlineEditSaveResult} from '@components/EditableCell';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
@@ -59,13 +60,12 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     frozenDate?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
-    canEditName?: boolean;
     canEditLimitType?: boolean;
     canEditLimit?: boolean;
     action: () => void;
-    onRenameName?: (newName: string) => void;
     onChangeLimitType?: (limitType: CardLimitType) => void;
-    onChangeLimit?: (newLimit: string) => void;
+    /** Return false, or a promise of false, to keep the limit editor open until a confirm modal resolves. */
+    onChangeLimit?: (newLimit: string) => InlineEditSaveResult;
     onClose: () => void;
 };
 
@@ -176,6 +176,8 @@ export default function WorkspaceExpensifyCardsTable({
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: getLimitTypeLabel(item.limitType), fontSize: fontScale.text}],
                 shouldFitContent: true,
+                // Padding and border sit inside the track. The limit type is pinned to its text, so that chrome has to be measured or the label clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -214,6 +216,8 @@ export default function WorkspaceExpensifyCardsTable({
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.limit, item.currency), fontSize: fontScale.text}],
                 shouldFitContent: true,
+                // Padding and border sit inside the track. The limit is pinned to its text, so that chrome has to be measured or the amount clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -227,6 +231,8 @@ export default function WorkspaceExpensifyCardsTable({
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.remainingLimit, item.currency), fontSize: fontScale.text}],
                 shouldFitContent: true,
+                // Same padding and border as Limit, so the two amounts share an edge. That chrome sits inside the track, so it has to be measured or the amount clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {

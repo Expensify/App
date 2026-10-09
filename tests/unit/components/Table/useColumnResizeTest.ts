@@ -6,12 +6,13 @@ import type {UseColumnResizeParams} from '@components/Table/columnResize/useColu
 
 import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
 
-import CONST from '@src/CONST';
-
 import type React from 'react';
 
 // Jest resolves the native no-op, so the web implementation is loaded by its file name.
 const {default: useColumnResize} = jest.requireActual<{default: typeof UseColumnResize}>('@components/Table/columnResize/useColumnResize/index.ts');
+
+// Jest resolves the native cursor styles, which are empty, so the web ones are loaded by their file name too.
+jest.mock('@styles/utils/cursor', () => jest.requireActual<Record<string, unknown>>('@styles/utils/cursor/index.ts'));
 
 jest.mock('@libs/actions/TableColumnWidths', () => ({
     setTableColumnWidth: jest.fn(),
@@ -197,7 +198,7 @@ describe('useColumnResize', () => {
         expect(readLineOpacity()).toBe('0');
     });
 
-    it('keeps a dragged width within the drag bounds', () => {
+    it('keeps a dragged width above its floor', () => {
         // Given a 200px column that may not shrink below 180px
         const {handleElement, getHandleProps, readWidth} = renderColumnResize({dragMinWidths: {[NAME_COLUMN_KEY]: 180}});
 
@@ -215,8 +216,8 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 5000}));
         });
 
-        // Then it stops at the upper bound, so the next column's edge stays reachable
-        expect(readWidth(NAME_COLUMN_KEY)).toBe(`${CONST.TABLES.COLUMN_RESIZE.MAX_WIDTH}px`);
+        // Then it follows the pointer with no upper bound, since the table scrolls to reach later columns
+        expect(readWidth(NAME_COLUMN_KEY)).toBe('5100px');
     });
 
     it('ignores the secondary button', () => {

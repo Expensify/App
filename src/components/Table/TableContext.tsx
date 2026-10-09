@@ -1,5 +1,7 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {ScrollableNodeHolder} from '@hooks/useVerticalScrollbarWidth/types';
+
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
@@ -40,6 +42,12 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
+
+    /** Width the list's vertical scrollbar takes from the rows, so the sticky header can stop short of it. 0 when the bar overlays. */
+    scrollbarWidth: number;
+
+    /** Attached to the list alongside `listRef` so `scrollbarWidth` tracks the element that scrolls. */
+    measureScrollbarRef: (instance: ScrollableNodeHolder | null) => void;
 
     /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
     listContainerRef: React.RefObject<ComponentRef<typeof View> | null>;
@@ -86,7 +94,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Key the dragged widths are stored under. `undefined` whenever resizing is off. */
     columnResizingID: string | undefined;
 
-    /** Measured width of the area the table lays out into. Content-sized columns only. `0` until the first layout. */
+    /** Width the rows are really given, so the measured area less any vertical scrollbar. `0` until the first layout. */
     tableWidth: number;
 
     /** Filter configuration for dropdown filters. */
@@ -141,6 +149,8 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
     listRef: React.createRef(),
+    scrollbarWidth: 0,
+    measureScrollbarRef: () => {},
     listContainerRef: React.createRef(),
     trackScrollOffset: () => {},
     scrollInputIntoView: () => {},

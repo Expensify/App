@@ -149,7 +149,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
-                // Grid with `space-between` would spread a narrowed column's leftover room between tracks, so pack to the start like the rows.
+                // Overrides the flex fallback's `justifyContentBetween`, which would spread a narrowed column's leftover room between grid tracks.
                 !!dynamicGridTemplateColumns && !shouldUseNarrowTableLayout && styles.justifyContentStart,
                 // Resize lines hang below the header, so keep them above the rows.
                 !!columnResize && styles.zIndex1,
