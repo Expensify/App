@@ -444,7 +444,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             descriptionMessages.push(translate('reportViolations.reportContainsExpensesWithViolations'));
         }
         if (hasReportErrors) {
-            descriptionMessages.push(translate('reportViolations.reportFailedToSubmit'));
+            descriptionMessages.push(translate('reportViolations.reportHasErrors'));
         }
         return (
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>

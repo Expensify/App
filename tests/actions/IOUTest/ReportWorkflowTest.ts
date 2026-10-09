@@ -3036,7 +3036,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When the user submits it from search again
             submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal, undefined);
 
-            // Then the old errors are cleared optimistically, so the Search row no longer says the report failed to submit
+            // Then the old errors are cleared optimistically, so the Search row no longer says the report has errors
             const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
             const optimisticReportsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.COLLECTION.REPORT, Onyx.METHOD.MERGE_COLLECTION, true);

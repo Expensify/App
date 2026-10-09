@@ -10987,7 +10987,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Pole ${fieldName} jest wymagane`,
         reportContainsExpensesWithViolations: 'Raport zawiera wydatki z naruszeniami.',
-        reportFailedToSubmit: 'Nie udało się przesłać raportu z powodu błędów.',
+        reportHasErrors: 'Raport zawiera błędy.',
     },
     violationDismissal: {
         rter: {
