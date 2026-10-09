@@ -8370,6 +8370,8 @@ ${reportName}`,
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de este importe se pagarán automáticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
+                preventPayoutNonReimbursableReportsTitle: 'Evitar marcar como pagados los informes no reembolsables',
+                preventPayoutNonReimbursableReportsSubtitle: 'No permitir que los administradores marquen los informes no reembolsables como pagados.',
             },
             agentsPromoBanner: {
                 title: '¿No ves la regla que necesitas? Añade un agente',
@@ -9657,6 +9659,8 @@ ${reportName}`,
             `cambió el acuerdo de trabajo de ${displayName} a ${newArrangement} (previamente ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `cambió la modalidad de trabajo predeterminada a ${newArrangement} (previamente ${oldArrangement})`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `actualizó "Impedir marcar los informes no reembolsables como pagados" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" (previamente "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
