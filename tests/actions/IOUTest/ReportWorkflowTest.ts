@@ -5928,6 +5928,43 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
+
+        it('should not return a PAY badge when the invoice chat is archived', async () => {
+            // Given an invoice chat whose business receiver policy the current user administers, with a payable invoice preview
+            const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+            const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+            if (!invoiceReceiverPolicyID) {
+                throw new Error('Expected the invoice receiver to be a business policy.');
+            }
+            const iouReport = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+            const invoiceReceiverPolicy = {
+                ...createRandomPolicy(Number(invoiceReceiverPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: invoiceReceiverPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+            const reportPreviewAction = {
+                reportActionID: iouReport.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReport.reportID,
+                message: [{type: 'TEXT', text: 'Report preview'}],
+            };
+            const chatReportActions = {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, chatReportActions);
+            await waitForBatchedUpdates();
+
+            // When the caller threads the archived state down
+            const result = getIOUReportActionWithBadge(chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, chatReportActions, true);
+
+            // Then the archived chat blocks paying, so no candidate action or badge is returned
+            expect(result.reportAction).toBeUndefined();
+            expect(result.actionBadge).toBeUndefined();
+        });
     });
 
     describe('getBadgeFromIOUReport', () => {
