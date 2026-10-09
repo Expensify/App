@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
+import {canCreateExpensesOnPolicy} from '@libs/PolicyUtils';
 
 import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
@@ -34,6 +35,11 @@ function AddExpenseActionButton() {
         policyID: policy?.id,
         isDistanceRequest: true,
     });
+
+    // Members without create-expenses permission get no add-expense entry point on the report preview.
+    if (!canCreateExpensesOnPolicy(policy)) {
+        return null;
+    }
 
     return (
         <ButtonWithDropdownMenu

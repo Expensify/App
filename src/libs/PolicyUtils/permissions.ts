@@ -240,6 +240,14 @@ function canRoleCreateExpenses(role: string | undefined): boolean {
     return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
 }
 
+/**
+ * Whether the viewer role stored on the policy allows creating expenses. A policy summary without a loaded
+ * role does not gate here, so partially loaded data cannot hide the entry points from members who may create.
+ */
+function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Pick<Policy, 'role'>>): boolean {
+    return !policy?.role || canRoleCreateExpenses(policy.role);
+}
+
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
@@ -327,6 +335,7 @@ export {
     getPolicyRole,
     canRolePay,
     canRoleCreateExpenses,
+    canCreateExpensesOnPolicy,
     PAYER_ROLES,
     isPolicyApprover,
     getPolicyApproverLogins,
