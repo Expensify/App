@@ -200,6 +200,7 @@ import {
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
+    isThreadMemberProtectedByParentReport,
     isUnread,
     isUploadingAttachmentRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
@@ -1853,6 +1854,61 @@ describe('ReportUtils', () => {
                 },
             };
             expect(hasReceiptError(transaction)).toBe(false);
+        });
+    });
+
+    describe('isThreadMemberProtectedByParentReport', () => {
+        const senderAccountID = 1;
+        const receiverAccountID = 2;
+        const invitedAccountID = 3;
+        const iouReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: senderAccountID,
+            managerID: receiverAccountID,
+        };
+
+        it('should protect the sender and receiver of the parent IOU report', () => {
+            // Given an IOU report where the sender owns the report and the receiver manages it
+            // When checking whether they can be removed from one of the report's expense threads
+            // Then both are protected, because they keep access through the IOU report and would be added back
+            expect(isThreadMemberProtectedByParentReport(iouReport, senderAccountID)).toBe(true);
+            expect(isThreadMemberProtectedByParentReport(iouReport, receiverAccountID)).toBe(true);
+        });
+
+        it('should not protect a member who was invited into the thread', () => {
+            // Given an IOU report that the invited member isn't part of
+            // When checking whether the invited member can be removed from an expense thread
+            // Then they aren't protected, so removing invited members keeps working
+            expect(isThreadMemberProtectedByParentReport(iouReport, invitedAccountID)).toBe(false);
+        });
+
+        it('should not protect anyone when the parent is not an IOU report', () => {
+            // Given an expense, invoice, and chat report with the same submitter and manager
+            const expenseReport: Report = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            const invoiceReport: Report = {...iouReport, type: CONST.REPORT.TYPE.INVOICE};
+            const chatReport: Report = {...iouReport, type: CONST.REPORT.TYPE.CHAT};
+
+            // When checking whether the submitter or manager can be removed from one of their threads
+            // Then nobody is protected, because only IOU report threads are in scope, so the existing room member rules still apply
+            expect(isThreadMemberProtectedByParentReport(expenseReport, senderAccountID)).toBe(false);
+            expect(isThreadMemberProtectedByParentReport(expenseReport, receiverAccountID)).toBe(false);
+            expect(isThreadMemberProtectedByParentReport(invoiceReport, senderAccountID)).toBe(false);
+            expect(isThreadMemberProtectedByParentReport(chatReport, senderAccountID)).toBe(false);
+        });
+
+        it('should not protect anyone when the parent report is missing', () => {
+            // Given a thread whose parent report isn't loaded
+            // When checking whether a member can be removed from the thread
+            // Then nobody is protected, so the existing room member rules still apply
+            expect(isThreadMemberProtectedByParentReport(undefined, senderAccountID)).toBe(false);
+        });
+
+        it('should not protect anyone when the accountID is missing', () => {
+            // Given an IOU report with a sender and a receiver
+            // When checking a member whose accountID is unknown
+            // Then they aren't protected, so an unknown member can't match a missing ownerAccountID or managerID
+            expect(isThreadMemberProtectedByParentReport(iouReport, undefined)).toBe(false);
         });
     });
 
