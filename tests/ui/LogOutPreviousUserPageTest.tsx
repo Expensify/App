@@ -88,4 +88,19 @@ describe('LogOutPreviousUserPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(REPORT_ROUTE);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
     });
+
+    it('goes Home, not to workspace/new, for a support link that names workspace/new', async () => {
+        // Given an agent who is already support-logged into the customer's account
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: CUSTOMER_EMAIL});
+        });
+
+        // When an edited supportal link names workspace/new, which App.setUpPoliciesAndNavigate creates and opens
+        renderPage({shortLivedAuthToken: 'token', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, email: CUSTOMER_EMAIL, exitTo: ROUTES.WORKSPACE_NEW, shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page goes Home and leaves the workspace route to the workspace setup
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_NEW);
+    });
 });

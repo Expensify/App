@@ -62,7 +62,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
-                Navigation.navigate(exitTo ?? ROUTES.HOME);
+                // A workspace/new link goes Home, because App.setUpPoliciesAndNavigate owns that route, as in the effect below
+                Navigation.navigate(exitTo && exitTo !== ROUTES.WORKSPACE_NEW ? exitTo : ROUTES.HOME);
             });
             return;
         }
