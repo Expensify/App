@@ -1587,6 +1587,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: '保存收据',
             genericDeleteFailureMessage: '删除此报销时发生意外错误。请稍后重试。',
             genericEditFailureMessage: '编辑此报销时发生意外错误。请稍后再试。',
+            genericSplitFailureMessage: '拆分此报销时发生意外错误。请稍后再试。',
             genericSmartscanFailureMessage: '交易缺少字段',
             duplicateWaypointsErrorMessage: '请移除重复的途经点',
             atLeastTwoDifferentWaypoints: '请输入至少两个不同的地址',

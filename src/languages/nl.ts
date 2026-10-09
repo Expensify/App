@@ -1646,6 +1646,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: 'Bon opslaan',
             genericDeleteFailureMessage: 'Onverwachte fout bij het verwijderen van deze uitgave. Probeer het later opnieuw.',
             genericEditFailureMessage: 'Onverwachte fout bij het bewerken van deze uitgave. Probeer het later opnieuw.',
+            genericSplitFailureMessage: 'Onverwachte fout bij het splitsen van deze uitgave. Probeer het later opnieuw.',
             genericSmartscanFailureMessage: 'Transactie mist velden',
             duplicateWaypointsErrorMessage: 'Verwijder dubbele waypoints',
             atLeastTwoDifferentWaypoints: 'Voer minimaal twee verschillende adressen in',
