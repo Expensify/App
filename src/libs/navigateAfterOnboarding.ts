@@ -42,6 +42,7 @@ function getReportIDAfterOnboarding(
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    isAnonymousUser: boolean,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -57,7 +58,14 @@ function getReportIDAfterOnboarding(
     }
 
     // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, undefined, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, reportNameValuePairs);
+    const lastAccessedReport = findLastAccessedReport(
+        !canUseDefaultRooms,
+        undefined,
+        isAnonymousUser,
+        shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom,
+        undefined,
+        reportNameValuePairs,
+    );
     const lastAccessedReportID = lastAccessedReport?.reportID;
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
@@ -79,6 +87,7 @@ function navigateAfterOnboarding(
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    isAnonymousUser: boolean,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -118,6 +127,7 @@ function navigateAfterOnboarding(
         canUseDefaultRooms,
         conciergeReportID,
         reportNameValuePairs,
+        isAnonymousUser,
         onboardingPolicyID,
         onboardingAdminsChatReportID,
         shouldPreventOpenAdminRoom,
@@ -135,6 +145,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    isAnonymousUser: boolean,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -147,6 +158,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
                 canUseDefaultRooms,
                 conciergeReportID,
                 reportNameValuePairs,
+                isAnonymousUser,
                 onboardingPolicyID,
                 onboardingAdminsChatReportID,
                 shouldPreventOpenAdminRoom,
