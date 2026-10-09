@@ -148,8 +148,7 @@ function TroubleshootPage() {
                 : {
                       action() {
                           if (surveyCompletedWithinLastMonth) {
-                              switchToOldDot('');
-                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                              switchToOldDot('').then(() => openOldDotLink(CONST.OLDDOT_URLS.INBOX, true));
                               return;
                           }
 
