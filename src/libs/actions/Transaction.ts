@@ -20,14 +20,7 @@ import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getDistanceRateCustomUnitRate, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
-import {
-    getAllReportActions,
-    getIOUActionForReportID,
-    getIOUActionForTransactionID,
-    getOriginalMessage,
-    getTrackExpenseActionableWhisper,
-    isModifiedExpenseAction,
-} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
     buildOptimisticDismissedViolationReportAction,
@@ -50,7 +43,6 @@ import {
 } from '@libs/ReportUtils';
 import {
     getDistanceInMeters,
-    hasPendingRTERViolation,
     hasSubmissionBlockingViolationInList,
     isDeletedTransaction,
     isDistanceRequest,
@@ -832,26 +824,6 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
     };
 
     return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);
-}
-
-/**
- * Marks all transactions that have pending RTER violations as cash.
- */
-function markPendingRTERTransactionsAsCash(transactions: Array<OnyxEntry<Transaction>>, violationsCollection: OnyxCollection<TransactionViolations>, reportActions: ReportAction[]) {
-    for (const t of transactions) {
-        if (!t?.transactionID) {
-            continue;
-        }
-        const txViolations = violationsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`];
-        if (!hasPendingRTERViolation(txViolations)) {
-            continue;
-        }
-        const action = getIOUActionForTransactionID(reportActions, t.transactionID);
-        const threadReportID = action?.childReportID;
-        if (threadReportID) {
-            markAsCash(t.transactionID, threadReportID, txViolations ?? []);
-        }
-    }
 }
 
 function openDraftDistanceExpense() {
@@ -2311,7 +2283,6 @@ export {
     clearError,
     clearErrorWithOriginalTransactionError,
     markAsCash,
-    markPendingRTERTransactionsAsCash,
     dismissDuplicateTransactionViolation,
     generateTransactionID,
     setReviewDuplicatesKey,

@@ -308,11 +308,6 @@ jest.mock('@libs/TransactionUtils', () => ({
     isTransactionPendingDelete: jest.fn(() => false),
 }));
 
-jest.mock('@userActions/Transaction', () => ({
-    __esModule: true,
-    markPendingRTERTransactionsAsCash: jest.fn(),
-}));
-
 const mockOpenReportSubmitToPopover = jest.fn<void, [ReportSubmitToPopoverOpenOptions | undefined]>();
 
 jest.mock('@components/ReportSubmitToPopoverAnchor', () => ({
