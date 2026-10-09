@@ -24,6 +24,8 @@ const isFromInternalDomainSelector = (account: OnyxEntry<Account>) => account?.i
 
 const canSupportLoginSelector = (account: OnyxEntry<Account>) => !!account?.canSupportLogin;
 
+const isTravelOptedOutSelector = (account: OnyxEntry<Account>) => !!account?.isTravelOptedOut;
+
 const canDowngradeSelector = (account: OnyxEntry<Account>) => !!account?.canDowngrade;
 
 export {
@@ -39,4 +41,5 @@ export {
     isFromInternalDomainSelector,
     canDowngradeSelector,
     canSupportLoginSelector,
+    isTravelOptedOutSelector,
 };
