@@ -565,6 +565,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                         },
+                        [SCREENS.WORKSPACE.TIMEZONE]: {
+                            path: ROUTES.WORKSPACE_OVERVIEW_TIMEZONE.route,
+                        },
                         [SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY.route,
                         },
@@ -930,6 +933,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_WEEKLY_OFFSET.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_SEMI_MONTHLY_OFFSET.route,
                         },
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_SHARE.route,

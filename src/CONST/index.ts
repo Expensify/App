@@ -4702,6 +4702,28 @@ const CONST = {
         AUTO_REPORTING_OFFSET: {
             LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+            LAST_MONDAY_OF_MONTH: 'lastMondayOfMonth',
+            LAST_TUESDAY_OF_MONTH: 'lastTuesdayOfMonth',
+            LAST_WEDNESDAY_OF_MONTH: 'lastWednesdayOfMonth',
+            LAST_THURSDAY_OF_MONTH: 'lastThursdayOfMonth',
+            LAST_FRIDAY_OF_MONTH: 'lastFridayOfMonth',
+            LAST_SATURDAY_OF_MONTH: 'lastSaturdayOfMonth',
+            LAST_SUNDAY_OF_MONTH: 'lastSundayOfMonth',
+        },
+        AUTO_REPORTING_WEEKDAYS: {
+            MONDAY: 1,
+            TUESDAY: 2,
+            WEDNESDAY: 3,
+            THURSDAY: 4,
+            FRIDAY: 5,
+            SATURDAY: 6,
+            SUNDAY: 7,
+        },
+        AUTO_REPORTING_MAX_DAY_OF_MONTH: 28,
+        AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET: 15,
+        SEMI_MONTHLY_SUBMISSIONS: {
+            FIRST: 'first',
+            SECOND: 'second',
         },
         APPROVAL_MODE: {
             OPTIONAL: 'OPTIONAL',
@@ -4887,6 +4909,7 @@ const CONST = {
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             GENERAL_SETTINGS: 'generalSettings',
+            TIME_ZONE: 'timeZone',
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
@@ -9518,6 +9541,9 @@ const CONST = {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
             CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
         },
+        PILL_SELECTOR: {
+            PILL: 'PillSelector-Pill',
+        },
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
         },
@@ -10038,6 +10064,7 @@ const CONST = {
                 NAME: 'WorkspaceOverview-Name',
                 DESCRIPTION: 'WorkspaceOverview-Description',
                 CURRENCY: 'WorkspaceOverview-Currency',
+                TIMEZONE: 'WorkspaceOverview-Timezone',
                 ADDRESS: 'WorkspaceOverview-Address',
                 PLAN_TYPE: 'WorkspaceOverview-PlanType',
                 SHARE: 'WorkspaceOverview-Share',
@@ -10083,6 +10110,8 @@ const CONST = {
             },
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
+                AUTO_REPORTING_OFFSET: 'WorkspaceWorkflows-AutoReportingOffset',
+                AUTO_REPORTING_SECOND_OFFSET: 'WorkspaceWorkflows-AutoReportingSecondOffset',
                 CURRENCY_CONVERSION_FEES: 'WorkspaceWorkflows-CurrencyConversionFees',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
                 MORE_DROPDOWN: 'WorkspaceWorkflows-MoreDropdown',

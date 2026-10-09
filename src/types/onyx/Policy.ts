@@ -3756,8 +3756,14 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         preventSelfApproval?: boolean;
 
-        /** When the monthly scheduled submit should happen */
+        /** When the scheduled submit should happen. A weekday from 1 (Monday) to 7 (Sunday) for weekly, or a day of the month otherwise */
         autoReportingOffset?: AutoReportingOffset;
+
+        /** The second day of the month a twice a month scheduled submit happens on */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The IANA timezone the scheduled submit runs in */
+        timeZone?: string;
 
         employeeList?: OnyxTypes.PolicyEmployeeList;
 

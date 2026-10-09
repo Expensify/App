@@ -70,6 +70,7 @@ import {
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
+import {getWorkspaceTimezone} from '@libs/SubmissionScheduleUtils';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 
 import variables from '@styles/variables';
@@ -159,6 +160,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyID));
+    };
+    const onPressTimezone = () => {
+        if (!policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_TIMEZONE.getRoute(policyID));
     };
     const onPressAddress = () => {
         if (!policyID) {
@@ -694,6 +701,32 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                             : translate('workspace.editor.currencyInputHelpText')
                                     }
                                 />
+                            </MenuItemSectionRoot>
+                        </View>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        pendingAction={policy?.pendingFields?.timeZone}
+                        errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.TIME_ZONE)}
+                        onClose={() => {
+                            if (!policyID) {
+                                return;
+                            }
+                            clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.TIME_ZONE);
+                        }}
+                        errorRowStyles={[styles.mt2]}
+                    >
+                        <View>
+                            <MenuItemSectionRoot
+                                onPress={readOnly ? undefined : onPressTimezone}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.TIMEZONE}
+                            >
+                                <MenuItemField.Row
+                                    name={translate('workspace.editor.timezoneInputLabel')}
+                                    value={getWorkspaceTimezone(policy)}
+                                >
+                                    {!readOnly && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
+                                <MenuItem.HelpText message={translate('workspace.editor.timezoneInputHelpText')} />
                             </MenuItemSectionRoot>
                         </View>
                     </OfflineWithFeedback>
