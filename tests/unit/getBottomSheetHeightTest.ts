@@ -12,7 +12,6 @@ describe('getBottomSheetHeight', () => {
         const height = getBottomSheetHeight({
             preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
             windowHeight: 900,
-            isInLandscapeMode: false,
             keyboardHeight: 0,
             topSafeAreaInset: TOP_INSET,
             minHeight: MIN_HEIGHT,
@@ -22,22 +21,21 @@ describe('getBottomSheetHeight', () => {
         expect(height).toBe(CONST.POPOVER_DROPDOWN_MAX_HEIGHT - BOTTOM_SHEET_TOP_PADDING);
     });
 
-    it('caps the sheet to a smaller share of the window in landscape', () => {
-        // Given a landscape phone, whose window is too short for the standard dropdown height
+    it('caps the sheet to its share of a short window', () => {
+        // Given a phone whose window is too short for the standard dropdown height
         const windowHeight = 400;
 
         // When the sheet asks for the standard dropdown height
         const height = getBottomSheetHeight({
             preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
             windowHeight,
-            isInLandscapeMode: true,
             keyboardHeight: 0,
             topSafeAreaInset: TOP_INSET,
             minHeight: MIN_HEIGHT,
         });
 
-        // Then it takes only the landscape share of the window, so it never runs off the top of the screen
-        expect(height).toBe(windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE - BOTTOM_SHEET_TOP_PADDING);
+        // Then it takes only its share of the window, so it never runs off the top of the screen
+        expect(height).toBe(windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO - BOTTOM_SHEET_TOP_PADDING);
     });
 
     it('fits between the keyboard and the status bar while the keyboard is open', () => {
@@ -49,7 +47,6 @@ describe('getBottomSheetHeight', () => {
         const height = getBottomSheetHeight({
             preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
             windowHeight,
-            isInLandscapeMode: false,
             keyboardHeight,
             topSafeAreaInset: TOP_INSET,
             minHeight: MIN_HEIGHT,
@@ -65,7 +62,6 @@ describe('getBottomSheetHeight', () => {
         const height = getBottomSheetHeight({
             preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
             windowHeight: 300,
-            isInLandscapeMode: false,
             keyboardHeight: 260,
             topSafeAreaInset: TOP_INSET,
             minHeight: MIN_HEIGHT,
@@ -76,37 +72,39 @@ describe('getBottomSheetHeight', () => {
     });
 
     it('never lets the minimum height push the sheet past its own cap', () => {
-        // Given a landscape window so short that its share of the screen is below the minimum height
-        const windowHeight = 200;
-        const cappedHeight = windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE - BOTTOM_SHEET_TOP_PADDING;
+        // Given a window so short, e.g. Android split screen, that its share of the screen is below the minimum height
+        const windowHeight = 150;
+        const cappedHeight = windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO - BOTTOM_SHEET_TOP_PADDING;
         expect(cappedHeight).toBeLessThan(MIN_HEIGHT);
 
+        // When the sheet is raised above the keyboard, which would otherwise hold it at the minimum height
         const height = getBottomSheetHeight({
             preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
             windowHeight,
-            isInLandscapeMode: true,
             keyboardHeight: 120,
             topSafeAreaInset: TOP_INSET,
             minHeight: MIN_HEIGHT,
         });
 
+        // Then it stays at the cap, so the minimum never pushes the sheet off the top of the screen
         expect(height).toBe(cappedHeight);
     });
 
     it('caps at the height it is handed instead of the dropdown cap', () => {
+        // Given a caller with its own ceiling, taller than the dropdown cap and shorter than the window
         const maxHeight = 600;
 
         // When the sheet asks for more than that
         const height = getBottomSheetHeight({
             preferredHeight: 700,
             windowHeight: 900,
-            isInLandscapeMode: false,
             keyboardHeight: 0,
             topSafeAreaInset: TOP_INSET,
             minHeight: MIN_HEIGHT,
             maxHeight,
         });
 
+        // Then the caller's ceiling wins, less the top padding, instead of the dropdown cap
         expect(height).toBe(maxHeight - BOTTOM_SHEET_TOP_PADDING);
     });
 });

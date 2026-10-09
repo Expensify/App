@@ -73,7 +73,7 @@ function CategoryPickerModal({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const viewportOffsetTop = useViewportOffsetTop();
@@ -94,7 +94,6 @@ function CategoryPickerModal({
     const bottomSheetHeight = getBottomSheetHeight({
         preferredHeight: popoverHeight,
         windowHeight,
-        isInLandscapeMode,
         keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
         topSafeAreaInset: safeAreaTop,
         minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
@@ -131,7 +130,6 @@ function CategoryPickerModal({
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
-            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             enableEdgeToEdgeBottomSafeAreaPadding
             avoidKeyboard={isSmallScreenWidth}
             outerStyle={outerStyle}

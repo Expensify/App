@@ -4,6 +4,10 @@ import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal'
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 
 import type * as Browser from '@libs/Browser';
+import getBottomSheetHeight from '@libs/getBottomSheetHeight';
+import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 
@@ -15,7 +19,7 @@ jest.mock('@libs/Browser', () => ({
 }));
 
 // A phone-width window, where the pop-over is the bottom sheet these tests are about.
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: true, shouldUseNarrowLayout: true, isInLandscapeMode: false})));
+jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: true, shouldUseNarrowLayout: true})));
 
 // The window as a mobile browser reports it with the keyboard open: shorter, and panned down past the page top.
 const mockWindowHeight = 500;
@@ -68,5 +72,24 @@ describe('CategoryPickerModal', () => {
 
         // Then nothing is added for the visual viewport
         expect(mockPopoverProps?.outerStyle).toEqual({width: '100%'});
+    });
+
+    it('hands the native sheet its keyboard handling and a height that fits the window', () => {
+        // Given a phone whose keyboard is closed and whose safe area insets are zero, as the test harness reports them,
+        // with no categories loaded, so the list has no search input
+        const expectedHeight = getBottomSheetHeight({
+            preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+            windowHeight: mockWindowHeight,
+            keyboardHeight: 0,
+            topSafeAreaInset: 0,
+            minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}),
+        });
+
+        // When the picker opens as a bottom sheet
+        renderSheet();
+
+        // Then the sheet is sized for that window and lifts above the keyboard
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(expectedHeight);
+        expect(mockPopoverProps?.avoidKeyboard).toBe(true);
     });
 });
