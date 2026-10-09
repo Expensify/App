@@ -1,5 +1,4 @@
-import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import dismissOnboardingModalBeforeExit from '@libs/Navigation/helpers/OnboardingNavigationUtils';
+import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 
@@ -74,11 +73,6 @@ jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     default: () => mockShouldOpenOnAdminRoom(),
 }));
 
-jest.mock('@libs/Navigation/helpers/OnboardingNavigationUtils', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
-
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
     __esModule: true,
     default: () => mockIsReportTopmostSplitNavigator(),
@@ -111,24 +105,6 @@ describe('navigateAfterOnboarding', () => {
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
         // Without an admins chat report, we fall back to HOME to trigger guard evaluation instead of opening a report.
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
-        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-    });
-
-    it('should dismiss onboarding before navigating away from the final screen', () => {
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((navigationAction) => navigationAction());
-        let finishDismissal: (() => void) | undefined;
-        jest.mocked(dismissOnboardingModalBeforeExit).mockImplementation((afterTransition) => {
-            finishDismissal = afterTransition;
-        });
-
-        navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {});
-
-        expect(dismissOnboardingModalBeforeExit).toHaveBeenCalledTimes(1);
-        expect(navigate).not.toHaveBeenCalled();
-
-        finishDismissal?.();
-
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
