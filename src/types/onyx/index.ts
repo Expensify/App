@@ -207,6 +207,7 @@ import type StripeCustomerID from './StripeCustomerID';
 import type SuggestedAgent from './SuggestedAgent';
 import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
+import type TableColumnWidths from './TableColumnWidths';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
@@ -380,6 +381,7 @@ export type {
     DomainSecurityGroupMembership,
     SelectedTabRequest,
     Session,
+    TableColumnWidths,
     Task,
     TaxRate,
     TaxRates,
