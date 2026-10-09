@@ -2790,6 +2790,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        tableColumnResizeGrip: {
+            backgroundColor: theme.border,
+        },
+
         tableColumnResizeIndicator: {
             backgroundColor: theme.iconMenu,
         },

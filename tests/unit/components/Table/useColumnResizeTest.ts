@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {RESIZE_INDICATOR_OPACITY_VARIABLE, getColumnWidthVariableName} from '@components/Table/columnResize/columnWidthExpressions';
+import {RESIZE_GRIP_HOVER_VARIABLE, RESIZE_INDICATOR_OPACITY_VARIABLE, getColumnWidthVariableName} from '@components/Table/columnResize/columnWidthExpressions';
 import type UseColumnResize from '@components/Table/columnResize/useColumnResize';
 import type {UseColumnResizeParams} from '@components/Table/columnResize/useColumnResize/types';
 
@@ -24,22 +24,32 @@ const NAME_COLUMN_KEY = 'name';
 
 const resolvedColumnWidths = {name: 200, email: 200, role: 200};
 
-type PointerEventInit = {clientX: number; button?: number};
+type PointerEventInit = {clientX: number; clientY?: number; button?: number};
 
 /** A pointer event carrying only what the hook reads, aimed at the given handle. */
-function createPointerEvent(handleElement: HTMLDivElement, {clientX, button = 0}: PointerEventInit): React.PointerEvent<HTMLDivElement> {
-    const event = {button, clientX, clientY: 0, pointerId: 1, currentTarget: handleElement, preventDefault: jest.fn(), stopPropagation: jest.fn()};
+function createPointerEvent(handleElement: HTMLDivElement, {clientX, clientY = 0, button = 0}: PointerEventInit): React.PointerEvent<HTMLDivElement> {
+    const event = {button, clientX, clientY, pointerId: 1, currentTarget: handleElement, preventDefault: jest.fn(), stopPropagation: jest.fn()};
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the hook only reads the fields above
     return event as unknown as React.PointerEvent<HTMLDivElement>;
 }
 
-/** Renders the hook with a scope element and one handle inside it, the way the table mounts them. */
+/** Renders the hook with a scope element and one heading cell holding a handle inside it, the way the table mounts them. */
 function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
     const scopeElement = document.createElement('div');
+    const headingElement = document.createElement('div');
     const handleElement = document.createElement('div');
 
-    scopeElement.appendChild(handleElement);
+    scopeElement.appendChild(headingElement);
+    headingElement.appendChild(handleElement);
+    // jsdom has no layout: a 200x40 heading whose handle overhangs its right edge by 6px.
+    document.elementFromPoint = (x, y) => {
+        if (y > 40 || x > 206) {
+            return document.body;
+        }
+
+        return x > 194 ? handleElement : headingElement;
+    };
     // jsdom has no pointer capture.
     const setPointerCapture = jest.fn();
 
@@ -76,7 +86,20 @@ function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
 
     const readWidth = (columnKey: string) => scopeElement.style.getPropertyValue(getColumnWidthVariableName(columnKey));
 
-    return {...hook, initialProps, scopeElement, handleElement, setPointerCapture, getHandleProps, readWidth};
+    const readGripHover = () => handleElement.style.getPropertyValue(RESIZE_GRIP_HOVER_VARIABLE);
+
+    /** Hands the handle element to the handle's ref, the way React does when it mounts the handle. */
+    const mountHandle = () => {
+        const {ref} = getHandleProps();
+
+        if (typeof ref !== 'function') {
+            throw new Error('Expected the handle to take a callback ref');
+        }
+
+        return ref(handleElement);
+    };
+
+    return {...hook, initialProps, scopeElement, headingElement, handleElement, setPointerCapture, getHandleProps, readWidth, readGripHover, mountHandle};
 }
 
 describe('useColumnResize', () => {
@@ -198,7 +221,103 @@ describe('useColumnResize', () => {
         expect(readLineOpacity()).toBe('0');
     });
 
-    it('keeps a dragged width above its floor', () => {
+    it('shows the grip while the heading is hovered', () => {
+        // Given a mounted resizable column
+        const {headingElement, readGripHover, mountHandle} = renderColumnResize();
+
+        mountHandle();
+
+        // When the pointer enters its heading cell anywhere, not only over the edge
+        headingElement.dispatchEvent(new Event('pointerenter'));
+
+        // Then the grip shows, so the user can find the edge before reaching it
+        expect(readGripHover()).toBe('1');
+
+        // When the pointer leaves the heading
+        headingElement.dispatchEvent(new Event('pointerleave'));
+
+        // Then the grip goes away
+        expect(readGripHover()).toBe('0');
+    });
+
+    it('stops tracking the heading once the handle unmounts', () => {
+        // Given a resizable column whose handle mounted and then unmounted
+        const {headingElement, readGripHover, mountHandle} = renderColumnResize();
+
+        const cleanUp = mountHandle();
+        cleanUp?.();
+
+        // When the pointer enters the heading afterwards
+        headingElement.dispatchEvent(new Event('pointerenter'));
+
+        // Then nothing is written, so a heading outliving its handle doesn't keep a listener writing to a detached element
+        expect(readGripHover()).toBe('');
+    });
+
+    it('hides the grip when a drag is released off the heading', () => {
+        // Given a hovered heading whose edge is being dragged
+        const {headingElement, handleElement, getHandleProps, readGripHover, mountHandle} = renderColumnResize();
+
+        mountHandle();
+        headingElement.dispatchEvent(new Event('pointerenter'));
+
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 190, clientY: 20}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 400, clientY: 300}));
+        });
+
+        // When the pointer is released outside the heading, where pointer capture kept the heading from hearing it leave
+        act(() => {
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 400, clientY: 300}));
+        });
+
+        // Then the grip hides rather than lingering on a heading the pointer isn't over
+        expect(readGripHover()).toBe('0');
+    });
+
+    it('keeps the grip when a drag is released on the heading', () => {
+        // Given a hovered heading whose edge is being dragged
+        const {headingElement, handleElement, getHandleProps, readGripHover, mountHandle} = renderColumnResize();
+
+        mountHandle();
+        headingElement.dispatchEvent(new Event('pointerenter'));
+
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 190, clientY: 20}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 150, clientY: 20}));
+        });
+
+        // When the pointer is released still inside the heading
+        act(() => {
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 150, clientY: 20}));
+        });
+
+        // Then the grip comes back, since the pointer is still over the heading
+        expect(readGripHover()).toBe('1');
+    });
+
+    it('keeps the grip when a drag is released on the handle overhanging the heading', () => {
+        // Given a hovered heading whose edge is being dragged
+        const {headingElement, handleElement, getHandleProps, readGripHover, mountHandle} = renderColumnResize();
+
+        mountHandle();
+        headingElement.dispatchEvent(new Event('pointerenter'));
+
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 190, clientY: 20}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 203, clientY: 20}));
+        });
+
+        // When the pointer is released on the part of the handle past the heading's box, where a drag usually ends
+        act(() => {
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 203, clientY: 20}));
+        });
+
+        // Then the grip comes back, since the browser still counts the pointer as inside the heading and won't fire another pointerenter
+        expect(readGripHover()).toBe('1');
+    });
+
+        it('keeps a dragged width above its floor', () => {
         // Given a 200px column that may not shrink below 180px
         const {handleElement, getHandleProps, readWidth} = renderColumnResize({dragMinWidths: {[NAME_COLUMN_KEY]: 180}});
 

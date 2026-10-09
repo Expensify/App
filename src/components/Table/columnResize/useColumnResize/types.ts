@@ -17,7 +17,7 @@ type UseColumnResizeParams = {
     columnGap: number;
 };
 
-type ColumnResizeHandleDOMProps = React.HTMLAttributes<HTMLDivElement>;
+type ColumnResizeHandleDOMProps = React.ComponentPropsWithRef<'div'>;
 
 type ColumnResizeController = {
     /** Element holding the width custom properties. The header and rows inherit them, so one write repaints all. */
