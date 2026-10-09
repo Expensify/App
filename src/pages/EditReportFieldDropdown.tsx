@@ -98,7 +98,7 @@ function EditReportFieldDropdown({
         value: searchValue,
         label: translate('common.search'),
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, policyReportFieldData.length > 0, debouncedSearchValue),
         // Nothing is rendered above the search input here, so it needs the top padding the surrounding page or popover doesn't provide.
         style: {containerStyle: styles.pt3},
     };
