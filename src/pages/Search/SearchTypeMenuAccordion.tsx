@@ -34,14 +34,17 @@ type AnimatedBadgeProps = {
 };
 
 function getBadgeOpacity(isExpanded: boolean) {
+    'worklet';
     return Number(!isExpanded);
 }
 
 function getBadgeOffsetY(isExpanded: boolean): `${number}%` | number {
+    'worklet';
     return isExpanded ? '50%' : 0;
 }
 
 function getArrowRotation(isExpanded: boolean) {
+    'worklet';
     return isExpanded ? 0 : 180;
 }
 

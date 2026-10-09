@@ -1,4 +1,4 @@
-import {animatedSuperWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
+import {animatedSuperWideRHPWidth, animatedWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -10,8 +10,13 @@ import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceC
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
+import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
+import getRHPLayoutValue from '@libs/Navigation/helpers/getRHPLayoutValue';
 import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -46,6 +51,7 @@ function useWideModalStackScreenOptions() {
                 : (props) => modalCardStyleInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}});
 
             let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
+            let nativeWidth: number = variables.sideBarWidth;
 
             if (!isSmallScreenWidth) {
                 // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
@@ -55,13 +61,17 @@ function useWideModalStackScreenOptions() {
 
                 // Cards draw their own frame, so the container must not clip them.
                 if (superWideRHPRouteKeys.includes(route.key)) {
+                    nativeWidth = calculateSuperWideRHPWidth(windowWidth);
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelShrink)),
+                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(
+                            getRHPLayoutValue(nativeWidth, Animated.subtract<number>(animatedSuperWideRHPWidth, sidePanelShrink)),
+                        ),
                         containerStyle: styles.overflowVisible,
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
+                    nativeWidth = calculateWideRHPWidth(windowWidth);
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                        cardStyle: {...styles.wideRHPExtendedCardInterpolatorStyles, width: getRHPLayoutValue(nativeWidth, animatedWideRHPWidth)},
                         containerStyle: styles.overflowVisible,
                     });
                     // single RHPs displayed above the wide RHP need to be positioned
@@ -78,7 +88,7 @@ function useWideModalStackScreenOptions() {
                 headerShown: false,
                 animationTypeForReplace: 'pop',
                 native: {
-                    contentStyle: styles.navigationScreenCardStyle,
+                    contentStyle: [styles.navigationScreenCardStyle, !isSmallScreenWidth && styles.nativeRHPContent(nativeWidth)],
                 },
                 web: {
                     // The RHP has its own scrim (BaseOverlay), so stacked screens must not fade in react-navigation's dark backdrop too.
@@ -89,7 +99,7 @@ function useWideModalStackScreenOptions() {
                 },
             };
         },
-        [StyleUtils, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, windowWidth, wideRHPRouteKeys],
+        [StyleUtils, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, wideRHPRouteKeys, windowWidth],
     );
 }
 

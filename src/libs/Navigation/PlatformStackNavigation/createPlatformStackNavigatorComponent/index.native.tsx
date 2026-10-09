@@ -1,4 +1,5 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
@@ -17,7 +18,9 @@ import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '
 import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import {NativeStackView} from '@react-navigation/native-stack';
 import React from 'react';
+import {View} from 'react-native';
 
+import getNativeSplitRenderState from './getNativeSplitRenderState';
 import wrapDescriptorsWithNonTopScreensBehavior from './wrapDescriptorsWithNonTopScreensBehavior';
 
 type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = PlatformStackNavigatorProps<ParamListBase, RouterOptions> & {
@@ -39,6 +42,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     sidebarScreen,
     defaultCentralScreen,
     parentRoute,
+    persistentScreens,
     createRouter,
     getCustomState,
     defaultScreenOptions,
@@ -49,6 +53,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const styles = useThemeStyles();
     const {
         navigation,
         state: originalState,
@@ -86,23 +91,38 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         parentRoute,
     };
 
-    const state = getCustomState?.({...customCodeProps, shouldUseNarrowLayout}) ?? originalState;
+    // Preserve the full split history here; getNativeSplitRenderState limits the mounted central screens below.
+    const isSplit = !shouldUseNarrowLayout && !!sidebarScreen;
+    const state = isSplit ? originalState : (getCustomState?.({...customCodeProps, shouldUseNarrowLayout}) ?? originalState);
     const customCodePropsWithCustomState: CustomCodeProps<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>> = {
         ...customCodeProps,
         state,
     };
 
-    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state);
+    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, isSplit ? persistentScreens : undefined);
+    const split = isSplit ? getNativeSplitRenderState(state, sidebarScreen) : undefined;
+
+    const stack = (
+        <NativeStackView
+            {...props}
+            state={split?.centralState ?? state}
+            descriptors={wrappedDescriptors}
+            navigation={navigation}
+            describe={describe}
+        />
+    );
 
     const content = (
         <NavigationContent>
-            <NativeStackView
-                {...props}
-                state={state}
-                descriptors={wrappedDescriptors}
-                navigation={navigation}
-                describe={describe}
-            />
+            {/* Keep the central stack under the same parents across breakpoints so its screens retain local state. */}
+            {sidebarScreen ? (
+                <View style={[styles.flex1, styles.flexRow]}>
+                    {!!split && <View style={[styles.nativeSplitSidebar, styles.borderRight, styles.overflowHidden]}>{wrappedDescriptors[split.sidebarRoute.key]?.render()}</View>}
+                    <View style={[styles.flex1, styles.mnw0, styles.overflowHidden]}>{stack}</View>
+                </View>
+            ) : (
+                stack
+            )}
             {!!ExtraContent && <ExtraContent {...customCodePropsWithCustomState} />}
         </NavigationContent>
     );

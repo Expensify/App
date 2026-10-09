@@ -1,6 +1,7 @@
 import useInboxTabSpanLifecycle from '@hooks/useInboxTabSpanLifecycle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,6 +23,7 @@ type SidebarLinksDataProps = {
 
 function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
@@ -32,7 +34,8 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
 
     return (
         <View
-            accessibilityElementsHidden={!isFocused}
+            // On wide layouts the sidebar stays visible beside the focused report. The root stack hides both when a modal covers them.
+            accessibilityElementsHidden={shouldUseNarrowLayout && !isFocused}
             collapsable={false}
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
