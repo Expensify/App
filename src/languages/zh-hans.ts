@@ -838,7 +838,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `确定要删除此${type}吗？`;
+            return `确定要删除此${type}吗？${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? '此报告中的所有费用都将变为未报销状态。' : ''}`;
         },
         onlyVisible: '仅对以下对象可见',
         explain: '解释',
@@ -1443,6 +1443,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '您确定要删除此报告吗？',
             other: '您确定要删除这些报告吗？',
         }),
+        deleteExpenseReportConfirmation: '您确定要删除此报告吗？此报告中的所有费用都将变为未报销状态。',
         settledExpensify: '已支付',
         paidStatusMarkedAsPaid: '已标记为已支付',
         paidStatusWithdrawing: '提现中',
@@ -1583,6 +1584,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: '请输入一个非零金额用于分摊',
             noParticipantSelected: '请选择参与者',
             other: '发生意外错误。请稍后重试。',
+            payFailedExpenseDeleted: '此付款失败，因为报销报告已被删除。',
             genericCreateFailureMessage: '提交此报销时发生意外错误。请稍后重试。',
             genericCreateInvoiceFailureMessage: '发送此发票时发生未知错误。请稍后重试。',
             genericHoldExpenseFailureMessage: '暂时无法搁置此报销。请稍后再试。',
@@ -8525,7 +8527,15 @@ ${reportName}`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
             mergeHR: {
-                groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+                groups: {
+                    title: '群组',
+                    description: '选择要与此工作区同步的员工分组',
+                    staleSelectionError: (providerName: string) => `您选择的部分群组在 ${providerName} 中已不存在，因此其员工已停止同步。`,
+                    updateSelectionLink: '更新你的群组。',
+                    noGroupsFound: '未找到群组',
+                    noGroupsFoundDescription: '目前没有可选择的分组。可在未选择任何分组的情况下保存以同步所有员工，或在新分组创建后再次同步连接。',
+                    unnamedGroup: (groupID: string) => `未命名群组（${groupID}）`,
+                },
             },
         },
         recruiting: {
