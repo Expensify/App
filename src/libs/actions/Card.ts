@@ -9,6 +9,7 @@ import type {
     DeletePersonalCardParams,
     FreezeCardParams,
     OpenCardDetailsPageParams,
+    QueueExpensifyCardForBillingParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
@@ -702,9 +703,11 @@ function updateSettlementFrequency(
         },
     ];
 
+    // The backend assumes the US program when no feedCountry is sent, which silently fails for UK/EU workspaces
     const parameters = {
         policyAccountID: workspaceAccountID,
         settlementFrequency,
+        feedCountry: programKey,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
@@ -1761,10 +1764,14 @@ function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefi
     ]);
 }
 
-function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
-    const parameters = {
-        feedCountry,
+/**
+ * Queues the domain's outstanding balance for the next billing run. Without a feedCountry the backend settles the
+ * program it finds provisioned on the domain, so it is only sent when the card settings identify one.
+ */
+function queueExpensifyCardForBilling(domainAccountID: number, feedCountry?: CardProgramKey) {
+    const parameters: QueueExpensifyCardForBillingParams = {
         domainAccountID,
+        feedCountry,
     };
 
     API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
