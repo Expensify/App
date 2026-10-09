@@ -15199,3 +15199,20 @@ describe('hasFilterContentValuesChanged', () => {
         }
     });
 });
+
+describe('getDatePresets', () => {
+    it('does not offer never for anyApproval', () => {
+        // Given anyApproval, which always matches an approval action
+        // When presets are requested
+        const presets = SearchUIUtils.getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, false);
+
+        // Then only the common date presets are returned, without never
+        expect(presets).toEqual([
+            CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
+            CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+            CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
+        ]);
+        expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
+    });
+});
