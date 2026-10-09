@@ -4,10 +4,8 @@ import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -23,8 +21,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -32,7 +28,6 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {getRules} from '@libs/actions/Policy/Rules';
-import {dismissProductTraining} from '@libs/actions/Welcome';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -59,6 +54,7 @@ import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
+import useConnectionsMovedTooltip from './connections/useConnectionsMovedTooltip';
 import getWorkspaceMenuItems from './getWorkspaceMenuItems';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -77,8 +73,6 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -209,34 +203,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         action: singleExecution(waitForNavigate(() => Navigation.navigate(item.getRoute()))),
     }));
     const triggerScrollEvent = useScrollEventEmitter();
-    const {shouldShowProductTrainingTooltip: shouldShowConnectionsTooltip, hideProductTrainingTooltip: hideConnectionsTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED,
+    const {
+        shouldShowTooltip: shouldShowConnectionsTooltip,
+        hideTooltip: hideConnectionsTooltip,
+        renderTooltipContent: renderConnectionsTooltip,
+    } = useConnectionsMovedTooltip(
         // New workspaces never used the old integration pages, so only point this out where something is already connected.
         isWorkspacesTabFocused && !hasPolicyCreationError && !isEmptyObject(policy?.connections) && workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
-    );
-    // Route the Connections tooltip was first shown on, so leaving that page counts as dismissing it
-    const connectionsTooltipRouteRef = useRef<string | undefined>(undefined);
-    useEffect(() => {
-        if (shouldShowConnectionsTooltip && !connectionsTooltipRouteRef.current) {
-            connectionsTooltipRouteRef.current = activeRoute;
-        }
-        const shownOnRoute = connectionsTooltipRouteRef.current;
-        if (!shownOnRoute || (shownOnRoute === activeRoute && isWorkspacesTabFocused)) {
-            return;
-        }
-        connectionsTooltipRouteRef.current = undefined;
-        dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED);
-    }, [activeRoute, isWorkspacesTabFocused, shouldShowConnectionsTooltip]);
-    const renderConnectionsTooltip = () => (
-        <View
-            fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-            style={[styles.pv2, styles.ph2]}
-        >
-            <Text style={styles.productTrainingTooltipText}>
-                <Text style={[styles.productTrainingTooltipText, styles.strong, StyleUtils.getColorStyle(theme.tooltipHighlightText)]}>{translate('common.new')}</Text>{' '}
-                {translate('productTrainingTooltip.connectionsMoved')}
-            </Text>
-        </View>
+        activeRoute,
+        isWorkspacesTabFocused,
     );
     // Close RHP if we land on a route that no longer exists in the menu
     const getItemScreenNames = (item: TupleToUnion<typeof workspaceMenuItems>) => [item.screenName, ...(item.aliasScreenNames ?? [])];
@@ -323,7 +298,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 const isConnectionsItem = item.screenName === SCREENS.WORKSPACE.CONNECTIONS;
                                 const onPress = () => {
                                     if (isConnectionsItem) {
-                                        connectionsTooltipRouteRef.current = undefined;
                                         hideConnectionsTooltip();
                                     }
                                     item.action();

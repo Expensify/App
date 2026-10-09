@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 import type {TabSelectorBaseProps} from './types';
 
@@ -50,9 +50,20 @@ function TabSelectorBase<K extends string = string>({
 
     const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
 
-    const [scrollMetrics, setScrollMetrics] = useState({offset: 0, viewportWidth: 0, contentWidth: 0});
-    const canScrollLeft = scrollMetrics.offset > 1;
-    const canScrollRight = scrollMetrics.offset + scrollMetrics.viewportWidth < scrollMetrics.contentWidth - 1;
+    // The measurements change on every scroll frame, so they live in a ref and only the fade visibility is state
+    const scrollMetricsRef = useRef({offset: 0, viewportWidth: 0, contentWidth: 0});
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
+    const updateScrollFade = (metrics: Partial<typeof scrollMetricsRef.current>) => {
+        if (!shouldShowScrollFade) {
+            return;
+        }
+        const {offset, viewportWidth, contentWidth} = {...scrollMetricsRef.current, ...metrics};
+        scrollMetricsRef.current = {offset, viewportWidth, contentWidth};
+        setCanScrollLeft(offset > 1);
+        setCanScrollRight(offset + viewportWidth < contentWidth - 1);
+    };
 
     // After a tab change, reset affectedAnimatedTabs once the transition is done so
     // tabs settle back into the default animated state.
@@ -70,24 +81,13 @@ function TabSelectorBase<K extends string = string>({
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 onLayout={(e) => {
                     onContainerLayout(e);
-                    if (shouldShowScrollFade) {
-                        const viewportWidth = e.nativeEvent.layout.width;
-                        setScrollMetrics((metrics) => ({...metrics, viewportWidth}));
-                    }
+                    updateScrollFade({viewportWidth: e.nativeEvent.layout.width});
                 }}
-                onContentSizeChange={(contentWidth) => {
-                    if (!shouldShowScrollFade) {
-                        return;
-                    }
-                    setScrollMetrics((metrics) => ({...metrics, contentWidth}));
-                }}
+                onContentSizeChange={(contentWidth) => updateScrollFade({contentWidth})}
                 onScroll={(e) => {
                     onContainerScroll(e);
                     triggerScrollEvent();
-                    if (shouldShowScrollFade) {
-                        const offset = e.nativeEvent.contentOffset.x;
-                        setScrollMetrics((metrics) => ({...metrics, offset}));
-                    }
+                    updateScrollFade({offset: e.nativeEvent.contentOffset.x});
                 }}
                 ref={containerRef}
                 style={styles.scrollableTabSelector}
