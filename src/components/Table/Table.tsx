@@ -144,126 +144,6 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
     }) as TableHandle<DataType, ColumnKey, FilterKey>;
 }
 
-/**
- * A composable table component that provides filtering, search, and sorting functionality.
- *
- * This component uses a compositional pattern where the parent `<Table>` component manages
- * all state (filtering, searching, sorting) and provides it via context. Child components
- * consume this context to render different parts of the table UI.
- *
- * ## Compositional Pattern
- *
- * The Table follows a compound component pattern similar to `<Menu>`, `<Form>`, or `<Tabs>`.
- * You compose your table UI by nesting the sub-components you need:
- *
- * - `<Table>` - The parent component that manages state and provides context
- * - `<Table.Header>` - Renders sortable column headers
- * - `<Table.Body>` - Renders the data rows using FlashList
- * - `<Table.FilterBar>` - Renders a search input that filters data
- *
- * ## Middleware Architecture
- *
- * Data processing is handled through a pipeline of middleware functions:
- * 1. **Filtering** - Applies dropdown filter selections
- * 2. **Searching** - Applies search string filtering
- * 3. **Sorting** - Sorts data by the active column
- * 4. **Selection** - Applies row selection state & provides helpers for selection
- *
- * Each middleware transforms the data array and passes it to the next.
- *
- * ## Generic Type Parameters
- *
- * - `DataType` - The type of items in your data array
- * - `ColumnKey` - String literal union of valid column keys (e.g., `'name' | 'date'`)
- * - `FilterKey` - String literal union of valid filter keys
- *
- * @example Basic Usage
- * ```tsx
- * type Item = { id: string; name: string; category: string };
- * type ColumnKey = 'name' | 'category';
- *
- * const columns: Array<TableColumn<ColumnKey>> = [
- *   { key: 'name', label: 'Name' },
- *   { key: 'category', label: 'Category' },
- * ];
- *
- * <Table<Item, ColumnKey>
- *   data={items}
- *   columns={columns}
- *   renderItem={({ item }) => <ItemRow item={item} />}
- *   keyExtractor={(item) => item.id}
- * >
- *   <Table.Header />
- *   <Table.Body />
- * </Table>
- * ```
- *
- * @example With Search and Sorting
- * ```tsx
- * <Table<Item, ColumnKey>
- *   data={items}
- *   columns={columns}
- *   renderItem={renderItem}
- *   keyExtractor={keyExtractor}
- *   isItemInSearch={(item, searchString) =>
- *     item.name.toLowerCase().includes(searchString.toLowerCase())
- *   }
- *   compareItems={(a, b, { columnKey, order }) => {
- *     const multiplier = order === 'asc' ? 1 : -1;
- *     return a[columnKey].localeCompare(b[columnKey]) * multiplier;
- *   }}
- * >
- *   <Table.FilterBar />
- *   <Table.Header />
- *   <Table.Body />
- * </Table>
- * ```
- *
- * @example With Filters
- * ```tsx
- * const filterConfig: FilterConfig = {
- *   status: {
- *     filterType: 'singleSelect',
- *     options: [
- *       { label: 'All', value: 'all' },
- *       { label: 'Active', value: 'active' },
- *       { label: 'Inactive', value: 'inactive' },
- *     ],
- *     default: 'all',
- *   },
- * };
- *
- * <Table<Item, ColumnKey>
- *   data={items}
- *   columns={columns}
- *   renderItem={renderItem}
- *   keyExtractor={keyExtractor}
- *   filters={filterConfig}
- *   isItemInFilter={(item, filterValues) => {
- *     if (filterValues.includes('all')) return true;
- *     return filterValues.includes(item.status);
- *   }}
- * >
- *   <Table.Header />
- *   <Table.Body />
- * </Table>
- * ```
- *
- * @example Programmatic Control via Ref
- * ```tsx
- * const tableRef = useRef<TableHandle<Item, ColumnKey>>(null);
- *
- * // Programmatically update sorting
- * tableRef.current?.updateSorting({ columnKey: 'name', order: 'desc' });
- *
- * // Get current state
- * const sorting = tableRef.current?.getActiveSorting();
- *
- * <Table ref={tableRef} {...props}>
- *   <Table.Body />
- * </Table>
- * ```
- */
 type TableContentProps<DataType extends TableData, ColumnKey extends string, FilterKey extends string> = TableProps<DataType, ColumnKey, FilterKey> & {
     /** Stored dragged widths for this table's `columnResizingID`. */
     columnWidthOverrides?: ColumnWidthOverrides;
@@ -652,8 +532,128 @@ function TableWithStoredColumnWidths<DataType extends TableData, ColumnKey exten
     );
 }
 
-/** Only tables that opted into resizing subscribe to stored widths */
+/**
+ * A composable table component that provides filtering, search, and sorting functionality.
+ *
+ * This component uses a compositional pattern where the parent `<Table>` component manages
+ * all state (filtering, searching, sorting) and provides it via context. Child components
+ * consume this context to render different parts of the table UI.
+ *
+ * ## Compositional Pattern
+ *
+ * The Table follows a compound component pattern similar to `<Menu>`, `<Form>`, or `<Tabs>`.
+ * You compose your table UI by nesting the sub-components you need:
+ *
+ * - `<Table>` - The parent component that manages state and provides context
+ * - `<Table.Header>` - Renders sortable column headers
+ * - `<Table.Body>` - Renders the data rows using FlashList
+ * - `<Table.FilterBar>` - Renders a search input that filters data
+ *
+ * ## Middleware Architecture
+ *
+ * Data processing is handled through a pipeline of middleware functions:
+ * 1. **Filtering** - Applies dropdown filter selections
+ * 2. **Searching** - Applies search string filtering
+ * 3. **Sorting** - Sorts data by the active column
+ * 4. **Selection** - Applies row selection state & provides helpers for selection
+ *
+ * Each middleware transforms the data array and passes it to the next.
+ *
+ * ## Generic Type Parameters
+ *
+ * - `DataType` - The type of items in your data array
+ * - `ColumnKey` - String literal union of valid column keys (e.g., `'name' | 'date'`)
+ * - `FilterKey` - String literal union of valid filter keys
+ *
+ * @example Basic Usage
+ * ```tsx
+ * type Item = { id: string; name: string; category: string };
+ * type ColumnKey = 'name' | 'category';
+ *
+ * const columns: Array<TableColumn<ColumnKey>> = [
+ *   { key: 'name', label: 'Name' },
+ *   { key: 'category', label: 'Category' },
+ * ];
+ *
+ * <Table<Item, ColumnKey>
+ *   data={items}
+ *   columns={columns}
+ *   renderItem={({ item }) => <ItemRow item={item} />}
+ *   keyExtractor={(item) => item.id}
+ * >
+ *   <Table.Header />
+ *   <Table.Body />
+ * </Table>
+ * ```
+ *
+ * @example With Search and Sorting
+ * ```tsx
+ * <Table<Item, ColumnKey>
+ *   data={items}
+ *   columns={columns}
+ *   renderItem={renderItem}
+ *   keyExtractor={keyExtractor}
+ *   isItemInSearch={(item, searchString) =>
+ *     item.name.toLowerCase().includes(searchString.toLowerCase())
+ *   }
+ *   compareItems={(a, b, { columnKey, order }) => {
+ *     const multiplier = order === 'asc' ? 1 : -1;
+ *     return a[columnKey].localeCompare(b[columnKey]) * multiplier;
+ *   }}
+ * >
+ *   <Table.FilterBar />
+ *   <Table.Header />
+ *   <Table.Body />
+ * </Table>
+ * ```
+ *
+ * @example With Filters
+ * ```tsx
+ * const filterConfig: FilterConfig = {
+ *   status: {
+ *     filterType: 'singleSelect',
+ *     options: [
+ *       { label: 'All', value: 'all' },
+ *       { label: 'Active', value: 'active' },
+ *       { label: 'Inactive', value: 'inactive' },
+ *     ],
+ *     default: 'all',
+ *   },
+ * };
+ *
+ * <Table<Item, ColumnKey>
+ *   data={items}
+ *   columns={columns}
+ *   renderItem={renderItem}
+ *   keyExtractor={keyExtractor}
+ *   filters={filterConfig}
+ *   isItemInFilter={(item, filterValues) => {
+ *     if (filterValues.includes('all')) return true;
+ *     return filterValues.includes(item.status);
+ *   }}
+ * >
+ *   <Table.Header />
+ *   <Table.Body />
+ * </Table>
+ * ```
+ *
+ * @example Programmatic Control via Ref
+ * ```tsx
+ * const tableRef = useRef<TableHandle<Item, ColumnKey>>(null);
+ *
+ * // Programmatically update sorting
+ * tableRef.current?.updateSorting({ columnKey: 'name', order: 'desc' });
+ *
+ * // Get current state
+ * const sorting = tableRef.current?.getActiveSorting();
+ *
+ * <Table ref={tableRef} {...props}>
+ *   <Table.Body />
+ * </Table>
+ * ```
+ */
 function Table<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(props: TableProps<DataType, ColumnKey, FilterKey>) {
+    // Only tables that opted into resizing subscribe to stored widths
     if (!props.columnResizingID) {
         return <TableContent {...props} />;
     }
