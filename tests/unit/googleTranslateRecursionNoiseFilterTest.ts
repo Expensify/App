@@ -85,11 +85,11 @@ describe('googleTranslateRecursionNoiseFilter', () => {
         ['APP-MTE', APP_MTE_FRAMES, V8_MESSAGE],
         ['APP-KFE', APP_KFE_FRAMES, WEBKIT_MESSAGE],
     ])('drops %s', (_, frames, message) => {
-        // Given a recorded Translate stack overflow
+        // Given the exact frames Sentry recorded for one Translate build, because each build moves the loop and renames its functions
         const event = buildStackOverflowEvent(frames, THIRD_PARTY_TAGS, message);
 
-        // When the predicate runs
-        // Then it is the noise
+        // When the predicate runs on the recorded shape
+        // Then it is dropped, because the filter must recognize every Translate build seen so far without pinning any one of them
         expect(isGoogleTranslateRecursionNoise(event)).toBe(true);
     });
 
@@ -111,26 +111,26 @@ describe('googleTranslateRecursionNoiseFilter', () => {
         ['a RangeError that is not a stack overflow', buildStackOverflowEvent(APP_M6P_FRAMES, THIRD_PARTY_TAGS, 'Invalid array length')],
         ['a wasm frame compiled without a URL, which has no line number', buildStackOverflowEvent([{filename: 'app:///00b2a5aa:wasm-function[38]:0x1b6c'}, ...APP_M6P_FRAMES])],
     ])('keeps %s', (_, event) => {
-        // Given an event that misses one condition of the signature
+        // Given an event that satisfies all but one condition of the signature
         // When the predicate runs
-        // Then it is kept
+        // Then it is kept, because one missed condition is enough to mean this could be an App error we would otherwise lose
         expect(isGoogleTranslateRecursionNoise(event)).toBe(false);
     });
 
     it('drops the noise and passes anything else through as an integration', () => {
-        // Given the integration and one matching and one non-matching event
+        // Given the integration and one matching and one non-matching event, because Sentry calls `processEvent`, not the predicate
         const kept = buildStackOverflowEvent(APP_M6P_FRAMES, {});
 
         // When each goes through `processEvent`
-        // Then the noise is dropped and the other comes back untouched
+        // Then the noise maps to `null`, which is how the SDK drops an event, and the other comes back as the same object so nothing downstream sees a copy
         expect(googleTranslateRecursionNoiseFilterIntegration.processEvent?.(buildStackOverflowEvent(APP_M6P_FRAMES), {}, sentryClientStub)).toBeNull();
         expect(googleTranslateRecursionNoiseFilterIntegration.processEvent?.(kept, {}, sentryClientStub)).toBe(kept);
     });
 
     it('is exported from the web index', () => {
-        // Given the native index ships an `undefined` stub
-        // When the web index export is read
-        // Then it is the real filter
+        // Given that the native index ships an `undefined` stub and `setupSentryIntegrationOrderTest` mocks the whole module
+        // When the unmocked web index export is read
+        // Then it is the real filter, because web is the only platform this runs on and nothing else checks the wiring
         expect(webGoogleTranslateRecursionNoiseFilterIntegration).toBe(googleTranslateRecursionNoiseFilterIntegration);
     });
 });
