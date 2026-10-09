@@ -83,7 +83,6 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -171,11 +170,12 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
     const headerMessage = getHeaderMessage(
+        translate,
         personalDetails.length + recentReports.length !== 0,
         !!userToInvite,
         debouncedSearchTerm.trim(),
         countryCode,
-        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
+        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate)),
     );
 
     // Selected rows are marked in place by the hook (isSelected), so the checkmark stays with the row instead of jumping to the top.
@@ -190,7 +190,9 @@ function NewChatPage({ref}: NewChatPageProps) {
     // to keep them visible and easy to deselect. The one already shown as the current invite row is excluded to avoid a duplicate.
     const selectedSection = selectedOptions.filter(
         (option) =>
-            !!option.isOptimisticAccount && !(userToInvite && option.login === userToInvite.login) && doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm),
+            !!option.isOptimisticAccount &&
+            !(userToInvite && option.login === userToInvite.login) &&
+            doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm, translate),
     );
 
     if (selectedSection.length) {
@@ -317,7 +319,6 @@ function NewChatPage({ref}: NewChatPageProps) {
                     introSelected,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                    betas,
                     conciergeChat,
                     isSupportalSession,
                 }),

@@ -7,7 +7,10 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useVerticalScrollbarWidth from '@hooks/useVerticalScrollbarWidth';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getPlatform from '@libs/getPlatform';
@@ -15,6 +18,7 @@ import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
+import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -28,7 +32,10 @@ import type {TableContextValue} from './TableContext';
 import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
-import {getDataVisibleIndices, getListIndex, getTableListMetadata} from './buildTableListData';
+import {getDataVisibleIndices, getListIndex, getTableListMetadata, rendersColumnHeader} from './buildTableListData';
+import getMeasureWidthRef from './columnResize/getMeasureWidthRef';
+import useColumnResize from './columnResize/useColumnResize';
+import useStoredColumnWidths from './columnResize/useStoredColumnWidths';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -135,6 +142,394 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
             return listRef.current?.[property as keyof FlashListRef<DataType>];
         },
     }) as TableHandle<DataType, ColumnKey, FilterKey>;
+}
+
+type TableContentProps<DataType extends TableData, ColumnKey extends string, FilterKey extends string> = TableProps<DataType, ColumnKey, FilterKey> & {
+    /** Stored dragged widths for this table's `columnResizingID`. */
+    columnWidthOverrides?: ColumnWidthOverrides;
+};
+
+function TableContent<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
+    ref,
+    title,
+    columns,
+    filters,
+    data = [],
+    selectedKeys = [],
+    compareItems,
+    isItemInFilter,
+    isItemInSearch,
+    initialSortColumn,
+    initialSortOrder,
+    narrowLayoutSortColumn,
+    children,
+    selectionEnabled,
+    shouldEnableSelectionInNarrowPaneModal,
+    shouldUseDynamicColumns = false,
+    shouldAlwaysEnableSelection,
+    shouldPreserveSelectionOnSearchAndFilter,
+    shouldFooterRenderAsLastRow,
+    columnResizingID,
+    columnWidthOverrides,
+    onRowSelectionChange,
+    onSearchStringChange,
+    onSortingChange,
+    ...listProps
+}: TableContentProps<DataType, ColumnKey, FilterKey>) {
+    const {translate} = useLocalize();
+    const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
+
+    // A table whose only purpose is picking rows is always in selection mode, so it shows its checkboxes from the
+    // start rather than hiding them behind a long press. It also leaves the app wide selection mode alone, which
+    // other screens write to and would otherwise clear the selection midway through.
+    const isMobileSelectionEnabled = !!shouldAlwaysEnableSelection || isGlobalMobileSelectionEnabled;
+
+    const setMobileSelectionModeEnabled = (isEnabled: boolean) => {
+        if (shouldAlwaysEnableSelection) {
+            return;
+        }
+
+        if (isEnabled) {
+            turnOnMobileSelectionMode();
+            return;
+        }
+
+        turnOffMobileSelectionMode();
+    };
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
+
+    if (!columns || columns.length === 0) {
+        throw new Error('Table columns must be provided');
+    }
+
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const originalSelectableCount = data.filter((item) => !item.disabled && !item.isSelectionDisabled).length;
+
+    const {middleware: filterMiddleware, currentFilters, hasActiveFilters, methods: filterMethods} = useFiltering<DataType, FilterKey>({filters, isItemInFilter});
+    const filteredData = filterMiddleware(data);
+
+    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods, hasActiveSearchString} = useSearching<DataType>({isItemInSearch});
+    const searchedData = searchMiddleware(filteredData);
+
+    const columnKeys = columns.map((column) => column.key);
+
+    const {
+        activeSorting,
+        methods: sortMethods,
+        middleware: sortMiddleware,
+    } = useSorting<DataType, ColumnKey>({
+        compareItems,
+        initialSortColumn,
+        initialSortOrder,
+        narrowLayoutSortColumn,
+        shouldUseNarrowTableLayout,
+        onSortingChange,
+        columnKeys,
+    });
+    const sortedData = sortMiddleware(searchedData);
+
+    const {
+        methods: selectionMethods,
+        mobileSelectionModalRowKey,
+        middleware: selectionMiddleware,
+    } = useSelection<DataType>({
+        data: sortedData,
+        originalSelectableCount,
+        currentFilters,
+        activeSearchString,
+        selectedKeys,
+        onRowSelectionChange,
+        shouldEnableSelectionInNarrowPaneModal,
+        isSelectionModeEnabled: isMobileSelectionEnabled,
+        setSelectionModeEnabled: setMobileSelectionModeEnabled,
+        shouldPreserveSelectionOnSearchAndFilter,
+        shouldAlwaysEnableSelection,
+    });
+    const selectionData = selectionMiddleware(sortedData);
+
+    const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
+    const processedData = highlightMiddleware(selectionData);
+
+    const listRef = useRef<FlashListRef<DataType>>(null);
+    const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
+    const mobileSelectionModalRowKeyRef = useRef(mobileSelectionModalRowKey);
+    const [shouldSubmitMobileSelection, setShouldSubmitMobileSelection] = useState(false);
+    const [shouldSkipMobileSelectionFocusRestore, setShouldSkipMobileSelectionFocusRestore] = useState(false);
+    // Keeps the table search input visible above the keyboard when it is focused inside the
+    // scrolling list (native only; the web variant of the hook is a no-op).
+    const {isKeyboardShown} = useKeyboardState();
+    const {containerRef: listContainerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
+
+    const [tableWidth, setTableWidth] = useState(0);
+
+    const handleTableLayout = (event: LayoutChangeEvent) => {
+        setTableWidth(event.nativeEvent.layout.width);
+    };
+
+    // The table is measured around the list rather than inside it, so a classic scrollbar's width is counted as room
+    // the rows have when they don't. Taking it off here sizes the columns against the width they are really given.
+    const {scrollbarWidth, measureScrollbarRef} = useVerticalScrollbarWidth();
+    const contentWidth = Math.max(tableWidth - scrollbarWidth, 0);
+
+    // Narrow and medium layouts render as cards with no columns to size, and native can't measure text, so both keep the
+    // static tracks and never measure the table.
+    const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
+
+    // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
+    const {isBetaEnabled} = usePermissions();
+    const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
+
+    // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
+    // searches or filters instead of reflowing on every keystroke.
+    const {
+        gridTemplateColumns: dynamicGridTemplateColumns,
+        scrollWidth: dynamicScrollWidth,
+        rowWidth: dynamicRowWidth,
+        resizableColumnKeys,
+        resolvedColumnWidths,
+        dragMinWidths,
+    } = useDynamicColumnWidths<DataType, ColumnKey>({
+        columns,
+        data,
+        tableWidth: contentWidth,
+        isEnabled: isDynamicSizingEnabled,
+        // In the wide layout the checkbox column is rendered whenever selection is enabled.
+        hasSelectionColumn: !!selectionEnabled,
+        isColumnResizingEnabled,
+        columnWidthOverrides,
+    });
+
+    const columnResize = useColumnResize({
+        columnResizingID: isColumnResizingEnabled ? columnResizingID : undefined,
+        resizableColumnKeys,
+        resolvedColumnWidths,
+        dragMinWidths,
+        columnGap: styles.gap3.gap,
+    });
+
+    const tableMethods: TableMethods<ColumnKey, FilterKey> = {
+        ...filterMethods,
+        ...sortMethods,
+        ...searchMethods,
+        ...selectionMethods,
+        ...highlightingMethods,
+    };
+
+    const originalDataLength = data?.length ?? 0;
+    const isEmptyResult = processedData.length === 0 && originalDataLength > 0;
+
+    // Extract marker and state elements before deciding which children stay inline so ListHeader/Header declaration order does not matter.
+    const childrenArray = React.Children.map(children, (child) => child) ?? [];
+    const {listHeaderElement, tableHeaderElement, emptyStateElement, noResultsStateElement} = childrenArray.reduce<ExtractedTableChildren>((extractedChildren, child) => {
+        const isListHeader = isTableListHeaderElement(child);
+        const isHeader = isTableHeaderElement(child);
+        const isEmptyState = React.isValidElement(child) && child.type === TableEmptyState;
+        const isNoResultsState = React.isValidElement(child) && child.type === TableNoResultsState;
+
+        return {
+            listHeaderElement: extractedChildren.listHeaderElement ?? (isListHeader ? child.props.children : undefined),
+            tableHeaderElement: extractedChildren.tableHeaderElement ?? (isHeader ? child : undefined),
+            emptyStateElement: extractedChildren.emptyStateElement ?? (isEmptyState ? child : undefined),
+            noResultsStateElement: extractedChildren.noResultsStateElement ?? (isNoResultsState ? child : undefined),
+        };
+    }, {});
+    const hasPageHeader = !!listHeaderElement || !!listProps.ListHeaderComponent;
+    const renderedChildren = childrenArray.filter((child) => {
+        if (isTableListHeaderElement(child)) {
+            return false;
+        }
+
+        if (!hasPageHeader) {
+            return true;
+        }
+
+        return !isTableHeaderElement(child) && !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState));
+    });
+    const hasColumnHeaderElement = !!tableHeaderElement;
+    const hasRows = processedData.length > 0;
+    const isColumnHeaderHiddenInNarrowLayout = shouldUseNarrowTableLayout && !title;
+    // Resizable tables always get the scroller: a drag can overflow without a render, and moving the header mid-drag would remount the handle.
+    const hasHorizontalScrollContainer = isColumnResizingEnabled || !!dynamicScrollWidth;
+
+    const tableListMetadata = useMemo(
+        () =>
+            getTableListMetadata({
+                listHeaderElement,
+                listHeaderComponent: listProps.ListHeaderComponent,
+                hasColumnHeaderElement,
+                hasRows,
+                isColumnHeaderHiddenInNarrowLayout,
+                hasHorizontalScrollContainer,
+            }),
+        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, hasHorizontalScrollContainer],
+    );
+    /**
+     * Exposes table control methods through the ref.
+     * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
+     */
+    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata));
+
+    // The default (unfiltered) view can still resolve to zero visible rows when `isItemInFilter` hides items by
+    // default — e.g. the Workspaces list shows only active workspaces until the user opts into the archived filter.
+    // In that case the data exists but nothing is shown, so we surface the empty state instead of a blank body.
+    const isDefaultViewEmpty = processedData.length === 0 && originalDataLength > 0 && !hasActiveSearchString && !hasActiveFilters;
+
+    const handleMobileSelectionPress = () => {
+        if (!mobileSelectionModalRowKey) {
+            return;
+        }
+
+        const shouldSuppressFocusRestore = getPlatform() === CONST.PLATFORM.IOS;
+        if (shouldSuppressFocusRestore && !releaseBackgroundInputFocusSuppressionRef.current) {
+            releaseBackgroundInputFocusSuppressionRef.current = acquireBackgroundInputFocusSuppression();
+        }
+        setShouldSkipMobileSelectionFocusRestore(shouldSuppressFocusRestore);
+        setShouldSubmitMobileSelection(true);
+    };
+
+    useLayoutEffect(() => {
+        mobileSelectionModalRowKeyRef.current = mobileSelectionModalRowKey;
+    }, [mobileSelectionModalRowKey]);
+
+    useLayoutEffect(() => {
+        if (!shouldSubmitMobileSelection || !mobileSelectionModalRowKey) {
+            return;
+        }
+
+        setMobileSelectionModeEnabled(true);
+        selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
+        selectionMethods.setMobileSelectionModalRowKey(null);
+        // This should only run when the user confirms the selection, so setMobileSelectionModeEnabled is left out of
+        // the dependencies below. It is redefined on every render, which would otherwise run this again straight away.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
+
+    useEffect(
+        () => () => {
+            releaseBackgroundInputFocusSuppressionRef.current?.();
+            releaseBackgroundInputFocusSuppressionRef.current = null;
+        },
+        [],
+    );
+
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
+        title,
+        listHeaderElement,
+        tableHeaderElement,
+        emptyStateElement,
+        noResultsStateElement,
+        listRef,
+        scrollbarWidth,
+        measureScrollbarRef,
+        listContainerRef,
+        trackScrollOffset,
+        scrollInputIntoView,
+        listProps,
+        processedData,
+        originalDataLength,
+        columns,
+        dynamicGridTemplateColumns,
+        scrollWidth: dynamicScrollWidth,
+        rowWidth: dynamicRowWidth,
+        columnResize,
+        tableWidth: contentWidth,
+        filterConfig: filters,
+        activeFilters: currentFilters,
+        activeSorting,
+        initialSortColumn,
+        initialSortOrder: initialSortOrder ?? CONST.SEARCH.SORT_ORDER.ASC,
+        narrowLayoutSortColumn,
+        activeSearchString,
+        tableMethods,
+        hasActiveFilters,
+        hasSearchString: hasActiveSearchString,
+        tableListMetadata,
+        isEmptyResult,
+        isDefaultViewEmpty,
+        shouldUseNarrowTableLayout,
+        shouldFooterRenderAsLastRow,
+        selectionEnabled,
+        shouldEnableSelectionInNarrowPaneModal,
+        isMobileSelectionEnabled,
+        onSearchStringChange,
+    };
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
+    // The selection checkbox renders as an extra leading column when selection is enabled (always visible in the wide
+    // web layout where semantics apply), so it has to be counted alongside the configured data columns.
+    const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
+
+    // In the normal inline semantic layout, an empty body with a list slot still needs its enclosing table wrapper.
+    // Page-header tables use TableBody's persistent full-layout wrapper as their semantic table ancestor.
+    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, listHeaderElement);
+
+    return (
+        <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
+            <TableSemanticContainer
+                isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
+                title={title}
+                rowCount={processedData.length}
+                columnCount={semanticColumnCount}
+                rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                shouldUseDynamicColumns={shouldUseDynamicColumns}
+                hasHeaderRow={rendersColumnHeader(tableListMetadata)}
+                // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
+                // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
+                scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
+                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
+                // Stored widths differ from the static tracks, so a resizable table can't paint before it's measured.
+                measureWidthRef={isColumnResizingEnabled ? getMeasureWidthRef(setTableWidth) : undefined}
+                onScopeElement={columnResize?.setScopeElement}
+            >
+                {renderedChildren}
+            </TableSemanticContainer>
+
+            <Modal
+                shouldPreventScrollOnFocus
+                isVisible={!!mobileSelectionModalRowKey}
+                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
+                onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                onModalHide={() => {
+                    if (mobileSelectionModalRowKeyRef.current) {
+                        return;
+                    }
+                    releaseBackgroundInputFocusSuppressionRef.current?.();
+                    releaseBackgroundInputFocusSuppressionRef.current = null;
+                    setShouldSubmitMobileSelection(false);
+                    setShouldSkipMobileSelectionFocusRestore(false);
+                }}
+            >
+                <View style={bottomSafeAreaPaddingStyle}>
+                    <MenuItemAction
+                        icon={icons.CheckSquare}
+                        title={translate('common.select')}
+                        onPress={handleMobileSelectionPress}
+                        testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
+                    />
+                </View>
+            </Modal>
+        </TableContext.Provider>
+    );
+}
+
+function TableWithStoredColumnWidths<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
+    props: TableProps<DataType, ColumnKey, FilterKey> & {columnResizingID: string},
+) {
+    const columnWidthOverrides = useStoredColumnWidths(props.columnResizingID);
+
+    return (
+        <TableContent
+            {...props}
+            columnWidthOverrides={columnWidthOverrides}
+        />
+    );
 }
 
 /**
@@ -257,321 +652,17 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
  * </Table>
  * ```
  */
-function Table<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
-    ref,
-    title,
-    columns,
-    filters,
-    data = [],
-    selectedKeys = [],
-    compareItems,
-    isItemInFilter,
-    isItemInSearch,
-    initialSortColumn,
-    initialSortOrder,
-    narrowLayoutSortColumn,
-    children,
-    selectionEnabled,
-    shouldEnableSelectionInNarrowPaneModal,
-    shouldUseDynamicColumns = false,
-    shouldAlwaysEnableSelection,
-    shouldPreserveSelectionOnSearchAndFilter,
-    shouldFooterRenderAsLastRow,
-    onRowSelectionChange,
-    onSearchStringChange,
-    onSortingChange,
-    ...listProps
-}: TableProps<DataType, ColumnKey, FilterKey>) {
-    const {translate} = useLocalize();
-    const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
-
-    // A table whose only purpose is picking rows is always in selection mode, so it shows its checkboxes from the
-    // start rather than hiding them behind a long press. It also leaves the app wide selection mode alone, which
-    // other screens write to and would otherwise clear the selection midway through.
-    const isMobileSelectionEnabled = !!shouldAlwaysEnableSelection || isGlobalMobileSelectionEnabled;
-
-    const setMobileSelectionModeEnabled = (isEnabled: boolean) => {
-        if (shouldAlwaysEnableSelection) {
-            return;
-        }
-
-        if (isEnabled) {
-            turnOnMobileSelectionMode();
-            return;
-        }
-
-        turnOffMobileSelectionMode();
-    };
-    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
-
-    if (!columns || columns.length === 0) {
-        throw new Error('Table columns must be provided');
+function Table<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(props: TableProps<DataType, ColumnKey, FilterKey>) {
+    // Only tables that opted into resizing subscribe to stored widths
+    if (!props.columnResizingID) {
+        return <TableContent {...props} />;
     }
 
-    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-    const originalSelectableCount = data.filter((item) => !item.disabled && !item.isSelectionDisabled).length;
-
-    const {middleware: filterMiddleware, currentFilters, hasActiveFilters, methods: filterMethods} = useFiltering<DataType, FilterKey>({filters, isItemInFilter});
-    const filteredData = filterMiddleware(data);
-
-    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods, hasActiveSearchString} = useSearching<DataType>({isItemInSearch});
-    const searchedData = searchMiddleware(filteredData);
-
-    const {
-        activeSorting,
-        methods: sortMethods,
-        middleware: sortMiddleware,
-    } = useSorting<DataType, ColumnKey>({
-        compareItems,
-        initialSortColumn,
-        initialSortOrder,
-        narrowLayoutSortColumn,
-        shouldUseNarrowTableLayout,
-        onSortingChange,
-    });
-    const sortedData = sortMiddleware(searchedData);
-
-    const {
-        methods: selectionMethods,
-        mobileSelectionModalRowKey,
-        middleware: selectionMiddleware,
-    } = useSelection<DataType>({
-        data: sortedData,
-        originalSelectableCount,
-        currentFilters,
-        activeSearchString,
-        selectedKeys,
-        onRowSelectionChange,
-        shouldEnableSelectionInNarrowPaneModal,
-        isSelectionModeEnabled: isMobileSelectionEnabled,
-        setSelectionModeEnabled: setMobileSelectionModeEnabled,
-        shouldPreserveSelectionOnSearchAndFilter,
-        shouldAlwaysEnableSelection,
-    });
-    const selectionData = selectionMiddleware(sortedData);
-
-    const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
-    const processedData = highlightMiddleware(selectionData);
-
-    const listRef = useRef<FlashListRef<DataType>>(null);
-    const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
-    const mobileSelectionModalRowKeyRef = useRef(mobileSelectionModalRowKey);
-    const [shouldSubmitMobileSelection, setShouldSubmitMobileSelection] = useState(false);
-    const [shouldSkipMobileSelectionFocusRestore, setShouldSkipMobileSelectionFocusRestore] = useState(false);
-    // Keeps the table search input visible above the keyboard when it is focused inside the
-    // scrolling list (native only; the web variant of the hook is a no-op).
-    const {isKeyboardShown} = useKeyboardState();
-    const {containerRef: listContainerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
-
-    const [tableWidth, setTableWidth] = useState(0);
-
-    const handleTableLayout = (event: LayoutChangeEvent) => {
-        setTableWidth(event.nativeEvent.layout.width);
-    };
-
-    // Narrow and medium layouts render as cards with no columns to size, and native can't measure text, so both keep the
-    // static tracks and never measure the table.
-    const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
-
-    // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
-    // searches or filters instead of reflowing on every keystroke.
-    const {gridTemplateColumns: dynamicGridTemplateColumns, scrollWidth: dynamicScrollWidth} = useDynamicColumnWidths<DataType, ColumnKey>({
-        columns,
-        data,
-        tableWidth,
-        isEnabled: isDynamicSizingEnabled,
-        // In the wide layout the checkbox column is rendered whenever selection is enabled.
-        hasSelectionColumn: !!selectionEnabled,
-    });
-
-    const tableMethods: TableMethods<ColumnKey, FilterKey> = {
-        ...filterMethods,
-        ...sortMethods,
-        ...searchMethods,
-        ...selectionMethods,
-        ...highlightingMethods,
-    };
-
-    const originalDataLength = data?.length ?? 0;
-    const isEmptyResult = processedData.length === 0 && originalDataLength > 0;
-
-    // Extract marker and state elements before deciding which children stay inline so ListHeader/Header declaration order does not matter.
-    const childrenArray = React.Children.map(children, (child) => child) ?? [];
-    const {listHeaderElement, tableHeaderElement, emptyStateElement, noResultsStateElement} = childrenArray.reduce<ExtractedTableChildren>((extractedChildren, child) => {
-        const isListHeader = isTableListHeaderElement(child);
-        const isHeader = isTableHeaderElement(child);
-        const isEmptyState = React.isValidElement(child) && child.type === TableEmptyState;
-        const isNoResultsState = React.isValidElement(child) && child.type === TableNoResultsState;
-
-        return {
-            listHeaderElement: extractedChildren.listHeaderElement ?? (isListHeader ? child.props.children : undefined),
-            tableHeaderElement: extractedChildren.tableHeaderElement ?? (isHeader ? child : undefined),
-            emptyStateElement: extractedChildren.emptyStateElement ?? (isEmptyState ? child : undefined),
-            noResultsStateElement: extractedChildren.noResultsStateElement ?? (isNoResultsState ? child : undefined),
-        };
-    }, {});
-    const hasPageHeader = !!listHeaderElement || !!listProps.ListHeaderComponent;
-    const renderedChildren = childrenArray.filter((child) => {
-        if (isTableListHeaderElement(child)) {
-            return false;
-        }
-
-        if (!hasPageHeader) {
-            return true;
-        }
-
-        return !isTableHeaderElement(child) && !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState));
-    });
-    const shouldRenderStickyHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
-
-    const tableListMetadata = useMemo(
-        () =>
-            getTableListMetadata({
-                listHeaderElement,
-                listHeaderComponent: listProps.ListHeaderComponent,
-                shouldRenderStickyHeader,
-            }),
-        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderStickyHeader],
-    );
-    /**
-     * Exposes table control methods through the ref.
-     * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
-     */
-    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata));
-
-    // The default (unfiltered) view can still resolve to zero visible rows when `isItemInFilter` hides items by
-    // default — e.g. the Workspaces list shows only active workspaces until the user opts into the archived filter.
-    // In that case the data exists but nothing is shown, so we surface the empty state instead of a blank body.
-    const isDefaultViewEmpty = processedData.length === 0 && originalDataLength > 0 && !hasActiveSearchString && !hasActiveFilters;
-
-    const handleMobileSelectionPress = () => {
-        if (!mobileSelectionModalRowKey) {
-            return;
-        }
-
-        const shouldSuppressFocusRestore = getPlatform() === CONST.PLATFORM.IOS;
-        if (shouldSuppressFocusRestore && !releaseBackgroundInputFocusSuppressionRef.current) {
-            releaseBackgroundInputFocusSuppressionRef.current = acquireBackgroundInputFocusSuppression();
-        }
-        setShouldSkipMobileSelectionFocusRestore(shouldSuppressFocusRestore);
-        setShouldSubmitMobileSelection(true);
-    };
-
-    useLayoutEffect(() => {
-        mobileSelectionModalRowKeyRef.current = mobileSelectionModalRowKey;
-    }, [mobileSelectionModalRowKey]);
-
-    useLayoutEffect(() => {
-        if (!shouldSubmitMobileSelection || !mobileSelectionModalRowKey) {
-            return;
-        }
-
-        setMobileSelectionModeEnabled(true);
-        selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
-        selectionMethods.setMobileSelectionModalRowKey(null);
-        // This should only run when the user confirms the selection, so setMobileSelectionModeEnabled is left out of
-        // the dependencies below. It is redefined on every render, which would otherwise run this again straight away.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
-
-    useEffect(
-        () => () => {
-            releaseBackgroundInputFocusSuppressionRef.current?.();
-            releaseBackgroundInputFocusSuppressionRef.current = null;
-        },
-        [],
-    );
-
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
-        title,
-        listHeaderElement,
-        tableHeaderElement,
-        emptyStateElement,
-        noResultsStateElement,
-        listRef,
-        listContainerRef,
-        trackScrollOffset,
-        scrollInputIntoView,
-        listProps,
-        processedData,
-        originalDataLength,
-        columns,
-        dynamicGridTemplateColumns,
-        filterConfig: filters,
-        activeFilters: currentFilters,
-        activeSorting,
-        initialSortColumn,
-        initialSortOrder: initialSortOrder ?? CONST.SEARCH.SORT_ORDER.ASC,
-        narrowLayoutSortColumn,
-        activeSearchString,
-        tableMethods,
-        hasActiveFilters,
-        hasSearchString: hasActiveSearchString,
-        tableListMetadata,
-        isEmptyResult,
-        isDefaultViewEmpty,
-        shouldUseNarrowTableLayout,
-        shouldFooterRenderAsLastRow,
-        selectionEnabled,
-        shouldEnableSelectionInNarrowPaneModal,
-        isMobileSelectionEnabled,
-        onSearchStringChange,
-    };
-
-    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
-
-    // The selection checkbox renders as an extra leading column when selection is enabled (always visible in the wide
-    // web layout where semantics apply), so it has to be counted alongside the configured data columns.
-    const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
-
-    // In the normal inline semantic layout, an empty body with a list slot still needs its enclosing table wrapper.
-    // Page-header tables use TableBody's persistent full-layout wrapper as their semantic table ancestor.
-    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, listHeaderElement);
-
     return (
-        <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            <TableSemanticContainer
-                isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
-                title={title}
-                rowCount={processedData.length}
-                columnCount={semanticColumnCount}
-                rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-                scrollWidth={dynamicScrollWidth}
-                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
-            >
-                {renderedChildren}
-            </TableSemanticContainer>
-
-            <Modal
-                shouldPreventScrollOnFocus
-                isVisible={!!mobileSelectionModalRowKey}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
-                onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
-                enableEdgeToEdgeBottomSafeAreaPadding
-                onModalHide={() => {
-                    if (mobileSelectionModalRowKeyRef.current) {
-                        return;
-                    }
-                    releaseBackgroundInputFocusSuppressionRef.current?.();
-                    releaseBackgroundInputFocusSuppressionRef.current = null;
-                    setShouldSubmitMobileSelection(false);
-                    setShouldSkipMobileSelectionFocusRestore(false);
-                }}
-            >
-                <View style={bottomSafeAreaPaddingStyle}>
-                    <MenuItemAction
-                        icon={icons.CheckSquare}
-                        title={translate('common.select')}
-                        onPress={handleMobileSelectionPress}
-                        testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
-                    />
-                </View>
-            </Modal>
-        </TableContext.Provider>
+        <TableWithStoredColumnWidths
+            {...props}
+            columnResizingID={props.columnResizingID}
+        />
     );
 }
 

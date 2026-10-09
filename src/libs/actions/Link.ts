@@ -7,6 +7,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import {hasJoinWorkspaceTaskParam} from '@libs/Navigation/helpers/isJoinWorkspaceTaskPath';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -32,7 +33,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {Beta, IntroSelected, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetailsList, Report, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -371,12 +372,13 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const focusedSearchReportActionRoute = getFocusedSearchReportActionRoute(reportLinkRouteParams, currentState);
     const routeToNavigate = reportLinkRoute ?? internalNewExpensifyPath;
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    const isOnboardingTaskLink = !!routeToNavigate && hasJoinWorkspaceTaskParam(routeToNavigate);
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen && !focusedSearchReportActionRoute) {
         const targetWillNavigateToRHP = willRouteNavigateToRHP(routeToNavigate as Route);
-        if (!targetWillNavigateToRHP) {
+        if (!targetWillNavigateToRHP && !isOnboardingTaskLink) {
             shouldCloseRHP = true;
-        } else if (hasSameOrigin) {
+        } else if (hasSameOrigin && !isOnboardingTaskLink) {
             // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
             // user sees only the RHP content update + the underlying tab animate, no close+reopen
             // flicker (issue: https://github.com/Expensify/App/issues/89710).
@@ -431,9 +433,9 @@ function openReportFromDeepLink(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
     callerAccountID: number,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    conciergePersonalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -454,7 +456,6 @@ function openReportFromDeepLink(
             personalDetails: undefined,
             parentReportActionID: '0',
             isFromDeepLink: true,
-            betas,
             hasReportActions: false,
             currentUserAccountID: callerAccountID,
         });
@@ -567,7 +568,9 @@ function openReportFromDeepLink(
                         const currentFocusedRoute = findFocusedRoute(state);
 
                         if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                            setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                            if (hasCompletedGuidedSetupFlowSelector(val) === false) {
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                            }
                             return;
                         }
 
@@ -608,7 +611,7 @@ function openReportFromDeepLink(
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                     return;
                                 }
-                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
                                 return;
                             }
 

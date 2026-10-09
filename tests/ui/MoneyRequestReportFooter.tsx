@@ -2,15 +2,16 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type {MenuItemProps} from '@components/MenuItem';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
+import type {ExpenseFieldRowProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
+import ManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/ManualFooter';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -21,23 +22,22 @@ import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/t
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-    getActiveRoute: jest.fn(() => 'activeRoute'),
-}));
-
-jest.mock('@components/MenuItemWithTopDescription', () => {
+// The manual form renders its selectable rows as bordered fields, stood in for a plain View exposing name, value and
+// disabled state.
+jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View, Text} = require('react-native');
-    return (props: MenuItemProps) => (
+    return (props: ExpenseFieldRowProps) => (
         <View
-            testID={`menu-item-${props.description}`}
-            accessibilityLabel={props.description}
+            testID={`menu-item-${props.name}`}
+            accessibilityLabel={props.name}
             onPress={props.onPress}
-            accessibilityState={{disabled: !props.interactive}}
+            // Mirrors the component's own `isInteractive = true` default, so a row that simply omits the prop
+            // does not read as disabled.
+            accessibilityState={{disabled: !(props.isInteractive ?? true)}}
         >
-            <Text>{props.description}</Text>
-            <Text>{props.title}</Text>
+            <Text>{props.name}</Text>
+            <Text>{props.value}</Text>
         </View>
     );
 });
@@ -113,7 +113,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             customUnitRateID: undefined,
         },
         amountDisplay: {amount: 10000, formattedAmount: '100', formattedAmountPerAttendee: '50'},
-        requiredFlags: {isCategoryRequired: false, isMerchantRequired: false, isDescriptionRequired: false},
+        requiredFlags: {isCategoryRequired: false, isMerchantRequired: false, isDescriptionRequired: false, descriptionHint: ''},
         visibilityFlags: {
             shouldShowSmartScanFields: false,
             shouldShowAmountField: true,
@@ -121,8 +121,9 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             shouldShowCategories: false,
             shouldShowTax: false,
             isParticipantPickerVisible: false,
+            hasParticipantSection: false,
         },
-        errorState: {shouldDisplayFieldError: false, formError: '', clearFormErrors: jest.fn(), setFormError: jest.fn()},
+        errorState: {shouldDisplayFieldError: false, formError: 'common.error.fieldRequired' as TranslationPaths, clearFormErrors: jest.fn(), setFormError: jest.fn()},
         receiptOptions: {
             receiptFilename: '',
             receiptPath: '',
@@ -135,7 +136,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <ScreenWrapper testID="MoneyRequestConfirmationListFooter">
                 <ConfirmationFieldsProvider {...providerProps}>
-                    <MoneyRequestConfirmationListFooter {...defaultProps} />
+                    <ManualFooter {...defaultProps} />
                 </ConfirmationFieldsProvider>
             </ScreenWrapper>
         </ComposeProviders>,

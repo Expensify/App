@@ -92,7 +92,8 @@ When issuing a card, you can also apply an existing Spend Rule or create a new o
    - Limit type
    - Card name
    - Deactivation
-4. To change the linked bank account, update settlement frequency, or manage cash back settings, click **Settings**.
+4. On the web, you can also hover over a card's **Name**, **Limit type**, or **Limit** in the list and click the pencil icon that appears to edit it inline.
+5. To change the linked bank account, update settlement frequency, or manage cash back settings, click **Settings**.
 
 Your workspace also has built-in default protections that automatically block certain transaction categories on every Expensify Card, and you can set Spend Rules to approve or decline transactions in real time. To learn more, [learn how to set up Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
@@ -115,6 +116,7 @@ Settlement frequency controls how often Expensify pulls from your settlement acc
 Selecting an option does not change the setting on its own — the new frequency is saved only when you click **Save**. **Save** stays disabled until the option you select is different from the one currently saved, so leaving the page without clicking **Save** keeps your existing frequency. After you click **Save**, you return to the Expensify Card **Settings** page and the **Settlement frequency** row shows the new value.
 
 To switch to **Monthly**, you'll need to connect your bank account via Plaid and have a positive 90-day balance history.
+
 
 ## When your Expensify Cards settle each month
 
