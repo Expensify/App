@@ -61,6 +61,9 @@ type TableSemanticContainerProps = {
      */
     onLayout: ((event: LayoutChangeEvent) => void) | undefined;
 
+    /** Measures the same node as `onLayout` as soon as it mounts, ahead of the first paint. */
+    measureWidthRef: ((node: unknown) => void) | undefined;
+
     /** Receives the element the resizable columns' widths are written on. Set only when column resizing is enabled. */
     onScopeElement: ((element: HTMLElement | null) => void) | undefined;
 
@@ -89,6 +92,7 @@ function TableSemanticContainer({
     hasHeaderRow,
     scrollWidth,
     onLayout,
+    measureWidthRef,
     onScopeElement,
     children,
 }: TableSemanticContainerProps) {
@@ -127,6 +131,7 @@ function TableSemanticContainer({
                 // it doesn't. Either way the measured node keeps the table's own width rather than growing with the
                 // content, so measuring it can't feed back into the widths it produced.
                 onLayout={scrollWidth ? undefined : onLayout}
+                ref={scrollWidth ? undefined : measureWidthRef}
                 {...getTableContainerAccessibilityProps(isEnabled, title, rowCount, columnCount, hasHeaderRow)}
             >
                 {rowGroup}
@@ -148,6 +153,7 @@ function TableSemanticContainer({
                         style={[styles.flex1, styles.mnh0]}
                         contentContainerStyle={StyleUtils.getWidthStyle(scrollWidth)}
                         onLayout={onLayout}
+                        ref={measureWidthRef}
                     >
                         {rowGroupContainer}
                     </ScrollView>

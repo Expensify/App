@@ -33,6 +33,7 @@ import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
 import {getDataVisibleIndices, getListIndex, getTableListMetadata, rendersColumnHeader} from './buildTableListData';
+import getMeasureWidthRef from './columnResize/getMeasureWidthRef';
 import useColumnResize from './columnResize/useColumnResize';
 import useStoredColumnWidths from './columnResize/useStoredColumnWidths';
 import useFiltering from './middlewares/filtering';
@@ -601,6 +602,8 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
                 // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
                 scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
+                // Stored widths differ from the static tracks, so a resizable table can't paint before it's measured.
+                measureWidthRef={isColumnResizingEnabled ? getMeasureWidthRef(setTableWidth) : undefined}
                 onScopeElement={columnResize?.setScopeElement}
             >
                 {renderedChildren}
