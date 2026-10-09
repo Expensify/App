@@ -1,4 +1,5 @@
 import isHTMLElement from '@libs/isHTMLElement';
+import {nominateTriggerFallback} from '@libs/NavigationFocusReturn';
 import markProgrammaticFocus from '@libs/programmaticFocus';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 
@@ -48,6 +49,10 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByOverlay
             }
 
             lastFocusedOutsideRef.current = target;
+            // An action that opens a screen is navigated back from, and the restore that follows aims at the bar
+            // button it was opened from, which the cleared selection has taken away by then. This is the survivor to
+            // aim at instead, and it is offered here rather than on unmount because the capture happens first.
+            nominateTriggerFallback(target);
         };
 
         // Focus can also leave for nothing at all, such as an element being removed, which fires no matching focusin.
@@ -74,6 +79,8 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByOverlay
     // read the focus before the bar leaves the DOM.
     useLayoutEffect(
         () => () => {
+            nominateTriggerFallback(null);
+
             const bar = barRef.current;
             const active = document.activeElement;
 

@@ -40,6 +40,7 @@ const {resetForTests: resetHadTabNavigation, setupHadTabNavigation} = require<{
 }>('../../src/libs/hadTabNavigation.ts');
 const {
     captureTriggerForRoute,
+    nominateTriggerFallback,
     restoreTriggerForRoute,
     handleStateChange,
     resetForTests,
@@ -55,6 +56,7 @@ const {
     teardownNavigationFocusReturn,
 } = require<{
     captureTriggerForRoute: (routeKey: string) => void;
+    nominateTriggerFallback: (element: HTMLElement | null) => void;
     restoreTriggerForRoute: (routeKey: string) => boolean;
     handleStateChange: (state: unknown) => void;
     resetForTests: () => void;
@@ -3081,5 +3083,69 @@ describe('teardown / setup lifecycle', () => {
             navigationRef.isReady = originalIsReady;
             navigationRef.getRootState = originalGetRootState;
         }
+    });
+});
+
+describe('nominateTriggerFallback', () => {
+    beforeEach(() => {
+        simulateTab();
+    });
+
+    it('should restore the nominated element when the captured trigger has been removed', () => {
+        // Given a row the user came from, and a bulk action bar button that opened the route. The bar goes away with
+        // the selection the route cleared, so by the time the route pops its button is detached.
+        const row = appendButton();
+        const barButton = appendButton();
+        row.focus();
+        row.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        nominateTriggerFallback(row);
+        barButton.focus();
+        setLastInteractiveElementForTests(barButton);
+
+        captureTriggerForRoute('route-a');
+        barButton.remove();
+
+        // When the route pops
+        const rowSpy = jest.spyOn(row, 'focus');
+
+        // Then focus returns to the row rather than being lost for want of a candidate
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(rowSpy).toHaveBeenCalled();
+    });
+
+    it('should stop offering the element once the nomination is withdrawn', () => {
+        const row = appendButton();
+        const barButton = appendButton();
+        nominateTriggerFallback(row);
+        nominateTriggerFallback(null);
+        barButton.focus();
+        setLastInteractiveElementForTests(barButton);
+
+        captureTriggerForRoute('route-a');
+        barButton.remove();
+
+        // Then there is nothing left to restore to, as before the nomination existed
+        expect(restoreTriggerForRoute('route-a')).toBe(false);
+    });
+
+    it('should leave an active launcher as the fallback', () => {
+        // Given a popover launcher, which is the caller the existing fallback slot belongs to
+        const row = appendButton();
+        const launcher = appendButton();
+        const menuItem = appendButton();
+        nominateTriggerFallback(row);
+        setActivePopoverLauncher(launcher);
+        menuItem.focus();
+        menuItem.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+        captureTriggerForRoute('route-a');
+        menuItem.remove();
+
+        // Then the launcher is restored, and the nomination does not displace it
+        const launcherSpy = jest.spyOn(launcher, 'focus');
+        const rowSpy = jest.spyOn(row, 'focus');
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(launcherSpy).toHaveBeenCalled();
+        expect(rowSpy).not.toHaveBeenCalled();
     });
 });
