@@ -42,7 +42,6 @@ describe('useFetchRoute', () => {
             comment: {
                 customUnit: {quantity: 100, routeDistanceMeters: 1000},
             },
-            routes: null,
             commuterExclusionPreview: null,
         });
 
@@ -69,10 +68,11 @@ describe('useFetchRoute', () => {
             comment: {
                 customUnit: {quantity: 100, routeDistanceMeters: 1000},
             },
-            routes: null,
             commuterExclusionPreview: {
                 policyID: 'policy1',
-                reimbursableDistanceInMeters: 800,
+                hasExclusion: false,
+                isWholeTripExcluded: false,
+                commuteDistanceMeters: 0,
             },
         });
 
@@ -96,7 +96,6 @@ describe('useFetchRoute', () => {
             comment: {
                 customUnit: {quantity: 100, routeDistanceMeters: 1000},
             },
-            routes: null,
             commuterExclusionPreview: null,
         });
 
