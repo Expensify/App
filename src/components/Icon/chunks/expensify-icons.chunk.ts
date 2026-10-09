@@ -165,6 +165,7 @@ import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
+import ZohoBooksSquare from '@assets/images/integrationicons/zoho-books-icon-square.svg';
 import InvoiceBookmark from '@assets/images/invoice-bookmark.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
@@ -609,6 +610,7 @@ const Expensicons = {
     ApplePayMark,
     Contactless,
     CampfireSquare,
+    ZohoBooksSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons
