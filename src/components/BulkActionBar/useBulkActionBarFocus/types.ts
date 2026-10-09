@@ -12,9 +12,9 @@ type BulkActionBarFocus = {
 };
 
 /**
- * `isScreenFocused` is false while a screen is open over the one the bar is on, which is how focus taken by that
- * screen is told apart from focus still on the table behind it.
+ * `isCoveredByOverlay` is true while a screen or a popover is open over the bar. Focus landing outside the bar then
+ * belongs to that overlay rather than to the table, and leaves with it, so it is no use as a hand-back target.
  */
-type UseBulkActionBarFocus = (barRef: RefObject<unknown>, isScreenFocused: boolean) => BulkActionBarFocus;
+type UseBulkActionBarFocus = (barRef: RefObject<unknown>, isCoveredByOverlay: boolean) => BulkActionBarFocus;
 
 export default UseBulkActionBarFocus;

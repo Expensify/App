@@ -19,7 +19,7 @@ function isShowingFocusRing(element: HTMLElement): boolean {
 }
 
 /** Tracks where focus is relative to the bar, and hands it back when the bar goes away holding it. */
-const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isScreenFocused) => {
+const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByOverlay) => {
     // Where focus was before the bar took it. The bar goes away with the selection, so focus has to be handed back.
     const lastFocusedOutsideRef = useRef<HTMLElement | null>(null);
 
@@ -40,9 +40,10 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isScreenFocused) =
 
             setIsFocusInsideBar(false);
 
-            // A screen opened over this one, such as the role screen, takes focus to controls that leave with it.
-            // Remembering one of those would leave the bar holding a target that is already gone when it needs one.
-            if (!isScreenFocused) {
+            // The role screen and the bar's own "More" menu both take focus to controls that leave with them, and the
+            // menu renders in a popover outside the bar rather than within it. Remembering either would leave the bar
+            // holding a target that is already gone when it needs one.
+            if (isCoveredByOverlay) {
                 return;
             }
 
@@ -65,7 +66,7 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isScreenFocused) =
             document.removeEventListener('focusin', handleFocusIn);
             document.removeEventListener('focusout', handleFocusOut);
         };
-    }, [barRef, isScreenFocused]);
+    }, [barRef, isCoveredByOverlay]);
 
     // Most of the bar's actions clear the selection themselves, so the bar is torn out from under the button that was
     // just pressed and focus would fall to the document. Handing it back here covers every one of those actions,

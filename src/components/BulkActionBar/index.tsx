@@ -85,8 +85,14 @@ function BulkActionBarContent<TValueType>({
 
     const isFocused = useIsFocused();
 
+    // Esc clears the selection, but not while something is open over the bar. An RHP the bar is rendered inside
+    // reports itself visible too, and is told apart by the screen still being focused. The type is not worth reading
+    // here, because a popover opened and closed over an RHP leaves it stale at `popover`.
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const isCoveredByModal = !!modal?.isVisible && !isFocused;
+
     const barElementRef = useRef<ComponentRef<typeof View> | null>(null);
-    const {suppressStrayFocusRing, isFocusInsideBar} = useBulkActionBarFocus(barElementRef, isFocused);
+    const {suppressStrayFocusRing, isFocusInsideBar} = useBulkActionBarFocus(barElementRef, !isFocused || !!modal?.isVisible);
 
     const moreAnchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
@@ -97,12 +103,6 @@ function BulkActionBarContent<TValueType>({
     const hasMoreMenu = options.length > inlineActionCount;
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
-
-    // Esc clears the selection, but not while something is open over the bar. An RHP the bar is rendered inside
-    // reports itself visible too, and is told apart by the screen still being focused. The type is not worth reading
-    // here, because a popover opened and closed over an RHP leaves it stale at `popover`.
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const isCoveredByModal = !!modal?.isVisible && !isFocused;
 
     const canOwnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
 

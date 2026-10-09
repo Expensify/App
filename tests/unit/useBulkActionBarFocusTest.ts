@@ -10,7 +10,7 @@ import type {RefObject} from 'react';
 
 // Jest resolves index.native.ts by default, and that one is a no-op.
 const useBulkActionBarFocus = require<{
-    default: (barRef: RefObject<unknown>, isScreenFocused: boolean) => {suppressStrayFocusRing: () => void; isFocusInsideBar: boolean};
+    default: (barRef: RefObject<unknown>, isCoveredByOverlay: boolean) => {suppressStrayFocusRing: () => void; isFocusInsideBar: boolean};
 }>('../../src/components/BulkActionBar/useBulkActionBarFocus/index.ts').default;
 
 function createButton(label: string) {
@@ -38,7 +38,7 @@ describe('useBulkActionBarFocus', () => {
         bar.appendChild(barButton);
         document.body.appendChild(bar);
 
-        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, true));
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
 
         focus(row);
         focus(barButton);
@@ -58,11 +58,11 @@ describe('useBulkActionBarFocus', () => {
         document.body.appendChild(bar);
         const save = createButton('Save');
 
-        const {rerender, unmount} = renderHook(({isScreenFocused}) => useBulkActionBarFocus({current: bar}, isScreenFocused), {initialProps: {isScreenFocused: true}});
+        const {rerender, unmount} = renderHook(({isCoveredByOverlay}) => useBulkActionBarFocus({current: bar}, isCoveredByOverlay), {initialProps: {isCoveredByOverlay: false}});
 
         focus(row);
 
-        rerender({isScreenFocused: false});
+        rerender({isCoveredByOverlay: true});
         focus(save);
 
         // When that screen saves and leaves, so its own controls are gone and focus has fallen to the document
@@ -84,7 +84,7 @@ describe('useBulkActionBarFocus', () => {
         const bar = document.createElement('div');
         document.body.appendChild(bar);
 
-        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, true));
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
 
         focus(row);
         focus(other);
@@ -95,5 +95,31 @@ describe('useBulkActionBarFocus', () => {
 
         // Then the control the user is actually on keeps focus
         expect(document.activeElement).toBe(other);
+    });
+
+    it('keeps the table target when focus passes through the bar\'s own "More" menu', () => {
+        // Given a row focused on the table, then the bar's "More" menu opened over it. The menu renders in a popover
+        // portalled to the body, so its items are outside the bar in the DOM but on the same screen.
+        const row = createButton('Row');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+        const menuItem = createButton('Remove members');
+
+        const {rerender, unmount} = renderHook(({isCoveredByOverlay}) => useBulkActionBarFocus({current: bar}, isCoveredByOverlay), {initialProps: {isCoveredByOverlay: false}});
+
+        focus(row);
+
+        rerender({isCoveredByOverlay: true});
+        focus(menuItem);
+
+        // When the chosen action clears the selection, so the menu has closed and the bar unmounts with it
+        act(() => menuItem.remove());
+        rerender({isCoveredByOverlay: false});
+
+        unmount();
+        bar.remove();
+
+        // Then focus is back on the row, rather than lost because the menu item was remembered and is now gone
+        expect(document.activeElement).toBe(row);
     });
 });
