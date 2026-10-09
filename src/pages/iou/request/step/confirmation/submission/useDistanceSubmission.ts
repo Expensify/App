@@ -1,6 +1,8 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
@@ -13,7 +15,7 @@ import {createDistanceRequest as createDistanceRequestIOUActions} from '@userAct
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ParticipantsPolicyTags, PersonalDetailsList, PolicyCategories, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -21,14 +23,15 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import type {RefObject} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import type {CreateTransactionParams, SubmissionHandle} from './types';
-import type {DistanceDraftData} from './useDistanceDraftData';
-import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
 
+import useDistanceDraftData from './useDistanceDraftData';
+import useSubmissionOnboardingIntent from './useSubmissionOnboardingIntent';
+import useSubmissionRecentlyUsedData from './useSubmissionRecentlyUsedData';
+import useSubmissionViolations from './useSubmissionViolations';
 import getSelectedParticipantsForSubmission from './utils/getSelectedParticipantsForSubmission';
 import performPostBatchCleanup from './utils/performPostBatchCleanup';
 
@@ -47,23 +50,11 @@ type UseDistanceSubmissionParams = TransactionTaxValues & {
     isGPSDistanceRequest: boolean;
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
-    isTrackIntentUser: boolean;
     backToReport?: string;
     draftTransactionIDs: string[] | undefined;
-    isLookingAroundUser: boolean;
     isSelfDMDestination: boolean;
     action: DeepValueOf<typeof CONST.IOU.ACTION>;
     onExpenseWriteWillStart?: () => void;
-
-    /** TEMP: hoisted in useExpenseSubmission so these Onyx keys open once across all mounted submission hooks.
-     *  Read them here again once the page forks into per-path variants and only one hook mounts. */
-    recentlyUsedData: SubmissionRecentlyUsedData;
-    rules: OnyxCollection<Rule>;
-    quickAction: OnyxEntry<QuickAction>;
-    transactionViolationsRef: RefObject<OnyxCollection<TransactionViolation[]>>;
-    distanceDraftData: DistanceDraftData;
-    delegateAccountID: number | undefined;
-    participantsPolicyTags: ParticipantsPolicyTags;
 };
 
 /** Hook implementing the distance-request submission path (CreateDistanceRequest) for the expense confirmation screen. */
@@ -82,23 +73,14 @@ function useDistanceSubmission({
     isGPSDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
-    isTrackIntentUser,
     transactionTaxCode,
     transactionTaxAmount,
     transactionTaxValue,
     backToReport,
     draftTransactionIDs,
-    isLookingAroundUser,
     isSelfDMDestination,
     action,
     onExpenseWriteWillStart,
-    recentlyUsedData,
-    rules,
-    quickAction,
-    transactionViolationsRef,
-    distanceDraftData,
-    delegateAccountID,
-    participantsPolicyTags,
 }: UseDistanceSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -106,8 +88,20 @@ function useDistanceSubmission({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
-    const {gpsDraftDetails, recentWaypoints, odometerDraft, originalTransactionDistance, modifiedTransactionDistance} = distanceDraftData;
+    const {isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
+    const delegateAccountID = useDelegateAccountID();
+    const {transactionViolationsRef} = useSubmissionViolations();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const participantsPolicyTags = useParticipantsPolicyTags(selectedParticipants);
+
+    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policy?.id);
+    const {gpsDraftDetails, recentWaypoints, odometerDraft, originalTransactionDistance, modifiedTransactionDistance} = useDistanceDraftData({
+        transaction,
+        isGPSDistanceRequest,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
 
     const selectedParticipantsForRequest = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);

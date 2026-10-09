@@ -28,7 +28,6 @@ import type {SubmitLock} from './submission/useSubmitLock';
 import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 
 import useDistanceDraftData from './submission/useDistanceDraftData';
-import useDistanceSubmission from './submission/useDistanceSubmission';
 import useGpsCapture from './submission/useGpsCapture';
 import useRequestMoneySubmission from './submission/useRequestMoneySubmission';
 import useSplitSubmission from './submission/useSplitSubmission';
@@ -291,40 +290,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         participantsPolicyTags,
     });
 
-    const distanceSubmission = useDistanceSubmission({
-        transaction,
-        transactions,
-        receiptFiles,
-        report,
-        reportDrafts,
-        policy,
-        policyCategories,
-        personalDetails,
-        currentUserPersonalDetails,
-        selectedParticipants,
-        iouType,
-        isGPSDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-        isTrackIntentUser,
-        transactionTaxCode,
-        transactionTaxAmount,
-        transactionTaxValue,
-        backToReport,
-        draftTransactionIDs,
-        isLookingAroundUser,
-        isSelfDMDestination,
-        action,
-        onExpenseWriteWillStart,
-        recentlyUsedData,
-        rules,
-        quickAction,
-        transactionViolationsRef,
-        distanceDraftData,
-        delegateAccountID,
-        participantsPolicyTags,
-    });
-
     // Which API command a submission will run. Resolved here rather than inside createTransaction because every
     // input is render-time state - that is what lets each path own its own hook once this file is split up.
     const submissionPath = resolveSubmissionPath({
@@ -340,16 +305,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isSubmittingExpenseToDraftWorkspace,
     });
 
-    // Invoices and per diem submit through their own variants; this composer only serves the paths that haven't forked yet.
-    const submitByPath: Record<Exclude<SubmissionPath, typeof SUBMISSION_PATH.INVOICE | typeof SUBMISSION_PATH.PER_DIEM>, (params: CreateTransactionParams) => boolean> = {
-        [SUBMISSION_PATH.DISTANCE]: distanceSubmission.createTransaction,
+    // Distance, invoice and per diem submit through their own variants; this composer only serves the paths that haven't forked yet.
+    const submitByPath: Record<
+        Exclude<SubmissionPath, typeof SUBMISSION_PATH.DISTANCE | typeof SUBMISSION_PATH.INVOICE | typeof SUBMISSION_PATH.PER_DIEM>,
+        (params: CreateTransactionParams) => boolean
+    > = {
         [SUBMISSION_PATH.SPLIT]: splitSubmission.createTransaction,
         [SUBMISSION_PATH.TRACK]: trackSubmission.createTransaction,
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
     function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams): boolean {
-        if (submissionPath === SUBMISSION_PATH.INVOICE || submissionPath === SUBMISSION_PATH.PER_DIEM) {
+        if (submissionPath === SUBMISSION_PATH.DISTANCE || submissionPath === SUBMISSION_PATH.INVOICE || submissionPath === SUBMISSION_PATH.PER_DIEM) {
             return false;
         }
         getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);

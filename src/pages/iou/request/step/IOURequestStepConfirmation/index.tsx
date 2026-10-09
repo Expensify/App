@@ -92,6 +92,7 @@ import type {ConfirmationVariantProps} from './variants/types';
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
 import useParticipantPickerState from './useParticipantPickerState';
 import useSubmitDestinationPreMount from './useSubmitDestinationPreMount';
+import DistanceConfirmation from './variants/DistanceConfirmation';
 import InvoiceConfirmation from './variants/InvoiceConfirmation';
 import LegacyConfirmation from './variants/LegacyConfirmation';
 import PayConfirmation from './variants/PayConfirmation';
@@ -687,6 +688,14 @@ function IOURequestStepConfirmationContent({
         }
 
         switch (submissionPath) {
+            case SUBMISSION_PATH.DISTANCE:
+                return (
+                    <DistanceConfirmation
+                        submissionParams={submissionParams}
+                        orchestratorProps={orchestratorProps}
+                        listProps={listProps}
+                    />
+                );
             case SUBMISSION_PATH.INVOICE:
                 return (
                     <InvoiceConfirmation
