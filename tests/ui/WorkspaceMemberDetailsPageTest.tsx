@@ -17,6 +17,7 @@ import {generateAccountID} from '@libs/UserUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import WorkspaceMemberDetailsPage from '@pages/workspace/members/WorkspaceMemberDetailsPage';
+import WorkspaceMemberDetailsRolePage from '@pages/workspace/members/WorkspaceMemberDetailsRolePage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +49,24 @@ const renderPage = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WOR
                         <Stack.Screen
                             name={SCREENS.WORKSPACE.MEMBER_DETAILS}
                             component={WorkspaceMemberDetailsPage}
+                            initialParams={initialParams}
+                        />
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </PortalProvider>
+        </ComposeProviders>,
+    );
+};
+
+const renderRolePage = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]) => {
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrentReportIDContextProvider, ModalProvider, PersonalDetailsByLoginProvider]}>
+            <PortalProvider>
+                <NavigationContainer>
+                    <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE}>
+                        <Stack.Screen
+                            name={SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE}
+                            component={WorkspaceMemberDetailsRolePage}
                             initialParams={initialParams}
                         />
                     </Stack.Navigator>
@@ -261,6 +280,24 @@ describe('WorkspaceMemberDetailsPage', () => {
             expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
         });
         expect(screen.getAllByText('Invited User').length).toBeGreaterThan(0);
+        expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should keep showing the member role page when the route holds a stale optimistic accountID', async () => {
+        // Given a Role page opened while the invite was in flight and its route holds the login-derived optimistic accountID
+        const staleOptimisticAccountID = generateAccountID(invitedEmail);
+
+        // When the invite has completed and the Role page renders
+        const {unmount} = renderRolePage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the member role page remains available after personal details have swapped to the real accountID
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsRolePage')).toBeOnTheScreen();
+        });
         expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
 
         unmount();

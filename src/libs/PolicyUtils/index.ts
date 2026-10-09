@@ -257,6 +257,15 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
 }
 
+function getMemberLoginByOptimisticAccountID(policy: OnyxEntry<Policy>, accountID: number) {
+    const matchesOptimisticAccountID = (login: string) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
+    const primaryLoginOfInvitedSecondary = Object.entries(policy?.primaryLoginsInvited ?? {}).find(([secondaryLogin]) => matchesOptimisticAccountID(secondaryLogin))?.[1];
+    if (primaryLoginOfInvitedSecondary) {
+        return primaryLoginOfInvitedSecondary;
+    }
+    return Object.keys(policy?.employeeList ?? {}).find(matchesOptimisticAccountID) ?? '';
+}
+
 // Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
 function canMemberAssignElevatedRole(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
     return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES) || canMemberAssignRole(policy, login, CONST.POLICY.ROLE.AUDITOR);
@@ -2790,6 +2799,7 @@ export {
     canMemberRead,
     canMemberWrite,
     canMemberAssignRole,
+    getMemberLoginByOptimisticAccountID,
     canMemberAssignElevatedRole,
     canMemberManageMemberWithRole,
     isGroupPolicy,
