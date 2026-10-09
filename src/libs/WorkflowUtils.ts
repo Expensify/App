@@ -2069,4 +2069,4 @@ export {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 };
-export type {ApprovalWorkflowRulesDiff, PolicyConversionResult};
+export type {ApprovalWorkflowRulesDiff};
