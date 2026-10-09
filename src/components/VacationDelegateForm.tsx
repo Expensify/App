@@ -172,7 +172,6 @@ function VacationDelegateForm({
                         defaultValue={savedClearDate}
                         minDate={getLocalDateFromDatetime(undefined, timezone)}
                         icon={icons.CalendarSolid}
-                        shouldForceActiveLabel={false}
                         shouldKeepCalendarIconWhenSelected
                         shouldHideClearButton
                         shouldSaveDraft

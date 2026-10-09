@@ -185,7 +185,8 @@ describe('VacationDelegateFormPage', () => {
         fireEvent.press(screen.getByTestId('select-delegate-b-with-date'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the backend gets the datetime to clear the delegate at, and the confirmed datetime is kept so a failure can restore it
+        // Then the backend gets the datetime to clear the delegate at, the confirmed datetime is kept so a failure can restore it,
+        // and the pick is only applied once the backend saved it, since the response can still be a 305
         expect(apiSideEffectSpy).toHaveBeenLastCalledWith(
             SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
             expect.objectContaining({vacationDelegateEmail: DELEGATE_B_EMAIL, clearAfter: CLEAR_AFTER}),
@@ -193,13 +194,12 @@ describe('VacationDelegateFormPage', () => {
                 optimisticData: [
                     expect.objectContaining({
                         value: expect.objectContaining({
-                            delegate: DELEGATE_B_EMAIL,
-                            clearAfter: CLEAR_AFTER,
                             previousDelegate: ORIGINAL_DELEGATE_EMAIL,
                             previousClearAfter: ORIGINAL_CLEAR_AFTER,
                         }),
                     }),
                 ],
+                successData: [expect.objectContaining({value: expect.objectContaining({delegate: DELEGATE_B_EMAIL, clearAfter: CLEAR_AFTER})})],
             }),
         );
     });
@@ -220,7 +220,7 @@ describe('VacationDelegateFormPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the delegate is deleted, since removal now lives on the form instead of re-picking the same member
-        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, null, expect.anything());
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, null, expect.anything(), expect.anything());
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.route);
     });
 
@@ -436,12 +436,13 @@ describe('VacationDelegateFormPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the rollback target is the original confirmed delegate, not the unconfirmed delegateA; the API call is
-        // mocked out, so the optimistic data it was handed is where that target is visible
+        // mocked out, so the optimistic and success data it was handed are where that target and the pick are visible
         expect(apiSideEffectSpy).toHaveBeenLastCalledWith(
             SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
             expect.objectContaining({vacationDelegateEmail: DELEGATE_B_EMAIL}),
             expect.objectContaining({
-                optimisticData: [expect.objectContaining({value: expect.objectContaining({delegate: DELEGATE_B_EMAIL, previousDelegate: ORIGINAL_DELEGATE_EMAIL})})],
+                optimisticData: [expect.objectContaining({value: expect.objectContaining({previousDelegate: ORIGINAL_DELEGATE_EMAIL})})],
+                successData: [expect.objectContaining({value: expect.objectContaining({delegate: DELEGATE_B_EMAIL})})],
             }),
         );
     });

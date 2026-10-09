@@ -1,4 +1,5 @@
 import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
+import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
 
@@ -6,7 +7,10 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -29,9 +33,25 @@ describe('actions/VacationDelegate', () => {
     afterEach(() => jest.restoreAllMocks());
 
     describe('setVacationDelegate', () => {
+        /**
+         * Mocks the side effect request so it applies the optimistic data it is handed, then runs `respond` for the response. This is
+         * what the real request pipeline does, so the test sees what the action itself writes before the response arrives.
+         */
+        function mockSideEffectRequest(respond: () => Response<OnyxKey> | Promise<Response<OnyxKey>>) {
+            return jest.spyOn(API, 'makeRequestWithSideEffects').mockImplementation(async (_command, _parameters, onyxData) => {
+                await Onyx.update(onyxData?.optimisticData ?? []);
+                return respond();
+            });
+        }
+
+        /** Builds the 305 policy diff warning Auth sends when the picked delegate is missing from some of the vacationer's workspaces */
+        function getPolicyDiffWarningResponse(policyDiff = {adminPolicies: ['1'], nonAdminPolicies: [] as string[]}): Response<OnyxKey> {
+            return {jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff, phpCommandName: 'SetVacationDelegate', authWriteCommands: []}};
+        }
+
         it('sends SetVacationDelegate with the mapped params and clears policyDiff optimistically', async () => {
             // Given the API side-effect call is mocked, since only the shape of the outgoing request matters here
-            const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
+            const apiSideEffectSpy = mockSideEffectRequest(() => ({jsonCode: CONST.JSON_CODE.SUCCESS}));
 
             // When a delegate is picked while another delegate is already saved
             await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
@@ -64,6 +84,11 @@ describe('actions/VacationDelegate', () => {
             // failureData would make the request pipeline write an error we immediately have to clear, flashing a red
             // brick road. The action applies it from the response instead.
             expect(apiSideEffectSpy.mock.calls.at(0)?.at(2)).not.toHaveProperty('failureData');
+
+            // Then the pick is only in the success data, because the response can still be a 305 and applying it optimistically would flash it on Profile
+            const onyxData = apiSideEffectSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.optimisticData?.at(0)?.value).not.toHaveProperty('delegate');
+            expect(onyxData?.successData?.at(0)?.value).toEqual(expect.objectContaining({creator: 'admin@test.com', delegate: 'delegate@test.com'}));
         });
 
         it('sends a persisted write instead of a side effect request once the policy diff warning is overridden', async () => {
@@ -74,8 +99,13 @@ describe('actions/VacationDelegate', () => {
             // When the user confirms the missing-workspaces step, so the override flag is set
             await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', shouldOverridePolicyDiffWarning: true});
 
-            // Then only the persisted write fires, because the 305 can no longer come back and the request needs to survive offline
-            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.objectContaining({overridePolicyDiffWarning: true}), expect.anything());
+            // Then only the persisted write fires, because the 305 can no longer come back and the request needs to survive offline,
+            // and the pick is applied optimistically, since there is no 305 left that could take it away
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
+                expect.objectContaining({overridePolicyDiffWarning: true}),
+                expect.objectContaining({optimisticData: [expect.objectContaining({value: expect.objectContaining({delegate: 'delegate@test.com'})})]}),
+            );
             expect(apiSideEffectSpy).not.toHaveBeenCalled();
         });
 
@@ -128,17 +158,7 @@ describe('actions/VacationDelegate', () => {
                 callback: (value) => errorStates.push(value?.errors),
             });
 
-            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
-                // The optimistic data is applied before the response resolves.
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
-                    creator: 'admin@test.com',
-                    delegate: 'delegate@test.com',
-                    previousDelegate: 'old@test.com',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    errors: null,
-                });
-                return {jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff}};
-            });
+            mockSideEffectRequest(() => getPolicyDiffWarningResponse(policyDiff));
 
             // When a delegate is picked
             await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
@@ -161,14 +181,7 @@ describe('actions/VacationDelegate', () => {
             // Given a 305 whose onyxData carries an errors payload
             const policyDiff = {adminPolicies: [], nonAdminPolicies: ['79705898949FB240']};
 
-            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
-                    creator: 'admin@test.com',
-                    delegate: 'delegate@test.com',
-                    previousDelegate: 'old@test.com',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    errors: null,
-                });
+            mockSideEffectRequest(async () => {
                 // Auth returns 305 so the client can prompt, but the same response carries an errors payload in
                 // onyxData, which the API layer applies before the caller ever sees the response.
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
@@ -176,7 +189,7 @@ describe('actions/VacationDelegate', () => {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     errors: {1788970253939928: "Vacation delegate is not part of all of vacationer's policies."},
                 });
-                return {jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff}};
+                return getPolicyDiffWarningResponse(policyDiff);
             });
 
             // When a delegate is picked
@@ -192,17 +205,59 @@ describe('actions/VacationDelegate', () => {
             expect(vacationDelegate?.pendingDelegate).toBe('delegate@test.com');
         });
 
+        it('never writes the picked delegate to delegate when the response is a 305', async () => {
+            // Given a saved delegate, an Onyx subscriber recording every delegate value the NVP takes on, and a mocked 305
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: 'admin@test.com', delegate: 'old@test.com'});
+            const delegateStates: Array<string | undefined> = [];
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
+                callback: (value) => delegateStates.push(value?.delegate),
+            });
+            mockSideEffectRequest(() => getPolicyDiffWarningResponse());
+
+            // When a member who is missing from one of the workspaces is picked
+            await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
+            await waitForBatchedUpdates();
+            Onyx.disconnect(connection);
+
+            // Then the pick never shows up as the delegate, because Profile would flash it, take it away on the 305, and show it again after the
+            // missing workspaces step. The saved delegate stays in place the whole time.
+            expect(delegateStates.length).toBeGreaterThan(0);
+            expect(delegateStates).not.toContain('delegate@test.com');
+            expect(delegateStates.every((delegate) => delegate === 'old@test.com')).toBe(true);
+        });
+
+        it('never surfaces the errors the 305 ships in its onyxData through getVacationDelegateErrors', async () => {
+            // Given an Onyx subscriber recording the errors getVacationDelegateErrors returns for every NVP value, and a mocked 305 whose
+            // onyxData carries an errors payload that the API layer applies before the caller sees the response
+            const visibleErrors: Array<OnyxCommon.Errors | undefined> = [];
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
+                callback: (value) => visibleErrors.push(getVacationDelegateErrors(value)),
+            });
+            mockSideEffectRequest(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+                    // an ID map key is not a name!
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    errors: {1788970253939928: "Vacation delegate is not part of all of vacationer's policies."},
+                });
+                return getPolicyDiffWarningResponse();
+            });
+
+            // When a delegate is picked
+            await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com'});
+            await waitForBatchedUpdates();
+            Onyx.disconnect(connection);
+
+            // Then the payload is never visible, because the optimistic pendingAction hides it until the action clears it, so the Profile row
+            // never flashes a red brick road for what is really the next step of the flow
+            expect(visibleErrors.length).toBeGreaterThan(0);
+            expect(visibleErrors.every(isEmptyObject)).toBe(true);
+        });
+
         it('clears the delegate on a 305 when there was no delegate saved before the pick', async () => {
             // Given no saved delegate and a mocked 305
-            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
-                    creator: 'admin@test.com',
-                    delegate: 'delegate@test.com',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    errors: null,
-                });
-                return {jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff: {adminPolicies: ['1'], nonAdminPolicies: []}}};
-            });
+            mockSideEffectRequest(() => getPolicyDiffWarningResponse());
 
             // When the first delegate is picked
             await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com'});
@@ -241,20 +296,11 @@ describe('actions/VacationDelegate', () => {
         });
 
         it('applies the failureData it could not attach when the response fails, since the caller may have already navigated away', async () => {
-            // Given a mocked non-305 error response, with no failureData attached to the request (see the first test
-            // above), so the action has to apply it itself instead of relying on a caller that may no longer be mounted
+            // Given a saved delegate and a mocked non-305 error response, with no failureData attached to the request (see the first
+            // test above), so the action has to apply it itself instead of relying on a caller that may no longer be mounted
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: 'admin@test.com', delegate: 'old@test.com'});
             const response = {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'Nope'};
-            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
-                // The optimistic data is applied before the response resolves.
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
-                    creator: 'admin@test.com',
-                    delegate: 'delegate@test.com',
-                    previousDelegate: 'old@test.com',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    errors: null,
-                });
-                return response;
-            });
+            mockSideEffectRequest(() => response);
 
             // When the pick fails
             await expect(setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'})).resolves.toEqual(response);
@@ -265,23 +311,16 @@ describe('actions/VacationDelegate', () => {
             expect(vacationDelegate?.pendingAction).toBeFalsy();
             expect(vacationDelegate?.errors).toBeTruthy();
 
-            // Then both delegate fields survive, because rolling back belongs to whoever dismisses the error and needs something to roll back to
-            expect(vacationDelegate?.delegate).toBe('delegate@test.com');
+            // Then the saved delegate is still in place, since the pick was never applied, and previousDelegate survives,
+            // because rolling back belongs to whoever dismisses the error and needs something to roll back to
+            expect(vacationDelegate?.delegate).toBe('old@test.com');
             expect(vacationDelegate?.previousDelegate).toBe('old@test.com');
         });
 
         it('leaves a failed response in a state where dismissing the error restores the last confirmed delegate', async () => {
             // Given a pick that fails over a previously saved delegate
-            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
-                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
-                    creator: 'admin@test.com',
-                    delegate: 'delegate@test.com',
-                    previousDelegate: 'old@test.com',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    errors: null,
-                });
-                return {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'Nope'};
-            });
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: 'admin@test.com', delegate: 'old@test.com'});
+            mockSideEffectRequest(() => ({jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'Nope'}));
 
             await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
             await waitForBatchedUpdates();

@@ -37,15 +37,18 @@ type SetVacationDelegateOptions = {
 };
 
 async function setVacationDelegate({creator, delegate, clearAfter, currentDelegate, currentClearAfter, shouldOverridePolicyDiffWarning = false}: SetVacationDelegateOptions) {
+    // Without the override, the response can still be a 305 that leads to the missing workspaces step, so the pick is only applied once the
+    // backend saved it. Applying it optimistically would flash the new delegate on Profile, take it away on the 305, and show it again after that step.
+    const pickedDelegate = {creator, delegate, clearAfter: clearAfter ?? null};
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
             value: {
-                creator,
-                delegate,
-                clearAfter: clearAfter ?? null,
+                ...(shouldOverridePolicyDiffWarning ? pickedDelegate : {}),
                 errors: null,
+                // Set on both paths: the 305 ships an errors payload in its onyxData, and getVacationDelegateErrors only hides it while this is set
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 previousDelegate: currentDelegate ?? null,
                 previousClearAfter: currentClearAfter ?? null,
@@ -61,6 +64,7 @@ async function setVacationDelegate({creator, delegate, clearAfter, currentDelega
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
             value: {
+                ...(shouldOverridePolicyDiffWarning ? {} : pickedDelegate),
                 errors: null,
                 pendingAction: null,
                 previousDelegate: null,
