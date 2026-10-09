@@ -6,6 +6,7 @@ import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx'
 import createRandomPolicy from '../utils/collections/policies';
 
 const TRANSACTION_ID = '1234567890';
+const OTHER_TRANSACTION_ID = '9999';
 
 /**
  * A minimal expense the draft builder can read. Tests override only the fields they exercise, so the seeding table is
@@ -44,6 +45,7 @@ const buildSuggestion = (overrides: Partial<MerchantRuleSuggestion> = {}) =>
         transactionID: TRANSACTION_ID,
         reportID: '999',
         editedFields: {[TRANSACTION_ID]: {category: true}},
+        confirmedFields: {[TRANSACTION_ID]: {category: true}},
         ...overrides,
     }) as MerchantRuleSuggestion;
 
@@ -56,8 +58,16 @@ describe('isMerchantRuleSuggestionLive', () => {
         expect(isMerchantRuleSuggestionLive(buildSuggestion({transactionID: ''}))).toBe(false);
     });
 
-    it('is live for a freshly recorded edit', () => {
+    it('is live once the server has confirmed an edited field', () => {
         expect(isMerchantRuleSuggestionLive(buildSuggestion())).toBe(true);
+    });
+
+    it('is not live while the edit is still waiting on the server', () => {
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({confirmedFields: undefined}))).toBe(false);
+    });
+
+    it('is not live when the confirmation belongs to a different expense', () => {
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({confirmedFields: {[OTHER_TRANSACTION_ID]: {category: true}}}))).toBe(false);
     });
 
     it('is not live once retired', () => {
@@ -73,7 +83,7 @@ describe('isMerchantRuleSuggestionLive', () => {
     });
 
     it('stays live when a different expense was dismissed', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({dismissedTransactionIDs: ['9999']}))).toBe(true);
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({dismissedTransactionIDs: [OTHER_TRANSACTION_ID]}))).toBe(true);
     });
 });
 
