@@ -66,7 +66,9 @@ function useNumericEditingController({
 
     const formattedNumber = replaceAllDigits(toDisplayText(currentValue), toLocaleDigit);
 
-    const {selection, collapse, reset, syncToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange} = useNumericSelection({displayText: formattedNumber});
+    const {selection, collapse, reset, syncToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange, setShouldUpdateSelection} = useNumericSelection({
+        displayText: formattedNumber,
+    });
 
     // Reset when the external value is cleared. Ignore other external changes while editing.
     if (previousExternalValue !== externalValue) {
@@ -148,6 +150,7 @@ function useNumericEditingController({
         clearSelection: collapse,
         handleSelectionChange: handleNativeSelectionChange,
         handleKeyPress,
+        setShouldUpdateSelection,
     };
 }
 
