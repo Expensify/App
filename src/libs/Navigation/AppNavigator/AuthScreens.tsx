@@ -25,7 +25,6 @@ import useGPSInProgressModal from '@hooks/useGPSInProgressModal';
 import useGPSTripStateChecker from '@hooks/useGPSTripStateChecker';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -136,10 +135,8 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {isVisitingSecureLink} = useOnboardingFlowRouter();
+    const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
-    // Subscribed to navigation state so the onboarding navigator gets registered as soon as the user leaves the validate login screen
-    const shouldHideOnboardingNavigator = useRootNavigationState(Navigation.shouldHideOnboardingNavigator);
     useGPSTripStateChecker();
     useGPSInProgressModal();
 
@@ -354,12 +351,7 @@ function AuthScreens() {
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
-                        {/*
-                         * Always registered, like the other modal navigators below, so entering onboarding never toggles this
-                         * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
-                         * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
-                         */}
-                        {!shouldSuppressPromotionalUI && !isVisitingSecureLink && !shouldHideOnboardingNavigator && (
+                        {isOnboardingCompleted === false && !shouldSuppressPromotionalUI && !Navigation.isValidateLoginFlow() && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
