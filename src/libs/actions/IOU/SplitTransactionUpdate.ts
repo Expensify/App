@@ -1826,46 +1826,64 @@ function updateSplitTransactions({
                 });
             }
         }
-        // Build the snapshot data update: remove original transaction and add child transactions
-        const currentSnapshotData = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`]?.data;
-        const rescaledChildSnapshotEntries: SearchResultDataType = {};
-        for (const childKey of optimisticChildSnapshotKeys) {
-            const childTransaction = optimisticChildSnapshotEntries[childKey];
-            if (!childTransaction) {
+        // Build the snapshot data update: remove original transaction and add child transactions.
+        // Besides the current search snapshot, also update the snapshot of every active group (group-by views) that contains
+        // the original transaction. Otherwise, while offline, the expanded group keeps the original transaction with the
+        // optimistic SPLIT_REPORT_ID and it is shown as "Unreported".
+        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
+        const currentSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}` as const;
+        const snapshotKeysToUpdate: Array<`${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`> = [currentSnapshotKey];
+        for (const searchHash of searchContext?.activeGroupSearchHashes ?? []) {
+            const groupSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}` as const;
+            const groupSnapshotData = allSnapshots?.[groupSnapshotKey]?.data;
+            if (groupSnapshotKey === currentSnapshotKey || !groupSnapshotData || !Object.hasOwn(groupSnapshotData, originalTransactionSnapshotKey)) {
                 continue;
             }
-            const groupSourceTransaction = findSnapshotGroupSourceTransaction(currentSnapshotData, childTransaction, [childTransaction.transactionID, ...groupSourceCandidateTransactionIDs]);
-            rescaledChildSnapshotEntries[childKey] = rescaleSnapshotGroupAmount(childTransaction, groupSourceTransaction);
+            snapshotKeysToUpdate.push(groupSnapshotKey);
         }
 
-        const optimisticSnapshotData: SearchResultDataType = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
-            ...rescaledChildSnapshotEntries,
-        };
+        for (const snapshotKey of snapshotKeysToUpdate) {
+            const snapshotData = allSnapshots?.[snapshotKey]?.data;
+            const rescaledChildSnapshotEntries: SearchResultDataType = {};
+            for (const childKey of optimisticChildSnapshotKeys) {
+                const childTransaction = optimisticChildSnapshotEntries[childKey];
+                if (!childTransaction) {
+                    continue;
+                }
+                const groupSourceTransaction = findSnapshotGroupSourceTransaction(snapshotData, childTransaction, [childTransaction.transactionID, ...groupSourceCandidateTransactionIDs]);
+                rescaledChildSnapshotEntries[childKey] = rescaleSnapshotGroupAmount(childTransaction, groupSourceTransaction);
+            }
 
-        // On failure, restore the original transaction and remove the child transactions
-        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
-        const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
-        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] = originalTransaction ?? null;
-        for (const childKey of optimisticChildSnapshotKeys) {
-            failureSnapshotData[childKey] = null;
+            const optimisticSnapshotData: SearchResultDataType = {
+                [originalTransactionSnapshotKey]: null,
+                ...rescaledChildSnapshotEntries,
+            };
+
+            // On failure, restore the original transaction and remove the child transactions
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+            failureSnapshotData[originalTransactionSnapshotKey] =
+                snapshotKey === currentSnapshotKey ? (originalTransaction ?? null) : (snapshotData?.[originalTransactionSnapshotKey] ?? originalTransaction ?? null);
+            for (const childKey of optimisticChildSnapshotKeys) {
+                failureSnapshotData[childKey] = null;
+            }
+
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: snapshotKey,
+                value: {
+                    data: optimisticSnapshotData,
+                },
+            });
+
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: snapshotKey,
+                value: {
+                    data: failureSnapshotData,
+                },
+            });
         }
-
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-            value: {
-                data: optimisticSnapshotData,
-            },
-        });
-
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-            value: {
-                data: failureSnapshotData,
-            },
-        });
     } else {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
