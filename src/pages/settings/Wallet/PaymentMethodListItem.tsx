@@ -52,6 +52,7 @@ type ConnectionStatusDetails = {
     tooltipText?: string;
     message?: string;
     actionText?: string;
+    actionAccessibilityLabel?: string;
     onActionPress?: () => void;
     isActionDisabled?: boolean;
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
@@ -308,6 +309,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                     <ConnectionStatusMessage
                                         message={connectionStatus.message}
                                         actionText={connectionStatus.actionText}
+                                        actionAccessibilityLabel={connectionStatus.actionAccessibilityLabel}
                                         onActionPress={connectionStatus.onActionPress}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}

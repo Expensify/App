@@ -16,6 +16,7 @@ import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@l
 import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
@@ -27,7 +28,7 @@ import {setKYCWallSource} from '@userActions/Wallet';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {doesPersonalDetailExist, loginSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector, ownerPoliciesSelector} from '@src/selectors/Policy';
@@ -249,6 +250,14 @@ function KYCWall({
                 // If user has a locked account we exit early
                 if (policy !== undefined && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) {
                     Log.info('[KYC Wallet] Dropping payment method selection: policy achAccount is locked', false, {policyID: policy.id, achBankAccountID: policy.achAccount?.bankAccountID});
+                    return;
+                }
+
+                const achBankAccountID = policy?.achAccount?.bankAccountID;
+                const achBankAccountState = policy?.achAccount?.bankAccountID ? bankAccountList?.[policy?.achAccount?.bankAccountID]?.accountData?.state : undefined;
+                if (achBankAccountID && achBankAccountState === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED) {
+                    Log.info('[KYC Wallet] Redirecting to fix bank account: policy bank account failed validation', false, {policyID: policy?.id, achBankAccountID});
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(achBankAccountID.toString())));
                     return;
                 }
 

@@ -29,6 +29,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPolicyErrorField, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement, setWorkspaceReimbursement} from '@libs/actions/Policy/Policy';
 import {getBankAccountConnectionStatus, isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -43,7 +44,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -125,7 +126,9 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const workflowsBackTo = ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
 
     const isBankAccountFullySetup = policy?.achAccount && (policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
-    const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policy?.id);
+    const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find(
+        (bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policy?.id || bankAccount?.methodID === policy?.achAccount?.bankAccountID,
+    );
     const bankName = isBankAccountFullySetup ? (policy?.achAccount?.bankName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.additionalData?.bankName ?? '');
     const addressName = isBankAccountFullySetup ? (policy?.achAccount?.addressName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.addressName ?? '');
     const accountData = isBankAccountFullySetup ? policy?.achAccount : bankAccountConnectedToWorkspace?.accountData;
@@ -155,7 +158,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
-    const bankConnectionStatus = getBankAccountConnectionStatus(state, bankAccountCurrency);
+    const bankConnectionStatus = getBankAccountConnectionStatus(accountData, bankAccountCurrency);
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
     const bankConnectionStatusAddon = bankConnectionStatus ? (
         <ConnectionStatusBadge
@@ -245,10 +248,15 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         });
     };
 
+    const handleFixValidationFailedPress =
+        bankConnectionStatus?.requiresFixHandler && bankAccountID
+            ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(bankAccountID.toString())))
+            : undefined;
+
     const bankAccountMenuItemProps: React.ComponentProps<typeof MenuItem> = {
         title: bankTitle,
         description: getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate),
-        onPress: canInteractWithBankAccountRow ? handleBankAccountPress : undefined,
+        onPress: canInteractWithBankAccountRow ? (handleFixValidationFailedPress ?? handleBankAccountPress) : undefined,
         displayInDefaultIconColor: true,
         icon: bankIcon.icon,
         iconHeight: bankIcon.iconHeight ?? bankIcon.iconSize,
@@ -322,7 +330,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                 <ConnectionStatusMessage
                                                     message={bankConnectionMessage}
                                                     actionText={bankConnectionActionText}
-                                                    onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
+                                                    onActionPress={canWritePayments && canPerformBankAccountAction ? (handleFixValidationFailedPress ?? handleBankAccountPress) : undefined}
                                                     isActionDisabled={!canInteractWithBankAccountRow}
                                                     statusTone="danger"
                                                     shouldIncludeHorizontalPadding={false}
