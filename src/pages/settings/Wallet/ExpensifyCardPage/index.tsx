@@ -82,6 +82,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Policy} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -508,13 +509,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             pan={revealedDetails.pan}
                                             expiration={formatCardExpiration(revealedDetails.expiration ?? '')}
                                             cvv={revealedDetails.cvv}
-                                            onUpdateAddressPress={() => {
-                                                if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
-                                                    Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.getRoute(String(card.cardID)));
-                                                    return;
-                                                }
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
-                                            }}
+                                            onUpdateAddressPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1))}
                                             // The top-level "Limit type" row already shows the current card's limit. On combo card pages the
                                             // revealed virtual card differs from the current (physical) card, so render its own limit here to
                                             // avoid losing it; otherwise omit it to prevent a duplicate row for a single card.
