@@ -9,9 +9,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, isReportOwner} from '@libs/ReportUtils';
-
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+import {canIOUBePaid as canIOUBePaidAction, getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, isReportOwner} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,9 +21,11 @@ import useConfirmApproval from './useConfirmApproval';
 type ApprovePrimaryActionProps = {
     reportID: string | undefined;
     chatReportID: string | undefined;
+    /** Disables the Approve button, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
-function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProps) {
+function ApprovePrimaryAction({reportID, chatReportID, isDisabled}: ApprovePrimaryActionProps) {
     const {isPaidAnimationRunning, startApprovedAnimation} = usePaymentAnimationsContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
@@ -93,7 +93,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
             moneyRequestReport={iouReport}
             transactions={transactions}
             shouldShowPayButton={shouldShowPayButton}
-            isDisabled={isBlockSubmitDueToPreventSelfApproval}
+            isDisabled={!!isBlockSubmitDueToPreventSelfApproval || isDisabled}
         />
     );
 }

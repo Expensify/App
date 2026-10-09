@@ -83,6 +83,7 @@ function SingleSelectImpl({
     // on the list length, so it only pins once the list is long enough to require scrolling.
     const initialSelectedValues = useInitialValue(() => (value ? [value.value] : []));
     const orderedItems = moveInitialSelectionToTop(items, initialSelectedValues);
+    const rowHeight = itemHeight ?? variables.optionRowHeightCompact;
 
     const {options, noResultsFound} = (() => {
         if (isSearchable) {
@@ -93,6 +94,7 @@ function SingleSelectImpl({
                     text: item.text,
                     keyForList: item.value,
                     isSelected: selectedItem?.value === item.value,
+                    itemStyle: {minHeight: rowHeight},
                 }));
             const isEmpty = allOptions.length === 0;
             return {
@@ -106,6 +108,7 @@ function SingleSelectImpl({
                 text: item.text,
                 keyForList: item.value,
                 isSelected: item.value === selectedItem?.value,
+                itemStyle: {minHeight: rowHeight},
             })),
             noResultsFound: false,
         };
@@ -142,7 +145,7 @@ function SingleSelectImpl({
             hasHeader={hasHeader}
             hasTitle={hasTitle}
             isSearchable={isSearchable}
-            itemHeight={itemHeight ?? variables.optionRowHeightCompact}
+            itemHeight={rowHeight}
             extraHeight={headerHeight}
             shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
         >
@@ -153,11 +156,7 @@ function SingleSelectImpl({
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
-                    style={{
-                        contentContainerStyle: [styles.pb0],
-                        ...selectionListStyle,
-                        listItemWrapperStyle: [{minHeight: itemHeight ?? variables.optionRowHeightCompact}, selectionListStyle?.listItemWrapperStyle],
-                    }}
+                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}

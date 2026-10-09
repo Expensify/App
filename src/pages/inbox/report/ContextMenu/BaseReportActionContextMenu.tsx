@@ -18,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportAttributes, {useDerivedIsEmptyReport, useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -235,6 +236,7 @@ function BaseReportActionContextMenu({
     const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
@@ -243,6 +245,7 @@ function BaseReportActionContextMenu({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
@@ -282,10 +285,13 @@ function BaseReportActionContextMenu({
                 type,
                 reportAction,
                 childReportActions,
+                originalReportActions,
+                moneyRequestReportActions,
                 isArchivedRoom,
                 menuTarget: anchor,
                 isChronosReport,
                 reportID,
+                report,
                 isPinnedChat,
                 isUnreadChat,
                 isThreadReportParentAction,
@@ -304,6 +310,7 @@ function BaseReportActionContextMenu({
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
                 rules,
+                cardList,
             }),
     );
 
@@ -377,6 +384,8 @@ function BaseReportActionContextMenu({
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
 
+    const reportIDToName = useReportIDToNameMap();
+
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
@@ -392,6 +401,7 @@ function BaseReportActionContextMenu({
                                 reportActions,
                                 childReportActions,
                                 originalReportActions,
+                                reportIDToName,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
@@ -407,6 +417,7 @@ function BaseReportActionContextMenu({
                                 personalDetails,
                                 isHarvestReport,
                                 moneyRequestAction,
+                                moneyRequestPolicy,
                                 card,
                                 originalReport,
                                 isTryNewDotNVPDismissed,

@@ -49,7 +49,7 @@ function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel, onClose
 }
 
 function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, onLandscapePress}: DropdownProps) {
-    const feedValue = useFilterFeedValue(Array.isArray(value) ? value : [value]);
+    const feedValue = useFilterFeedValue(value as string[]);
     return (
         <DropdownButton
             label={label}
@@ -63,8 +63,7 @@ function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
 }
 
 function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, onLandscapePress}: DropdownProps) {
-    // getDisplayValue/mapFiltersFormToLabelValueList serializes card arrays with join(', '), so this consumer must retain the matching split(', ').
-    const cardValue = useFilterCardValue(Array.isArray(value) ? value : value.split(', '));
+    const cardValue = useFilterCardValue(value as string[]);
     return (
         <DropdownButton
             label={label}
@@ -92,7 +91,7 @@ function BankAccountDropdown({label, value, PopoverComponent, sentryLabel, onClo
 }
 
 function TaxRateDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, onLandscapePress}: DropdownProps) {
-    const taxRateValue = useFilterTaxRateValue(Array.isArray(value) ? value : [value]);
+    const taxRateValue = useFilterTaxRateValue(value as string[]);
     return (
         <DropdownButton
             label={label}
