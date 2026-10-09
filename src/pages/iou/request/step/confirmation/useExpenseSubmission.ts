@@ -1,8 +1,6 @@
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
-import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
-import useReportTransactions from '@hooks/useReportTransactions';
 
 import {isSelfDMSoleDestination} from '@libs/IOUUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
@@ -30,7 +28,6 @@ import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 import useDistanceDraftData from './submission/useDistanceDraftData';
 import useGpsCapture from './submission/useGpsCapture';
 import useRequestMoneySubmission from './submission/useRequestMoneySubmission';
-import useSplitSubmission from './submission/useSplitSubmission';
 import useSubmissionOnboardingIntent from './submission/useSubmissionOnboardingIntent';
 import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 import useSubmissionViolations from './submission/useSubmissionViolations';
@@ -128,7 +125,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         onExpenseWriteWillStart,
         submitLock,
     } = params;
-    const {releaseSubmitLock, acquireSubmitLock} = submitLock;
+    const {acquireSubmitLock} = submitLock;
 
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
     const selectedParticipants = participants.filter((participant) => participant.selected);
@@ -169,9 +166,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
-    const reportTransactions = useReportTransactions(report?.reportID);
     const delegateAccountID = useDelegateAccountID();
-    const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
 
     // Only a workspace destination can enforce a workspace's distance rules.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
@@ -267,29 +262,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         delegateAccountID,
     });
 
-    const splitSubmission = useSplitSubmission({
-        transaction,
-        transactions,
-        receiptFiles,
-        report,
-        personalDetails,
-        currentUserPersonalDetails,
-        selectedParticipants,
-        iouType,
-        isTrackIntentUser,
-        releaseSubmitLock,
-        transactionTaxCode,
-        transactionTaxAmount,
-        transactionTaxValue,
-        recentlyUsedData,
-        rules,
-        quickAction,
-        transactionViolationsRef,
-        reportTransactions,
-        delegateAccountID,
-        participantsPolicyTags,
-    });
-
     // Which API command a submission will run. Resolved here rather than inside createTransaction because every
     // input is render-time state - that is what lets each path own its own hook once this file is split up.
     const submissionPath = resolveSubmissionPath({
@@ -305,18 +277,22 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isSubmittingExpenseToDraftWorkspace,
     });
 
-    // Distance, invoice and per diem submit through their own variants; this composer only serves the paths that haven't forked yet.
+    // Distance, split, invoice and per diem submit through their own variants; this composer only serves the paths that haven't forked yet.
     const submitByPath: Record<
-        Exclude<SubmissionPath, typeof SUBMISSION_PATH.DISTANCE | typeof SUBMISSION_PATH.INVOICE | typeof SUBMISSION_PATH.PER_DIEM>,
+        Exclude<SubmissionPath, typeof SUBMISSION_PATH.DISTANCE | typeof SUBMISSION_PATH.SPLIT | typeof SUBMISSION_PATH.INVOICE | typeof SUBMISSION_PATH.PER_DIEM>,
         (params: CreateTransactionParams) => boolean
     > = {
-        [SUBMISSION_PATH.SPLIT]: splitSubmission.createTransaction,
         [SUBMISSION_PATH.TRACK]: trackSubmission.createTransaction,
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
     function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams): boolean {
-        if (submissionPath === SUBMISSION_PATH.DISTANCE || submissionPath === SUBMISSION_PATH.INVOICE || submissionPath === SUBMISSION_PATH.PER_DIEM) {
+        if (
+            submissionPath === SUBMISSION_PATH.DISTANCE ||
+            submissionPath === SUBMISSION_PATH.SPLIT ||
+            submissionPath === SUBMISSION_PATH.INVOICE ||
+            submissionPath === SUBMISSION_PATH.PER_DIEM
+        ) {
             return false;
         }
         getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);

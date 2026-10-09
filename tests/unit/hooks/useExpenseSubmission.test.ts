@@ -15,8 +15,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
-import type * as Split from '../../../src/libs/actions/IOU/Split';
-
 import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -30,17 +28,10 @@ const mockTrackExpenseAction = jest.fn();
 const mockSubmitPerDiemExpenseAction = jest.fn();
 const mockSubmitPerDiemExpenseForSelfDMAction = jest.fn();
 const mockHasCompletePerDiemCustomUnit = jest.fn();
-type CreateDistanceRequest = typeof Split.createDistanceRequest;
-const mockCreateDistanceRequestAction = jest.fn<ReturnType<CreateDistanceRequest>, Parameters<CreateDistanceRequest>>();
 const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForSubmitCleanup = jest.fn();
-const mockSplitBillAction = jest.fn();
-const mockSplitBillAndOpenReportAction = jest.fn();
-const mockStartSplitBillAction = jest.fn();
-const mockResolveOptimisticSplitChatReportID = jest.fn();
 const mockDismissModalAndOpenReportInInboxTab = jest.fn();
-const mockMarkPendingSearchWrite = jest.fn();
 const mockIsSearchTopmostFullScreenRoute = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
@@ -55,22 +46,9 @@ jest.mock('@userActions/IOU/PerDiem', () => ({
     getPerDiemExpensePolicyID: jest.fn(),
 }));
 
-jest.mock('@userActions/IOU/Split', () => ({
-    createDistanceRequest: (...args: Parameters<CreateDistanceRequest>) => mockCreateDistanceRequestAction(...args),
-    splitBill: (...args: unknown[]) => mockSplitBillAction(...args),
-    splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
-    resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
-    startSplitBill: (...args: unknown[]) => mockStartSplitBillAction(...args),
-}));
-
 jest.mock('@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab', () => ({
     __esModule: true,
     default: (...args: unknown[]) => mockDismissModalAndOpenReportInInboxTab(...args),
-}));
-
-jest.mock('@libs/pendingSearchWrite', () => ({
-    ...jest.requireActual('@libs/pendingSearchWrite'),
-    markPendingSearchWrite: (...args: unknown[]) => mockMarkPendingSearchWrite(...args),
 }));
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => ({
@@ -236,9 +214,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1'}});
-        mockCreateDistanceRequestAction.mockReturnValue({iouReport: {reportID: 'distance-iou-1'}, chatReportID: 'distance-chat-1', transactionID: 'distance-transaction-1'});
         mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
-        mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: REPORT_ID});
         mockHasCompletePerDiemCustomUnit.mockReturnValue(true);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
     });
@@ -594,327 +570,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({isDraftChatReport: true}));
-        });
-    });
-
-    describe('split path', () => {
-        function buildSplitParams(transactionOverrides: Partial<Transaction> = {}) {
-            const splitTransaction = buildTransaction(transactionOverrides);
-            return buildParams({
-                iouType: CONST.IOU.TYPE.SPLIT,
-                transaction: splitTransaction,
-                transactions: [splitTransaction],
-            });
-        }
-
-        it('dismisses to the report the split was posted in when shouldHandleNavigation=true', async () => {
-            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
-            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith(REPORT_ID, undefined, false);
-        });
-
-        it('only removes the draft when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
-            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
-            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
-        });
-
-        it('threads the pre-generated optimistic chat ID into splitBillAndOpenReport and dismisses to that same report', async () => {
-            // Global create has no existing chat, so the UI mints the ID the action will build the chat under.
-            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-split-chat', chatReportID: 'optimistic-split-chat'});
-
-            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockSplitBillAction).not.toHaveBeenCalled();
-            expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: 'optimistic-split-chat'}));
-            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-split-chat', undefined, false);
-        });
-
-        it('dismisses to the existing chat when one already resolves, leaving the optimistic ID undefined', async () => {
-            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: 'existing-group-chat'});
-
-            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: undefined}));
-            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('existing-group-chat', undefined, false);
-        });
-
-        it('raises the pending Search signal before splitBill when the split lands back on Search', async () => {
-            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
-
-            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockMarkPendingSearchWrite).toHaveBeenCalledTimes(1);
-            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('raises the pending Search signal before splitBillAndOpenReport when the split lands back on Search', async () => {
-            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
-
-            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockMarkPendingSearchWrite).toHaveBeenCalledTimes(1);
-            expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('does not raise the pending Search signal when the split is not landing on Search', async () => {
-            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
-
-            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockMarkPendingSearchWrite).not.toHaveBeenCalled();
-            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('does not raise the pending Search signal (or run the split) when there is no login to submit with, even on Search', async () => {
-            // The shared signal-raise runs before the branch's login+transaction check, so it must reuse that guard or it leaks a pending signal no write ever flushes.
-            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
-            const splitTransaction = buildTransaction();
-
-            const {result} = renderHook(() =>
-                useExpenseSubmission(
-                    buildParams({
-                        iouType: CONST.IOU.TYPE.SPLIT,
-                        transaction: splitTransaction,
-                        transactions: [splitTransaction],
-                        currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: undefined, email: 'me@test.com'},
-                    }),
-                ),
-            );
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockMarkPendingSearchWrite).not.toHaveBeenCalled();
-            expect(mockSplitBillAction).not.toHaveBeenCalled();
-        });
-
-        it('threads the optimistic chat ID into the scan split and dismisses to that chat once after the loop', async () => {
-            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
-            const splitTransaction = buildTransaction();
-            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
-
-            const {result} = renderHook(() =>
-                useExpenseSubmission(
-                    buildParams({
-                        iouType: CONST.IOU.TYPE.SPLIT,
-                        transaction: splitTransaction,
-                        transactions: [splitTransaction],
-                        receiptFiles,
-                    }),
-                ),
-            );
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
-            expect(mockStartSplitBillAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: true}));
-            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
-        });
-
-        it('starts the scan split without dismissing when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
-            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
-            const splitTransaction = buildTransaction();
-            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
-
-            const {result} = renderHook(() =>
-                useExpenseSubmission(
-                    buildParams({
-                        iouType: CONST.IOU.TYPE.SPLIT,
-                        transaction: splitTransaction,
-                        transactions: [splitTransaction],
-                        receiptFiles,
-                    }),
-                ),
-            );
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
-            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
-        });
-
-        it('falls through to the manual split when a leftover receipt matches no transaction being submitted', async () => {
-            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
-            const splitTransaction = buildTransaction({transactionID: 'transaction-1'});
-            const staleTransactionID = 'stale-transaction';
-            // The receipt is keyed to a transaction that is no longer being submitted, so there is no scan to write.
-            const receiptFiles: Record<string, Receipt> = {[staleTransactionID]: {source: 'file://receipt.jpg'}};
-
-            const {result} = renderHook(() =>
-                useExpenseSubmission(
-                    buildParams({
-                        iouType: CONST.IOU.TYPE.SPLIT,
-                        transaction: splitTransaction,
-                        transactions: [splitTransaction],
-                        receiptFiles,
-                    }),
-                ),
-            );
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            // No scan is written, and the submit is not swallowed by the scan branch, which would leave the confirm page stuck.
-            expect(mockStartSplitBillAction).not.toHaveBeenCalled();
-            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('writes nothing and hands the page back when a scan split has no receipt file ready', async () => {
-            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
-            // A scan carries no amount until SmartScan returns, so the manual split below would write a $0 expense.
-            const scannedTransaction = buildTransaction({transactionID: 'transaction-1', amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
-            const staleTransactionID = 'stale-transaction';
-            const receiptFiles: Record<string, Receipt> = {[staleTransactionID]: {source: 'file://receipt.jpg'}};
-
-            const {result} = renderHook(() =>
-                useExpenseSubmission(
-                    buildParams({
-                        iouType: CONST.IOU.TYPE.SPLIT,
-                        transaction: scannedTransaction,
-                        transactions: [scannedTransaction],
-                        receiptFiles,
-                    }),
-                ),
-            );
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockStartSplitBillAction).not.toHaveBeenCalled();
-            expect(mockSplitBillAction).not.toHaveBeenCalled();
-            // The submit lock is released so the next tap works once the receipt map catches up.
-            expect(result.current.isConfirmed).toBe(false);
-            expect(result.current.formHasBeenSubmitted.current).toBe(false);
-        });
-
-        it('resolves the chat once and dismisses once when multiple receipts split into one group chat', async () => {
-            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
-            const firstSplit = buildTransaction({transactionID: 'transaction-1'});
-            const secondSplit = buildTransaction({transactionID: 'transaction-2'});
-            const receiptFiles: Record<string, Receipt> = {
-                [firstSplit.transactionID]: {source: 'file://receipt-1.jpg'},
-                [secondSplit.transactionID]: {source: 'file://receipt-2.jpg'},
-            };
-
-            const {result} = renderHook(() =>
-                useExpenseSubmission(
-                    buildParams({
-                        iouType: CONST.IOU.TYPE.SPLIT,
-                        transaction: firstSplit,
-                        transactions: [firstSplit, secondSplit],
-                        receiptFiles,
-                    }),
-                ),
-            );
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockResolveOptimisticSplitChatReportID).toHaveBeenCalledTimes(1);
-            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(2);
-            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: true}));
-            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: false}));
-            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
-            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
-        });
-
-        it('marks every scan as first when the batch splits into a chat that already exists', async () => {
-            // No optimistic ID means the chat already exists, so no scan in the batch creates it.
-            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: REPORT_ID});
-            const firstSplit = buildTransaction({transactionID: 'transaction-1'});
-            const secondSplit = buildTransaction({transactionID: 'transaction-2'});
-            const receiptFiles: Record<string, Receipt> = {
-                [firstSplit.transactionID]: {source: 'file://receipt-1.jpg'},
-                [secondSplit.transactionID]: {source: 'file://receipt-2.jpg'},
-            };
-
-            const {result} = renderHook(() =>
-                useExpenseSubmission(
-                    buildParams({
-                        iouType: CONST.IOU.TYPE.SPLIT,
-                        transaction: firstSplit,
-                        transactions: [firstSplit, secondSplit],
-                        receiptFiles,
-                    }),
-                ),
-            );
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(2);
-            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({isFirstSplitInBatch: true}));
-            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({isFirstSplitInBatch: true}));
         });
     });
 });

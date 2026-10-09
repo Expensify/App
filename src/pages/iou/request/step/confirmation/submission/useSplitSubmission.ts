@@ -1,6 +1,10 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
+import useReportTransactions from '@hooks/useReportTransactions';
 
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
@@ -13,20 +17,22 @@ import {isScanRequest as isScanRequestTransactionUtils} from '@libs/TransactionU
 import {resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import type {ParticipantsPolicyTags, PersonalDetailsList, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import type {RefObject} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import type {CreateTransactionParams, SubmissionHandle} from './types';
-import type {SubmissionRecentlyUsedData} from './useSubmissionRecentlyUsedData';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
 
+import useSubmissionOnboardingIntent from './useSubmissionOnboardingIntent';
+import useSubmissionRecentlyUsedData from './useSubmissionRecentlyUsedData';
+import useSubmissionViolations from './useSubmissionViolations';
 import getSelectedParticipantsForSubmission from './utils/getSelectedParticipantsForSubmission';
 
 type UseSplitSubmissionParams = TransactionTaxValues & {
@@ -34,22 +40,12 @@ type UseSplitSubmissionParams = TransactionTaxValues & {
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
     report: OnyxEntry<Report>;
+    policyID: string | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     selectedParticipants: Participant[];
     iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
-    isTrackIntentUser: boolean;
     releaseSubmitLock: () => void;
-
-    /** TEMP: hoisted in useExpenseSubmission so these Onyx keys open once across all mounted submission hooks.
-     *  Read them here again once the page forks into per-path variants and only one hook mounts. */
-    recentlyUsedData: SubmissionRecentlyUsedData;
-    rules: OnyxCollection<Rule>;
-    quickAction: OnyxEntry<QuickAction>;
-    transactionViolationsRef: RefObject<OnyxCollection<TransactionViolation[]>>;
-    reportTransactions: Transaction[];
-    delegateAccountID: number | undefined;
-    participantsPolicyTags: ParticipantsPolicyTags;
 };
 
 /** Hook implementing the split submission path (splitBill / startSplitBill / splitBillAndOpenReport) for the expense confirmation screen. */
@@ -58,22 +54,15 @@ function useSplitSubmission({
     transactions,
     receiptFiles,
     report,
+    policyID,
     personalDetails,
     currentUserPersonalDetails,
     selectedParticipants,
     iouType,
-    isTrackIntentUser,
     releaseSubmitLock,
-    recentlyUsedData,
-    rules,
-    quickAction,
-    transactionViolationsRef,
-    reportTransactions,
     transactionTaxCode,
     transactionTaxAmount,
     transactionTaxValue,
-    delegateAccountID,
-    participantsPolicyTags,
 }: UseSplitSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -81,7 +70,15 @@ function useSplitSubmission({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
+    const {isTrackIntentUser} = useSubmissionOnboardingIntent();
+    const delegateAccountID = useDelegateAccountID();
+    const {transactionViolationsRef} = useSubmissionViolations();
+    const reportTransactions = useReportTransactions(report?.reportID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const participantsPolicyTags = useParticipantsPolicyTags(selectedParticipants);
+
+    const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = useSubmissionRecentlyUsedData(policyID);
     const splitParticipants = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
 
     function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {

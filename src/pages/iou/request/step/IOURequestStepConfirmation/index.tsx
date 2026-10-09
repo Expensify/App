@@ -97,6 +97,7 @@ import InvoiceConfirmation from './variants/InvoiceConfirmation';
 import LegacyConfirmation from './variants/LegacyConfirmation';
 import PayConfirmation from './variants/PayConfirmation';
 import PerDiemConfirmation from './variants/PerDiemConfirmation';
+import SplitConfirmation from './variants/SplitConfirmation';
 
 function IOURequestStepConfirmationContent({
     report: reportReal,
@@ -691,6 +692,14 @@ function IOURequestStepConfirmationContent({
             case SUBMISSION_PATH.DISTANCE:
                 return (
                     <DistanceConfirmation
+                        submissionParams={submissionParams}
+                        orchestratorProps={orchestratorProps}
+                        listProps={listProps}
+                    />
+                );
+            case SUBMISSION_PATH.SPLIT:
+                return (
+                    <SplitConfirmation
                         submissionParams={submissionParams}
                         orchestratorProps={orchestratorProps}
                         listProps={listProps}
