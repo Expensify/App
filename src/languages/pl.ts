@@ -5000,6 +5000,10 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'od OpenAI',
             },
+            grok: {
+                title: 'Grok',
+                subtitle: 'od xAI',
+            },
         },
         receiptPartners: {
             uber: {
