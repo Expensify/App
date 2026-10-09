@@ -11,7 +11,7 @@ import {useCallback, useContext, useEffect, useRef} from 'react';
 
 import type {BaseImageProps} from './types';
 
-function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
+function BaseImage({onLoad, source, style, recyclingKey, ...props}: BaseImageProps) {
     const isLoadedRef = useRef(false);
     const attachmentContext = useContext(AttachmentStateContext);
     const {setAttachmentLoaded, isAttachmentLoaded} = attachmentContext || {};
@@ -52,7 +52,7 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
             // Only subscribe to onLoad when a handler is provided to avoid unnecessary event registrations, optimizing performance.
             onLoad={onLoad ? imageLoadedSuccessfully : undefined}
             source={source}
-            recyclingKey={getImageRecyclingKey(source)}
+            recyclingKey={recyclingKey ?? getImageRecyclingKey(source)}
             style={style as ExpoImageProps['style']}
             {...props}
         />
