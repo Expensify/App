@@ -179,6 +179,29 @@ describe('NumericInput web behavior', () => {
             focus.mockRestore();
         });
 
+        it('does not re-focus the input when its own empty area is pressed if already focused', () => {
+            // Given a container composition where the input is already focused
+            const inputRef = React.createRef<BaseTextInputRef>();
+            renderContainerComposition(inputRef);
+
+            const inputElement = inputRef.current;
+            if (!inputElement) {
+                throw new Error('Numeric input ref was not assigned');
+            }
+            const isFocused = jest.spyOn(inputElement, 'isFocused').mockReturnValue(true);
+            const focus = jest.spyOn(inputElement, 'focus');
+
+            // When the container's own empty area is pressed
+            const event = getMouseDownEvent(getContainerViewId(CONTAINER_TEST_ID));
+            fireEvent(screen.getByTestId(CONTAINER_TEST_ID), 'mouseDown', event);
+
+            // Then the browser blur is prevented, but focus is not called again
+            expect(event.preventDefault).toHaveBeenCalledTimes(1);
+            expect(focus).not.toHaveBeenCalled();
+            focus.mockRestore();
+            isFocused.mockRestore();
+        });
+
         it('ignores a press that originates from a nested view instead of its own empty area', () => {
             // Given a container composition with a range selection on the input
             const inputRef = React.createRef<BaseTextInputRef>();
