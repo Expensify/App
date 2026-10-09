@@ -105,7 +105,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
     return {
         report: iouReport,
         participantParams: {
-            payeeEmail: currentUser?.login,
+            payeeEmail: currentUser.login,
             payeeAccountID: currentUser.accountID,
             participant,
         },
@@ -149,7 +149,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         isTrackIntentUser,
         delegateAccountID,
         currentUserAccountIDParam: currentUser.accountID,
-        currentUserEmailParam: currentUser?.login ?? '',
+        currentUserEmailParam: currentUser.login ?? '',
         quickAction: undefined,
         policyRecentlyUsedCurrencies: [],
         formatPhoneNumber,
