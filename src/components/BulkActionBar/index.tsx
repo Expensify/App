@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useInvertedThemePreference from '@hooks/useInvertedThemePreference';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -19,6 +20,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
+import mergeRefs from '@libs/mergeRefs';
+import moveMiniToolbarFocusWithArrowKey from '@libs/moveContextMenuFocusWithArrowKey';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
 import {areAllModalsHidden, setDisableDismissOnEscape} from '@userActions/Modal';
@@ -39,6 +42,9 @@ import type {BulkActionBarProps} from './types';
 import BulkActionBarButton from './BulkActionBarButton';
 import BulkActionBarMenuTheme from './BulkActionBarMenuTheme';
 import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popoverPosition';
+import useBulkActionBarFocus from './useBulkActionBarFocus';
+
+const noop = () => {};
 
 /**
  * The bar's contents. Everything here takes its colors from the theme it is rendered under, which `BulkActionBar`
@@ -77,6 +83,17 @@ function BulkActionBarContent<TValueType>({
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
+    const isFocused = useIsFocused();
+
+    // Esc clears the selection, but not while something is open over the bar. An RHP the bar is rendered inside
+    // reports itself visible too, and is told apart by the screen still being focused. The type is not worth reading
+    // here, because a popover opened and closed over an RHP leaves it stale at `popover`.
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const isCoveredByModal = !!modal?.isVisible && !isFocused;
+
+    const barElementRef = useRef<ComponentRef<typeof View> | null>(null);
+    const {suppressStrayFocusRing, isFocusInsideBar} = useBulkActionBarFocus(barElementRef, !isFocused || !!modal?.isVisible);
+
     const moreAnchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
     const [moreMenuAnchorPosition, setMoreMenuAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
@@ -86,13 +103,6 @@ function BulkActionBarContent<TValueType>({
     const hasMoreMenu = options.length > inlineActionCount;
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
-
-    // Esc clears the selection, but not while something is open over the bar. An RHP the bar is rendered inside
-    // reports itself visible too, and is told apart by the screen still being focused. The type is not worth reading
-    // here, because a popover opened and closed over an RHP leaves it stale at `popover`.
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const isFocused = useIsFocused();
-    const isCoveredByModal = !!modal?.isVisible && !isFocused;
 
     const canOwnEscape = !modal?.willAlertModalBecomeVisible && !isCoveredByModal;
 
@@ -104,6 +114,7 @@ function BulkActionBarContent<TValueType>({
     // `willAlertModalBecomeVisible` is a single flag that every modal writes, so closing the topmost of a stack reads
     // as though nothing is open any more. The registry of open modals is the only answer that survives stacking, and
     // it has to be read when the key arrives rather than at subscribe time.
+    // Esc inside a text field is how you leave the field, so leave the selection alone there.
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ESCAPE,
         () => {
@@ -111,10 +122,16 @@ function BulkActionBarContent<TValueType>({
                 return;
             }
 
+            suppressStrayFocusRing();
             onClearSelection();
         },
-        {isActive: shouldClearSelectionOnEscape},
+        {isActive: shouldClearSelectionOnEscape, captureOnInputs: false},
     );
+
+    // The lists this bar floats over run a global Enter shortcut off a keyboard cursor that outlives tabbing away from
+    // the rows. While one of the bar's own buttons is focused, claim Enter without bubbling so pressing it only works
+    // that button instead of also opening whichever row the cursor was left on. Same guard as SearchPageFooter's.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, noop, {isActive: isFocusInsideBar, shouldBubble: false, shouldPreventDefault: false});
 
     // Escape must not dismiss the screen the selection sits on while the bar is the one answering it. The Side Panel
     // is deliberately left out of the condition, because each write to this flag resubscribes the app's own Escape
@@ -152,16 +169,32 @@ function BulkActionBarContent<TValueType>({
         };
     }, [isMoreMenuVisible, calculatePopoverPosition]);
 
+    // The bar appears where nothing was before, without taking focus, so a screen reader only learns about it and about
+    // the size of the selection it describes from an announcement.
+    useAccessibilityAnnouncement(countLabel, !isSelectedCountLoading, {shouldAnnounceOnWeb: true, shouldAnnounceOnNative: true, politeness: 'polite'});
+
     return (
         <View
-            ref={barRef}
+            ref={mergeRefs(barRef, barElementRef)}
             style={styles.bulkActionBar}
+            role={CONST.ROLE.TOOLBAR}
+            accessibilityLabel={translate('bulkActionBar.label')}
+            // The toolbar role has screen readers promise Left and Right move between the buttons, so the bar has to
+            // answer them. Same handler as the report action mini toolbar, which is the same row of role=button children.
+            onKeyDown={moveMiniToolbarFocusWithArrowKey}
             onLayout={(event) => onBarLayout(event.nativeEvent.layout.width)}
         >
             {/* Sized for a three-digit count so the bar keeps still as the selection grows, and so swapping the
                 spinner for the count does not resize it either. */}
             <View style={styles.bulkActionBarCount}>
-                {isSelectedCountLoading ? <ActivityIndicator color={theme.spinner} /> : <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{countLabel}</Text>}
+                {isSelectedCountLoading ? (
+                    <ActivityIndicator
+                        color={theme.spinner}
+                        accessibilityLabel={translate('bulkActionBar.loadingSelection')}
+                    />
+                ) : (
+                    <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{countLabel}</Text>
+                )}
             </View>
             {!!noticeText && <Text style={[styles.textLabel, styles.colorMuted]}>{noticeText}</Text>}
             {inlineOptions.map((option) => (
@@ -178,6 +211,8 @@ function BulkActionBarContent<TValueType>({
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={() => setIsMoreMenuVisible((isVisible) => !isVisible)}
                         accessibilityLabel={translate('common.more')}
+                        accessibilityState={{expanded: isMoreMenuVisible}}
+                        accessibilityHasPopup={CONST.ROLE.MENU}
                         sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_BAR.MORE}
                     >
                         <Button.Text>{translate('common.more')}</Button.Text>
@@ -212,7 +247,7 @@ function BulkActionBarContent<TValueType>({
             )}
             <PressableWithFeedback
                 onPress={onClearSelection}
-                accessibilityLabel={translate('common.close')}
+                accessibilityLabel={translate('bulkActionBar.clearSelection')}
                 role={CONST.ROLE.BUTTON}
                 style={styles.bulkActionBarCloseButton}
                 sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_BAR.CLEAR_SELECTION}

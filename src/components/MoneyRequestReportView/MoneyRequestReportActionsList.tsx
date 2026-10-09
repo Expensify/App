@@ -293,13 +293,20 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         rules,
     });
 
+    // The narrow layout puts its selection controls in a header above the list, while the wide layout floats a bar over
+    // the end of it. The floating bar has to follow the list here rather than lead it, or Tab reaches it only after the
+    // rest of the app has been walked through and wrapped back around.
+    const selectionToolbar = (
+        <SelectionToolbar
+            reportID={report.reportID}
+            transactions={transactions}
+            reportActions={reportActions}
+        />
+    );
+
     return (
         <View style={[styles.flex1]}>
-            <SelectionToolbar
-                reportID={report.reportID}
-                transactions={transactions}
-                reportActions={reportActions}
-            />
+            {shouldUseNarrowLayout && selectionToolbar}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                 <FloatingMessageCounter
                     hasNewMessages={!!unreadMarkerReportActionID}
@@ -351,6 +358,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                     />
                 )}
             </View>
+            {!shouldUseNarrowLayout && selectionToolbar}
         </View>
     );
 }

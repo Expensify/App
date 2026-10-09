@@ -36,6 +36,11 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
+    bulkActionBar: {
+        label: 'Bulk actions',
+        clearSelection: 'Clear selection',
+        loadingSelection: 'Loading selection',
+    },
     earlyRenewal: {
         title: 'Renew your Expensify subscription',
         subtitle: 'One less thing to do before the new year.',
@@ -7499,6 +7504,7 @@ const translations = {
             removeMemberPrompt: (memberName: string) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
+            changeRole: 'Change role',
             makeMember: () => ({
                 one: 'Make member',
                 other: 'Make members',

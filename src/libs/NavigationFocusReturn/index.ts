@@ -38,6 +38,7 @@ let lastMouseTriggerAt = 0;
 let lastKeyboardTriggerElement: HTMLElement | null = null;
 let lastKeyboardTriggerTime = 0;
 let pendingActivationKey: 'Enter' | 'Space' | null = null;
+let nominatedFallback: HTMLElement | null = null;
 
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
     setFifoEntry(triggerMap, routeKey, entry, TRIGGER_MAP_MAX);
@@ -121,7 +122,21 @@ function captureTriggerForRoute(routeKey: string): void {
     if (!inner) {
         return;
     }
+    if (nominatedFallback && nominatedFallback !== inner) {
+        setTriggerEntry(routeKey, {primary: inner, fallback: nominatedFallback});
+        return;
+    }
     setTriggerEntry(routeKey, {primary: inner});
+}
+
+/**
+ * Nominates a second choice to return to for the next route opened from here, for callers whose controls are removed
+ * while that route is open. A bulk action bar is the case this exists for. Its buttons go away with the selection the
+ * route cleared, so the captured trigger is detached by the time the route pops and focus falls to the document.
+ * Passing null withdraws the nomination, which callers do when they unmount.
+ */
+function nominateTriggerFallback(element: HTMLElement | null): void {
+    nominatedFallback = element;
 }
 
 /** Single-site latch reset so the three fields always clear together and future additions get one call site. */
@@ -599,6 +614,7 @@ function resetForTests(): void {
     clearTransientCaptures();
     lastRestoreTarget = null;
     skipNextRestore = false;
+    nominatedFallback = null;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
@@ -690,6 +706,7 @@ export {
     teardownNavigationFocusReturn,
     handleStateChange,
     captureTriggerForRoute,
+    nominateTriggerFallback,
     restoreTriggerForRoute,
     notifyPushParamsForward,
     notifyPushParamsBackward,

@@ -281,6 +281,7 @@ import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
 import UserMinus from '@assets/images/user-minus.svg';
+import UserPencil from '@assets/images/user-pencil.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import UserSearch from '@assets/images/user-search.svg';
 import UserShield from '@assets/images/user-shield.svg';
@@ -577,6 +578,7 @@ const Expensicons = {
     UserEye,
     UserSearch,
     CaretUpDown,
+    UserPencil,
     UserPlus,
     Feed,
     Table,

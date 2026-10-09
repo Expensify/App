@@ -182,6 +182,28 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
 }
 
+/**
+ * The roles a member can be moved to, in the order the role selector lists them. Owner and Editor are left out
+ * because neither is assignable through the role selector.
+ */
+const SELECTABLE_ROLES = [
+    CONST.POLICY.ROLE.ADMIN,
+    CONST.POLICY.ROLE.AUDITOR,
+    CONST.POLICY.ROLE.GUEST,
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.USER,
+] as const;
+
+/**
+ * The roles the given member may assign on this policy, optionally narrowed to a permitted set (for example an
+ * Authorized Payer may only hold a role that can pay).
+ */
+function getSelectableRoles(policy: OnyxInputOrEntry<Policy>, login: string, allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>): Array<ValueOf<typeof CONST.POLICY.ROLE>> {
+    return SELECTABLE_ROLES.filter((role) => canMemberAssignRole(policy, login, role) && (!allowedRoles || allowedRoles.includes(role)));
+}
+
 // Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
 function canMemberAssignElevatedRole(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
     return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES) || canMemberAssignRole(policy, login, CONST.POLICY.ROLE.AUDITOR);
@@ -302,6 +324,7 @@ export {
     canMemberRead,
     canMemberWrite,
     canMemberAssignRole,
+    getSelectableRoles,
     canMemberAssignElevatedRole,
     canMemberManageMemberWithRole,
     getPolicyRole,

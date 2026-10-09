@@ -99,6 +99,7 @@ const CONST_RUNTIME_DEFAULTS: ConstRuntime = {
         'Dynamic_AIFeaturesPromoModal_Root',
         'Money_Request_Step_Scan',
         'Members_Move_To_Group',
+        'Workspace_Members_Role',
         'PreMountBuffer',
         'Multifactor_Authentication_Validate_Code',
         'Multifactor_Authentication_Outcome_Success',

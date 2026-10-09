@@ -43,6 +43,7 @@ import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import {shouldUseTableSemantics} from './tableAccessibility';
 import {doesBodyRenderWhenEmpty} from './TableBody';
+import TableBulkActionBar from './TableBulkActionBar';
 import TableContext from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
@@ -354,6 +355,12 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     // Resizable tables always get the scroller: a drag can overflow without a render, and moving the header mid-drag would remount the handle.
     const hasHorizontalScrollContainer = isColumnResizingEnabled || !!dynamicScrollWidth;
 
+    // The bar is only ever a wide layout affordance, since the narrow one selects rows through its own header. Whether
+    // it is on screen is decided here rather than in the bar, because the list has to reserve the space it floats over
+    // and the two must not disagree about when that is.
+    const hasBulkActionBarChild = childrenArray.some((child) => React.isValidElement(child) && child.type === TableBulkActionBar);
+    const isBulkActionBarVisible = hasBulkActionBarChild && !shouldUseNarrowLayout && selectedKeys.length > 0;
+
     const tableListMetadata = useMemo(
         () =>
             getTableListMetadata({
@@ -450,6 +457,8 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         tableListMetadata,
         isEmptyResult,
         isDefaultViewEmpty,
+        selectedKeys,
+        isBulkActionBarVisible,
         shouldUseNarrowTableLayout,
         shouldFooterRenderAsLastRow,
         selectionEnabled,

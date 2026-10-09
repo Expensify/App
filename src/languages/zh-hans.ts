@@ -6917,6 +6917,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 optionNoRegularWorkspaceHelp: '成员在家办公或在各地点之间出差，没有固定办公地点，因此通勤规则不适用。',
                 futureOnlyNote: '更改仅适用于未来的里程计算，现有的里程报销将不会重新计算。',
             },
+            changeRole: '更改角色',
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -11417,5 +11418,6 @@ ${reportName}`,
         mobileRenewPrompt: '请在网页浏览器中访问 Expensify 以提前续订。',
         mobileClaimPrompt: '请在网页浏览器中访问 Expensify 以领取您的续订折扣。',
     },
+    bulkActionBar: {label: '批量操作', clearSelection: '清除选择', loadingSelection: '正在加载所选内容'},
 };
 export default translations;

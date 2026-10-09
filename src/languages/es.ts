@@ -7011,6 +7011,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             removeMemberPrompt: (memberName) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
+            changeRole: 'Cambiar rol',
             makeMember: () => ({
                 one: 'Convertir en miembro',
                 other: 'Convertir en miembros',
@@ -12207,5 +12208,6 @@ ${reportName}`,
         mobileRenewPrompt: 'Visita Expensify en tu navegador web para renovar antes.',
         mobileClaimPrompt: 'Visita Expensify en tu navegador web para obtener tu descuento de renovación.',
     },
+    bulkActionBar: {label: 'Acciones en bloque', clearSelection: 'Borrar selección', loadingSelection: 'Cargando selección'},
 };
 export default translations;

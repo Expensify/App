@@ -7244,6 +7244,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     'Le membre travaille à domicile ou se déplace entre plusieurs sites sans bureau fixe, donc les règles relatives aux trajets domicile-travail ne s’appliquent pas.',
                 futureOnlyNote: 'Les modifications s’appliquent uniquement aux calculs de kilométrage futurs. Les dépenses de kilométrage existantes ne sont pas recalculées.',
             },
+            changeRole: 'Modifier le rôle',
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -11970,5 +11971,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         mobileRenewPrompt: 'Visitez Expensify dans votre navigateur web pour renouveler en avance.',
         mobileClaimPrompt: 'Visitez Expensify dans votre navigateur web pour bénéficier de votre réduction de renouvellement.',
     },
+    bulkActionBar: {label: 'Actions groupées', clearSelection: 'Effacer la sélection', loadingSelection: 'Chargement de la sélection'},
 };
 export default translations;
