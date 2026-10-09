@@ -145,4 +145,4 @@
   
 - Upstream PR/issue: https://github.com/necolas/react-native-web/pull/2891
 - E/App issue: 🛑
-- PR introducing patch: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/103460
