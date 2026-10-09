@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -42,7 +41,6 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
     const {translate} = useLocalize();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const policy = usePolicy(report?.policyID);
 
     const goBack = useCallback(() => {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(navigateBackTo));
@@ -91,7 +89,7 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
             includeSafeAreaPaddingBottom
             testID="RoomNamePage"
         >
-            <FullPageNotFoundView shouldShow={shouldDisableRename(report, isReportArchived, policy)}>
+            <FullPageNotFoundView shouldShow={shouldDisableRename(report, isReportArchived)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={goBack}

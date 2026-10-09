@@ -8,10 +8,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, isPolicyGuest} from '@libs/PolicyUtils';
+import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {
     getParticipantsList,
-    isAnnounceRoom as isAnnounceRoomUtil,
     isChatThread as isChatThreadUtil,
     isConciergeChatReport,
     isDefaultRoom as isDefaultRoomUtil,
@@ -55,7 +54,6 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     const isChatThread = isChatThreadUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isGroupChat = isGroupChatUtil(report);
-    const isGuestAnnounceRoom = isPolicyGuest(policy) && isAnnounceRoomUtil(report);
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
 
@@ -74,7 +72,6 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
     // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
     if (
-        !isGuestAnnounceRoom &&
         (isGroupChat ||
             (isDefaultRoom && isChatThread && isPolicyEmployee) ||
             (!isUserCreatedPolicyRoom && participants.length) ||
@@ -102,7 +99,7 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
         );
     }
 
-    if (!isGuestAnnounceRoom && ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee))) {
+    if ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)) {
         return (
             <MenuItem
                 title={translate('common.invite')}

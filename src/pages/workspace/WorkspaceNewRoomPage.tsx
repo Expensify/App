@@ -23,7 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRoomIDToHighlightOnRoomsPage, setRoomIDToHighlightOnRoomsPage} from '@libs/actions/Policy/Room';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPoliciesForRoomCreation} from '@libs/PolicyUtils';
+import {getActivePolicies} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
 import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
 
@@ -111,12 +111,13 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
 
     const workspaceOptions = useMemo(
         () =>
-            getPoliciesForRoomCreation(policies, session?.email)
+            getActivePolicies(policies, session?.email)
+                ?.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL)
                 .map((policy) => ({
                     label: policy.name,
                     value: policy.id,
                 }))
-                .sort((a, b) => localeCompare(a.label, b.label)),
+                .sort((a, b) => localeCompare(a.label, b.label)) ?? [],
         [policies, session?.email, localeCompare],
     );
     const [policyID, setPolicyID] = useState<string>(() => {

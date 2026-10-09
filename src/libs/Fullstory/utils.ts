@@ -1,6 +1,5 @@
 import {filterObject} from '@libs/ObjectUtils';
 import {getActivePolicies, isControlPolicy} from '@libs/PolicyUtils';
-import getHighestPolicyRole from '@libs/PolicyUtils/getHighestPolicyRole';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -143,14 +142,18 @@ function getOnboardingStep(onboardingPath: string | undefined, hasCompletedOnboa
 }
 
 function getUserRole(activePolicies: Policy[]): FullstoryUserVars['user_role'] {
-    const highestRole = getHighestPolicyRole(activePolicies);
+    let userRole: FullstoryUserVars['user_role'] = 'member';
 
-    // Fullstory calls a workspace member 'member' rather than 'user'
-    if (highestRole === CONST.POLICY.ROLE.USER) {
-        return 'member';
+    for (const policy of activePolicies) {
+        if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
+            return 'admin';
+        }
+        if (policy?.role === CONST.POLICY.ROLE.AUDITOR) {
+            userRole = 'auditor';
+        }
     }
 
-    return highestRole;
+    return userRole;
 }
 
 function getPlanType(policies: Policy[]): FullstoryUserVars['plan_type'] {

@@ -682,15 +682,6 @@ function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['t
 }
 
 /**
- * Get the active group policies where the current user can create policy rooms.
- */
-function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePolicies(policies, currentUserLogin).filter(
-        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS),
-    );
-}
-
-/**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
  *
  * If includeMemberWithErrors is false, We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
@@ -2576,7 +2567,6 @@ export {
     hasDynamicExternalWorkflow,
     shouldHideDynamicExternalWorkflowPeople,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
-    getPoliciesForRoomCreation,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,
     isInvoiceFieldsEnabled,

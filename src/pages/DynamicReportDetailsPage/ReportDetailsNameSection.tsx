@@ -64,7 +64,7 @@ function ReportDetailsNameSectionContent({report}: ReportDetailsNameSectionConte
     const isGroupChat = isGroupChatUtil(report);
     const isThread = isThreadUtil(report);
     const isWorkspaceChat = isWorkspaceChatUtil(report.chatType ?? '');
-    const shouldDisableRename = shouldDisableRenameUtil(report, isReportArchived, policy);
+    const shouldDisableRename = shouldDisableRenameUtil(report, isReportArchived);
     const chatRoomSubtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived) ?? '';
     const additionalRoomDetails =
         isExpenseReportUtil(report) || isPolicyExpenseChatUtil(report) || isInvoiceRoomUtil(report) ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`;
