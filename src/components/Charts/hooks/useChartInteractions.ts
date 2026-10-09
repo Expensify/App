@@ -1,9 +1,11 @@
+import {markChartTouch} from '@components/Charts/utils/pinnedChartTooltip';
+
 import type {SharedValue} from 'react-native-reanimated';
 
-import {useCallback} from 'react';
-import {Gesture} from 'react-native-gesture-handler';
+import {useCallback, useState} from 'react';
+import {Gesture, PointerType} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 
 import useChartInteractionState from './useChartInteractionState';
 
@@ -184,6 +186,9 @@ function useChartInteractions({
     const isCursorOverClickable = useSharedValue(false);
     const isTooltipActive = useSharedValue(false);
 
+    /** True while a tooltip opened by a touch tap is shown, which lets a touch anywhere on the screen hide it */
+    const [isTouchPinned, setIsTouchPinned] = useState(false);
+
     /**
      * Called by chart content from handleScaleChange to populate canvas positions.
      * Must be called with the positions derived from the current d3 scale.
@@ -297,6 +302,49 @@ function useChartInteractions({
         return updateInteractionFlags(hitTestArgs.targetIndex, hitTestArgs.cursorX, hitTestArgs.cursorY, hitTestArgs.chartBottom);
     };
 
+    /** Moves the hover cursor to the given chart position and updates the matched target and the tooltip visibility */
+    const updateHoverAt = (cursorX: number, cursorY: number) => {
+        'worklet';
+
+        chartInteractionState.cursor.x.set(cursorX);
+        chartInteractionState.cursor.y.set(cursorY);
+        const bottom = chartBottom?.get() ?? cursorY;
+        const isOverCurrentTarget = updateCurrentInteractionFlags();
+        // Only update the matched index when the cursor is not over the current target.
+        // This keeps the active index locked while hovering over a bar/point/label,
+        // preventing it from jumping to a different point during continuous movement.
+        if (!isOverCurrentTarget) {
+            const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
+            const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
+            applyTargetIndex(targetIndex);
+            updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+        }
+    };
+
+    /** The page scrolling moves the chart under a still cursor without any hover event, so the hover is checked again at the cursor's new chart position */
+    const handleChartMoved = (deltaX: number, deltaY: number) => {
+        'worklet';
+
+        if (!chartInteractionState.isActive.get()) {
+            return;
+        }
+        updateHoverAt(
+            chartInteractionState.cursor.x.get() - normalizeChartCoordinate(deltaX, coordinateScale),
+            chartInteractionState.cursor.y.get() - normalizeChartCoordinate(deltaY, coordinateScale),
+        );
+    };
+
+    const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
+
+    const hideTooltip = () => {
+        'worklet';
+
+        chartInteractionState.isActive.set(false);
+        isCursorOverTarget.set(false);
+        isCursorOverClickable.set(false);
+        isTooltipActive.set(false);
+    };
+
     /**
      * Hover gesture to be placed on the full-height outer container (chart + label area).
      * Clamps the y coordinate to chartBottom before passing to Victory so that hovering
@@ -310,6 +358,10 @@ function useChartInteractions({
             .onBegin((e) => {
                 'worklet';
 
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
+                scheduleOnRN(setIsTouchPinned, false);
                 const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
                 const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
                 chartInteractionState.isActive.set(true);
@@ -324,60 +376,90 @@ function useChartInteractions({
             .onUpdate((e) => {
                 'worklet';
 
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
+                updateHoverAt(normalizeChartCoordinate(e.x, coordinateScale), normalizeChartCoordinate(e.y, coordinateScale));
+            })
+            .onEnd((e) => {
+                'worklet';
+
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
+                hideTooltip();
+            });
+
+    const dismissTouchTooltip = () => {
+        hideTooltip();
+        // Clearing the target unmounts the tooltip, so the next tap mounts a fresh one instead of revealing the old content for a frame
+        applyTargetIndex(-1);
+        setIsTouchPinned(false);
+    };
+
+    /**
+     * Touch taps show the tooltip instead of drilling in, since touch devices have no hover.
+     * While it is shown, a tap on this chart switches it and a touch anywhere else hides it.
+     */
+    const handleTouchTap = (cursorX: number, cursorY: number) => {
+        'worklet';
+
+        const bottom = chartBottom?.get() ?? cursorY;
+        const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
+        const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
+        chartInteractionState.isActive.set(true);
+        applyTargetIndex(targetIndex);
+        const isOverTarget = updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+        if (!isOverTarget) {
+            scheduleOnRN(dismissTouchTooltip);
+            return;
+        }
+        scheduleOnRN(setIsTouchPinned, true);
+    };
+
+    /**
+     * Tap gesture. Resolves the nearest data point entirely on the UI thread.
+     * Touch taps show the tooltip; other pointers schedule handlePress on the JS thread if the cursor is over the target.
+     */
+    const tapGesture = () =>
+        Gesture.Tap()
+            // A touch on this chart that turns into a scroll leaves the pinned tooltip to the chart, so the chart hides it
+            .onFinalize((e, success) => {
+                'worklet';
+
+                if (success || e.pointerType !== PointerType.TOUCH || !isTouchPinned) {
+                    return;
+                }
+                scheduleOnRN(dismissTouchTooltip);
+            })
+            .onEnd((e) => {
+                'worklet';
+
                 const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
                 const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
                 chartInteractionState.cursor.x.set(cursorX);
                 chartInteractionState.cursor.y.set(cursorY);
-                const bottom = chartBottom?.get() ?? cursorY;
-                const isOverCurrentTarget = updateCurrentInteractionFlags();
-                // Only update the matched index when the cursor is not over the current target.
-                // This keeps the active index locked while hovering over a bar/point/label,
-                // preventing it from jumping to a different point during continuous movement.
-                if (!isOverCurrentTarget) {
-                    const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
-                    const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
-                    applyTargetIndex(targetIndex);
-                    updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+                if (e.pointerType === PointerType.TOUCH) {
+                    handleTouchTap(cursorX, cursorY);
+                    return;
                 }
-            })
-            .onEnd(() => {
-                'worklet';
-
-                chartInteractionState.isActive.set(false);
-                isCursorOverTarget.set(false);
-                isCursorOverClickable.set(false);
-                isTooltipActive.set(false);
+                const ox = pointOX.get();
+                const oy = pointOY.get();
+                const idx = getResolvedTargetIndex(cursorX, cursorY, cursorX);
+                applyTargetIndex(idx);
+                if (idx < 0) {
+                    return;
+                }
+                const targetX = ox.at(idx) ?? 0;
+                const targetY = oy.at(idx) ?? 0;
+                const currentChartBottom = chartBottom?.get() ?? 0;
+                const hitTestArgs = getHitTestArgs(idx, cursorX, cursorY, targetX, targetY, currentChartBottom);
+                const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
+                updateInteractionFlags(idx, cursorX, cursorY, currentChartBottom);
+                if (isClickable) {
+                    scheduleOnRN(handlePress, idx);
+                }
             });
-
-    /**
-     * Tap gesture. Resolves the nearest data point entirely on the UI thread,
-     * then schedules handlePress on the JS thread if the cursor is over the target.
-     */
-    const tapGesture = () =>
-        Gesture.Tap().onEnd((e) => {
-            'worklet';
-
-            const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
-            const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
-            chartInteractionState.cursor.x.set(cursorX);
-            chartInteractionState.cursor.y.set(cursorY);
-            const ox = pointOX.get();
-            const oy = pointOY.get();
-            const idx = getResolvedTargetIndex(cursorX, cursorY, cursorX);
-            applyTargetIndex(idx);
-            if (idx < 0) {
-                return;
-            }
-            const targetX = ox.at(idx) ?? 0;
-            const targetY = oy.at(idx) ?? 0;
-            const currentChartBottom = chartBottom?.get() ?? 0;
-            const hitTestArgs = getHitTestArgs(idx, cursorX, cursorY, targetX, targetY, currentChartBottom);
-            const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
-            updateInteractionFlags(idx, cursorX, cursorY, currentChartBottom);
-            if (isClickable) {
-                scheduleOnRN(handlePress, idx);
-            }
-        });
 
     /**
      * Raw tooltip positioning data.
@@ -423,6 +505,12 @@ function useChartInteractions({
         initialTooltipPosition,
         /** Canvas position of the matched data point */
         activePointPosition,
+        /** Call with how far the chart moved in the window, e.g. on page scroll, to re-check the hover under a still cursor */
+        onChartMoved,
+        /** Hides the tooltip pinned by a touch tap, undefined while nothing is pinned */
+        onTooltipDismiss: isTouchPinned ? dismissTouchTooltip : undefined,
+        /** Marks a touch on this chart, so the screen's touch start keeps the tooltip and lets the tap switch it */
+        onChartTouchStart: () => markChartTouch(isTouchPinned ? dismissTouchTooltip : undefined),
     };
 }
 

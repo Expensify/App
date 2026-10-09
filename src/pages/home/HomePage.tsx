@@ -1,3 +1,4 @@
+import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -156,6 +157,7 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
+                        onTouchStart={dismissPinnedChartTooltip}
                         contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"

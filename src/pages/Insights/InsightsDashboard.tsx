@@ -1,5 +1,6 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
@@ -15,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -66,6 +68,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
@@ -124,6 +127,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     return (
         <ScrollView
             style={styles.insightsDashboardScrollView}
+            onScroll={triggerScrollEvent}
+            onTouchStart={dismissPinnedChartTooltip}
             contentContainerStyle={[styles.flexGrow1, pageGutter, styles.pb5]}
             addBottomSafeAreaPadding
         >

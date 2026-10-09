@@ -3,6 +3,7 @@ import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
+import {markChartTouch} from '@components/Charts/utils/pinnedChartTooltip';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
@@ -12,11 +13,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useState} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {Gesture, GestureDetector, PointerType} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 import {Pie, PolarChart} from 'victory-native';
 
 import PaddedPieSlice from './PaddedPieSlice';
@@ -41,6 +42,11 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
     const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
+
+    /** True while a slice tooltip opened by a touch tap is shown, which lets a touch anywhere on the screen hide it */
+    const [isTouchPinned, setIsTouchPinned] = useState(false);
+    /** Point of the last touch tap */
+    const [touchedPoint, setTouchedPoint] = useState<{x: number; y: number}>();
     const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
     // Shared values for hover state
@@ -91,13 +97,55 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         }
     };
 
+    /** The page scrolling moves the pie under a still cursor without any hover event, so the hovered slice is checked again at the cursor's new position */
+    const handleChartMoved = (deltaX: number, deltaY: number) => {
+        'worklet';
+
+        if (!isHovering.get()) {
+            return;
+        }
+        const x = cursorX.get() - deltaX;
+        const y = cursorY.get() - deltaY;
+        cursorX.set(x);
+        cursorY.set(y);
+        tooltipPosition.set({x, y: y - TOOLTIP_BAR_GAP});
+        scheduleOnRN(updateActiveSlice, x, y);
+    };
+
+    const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
+
+    // Touch taps show the slice tooltip instead of drilling in, and the next touch anywhere on the screen hides it
+    const showTouchedSlice = (x: number, y: number) => {
+        const {centerX, centerY} = pieGeometry;
+        const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, innerRadius, processedSlices);
+        setActiveSliceIndex(sliceIndex);
+        setIsTouchPinned(sliceIndex >= 0);
+        setTouchedPoint({x, y});
+    };
+
+    useLayoutEffect(() => {
+        if (!touchedPoint) {
+            return;
+        }
+        tooltipPosition.set({x: touchedPoint.x, y: touchedPoint.y - TOOLTIP_BAR_GAP});
+    }, [touchedPoint, tooltipPosition]);
+
+    const dismissTouchedSlice = () => {
+        setActiveSliceIndex(-1);
+        setIsTouchPinned(false);
+    };
+
     // Hover gesture
     const hoverGesture = () =>
         Gesture.Hover()
             .onBegin((e) => {
                 'worklet';
 
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
                 isHovering.set(true);
+                scheduleOnRN(setIsTouchPinned, false);
                 cursorX.set(e.x);
                 cursorY.set(e.y);
                 tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
@@ -106,31 +154,51 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
             .onUpdate((e) => {
                 'worklet';
 
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
                 cursorX.set(e.x);
                 cursorY.set(e.y);
                 tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
                 scheduleOnRN(updateActiveSlice, e.x, e.y);
             })
-            .onEnd(() => {
+            .onEnd((e) => {
                 'worklet';
 
+                if (e.pointerType === PointerType.TOUCH) {
+                    return;
+                }
                 isHovering.set(false);
                 scheduleOnRN(setActiveSliceIndex, -1);
                 scheduleOnRN(setIsHoveringOverPie, false);
             });
 
-    // Tap gesture for click/tap navigation
+    // Tap gesture: touch toggles the tooltip, other pointers navigate on click
     const tapGesture = () =>
-        Gesture.Tap().onEnd((e) => {
-            'worklet';
+        Gesture.Tap()
+            .onFinalize((e, success) => {
+                'worklet';
 
-            const {centerX, centerY} = pieGeometry;
-            const sliceIndex = findSliceAtPosition(e.x, e.y, centerX, centerY, radius, innerRadius, processedSlices);
+                if (success || e.pointerType !== PointerType.TOUCH || !isTouchPinned) {
+                    return;
+                }
+                scheduleOnRN(dismissTouchedSlice);
+            })
+            .onEnd((e) => {
+                'worklet';
 
-            if (sliceIndex >= 0) {
-                scheduleOnRN(handleSlicePress, sliceIndex);
-            }
-        });
+                if (e.pointerType === PointerType.TOUCH) {
+                    scheduleOnRN(showTouchedSlice, e.x, e.y);
+                    return;
+                }
+
+                const {centerX, centerY} = pieGeometry;
+                const sliceIndex = findSliceAtPosition(e.x, e.y, centerX, centerY, radius, innerRadius, processedSlices);
+
+                if (sliceIndex >= 0) {
+                    scheduleOnRN(handleSlicePress, sliceIndex);
+                }
+            });
 
     // Combined gestures - Race allows both hover and tap to work independently
     const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
@@ -175,6 +243,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                 <Animated.View
                     style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
                     onLayout={handleLayout}
+                    onTouchStart={() => markChartTouch(isTouchPinned ? dismissTouchedSlice : undefined)}
                 >
                     {processedSlices.length > 0 && (
                         <PolarChart
@@ -219,8 +288,11 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                             label={tooltipData.label}
                             amount={tooltipData.amount}
                             percentage={tooltipData.percentage}
+                            expenseCount={tooltipData.expenseCount}
                             chartWidth={canvasWidth}
                             initialTooltipPosition={tooltipPosition}
+                            onChartMoved={onChartMoved}
+                            onDismiss={isTouchPinned ? dismissTouchedSlice : undefined}
                         />
                     )}
                 </Animated.View>

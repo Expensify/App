@@ -58,6 +58,7 @@ function InsightsSectionContent() {
 
     return (
         <WidgetContainer
+            containerStyles={styles.overflowVisible}
             titleContent={
                 <InsightTitleDropdown
                     configs={insightConfigs}
