@@ -40,14 +40,16 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
             )}
             <View style={[styles.flexColumn, styles.gap1, styles.flex1]}>
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <Text
-                        numberOfLines={2}
-                        style={[styles.lh20, styles.flex1]}
-                        selectable
-                        dataSet={COPYABLE_TEXT_DATA_SET}
-                    >
-                        {item.reportName ?? ''}
-                    </Text>
+                    <View style={styles.flex1}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.lh20, styles.flex1]}
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {item.reportName ?? ''}
+                        </Text>
+                    </View>
                     <Text
                         style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}
                         selectable

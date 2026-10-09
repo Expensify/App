@@ -862,7 +862,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Czy na pewno chcesz usunąć ten/ tę ${type}?`;
+            return `Czy na pewno chcesz usunąć ten/ tę ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Wszystkie wydatki w tym raporcie zostaną oznaczone jako nierozliczone.' : ''}`;
         },
         onlyVisible: 'Widoczne tylko dla',
         explain: 'Wyjaśnij',
@@ -1524,6 +1524,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Czy na pewno chcesz usunąć ten raport?',
             other: 'Czy na pewno chcesz usunąć te raporty?',
         }),
+        deleteExpenseReportConfirmation: 'Czy na pewno chcesz usunąć ten raport? Wszystkie wydatki w tym raporcie zostaną oznaczone jako nierozliczone.',
         settledExpensify: 'Zapłacono',
         paidStatusMarkedAsPaid: 'Oznaczono jako zapłacone',
         paidStatusWithdrawing: 'Wypłata',
@@ -1666,6 +1667,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Wprowadź niezerową kwotę dla swojego podziału',
             noParticipantSelected: 'Wybierz uczestnika',
             other: 'Nieoczekiwany błąd. Spróbuj ponownie później.',
+            payFailedExpenseDeleted: 'Płatność nie powiodła się, ponieważ raport wydatków został usunięty.',
             genericCreateFailureMessage: 'Niespodziewany błąd podczas przesyłania tego wydatku. Spróbuj ponownie później.',
             genericCreateInvoiceFailureMessage: 'Nieoczekiwany błąd podczas wysyłania tej faktury. Spróbuj ponownie później.',
             genericHoldExpenseFailureMessage: 'Nieoczekiwany błąd podczas wstrzymywania tego wydatku. Spróbuj ponownie później.',
@@ -4045,6 +4047,15 @@ ${amount} dla ${merchant} - ${date}`,
         },
         unlockAlreadyRequestedTitle: 'Wniosek został już złożony',
         unlockAlreadyRequestedDescription: 'Twoja prośba o odblokowanie tego konta bankowego została już wysłana. Concierge skontaktuje się z tobą, jeśli będzie potrzebne coś jeszcze.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Przykład: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Musi mieć co najmniej ${minLength} znaków`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Nieprawidłowy format. Przykład: ${example}` : 'Nieprawidłowy format'),
+            invalidOption: 'Wybierz jedną z dostępnych opcji',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Wprowadź wartość od ${min} do ${max}`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Kod SWIFT/BIC musi mieć długość 8 lub 11 znaków, z 6 literami, po których następują 2 lub 5 liter lub cyfr.',
@@ -6913,11 +6924,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             emptySubtitle: 'Dostawcy pojawią się tutaj po zakończeniu synchronizacji z księgowością.',
             findVendor: 'Znajdź dostawcę',
             managedInAccountingSoftware: 'Dostawcy są zarządzani w twoim',
-            enableVendor: 'Włącz kontrahenta',
-            enableVendors: 'Włącz dostawców',
-            disableVendor: 'Wyłącz dostawcę',
-            disableVendors: 'Wyłącz dostawców',
-            updateFailureMessage: 'Wystąpił błąd podczas aktualizowania dostawcy, spróbuj ponownie',
         },
         tags: {
             tagName: 'Nazwa tagu',
@@ -8845,7 +8851,17 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Połączono. ${setupLink ? `<a href="${setupLink}">Zakończ konfigurację</a>` : 'Zakończ konfigurację'}, aby zaimportować pracowników.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Grupy', description: 'Wybierz grupy pracowników, które chcesz zsynchronizować z tą przestrzenią roboczą'},
+                groups: {
+                    title: 'Grupy',
+                    description: 'Wybierz grupy pracowników, które chcesz zsynchronizować z tą przestrzenią roboczą',
+                    staleSelectionError: (providerName: string) =>
+                        `Niektóre z wybranych przez ciebie grup już nie istnieją w ${providerName}, więc ich pracownicy przestali się synchronizować.`,
+                    updateSelectionLink: 'Zaktualizuj swoje grupy.',
+                    noGroupsFound: 'Nie znaleziono grup',
+                    noGroupsFoundDescription:
+                        'Aktualnie nie ma żadnych grup do wyboru. Zapisz bez zaznaczania grup, aby zsynchronizować wszystkich pracowników, albo ponownie zsynchronizuj połączenie, gdy pojawią się nowe grupy.',
+                    unnamedGroup: (groupID: string) => `Grupa bez nazwy (${groupID})`,
+                },
             },
         },
         recruiting: {
@@ -10171,7 +10187,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topMerchants: 'Najważniejsi sprzedawcy',
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
-        mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
+        mergeReports: {
+            title: 'Połącz raporty',
+            description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.',
+            listPage: {noEligibleReportsFound: 'Nie znaleziono kwalifikujących się raportów', noEligibleReportsFoundSubtitle: 'Nie masz żadnych raportów, które można połączyć.'},
+        },
         periodSoFar: ({period}: {period: string}) => `${period} do tej pory`,
         weekOf: ({date}: {date: string}) => `Tydzień od ${date}`,
         saveEdits: {

@@ -1139,55 +1139,6 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('shows the vendor-field error when assigned vendor is disabled in policyVendors', async () => {
-        const threadReport = {
-            ...LHNTestUtils.getFakeReport(),
-            parentReportID: expenseReportID,
-            parentReportActionID,
-        };
-
-        const disabledVendorID = 'disabled-vendor-id';
-
-        await setupTestData();
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
-                [disabledVendorID]: {
-                    externalID: disabledVendorID,
-                    name: 'Disabled Vendor',
-                    enabled: false,
-                },
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                reimbursable: false,
-                comment: {vendor: {externalID: disabledVendorID, wasManuallySet: false}},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
-                {
-                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
-                    type: CONST.VIOLATION_TYPES.VIOLATION,
-                    showInReview: true,
-                },
-            ]);
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        renderMoneyRequestView(threadReport, {
-            connections: {
-                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                    data: {vendors: [{id: disabledVendorID, name: 'Disabled Vendor', currency: 'USD', email: 'vendor@example.com'}]},
-                },
-            },
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(screen.getByRole('alert')).toHaveTextContent('violations.inactiveVendor.');
-            expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
-        });
-    });
-
     describe('commuter exclusion in the Distance field', () => {
         const selfDMReportID = 'self_dm_mrv_123';
         // `translate` is mocked to return the key, so the commuter description is the plain distance label plus the "Original" key

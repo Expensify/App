@@ -308,6 +308,7 @@ export default function WorkspaceMembersTable({
     return (
         <Table
             shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_MEMBERS}
             ref={ref}
             data={members}
             filters={filterConfig}
