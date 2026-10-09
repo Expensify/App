@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/ios/RNSScreenStack.mm b/node_modules/react-native-screens/ios/RNSScreenStack.mm
-index c233036b56c..3972d5ee799 100644
+index c233036..0bd814f 100644
 --- a/node_modules/react-native-screens/ios/RNSScreenStack.mm
 +++ b/node_modules/react-native-screens/ios/RNSScreenStack.mm
 @@ -175,6 +175,10 @@ @implementation RNSScreenStackView {
@@ -24,12 +24,26 @@ index c233036b56c..3972d5ee799 100644
    if (![viewController.view isKindOfClass:[RNSScreenView class]] ||
        static_cast<RNSScreenView *>(viewController.view).isInvalidated) {
      // if the screen was already deleted by React, its config was already removed
-@@ -588,6 +596,17 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
-   if (self.window == nil) {
-     return;
-   }
+@@ -281,6 +289,11 @@ - (void)presentationControllerDidDismiss:(UIPresentationController *)presentatio
+ - (void)didMoveToWindow
+ {
+   [super didMoveToWindow];
++  if (self.window == nil) {
++    // Detached stacks get a full update on the next attach, so stop waiting for a held push.
++    _pendingPushController = nil;
++    _updateSkippedForPendingPush = NO;
++  }
+   // for handling nested stacks
+   [self maybeAddToParentAndUpdateContainer];
+ }
+@@ -578,6 +591,20 @@ - (void)setModalViewControllers:(NSArray<UIViewController *> *)controllers
+ 
+ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
+ {
 +  // iOS < 18 can hold an animated push until the next CA commit. Until then the controller is not in
 +  // `viewControllers` and `transitionCoordinator` is nil, so another update would push it twice and crash.
++  // This runs before the "no change" check below: while the push is held, `viewControllers` still equals
++  // the stack from before the push, and an update that removes the pushed screen must be replayed.
 +  if (_pendingPushController != nil) {
 +    if (![_controller.viewControllers containsObject:_pendingPushController]) {
 +      _updateSkippedForPendingPush = YES;
@@ -39,10 +53,11 @@ index c233036b56c..3972d5ee799 100644
 +    _pendingPushController = nil;
 +    _updateSkippedForPendingPush = NO;
 +  }
-   // when transition is ongoing, any updates made to the controller will not be reflected until the
-   // transition is complete. In particular, when we push/pop view controllers we expect viewControllers
-   // property to be updated immediately. Based on that property we then calculate future updates.
-@@ -663,6 +682,12 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
++
+   // when there is no change we return immediately
+   if ([_controller.viewControllers isEqualToArray:controllers]) {
+     return;
+@@ -663,6 +690,12 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
  
        [_controller setViewControllers:newControllers animated:NO];
        [_controller pushViewController:top animated:YES];
@@ -55,7 +70,7 @@ index c233036b56c..3972d5ee799 100644
      } else {
        // don't really know what this case could be, but may need to handle it
        // somehow
-@@ -674,6 +699,20 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
+@@ -674,6 +707,20 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
    }
  }
  
@@ -76,7 +91,7 @@ index c233036b56c..3972d5ee799 100644
  - (void)updateContainer
  {
    NSMutableArray<UIViewController *> *pushControllers = [NSMutableArray new];
-@@ -988,6 +1027,10 @@ - (void)navigationController:(UINavigationController *)navigationController
+@@ -988,6 +1035,10 @@ - (void)navigationController:(UINavigationController *)navigationController
         didShowViewController:(UIViewController *)viewController
                      animated:(BOOL)animated
  {
@@ -87,7 +102,7 @@ index c233036b56c..3972d5ee799 100644
    [self emitOnFinishTransitioningEvent];
    [RNSScreenWindowTraits updateWindowTraits];
    // Because of the bug that caused view to have incorrect dimensions while changing the orientation,
-@@ -1382,6 +1425,8 @@ - (void)prepareForRecycle
+@@ -1382,6 +1433,8 @@ - (void)prepareForRecycle
    }
  
    [_presentedModals removeAllObjects];

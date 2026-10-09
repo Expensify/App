@@ -26,15 +26,19 @@
       setViewControllers: right before the push reports didShow for its own top controller, sometimes
       before UIKit runs the held push),
     - a later update finds the pending controller in viewControllers.
-    The pending controller is a weak reference, so the wait also ends if React deallocates it, and
-    prepareForRecycle resets the state when the stack view is recycled. There is no timer and no retry
-    loop: like the rest of react-native-screens, the patch waits for UIKit callbacks instead.
+    The skip runs before the "no change" early return in setPushViewControllers: while the push is held,
+    viewControllers still equals the stack from before the push, so an update that removes the pushed
+    screen would otherwise return early and never be replayed.
+    The pending controller is a weak reference, so the wait also ends if React deallocates it.
+    didMoveToWindow with a nil window and prepareForRecycle reset the state, since a detached or recycled
+    stack gets a full update on the next attach. There is no timer and no retry loop: like the rest of
+    react-native-screens, the patch waits for UIKit callbacks instead.
 
     This follows the approach the react-native-screens maintainers described as correct (keep pending
     operations until they show up in the navigation controller), narrowed to this one case. RNS 5 changes
     this model.
     ```
 
-- Upstream PR/issue: 🛑 Discussed with the react-native-screens maintainers. RNS 4.x is in maintenance mode, remove this patch when upgrading to RNS 5.
+- Upstream PR/issue: 🛑 No upstream PR. Discussed with the react-native-screens maintainers: RNS 4.x is in maintenance mode and the general fix (keep pending operations until they show up in the navigation controller) is RNS 5 material. Remove this patch when upgrading to RNS 5. Standalone repro: https://github.com/WojtekBoman/rns-ios17-push-same-vc-twice-repro
 - E/App issue: https://github.com/Expensify/App/issues/102743
-- PR introducing patch: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/103603
