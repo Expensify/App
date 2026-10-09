@@ -7421,9 +7421,13 @@ function setPolicyPreventSelfApproval(
  * Call the API to control whether non-reimbursable reports can be marked as paid
  * @param policyID - ID of the policy to update
  * @param preventPayoutNonReimbursableReports - Whether non-reimbursable reports can be marked as paid. Set to true to prevent payout, false to allow it.
- * @param currentPreventPayoutNonReimbursableReports - current value of preventSelfApproval
+ * @param currentPreventPayoutNonReimbursableReports - current value of preventPayoutNonReimbursableReports
  */
 function setPolicyPreventPayoutNonReimbursableReports(policyID: string, preventPayoutNonReimbursableReports: boolean, currentPreventPayoutNonReimbursableReports: boolean | undefined) {
+    if (preventPayoutNonReimbursableReports === currentPreventPayoutNonReimbursableReports) {
+        return;
+    }
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
