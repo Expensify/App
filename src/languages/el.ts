@@ -633,6 +633,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Εκκίνηση του Expensify',
         expired: 'Η συνεδρία σας έχει λήξει.',
         signIn: 'Παρακαλούμε συνδεθείτε ξανά.',
+        notValid: 'Μη έγκυρος σύνδεσμος.',
+        sessionMismatch: 'Ο σύνδεσμος που κάνατε κλικ δεν είναι έγκυρος για την τρέχουσα συνεδρία σας.',
+        switchAccount: {
+            title: 'Αλλαγή λογαριασμών;',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Έχετε συνδεθεί ως ${currentEmail}. Αυτή η ενέργεια θα σας συνδέσει ως ${newEmail} αντί για αυτό.`,
+            confirm: 'Αλλαγή λογαριασμών',
+            staySignedIn: 'Να μην αλλάξω λογαριασμούς',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -867,7 +876,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το ${type};`;
+            return `Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το ${type};${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Όλες οι δαπάνες σε αυτήν την αναφορά θα γίνουν μη υποβληθείσες.' : ''}`;
         },
         onlyVisible: 'Ορατό μόνο σε',
         explain: 'Εξηγήστε',
@@ -1532,6 +1541,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την αναφορά;',
             other: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτές τις αναφορές;',
         }),
+        deleteExpenseReportConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την αναφορά; Όλες οι δαπάνες σε αυτήν την αναφορά θα γίνουν μη υποβληθείσες.',
         settledExpensify: 'Πληρωμένο',
         paidStatusMarkedAsPaid: 'Επισημάνθηκε ως πληρωμένο',
         paidStatusWithdrawing: 'Ανάληψη',
@@ -1695,6 +1705,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Παρακαλούμε εισαγάγετε ένα μη μηδενικό ποσό για τη διαίρεσή σας',
             noParticipantSelected: 'Παρακαλούμε επιλέξτε έναν συμμετέχοντα',
             other: 'Απρόσμενο σφάλμα. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
+            payFailedExpenseDeleted: 'Η πληρωμή απέτυχε επειδή η έκθεση εξόδων διαγράφηκε.',
             genericCreateFailureMessage: 'Μη αναμενόμενο σφάλμα κατά την αποστολή αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericCreateInvoiceFailureMessage: 'Προέκυψε απροσδόκητο σφάλμα κατά την αποστολή αυτού του τιμολογίου. Παρακαλούμε προσπαθήστε ξανά αργότερα.',
             genericHoldExpenseFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την κράτηση αυτής της δαπάνης. Δοκιμάστε ξανά αργότερα.',
@@ -3055,6 +3066,9 @@ ${amount} για ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Αυτό το μέλος ανήκει ήδη σε άλλη ροή έγκρισης. Τυχόν ενημερώσεις εδώ θα αντικατοπτρίζονται και εκεί.',
+        approverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα ή διαγράψτε αυτή τη ροή εργασίας.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα.',
+        overLimitApproverNotWorkspaceMember: 'Ο πρόσθετος εγκρίνων για αναφορές πάνω από το όριο δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο πρόσθετο εγκρίνοντα.',
         approverCircularReference: (name1: string, name2: string) =>
             `Ο/Η <strong>${name1}</strong> ήδη εγκρίνει αναφορές προς τον/την <strong>${name2}</strong>. Παρακαλούμε επιλέξτε διαφορετικό εγκρίνων για να αποφύγετε έναν κυκλικό κύκλο έγκρισης.`,
         emptyContent: {
@@ -7842,6 +7856,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 groups: {
                     title: 'Ομάδες',
                     description: 'Επιλέξτε τις ομάδες υπαλλήλων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    staleSelectionError: (providerName: string) =>
+                        `Ορισμένες από τις ομάδες που επιλέξατε δεν υπάρχουν πλέον στο ${providerName}, επομένως οι εργαζόμενοι τους έχουν σταματήσει να συγχρονίζονται.`,
+                    updateSelectionLink: 'Ενημερώστε τις ομάδες σας.',
+                    noGroupsFound: 'Δεν βρέθηκαν ομάδες',
+                    noGroupsFoundDescription:
+                        'Δεν υπάρχουν ομάδες για επιλογή αυτή τη στιγμή. Αποθηκεύστε χωρίς επιλεγμένες ομάδες για να συγχρονίσετε όλους τους υπαλλήλους ή συγχρονίστε ξανά τη σύνδεση μόλις δημιουργηθούν νέες ομάδες.',
+                    unnamedGroup: (groupID: string) => `Ομάδα χωρίς όνομα (${groupID})`,
                 },
             },
         },
