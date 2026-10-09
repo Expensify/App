@@ -633,6 +633,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Εκκίνηση του Expensify',
         expired: 'Η συνεδρία σας έχει λήξει.',
         signIn: 'Παρακαλούμε συνδεθείτε ξανά.',
+        notValid: 'Μη έγκυρος σύνδεσμος.',
+        sessionMismatch: 'Ο σύνδεσμος που κάνατε κλικ δεν είναι έγκυρος για την τρέχουσα συνεδρία σας.',
+        switchAccount: {
+            title: 'Αλλαγή λογαριασμών;',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Έχετε συνδεθεί ως ${currentEmail}. Αυτή η ενέργεια θα σας συνδέσει ως ${newEmail} αντί για αυτό.`,
+            confirm: 'Αλλαγή λογαριασμών',
+            staySignedIn: 'Να μην αλλάξω λογαριασμούς',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1695,6 +1704,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Παρακαλούμε εισαγάγετε ένα μη μηδενικό ποσό για τη διαίρεσή σας',
             noParticipantSelected: 'Παρακαλούμε επιλέξτε έναν συμμετέχοντα',
             other: 'Απρόσμενο σφάλμα. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
+            payFailedExpenseDeleted: 'Η πληρωμή απέτυχε επειδή η έκθεση εξόδων διαγράφηκε.',
             genericCreateFailureMessage: 'Μη αναμενόμενο σφάλμα κατά την αποστολή αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericCreateInvoiceFailureMessage: 'Προέκυψε απροσδόκητο σφάλμα κατά την αποστολή αυτού του τιμολογίου. Παρακαλούμε προσπαθήστε ξανά αργότερα.',
             genericHoldExpenseFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την κράτηση αυτής της δαπάνης. Δοκιμάστε ξανά αργότερα.',
@@ -3055,6 +3065,9 @@ ${amount} για ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Αυτό το μέλος ανήκει ήδη σε άλλη ροή έγκρισης. Τυχόν ενημερώσεις εδώ θα αντικατοπτρίζονται και εκεί.',
+        approverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα ή διαγράψτε αυτή τη ροή εργασίας.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα.',
+        overLimitApproverNotWorkspaceMember: 'Ο πρόσθετος εγκρίνων για αναφορές πάνω από το όριο δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο πρόσθετο εγκρίνοντα.',
         approverCircularReference: (name1: string, name2: string) =>
             `Ο/Η <strong>${name1}</strong> ήδη εγκρίνει αναφορές προς τον/την <strong>${name2}</strong>. Παρακαλούμε επιλέξτε διαφορετικό εγκρίνων για να αποφύγετε έναν κυκλικό κύκλο έγκρισης.`,
         emptyContent: {

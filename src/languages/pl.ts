@@ -631,6 +631,14 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Uruchamianie Expensify',
         expired: 'Twoja sesja wygasła.',
         signIn: 'Zaloguj się ponownie.',
+        notValid: 'Nieprawidłowy link.',
+        sessionMismatch: 'Link, który kliknąłeś, nie jest ważny dla twojej bieżącej sesji.',
+        switchAccount: {
+            title: 'Przełączyć konto?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Jesteś zalogowany jako ${currentEmail}. Ta akcja zaloguje cię zamiast tego jako ${newEmail}.`,
+            confirm: 'Przełącz konta',
+            staySignedIn: 'Nie przełączaj kont',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1658,6 +1666,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Wprowadź niezerową kwotę dla swojego podziału',
             noParticipantSelected: 'Wybierz uczestnika',
             other: 'Nieoczekiwany błąd. Spróbuj ponownie później.',
+            payFailedExpenseDeleted: 'Płatność nie powiodła się, ponieważ raport wydatków został usunięty.',
             genericCreateFailureMessage: 'Niespodziewany błąd podczas przesyłania tego wydatku. Spróbuj ponownie później.',
             genericCreateInvoiceFailureMessage: 'Nieoczekiwany błąd podczas wysyłania tej faktury. Spróbuj ponownie później.',
             genericHoldExpenseFailureMessage: 'Nieoczekiwany błąd podczas wstrzymywania tego wydatku. Spróbuj ponownie później.',
@@ -3017,6 +3026,9 @@ ${amount} dla ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Ten członek należy już do innego procesu zatwierdzania. Wszelkie zmiany wprowadzone tutaj będą widoczne także tam.',
+        approverNotWorkspaceMember: 'Ten zatwierdzający nie jest już członkiem tego workspace’u. Wybierz nowego zatwierdzającego albo usuń ten workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Ten zatwierdzający nie jest już członkiem tego workspace’u. Wybierz nowego zatwierdzającego.',
+        overLimitApproverNotWorkspaceMember: 'Dodatkowy zatwierdzający dla raportów powyżej limitu nie jest już członkiem tego workspace’u. Wybierz nowego dodatkowego zatwierdzającego.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> już zatwierdza raporty dla <strong>${name2}</strong>. Wybierz innego zatwierdzającego, aby uniknąć zapętlenia przepływu pracy.`,
         emptyContent: {

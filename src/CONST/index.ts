@@ -478,6 +478,9 @@ const CONST = {
         FAILED: 'failed',
     },
 
+    /** Google Ads only accepts click ID conversions for 90 days, so stored marketing attribution older than this is ignored */
+    MARKETING_ATTRIBUTION_MAX_AGE_MS: 90 * 24 * 60 * 60 * 1000,
+
     AUTH_TOKEN_TYPES: {
         ANONYMOUS: 'anonymousAccount',
         SUPPORT: 'support',
@@ -2844,6 +2847,7 @@ const CONST = {
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
+        SESSION_MISMATCH: 'Expensify\\Error\\Auth\\AccountMismatch',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
@@ -4434,6 +4438,10 @@ const CONST = {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
         MAX_RECENT_ATTENDEES: 40,
 
+        // Lets consumers tell a payment failure apart from other errors on a report preview. Numeric so it keeps
+        // sorting below microsecond keys in getLatestErrorMessageField, which picks the highest key.
+        PAY_FAILURE_PREVIEW_ERROR_KEY: 0,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
@@ -5330,6 +5338,7 @@ const CONST = {
         FEED_BANK_NAME: {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
+            VCF_MOCK: 'vcfmock',
             AMEX: 'gl1025',
             AMEX_1205: 'gl1205',
             STRIPE: 'stripe',
@@ -5560,6 +5569,7 @@ const CONST = {
             AMEX: 'American Express',
             VISA: 'Visa',
             MASTERCARD: 'Mastercard',
+            MOCK_COMMERCIAL: 'Mock Commercial Feed',
             STRIPE: 'Stripe',
             CSV: 'CSV',
         },
@@ -6093,7 +6103,7 @@ const CONST = {
     MAX_MARKUP_LENGTH: 10000,
 
     // WebKit renders only the ellipsis when a single-line text with text-overflow: ellipsis is longer than 10,240 characters (https://bugs.webkit.org/show_bug.cgi?id=267226).
-    // One line never shows this many characters, so we cut single-line texts to this length on mobile WebKit.
+    // One line never shows this many characters, so we cut single-line texts to this length on WebKit browsers.
     MAX_SINGLE_LINE_TEXT_LENGTH: 1000,
 
     MAX_THREAD_REPLIES_PREVIEW: 99,
@@ -9087,6 +9097,7 @@ const CONST = {
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
+        HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
     },
 
     DEBUG: {

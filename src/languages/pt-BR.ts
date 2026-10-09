@@ -627,6 +627,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Iniciando Expensify',
         expired: 'Sua sessão expirou.',
         signIn: 'Faça login novamente.',
+        notValid: 'Link inválido.',
+        sessionMismatch: 'O link em que você clicou não é válido para a sua sessão atual.',
+        switchAccount: {
+            title: 'Trocar de conta?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Você está conectado como ${currentEmail}. Esta ação fará com que você entre como ${newEmail} em vez disso.`,
+            confirm: 'Alterar contas',
+            staySignedIn: 'Não trocar de conta',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1622,6 +1631,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Insira um valor diferente de zero para a sua divisão',
             noParticipantSelected: 'Selecione um participante',
             other: 'Erro inesperado. Tente novamente mais tarde.',
+            payFailedExpenseDeleted: 'O pagamento falhou porque o relatório de despesas foi excluído.',
             genericCreateFailureMessage: 'Erro inesperado ao enviar esta despesa. Tente novamente mais tarde.',
             genericCreateInvoiceFailureMessage: 'Erro inesperado ao enviar esta fatura. Tente novamente mais tarde.',
             genericHoldExpenseFailureMessage: 'Erro inesperado ao reter esta despesa. Tente novamente mais tarde.',
@@ -2975,6 +2985,9 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Este membro já pertence a outro fluxo de aprovação. Qualquer atualização aqui será refletida lá também.',
+        approverNotWorkspaceMember: 'Esse aprovador não é mais membro do workspace. Escolha um novo aprovador ou exclua este fluxo de trabalho.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Esse aprovador não é mais membro do workspace. Escolha um novo aprovador.',
+        overLimitApproverNotWorkspaceMember: 'O aprovador adicional para relatórios acima do limite não é mais membro do workspace. Escolha um novo aprovador adicional.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> já aprova relatórios para <strong>${name2}</strong>. Escolha um aprovador diferente para evitar um fluxo de aprovação circular.`,
         emptyContent: {

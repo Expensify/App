@@ -625,6 +625,14 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
         signIn: '请重新登录。',
+        notValid: '链接无效。',
+        sessionMismatch: '您点击的链接对您当前的会话无效。',
+        switchAccount: {
+            title: '切换账户？',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `您当前以 ${currentEmail} 身份登录。此操作将改为以 ${newEmail} 身份登录。`,
+            confirm: '切换账户',
+            staySignedIn: '不要切换账户',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1566,6 +1574,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: '请输入一个非零金额用于分摊',
             noParticipantSelected: '请选择参与者',
             other: '发生意外错误。请稍后重试。',
+            payFailedExpenseDeleted: '此付款失败，因为报销报告已被删除。',
             genericCreateFailureMessage: '提交此报销时发生意外错误。请稍后重试。',
             genericCreateInvoiceFailureMessage: '发送此发票时发生未知错误。请稍后重试。',
             genericHoldExpenseFailureMessage: '暂时无法搁置此报销。请稍后再试。',
@@ -2883,6 +2892,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
         },
         approverInMultipleWorkflows: '此成员已属于另一个审批流程。此处的任何更新也会在那边同步生效。',
+        approverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人或删除此工作流程。',
+        defaultWorkflowApproverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人。',
+        overLimitApproverNotWorkspaceMember: '超出限额报告的额外审批人已不再是工作区成员。请选择新的额外审批人。',
         approverCircularReference: (name1: string, name2: string) => `<strong>${name1}</strong> 已经将报表提交给 <strong>${name2}</strong> 审批。请选择其他审批人以避免形成循环审批流程。`,
         emptyContent: {
             title: '没有可显示的成员',

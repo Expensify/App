@@ -630,6 +630,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
         signIn: 'もう一度サインインしてください。',
+        notValid: '無効なリンクです。',
+        sessionMismatch: 'クリックされたリンクは現在のセッションでは有効ではありません。',
+        switchAccount: {
+            title: 'アカウントを切り替えますか？',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `現在は ${currentEmail} としてサインインしています。この操作を行うと、代わりに ${newEmail} としてサインインします。`,
+            confirm: 'アカウントを切り替える',
+            staySignedIn: 'アカウントを切り替えないでください',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1609,6 +1618,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: '分割する金額は 0 以外の数値を入力してください',
             noParticipantSelected: '参加者を選択してください',
             other: '予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
+            payFailedExpenseDeleted: 'この支払いは、経費精算書が削除されたため失敗しました。',
             genericCreateFailureMessage: 'この経費の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericCreateInvoiceFailureMessage: 'この請求書の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericHoldExpenseFailureMessage: 'この経費を保留中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -2957,6 +2967,9 @@ ${date} の ${merchant} への ${amount}`,
             },
         },
         approverInMultipleWorkflows: 'このメンバーはすでに別の承認ワークフローに属しています。ここでの更新内容はそちらにも反映されます。',
+        approverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択するか、このワークフローを削除してください。',
+        defaultWorkflowApproverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択してください。',
+        overLimitApproverNotWorkspaceMember: '上限を超えるレポートの追加承認者は、ワークスペースのメンバーではなくなりました。新しい追加承認者を選択してください。',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> はすでに <strong>${name2}</strong> にレポートを承認しています。ワークフローが循環しないよう、別の承認者を選択してください。`,
         emptyContent: {

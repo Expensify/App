@@ -703,6 +703,14 @@ const translations = {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+        notValid: 'Invalid link.',
+        sessionMismatch: "The link you clicked isn't valid for your current session.",
+        switchAccount: {
+            title: 'Switch accounts?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `You're signed in as ${currentEmail}. This action will sign you in as ${newEmail} instead.`,
+            confirm: 'Switch accounts',
+            staySignedIn: "Don't switch accounts",
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1772,6 +1780,7 @@ const translations = {
             invalidSplitYourself: 'Please enter a non-zero amount for your split',
             noParticipantSelected: 'Please select a participant',
             other: 'Unexpected error. Please try again later.',
+            payFailedExpenseDeleted: 'The payment failed because the expense report was deleted.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending this invoice. Please try again later.',
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
@@ -3131,6 +3140,9 @@ const translations = {
             },
         },
         approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
+        approverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver or delete this workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver.',
+        overLimitApproverNotWorkspaceMember: 'The additional approver for reports over the limit is no longer a workspace member. Choose a new additional approver.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
         emptyContent: {

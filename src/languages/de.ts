@@ -629,6 +629,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melde dich erneut an.',
+        notValid: 'Ungültiger Link.',
+        sessionMismatch: 'Der Link, den Sie angeklickt haben, ist für Ihre aktuelle Sitzung nicht gültig.',
+        switchAccount: {
+            title: 'Konten wechseln?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Sie sind als ${currentEmail} angemeldet. Diese Aktion meldet Sie stattdessen als ${newEmail} an.`,
+            confirm: 'Konten wechseln',
+            staySignedIn: 'Nicht das Konto wechseln',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1628,6 +1637,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Bitte gib für deine Aufteilung einen von null verschiedenen Betrag ein',
             noParticipantSelected: 'Bitte wählen Sie eine:n Teilnehmende:n aus',
             other: 'Unerwarteter Fehler. Bitte versuchen Sie es später erneut.',
+            payFailedExpenseDeleted: 'Die Zahlung ist fehlgeschlagen, weil die Spesenabrechnung gelöscht wurde.',
             genericCreateFailureMessage: 'Unerwarteter Fehler beim Einreichen dieser Ausgabe. Bitte versuche es später noch einmal.',
             genericCreateInvoiceFailureMessage: 'Unerwarteter Fehler beim Senden dieser Rechnung. Bitte versuche es später noch einmal.',
             genericHoldExpenseFailureMessage: 'Unerwarteter Fehler beim Zurückhalten dieser Ausgabe. Bitte versuche es später erneut.',
@@ -2996,6 +3006,10 @@ ${amount} für ${merchant} – ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Dieses Mitglied gehört bereits zu einem anderen Genehmigungsworkflow. Alle Aktualisierungen hier werden sich auch dort auswirken.',
+        approverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person oder löschen Sie diesen Workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person.',
+        overLimitApproverNotWorkspaceMember:
+            'Die zusätzliche genehmigende Person für Berichte über dem Limit ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue zusätzliche genehmigende Person.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> genehmigt bereits Berichte für <strong>${name2}</strong>. Bitte wähle eine andere approvierende Person, um einen zirkulären Workflow zu vermeiden.`,
         emptyContent: {
