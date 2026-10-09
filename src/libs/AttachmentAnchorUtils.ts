@@ -43,4 +43,4 @@ function wrapAttachmentAnchorsInBlocks(html: string, reportActionID: string | un
     });
 }
 
-export {getAnchorHref, wrapAttachmentAnchorsInBlocks};
+export {getAnchorHref, isOwnAttachmentURL, wrapAttachmentAnchorsInBlocks};

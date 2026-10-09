@@ -58,6 +58,31 @@ describe('getAttachmentDetails', () => {
         expect(details.sourceURL).toBe('');
     });
 
+    it("picks this message's own attachment over a link to an earlier upload", () => {
+        // Given an edited comment that links to a file uploaded earlier and then holds its own file, neither carrying a source attribute
+        const earlierURL = 'https://www.expensify.com/chat-attachments/111/w_old.csv';
+        const ownURL = 'https://www.expensify.com/chat-attachments/222/w_new.csv';
+        const html = `See <a href="${earlierURL}" target="_blank" rel="noreferrer noopener">old.csv</a><br /><br /><a href="${ownURL}" target="_blank" rel="noreferrer noopener">new.csv</a>`;
+
+        // When the attachment details are read for the action that holds the second file
+        const details = getAttachmentDetails(html, '222');
+
+        // Then Download uses this message's own file rather than the first Expensify-hosted link in the text
+        expect(details).toMatchObject({sourceURL: ownURL, originalFileName: 'new.csv'});
+    });
+
+    it('falls back to the first Expensify-hosted link when no anchor names this action', () => {
+        // Given a comment whose attachment URL carries no action ID of its own, such as a receipt
+        const receiptURL = 'https://www.expensify.com/receipts/w_abc.jpg';
+        const html = `<a href="${receiptURL}" target="_blank" rel="noreferrer noopener">receipt.jpg</a>`;
+
+        // When the attachment details are read
+        const details = getAttachmentDetails(html, '222');
+
+        // Then the Expensify-hosted link is still used, so receipts keep working
+        expect(details).toMatchObject({sourceURL: receiptURL, originalFileName: 'receipt.jpg'});
+    });
+
     it('leaves a plain link with no source', () => {
         // Given an ordinary link with no attachment attributes
         const html = '<a href="https://google.com" target="_blank" rel="noreferrer noopener">google</a>';
