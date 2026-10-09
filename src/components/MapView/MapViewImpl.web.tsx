@@ -21,7 +21,7 @@ import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {MapMouseEvent, MapRef, ViewState} from 'react-map-gl/mapbox';
+import type {MapMouseEvent, MapRef, ViewState, ViewStateChangeEvent} from 'react-map-gl/mapbox';
 
 // Explanation: Different Mapbox libraries are required for web and native mobile platforms.
 // This is why we have separate components for web and native to handle the specific implementations.
@@ -85,6 +85,7 @@ function MapViewImpl({
     const resetBoundariesRef = useRef<() => void>(() => {});
     const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
     const shouldInitializeCurrentPosition = useRef(true);
+    const [lastViewState, setLastViewState] = useState<ViewState>();
 
     // Determines if map can be panned to user's detected
     // location without bothering the user. It will return
@@ -252,6 +253,10 @@ function MapViewImpl({
         });
     }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapRef, waypoints, mapPadding]);
 
+    const saveViewState = (event: ViewStateChangeEvent) => {
+        setLastViewState(event.viewState);
+    };
+
     const initialViewState: Partial<ViewState> | undefined = useMemo(() => {
         if (!interactive) {
             // With no markers and no route geometry, getBounds returns infinite bounds that crash the map on init.
@@ -270,12 +275,15 @@ function MapViewImpl({
                 fitBoundsOptions: {padding: mapPadding},
             };
         }
+        if (lastViewState && waypoints?.length) {
+            return lastViewState;
+        }
         return {
             longitude: currentPosition?.longitude,
             latitude: currentPosition?.latitude,
             zoom: initialState.zoom,
         };
-    }, [waypoints, allDirectionCoordinates, interactive, currentPosition?.longitude, currentPosition?.latitude, initialState.zoom, mapPadding]);
+    }, [waypoints, allDirectionCoordinates, interactive, currentPosition?.longitude, currentPosition?.latitude, initialState.zoom, mapPadding, lastViewState]);
 
     // The route layers only need to be interactive when there is an alternate route to pick, so that clicking a route selects it.
     const interactiveLayerIds = useMemo(() => (interactive && hasAlternateDirection ? ALTERNATE_DIRECTIONS_LAYER_IDS : undefined), [interactive, hasAlternateDirection]);
@@ -309,6 +317,7 @@ function MapViewImpl({
                 {hasValidContainerSize && (
                     <Map
                         onDrag={onDrag}
+                        onMoveEnd={saveViewState}
                         ref={setRef}
                         mapboxAccessToken={accessToken}
                         initialViewState={initialViewState}
