@@ -200,7 +200,7 @@ function IOURequestStepDistanceMap({
     }, [action]);
 
     const navigateToReuseRoutePage = () => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID, backToReport));
     };
 
     useEffect(() => {

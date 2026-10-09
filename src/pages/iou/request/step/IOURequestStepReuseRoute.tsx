@@ -51,7 +51,7 @@ type IOURequestStepReuseRouteProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepReuseRoute({
     report,
     route: {
-        params: {action, iouType, transactionID, reportID},
+        params: {action, iouType, transactionID, reportID, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -126,8 +126,8 @@ function IOURequestStepReuseRoute({
         currentUserAccountID: currentUserPersonalDetails.accountID,
         currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo: undefined,
-        backToReport: undefined,
-        confirmationBackTo: ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID),
+        backToReport,
+        confirmationBackTo: ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID, backToReport),
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,
