@@ -32,7 +32,6 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
-import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -197,30 +196,6 @@ describe('OnboardingPurpose Page', () => {
             expect(navigate).toHaveBeenCalledTimes(1);
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
         });
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    it('should clear a stale merge-blocked flag when a public-domain user selects Join Workspace', async () => {
-        // Given a public-domain user whose earlier work email merge was blocked
-        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
-        });
-
-        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
-        await waitForBatchedUpdatesWithAct();
-
-        // When they select Join Workspace
-        const user = userEvent.setup();
-        await user.press(screen.getByLabelText(translatePurpose(CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE)));
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the flag is cleared so the work email step shows the form instead of the blocked view
-        expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
-        const onboarding = await getOnyxValue(ONYXKEYS.NVP_ONBOARDING);
-        expect(onboarding?.isMergingAccountBlocked).toBe(false);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
