@@ -4,6 +4,8 @@ import type {ExpenseFieldDropdownHandle, ExpenseFieldDropdownRenderProps} from '
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import Text from '@components/Text';
 
+import type TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,10 +20,35 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // Below this width the container is a bottom sheet, so these tests default to a wide layout.
 let mockIsSmallScreenWidth = false;
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth})));
+let mockIsInLandscapeMode = false;
+jest.mock('@hooks/useResponsiveLayout', () =>
+    jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth, isInLandscapeMode: mockIsInLandscapeMode})),
+);
 // Read lazily so a test can shrink the viewport, leaving the row short of room on both sides at once.
 let mockWindowHeight = 800;
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280, windowHeight: mockWindowHeight})));
+
+// Mirrors `useFocusEffect`: runs the effect while the screen is focused, and again whenever the effect changes.
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => {
+    const {useEffect} = jest.requireActual<typeof React>('react');
+    return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+        useIsFocused: () => mockIsFocused,
+        useFocusEffect: (effect: () => void | (() => void)) => {
+            const isFocused = mockIsFocused;
+            useEffect(() => (isFocused ? effect() : undefined), [effect, isFocused]);
+        },
+    };
+});
+
+// Run the post-transition work right away, since no sheet or screen actually animates in a unit test.
+jest.mock('@libs/Navigation/TransitionTracker', () => ({
+    runAfterTransitions: ({callback}: Parameters<typeof TransitionTracker.runAfterTransitions>[0]): ReturnType<typeof TransitionTracker.runAfterTransitions> => {
+        callback();
+        return {cancel: () => {}};
+    },
+}));
 
 const WINDOW_HEIGHT = 800;
 
@@ -66,6 +93,8 @@ describe('ExpenseFieldDropdown', () => {
         renderCount = 0;
         mockWindowHeight = WINDOW_HEIGHT;
         mockIsSmallScreenWidth = false;
+        mockIsInLandscapeMode = false;
+        mockIsFocused = true;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -81,6 +110,7 @@ describe('ExpenseFieldDropdown', () => {
                 testID={ROW_TEST_ID}
                 shouldOpenInDropdown={shouldOpenInDropdown}
                 onPress={onPress}
+                onLandscapePress={jest.fn()}
                 renderDropdown={renderDropdown}
             />,
         );
@@ -95,6 +125,7 @@ describe('ExpenseFieldDropdown', () => {
                     testID={ROW_TEST_ID}
                     shouldOpenInDropdown={shouldOpenInDropdown}
                     onPress={onPress}
+                    onLandscapePress={jest.fn()}
                     renderDropdown={renderDropdown}
                 />,
             );
@@ -257,6 +288,98 @@ describe('ExpenseFieldDropdown', () => {
         // Then the sheet opens anyway: it is placed and sized by the screen, not by the row
         expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
         expect(onPress).not.toHaveBeenCalled();
+    });
+
+    describe('on a phone in landscape', () => {
+        let onPress: jest.Mock;
+        let onLandscapePress: jest.Mock;
+
+        /** Renders the field on a phone, where the list is a bottom sheet, and returns a way to render it again after the phone or the screen changes */
+        const renderOnPhone = () => {
+            onPress = jest.fn();
+            onLandscapePress = jest.fn();
+            mockIsSmallScreenWidth = true;
+            mockRowAt(ROW_TOP);
+            const field = () => (
+                <ExpenseFieldDropdown
+                    name={FIELD_NAME}
+                    testID={ROW_TEST_ID}
+                    shouldOpenInDropdown
+                    onPress={onPress}
+                    onLandscapePress={onLandscapePress}
+                    renderDropdown={renderDropdown}
+                />
+            );
+            const {rerender} = render(field());
+            return () => rerender(field());
+        };
+
+        it('opens the full-page selector instead of the sheet', () => {
+            // Given a phone turned to landscape, where a bottom sheet is taller than the screen and would scroll as a whole
+            mockIsInLandscapeMode = true;
+            renderOnPhone();
+
+            // When the row is pressed
+            act(() => pressRow());
+
+            // Then it opens the page meant for landscape, so the list itself can scroll, and no sheet is mounted
+            expect(onLandscapePress).toHaveBeenCalledTimes(1);
+            expect(onPress).not.toHaveBeenCalled();
+            expect(renderCount).toBe(0);
+        });
+
+        it('hands an open sheet over to the full-page selector once the phone is turned', () => {
+            // Given a phone in portrait with the sheet already open
+            const rerenderField = renderOnPhone();
+            act(() => pressRow());
+            expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
+
+            // When the phone is turned to landscape, where the sheet has no room to scroll its list
+            mockIsInLandscapeMode = true;
+            rerenderField();
+
+            // Then the sheet closes and the page meant for landscape opens in its place, the same as a press in landscape
+            expect(screen.queryByText(DROPDOWN_TEXT)).not.toBeOnTheScreen();
+            expect(onLandscapePress).toHaveBeenCalledTimes(1);
+            expect(screen.getByTestId(ROW_TEST_ID)).toBeCollapsed();
+        });
+
+        it('reopens the sheet once the phone is back in portrait and the page has closed', () => {
+            // Given the row opened its full page in landscape, and the form is now behind that page
+            mockIsInLandscapeMode = true;
+            const rerenderField = renderOnPhone();
+            act(() => pressRow());
+            mockIsFocused = false;
+            rerenderField();
+
+            // When the phone is turned back to portrait, the page closes itself and the form is focused again
+            mockIsInLandscapeMode = false;
+            mockIsFocused = true;
+            rerenderField();
+
+            // Then the list is back in the sheet, where the user was picking from before turning the phone
+            expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
+            expect(onPress).not.toHaveBeenCalled();
+        });
+
+        it('does not reopen the sheet when the user comes back while still in landscape', () => {
+            // Given the row opened its full page in landscape, and the form is now behind that page
+            mockIsInLandscapeMode = true;
+            const rerenderField = renderOnPhone();
+            act(() => pressRow());
+            mockIsFocused = false;
+            rerenderField();
+
+            // When the user picks a category or goes back while still in landscape, then turns the phone on the form
+            mockIsFocused = true;
+            rerenderField();
+            mockIsInLandscapeMode = false;
+            rerenderField();
+
+            // Then nothing opens by itself: the trip to the page is over, so turning the phone later is not a reason to open the list
+            expect(screen.queryByText(DROPDOWN_TEXT)).not.toBeOnTheScreen();
+            expect(onLandscapePress).toHaveBeenCalledTimes(1);
+        });
     });
 
     it('closes the list when the row is pressed again', () => {

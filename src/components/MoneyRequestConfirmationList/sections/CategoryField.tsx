@@ -209,6 +209,13 @@ function CategoryField({
         }
     };
 
+    const openCategoryPageInLandscape = () => {
+        if (!transactionID) {
+            return;
+        }
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID, shouldCloseInPortrait: true})));
+    };
+
     if (shouldUseDropdownRows) {
         return (
             <ExpenseFieldDropdown
@@ -224,6 +231,7 @@ function CategoryField({
                 shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
+                onLandscapePress={openCategoryPageInLandscape}
                 shouldOpenInDropdown={canOpenListInPlace}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (

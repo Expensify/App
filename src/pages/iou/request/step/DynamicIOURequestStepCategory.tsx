@@ -6,6 +6,7 @@ import FixedFooter from '@components/FixedFooter';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import useCloseInPortrait from '@hooks/useCloseInPortrait';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -56,7 +57,7 @@ function DynamicIOURequestStepCategory({
     report: reportReal,
     reportDraft,
     route: {
-        params: {transactionID, action, iouType, reportActionID, reportID: routeReportID},
+        params: {transactionID, action, iouType, reportActionID, reportID: routeReportID, shouldCloseInPortrait},
     },
     transaction,
 }: DynamicIOURequestStepCategoryProps) {
@@ -156,6 +157,8 @@ function DynamicIOURequestStepCategory({
     const navigateBack = () => {
         Navigation.goBack(backPath);
     };
+
+    useCloseInPortrait(shouldCloseInPortrait, backPath);
 
     const saveAndNavigateBack = () => {
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
