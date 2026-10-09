@@ -2,6 +2,7 @@ import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SearchFiltersResetButton from '@components/Search/SearchPageHeader/SearchFiltersResetButton';
 import {useTableContext} from '@components/Table/TableContext';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PropsWithChildren} from 'react';
@@ -24,6 +25,7 @@ type TableFilterBarProps = PropsWithChildren<{
 
 export default function TableFilterBar({label, shouldShowResetFiltersButton, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
@@ -78,7 +80,7 @@ export default function TableFilterBar({label, shouldShowResetFiltersButton, chi
     }
 
     return (
-        <View style={[styles.w100, styles.gap3, styles.pb3, styles.ph5]}>
+        <View style={[styles.w100, styles.gap3, styles.pb3, pageGutter]}>
             <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween, shouldUseNarrowTableLayout && styles.alignItemsCenter]}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.gap2, styles.alignItemsCenter]}>
                     <TableSearchBar label={label} />

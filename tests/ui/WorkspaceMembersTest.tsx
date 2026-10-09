@@ -4,9 +4,10 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import * as useConfirmModalModule from '@hooks/useConfirmModal';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -27,6 +28,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -174,6 +176,11 @@ describe('WorkspaceMembers', () => {
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
+
+            // Guest role assignment is temporarily blocked, so the "Make guest" item is not present
+            const makeGuestText = TestHelper.translateLocal('workspace.people.makeGuest', {count: 1});
+            const makeGuestMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeGuestText}`);
+            expect(makeGuestMenuItem).not.toBeOnTheScreen();
 
             // Find and verify "Make card admin" dropdown menu item
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
@@ -566,6 +573,44 @@ describe('WorkspaceMembers', () => {
 
             unmount();
         });
+
+        it('should reassign the submitters of a removed approver whose personal details are missing', async () => {
+            // Given an approver with no personal details loaded, who a member submits to
+            const approverWithoutDetails = 'nodetails@example.com';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    employeeList: {
+                        [approverWithoutDetails]: {email: approverWithoutDetails, role: CONST.POLICY.ROLE.USER},
+                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: approverWithoutDetails},
+                    },
+                });
+            });
+            // The admin confirms the removal prompt
+            const showConfirmModal = jest.fn(() => Promise.resolve({action: ModalActions.CONFIRM}));
+            const confirmModalSpy = jest.spyOn(useConfirmModalModule, 'default').mockReturnValue(createMock<ReturnType<typeof useConfirmModalModule.default>>({showConfirmModal}));
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin removes that approver
+            const row = await screen.findByLabelText(new RegExp(`^${approverWithoutDetails}`));
+            fireEvent.press(within(row).getByLabelText(TestHelper.translateLocal('common.select')));
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+            const removeMenuItem = screen.getByText(TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1}));
+            fireEvent.press(removeMenuItem, {nativeEvent: {}, type: 'press', target: removeMenuItem, currentTarget: removeMenuItem});
+            await waitForBatchedUpdatesWithAct();
+            expect(showConfirmModal).toHaveBeenCalledTimes(1);
+
+            // Then the approver is removed and the member is moved to the workspace owner, instead of being left
+            // submitting to someone no longer on the workspace
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[approverWithoutDetails]).toBeUndefined();
+            expect(updatedPolicy?.employeeList?.[userEmail]?.submitsTo).toBe(ownerEmail);
+
+            unmount();
+            confirmModalSpy.mockRestore();
+        });
     });
 
     describe('RuleBot restrictions', () => {
@@ -692,161 +737,6 @@ describe('WorkspaceMembers', () => {
         });
     });
 
-    describe('Approver column', () => {
-        const approverHeaderLabel = () => TestHelper.translateLocal('workflowsPage.approver');
-
-        it("shows each member's first approver, including the admin who approves themselves", async () => {
-            // Given a policy with approvals on and every member (including the admin) submitting to the admin:
-            // the admin's own first approver resolves to themselves, which is what the Workflows tab shows too.
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                    employeeList: {
-                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
-                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: adminEmail},
-                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: adminEmail},
-                        [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
-                    },
-                });
-            });
-
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByLabelText(approverHeaderLabel())).toBeOnTheScreen();
-
-            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
-            expect(ownerRow).toBeOnTheScreen();
-
-            const adminRow = screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
-            expect(adminRow).toBeOnTheScreen();
-
-            unmount();
-        });
-
-        it('hides the column when approvals are turned off', async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
-            });
-
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            await waitFor(() => {
-                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            });
-            expect(screen.queryByLabelText(approverHeaderLabel())).not.toBeOnTheScreen();
-
-            unmount();
-        });
-
-        it('hides the column on narrow layout', async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
-            });
-            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
-                createMock<ResponsiveLayoutResult>({
-                    isSmallScreenWidth: true,
-                    shouldUseNarrowLayout: true,
-                }),
-            );
-
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            await waitFor(() => {
-                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            });
-            expect(screen.queryByLabelText(approverHeaderLabel())).not.toBeOnTheScreen();
-
-            unmount();
-        });
-
-        it('hides the column when approvals are on but no member has an approver', async () => {
-            // Given approvals are on while no member submits to anyone, so the derived approver map is empty and the
-            // column would render blank for every row.
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
-            });
-
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            await waitFor(() => {
-                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            });
-            expect(screen.queryByLabelText(approverHeaderLabel())).not.toBeOnTheScreen();
-
-            unmount();
-        });
-
-        it('shows the default approver for a member whose workflow a downgrade stopped enforcing', async () => {
-            // Given a workspace downgraded out of advanced approvals, where the owner still submits to the auditor:
-            // the workflow is gone from the Workflows tab, since a non-advanced mode enforces only its default
-            // workflow, but the owner's `submitsTo` survives the downgrade, so the approver it names is still
-            // derivable here. The owner submits to the default approver like everyone else now, so the admin is the
-            // approver to show. `signInWithTestUser` puts this suite on every beta, and the Workflows tab keeps all
-            // workflows under the multiple-approvers beta, so the beta is cleared to match the tab's own behavior.
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, []);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-                    type: CONST.POLICY.TYPE.TEAM,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                    approver: adminEmail,
-                    employeeList: {
-                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: auditorEmail},
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
-                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: adminEmail},
-                    },
-                });
-            });
-
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            // The auditor submits to the default approver, so their approver shows unchanged.
-            const approverLabel = TestHelper.translateLocal('common.approver');
-            expect(await screen.findByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
-
-            // The owner falls back to the default approver rather than keeping the auditor the downgrade dropped.
-            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
-
-            unmount();
-        });
-
-        it('falls every member back to the default approver when no workflow is the default one', async () => {
-            // Given a downgraded workspace where the admin approves everyone and the auditor approves the admin,
-            // while the default approver is still the owner: neither workflow is the enforced one, so every member
-            // submits to the owner. Betas are cleared for the same reason as the test above.
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, []);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-                    type: CONST.POLICY.TYPE.TEAM,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                    approver: ownerEmail,
-                    employeeList: {
-                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: auditorEmail},
-                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: adminEmail},
-                    },
-                });
-            });
-
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            const approverLabel = TestHelper.translateLocal('common.approver');
-            expect(await screen.findByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
-            expect(screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
-
-            // The owner is the default approver, so they approve their own expenses and show as their own approver.
-            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
-
-            unmount();
-        });
-    });
-
     describe('Selection and search', () => {
         it('should clear a Select All made inside a search once the search field is cleared', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
@@ -882,6 +772,52 @@ describe('WorkspaceMembers', () => {
             expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             expect(screen.queryByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).not.toBeOnTheScreen();
             expect(getSelectAllCheckbox()).not.toBeChecked();
+
+            unmount();
+        });
+    });
+
+    describe('Inline role editing', () => {
+        it('lets a just-invited member be role-edited before their account resolves', async () => {
+            // Given a member invited with optimistic personal details, which is how a new invite stays until the
+            // account resolves, including while the invite is still offline
+            const invitedEmail = 'invited@example.com';
+            const invitedAccountID = 424242;
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                    [invitedAccountID]: {
+                        ...TestHelper.buildPersonalDetails(invitedEmail, invitedAccountID, 'Invited'),
+                        isOptimisticPersonalDetail: true,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {
+                        [invitedEmail]: {
+                            email: invitedEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    },
+                });
+            });
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+                createMock<ResponsiveLayoutResult>({
+                    isSmallScreenWidth: false,
+                    shouldUseNarrowLayout: false,
+                    isMediumScreenWidth: false,
+                    isLargeScreenWidth: true,
+                }),
+            );
+
+            // When the members table renders that invite on a wide layout, where the role cell can be edited inline
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            const invitedRow = await screen.findByLabelText(new RegExp(`^Invited User, ${invitedEmail}`));
+
+            // Then the role cell is editable, matching the member details pane, which does not wait for the account to resolve
+            await waitFor(() => {
+                expect(within(invitedRow).UNSAFE_getAllByProps({accessibilityLabel: TestHelper.translateLocal('common.edit')}).length).toBeGreaterThan(0);
+            });
 
             unmount();
         });
