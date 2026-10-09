@@ -1,3 +1,5 @@
+import type {CameraPadding} from '@rnmapbox/maps';
+
 import type {AlternateDirection, Coordinate} from './MapViewTypes';
 
 /** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
@@ -237,8 +239,17 @@ function getCoordinatesFromAllDirections(directionCoordinates: Coordinate[] | Co
     return [...(directionCoordinatesFlattened ?? []), ...(alternateDirectionCoordinatesFlattened ?? [])];
 }
 
+/** Applies the same padding to every side of the native camera viewport */
+function getCameraPadding(padding: number | undefined): CameraPadding | undefined {
+    if (padding === undefined) {
+        return undefined;
+    }
+    return {paddingLeft: padding, paddingRight: padding, paddingTop: padding, paddingBottom: padding};
+}
+
 export default {
     getBounds,
+    getCameraPadding,
     areSameCoordinate,
     areCoordinatesEqual,
     getSinglePointCoordinate,

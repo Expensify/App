@@ -56,9 +56,6 @@ type MapViewProps = {
     /** Unit of measurement for distance */
     unit?: Unit;
 
-    /** Reference to the outerElement */
-    ref?: React.ForwardedRef<MapViewHandle>;
-
     shouldDisplayCurrentLocation?: boolean;
 
     /** Whether it should display the compass overlay on the map */
@@ -187,14 +184,6 @@ type WayPoint = {
 
     /** Type of the marker used to display the waypoint */
     markerType: MapMarkerType;
-};
-
-/** Represents a handle to interact with a map view. */
-type MapViewHandle = {
-    flyTo: (location: Coordinate, zoomLevel: number, animationDuration?: number) => void;
-
-    /** Fit the map view to a bounding box */
-    fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
 type DistanceSymbolMarkerProps = {distanceSymbolCoordinate: Coordinate; children: React.ReactNode; onPress: () => void};

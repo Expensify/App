@@ -21,7 +21,7 @@ import type {MapState} from '@rnmapbox/maps';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Mapbox, {MarkerView} from '@rnmapbox/maps';
 import {getForegroundPermissionsAsync} from 'expo-location';
-import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -50,7 +50,6 @@ function MapView({
     interactive = true,
     distanceInMeters,
     unit,
-    ref,
     shouldDisplayCurrentLocation = true,
     shouldDisplayCompass = true,
 }: MapViewProps) {
@@ -65,6 +64,8 @@ function MapView({
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
     const currentPosition = userLocation ?? initialLocation;
+    const currentPositionLongitude = currentPosition?.longitude;
+    const currentPositionLatitude = currentPosition?.latitude;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
     const isAccessTokenReady = useAccessToken({accessToken});
@@ -139,21 +140,11 @@ function MapView({
 
         cameraRef.current.setCamera({
             zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
-            animationDuration: 1500,
+            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_LONG,
+            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
             centerCoordinate: [currentPosition.longitude, currentPosition.latitude],
         });
     }, [currentPosition, shouldPanMapToCurrentPosition]);
-
-    useImperativeHandle(
-        ref,
-        () => ({
-            flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
-                cameraRef.current?.setCamera({zoomLevel, centerCoordinate: location, animationDuration}),
-            fitBounds: (northEast: [number, number], southWest: [number, number], paddingConfig?: number | number[] | undefined, animationDuration?: number | undefined) =>
-                cameraRef.current?.fitBounds(northEast, southWest, paddingConfig, animationDuration),
-        }),
-        [],
-    );
 
     const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinates, alternateDirection);
 
@@ -162,14 +153,28 @@ function MapView({
     // which in turn triggers the callback.
     useFocusEffect(
         useCallback(() => {
-            if (!waypoints || waypoints.length === 0 || !isIdle) {
+            if (!isIdle) {
+                return;
+            }
+
+            if (!waypoints || waypoints.length === 0) {
+                if (currentPositionLongitude === undefined || currentPositionLatitude === undefined) {
+                    return;
+                }
+                cameraRef.current?.setCamera({
+                    zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
+                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                    centerCoordinate: [currentPositionLongitude, currentPositionLatitude],
+                });
                 return;
             }
 
             if (waypoints.length === 1) {
                 cameraRef.current?.setCamera({
                     zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
-                    animationDuration: 1500,
+                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_LONG,
+                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
                     centerCoordinate: waypoints.at(0)?.coordinate,
                 });
             } else {
@@ -177,9 +182,14 @@ function MapView({
                     waypoints.map((waypoint) => waypoint.coordinate),
                     allDirectionCoordinates,
                 );
-                cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
+                cameraRef.current?.setCamera({
+                    bounds: {ne: northEast, sw: southWest},
+                    padding: utils.getCameraPadding(mapPadding),
+                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                });
             }
-        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates]),
+        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude]),
     );
 
     useEffect(() => {
@@ -216,13 +226,19 @@ function MapView({
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         if (waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1) {
             const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
-            cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
+            cameraRef.current?.setCamera({
+                bounds: {ne: northEast, sw: southWest},
+                padding: utils.getCameraPadding(mapPadding),
+                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+            });
             return;
         }
         cameraRef?.current?.setCamera({
             heading: 0,
             centerCoordinate: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
-            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
     }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
@@ -280,7 +296,9 @@ function MapView({
             >
                 <Mapbox.Camera
                     ref={cameraRef}
-                    defaultSettings={defaultSettings}
+                    defaultSettings={
+                        defaultSettings ? {...defaultSettings, animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT, animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE} : undefined
+                    }
                     // Include centerCoordinate here as well to address the issue of incorrect coordinates
                     // displayed after the first render when the app's storage is cleared.
                     centerCoordinate={initCenterCoordinate}
