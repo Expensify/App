@@ -68,8 +68,7 @@ function IOURequestStepVendor({
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
 
-    // Sessions loaded before the policyVendors_ collection shipped never get it backfilled
-    // by the Onyx update stream, so the vendor list shows empty. Fetch it on demand.
+    // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
     useEffect(() => {
         if (!isFeatureAvailable || !policy?.id || policyVendors !== undefined) {
             return;
