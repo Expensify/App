@@ -201,7 +201,6 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // survives a reload, which empties the recorded answers.
     const snapshotAnsweredFooterTotal = metadata?.footerTotal ?? answeredFooterTotals?.answered;
     const isSnapshotTotalFromEarlierBreakdown = isOffline && !shouldUseLiveData && !!snapshotAnsweredFooterTotal && snapshotAnsweredFooterTotal !== requestedFooterTotal;
-    console.log('>>>>>>>>>>>>>>>>>', {snapshotAnsweredFooterTotal, isSnapshotTotalFromEarlierBreakdown});
     const metadataCount = metadata?.count;
     const metadataReportCount = metadata?.reportCount;
     const metadataCurrency = metadata?.currency;
