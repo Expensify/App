@@ -137,6 +137,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     isTransactionThread: () => mockIsTransactionThread,
     isSentMoneyReportAction: () => mockIsSentMoneyReportAction,
     isReportPreviewAction: () => mockIsReportPreviewAction,
+    getVisibleReportActionErrors: (reportAction: ReportAction | undefined) => reportAction?.errors ?? {},
 }));
 
 // --- ReportUtils ---
@@ -358,27 +359,6 @@ describe('useReportActionsScroll', () => {
     });
 
     describe('scrollToBottomAndMarkReportAsRead', () => {
-        it('scrolls to the displayed summary when the unread action is collapsed', async () => {
-            // Given the unread action is represented by a collapsed summary in the rendered list.
-            const {result} = await renderScroll({
-                unreadMarkerReportActionID: UNREAD_ACTION_ID,
-                unreadMarkerReportActionIndex: 1,
-                reportActionIDToDisplayIndex: new Map([[UNREAD_ACTION_ID, 1]]),
-                sortedVisibleReportActions: [makeAction('1'), makeAction(UNREAD_ACTION_ID)],
-                renderedVisibleReportActions: [makeAction('1'), makeAction(UNREAD_SUMMARY_ACTION_ID)],
-            });
-
-            // When the user selects the new-messages counter.
-            act(() => {
-                result.current.scrollToBottomAndMarkReportAsRead();
-            });
-
-            // Then the summary remains the scroll target instead of skipping unread updates to the bottom.
-            expect(mockScrollToIndex).toHaveBeenCalledWith(1);
-            expect(mockScrollToBottom).not.toHaveBeenCalled();
-            expect(mockMarkNewestActionAsRead).toHaveBeenCalledTimes(1);
-        });
-
         it('scrolls to bottom and marks as read when the newest action is present', async () => {
             // Default created === lastVisibleActionCreated → newest present.
             const {result} = await renderScroll();

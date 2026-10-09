@@ -24,6 +24,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {buildSystemAction} from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -141,16 +142,8 @@ const policy: Policy = {
     isPolicyExpenseChatEnabled: true,
 } as Policy;
 
-function makeAction(reportActionID: string, actionName: ReportAction['actionName'], created: string): ReportAction {
-    return {
-        reportActionID,
-        reportID: REPORT_ID,
-        actionName,
-        actorAccountID: ACCOUNT_ID,
-        created,
-        message: [{type: 'TEXT', html: reportActionID, text: reportActionID}],
-    } as ReportAction;
-}
+const makeAction = (reportActionID: string, actionName: ReportAction['actionName'], created: string) =>
+    buildSystemAction(reportActionID, {reportID: REPORT_ID, actorAccountID: ACCOUNT_ID, actionName, created});
 
 function renderComponent() {
     return render(
@@ -261,105 +254,62 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         expect(screen.queryByRole('button', {name: /updates|Hide/})).toBeNull();
     });
 
-    it.each([
-        {
-            hasPendingDeletion: false,
-            manualAnchor: 'new-comment',
-            lastReadTime: '2026-08-02 00:00:03.999',
-            expectedMarker: 'new-comment',
-            offlineStart: '2026-08-02 00:00:01.000',
-            paymentCreated: '2026-08-02 00:00:03.000',
-        },
-        {
-            hasPendingDeletion: true,
-            manualAnchor: 'new-comment',
-            lastReadTime: '2026-08-02 00:00:03.999',
-            expectedMarker: 'new-comment',
-            offlineStart: '2026-08-02 00:00:01.000',
-            paymentCreated: '2026-08-02 00:00:00.500',
-        },
-        {
-            hasPendingDeletion: true,
-            manualAnchor: null,
-            lastReadTime: '2026-08-02 00:00:00.999',
-            expectedMarker: 'old-comment',
-            offlineStart: '2026-08-02 00:00:01.000',
-            paymentCreated: '2026-08-02 00:00:00.500',
-        },
-        {
-            hasPendingDeletion: true,
-            manualAnchor: 'old-comment',
-            lastReadTime: '2026-08-02 00:00:01.999',
-            expectedMarker: 'old-comment',
-            offlineStart: '2026-08-02 00:00:03.000',
-            paymentCreated: '2026-08-02 00:00:00.500',
-        },
-        {
-            hasPendingDeletion: true,
-            manualAnchor: 'hidden-payment',
-            lastReadTime: '2026-08-02 00:00:00.499',
-            expectedMarker: 'old-comment',
-            offlineStart: '2026-08-02 00:00:01.000',
-            paymentCreated: '2026-08-02 00:00:00.500',
-        },
-        {
-            hasPendingDeletion: false,
-            manualAnchor: null,
-            lastReadTime: '2026-08-02 00:00:00.999',
-            expectedMarker: 'old-comment',
-            offlineStart: '2026-08-02 00:00:03.000',
-            paymentCreated: '2026-08-02 00:00:00.500',
-        },
-    ])(
-        'keeps a visible unread marker with hidden payment: $expectedMarker, pending deletion: $hasPendingDeletion',
-        async ({hasPendingDeletion, manualAnchor, lastReadTime, expectedMarker, offlineStart, paymentCreated}) => {
-            // Given persisted messages received during an offline window, optionally with a visible comment manually marked unread
-            const otherAccountID = ACCOUNT_ID + 1;
-            const actions: ReportAction[] = [
-                {...makeAction('new-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:04.000'), actorAccountID: otherAccountID},
-                ...(hasPendingDeletion
-                    ? [{...makeAction('hidden-deleted-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:03.500'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]
-                    : []),
-                {
-                    ...makeAction('hidden-payment', CONST.REPORT.ACTIONS.TYPE.IOU, paymentCreated),
-                    actorAccountID: otherAccountID,
-                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
-                },
-                {...makeAction('old-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:02.000'), actorAccountID: otherAccountID},
-                makeAction('created', CONST.REPORT.ACTIONS.TYPE.CREATED, '2026-08-02 00:00:00.000'),
-            ];
-            mockUsePaginatedReportActions.mockReturnValue({
-                reportActions: actions.sort((a, b) => b.created.localeCompare(a.created)),
-                linkedAction: undefined,
-                oldestUnreadReportAction: undefined,
-                sortedAllReportActions: undefined,
-                hasNewerActions: false,
-                hasOlderActions: false,
-                report: undefined,
-            });
-            mockUseNetworkWithOfflineStatus.mockReturnValue({
-                isOffline: false,
-                lastOfflineAt: {current: DateUtils.getLocalDateFromDatetime(CONST.LOCALES.EN, CONST.DEFAULT_TIME_ZONE.selected, offlineStart)},
-                lastOnlineAt: {current: DateUtils.getLocalDateFromDatetime(CONST.LOCALES.EN, CONST.DEFAULT_TIME_ZONE.selected, '2026-08-02 00:00:05.000')},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                isWaitingOnBankAccount: true,
-                lastReadTime,
-                manuallyMarkedUnreadReportActionID: manualAnchor,
-            });
+    it.each<[string, boolean, string | null, string, string, string, string]>([
+        ['manual anchor, hidden payment inside window', false, 'new-comment', '03.999', 'new-comment', '01.000', '03.000'],
+        ['manual anchor, hidden rows before window', true, 'new-comment', '03.999', 'new-comment', '01.000', '00.500'],
+        ['natural unread inside window', true, null, '00.999', 'old-comment', '01.000', '00.500'],
+        ['manual unread before window', true, 'old-comment', '01.999', 'old-comment', '03.000', '00.500'],
+        ['hidden manual anchor fallback', true, 'hidden-payment', '00.499', 'old-comment', '01.000', '00.500'],
+        ['natural unread before window, no pending deletion', false, null, '00.999', 'old-comment', '03.000', '00.500'],
+    ])('keeps the visible unread marker: %s', async (_scenario, hasPendingDeletion, manualAnchor, lastReadSecond, expectedMarker, offlineStartSecond, paymentSecond) => {
+        const timestamp = (second: string) => `2026-08-02 00:00:${second}`;
+        // Given persisted messages received during an offline window, optionally with a visible comment manually marked unread
+        const otherAccountID = ACCOUNT_ID + 1;
+        const actions: ReportAction[] = [
+            {...makeAction('new-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:04.000'), actorAccountID: otherAccountID},
+            ...(hasPendingDeletion
+                ? [{...makeAction('hidden-deleted-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:03.500'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]
+                : []),
+            {
+                ...makeAction('hidden-payment', CONST.REPORT.ACTIONS.TYPE.IOU, timestamp(paymentSecond)),
+                actorAccountID: otherAccountID,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+            },
+            {...makeAction('old-comment', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2026-08-02 00:00:02.000'), actorAccountID: otherAccountID},
+            makeAction('created', CONST.REPORT.ACTIONS.TYPE.CREATED, '2026-08-02 00:00:00.000'),
+        ];
+        mockUsePaginatedReportActions.mockReturnValue({
+            reportActions: actions.sort((a, b) => b.created.localeCompare(a.created)),
+            linkedAction: undefined,
+            oldestUnreadReportAction: undefined,
+            sortedAllReportActions: undefined,
+            hasNewerActions: false,
+            hasOlderActions: false,
+            report: undefined,
+        });
+        mockUseNetworkWithOfflineStatus.mockReturnValue({
+            isOffline: false,
+            lastOfflineAt: {current: DateUtils.getLocalDateFromDatetime(CONST.LOCALES.EN, CONST.DEFAULT_TIME_ZONE.selected, timestamp(offlineStartSecond))},
+            lastOnlineAt: {current: DateUtils.getLocalDateFromDatetime(CONST.LOCALES.EN, CONST.DEFAULT_TIME_ZONE.selected, '2026-08-02 00:00:05.000')},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            isWaitingOnBankAccount: true,
+            lastReadTime: timestamp(lastReadSecond),
+            manuallyMarkedUnreadReportActionID: manualAnchor,
+        });
 
-            // When the real list and unread hook scan the oldest-first visible action chain
-            renderComponent();
-            await waitForBatchedUpdatesWithAct();
+        // When the real list and unread hook scan the oldest-first visible action chain
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
 
-            // Then the hidden row does not shift the offline boundary past the visible list or remove the New divider
-            expect(getRenderedActionIDs()).toEqual(['report-action-old-comment', 'report-action-new-comment']);
-            expect(screen.getByTestId(`report-action-${expectedMarker}`).props.accessibilityHint).toBe('unread');
-            expect(screen.getByTestId(`report-action-${expectedMarker === 'new-comment' ? 'old-comment' : 'new-comment'}`).props.accessibilityHint).toBeUndefined();
-        },
-    );
+        // Then the hidden row does not shift the offline boundary past the visible list or remove the New divider
+        expect(getRenderedActionIDs()).toEqual(['report-action-old-comment', 'report-action-new-comment']);
+        expect(screen.getByTestId(`report-action-${expectedMarker}`).props.accessibilityHint).toBe('unread');
+        expect(screen.getByTestId(`report-action-${expectedMarker === 'new-comment' ? 'old-comment' : 'new-comment'}`).props.accessibilityHint).toBeUndefined();
+    });
 
     it('expands the real audit list into normal rows and removes the control', async () => {
+        // Given a passive run followed by a chat boundary
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 
@@ -369,9 +319,11 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         expect(screen.getByTestId('report-action-chat-boundary').props.accessibilityLabel).toBe('single');
         expect(screen.getByTestId('report-action-system-singleton').props.accessibilityLabel).toBe('grouped');
 
+        // When revealing the run through its summary control
         fireEvent.press(collapsedControl);
         await waitForBatchedUpdatesWithAct();
 
+        // Then retain normal headers and remove the expansion control
         expect(screen.queryByRole('button', {name: 'show 2 updates'})).toBeNull();
         expect(screen.queryByRole('button', {name: /Hide/})).toBeNull();
         expect(getRenderedActionIDs()).toEqual(['report-action-system-anchor', 'report-action-legacy-system', 'report-action-chat-boundary', 'report-action-system-singleton']);

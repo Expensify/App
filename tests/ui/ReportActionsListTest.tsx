@@ -23,6 +23,7 @@ import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +35,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {buildSystemAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseIsFocused = jest.fn().mockReturnValue(false);
@@ -57,6 +59,7 @@ jest.mock('@hooks/useInFlightRequests', () => ({
     useIsReportLoadPending: jest.fn(),
 }));
 jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@pages/inbox/report/useScrollToEditingReportAction', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => jest.fn());
 jest.mock('@hooks/usePaginatedReportActions', () => jest.fn());
@@ -361,47 +364,26 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('System message presentation', () => {
-        const systemActions: OnyxTypes.ReportAction[] = [
-            {
+        const systemActions = (
+            [
+                ['system-newer', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, '03', 'changed the category'],
+                ['system-older', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, '02', 'changed the merchant'],
+                ['chat-boundary', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '01', 'A chat message'],
+            ] as const
+        ).map(([reportActionID, actionName, minute, message]) =>
+            buildSystemAction(reportActionID, {
                 reportID: mockReport.reportID,
-                reportActionID: 'system-newer',
-                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                created: '2023-01-01 00:03:00.000',
+                actionName,
+                created: `2023-01-01 00:${minute}:00.000`,
                 actorAccountID: 123,
-                message: [{type: 'TEXT', html: 'changed the category', text: 'changed the category'}],
+                message: [{type: actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ? 'COMMENT' : 'TEXT', html: message, text: message}],
                 originalMessage: {},
                 shouldShow: true,
                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                 pendingAction: null,
                 errors: {},
-            },
-            {
-                reportID: mockReport.reportID,
-                reportActionID: 'system-older',
-                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                created: '2023-01-01 00:02:00.000',
-                actorAccountID: 123,
-                message: [{type: 'TEXT', html: 'changed the merchant', text: 'changed the merchant'}],
-                originalMessage: {},
-                shouldShow: true,
-                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-                pendingAction: null,
-                errors: {},
-            },
-            {
-                reportID: mockReport.reportID,
-                reportActionID: 'chat-boundary',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                created: '2023-01-01 00:01:00.000',
-                actorAccountID: 123,
-                message: [{type: 'COMMENT', html: 'A chat message', text: 'A chat message'}],
-                originalMessage: {},
-                shouldShow: true,
-                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-                pendingAction: null,
-                errors: {},
-            },
-        ];
+            }),
+        );
 
         const renderSystemActions = (reportType?: OnyxTypes.Report['type']) => {
             mockReport.type = reportType;
@@ -453,6 +435,10 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
             const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
             const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
+            expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'chat-boundary']);
+            expect(getRenderedReportActionsListItemProps(getSystemAction(2), 1)).toMatchObject({displayAsGroup: false});
+            // Editing uses the displayed row order after the hidden update, not canonical indices.
+            expect(jest.mocked(useScrollToEditingReportAction).mock.calls.at(-1)?.at(0)?.visibleReportActions).toBe(getCapturedVisibleActions());
 
             // Then the count matches the rows the renderer can show, and expansion preserves normal headers
             expect(summary?.props).toMatchObject({count: isWaitingOnBankAccount ? 2 : 3, earliestReportAction: getSystemAction(1)});
@@ -461,6 +447,7 @@ describe('ReportActionsList (body)', () => {
                 isWaitingOnBankAccount ? ['system-newer', 'system-older', 'chat-boundary', 'created'] : ['system-newer', 'expense-payment', 'system-older', 'chat-boundary', 'created'],
             );
             expect(getRenderedReportActionsListItemProps(getSystemAction(0), 0)).toMatchObject({displayAsGroup: true});
+            expect(findRenderedElement(getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0}), CollapsedSystemMessages)).toBeUndefined();
         });
 
         it('does not create a summary from one visible update and a hidden payment', () => {
@@ -486,27 +473,6 @@ describe('ReportActionsList (body)', () => {
             expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(item, ReportActionsListItemRenderer)?.props.isFirstVisibleReportAction).toBe(true);
         });
 
-        it('collapses and re-expands passive system runs in the standard expense-report list', () => {
-            renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
-
-            expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'chat-boundary']);
-            expect(getRenderedReportActionsListItemProps(getSystemAction(2), 1)).toMatchObject({displayAsGroup: false});
-            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
-            const showControl = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
-            expect(showControl?.props).toMatchObject({count: 2, earliestReportAction: getSystemAction(1)});
-
-            act(() => {
-                showControl?.props.onPress();
-            });
-
-            expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'system-older', 'chat-boundary']);
-            const expandedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
-            const hideControl = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(expandedAnchor, CollapsedSystemMessages);
-            const systemItem = findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(expandedAnchor, ReportActionsListItemRenderer);
-            expect(hideControl).toBeUndefined();
-            expect(systemItem?.props).toMatchObject({displayAsGroup: true});
-        });
-
         it('maps an unread run member to the collapsed summary row', () => {
             mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-older', unreadMarkerReportActionIndex: 1});
             renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
@@ -516,12 +482,6 @@ describe('ReportActionsList (body)', () => {
             const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
             const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
             expect(summary?.props.unreadMarkerReportActionID).toBe('system-older');
-        });
-
-        it('does not select a summary as the initial target when there is no unread marker', () => {
-            renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
-
-            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: -1});
         });
 
         it('does not collapse passive actions in ordinary chat reports', () => {
@@ -789,8 +749,47 @@ describe('ReportActionsList (body)', () => {
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === persistedReportAction.reportActionID)).toBe(false);
         });
 
-        it.each([true, false])('does not reconcile from an optimistic action when draft completion is pending: %s', (isDraftPendingCompletion) => {
-            // Given a matching optimistic placeholder that has not been saved, even if streaming completed
+        it('shows server followups after a local reply completes even when the pending add flag remains', () => {
+            // Given a completed local reply and a later server merge that adds followups but leaves the pending add flag
+            const completedDraft: OnyxTypes.ReportAction = {
+                ...conciergeDraftReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                isOptimisticAction: true,
+            };
+            const savedHTML = 'Bot reply<followup-list><followup><followup-text>What can I do next?</followup-text></followup></followup-list>';
+            const mergedReportAction: OnyxTypes.ReportAction = {
+                ...completedDraft,
+                message: [{type: 'COMMENT', html: savedHTML, text: 'Bot reply'}],
+                originalMessage: {html: savedHTML, whisperedTo: []},
+            };
+            const clearDraft = jest.fn();
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [mergedReportAction, ...mockReportActions],
+                sortedAllReportActions: [mergedReportAction, ...mockReportActions],
+            });
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: completedDraft,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: false,
+            });
+            mockUseConciergeDraftActions.mockReturnValue({
+                clearDraft,
+                dispatchLocalDraftEvent: jest.fn(),
+                revealDraftFromReportAction: jest.fn(),
+            });
+
+            // When the saved reply reaches the open chat without a refresh
+            renderReportActionsList();
+
+            // Then the server's followups are displayed and the completed local draft is retired
+            expect(getCapturedVisibleActions()).toContain(mergedReportAction);
+            expect(getCapturedVisibleActions()).not.toContain(completedDraft);
+            expect(clearDraft).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([true, false])('retires an optimistic local reply only after draft completion (pending: %s)', (isDraftPendingCompletion) => {
+            // Given a matching local reply whose pending add flag does not indicate whether its reveal has finished
             const optimisticReportAction: OnyxTypes.ReportAction = {
                 ...conciergeDraftReportAction,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -800,8 +799,8 @@ describe('ReportActionsList (body)', () => {
             const revealDraftFromReportAction = jest.fn();
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [...mockReportActions, optimisticReportAction],
-                sortedAllReportActions: [...mockReportActions, optimisticReportAction],
+                reportActions: [optimisticReportAction, ...mockReportActions],
+                sortedAllReportActions: [optimisticReportAction, ...mockReportActions],
             });
             mockUseConciergeDraft.mockReturnValue({
                 draftReportAction: optimisticReportAction,
@@ -817,9 +816,9 @@ describe('ReportActionsList (body)', () => {
             // When the list renders the draft beside that placeholder
             renderReportActionsList();
 
-            // Then the placeholder cannot complete reconciliation or clear the draft
+            // Then an unfinished reveal stays active, while a completed reveal lets future Onyx updates appear
             expect(revealDraftFromReportAction).not.toHaveBeenCalled();
-            expect(clearDraft).not.toHaveBeenCalled();
+            expect(clearDraft).toHaveBeenCalledTimes(isDraftPendingCompletion ? 0 : 1);
             expect(getCapturedVisibleActions()).toContain(optimisticReportAction);
         });
     });

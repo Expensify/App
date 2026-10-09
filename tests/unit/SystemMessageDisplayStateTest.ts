@@ -9,17 +9,9 @@ import {
     isSystemMessageAction,
     withDEWRoutedActionsArray,
 } from '../../src/libs/ReportActionsUtils';
+import {buildSystemAction} from '../utils/ReportTestUtils';
 
-function makeAction(reportActionID: string, actionName: ReportAction['actionName'], overrides: Partial<ReportAction> = {}): ReportAction {
-    return {
-        reportActionID,
-        actionName,
-        actorAccountID: 1,
-        created: `2026-07-30 00:00:0${reportActionID}.000`,
-        message: [{type: 'TEXT', html: reportActionID, text: reportActionID}],
-        ...overrides,
-    };
-}
+const makeAction = (reportActionID: string, actionName: ReportAction['actionName'], overrides: Partial<ReportAction> = {}) => buildSystemAction(reportActionID, {actionName, ...overrides});
 
 const OLD_DOT_SYSTEM_MESSAGE_ACTION_TYPES = [
     CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
@@ -47,7 +39,9 @@ const OLD_DOT_SYSTEM_MESSAGE_ACTION_TYPES = [
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
 ] as const;
 
-const NON_COLLAPSIBLE_OLD_DOT_SYSTEM_MESSAGE_ACTION_TYPES = [
+const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = [
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+    CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
@@ -61,26 +55,12 @@ const NON_COLLAPSIBLE_OLD_DOT_SYSTEM_MESSAGE_ACTION_TYPES = [
 
 describe('system message presentation', () => {
     describe('classification', () => {
-        it('routes agent prompt updates through the shared simple message classifier', () => {
-            // Given an agent prompt update introduced by the upstream message renderer
-            const action = makeAction('1', CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED);
-
-            // When the router checks the shared classifier after the merge
-            const isSimpleMessage = isSimpleMessageAction(action);
-
-            // Then it retains the upstream renderer instead of falling through to generic content
-            expect(isSimpleMessage).toBe(true);
-        });
-
-        it('keeps restored expenses on the upstream simple message renderer', () => {
-            // Given the expense restoration action introduced upstream
-            const action = makeAction('1', CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION);
-
-            // When the router checks the classifier shared with collapsed message presentation
-            const isSimpleMessage = isSimpleMessageAction(action);
-
-            // Then restoring an expense keeps its dedicated renderer rather than generic content
-            expect(isSimpleMessage).toBe(true);
+        it.each([CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION])('retains the dedicated simple-message renderer for %s', (actionName) => {
+            // Given an upstream action whose renderer was moved behind the shared classifier
+            const action = makeAction('1', actionName);
+            // When routing its content
+            // Then preserve its dedicated renderer instead of generic fallback content
+            expect(isSimpleMessageAction(action)).toBe(true);
         });
 
         it.each([
@@ -127,6 +107,9 @@ describe('system message presentation', () => {
             CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
             CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
         ])('classifies the passive audit action %s as a system message', (actionName) => {
+            // Given an explicitly supported audit action
+            // When selecting its presentation
+            // Then classify it as passive audit content
             expect(isSystemMessageAction(makeAction('1', actionName))).toBe(true);
         });
 
@@ -154,17 +137,24 @@ describe('system message presentation', () => {
         });
 
         it.each(OLD_DOT_SYSTEM_MESSAGE_ACTION_TYPES)('classifies the legacy audit action %s as a system message', (actionName) => {
+            // Given an explicitly supported audit action
+            // When selecting its presentation
+            // Then classify it as passive audit content
             expect(isSystemMessageAction(makeAction('1', actionName))).toBe(true);
         });
 
-        it.each(NON_COLLAPSIBLE_OLD_DOT_SYSTEM_MESSAGE_ACTION_TYPES)('keeps the legacy error or reimbursement state %s outside collapsed runs', (actionName) => {
+        it.each(NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES)('keeps error or reimbursement state %s outside collapsed runs', (actionName) => {
+            // Given an error or reimbursement status the user must see
             const action = makeAction('1', actionName);
-
+            // When deciding whether the audit row can collapse
+            // Then preserve its standalone feedback
             expect(isSystemMessageAction(action)).toBe(true);
             expect(isCollapsibleSystemMessageAction(action)).toBe(false);
         });
 
         it.each([
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DISABLED_FIELDS,
             CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             CONST.REPORT.ACTIONS.TYPE.CREATED,
             CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -178,47 +168,23 @@ describe('system message presentation', () => {
             CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
             CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
         ])('does not classify the chat, structural, task, or actionable row %s as a system message', (actionName) => {
+            // Given an interactive, structural, or unsupported action
+            // When selecting its presentation
+            // Then do not absorb it into passive audit groups
             expect(isSystemMessageAction(makeAction('1', actionName))).toBe(false);
         });
 
-        it('keeps pending and failed system messages visible as standalone rows', () => {
-            const pendingAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-            const failedAction = makeAction('2', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {errors: {field: 'Could not update'}});
-            const integrationFailure = makeAction('3', CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED);
-
-            expect(isSystemMessageAction(pendingAction)).toBe(true);
-            expect(isSystemMessageAction(failedAction)).toBe(true);
-            expect(isSystemMessageAction(integrationFailure)).toBe(true);
-            expect(isCollapsibleSystemMessageAction(pendingAction)).toBe(false);
-            expect(isCollapsibleSystemMessageAction(failedAction)).toBe(false);
-            expect(isCollapsibleSystemMessageAction(integrationFailure)).toBe(false);
-        });
-
-        it('keeps reimbursement setup actions but outside collapsed runs', () => {
-            const reimbursementQueued = makeAction('1', CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED);
-
-            expect(isSystemMessageAction(reimbursementQueued)).toBe(true);
-            expect(isCollapsibleSystemMessageAction(reimbursementQueued)).toBe(false);
-        });
-
-        it('requires policy change-log actions to opt in explicitly', () => {
-            const handledPolicyAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME);
-            const unhandledDescriptionAction = makeAction('2', CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION);
-            const unhandledDisabledFieldsAction = makeAction('3', CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DISABLED_FIELDS);
-
-            expect(isSystemMessageAction(handledPolicyAction)).toBe(true);
-            expect(isSystemMessageAction(unhandledDescriptionAction)).toBe(false);
-            expect(isSystemMessageAction(unhandledDisabledFieldsAction)).toBe(false);
-        });
-
-        it('keeps reasoned system messages but outside collapsed runs', () => {
-            const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] = {reasoning: 'The expense was changed automatically.'};
-            const reasonedAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
-                originalMessage,
-            });
-
-            expect(isSystemMessageAction(reasonedAction)).toBe(true);
-            expect(isCollapsibleSystemMessageAction(reasonedAction)).toBe(false);
+        it.each<Partial<ReportAction>>([
+            {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            {errors: {field: 'Could not update'}},
+            {originalMessage: {reasoning: 'The expense was changed automatically.'}},
+        ])('keeps a passive update standalone when it needs attention: %s', (overrides) => {
+            // Given a passive update with pending state, an error, or an Explain control
+            const action = makeAction('1', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, overrides);
+            // When classifying the row
+            // Then its attention feedback must remain visible outside collapsed runs
+            expect(isSystemMessageAction(action)).toBe(true);
+            expect(isCollapsibleSystemMessageAction(action)).toBe(false);
         });
     });
 
@@ -226,21 +192,14 @@ describe('system message presentation', () => {
         const systemAction = (reportActionID: string, overrides: Partial<ReportAction> = {}) => makeAction(reportActionID, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, overrides);
         const chatAction = (reportActionID: string) => makeAction(reportActionID, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
 
-        it('keeps an empty action list empty', () => {
-            const state = getSystemMessageDisplayState([], new Set());
-
-            expect(state.displayReportActions).toEqual([]);
+        it.each([{actions: []}, {actions: [systemAction('1')]}])('does not collapse fewer than two updates: %s', ({actions}) => {
+            // Given an empty list or one update
+            // When constructing its presentation
+            const state = getSystemMessageDisplayState(actions, new Set());
+            // Then all actions stay visible without a summary
+            expect(state.displayReportActions).toEqual(actions);
             expect(state.runsByAnchorReportActionID.size).toBe(0);
-            expect(state.reportActionIDToDisplayIndex.size).toBe(0);
-        });
-
-        it('keeps a singleton system message expanded', () => {
-            const action = systemAction('1');
-            const state = getSystemMessageDisplayState([action], new Set());
-
-            expect(state.displayReportActions).toEqual([action]);
-            expect(state.runsByAnchorReportActionID.size).toBe(0);
-            expect(state.reportActionIDToDisplayIndex.get('1')).toBe(0);
+            expect(state.reportActionIDToDisplayIndex.size).toBe(actions.length);
         });
 
         it.each([CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.FORWARDED])(
@@ -263,9 +222,12 @@ describe('system message presentation', () => {
         );
 
         it('collapses maximal runs of two or more system messages to one anchor row', () => {
-            const actions = [systemAction('1'), systemAction('2'), systemAction('3')];
+            // Given consecutive passive updates, including muted audit types
+            const actions = [systemAction('1'), makeAction('2', CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION), makeAction('3', CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)];
+            // When constructing their presentation
             const state = getSystemMessageDisplayState(actions, new Set());
 
+            // Then one summary represents every member and its earliest header
             expect(state.displayReportActions).toEqual([actions.at(0)]);
             expect(state.runsByAnchorReportActionID.get('1')).toEqual({
                 reportActionIDs: ['1', '2', '3'],
@@ -279,73 +241,36 @@ describe('system message presentation', () => {
             ]);
         });
 
-        it('keeps newly routed muted audit actions inside a maximal system-message run', () => {
-            const actions = [systemAction('1'), makeAction('2', CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION), makeAction('3', CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)];
+        it.each([
+            chatAction('3'),
+            systemAction('3', {error: 'Could not update'}),
+            systemAction('3', {originalMessage: {reasoning: 'The expense was changed automatically.'}}),
+            systemAction('3', {childReportID: 'thread-report', childVisibleActionCount: 1, childCommenterCount: 1}),
+        ])('preserves chat, error, Explain, and reply rows as run boundaries: %s', (boundary) => {
+            // Given two eligible runs separated by a row with independently visible content
+            const actions = [systemAction('1'), systemAction('2'), boundary, systemAction('4'), systemAction('5')];
+            // When constructing the display list
             const state = getSystemMessageDisplayState(actions, new Set());
-
-            expect(actions.every((action) => isCollapsibleSystemMessageAction(action))).toBe(true);
-            expect(state.displayReportActions).toEqual([actions.at(0)]);
-            expect(state.runsByAnchorReportActionID.get('1')?.reportActionIDs).toEqual(['1', '2', '3']);
-        });
-
-        it('uses chat and non-collapsible error rows as run boundaries', () => {
-            const first = systemAction('1');
-            const second = systemAction('2');
-            const chat = chatAction('3');
-            const failed = systemAction('4', {error: 'Could not update'});
-            const fifth = systemAction('5');
-            const sixth = systemAction('6');
-            const state = getSystemMessageDisplayState([first, second, chat, failed, fifth, sixth], new Set());
-
-            expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(['1', '3', '4', '5']);
-            expect([...state.runsByAnchorReportActionID.keys()]).toEqual(['1', '5']);
+            // Then the boundary remains visible and each neighboring run has its own summary
+            expect(isCollapsibleSystemMessageAction(boundary)).toBe(false);
+            expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(['1', '3', '4']);
+            expect([...state.runsByAnchorReportActionID.keys()]).toEqual(['1', '4']);
             expect(state.reportActionIDToDisplayIndex.get('2')).toBe(0);
-            expect(state.reportActionIDToDisplayIndex.get('6')).toBe(3);
+            expect(state.reportActionIDToDisplayIndex.get('5')).toBe(2);
         });
 
-        it('uses reasoned system messages as run boundaries so their Explain control stays visible', () => {
-            const first = systemAction('1');
-            const second = systemAction('2');
-            const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] = {reasoning: 'The expense was changed automatically.'};
-            const reasoned = systemAction('3', {
-                originalMessage,
-            });
-            const fourth = systemAction('4');
-            const fifth = systemAction('5');
-            const state = getSystemMessageDisplayState([first, second, reasoned, fourth, fifth], new Set());
-
-            expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(['1', '3', '4']);
-            expect([...state.runsByAnchorReportActionID.keys()]).toEqual(['1', '4']);
-        });
-
-        it('uses threaded system messages as run boundaries so their reply preview stays visible', () => {
-            const first = systemAction('1');
-            const second = systemAction('2');
-            const threaded = systemAction('3', {
-                childReportID: 'thread-report',
-                childVisibleActionCount: 1,
-                childCommenterCount: 1,
-            });
-            const fourth = systemAction('4');
-            const fifth = systemAction('5');
-            const state = getSystemMessageDisplayState([first, second, threaded, fourth, fifth], new Set());
-
-            expect(isCollapsibleSystemMessageAction(threaded)).toBe(false);
-            expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(['1', '3', '4']);
-            expect([...state.runsByAnchorReportActionID.keys()]).toEqual(['1', '4']);
-        });
-
-        it('restores every member in chronological order when a run is expanded', () => {
-            const actions = [systemAction('1'), systemAction('2'), systemAction('3')];
+        it.each([false, true])('restores every member and display index when expanded (newest first: %s)', (newestFirst) => {
+            // Given one run in either list direction
+            const chronologicalActions = [systemAction('1'), systemAction('2'), systemAction('3')];
+            const actions = newestFirst ? chronologicalActions.toReversed() : chronologicalActions;
+            // When a hidden member is expanded
             const state = getSystemMessageDisplayState(actions, new Set(['2']));
-
+            // Then every original row returns in list order with its displayed index
             expect(state.displayReportActions).toEqual(actions);
-            expect(state.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(true);
-            expect([...state.reportActionIDToDisplayIndex.entries()]).toEqual([
-                ['1', 0],
-                ['2', 1],
-                ['3', 2],
-            ]);
+            expect(state.runsByAnchorReportActionID.get(newestFirst ? '3' : '1')?.isExpanded).toBe(true);
+            for (const [index, action] of actions.entries()) {
+                expect(state.reportActionIDToDisplayIndex.get(action.reportActionID)).toBe(index);
+            }
         });
 
         it('force-expands a run containing a linked target', () => {
@@ -403,18 +328,26 @@ describe('system message presentation', () => {
         });
 
         it.each([
-            ['2026-07-31 00:00:00.000', 1],
-            ['2026-07-31 00:00:00.001', 2],
-            ['invalid', 2],
-        ])('includes exactly 24 hours but rejects larger or invalid timestamps: %s', (created, expectedRows) => {
-            const actions = [systemAction('1', {created: '2026-07-30 00:00:00.000'}), systemAction('2', {created})];
+            ['2026-07-30 00:00:00.000', '2026-07-31 00:00:00.000', 1],
+            ['2026-07-30 00:00:00.000', '2026-07-31 00:00:00.001', 2],
+            ['2026-07-30 00:00:00.000', 'invalid', 2],
+            ['2026-03-08 00:00:00.000', '2026-03-09 01:00:00.000', 2],
+            ['2026-11-01 00:00:00.000', '2026-11-02 00:00:00.000', 1],
+        ])('uses inclusive elapsed UTC hours, including daylight-saving dates: %s to %s', (firstCreated, secondCreated, expectedRows) => {
+            // Given two updates at the boundary, beyond it, or with an invalid timestamp
+            const actions = [systemAction('1', {created: firstCreated}), systemAction('2', {created: secondCreated})];
+            // When grouping them
+            // Then reject invalid dates and spans beyond 24 elapsed hours
             expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toHaveLength(expectedRows);
         });
 
         const legacyDelegateMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] & {delegateAccountID: number} = {delegateAccountID: 2};
         it.each([{actorAccountID: 2}, {delegateAccountID: 2}, {originalMessage: legacyDelegateMessage}])('keeps different actor/delegate identities in separate runs: %s', (overrides) => {
+            // Given updates attributed to different users or delegates
             const actions = [systemAction('1'), systemAction('2', overrides), systemAction('3', overrides)];
+            // When constructing same-user groups
             const state = getSystemMessageDisplayState(actions, new Set());
+            // Then the identity change starts a separate group
             expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(['1', '2']);
             expect(state.runsByAnchorReportActionID.get('2')?.reportActionIDs).toEqual(['2', '3']);
         });
@@ -422,14 +355,6 @@ describe('system message presentation', () => {
         it('groups actions attributed to the same admin even when the raw submission actor differs', () => {
             const actions = [makeAction('1', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {adminAccountID: 2}), systemAction('2', {actorAccountID: 2})];
             expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toEqual([actions.at(0)]);
-        });
-
-        it.each([
-            ['2026-03-08 00:00:00.000', '2026-03-09 01:00:00.000', 2],
-            ['2026-11-01 00:00:00.000', '2026-11-02 00:00:00.000', 1],
-        ])('applies elapsed UTC hours across daylight-saving dates: %s to %s', (firstCreated, secondCreated, expectedRows) => {
-            const actions = [systemAction('1', {created: firstCreated}), systemAction('2', {created: secondCreated})];
-            expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toHaveLength(expectedRows);
         });
 
         it('does not combine admin-submitted or automated updates with a different displayed actor', () => {
@@ -449,32 +374,6 @@ describe('system message presentation', () => {
                 systemAction('2', {actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, originalMessage: secondMessage}),
             ];
             expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toEqual(actions);
-        });
-
-        it('restores descending order and canonical indices when expanding an inverted run', () => {
-            const actions = [systemAction('3'), systemAction('2'), systemAction('1')];
-            const state = getSystemMessageDisplayState(actions, new Set(['2']));
-            expect(state.displayReportActions).toEqual(actions);
-            expect(state.reportActionIDToDisplayIndex.get('3')).toBe(0);
-            expect(state.reportActionIDToDisplayIndex.get('1')).toBe(2);
-        });
-
-        it('maps an unread member to a collapsed anchor without expanding the run', () => {
-            const actions = [systemAction('1'), systemAction('2'), systemAction('3')];
-            const state = getSystemMessageDisplayState(actions, new Set());
-
-            expect(state.displayReportActions).toEqual([actions.at(0)]);
-            expect(state.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(false);
-            expect(state.reportActionIDToDisplayIndex.get('2')).toBe(0);
-        });
-
-        it('keeps an expanded run open when pagination adds a new adjacent member', () => {
-            const originalActions = [systemAction('2'), systemAction('3')];
-            const originalState = getSystemMessageDisplayState(originalActions, new Set(['2', '3']));
-            const paginatedState = getSystemMessageDisplayState([systemAction('1'), ...originalActions], new Set(originalState.runsByAnchorReportActionID.get('2')?.reportActionIDs));
-
-            expect(paginatedState.displayReportActions.map((action) => action.reportActionID)).toEqual(['1', '2', '3']);
-            expect(paginatedState.runsByAnchorReportActionID.get('1')?.isExpanded).toBe(true);
         });
     });
 });

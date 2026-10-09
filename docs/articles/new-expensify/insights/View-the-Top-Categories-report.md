@@ -125,6 +125,6 @@ Each report provides a different view of your spending:
 
 ## How is the Top Categories report calculated?
 
-The report uses all expenses from the previous calendar month and groups them by category. It shows the **top 10 categories** based on total spend.
+The report uses all expenses from the previous calendar month and groups them by category. It shows the **top 5 categories** based on total spend.
 
 ---
