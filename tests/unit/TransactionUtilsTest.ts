@@ -295,6 +295,7 @@ describe('TransactionUtils', () => {
         });
 
         describe('when posted date has value with format YYYYMMddHHmmss', () => {
+            // Given a card transaction whose posted value has a time suffix, as some card feeds (e.g. Amex) send it
             const transaction = generateTransaction({
                 posted: '20261002153000',
             });
@@ -302,8 +303,10 @@ describe('TransactionUtils', () => {
             it('returns the posted date with the correct format YYYY-MM-dd', () => {
                 const expectedResult = '2026-10-02';
 
+                // When the posted date is formatted for the expense view
                 const result = TransactionUtils.getFormattedPostedDate(transaction);
 
+                // Then the date is still parsed, so the expense shows "Date • Posted" instead of plain "Date"
                 expect(result).toEqual(expectedResult);
             });
         });
