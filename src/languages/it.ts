@@ -858,7 +858,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Sei sicuro di voler eliminare questo/questa ${type}?`;
+            return `Sei sicuro di voler eliminare questo/questa ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Tutte le spese in questo report risulteranno non rendicontate.' : ''}`;
         },
         onlyVisible: 'Visibile solo a',
         explain: 'Spiega',
@@ -1490,6 +1490,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sei sicuro di voler eliminare questo report?',
             other: 'Sei sicuro di voler eliminare questi report?',
         }),
+        deleteExpenseReportConfirmation: 'Sei sicuro di voler eliminare questo report? Tutte le spese in questo report risulteranno non rendicontate.',
         settledExpensify: 'Pagato',
         paidStatusMarkedAsPaid: 'Segnato come pagato',
         paidStatusWithdrawing: 'Prelievo',
@@ -8858,7 +8859,17 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connesso. ${setupLink ? `<a href="${setupLink}">Completa la configurazione</a>` : 'Completa configurazione'} per importare i dipendenti.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Gruppi', description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro'},
+                groups: {
+                    title: 'Gruppi',
+                    description: 'Scegli i gruppi di dipendenti che vuoi sincronizzare con questo spazio di lavoro',
+                    staleSelectionError: (providerName: string) =>
+                        `Alcuni dei gruppi che hai selezionato non esistono più in ${providerName}, quindi i rispettivi dipendenti hanno smesso di sincronizzarsi.`,
+                    updateSelectionLink: 'Aggiorna i tuoi gruppi.',
+                    noGroupsFound: 'Nessun gruppo trovato',
+                    noGroupsFoundDescription:
+                        'Al momento non ci sono gruppi da selezionare. Salva senza selezionare gruppi per sincronizzare tutti i dipendenti oppure sincronizza di nuovo la connessione quando esisteranno nuovi gruppi.',
+                    unnamedGroup: (groupID: string) => `Gruppo senza nome (${groupID})`,
+                },
             },
         },
         recruiting: {

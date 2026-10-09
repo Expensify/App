@@ -858,7 +858,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?`;
+            return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Alle Ausgaben in diesem Bericht werden als nicht gemeldet markiert.' : ''}`;
         },
         onlyVisible: 'Nur sichtbar für',
         explain: 'Erklären',
@@ -1493,6 +1493,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Möchten Sie diesen Bericht wirklich löschen?',
             other: 'Möchten Sie diese Berichte wirklich löschen?',
         }),
+        deleteExpenseReportConfirmation: 'Möchten Sie diesen Bericht wirklich löschen? Alle Ausgaben in diesem Bericht werden als nicht gemeldet markiert.',
         settledExpensify: 'Bezahlt',
         paidStatusMarkedAsPaid: 'Als bezahlt markiert',
         paidStatusWithdrawing: 'Abhebung läuft',
@@ -8915,7 +8916,17 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
+                groups: {
+                    title: 'Gruppen',
+                    description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten',
+                    staleSelectionError: (providerName: string) =>
+                        `Einige der Gruppen, die Sie ausgewählt haben, existieren in ${providerName} nicht mehr, daher werden deren Mitarbeitende nicht mehr synchronisiert.`,
+                    updateSelectionLink: 'Aktualisieren Sie Ihre Gruppen.',
+                    noGroupsFound: 'Keine Gruppen gefunden',
+                    noGroupsFoundDescription:
+                        'Es gibt derzeit keine Gruppen zum Auswählen. Speichern Sie ohne ausgewählte Gruppen, um alle Mitarbeitenden zu synchronisieren, oder synchronisieren Sie die Verbindung erneut, sobald neue Gruppen vorhanden sind.',
+                    unnamedGroup: (groupID: string) => `Unbenannte Gruppe (${groupID})`,
+                },
             },
         },
         recruiting: {

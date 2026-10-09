@@ -876,7 +876,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το ${type};`;
+            return `Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το ${type};${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Όλες οι δαπάνες σε αυτήν την αναφορά θα γίνουν μη υποβληθείσες.' : ''}`;
         },
         onlyVisible: 'Ορατό μόνο σε',
         explain: 'Εξηγήστε',
@@ -1541,6 +1541,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την αναφορά;',
             other: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτές τις αναφορές;',
         }),
+        deleteExpenseReportConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την αναφορά; Όλες οι δαπάνες σε αυτήν την αναφορά θα γίνουν μη υποβληθείσες.',
         settledExpensify: 'Πληρωμένο',
         paidStatusMarkedAsPaid: 'Επισημάνθηκε ως πληρωμένο',
         paidStatusWithdrawing: 'Ανάληψη',
@@ -7837,6 +7838,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 groups: {
                     title: 'Ομάδες',
                     description: 'Επιλέξτε τις ομάδες υπαλλήλων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    staleSelectionError: (providerName: string) =>
+                        `Ορισμένες από τις ομάδες που επιλέξατε δεν υπάρχουν πλέον στο ${providerName}, επομένως οι εργαζόμενοι τους έχουν σταματήσει να συγχρονίζονται.`,
+                    updateSelectionLink: 'Ενημερώστε τις ομάδες σας.',
+                    noGroupsFound: 'Δεν βρέθηκαν ομάδες',
+                    noGroupsFoundDescription:
+                        'Δεν υπάρχουν ομάδες για επιλογή αυτή τη στιγμή. Αποθηκεύστε χωρίς επιλεγμένες ομάδες για να συγχρονίσετε όλους τους υπαλλήλους ή συγχρονίστε ξανά τη σύνδεση μόλις δημιουργηθούν νέες ομάδες.',
+                    unnamedGroup: (groupID: string) => `Ομάδα χωρίς όνομα (${groupID})`,
                 },
             },
         },

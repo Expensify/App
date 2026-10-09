@@ -1187,6 +1187,7 @@ const CONST = {
         PAYMENT_HISTORY: 'paymentHistory',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -9479,6 +9480,25 @@ const CONST = {
 
             /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
+        },
+
+        /** Stored-width keys, one per column set rather than per screen, so tables with the same columns share widths. */
+        COLUMN_RESIZING_IDS: {
+            WORKSPACE_MEMBERS: 'workspaceMembers',
+            WORKSPACE_TAXES: 'workspaceTaxes',
+            WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
+            WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+        },
+
+        COLUMN_RESIZE: {
+            /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
+            MIN_WIDTH: 48,
+
+            /** Width of the invisible drag strip centred on a column's edge. */
+            HANDLE_HIT_WIDTH: 12,
+
+            /** Width of the line shown while a column's edge is dragged. */
+            INDICATOR_WIDTH: 2,
         },
     },
 
