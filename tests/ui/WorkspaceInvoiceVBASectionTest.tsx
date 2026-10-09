@@ -3,10 +3,14 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import WorkspaceInvoiceVBASection from '@pages/workspace/invoices/WorkspaceInvoiceVBASection';
+
+import * as PaymentMethods from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +25,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const POLICY_ID = 'invoicesPolicy123';
 const BANK_ACCOUNT_ID = 12345;
+const SECOND_BANK_ACCOUNT_ID = 67890;
 
 let mockIsUserValidated = false;
 let mockCapturedOnResume: ((payload?: () => void) => void) | undefined;
@@ -44,10 +49,28 @@ jest.mock('@hooks/useConfirmModal', () =>
     })),
 );
 
+type CapturedListProps = {
+    invoiceTransferBankAccountID?: number;
+    threeDotsMenuItems?: PopoverMenuItem[];
+    onThreeDotsMenuPress?: (params: PaymentMethodPressHandlerParams) => void;
+};
+
+let mockListProps: CapturedListProps = {};
+
+jest.mock('@pages/settings/Wallet/PaymentMethodList', () => {
+    const ActualPaymentMethodList = jest.requireActual<{default: (props: CapturedListProps) => React.ReactNode}>('@pages/settings/Wallet/PaymentMethodList').default;
+    return (props: CapturedListProps) => {
+        mockListProps = props;
+        return <ActualPaymentMethodList {...props} />;
+    };
+});
+
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+const setInvoicingTransferBankAccountSpy = jest.spyOn(PaymentMethods, 'setInvoicingTransferBankAccount').mockImplementation(() => {});
 
 const eligibleBusinessBankAccount = {
     methodID: BANK_ACCOUNT_ID,
+    accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
     bankCurrency: CONST.CURRENCY.USD,
     accountData: {
         bankAccountID: BANK_ACCOUNT_ID,
@@ -71,14 +94,34 @@ function renderSection({canWriteMoreFeatures = true, showReadOnlyModal = jest.fn
     return {showReadOnlyModal};
 }
 
-async function seedPolicy({outputCurrency = CONST.CURRENCY.USD as string, withEligibleBankAccount = false} = {}) {
+const secondEligibleBusinessBankAccount = {
+    ...eligibleBusinessBankAccount,
+    methodID: SECOND_BANK_ACCOUNT_ID,
+    accountData: {...eligibleBusinessBankAccount.accountData, bankAccountID: SECOND_BANK_ACCOUNT_ID},
+};
+
+async function seedPolicy({outputCurrency = CONST.CURRENCY.USD as string, withEligibleBankAccount = false, withSecondEligibleBankAccount = false} = {}) {
     await act(async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, outputCurrency});
         if (withEligibleBankAccount) {
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: eligibleBusinessBankAccount});
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [BANK_ACCOUNT_ID]: eligibleBusinessBankAccount,
+                ...(withSecondEligibleBankAccount ? {[SECOND_BANK_ACCOUNT_ID]: secondEligibleBusinessBankAccount} : {}),
+            });
         }
     });
     await waitForBatchedUpdatesWithAct();
+}
+
+async function openRowMenu(account: typeof eligibleBusinessBankAccount) {
+    await act(async () => {
+        mockListProps.onThreeDotsMenuPress?.({accountType: account.accountType, accountData: account.accountData, methodID: account.methodID});
+    });
+    await waitForBatchedUpdatesWithAct();
+}
+
+function getMenuItemTexts() {
+    return (mockListProps.threeDotsMenuItems ?? []).map((item) => item.text);
 }
 
 async function pressAddBankAccount() {
@@ -183,5 +226,47 @@ describe('WorkspaceInvoiceVBASection', () => {
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockVerifyAccountAndResume).not.toHaveBeenCalled();
         expect(navigateSpy).not.toHaveBeenCalled();
+    });
+    it('treats the first eligible account as the invoice default when no default is saved', async () => {
+        // Given two eligible business bank accounts and no saved invoice default, as after adding a second account through Plaid
+        await seedPolicy({withEligibleBankAccount: true, withSecondEligibleBankAccount: true});
+        renderSection();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list gets the primary account as the default, so it gets the "Default" badge
+        expect(mockListProps.invoiceTransferBankAccountID).toBe(BANK_ACCOUNT_ID);
+
+        // When the primary account's menu is opened
+        await openRowMenu(eligibleBusinessBankAccount);
+
+        // Then it does not offer to make the account that is already the default the default
+        expect(getMenuItemTexts()).not.toContain(TestHelper.translateLocal('walletPage.setDefaultConfirmation'));
+
+        // When the second account's menu is opened
+        await openRowMenu(secondEligibleBusinessBankAccount);
+
+        // Then it still offers to make that account the default
+        expect(getMenuItemTexts()).toContain(TestHelper.translateLocal('walletPage.setDefaultConfirmation'));
+    });
+
+    it('rolls back to the saved invoice default, not the wallet default, when making another account the default', async () => {
+        // Given the first account is the saved invoice default while the second one is the personal wallet default
+        await seedPolicy({withEligibleBankAccount: true, withSecondEligibleBankAccount: true});
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {invoice: {bankAccount: {transferBankAccountID: BANK_ACCOUNT_ID}}});
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[SECOND_BANK_ACCOUNT_ID]: {isDefault: true}});
+        });
+        renderSection();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the second account is made the invoice default
+        await openRowMenu(secondEligibleBusinessBankAccount);
+        await act(async () => {
+            mockListProps.threeDotsMenuItems?.find((item) => item.text === TestHelper.translateLocal('walletPage.setDefaultConfirmation'))?.onSelected?.();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a failed request restores the saved invoice default instead of the wallet default
+        expect(setInvoicingTransferBankAccountSpy).toHaveBeenCalledWith(SECOND_BANK_ACCOUNT_ID, POLICY_ID, BANK_ACCOUNT_ID);
     });
 });
