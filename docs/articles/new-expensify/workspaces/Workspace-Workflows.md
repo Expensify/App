@@ -95,6 +95,21 @@ Who can pay reports depends on whether a business bank account is connected:
 
 ---
 
+## How to choose who pays currency conversion fees
+
+For cross-border reimbursements, the **Currency conversion fees** setting in the **Payments** section controls whether your company or your employee absorbs the foreign exchange (FX) rate difference and conversion fee when a reimbursement is paid in a currency other than your workspace currency.
+
+1. Go to **Workflows**.
+2. Under **Payments**, set **Currency conversion fees** to one of the following:
+   - **Company pays** — Your company absorbs the FX rate difference and conversion fee, so the employee receives the full intended amount in their local currency. Your business bank account is debited more than the report total to cover these costs.
+   - **Employee pays** — The employee absorbs the FX rate difference and conversion fee, so the amount deposited into their account can be less than the report total.
+
+Existing Global Reimbursement setups default to **Employee pays**. New Global Reimbursement setups default to **Company pays**.
+
+**Note:** The **Auto-pay approved reports** threshold applies to the report total and may not include currency conversion fees. When your company pays currency conversion fees, the amount debited from your business bank account can exceed the report total.
+
+---
+
 ## How Advanced workflows work
 
 The **Advanced** tab contains workflow settings that apply to an entire expense report rather than individual expenses.

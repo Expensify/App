@@ -105,6 +105,10 @@ We recommend enabling **Auto-sync** to keep your data up to date. Auto-sync perf
 
 Keep reimbursement status in sync between Expensify and Certinia for reports that have been paid.
 
+## How to set the currency conversion fee account for Certinia (FFA)
+
+If your workspace's **Currency conversion fees** setting under **Workflows** is set to **Company pays**, select **Currency conversion fee account** and choose the general ledger account for currency conversion fees. When the company covers the conversion cost on a cross-border reimbursement, Expensify adds that cost to the Payable Invoice as a separate line coded to this account.
+
 ## How to export tax as non-billable in Certinia
 
 Decide whether tax amounts are billed to clients when exporting billable expenses.
