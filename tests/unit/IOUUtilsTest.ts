@@ -748,9 +748,13 @@ describe('navigateToConfirmationPage', () => {
     });
 
     it('should navigate to confirmation step with backTo when backTo is provided', () => {
+        // Given backTo destination route
         const backTo = 'test-back-to-route';
+
+        // When navigating to confirmation page with backTo
         IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, false, undefined, false, backTo);
 
+        // Then Navigation.navigate should be called with backTo in confirmation route
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, undefined, backTo),
         );
