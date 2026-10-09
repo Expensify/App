@@ -41,7 +41,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
-import {formatVacationDelegateClearDateTime, getVacationDelegateClearDateTime, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
+import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
@@ -104,11 +104,14 @@ function ProfilePage() {
     const [commuterExclusionsWorkspaceName] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: homeAndOfficeCommuterExclusionPolicyNameSelector});
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-    const hasVacationDelegate = !!vacationDelegate?.delegate && !isVacationDelegateExpired(vacationDelegate?.clearAfter);
-    const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(hasVacationDelegate ? vacationDelegate?.delegate : undefined);
+    const activeVacationDelegate = getActiveVacationDelegate(vacationDelegate);
+    const hasVacationDelegate = !!activeVacationDelegate;
+    const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(activeVacationDelegate);
     const vacationDelegateName = hasVacationDelegate
-        ? getVacationDelegateDisplayName(vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '', vacationDelegatePersonalDetails?.displayName, formatPhoneNumber)
+        ? getVacationDelegateDisplayName(vacationDelegatePersonalDetails?.login ?? activeVacationDelegate, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber)
         : '';
+    // With no delegate there is nothing to show on the form yet, so go straight to picking one.
+    const vacationDelegateRoute = hasVacationDelegate ? ROUTES.SETTINGS_VACATION_DELEGATE : ROUTES.SETTINGS_VACATION_DELEGATE_SELECT;
     const vacationDelegateClearDate = hasVacationDelegate
         ? formatVacationDelegateClearDateTime(getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, currentUserPersonalDetails?.timezone?.selected), dateFnsLocale)
         : '';
@@ -165,17 +168,16 @@ function ProfilePage() {
                     displayName={vacationDelegateName}
                     avatar={vacationDelegatePersonalDetails?.avatar}
                     accountID={vacationDelegatePersonalDetails?.accountID}
-                    login={vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate}
+                    login={vacationDelegatePersonalDetails?.login ?? activeVacationDelegate}
                     untilText={vacationDelegateUntilText}
                     brickRoadIndicator={vacationDelegateBrickRoadIndicator}
                 />
             ) : undefined,
             accessibilityLabel: hasVacationDelegate ? [translate('common.vacationDelegate'), vacationDelegateName, vacationDelegateUntilText].filter(Boolean).join(', ') : undefined,
-            // With no delegate there is nothing to show on the form yet, so go straight to picking one.
-            pageRoute: hasVacationDelegate ? ROUTES.SETTINGS_VACATION_DELEGATE : ROUTES.SETTINGS_VACATION_DELEGATE_SELECT,
+            pageRoute: vacationDelegateRoute,
             onPress: () => {
                 clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
-                Navigation.navigate(hasVacationDelegate ? ROUTES.SETTINGS_VACATION_DELEGATE : ROUTES.SETTINGS_VACATION_DELEGATE_SELECT);
+                Navigation.navigate(vacationDelegateRoute);
             },
             brickRoadIndicator: vacationDelegateBrickRoadIndicator,
             testID: 'vacation-delegate-menu-item',

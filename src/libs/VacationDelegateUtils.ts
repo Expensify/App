@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 
@@ -80,6 +81,14 @@ function isVacationDelegateExpired(clearAfter: string | undefined): boolean {
 }
 
 /**
+ * The delegate still in effect, ignoring one whose clearAfter has passed. Every screen that shows or opens the delegate uses this,
+ * so they all apply the same expiry rule.
+ */
+function getActiveVacationDelegate(vacationDelegate: BaseVacationDelegate | undefined): string | undefined {
+    return vacationDelegate?.delegate && !isVacationDelegateExpired(vacationDelegate.clearAfter) ? vacationDelegate.delegate : undefined;
+}
+
+/**
  * Whether the picked clear date (yyyy-MM-dd) has already ended in the given timezone. The day is read in the user's Profile timezone,
  * not the device's, so a device in another timezone doesn't reject a day that hasn't ended yet for the user, or accept one that has.
  */
@@ -107,6 +116,7 @@ export {
     getVacationDelegateLocalClearDateTime,
     formatVacationDelegateClearDateTime,
     isVacationDelegateExpired,
+    getActiveVacationDelegate,
     isVacationDelegateClearDatePassed,
     isVacationDelegateClearAfterTooSoon,
 };

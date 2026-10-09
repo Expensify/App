@@ -7,18 +7,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {
     formatVacationDelegateClearDateTime,
+    getActiveVacationDelegate,
     getVacationDelegateClearAfter,
     getVacationDelegateClearDate,
     getVacationDelegateClearDateTime,
     getVacationDelegateLocalClearDateTime,
     isVacationDelegateClearAfterTooSoon,
     isVacationDelegateClearDatePassed,
-    isVacationDelegateExpired,
 } from '@libs/VacationDelegateUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/VacationDelegateForm';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 import React from 'react';
@@ -40,6 +41,12 @@ type VacationDelegateFormProps = {
 
     /** Text shown above the form */
     description?: string;
+
+    /**
+     * Timezone the clear date and time are picked in. Defaults to the current user's Profile timezone.
+     * A domain admin passes the member's, so the delegate clears at the end of the vacationer's day, not the admin's.
+     */
+    timezone?: SelectedTimezone;
 
     /** Opens the member selection screen. The picked member is stored in the form draft. */
     onChangeDelegate: () => void;
@@ -64,16 +71,17 @@ type VacationDelegateFormProps = {
     onCloseError?: () => void;
 };
 
-function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, onSubmit, onRemove, errors, pendingAction, onCloseError}: VacationDelegateFormProps) {
+function VacationDelegateForm({vacationDelegate, description, timezone: timezoneProp, onChangeDelegate, onSubmit, onRemove, errors, pendingAction, onCloseError}: VacationDelegateFormProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, getLocalDateFromDatetime} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Trashcan']);
-    const {timezone} = useCurrentUserPersonalDetails();
+    const {timezone: currentUserTimezone} = useCurrentUserPersonalDetails();
+    const timezone = timezoneProp ?? currentUserTimezone?.selected;
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT);
 
-    const savedDelegate = isVacationDelegateExpired(vacationDelegate?.clearAfter) ? undefined : vacationDelegate?.delegate;
-    const savedClearDateTime = savedDelegate ? getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone?.selected) : '';
-    const savedClearDate = savedDelegate ? getVacationDelegateClearDate(vacationDelegate?.clearAfter, timezone?.selected) : '';
+    const savedDelegate = getActiveVacationDelegate(vacationDelegate);
+    const savedClearDateTime = savedDelegate ? getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone) : '';
+    const savedClearDate = savedDelegate ? getVacationDelegateClearDate(vacationDelegate?.clearAfter, timezone) : '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty draft means no member was picked yet
     const delegate = draftValues?.[INPUT_IDS.DELEGATE] || savedDelegate;
     const clearDate = draftValues?.[INPUT_IDS.CLEAR_AFTER_DATE] ?? savedClearDate;
@@ -88,10 +96,10 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
             return formErrors;
         }
 
-        // Both checks read the picked date and time in the Profile timezone, the same one clearAfter is built from, not the device's
-        if (isVacationDelegateClearDatePassed(values[INPUT_IDS.CLEAR_AFTER_DATE], timezone?.selected)) {
+        // Both checks read the picked date and time in the form's timezone, the same one clearAfter is built from, not the device's
+        if (isVacationDelegateClearDatePassed(values[INPUT_IDS.CLEAR_AFTER_DATE], timezone)) {
             formErrors[INPUT_IDS.CLEAR_AFTER_DATE] = translate('common.error.dateInvalid');
-        } else if (isVacationDelegateClearAfterTooSoon(getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], values[INPUT_IDS.CLEAR_AFTER_TIME], timezone?.selected))) {
+        } else if (isVacationDelegateClearAfterTooSoon(getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], values[INPUT_IDS.CLEAR_AFTER_TIME], timezone))) {
             formErrors[INPUT_IDS.CLEAR_AFTER_TIME] = translate('common.error.invalidTimeShouldBeFuture');
         }
         return formErrors;
@@ -102,7 +110,7 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
             return;
         }
 
-        onSubmit(delegate, getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], values[INPUT_IDS.CLEAR_AFTER_TIME], timezone?.selected));
+        onSubmit(delegate, getVacationDelegateClearAfter(values[INPUT_IDS.CLEAR_AFTER_DATE], values[INPUT_IDS.CLEAR_AFTER_TIME], timezone));
     };
 
     return (
@@ -128,13 +136,13 @@ function VacationDelegateForm({vacationDelegate, description, onChangeDelegate, 
             />
             <View style={styles.ph5}>
                 {/* The date can only be changed through the picker, so it keeps its icon and has no clear button, as in the mockups.
-                    The earliest day is today in the Profile timezone, so it matches the validation even when the device is in another timezone. */}
+                    The earliest day is today in the form's timezone, so it matches the validation even when the device is in another timezone. */}
                 <InputWrapper
                     InputComponent={DatePicker}
                     inputID={INPUT_IDS.CLEAR_AFTER_DATE}
                     label={translate('statusPage.vacationDelegate.clearAfterRecommended')}
                     defaultValue={savedClearDate}
-                    minDate={getLocalDateFromDatetime()}
+                    minDate={getLocalDateFromDatetime(undefined, timezone)}
                     icon={icons.CalendarSolid}
                     shouldForceActiveLabel={false}
                     shouldKeepCalendarIconWhenSelected

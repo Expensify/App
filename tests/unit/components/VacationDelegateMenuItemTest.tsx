@@ -256,9 +256,10 @@ describe('VacationDelegateMenuItem', () => {
             />,
         );
 
-        // Then it is not shown as an active delegate, since approvals no longer go to them
+        // Then it is not shown as an active delegate, since approvals no longer go to them, and its personal details aren't looked up for a row that hides them
         expect(screen.queryByText('Jane Doe')).toBeNull();
         expect(screen.getByText('common.vacationDelegate')).toBeTruthy();
+        expect(mockUseVacationDelegatePersonalDetails).toHaveBeenLastCalledWith(undefined);
     });
 
     it('shows when the delegate clears', () => {

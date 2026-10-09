@@ -1,5 +1,6 @@
 import {
     formatVacationDelegateClearDateTime,
+    getActiveVacationDelegate,
     getVacationDelegateClearAfter,
     getVacationDelegateClearDate,
     getVacationDelegateClearDateTime,
@@ -96,6 +97,18 @@ describe('VacationDelegateUtils', () => {
             expect(isVacationDelegateExpired('2026-09-28 11:59:59')).toBe(true);
             expect(isVacationDelegateExpired('2026-09-28 12:00:01')).toBe(false);
             expect(isVacationDelegateExpired(undefined)).toBe(false);
+        });
+    });
+
+    describe('getActiveVacationDelegate', () => {
+        it('returns the delegate only while it is still in effect', () => {
+            // Given the current time is 2026-09-28 12:00 UTC
+            // When a delegate that clears later, one that never clears, one that already cleared, and no delegate are checked
+            // Then only the first two are still in effect, so every screen hides an expired delegate the same way
+            expect(getActiveVacationDelegate({delegate: 'jane@example.com', clearAfter: '2026-09-28 12:00:01'})).toBe('jane@example.com');
+            expect(getActiveVacationDelegate({delegate: 'jane@example.com'})).toBe('jane@example.com');
+            expect(getActiveVacationDelegate({delegate: 'jane@example.com', clearAfter: '2026-09-28 11:59:59'})).toBeUndefined();
+            expect(getActiveVacationDelegate(undefined)).toBeUndefined();
         });
     });
 

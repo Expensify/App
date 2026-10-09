@@ -1672,19 +1672,20 @@ function setDomainVacationDelegate(
     vacationDelegate?: BaseVacationDelegate,
     clearAfter?: string,
 ) {
+    const optimisticVacationDelegate: NullishDeep<BaseVacationDelegate> = {
+        delegate,
+        creator,
+        clearAfter: clearAfter ?? null,
+        previousDelegate: vacationDelegate?.delegate,
+        previousClearAfter: vacationDelegate?.clearAfter ?? null,
+    };
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
-                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
-                    delegate,
-                    creator,
-                    clearAfter: clearAfter ?? null,
-                    previousDelegate: vacationDelegate?.delegate,
-                    previousClearAfter: vacationDelegate?.clearAfter ?? null,
-                },
-            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const]: optimisticVacationDelegate,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

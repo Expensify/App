@@ -1,3 +1,4 @@
+import DelegatorList from '@components/DelegatorList';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import VacationDelegateForm from '@components/VacationDelegateForm';
@@ -6,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,12 +25,14 @@ import type SCREENS from '@src/SCREENS';
 
 import {vacationDelegateSelector} from '@selectors/Domain';
 import React from 'react';
+import {View} from 'react-native';
 
 type DomainMemberVacationDelegateFormPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VACATION_DELEGATE>;
 
 function DomainMemberVacationDelegateFormPage({route}: DomainMemberVacationDelegateFormPageProps) {
     const {domainAccountID, accountID} = route.params;
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
@@ -79,12 +83,23 @@ function DomainMemberVacationDelegateFormPage({route}: DomainMemberVacationDeleg
                     title={translate('common.vacationDelegate')}
                     onBackButtonPress={goBack}
                 />
-                <VacationDelegateForm
-                    vacationDelegate={vacationDelegate}
-                    onChangeDelegate={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.getRoute(domainAccountID, accountID))}
-                    onSubmit={onSubmit}
-                    onRemove={onRemove}
-                />
+                {/* While the member is someone else's delegate, their own can't be changed, same as on the member picker */}
+                {vacationDelegate?.delegatorFor?.length ? (
+                    <View style={styles.mt6}>
+                        <DelegatorList
+                            delegators={vacationDelegate.delegatorFor}
+                            message={translate('domain.members.cannotSetVacationDelegateForMember', memberLogin ?? '')}
+                        />
+                    </View>
+                ) : (
+                    <VacationDelegateForm
+                        vacationDelegate={vacationDelegate}
+                        timezone={personalDetails?.timezone?.selected}
+                        onChangeDelegate={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.getRoute(domainAccountID, accountID))}
+                        onSubmit={onSubmit}
+                        onRemove={onRemove}
+                    />
+                )}
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );

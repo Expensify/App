@@ -6,12 +6,13 @@ import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePerson
 
 import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {formatVacationDelegateClearDateTime, getVacationDelegateClearDateTime, isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
+import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import type CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 import type {ValueOf} from 'type-fest';
@@ -81,6 +82,9 @@ type VacationDelegateSectionProps = {
     /** Text above the delegate. Defaults to "Vacation delegate" */
     label?: string;
 
+    /** Timezone the clear date is shown in. Defaults to the current user's, so a domain admin can pass the member's instead */
+    timezone?: SelectedTimezone;
+
     /** Errors related to setting the vacation delegate */
     errors?: Errors;
 
@@ -99,18 +103,20 @@ type VacationDelegateSectionProps = {
     onPress: () => void;
 };
 
-function VacationDelegateMenuItemPreset({vacationDelegate, label, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
+function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {timezone} = useCurrentUserPersonalDetails();
+    const {timezone: currentUserTimezone} = useCurrentUserPersonalDetails();
 
     const rowLabel = label ?? translate('common.vacationDelegate');
-    const hasVacationDelegate = !!vacationDelegate?.delegate && !isVacationDelegateExpired(vacationDelegate?.clearAfter);
-    const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(vacationDelegate?.delegate);
+    const activeVacationDelegate = getActiveVacationDelegate(vacationDelegate);
+    const hasVacationDelegate = !!activeVacationDelegate;
+    // Only looks up a delegate the row shows, so an expired one doesn't trigger a personal details request
+    const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(activeVacationDelegate);
 
-    const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
+    const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? activeVacationDelegate ?? '';
     const delegateDisplayName = getVacationDelegateDisplayName(rawDelegateLogin, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber);
-    const clearDate = formatVacationDelegateClearDateTime(getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone?.selected), dateFnsLocale);
+    const clearDate = formatVacationDelegateClearDateTime(getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone ?? currentUserTimezone?.selected), dateFnsLocale);
     const untilText = clearDate ? translate('statusPage.vacationDelegate.until', clearDate) : '';
 
     return (

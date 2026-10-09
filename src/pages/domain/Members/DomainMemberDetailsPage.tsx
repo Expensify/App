@@ -25,7 +25,7 @@ import {
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {requestUnlockAccount} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
-import {isVacationDelegateExpired} from '@libs/VacationDelegateUtils';
+import {getActiveVacationDelegate} from '@libs/VacationDelegateUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -167,11 +167,12 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem
                     vacationDelegate={vacationDelegate}
+                    timezone={personalDetails?.timezone?.selected}
                     onPress={() => {
                         clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
                         // With no delegate there is nothing to show on the form yet, so go straight to picking one.
                         Navigation.navigate(
-                            vacationDelegate?.delegate && !isVacationDelegateExpired(vacationDelegate.clearAfter)
+                            getActiveVacationDelegate(vacationDelegate)
                                 ? ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID)
                                 : ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.getRoute(domainAccountID, accountID),
                         );
