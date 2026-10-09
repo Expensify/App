@@ -2,7 +2,7 @@ import {RESIZE_INDICATOR_HEIGHT_VARIABLE, RESIZE_INDICATOR_OPACITY_VARIABLE, RES
 import type {ColumnResizeHandleProps} from '@components/Table/columnResize/types';
 import {useTableContext} from '@components/Table/TableContext';
 
-import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
@@ -26,7 +26,7 @@ const INDICATOR_STYLE: React.CSSProperties = {
  * A plain `div` because it relies on DOM pointer capture.
  */
 function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
-    const theme = useTheme();
+    const styles = useThemeStyles();
     const {columnResize} = useTableContext();
     const handleProps = columnResize?.getHandleProps(columnKey);
 
@@ -38,7 +38,7 @@ function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
         <div {...handleProps}>
             <div
                 aria-hidden
-                style={{...INDICATOR_STYLE, backgroundColor: theme.iconMenu}}
+                style={{...INDICATOR_STYLE, ...styles.tableColumnResizeIndicator}}
             />
         </div>
     );

@@ -147,10 +147,7 @@ export default function WorkspaceMembersTableRow({
                         </View>
                     )}
 
-                    <View
-                        style={styles.alignItemsEnd}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
-                    >
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
                         <Icon
                             src={icons.ArrowRight}
                             fill={theme.icon}

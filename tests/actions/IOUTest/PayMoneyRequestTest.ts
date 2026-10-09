@@ -778,6 +778,64 @@ describe('actions/IOU/PayMoneyRequest', () => {
             mockFetch?.resume?.();
         });
 
+        it('puts the payment failure error on the chat report preview, not only inside the expense report', async () => {
+            // Given an outstanding IOU report that is previewed in the chat the payer is looking at
+            const chatReport = {
+                ...createRandomReport(20, undefined),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(21, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID: chatReport.reportID,
+                total: 10,
+            };
+            const reportPreviewAction: ReportAction = {
+                ...createRandomReportAction(22),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {linkedReportID: iouReport.reportID},
+            };
+            const chatReportActions: ReportActions = {[reportPreviewAction.reportActionID]: reportPreviewAction};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, chatReportActions);
+            await waitForBatchedUpdates();
+
+            // When the server rejects the payment, which is what happens to a payment queued offline against an
+            // expense the requestor deleted in the meantime
+            mockFetch?.fail?.();
+            payMoneyRequest({
+                isASAPSubmitBetaEnabled: false,
+                conciergeChat: undefined,
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
+                isSelfTourViewed: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                chatReportActions,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the error is on the preview in the chat. The pay action also carries it, but that action lives in
+            // the expense report, which the payer can no longer reach once it has been deleted.
+            const updatedChatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}` as const);
+            expect(updatedChatActions?.[reportPreviewAction.reportActionID]?.errors).toBeTruthy();
+
+            mockFetch?.succeed?.();
+        });
+
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the pay IOU action when delegateAccountID is provided', async () => {
                 const DELEGATE_ACCOUNT_ID = 999;
@@ -888,6 +946,8 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         transaction: transaction1,
                         comment: 'comment',
                         initialReportID: iouReport.reportID,
+                        initialReport: iouReport,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,

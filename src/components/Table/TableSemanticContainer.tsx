@@ -13,7 +13,6 @@ import {View} from 'react-native';
 import ColumnResizeScope from './columnResize/ColumnResizeScope';
 import {getTableContainerAccessibilityProps} from './tableAccessibility';
 import TableBody from './TableBody';
-import {useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
 
 type TableSemanticContainerProps = {
@@ -62,6 +61,12 @@ type TableSemanticContainerProps = {
      */
     onLayout: ((event: LayoutChangeEvent) => void) | undefined;
 
+    /** Measures the same node as `onLayout` as soon as it mounts, ahead of the first paint. */
+    measureWidthRef: ((node: unknown) => void) | undefined;
+
+    /** Receives the element the resizable columns' widths are written on. Set only when column resizing is enabled. */
+    onScopeElement: ((element: HTMLElement | null) => void) | undefined;
+
     /** Table children — expected to contain a contiguous `TableHeader`/`TableBody` run. */
     children: React.ReactNode;
 };
@@ -87,13 +92,14 @@ function TableSemanticContainer({
     hasHeaderRow,
     scrollWidth,
     onLayout,
+    measureWidthRef,
+    onScopeElement,
     children,
 }: TableSemanticContainerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {columnResize} = useTableContext();
 
-    const shouldWrapTableRun = isEnabled || (shouldUseDynamicColumns && canMeasureText()) || onLayout !== undefined || scrollWidth !== undefined || !!columnResize;
+    const shouldWrapTableRun = isEnabled || (shouldUseDynamicColumns && canMeasureText()) || onLayout !== undefined || scrollWidth !== undefined;
     if (!shouldWrapTableRun) {
         return children;
     }
@@ -105,7 +111,7 @@ function TableSemanticContainer({
     // Use `React.Children.toArray` so the children's top-level keys (`.0`, `.1`, …) match the wrapped branch below;
     // otherwise React remounts a child across the empty↔non-empty boundary — for `Table.FilterBar` that runs its
     // unmount cleanup and wipes the active search string.
-    if (isEnabled && rowCount === 0 && !rendersBodyWhenEmpty && onLayout === undefined && scrollWidth === undefined && !columnResize) {
+    if (isEnabled && rowCount === 0 && !rendersBodyWhenEmpty && onLayout === undefined && scrollWidth === undefined) {
         return React.Children.toArray(children);
     }
 
@@ -125,6 +131,7 @@ function TableSemanticContainer({
                 // it doesn't. Either way the measured node keeps the table's own width rather than growing with the
                 // content, so measuring it can't feed back into the widths it produced.
                 onLayout={scrollWidth ? undefined : onLayout}
+                ref={scrollWidth ? undefined : measureWidthRef}
                 {...getTableContainerAccessibilityProps(isEnabled, title, rowCount, columnCount, hasHeaderRow)}
             >
                 {rowGroup}
@@ -137,7 +144,7 @@ function TableSemanticContainer({
             // Wraps the scroller too, so one width write resizes its content along with the header and rows.
             <ColumnResizeScope
                 key={`tableSemanticContainerScope-${renderedChildren.length}`}
-                onScopeElement={columnResize?.setScopeElement}
+                onScopeElement={onScopeElement}
             >
                 {scrollWidth ? (
                     <ScrollView
@@ -146,6 +153,7 @@ function TableSemanticContainer({
                         style={[styles.flex1, styles.mnh0]}
                         contentContainerStyle={StyleUtils.getWidthStyle(scrollWidth)}
                         onLayout={onLayout}
+                        ref={measureWidthRef}
                     >
                         {rowGroupContainer}
                     </ScrollView>

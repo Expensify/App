@@ -739,6 +739,68 @@ describe('getExportMenuItem - DualEntry', () => {
     });
 });
 
+describe('getExportMenuItem - Business Central', () => {
+    function createBusinessCentralPolicy(nonReimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>) {
+        return createBasePolicy({
+            businessCentral: {
+                config: {export: {nonReimbursable, defaultVendorID: 'bc-vendor-1'}},
+                data: {
+                    vendors: [
+                        {id: 'bc-vendor-1', name: 'Fabrikam', blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.NONE},
+                        {id: 'bc-vendor-2', name: 'Contoso', blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.PAYMENT},
+                        {id: 'bc-vendor-3', name: 'Blocked Supplies', blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL},
+                    ],
+                },
+            },
+        });
+    }
+
+    it.each([CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE, CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY])(
+        'resolves the card vendor override for a %s card export',
+        (nonReimbursable) => {
+            // Given a card with its own vendor, on a workspace that has a vendor blocked for all transactions
+            const policy = createBusinessCentralPolicy(nonReimbursable);
+            const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, 'bc-vendor-2');
+
+            // When the card's export menu item is built
+            const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+            // Then it shows the card's vendor for either destination, since card expenses export against a vendor for both,
+            // and it leaves out the fully blocked vendor that Business Central would reject
+            expect(result?.title).toBe(`${translateLocal('common.exportsTo')} Contoso`);
+            expect(result?.shouldShowMenuItem).toBe(true);
+            expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR);
+            expect(result?.data.map((option) => option.value)).toEqual([translateLocal('workspace.accounting.defaultVendor'), 'bc-vendor-1', 'bc-vendor-2']);
+        },
+    );
+
+    it.each([undefined, CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE])('shows the default vendor label when the NVP is %s', (nvpValue) => {
+        // Given a card that follows the workspace default vendor
+        const policy = createBusinessCentralPolicy(CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE);
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, nvpValue);
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the row and the selected option both show the default vendor
+        expect(result?.title).toBe(`${translateLocal('common.exportsTo')} ${translateLocal('workspace.accounting.defaultVendor')}`);
+        expect(result?.data.find((option) => option.isSelected)?.value).toBe(translateLocal('workspace.accounting.defaultVendor'));
+    });
+
+    it('shows the row as a single "Exports to" line with the Business Central icon', () => {
+        // Given a card on a workspace connected to Business Central
+        const policy = createBusinessCentralPolicy(CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE);
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, 'bc-vendor-2');
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the card details page hides the description and shows the integration icon, as in the design
+        expect(result?.shouldHideMenuItemDescription).toBe(true);
+        expect(result?.shouldShowMenuItemIcon).toBe(true);
+    });
+});
+
 describe('getExportMenuItem - unsupported connections', () => {
     it.each([CONST.POLICY.CONNECTIONS.NAME.CERTINIA, undefined])('returns undefined for %s', (connectionName) => {
         const policy = createBasePolicy({});
