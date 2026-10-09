@@ -13,15 +13,12 @@ Perform a comprehensive HelpDot documentation review using two specialized subag
 Use the helpdot-inline-reviewer agent to:
 - Scan all changed documentation files
 - Create inline comments for violations of the governance rules above
-- Make every inline comment a committable ```suggestion, so authors can fix it with **Commit suggestion**
-- Return the findings it couldn't write as a suggestion (they need UI confirmation, touch unchanged lines, or cover the whole article)
 
 ## Step 2: Summary Review  
 Use the helpdot-summary-reviewer agent to:
 - Analyze the overall quality of all changes using the governance criteria
 - Provide comprehensive assessment with scoring
 - Post one top-level PR comment with summary and recommendations
-- Include the findings returned by Step 1 under **Key Findings**, with their file and line, so nothing the inline reviewer found is lost. Pass them to the agent in its prompt.
 
 Run both agents and ensure their feedback is posted to the PR.
 
