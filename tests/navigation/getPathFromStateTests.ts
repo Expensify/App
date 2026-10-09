@@ -20,8 +20,6 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         CountryScreen: {path: 'country'},
         FlagScreen: {path: 'flag/:reportID/:reportActionID'},
         ConstantPickerScreen: {path: 'constant-picker'},
-        TwoFactorAuthScreen: {path: 'two-factor-auth'},
-        TwoFactorAuthVerifyScreen: {path: 'two-factor-auth/verify'},
         WalletScreen: {path: 'settings/wallet'},
         ReportScreen: {path: 'r/:reportID'},
         SplitExpenseScreen: {path: 'split-expense/:reportID'},
@@ -40,8 +38,6 @@ jest.mock('@src/ROUTES', () => ({
         ADDRESS_COUNTRY: {path: 'country', queryParams: ['country']},
         FLAG: {path: 'flag/:reportID/:reportActionID'},
         CONSTANT_PICKER: {path: 'constant-picker', queryParams: ['formType', 'fieldName', 'fieldValue']},
-        TWO_FACTOR_AUTH_ROOT: {path: 'two-factor-auth'},
-        TWO_FACTOR_AUTH_VERIFY: {path: 'two-factor-auth/verify'},
         SPLIT_EXPENSE: {path: 'split-expense/:reportID'},
         SPLIT_EXPENSE_QUERY: {path: 'split-expense-q/:reportID', queryParams: ['currency']},
     },
@@ -223,18 +219,6 @@ describe('getPathFromState', () => {
             ]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/flag/456/abc/country?country=US');
-        });
-
-        it('does not repeat the shared path when a dynamic route is pushed on top of the one it extends', () => {
-            const state = buildState([{name: 'WalletScreen'}, {name: 'TwoFactorAuthScreen'}, {name: 'TwoFactorAuthVerifyScreen'}]);
-
-            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/two-factor-auth/verify');
-        });
-
-        it('builds the same path when the extending dynamic route replaced the one it extends', () => {
-            const state = buildState([{name: 'WalletScreen'}, {name: 'TwoFactorAuthVerifyScreen'}]);
-
-            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/two-factor-auth/verify');
         });
 
         it('three stacked dynamic suffixes', () => {

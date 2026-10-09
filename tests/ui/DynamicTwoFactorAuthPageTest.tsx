@@ -10,6 +10,7 @@ import {toggleTwoFactorAuth} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
@@ -68,12 +69,44 @@ const mockToggleTwoFactorAuth = jest.mocked(toggleTwoFactorAuth);
 const mockGoBack = jest.mocked(Navigation.goBack);
 const mockNavigate = jest.mocked(Navigation.navigate);
 
+const PAGE_ROUTE = {key: 'codes-page', name: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT};
+const VERIFY_ROUTE = {key: 'verify-page', name: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY};
+
+type StackState = ReactNavigationNative.NavigationState;
+type StateCallback = (state: StackState) => ReactNavigationNative.NavigationAction;
+
+const mockDispatch = jest.fn<void, [StateCallback]>();
+
 function Page() {
     return (
         <OnyxListItemProvider>
-            <DynamicTwoFactorAuthPage />
+            <DynamicTwoFactorAuthPage
+                // @ts-expect-error -- the page only uses `dispatch`, so the test passes a partial navigation object
+                navigation={{dispatch: mockDispatch}}
+                // @ts-expect-error -- the page only uses `key`, so the test passes a partial route object
+                route={PAGE_ROUTE}
+            />
         </OnyxListItemProvider>
     );
+}
+
+function isStackState(value: unknown): value is StackState {
+    return typeof value === 'object' && value !== null && 'routes' in value;
+}
+
+/** Applies the state callback the page dispatched to a 2FA stack with this page under the verify page. */
+function getStateAfterDispatch(): StackState | undefined {
+    const callback = mockDispatch.mock.calls.at(0)?.at(0);
+    const stackState: StackState = {
+        key: 'two-factor-auth-stack',
+        index: 1,
+        routeNames: [PAGE_ROUTE.name, VERIFY_ROUTE.name],
+        routes: [PAGE_ROUTE, VERIFY_ROUTE],
+        stale: false,
+        type: 'stack',
+    };
+    const payload = callback?.(stackState).payload;
+    return isStackState(payload) ? payload : undefined;
 }
 
 const renderPage = async () => {
@@ -120,24 +153,29 @@ describe('DynamicTwoFactorAuthPage', () => {
         expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
     });
 
-    it('leaves the flow when 2FA gets enabled while the page is still open', async () => {
-        // Given the page was opened during setup, so on web it stays in the browser history under the verify and success pages
+    it('removes itself from the stack when 2FA gets enabled while it is under the verify page', async () => {
+        // Given the page was opened during setup and is now covered by the verify page, as on web where Download codes pushes it
         await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false, recoveryCodes: RECOVERY_CODES});
-        await renderPage();
+        const view = await renderPage();
+        mockIsFocused = false;
+        view.rerender(<Page />);
+        await waitForBatchedUpdates();
 
-        // When the user finishes the verify step and then comes back to this page with browser Back
+        // When the user finishes the verify step and 2FA turns on
         await Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, twoFactorAuthSetupInProgress: true});
         await waitForBatchedUpdates();
 
-        // Then it leaves the flow, because the recovery codes step must not be shown again once 2FA is on
-        expect(mockGoBack).toHaveBeenCalledTimes(1);
-        expect(mockGoBack).toHaveBeenCalledWith();
+        // Then it removes only itself from the stack, because the success page reads its back path from the URL that the stack builds
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
+        expect(getStateAfterDispatch()?.routes).toEqual([VERIFY_ROUTE]);
+        expect(getStateAfterDispatch()?.index).toBe(0);
+        expect(mockGoBack).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
     });
 
-    it('does nothing while it is hidden and the forced onboarding handoff resets the account', async () => {
-        // Given the page was opened during setup and is now covered by the success page
+    it('removes itself without other steps when the forced onboarding handoff resets the account', async () => {
+        // Given the page was opened during setup and is now covered by the verify page
         await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false, recoveryCodes: RECOVERY_CODES});
         const view = await renderPage();
         mockIsFocused = false;
@@ -148,20 +186,27 @@ describe('DynamicTwoFactorAuthPage', () => {
         await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, twoFactorAuthSetupInProgress: true, needsTwoFactorAuthSetup: false, isLoading: false});
         await waitForBatchedUpdates();
 
-        // Then the hidden page does not navigate and does not enable 2FA again, because either one would break the success page
+        // Then it only removes itself, because opening the verify-account step or enabling 2FA again would break the success page
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockGoBack).not.toHaveBeenCalled();
         expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
+    });
 
-        // When the user then comes back to it with browser Back
-        mockIsFocused = true;
-        view.rerender(<Page />);
+    it('leaves the flow when 2FA gets enabled while it is the page on top', async () => {
+        // Given the page is open and on top with 2FA off
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false, recoveryCodes: RECOVERY_CODES});
+        await renderPage();
+
+        // When 2FA turns on, for example from another tab
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true, twoFactorAuthSetupInProgress: true});
         await waitForBatchedUpdates();
 
-        // Then it leaves the flow and does not start the verify-account step from the reset account data
+        // Then it leaves the flow, because the recovery codes step must not be shown once 2FA is on
         expect(mockGoBack).toHaveBeenCalledTimes(1);
-        expect(mockGoBack).toHaveBeenCalledWith();
+        expect(mockDispatch).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
     });
 
     it('does not enable 2FA again when it is opened with 2FA on and setup still in progress', async () => {

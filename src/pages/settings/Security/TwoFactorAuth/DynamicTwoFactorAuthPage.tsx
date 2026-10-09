@@ -20,6 +20,8 @@ import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
@@ -27,9 +29,10 @@ import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuth
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {useIsFocused} from '@react-navigation/native';
+import {CommonActions, useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -37,7 +40,9 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
 
-function DynamicTwoFactorAuthPage() {
+type DynamicTwoFactorAuthPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT>;
+
+function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,21 +72,30 @@ function DynamicTwoFactorAuthPage() {
 
     const recoveryCodes = account?.recoveryCodes;
 
-    // On web, Download codes pushes the verify page, so this page stays in the stack and in the browser history while 2FA gets
-    // enabled. Once it has been open with 2FA off, a later focus with 2FA on can only be browser Back.
+    // On web, Download codes pushes the verify page, so this page stays in the stack under the verify page while 2FA gets enabled.
     const wasOpenBefore2FAEnabledRef = useRef(false);
     const hasLeftFlowRef = useRef(false);
 
     useEffect(() => {
+        // Once 2FA is on, this step has no use. This check comes first because the forced-onboarding handoff resets the account
+        // data while this page is still mounted, and the checks below must not start another step from that state.
         if (is2FAEnabled && wasOpenBefore2FAEnabledRef.current) {
-            // Go back once more, so browser Back from the success or enabled page leaves the flow as it does on main, where this
-            // page is not in the history. `backPath` still holds the path of the page that was on top, so it cannot be used here.
-            // This check comes first because the forced-onboarding handoff resets the account data while this page is still
-            // mounted, and the checks below must not start another step from that state.
-            if (isFocused && !hasLeftFlowRef.current) {
-                hasLeftFlowRef.current = true;
-                Navigation.isNavigationReady().then(() => Navigation.goBack());
+            if (hasLeftFlowRef.current) {
+                return;
             }
+            hasLeftFlowRef.current = true;
+
+            if (isFocused) {
+                Navigation.isNavigationReady().then(() => Navigation.goBack());
+                return;
+            }
+
+            // Remove this page from under the success page. The stack is then the same as on native, where the verify page replaced
+            // this one, so the success page gets its back path and forward path from the right URL, and browser Back leaves the flow.
+            navigation.dispatch((state) => {
+                const routes = state.routes.filter((stackRoute) => stackRoute.key !== route.key);
+                return CommonActions.reset({...state, routes, index: routes.length - 1});
+            });
             return;
         }
 
