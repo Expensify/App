@@ -1,6 +1,5 @@
 import BulkActionBar from '@components/BulkActionBar';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
@@ -51,9 +50,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
@@ -80,20 +77,13 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         selectedReportIDs,
         businessBankAccountOptions,
         confirmPayment,
-        isOfflineModalVisible,
-        isDownloadErrorModalVisible,
         isHoldEducationalModalVisible,
         areAllTransactionsFromDMReports,
         rejectModalAction,
-        emptyReportsCount,
-        handleOfflineModalClose,
-        handleDownloadErrorModalClose,
         isExpensifyCardStatementPDFModalVisible,
         setIsExpensifyCardStatementPDFModalVisible,
         expensifyCardStatementPDFParams,
         handleExpensifyCardStatementPDFModalHide,
-        isExpensifyCardStatementMultiFeedAlertVisible,
-        handleExpensifyCardStatementMultiFeedAlertClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -271,24 +261,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     )
                 }
             </KYCWall>
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={handleOfflineModalClose}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isOfflineModalVisible}
-                onClose={handleOfflineModalClose}
-            />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={emptyReportsCount ? translate('common.downloadFailedEmptyReportDescription', {count: emptyReportsCount}) : translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={handleDownloadErrorModalClose}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={handleDownloadErrorModalClose}
-            />
             {!!expensifyCardStatementPDFParams && (
                 <ExpensifyCardStatementPDFDownloadModal
                     statementParams={expensifyCardStatementPDFParams}
@@ -297,15 +269,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     onModalHide={handleExpensifyCardStatementPDFModalHide}
                 />
             )}
-            <DecisionModal
-                title={translate('search.expensifyCardStatementPDF.title')}
-                prompt={translate('search.expensifyCardStatementPDF.oneFeedAtATime')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={handleExpensifyCardStatementMultiFeedAlertClose}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isExpensifyCardStatementMultiFeedAlertVisible}
-                onClose={handleExpensifyCardStatementMultiFeedAlertClose}
-            />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}

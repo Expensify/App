@@ -151,6 +151,12 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: true, isDevelopment: false, environment: 'production'}),
@@ -1379,10 +1385,32 @@ describe('useSearchBulkActions - export options', () => {
 
         // Then: the offline modal opens and nothing is queued, matching bulk pay's offline behavior.
         await waitFor(() => {
-            expect(result.current.isOfflineModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         });
         expect(queueBulkMarkAsExported).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+    });
+
+    it('shows the empty-report download error with the empty report count when every selected report has no expenses', async () => {
+        // Given a selected report that the search snapshot says has no expenses, so there is nothing to export
+        mockCurrentSearchResults = makeSearchResults([{...makeSnapshotReport(), transactionCount: 0}]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        // When the user runs the Current view CSV export
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        // Then the download error explains the reports are empty, because the prompt is passed when the modal is shown rather than read from shared state
+        await waitFor(() => {
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedEmptyReportDescription'}));
+        });
+        expect(exportSearchItemsToCSV).not.toHaveBeenCalled();
     });
 
     it('marks the specific selected report IDs, not the search query, for a limited (non-select-all) selection', async () => {
@@ -1701,7 +1729,7 @@ describe('useSearchBulkActions - export options', () => {
 
             // Then nothing is exported, because dropping groupBy without a cardID filter would export every card in the search
             await waitFor(() => {
-                expect(result.current.isDownloadErrorModalVisible).toBe(true);
+                expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
             });
             expect(queueExportSearchWithTemplate).not.toHaveBeenCalled();
         });
