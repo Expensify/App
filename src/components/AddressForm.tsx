@@ -11,7 +11,7 @@ import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {ReactNode} from 'react';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React, {createContext, useCallback, useContext} from 'react';
 import {View} from 'react-native';
 
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
@@ -65,13 +65,10 @@ type AddressFormProps<TFormID extends AddressFormID> = {
     /** A unique Onyx key identifying the form */
     formID: TFormID;
 
-    /** Inputs of the same form rendered above the address fields */
-    inputsBeforeAddress?: ReactNode;
+    /** The inputs of the form, which place the address inputs with `<AddressForm.Fields />`. Defaults to the address inputs alone. */
+    children?: ReactNode;
 
-    /** Inputs of the same form rendered below the address fields */
-    inputsAfterAddress?: ReactNode;
-
-    /** Validates the inputs added above or below the address fields. Its errors are added to the address errors. */
+    /** Validates the inputs the form adds to the address inputs. Its errors are added to the address errors. */
     validate?: (values: FormOnyxValues<TFormID>) => Record<string, string>;
 
     /** Whether to hide the country selector (e.g. when country cannot be changed) */
@@ -98,6 +95,146 @@ type AddressFormProps<TFormID extends AddressFormID> = {
     addBottomSafeAreaPadding?: boolean;
 };
 
+/** The values the address inputs start from and report changes to, shared by AddressForm with its AddressForm.Fields */
+type AddressFieldsSettings = {
+    city: string;
+    country: Country | '';
+    state: string;
+    street1: string;
+    street2: string;
+    zip: string;
+    onAddressChanged: (value: unknown, key: unknown) => void;
+    shouldSaveDraft: boolean;
+    shouldHideCountrySelector: boolean;
+};
+
+const AddressFieldsContext = createContext<AddressFieldsSettings>({
+    city: '',
+    country: '',
+    state: '',
+    street1: '',
+    street2: '',
+    zip: '',
+    onAddressChanged: () => {},
+    shouldSaveDraft: false,
+    shouldHideCountrySelector: false,
+});
+
+/** The address inputs of an AddressForm */
+function AddressFormFields() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector} = useContext(AddressFieldsContext);
+
+    const zipSampleFormat = (country && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
+
+    const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
+
+    const isUSAForm = country === CONST.COUNTRY.US;
+
+    return (
+        <>
+            <View>
+                <InputWrapper
+                    InputComponent={AddressSearch}
+                    inputID={INPUT_IDS.ADDRESS_LINE_1}
+                    label={translate('common.addressLine', 1)}
+                    onValueChange={(data: unknown, key: unknown) => {
+                        onAddressChanged(data, key);
+                    }}
+                    defaultValue={street1}
+                    renamedInputKeys={{
+                        street: INPUT_IDS.ADDRESS_LINE_1,
+                        street2: INPUT_IDS.ADDRESS_LINE_2,
+                        city: INPUT_IDS.CITY,
+                        state: INPUT_IDS.STATE,
+                        zipCode: INPUT_IDS.ZIP_POST_CODE,
+                        country: INPUT_IDS.COUNTRY as Country,
+                    }}
+                    shouldSaveDraft={shouldSaveDraft}
+                    autoComplete="address-line1"
+                />
+            </View>
+            <View style={styles.formSpaceVertical} />
+            <InputWrapper
+                InputComponent={TextInput}
+                inputID={INPUT_IDS.ADDRESS_LINE_2}
+                label={translate('common.addressLine', 2)}
+                aria-label={translate('common.addressLine', 2)}
+                role={CONST.ROLE.PRESENTATION}
+                defaultValue={street2}
+                spellCheck={false}
+                shouldSaveDraft={shouldSaveDraft}
+                autoComplete="address-line2"
+            />
+            <View style={styles.formSpaceVertical} />
+            {!shouldHideCountrySelector && (
+                <>
+                    <View style={styles.mhn5}>
+                        <InputWrapper
+                            InputComponent={CountrySelector}
+                            inputID={INPUT_IDS.COUNTRY}
+                            value={country}
+                            onValueChange={onAddressChanged}
+                            shouldSaveDraft={shouldSaveDraft}
+                        />
+                    </View>
+                    <View style={styles.formSpaceVertical} />
+                </>
+            )}
+            {isUSAForm ? (
+                <View style={styles.mhn5}>
+                    <InputWrapper
+                        InputComponent={StateSelector}
+                        inputID={INPUT_IDS.STATE}
+                        value={state as State}
+                        onValueChange={onAddressChanged}
+                        shouldSaveDraft={shouldSaveDraft}
+                    />
+                </View>
+            ) : (
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.STATE}
+                    label={translate('common.stateOrProvince')}
+                    aria-label={translate('common.stateOrProvince')}
+                    role={CONST.ROLE.PRESENTATION}
+                    value={state}
+                    spellCheck={false}
+                    onValueChange={onAddressChanged}
+                    shouldSaveDraft={shouldSaveDraft}
+                />
+            )}
+            <View style={styles.formSpaceVertical} />
+            <InputWrapper
+                InputComponent={TextInput}
+                inputID={INPUT_IDS.CITY}
+                label={translate('common.city')}
+                aria-label={translate('common.city')}
+                role={CONST.ROLE.PRESENTATION}
+                defaultValue={city}
+                spellCheck={false}
+                onValueChange={onAddressChanged}
+                shouldSaveDraft={shouldSaveDraft}
+            />
+            <View style={styles.formSpaceVertical} />
+            <InputWrapper
+                InputComponent={TextInput}
+                inputID={INPUT_IDS.ZIP_POST_CODE}
+                label={translate('common.zipPostCode')}
+                aria-label={translate('common.zipPostCode')}
+                role={CONST.ROLE.PRESENTATION}
+                autoCapitalize="characters"
+                defaultValue={zip}
+                hint={zipFormat}
+                onValueChange={onAddressChanged}
+                shouldSaveDraft={shouldSaveDraft}
+                autoComplete="postal-code"
+            />
+        </>
+    );
+}
+
 function AddressForm<TFormID extends AddressFormID>({
     city = '',
     country = '',
@@ -115,18 +252,11 @@ function AddressForm<TFormID extends AddressFormID>({
     shouldRequireZip = false,
     shouldValidatePhysicalAddress = false,
     addBottomSafeAreaPadding = true,
-    inputsBeforeAddress,
-    inputsAfterAddress,
+    children,
     validate,
 }: AddressFormProps<TFormID>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const zipSampleFormat = (country && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
-
-    const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
-
-    const isUSAForm = country === CONST.COUNTRY.US;
 
     /**
      * @param translate - translate function
@@ -226,117 +356,11 @@ function AddressForm<TFormID extends AddressFormID>({
             enabledWhenOffline={enabledWhenOfflineProp}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
-            {!!inputsBeforeAddress && (
-                <>
-                    {inputsBeforeAddress}
-                    <View style={styles.formSpaceVertical} />
-                </>
-            )}
-            <View>
-                <InputWrapper
-                    InputComponent={AddressSearch}
-                    inputID={INPUT_IDS.ADDRESS_LINE_1}
-                    label={translate('common.addressLine', 1)}
-                    onValueChange={(data: unknown, key: unknown) => {
-                        onAddressChanged(data, key);
-                    }}
-                    defaultValue={street1}
-                    renamedInputKeys={{
-                        street: INPUT_IDS.ADDRESS_LINE_1,
-                        street2: INPUT_IDS.ADDRESS_LINE_2,
-                        city: INPUT_IDS.CITY,
-                        state: INPUT_IDS.STATE,
-                        zipCode: INPUT_IDS.ZIP_POST_CODE,
-                        country: INPUT_IDS.COUNTRY as Country,
-                    }}
-                    shouldSaveDraft={shouldSaveDraft}
-                    autoComplete="address-line1"
-                />
-            </View>
-            <View style={styles.formSpaceVertical} />
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.ADDRESS_LINE_2}
-                label={translate('common.addressLine', 2)}
-                aria-label={translate('common.addressLine', 2)}
-                role={CONST.ROLE.PRESENTATION}
-                defaultValue={street2}
-                spellCheck={false}
-                shouldSaveDraft={shouldSaveDraft}
-                autoComplete="address-line2"
-            />
-            <View style={styles.formSpaceVertical} />
-            {!shouldHideCountrySelector && (
-                <>
-                    <View style={styles.mhn5}>
-                        <InputWrapper
-                            InputComponent={CountrySelector}
-                            inputID={INPUT_IDS.COUNTRY}
-                            value={country}
-                            onValueChange={onAddressChanged}
-                            shouldSaveDraft={shouldSaveDraft}
-                        />
-                    </View>
-                    <View style={styles.formSpaceVertical} />
-                </>
-            )}
-            {isUSAForm ? (
-                <View style={styles.mhn5}>
-                    <InputWrapper
-                        InputComponent={StateSelector}
-                        inputID={INPUT_IDS.STATE}
-                        value={state as State}
-                        onValueChange={onAddressChanged}
-                        shouldSaveDraft={shouldSaveDraft}
-                    />
-                </View>
-            ) : (
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.STATE}
-                    label={translate('common.stateOrProvince')}
-                    aria-label={translate('common.stateOrProvince')}
-                    role={CONST.ROLE.PRESENTATION}
-                    value={state}
-                    spellCheck={false}
-                    onValueChange={onAddressChanged}
-                    shouldSaveDraft={shouldSaveDraft}
-                />
-            )}
-            <View style={styles.formSpaceVertical} />
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.CITY}
-                label={translate('common.city')}
-                aria-label={translate('common.city')}
-                role={CONST.ROLE.PRESENTATION}
-                defaultValue={city}
-                spellCheck={false}
-                onValueChange={onAddressChanged}
-                shouldSaveDraft={shouldSaveDraft}
-            />
-            <View style={styles.formSpaceVertical} />
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.ZIP_POST_CODE}
-                label={translate('common.zipPostCode')}
-                aria-label={translate('common.zipPostCode')}
-                role={CONST.ROLE.PRESENTATION}
-                autoCapitalize="characters"
-                defaultValue={zip}
-                hint={zipFormat}
-                onValueChange={onAddressChanged}
-                shouldSaveDraft={shouldSaveDraft}
-                autoComplete="postal-code"
-            />
-            {!!inputsAfterAddress && (
-                <>
-                    <View style={styles.formSpaceVertical} />
-                    {inputsAfterAddress}
-                </>
-            )}
+            <AddressFieldsContext.Provider value={{city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector}}>
+                {children ?? <AddressFormFields />}
+            </AddressFieldsContext.Provider>
         </FormProvider>
     );
 }
 
-export default AddressForm;
+export default Object.assign(AddressForm, {Fields: AddressFormFields});
