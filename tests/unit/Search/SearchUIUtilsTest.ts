@@ -3758,7 +3758,7 @@ describe('SearchUIUtils', () => {
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.DAY,
                     formattedDay: 'September 15, 2026',
-                    shortFormattedDay: 'Sep 15, ’26',
+                    shortFormattedDay: 'Sep 15',
                     transactions: [],
                     keyForList: 'group_2026-09-15',
                 }),
@@ -3989,6 +3989,108 @@ describe('SearchUIUtils', () => {
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.formattedMonth === 'January 2026')).toBe(true);
             expect(result.some((item) => item.formattedMonth === 'June 2026')).toBe(true);
+        });
+
+        it('should leave the year out of short labels when every month falls in the same year', () => {
+            // Given months that all fall in 2026, so a year on every chart axis label would repeat the same information
+            const dataInOneYear: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {year: 2026, month: 1, count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_6` as const]: {year: 2026, month: 6, count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the month sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataInOneYear,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionMonthGroupListItemType,
+            );
+
+            // Then the short labels drop the year while the full labels, used by the tooltip, keep it
+            expect(result.map((item) => item.shortFormattedMonth)).toEqual(['Jan', 'Jun']);
+            expect(result.map((item) => item.formattedMonth)).toEqual(['January 2026', 'June 2026']);
+        });
+
+        it('should leave the year out of short week labels when every week falls in the same year', () => {
+            // Given weeks that all fall in 2026
+            const dataInOneYear: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {week: '2026-01-25', count: 5, currency: 'USD', total: 250},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-02-01` as const]: {week: '2026-02-01', count: 3, currency: 'USD', total: 75},
+            };
+
+            // When the week sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataInOneYear,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionWeekGroupListItemType,
+            );
+
+            // Then the short labels show only the date range, without the year
+            expect(result.map((item) => item.shortFormattedWeek)).toEqual(['Jan 25 - 31', 'Feb 1 - 7']);
+        });
+
+        it('should leave the year out of short week labels when the date filter trims the first week to the new year', () => {
+            // Given a search starting Jan 1, whose first week starts in December but only shows its 2026 days
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:week date>=2026-01-01');
+            if (!parsedQuery) {
+                throw new Error('Expected a parsed query');
+            }
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2025-12-28` as const]: {week: '2025-12-28', count: 5, currency: 'USD', total: 250},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-01-04` as const]: {week: '2026-01-04', count: 3, currency: 'USD', total: 75},
+            };
+
+            // When the week sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: parsedQuery,
+                }),
+                SearchUIUtils.isTransactionWeekGroupListItemType,
+            );
+
+            // Then the December days don't count, so no label shows the year
+            expect(result.map((item) => item.shortFormattedWeek)).toEqual(['Jan 1 - 3', 'Jan 4 - 10']);
         });
 
         it('should calculate sortKey correctly for month groups', () => {
@@ -9366,6 +9468,52 @@ describe('SearchUIUtils', () => {
             expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
         });
 
+        it('should hide Violations by submitter from Spend menus once the Insights page replaces those entries', () => {
+            // Given a Control admin who still gets Violations by submitter from the Spend Insights section
+            const mockPolicies = {
+                policy1: {
+                    id: policyID,
+                    name: 'Control Workspace',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    areRulesEnabled: true,
+                    areCategoriesEnabled: true,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const menuKeysBeforeInsightsPage = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+            expect(menuKeysBeforeInsightsPage).toContain(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+
+            // When Spend menus hide the entries the Insights page takes over
+            const menuSections = SearchUIUtils.omitInsightsPageMenuItems(sections);
+            const menuKeys = menuSections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+            // Then Violations by submitter leaves the Spend menu, while the suggested search definition remains
+            expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+            expect(menuKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            expect(menuSections.find((section) => section.translationPath === 'search.tabs.insights')).toBeUndefined();
+            expect(SearchUIUtils.getSuggestedSearches(adminAccountID)[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER].key).toBe(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+        });
+
         it('should not show Needs approval for a Submit workspace member who is not an approver', () => {
             const mockPolicies = {
                 policy1: {
@@ -12104,6 +12252,33 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
         });
 
+        test('Should honor an explicit column selection that matches the default set', () => {
+            // Given a transaction that has a description, which the data-driven fallback would turn the Description column on for
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const descriptionTransaction = {
+                ...baseTransaction,
+                transactionID: 'description',
+                merchant: '',
+                modifiedMerchant: '',
+                comment: {comment: 'Business meeting lunch'},
+                category: '',
+                tag: '',
+                managerID: submitterAccountID,
+            };
+
+            // When the user has explicitly saved a selection that happens to be element-for-element the default set,
+            // which is what unchecking Description leaves behind
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [descriptionTransaction],
+                visibleColumns: Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE),
+            });
+
+            // Then the selection wins and Description stays hidden instead of being re-added from the data
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+        });
+
         test('Should respect isExpenseReportView flag and not show From/To columns', () => {
             // Create transaction with different users using existing transaction as base
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
@@ -13249,7 +13424,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -13435,7 +13610,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {

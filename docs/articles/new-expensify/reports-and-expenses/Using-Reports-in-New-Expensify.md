@@ -145,7 +145,7 @@ To view saved searches:
 
 Saved searches are listed in alphabetical order by name.
 
-To rename a saved search, click **Save** while viewing it and enter a new name. You can also rename, share, or delete a saved search by selecting the three dots **(⋮)** next to it. Selecting **Share** copies the search URL to your clipboard.
+To update a saved search, change its filters while viewing it, click **Save**, then select **Update existing**. To keep the original and save your changes as a new search, select **Create new** instead. You can rename, share, or delete a saved search by selecting the three dots **(⋮)** next to it. Selecting **Share** copies the search URL to your clipboard.
 
 ## Why you have a My expenses saved search
 
@@ -209,6 +209,11 @@ Expensify ensures cross-platform consistency where possible. However, certain fe
 1. Go to the **Spend** tab.
 2. Select **Expense** from the Type filter.
 3. Apply the **Draft** filter to view all unsubmitted reports.
+
+## Why can I see another member's Draft reports
+If you're an approver in a member's approval workflow or a Workspace Admin, you can view that member's reports in **Spend > Reports**, including Draft (unsubmitted) reports.
+
+A Draft report you can see in **Reports** won't appear under **Needs approval** until the member submits it.
 
 ## Can I change which columns appear in my reports?
 Yes! You can choose which columns to show or hide in the **Reports** and **Expenses** views on web. Click **Display**, then select **Edit columns**, to customize your table layout.
