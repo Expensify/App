@@ -9,11 +9,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedValue from '@hooks/useDebouncedValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findEmojiByName} from '@libs/EmojiUtils';
 
-import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import toggleEmojiReaction from '@userActions/EmojiReactions';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
@@ -33,6 +35,18 @@ type ConciergeFeedbackPromptProps = {
 
     /** The ID of the report being viewed */
     reportID: string | undefined;
+
+    /** Whether to show the generic feedback prompt alongside the thumbs */
+    shouldShowPrompt?: boolean;
+
+    /** Whether the thumbs should remain available after the user rates the action */
+    shouldPersistAfterRating?: boolean;
+
+    /** Whether hovering a thumb should show its tooltip */
+    shouldShowTooltips?: boolean;
+
+    /** Whether to place only the thumbs inline with surrounding content */
+    shouldRenderInline?: boolean;
 };
 
 /** A reaction can be stored under the emoji name or under its hexcode, so both keys are read */
@@ -70,31 +84,46 @@ type ConciergeFeedbackThumbProps = {
 
     /** Called when the thumb is pressed */
     onPress: () => void;
+
+    /** Whether hovering the thumb should show its tooltip */
+    shouldShowTooltip: boolean;
+
+    /** Whether the current user selected this rating */
+    isSelected: boolean;
 };
 
-function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress}: ConciergeFeedbackThumbProps) {
+function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress, shouldShowTooltip, isSelected}: ConciergeFeedbackThumbProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
-    return (
-        <Tooltip text={label}>
-            <PressableWithFeedback
-                style={[styles.conciergeFeedbackThumb, styles.userSelectNone]}
-                hoverStyle={styles.conciergeFeedbackThumbHovered}
-                pressStyle={styles.conciergeFeedbackThumbHovered}
-                onPress={onPress}
-                accessibilityLabel={accessibilityLabel}
-                role={CONST.ROLE.BUTTON}
-                pressDimmingValue={1}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
-            >
-                <Text style={styles.conciergeFeedbackThumbEmoji}>{emoji.code}</Text>
-            </PressableWithFeedback>
-        </Tooltip>
+    const thumb = (
+        <PressableWithFeedback
+            style={[styles.conciergeFeedbackThumb, isSelected && StyleUtils.getBackgroundColorStyle(theme.reactionActiveBackground), styles.userSelectNone]}
+            hoverStyle={styles.conciergeFeedbackThumbHovered}
+            pressStyle={styles.conciergeFeedbackThumbHovered}
+            onPress={onPress}
+            accessibilityLabel={accessibilityLabel}
+            role={CONST.ROLE.BUTTON}
+            pressDimmingValue={1}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
+        >
+            <Text style={styles.conciergeFeedbackThumbEmoji}>{emoji.code}</Text>
+        </PressableWithFeedback>
     );
+
+    return shouldShowTooltip ? <Tooltip text={label}>{thumb}</Tooltip> : thumb;
 }
 
-function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProps) {
+function ConciergeFeedbackPrompt({
+    action,
+    reportID,
+    shouldShowPrompt = true,
+    shouldPersistAfterRating = false,
+    shouldShowTooltips = true,
+    shouldRenderInline = false,
+}: ConciergeFeedbackPromptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -118,18 +147,43 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
 
     const rate = (emoji: Emoji) => {
         // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
-        toggleEmojiReaction(reportID, action, emoji, reactions, preferredSkinTone, currentUserAccountID, reportActions, true);
+        toggleEmojiReaction(reportID, action, emoji, reactions, preferredSkinTone, currentUserAccountID, reportActions, true, true, emoji.name === thumbsUp.name ? thumbsDown : thumbsUp);
     };
 
     const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
 
     // The acknowledgement comes from the reaction, so removing it from the reaction row brings the prompt back right away
-    if (isDisplayedThankMessage) {
+    if (!shouldPersistAfterRating && isDisplayedThankMessage) {
         return <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('concierge.feedback.thanks')}</Text>;
     }
 
-    if (hasRated) {
+    if (!shouldPersistAfterRating && hasRated) {
         return null;
+    }
+
+    const feedbackThumbs = (
+        <View style={styles.flexRow}>
+            <ConciergeFeedbackThumb
+                emoji={thumbsUp}
+                label={translate('common.yes')}
+                accessibilityLabel={translate('concierge.feedback.useful')}
+                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp))}
+                shouldShowTooltip={shouldShowTooltips}
+                isSelected={hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID)}
+            />
+            <ConciergeFeedbackThumb
+                emoji={thumbsDown}
+                label={translate('common.no')}
+                accessibilityLabel={translate('concierge.feedback.notUseful')}
+                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown))}
+                shouldShowTooltip={shouldShowTooltips}
+                isSelected={hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID)}
+            />
+        </View>
+    );
+
+    if (shouldRenderInline) {
+        return feedbackThumbs;
     }
 
     return (
@@ -137,22 +191,8 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
             layout="horizontal"
             style={styles.alignItemsCenter}
         >
-            <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('concierge.feedback.prompt')}</Text>
-            {/* The thumbs share one child so the container gap does not separate them */}
-            <View style={styles.flexRow}>
-                <ConciergeFeedbackThumb
-                    emoji={thumbsUp}
-                    label={translate('common.yes')}
-                    accessibilityLabel={translate('concierge.feedback.useful')}
-                    onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp))}
-                />
-                <ConciergeFeedbackThumb
-                    emoji={thumbsDown}
-                    label={translate('common.no')}
-                    accessibilityLabel={translate('concierge.feedback.notUseful')}
-                    onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown))}
-                />
-            </View>
+            {shouldShowPrompt && <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('concierge.feedback.prompt')}</Text>}
+            {feedbackThumbs}
         </ActionableItemButtons>
     );
 }
