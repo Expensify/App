@@ -7699,6 +7699,21 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             addressContext: 'Expensify Travel を有効にするには、ワークスペースの住所が必要です。お客様のビジネスに関連付けられた住所を入力してください。',
             policy: '経費ポリシー',
         },
+        officeLocations: {
+            title: 'オフィス所在地',
+            subtitle: 'オフィス所在地を追加して、距離の追跡などのためにメンバーに割り当てましょう。',
+            addOfficeLocation: 'オフィスの所在地を追加',
+            editOfficeLocation: 'オフィス所在地を編集',
+            locationName: '場所名',
+            locationNameHint: '複数のオフィス所在地を追加する場合は、場所のニックネームを選択してください',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `オフィス所在地 ${officeNumber}`,
+            setAsPrimary: 'メインに設定',
+            primary: 'メイン',
+            deleteOfficeLocation: 'オフィス所在地を削除',
+            deleteOfficeLocationConfirmation: 'このオフィス所在地を削除してもよろしいですか？',
+            existingOfficeLocationError: 'この名前のオフィス所在地はすでに存在します',
+            setCompanyAddressAsPrimaryConfirmation: '会社住所を主なオフィスとして設定しますか？',
+        },
         bankAccount: {
             continueWithSetup: 'セットアップを続行',
             youAreAlmostDone: '銀行口座の設定はほぼ完了です。これにより、コーポレートカードの発行、経費精算、請求書の回収、請求書の支払いが行えるようになります。',
@@ -9468,6 +9483,15 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `オフィス所在地「${name}」（${address}）を追加しました`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `オフィス所在地名を「${oldName}」から「${newName}」に変更しました`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `オフィス所在地「${name}」の住所を「${newAddress}」に変更しました（以前の住所：「${oldAddress}」）`,
+            setAsPrimary: ({name}: {name: string}) => `オフィス所在地「${name}」を主所在地に設定します`,
+            setCompanyAddressAsPrimary: '会社の住所を主に設定する',
+            removed: ({name}: {name: string}) => `オフィス所在地「${name}」を削除しました`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `デフォルトの勤務形態を${arrangement}に設定します`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>

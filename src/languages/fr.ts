@@ -7858,6 +7858,21 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             addressContext: 'Une adresse d’espace de travail est requise pour activer Expensify Travel. Veuillez saisir une adresse associée à votre entreprise.',
             policy: 'Politique de dépenses',
         },
+        officeLocations: {
+            title: 'Sites de bureaux',
+            subtitle: 'Ajoutez des bureaux pour les assigner aux membres, par exemple pour le suivi des distances.',
+            addOfficeLocation: 'Ajouter un bureau',
+            editOfficeLocation: 'Modifier le lieu de travail',
+            locationName: 'Nom du lieu',
+            locationNameHint: 'Choisissez un surnom pour l’emplacement si vous ajoutez plusieurs bureaux',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Emplacement de bureau ${officeNumber}`,
+            setAsPrimary: 'Définir comme principal',
+            primary: 'Principal',
+            deleteOfficeLocation: 'Supprimer le site du bureau',
+            deleteOfficeLocationConfirmation: 'Voulez-vous vraiment supprimer ce bureau ?',
+            existingOfficeLocationError: 'Un bureau portant ce nom existe déjà',
+            setCompanyAddressAsPrimaryConfirmation: "Définir l'adresse de l'entreprise comme bureau principal ?",
+        },
         bankAccount: {
             continueWithSetup: 'Continuer la configuration',
             youAreAlmostDone:
@@ -9676,6 +9691,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `a ajouté le lieu de bureau « ${name} » (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `a renommé le lieu de bureau « ${oldName} » en « ${newName} »`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `a modifié l’adresse de l’emplacement de bureau « ${name} » en « ${newAddress} » (auparavant « ${oldAddress} »)`,
+            setAsPrimary: ({name}: {name: string}) => `définir l’emplacement de bureau « ${name} » comme principal`,
+            setCompanyAddressAsPrimary: 'définir l’adresse de l’entreprise comme principale',
+            removed: ({name}: {name: string}) => `a supprimé le site "${name}"`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `définir l’organisation de travail par défaut sur ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>

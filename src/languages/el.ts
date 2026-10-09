@@ -8137,6 +8137,21 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 'Απαιτείται μια διεύθυνση χώρου εργασίας για να ενεργοποιήσετε το Expensify Travel. Παρακαλούμε εισαγάγετε μια διεύθυνση που να σχετίζεται με την επιχείρησή σας.',
             policy: 'Πολιτική εξόδων',
         },
+        officeLocations: {
+            title: 'Τοποθεσίες γραφείων',
+            subtitle: 'Προσθέστε τοποθεσίες γραφείων για να τις αναθέτετε στα μέλη, για χρήσεις όπως η παρακολούθηση αποστάσεων.',
+            addOfficeLocation: 'Προσθέστε τοποθεσία γραφείου',
+            editOfficeLocation: 'Επεξεργασία τοποθεσίας γραφείου',
+            locationName: 'Όνομα τοποθεσίας',
+            locationNameHint: 'Επιλέξτε ένα ψευδώνυμο τοποθεσίας αν προσθέτετε πολλές τοποθεσίες γραφείων',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Τοποθεσία γραφείου ${officeNumber}`,
+            setAsPrimary: 'Ορισμός ως κύριο',
+            primary: 'Κύριο',
+            deleteOfficeLocation: 'Διαγραφή τοποθεσίας γραφείου',
+            deleteOfficeLocationConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την τοποθεσία γραφείου;',
+            existingOfficeLocationError: 'Υπάρχει ήδη τοποθεσία γραφείου με αυτό το όνομα',
+            setCompanyAddressAsPrimaryConfirmation: 'Να οριστεί η διεύθυνση της εταιρείας ως κύριο γραφείο;',
+        },
         bankAccount: {
             continueWithSetup: 'Συνεχίστε τη ρύθμιση',
             youAreAlmostDone:
@@ -9776,6 +9791,15 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `πρόσθεσε την τοποθεσία γραφείου «${name}» (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `μετονόμασε την τοποθεσία γραφείου "${oldName}" σε "${newName}"`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `άλλαξε τη διεύθυνση της τοποθεσίας γραφείου «${name}» σε «${newAddress}» (προηγουμένως «${oldAddress}»)`,
+            setAsPrimary: ({name}: {name: string}) => `ορισμός της τοποθεσίας γραφείου «${name}» ως κύριας`,
+            setCompanyAddressAsPrimary: 'ορίστε τη διεύθυνση της εταιρείας ως κύρια',
+            removed: ({name}: {name: string}) => `αφαίρεσε την τοποθεσία γραφείου «${name}»`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>

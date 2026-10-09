@@ -920,6 +920,8 @@ const SCREENS = {
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
+        OFFICE_LOCATION_ADD: 'Workspace_Overview_Office_Location_Add',
+        OFFICE_LOCATION_EDIT: 'Workspace_Overview_Office_Location_Edit',
         CLIENT_ID: 'Workspace_Overview_Client_ID',
         CATEGORY_CREATE: 'Category_Create',
         DYNAMIC_CATEGORY_CREATE: 'Dynamic_Category_Create',

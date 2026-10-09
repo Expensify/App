@@ -990,6 +990,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
@@ -1006,6 +1008,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
@@ -3317,6 +3321,14 @@ const ROUTES = {
     WORKSPACE_OVERVIEW_SHARE: {
         route: 'workspaces/:policyID/overview/share',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/share` as const,
+    },
+    WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD: {
+        route: 'workspaces/:policyID/overview/office-locations/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/office-locations/new` as const,
+    },
+    WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT: {
+        route: 'workspaces/:policyID/overview/office-locations/:officeID',
+        getRoute: (policyID: string, officeID: string) => `workspaces/${policyID}/overview/office-locations/${officeID}` as const,
     },
     WORKSPACE_AVATAR: {
         route: 'workspaces/:policyID/avatar',

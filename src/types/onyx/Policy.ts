@@ -3435,6 +3435,21 @@ type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
     isOfficeWorkArrangement?: boolean;
 }>;
 
+/** An office location of a workspace */
+type OfficeLocation = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Nickname of the office */
+    name: string;
+
+    /** Address of the office */
+    address: CompanyAddress;
+
+    /** Whether this is the workspace's default office. At most one office is the default, and while none is, the company address is. */
+    isDefault?: boolean;
+
+    /** Errors from the last change to the office */
+    errors?: OnyxCommon.Errors;
+}>;
+
 /** Prohibited expense types */
 type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the policy prohibits alcohol expenses */
@@ -4007,6 +4022,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Commuter exclusion configuration applied to distance expenses on this workspace */
         commuterExclusions?: CommuterExclusions;
 
+        /** Offices of the workspace, keyed by officeID */
+        officeLocations?: Record<string, OfficeLocation>;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -4187,6 +4205,7 @@ export type {
     Subrate,
     ProhibitedExpenses,
     CommuterExclusions,
+    OfficeLocation,
     NetSuiteConnectionData,
     MergeApprovalMode,
     MergeHRConnectionConfig,
