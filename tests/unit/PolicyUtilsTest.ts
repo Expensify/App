@@ -6604,7 +6604,7 @@ describe('PolicyUtils', () => {
         });
 
         describe('getIntegrationLastSuccessfulDate', () => {
-            // Parses the ISO datetimes as-is, so the results do not depend on the machine's timezone
+            // Parses the ISO date strings as-is, so the results do not depend on the machine's timezone
             const getLocalDateFromDatetime = (datetime?: string) => (datetime ? new Date(datetime) : new Date());
             const storedSuccessfulDate = '2026-01-01T10:00:00.000Z';
             const buildSyncProgress = (stageInProgress: PolicyConnectionSyncStage, timestamp: string): PolicyConnectionSyncProgress => ({
