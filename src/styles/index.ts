@@ -6171,10 +6171,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.pb3,
         },
 
-        agentRulePromptInput: {
-            maxHeight: variables.agentRulePromptInputHeight,
-        },
-
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,
