@@ -23,21 +23,15 @@ type OnboardingMergingAccountBlockedViewProps = {
     workEmail: string | undefined;
 
     isVsb: boolean | undefined;
-
-    /** Called when this blocking view was opened from a Concierge onboarding task. */
-    onConfirm?: () => void;
 };
 
-function OnboardingMergingAccountBlockedView({workEmail, isVsb, onConfirm}: OnboardingMergingAccountBlockedViewProps) {
+function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergingAccountBlockedViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
 
     const getErrorSubtitle = () => {
-        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle') {
-            return translate(onboardingErrorMessage, workEmail);
-        }
         // This subtitle interpolates the work email, so translate it with the email explicitly.
         if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.domainControlledSubtitle') {
             return translate('onboarding.mergeBlockScreen.domainControlledSubtitle', workEmail);
@@ -64,10 +58,6 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb, onConfirm}: Onbo
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.mb5]}
                 onPress={() => {
-                    if (onConfirm) {
-                        onConfirm();
-                        return;
-                    }
                     setOnboardingErrorMessage(null);
                     if (isVsb) {
                         Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});

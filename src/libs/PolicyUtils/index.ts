@@ -1354,6 +1354,14 @@ function getDefaultApprover(policy: OnyxEntry<Policy>): string {
 }
 
 /**
+ * Whether an approver email points at someone who is no longer on the workspace. The owner always counts as a member,
+ * and HR advanced (manager) mode is excluded, because its final approver doesn't have to be a workspace member.
+ */
+function isNonMemberApprover(policy: OnyxEntry<Policy>, approverEmail: string | undefined): boolean {
+    return !!approverEmail && !isPolicyMember(policy, approverEmail) && !getHRAdvancedModeFinalApprover(policy);
+}
+
+/**
  * Whether the policy has at least one custom approval workflow. A workflow is considered custom when either:
  * - the default workflow was modified by changing its first approver or adding an "Approves to" user, or
  * - a new workflow was created (a member submits to an approver other than the default approver).
@@ -2019,6 +2027,18 @@ function resolveCurrentTaxCode(policy: OnyxEntry<PolicyWithTaxRates>, taxCode: s
     return getCurrentTaxID(policy, taxCode) ?? taxCode;
 }
 
+/**
+ * Whether a tax code still points to a rate the user can pick. A disabled or pending-delete rate still resolves, but
+ * it is no longer an option, so it counts the same as a removed rate.
+ */
+function isSelectableTaxCode(policy: OnyxEntry<Policy>, taxCode: string | undefined): boolean {
+    if (!taxCode) {
+        return false;
+    }
+    const taxRate = getTaxByID(policy, resolveCurrentTaxCode(policy, taxCode));
+    return !!taxRate && !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
     if (!policy) {
         return;
@@ -2521,6 +2541,7 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getDefaultApprover,
+    isNonMemberApprover,
     hasCustomApprovalWorkflow,
     getApprovalWorkflow,
     getReimburserAccountID,
@@ -2582,6 +2603,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     resolveCurrentTaxCode,
+    isSelectableTaxCode,
     hasActiveExpensifyCard,
     tryNavigateToSubmitWorkspaceUpgrade,
     tryNavigateToControlPolicyUpgrade,
