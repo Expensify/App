@@ -18,7 +18,6 @@ This guide walks you through preparing NetSuite, connecting Expensify, and confi
 
 - A NetSuite account you can log into as an administrator
 - The **Control** plan in Expensify
-- Two-factor authentication enabled on your Expensify account, which NetSuite requires to authorize an OAuth 2.0 connection
 - One Expensify **Workspace** per NetSuite **subsidiary**
 - A Workspace currency that matches the NetSuite subsidiary's default currency
 
@@ -246,10 +245,6 @@ If you're connecting to a Sandbox environment, capitalize the "s" and "b" in the
 ---
 
 # FAQ
-
-## Why do I need two-factor authentication to connect NetSuite?
-
-NetSuite requires two-factor authentication to authorize an OAuth 2.0 connection. If two-factor authentication isn't enabled on your Expensify account, Expensify prompts you to enable it before you can continue. Token-based connections don't require it.
 
 ## Do I still need to create access tokens in NetSuite?
 
