@@ -18,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileSafari} from '@libs/Browser';
-import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
@@ -37,7 +37,7 @@ import type {ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {AccessibilityInfo, View} from 'react-native';
 
 type ValidateCodeFormHandle = {
@@ -305,15 +305,9 @@ function BaseValidateCodeForm({
         handleSubmitForm(validateCode);
     }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError, clearDefaultValidationCodeError]);
 
-    const errorText = useMemo(() => {
-        if (!canShowError) {
-            return '';
-        }
-        if (formError?.validateCode) {
-            return translate(formError?.validateCode);
-        }
-        return getLatestErrorMessage(account ?? {});
-    }, [canShowError, formError?.validateCode, account, translate]);
+    // Only this form's own input validation goes under the input. Server errors from the flow are shown above the submit button, and `account.errors` belongs to sign-in, so a
+    // stale sign-in error would otherwise show up here in an unrelated flow.
+    const errorText = canShowError && formError?.validateCode ? translate(formError.validateCode) : '';
 
     const shouldShowTimer = isCountdownRunning && !isOffline;
 
