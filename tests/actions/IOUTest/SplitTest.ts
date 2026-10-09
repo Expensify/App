@@ -6151,6 +6151,10 @@ describe('updateSplitTransactions', () => {
         expect(originalTransaction?.reportID).toBe(expenseReport.reportID);
         expect(Object.values(originalTransaction?.errors ?? {})).toContain(translateLocal('iou.error.genericSplitFailureMessage'));
 
+        // And the error is on the original expense's report action too, since expense previews and threads only render action errors
+        const originalIOUActionAfterFailure = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+        expect(Object.values(originalIOUActionAfterFailure?.errors ?? {})).toContain(translateLocal('iou.error.genericSplitFailureMessage'));
+
         // And the report totals match what they were before the split
         const reportAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
         expect(reportAfterFailure?.total).toBe(reportBeforeSplit?.total);

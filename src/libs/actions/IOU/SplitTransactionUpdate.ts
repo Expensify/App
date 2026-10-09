@@ -2050,6 +2050,16 @@ function updateSplitTransactions({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSplitFailureMessage')},
         });
+
+        // Expense previews and threads only render report action errors, so put the error on the original expense's action too
+        const originalActionReportID = isOriginalTransactionInSelfDM ? originalSelfDMReportID : iouReport?.reportID;
+        if (firstIOU?.reportActionID && originalActionReportID) {
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalActionReportID}`,
+                value: {[firstIOU.reportActionID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSplitFailureMessage')}},
+            });
+        }
     }
 
     for (const [reportID, reportToRestore] of reportsToRestoreOnFailure) {
