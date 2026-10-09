@@ -4985,6 +4985,8 @@ const translations = {
             workspaceStatus: 'Workspace status',
             findDomain: 'Find domain',
             findRoom: 'Find room',
+            emptyRoomsTitle: 'No rooms yet',
+            emptyRoomsSubtitle: 'Rooms created in this workspace will appear here.',
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
@@ -5104,6 +5106,7 @@ const translations = {
             cardAdminAlternateText: 'Manage workspace cards.',
             peopleAdminAlternateText: 'Manage members and approval workflows.',
             paymentsAdminAlternateText: 'Manage workflow payments.',
+            approveOnlyAlternateText: 'Approve reports only.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -5127,6 +5130,8 @@ const translations = {
                         return 'People admin';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Payments admin';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Approve-only';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:
@@ -7511,6 +7516,14 @@ const translations = {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a member from the workspace, please try again',
+            approveOnlyRoleBlockedTitle: 'Can’t change this role',
+            approveOnlyRoleBlockedConfirm: 'Got it',
+            approveOnlyRoleBlockedDescription: 'Approve-only members can’t create expenses on this workspace. These need to be resolved first:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'A card is assigned to them on this workspace. A Workspace Admin or Card Admin needs to unassign it first.',
+                isRestrictedByDomainGroup: 'This workspace is the Preferred workspace for a domain group they’re in. A Domain Admin needs to change it first.',
+                isDefaultPolicy: 'This is their default workspace. They’ll need to set a different one before you can update their role.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Are you sure you want to remove ${memberName}?`,
                 other: 'Are you sure you want to remove these members?',
@@ -7575,6 +7588,10 @@ const translations = {
                 cannotRemove: "You can't remove yourself or the workspace owner",
                 genericRemove: 'There was a problem removing that workspace member',
             },
+            makeApproveOnly: () => ({
+                one: 'Make approve only',
+                other: 'Make approve only members',
+            }),
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
@@ -9693,8 +9710,8 @@ const translations = {
                 other: `removed you from ${joinedNames}'s approval workflows and expense chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string) =>
-            `updated your role in ${policyName} from ${oldRole} to user. You have been removed from all submitter expense chats except for you own.`,
+        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
+            `updated your role in ${policyName} from ${oldRole} to ${newRole}. You have been removed from all submitter expense chats except for you own.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `updated the default currency to ${newCurrency} (previously ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `updated the auto-reporting frequency to "${newFrequency}" (previously "${oldFrequency}")`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `updated the approval mode to "${newValue}" (previously "${oldValue}")`,

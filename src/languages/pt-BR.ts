@@ -4779,6 +4779,8 @@ ${amount} para ${merchant} - ${date}`,
             archived: 'Arquivado',
             workspaceStatus: 'Status do espaço de trabalho',
             findRoom: 'Encontrar sala',
+            emptyRoomsTitle: 'Ainda não há salas',
+            emptyRoomsSubtitle: 'As salas criadas neste espaço de trabalho aparecerão aqui.',
             edit: 'Editar espaço de trabalho',
             enabled: 'Ativado',
             disabled: 'Desativado',
@@ -4906,6 +4908,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Admin de pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Admin de pagamentos';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Somente aprovação';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -4946,6 +4950,7 @@ ${amount} para ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gerenciar cartões do workspace.',
             peopleAdminAlternateText: 'Gerencie membros e fluxos de aprovação.',
             paymentsAdminAlternateText: 'Gerencie pagamentos de fluxo de trabalho.',
+            approveOnlyAlternateText: 'Apenas aprovar relatórios.',
             readOnlyActionTitle: 'Calma aí...',
             readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
             noAccessActionPrompt: 'Sua função no espaço de trabalho não tem acesso a essas configurações. Peça a um administrador se você precisar disso.',
@@ -7117,6 +7122,15 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
         },
         people: {
             genericFailureMessage: 'Ocorreu um erro ao remover um membro do workspace, tente novamente',
+            approveOnlyRoleBlockedTitle: 'Não é possível alterar esta função',
+            approveOnlyRoleBlockedConfirm: 'Entendi',
+            approveOnlyRoleBlockedDescription: 'Membros somente de aprovação não podem criar despesas neste espaço de trabalho. Estes itens precisam ser resolvidos primeiro:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Um cartão está atribuído a eles neste espaço de trabalho. Um administrador do espaço de trabalho ou de cartões precisa desatribuí-lo primeiro.',
+                isRestrictedByDomainGroup:
+                    'Este espaço de trabalho é o espaço de trabalho preferido de um grupo de domínio do qual eles fazem parte. Um administrador de domínio precisa alterá-lo primeiro.',
+                isDefaultPolicy: 'Este é o espaço de trabalho padrão deles. Eles precisarão definir um diferente antes que você possa atualizar a função deles.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Tem certeza de que deseja remover ${memberName}?`,
                 other: 'Tem certeza de que deseja remover estes membros?',
@@ -7168,6 +7182,10 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 cannotRemove: 'Você não pode remover a si mesmo nem o proprietário do workspace',
                 genericRemove: 'Houve um problema ao remover esse membro do workspace',
             },
+            makeApproveOnly: () => ({
+                one: 'Tornar somente de aprovação',
+                other: 'Tornar membros somente de aprovação',
+            }),
             addedWithPrimary: 'Alguns membros foram adicionados com seus logins principais.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Adicionado pelo login secundário ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total de membros no workspace: ${count}`,
@@ -9331,8 +9349,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 other: `removeu você dos fluxos de aprovação e chats de despesas de ${joinedNames}. Relatórios enviados anteriormente continuarão disponíveis para aprovação na sua Caixa de entrada.`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string) =>
-            `atualizou sua função em ${policyName} de ${oldRole} para usuário. Você foi removido de todos os chats de despesas de solicitantes, exceto do seu próprio.`,
+        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
+            `atualizou sua função em ${policyName} de ${oldRole} para ${newRole}. Você foi removido de todos os chats de despesas de solicitantes, exceto do seu próprio.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `atualizou a moeda padrão para ${newCurrency} (anteriormente ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `atualizou a frequência de preenchimento automático para "${newFrequency}" (antes "${oldFrequency}")`,

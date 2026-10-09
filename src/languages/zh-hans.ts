@@ -4640,6 +4640,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             archived: '已归档',
             workspaceStatus: '工作区状态',
             findRoom: '查找房间',
+            emptyRoomsTitle: '暂无房间',
+            emptyRoomsSubtitle: '在此工作区创建的房间将显示在这里。',
             edit: '编辑工作区',
             enabled: '已启用',
             disabled: '已禁用',
@@ -4764,6 +4766,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '人员管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return '仅审批';
                     case CONST.POLICY.ROLE.USER:
                         return '成员';
                     default:
@@ -4803,6 +4807,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             cardAdminAlternateText: '管理工作区卡片。',
             peopleAdminAlternateText: '管理成员和审批流程。',
             paymentsAdminAlternateText: '管理工作流付款。',
+            approveOnlyAlternateText: '仅审批报告。',
             readOnlyActionTitle: '别急……',
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
             noAccessActionPrompt: '您的工作区角色无权访问这些设置。如需访问，请联系管理员。',
@@ -6866,6 +6871,14 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         },
         people: {
             genericFailureMessage: '从工作区移除成员时出错，请重试',
+            approveOnlyRoleBlockedTitle: '无法更改此角色',
+            approveOnlyRoleBlockedConfirm: '知道了',
+            approveOnlyRoleBlockedDescription: '仅审批成员无法在此工作区创建费用。需要先解决以下问题：',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: '他们在此工作区中分配了一张卡。工作区管理员或卡管理员需要先取消分配。',
+                isRestrictedByDomainGroup: '此工作区是他们所在域组的首选工作区。域管理员需要先更改它。',
+                isDefaultPolicy: '这是他们的默认工作区。他们需要先设置一个不同的工作区，然后您才能更新他们的角色。',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `确定要移除 ${memberName} 吗？`,
                 other: '确定要移除这些成员吗？',
@@ -6917,6 +6930,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 cannotRemove: '你无法将自己或工作区所有者移除',
                 genericRemove: '移除该工作区成员时出现问题',
             },
+            makeApproveOnly: () => ({
+                one: '设为仅审批',
+                other: '设为仅审批',
+            }),
             addedWithPrimary: '某些成员已通过其主登录名添加。',
             invitedBySecondaryLogin: (secondaryLogin: string) => `由次要登录账号 ${secondaryLogin} 添加。`,
             workspaceMembersCount: (count: number) => `工作区成员总数：${count}`,
@@ -8984,7 +9001,8 @@ ${reportName}`,
                 other: `已将你从${joinedNames}的审批工作流和费用聊天中移除。你之前提交的报告仍可在收件箱中供你审批。`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string) => `已将你在 ${policyName} 中的角色从 ${oldRole} 更新为用户。你已从所有报销人费用聊天中移除，但你自己的除外。`,
+        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
+            `已将你在 ${policyName} 中的角色从 ${oldRole} 更新为${newRole}。你已从所有报销人费用聊天中移除，但你自己的除外。`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `已将默认货币更新为 ${newCurrency}（之前为 ${oldCurrency}）`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `已将自动报表频率更新为“${newFrequency}”（此前为“${oldFrequency}”）`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `将审批模式更新为“${newValue}”（之前为“${oldValue}”）`,

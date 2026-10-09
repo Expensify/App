@@ -89,17 +89,27 @@ const EDITOR_POLICY_FEATURES = buildFeatureAccessMap(CONST.POLICY.POLICY_FEATURE
 const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
     [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
     [CONST.POLICY.ROLE.EDITOR]: EDITOR_POLICY_FEATURES,
+    // Auditors get read-only access to workspace settings, but they can still create expenses.
     [CONST.POLICY.ROLE.AUDITOR]: {
         ...READ_ALL_POLICY_FEATURES,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
     [CONST.POLICY.ROLE.USER]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    // Approve-only members act on reports routed to them. Their workspace feature access matches a Member,
+    // except for CREATE_EXPENSES, which every expense-creation entry point gates on.
+    [CONST.POLICY.ROLE.APPROVE_ONLY]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     },
     [CONST.POLICY.ROLE.GUEST]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
     [CONST.POLICY.ROLE.CARD_ADMIN]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -107,6 +117,7 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
         [CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
     [CONST.POLICY.ROLE.PEOPLE_ADMIN]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -114,6 +125,7 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
         [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
     [CONST.POLICY.ROLE.PAYMENTS_ADMIN]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -121,10 +133,18 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
         [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
 };
 
-const CONTROL_POLICY_ONLY_ROLES = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.GUEST, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
+const CONTROL_POLICY_ONLY_ROLES = [
+    CONST.POLICY.ROLE.AUDITOR,
+    CONST.POLICY.ROLE.GUEST,
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.APPROVE_ONLY,
+];
 
 function isControlPolicyOnlyRole(role: string | undefined): boolean {
     return CONTROL_POLICY_ONLY_ROLES.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === role);
@@ -175,10 +195,11 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return true;
     }
 
-    // Reaching here: USER always, plus GUEST/AUDITOR only on corporate policies (control-only roles are
-    // already filtered out on non-corporate policies above). Assigning USER/GUEST/AUDITOR needs the
-    // MEMBERS permission, and only on corporate policies.
-    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.GUEST || role === CONST.POLICY.ROLE.AUDITOR;
+    // Reaching here: USER always, plus GUEST/AUDITOR/APPROVE_ONLY only on corporate policies (control-only roles are
+    // already filtered out on non-corporate policies above). Assigning these needs the
+    // MEMBERS permission, and only on corporate policies. APPROVE_ONLY stays within a People Admin's
+    // authority because it is strictly less permissive than USER.
+    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.GUEST || role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY;
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
 }
 
@@ -225,6 +246,19 @@ function canRolePay(role: string | undefined): boolean {
  * Authorized Payer (reimburser) must always hold one of these, so any role change for a payer is restricted to this set.
  */
 const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
+
+/**
+ * Whether a role allows creating expenses on a workspace, derived from the CREATE_EXPENSES permission.
+ * Every expense-creation entry point gates on this.
+ */
+function canRoleCreateExpenses(role: string | undefined): boolean {
+    return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+}
+
+/** Whether the policy's viewer role allows creating expenses. A missing role does not gate. */
+function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Pick<Policy, 'role'>>): boolean {
+    return !policy?.role || canRoleCreateExpenses(policy.role);
+}
 
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: string) {
@@ -306,6 +340,8 @@ export {
     canMemberManageMemberWithRole,
     getPolicyRole,
     canRolePay,
+    canRoleCreateExpenses,
+    canCreateExpensesOnPolicy,
     PAYER_ROLES,
     isPolicyApprover,
     getPolicyApproverLogins,

@@ -4817,6 +4817,8 @@ ${amount} für ${merchant} – ${date}`,
             archived: 'Archiviert',
             workspaceStatus: 'Workspace-Status',
             findRoom: 'Raum finden',
+            emptyRoomsTitle: 'Noch keine Räume',
+            emptyRoomsSubtitle: 'Räume, die in diesem Arbeitsbereich erstellt werden, erscheinen hier.',
             edit: 'Arbeitsbereich bearbeiten',
             enabled: 'Aktiviert',
             disabled: 'Deaktiviert',
@@ -4945,6 +4947,8 @@ ${amount} für ${merchant} – ${date}`,
                         return 'Personenverwaltung';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Nur Genehmigung';
                     case CONST.POLICY.ROLE.USER:
                         return 'Mitglied';
                     default:
@@ -4985,6 +4989,7 @@ ${amount} für ${merchant} – ${date}`,
             cardAdminAlternateText: 'Arbeitsbereichskarten verwalten.',
             peopleAdminAlternateText: 'Mitglieder und Genehmigungsabläufe verwalten.',
             paymentsAdminAlternateText: 'Workflow-Zahlungen verwalten.',
+            approveOnlyAlternateText: 'Nur Berichte genehmigen.',
             readOnlyActionTitle: 'Nicht so schnell …',
             readOnlyActionPrompt: 'Ihre Arbeitsbereichsrolle kann diese Einstellungen anzeigen, aber nicht bearbeiten.',
             noAccessActionPrompt: 'Ihre Arbeitsbereichsrolle hat keinen Zugriff auf diese Einstellungen. Bitten Sie eine/n Admin, falls Sie Zugriff benötigen.',
@@ -7173,6 +7178,15 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
         },
         people: {
             genericFailureMessage: 'Beim Entfernen eines Mitglieds aus dem Workspace ist ein Fehler aufgetreten, bitte versuche es erneut',
+            approveOnlyRoleBlockedTitle: 'Diese Rolle kann nicht geändert werden',
+            approveOnlyRoleBlockedConfirm: 'Verstanden',
+            approveOnlyRoleBlockedDescription: 'Mitglieder mit der Rolle „Nur Genehmigung“ können in diesem Arbeitsbereich keine Ausgaben erstellen. Diese müssen zuerst behoben werden:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Ihnen ist in diesem Arbeitsbereich eine Karte zugewiesen. Ein Arbeitsbereichs- oder Kartenadministrator muss sie zuerst entziehen.',
+                isRestrictedByDomainGroup:
+                    'Dieser Arbeitsbereich ist der bevorzugte Arbeitsbereich für eine Domänengruppe, in der sie sich befinden. Ein Domänenadministrator muss dies zuerst ändern.',
+                isDefaultPolicy: 'Dies ist ihr Standard-Arbeitsbereich. Sie müssen einen anderen festlegen, bevor Sie ihre Rolle aktualisieren können.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Möchtest du ${memberName} wirklich entfernen?`,
                 other: 'Sind Sie sicher, dass Sie diese Mitglieder entfernen möchten?',
@@ -7224,6 +7238,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 cannotRemove: 'Du kannst dich selbst oder den/die Workspace-Inhaber:in nicht entfernen',
                 genericRemove: 'Beim Entfernen dieses Workspace-Mitglieds ist ein Problem aufgetreten',
             },
+            makeApproveOnly: () => ({
+                one: 'Auf „Nur Genehmigung“ setzen',
+                other: 'Als „Nur Genehmigung“ festlegen',
+            }),
             addedWithPrimary: 'Einige Mitglieder wurden mit ihren primären Anmeldungen hinzugefügt.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Hinzugefügt durch sekundären Login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Gesamtzahl der Workspace-Mitglieder: ${count}`,
@@ -9412,8 +9430,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 other: `hat Sie aus den Genehmigungs-Workflows und Spesen-Chats von ${joinedNames} entfernt. Zuvor eingereichte Berichte bleiben in Ihrem Posteingang zur Genehmigung verfügbar.`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string) =>
-            `hat Ihre Rolle in ${policyName} von ${oldRole} zu Nutzer geändert. Sie wurden aus allen Einreicher-Spesen-Chats entfernt, außer aus Ihrem eigenen.`,
+        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
+            `hat Ihre Rolle in ${policyName} von ${oldRole} zu ${newRole} geändert. Sie wurden aus allen Einreicher-Spesen-Chats entfernt, außer aus Ihrem eigenen.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `Standardwährung auf ${newCurrency} aktualisiert (zuvor ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `die automatische Berichtshäufigkeit auf „${newFrequency}“ aktualisiert (zuvor „${oldFrequency}“)`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `hat den Genehmigungsmodus auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,

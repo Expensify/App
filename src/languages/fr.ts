@@ -4824,6 +4824,8 @@ ${amount} pour ${merchant} - ${date}`,
             archived: 'Archivé',
             workspaceStatus: "Statut de l'espace de travail",
             findRoom: 'Trouver un salon',
+            emptyRoomsTitle: 'Aucun salon pour le moment',
+            emptyRoomsSubtitle: 'Les salons créés dans cet espace de travail apparaîtront ici.',
             edit: 'Modifier l’espace de travail',
             enabled: 'Activé',
             disabled: 'Désactivé',
@@ -4951,6 +4953,8 @@ ${amount} pour ${merchant} - ${date}`,
                         return 'Administrateur des personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Approbation uniquement';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membre';
                     default:
@@ -4991,6 +4995,7 @@ ${amount} pour ${merchant} - ${date}`,
             cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
             peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
+            approveOnlyAlternateText: 'Approuver uniquement les rapports.',
             readOnlyActionTitle: 'Pas si vite...',
             readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
             noAccessActionPrompt: 'Votre rôle dans l’espace de travail n’a pas accès à ces paramètres. Demandez à un administrateur si vous en avez besoin.',
@@ -7190,6 +7195,15 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
         },
         people: {
             genericFailureMessage: "Une erreur s'est produite lors de la suppression d'un membre de l'espace de travail, veuillez réessayer.",
+            approveOnlyRoleBlockedTitle: 'Impossible de modifier ce rôle',
+            approveOnlyRoleBlockedConfirm: 'Compris',
+            approveOnlyRoleBlockedDescription: 'Les membres en approbation uniquement ne peuvent pas créer de dépenses sur cet espace de travail. Ces points doivent d’abord être résolus :',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'Une carte leur est attribuée sur cet espace de travail. Un administrateur de l’espace de travail ou des cartes doit d’abord la désattribuer.',
+                isRestrictedByDomainGroup:
+                    'Cet espace de travail est l’espace de travail préféré d’un groupe de domaine dont ils font partie. Un administrateur de domaine doit d’abord le modifier.',
+                isDefaultPolicy: 'C’est leur espace de travail par défaut. Ils devront en définir un autre avant que vous puissiez mettre à jour leur rôle.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Voulez-vous vraiment supprimer ${memberName} ?`,
                 other: 'Voulez-vous vraiment supprimer ces membres ?',
@@ -7241,6 +7255,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 cannotRemove: 'Vous ne pouvez pas vous supprimer vous-même ni supprimer le responsable de l’espace de travail',
                 genericRemove: 'Un problème est survenu lors de la suppression de ce membre de l’espace de travail',
             },
+            makeApproveOnly: () => ({
+                one: 'Définir en approbation uniquement',
+                other: 'Définir en approbation uniquement',
+            }),
             addedWithPrimary: 'Certains membres ont été ajoutés avec leurs identifiants principaux.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Ajouté par la connexion secondaire ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Nombre total de membres de l'espace de travail : ${count}`,
@@ -9432,8 +9450,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 other: `vous a retiré des workflows d’approbation et des discussions de dépenses de ${joinedNames}. Les notes de frais déjà soumises resteront disponibles pour approbation dans votre boîte de réception.`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string) =>
-            `a mis à jour votre rôle dans ${policyName}, passant de ${oldRole} à utilisateur. Vous avez été retiré de toutes les discussions de dépenses des déclarants, sauf de la vôtre.`,
+        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
+            `a mis à jour votre rôle dans ${policyName}, passant de ${oldRole} à ${newRole}. Vous avez été retiré de toutes les discussions de dépenses des déclarants, sauf de la vôtre.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `a mis à jour la devise par défaut en ${newCurrency} (auparavant ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `a mis à jour la fréquence de création automatique de notes de frais sur « ${newFrequency} » (auparavant « ${oldFrequency} »)`,

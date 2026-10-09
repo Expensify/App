@@ -21,7 +21,7 @@ import Parser from '@libs/Parser';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -716,12 +716,11 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
     return {optimisticData, successData, failureData, memberRoles};
 }
 
-function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
+async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
     if (!policy?.id) {
         return;
     }
-    // Submit workspaces lock everyone to the Editor role — role changes are not allowed.
-    // This guard prevents any future code path from bypassing the UI-level blocks.
+    // Submit workspaces lock everyone to the Editor role, so role changes are not allowed.
     if (isSubmitPolicy(policy)) {
         return;
     }
@@ -732,6 +731,12 @@ function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEma
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 
+    if (newRole === CONST.POLICY.ROLE.APPROVE_ONLY) {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- blocked reasons are only on the response, which API.write does not expose
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
+    }
+
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls -- the approve-only branch returns early
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
@@ -871,15 +876,17 @@ function buildAddMembersToWorkspaceOnyxData(
         doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
 
-    // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats({
-        policyID,
-        invitedEmailsToAccountIDs,
-        currentUser,
-        reportActionsList,
-        notificationPreference: policyExpenseChatNotificationPreference,
-        doesPersonalDetailExistByAccountID,
-    });
+    // Approve-only members get no workspace chat from the backend, so building an optimistic one would leave a phantom report in Onyx.
+    const membersChats = canRoleCreateExpenses(effectiveRole)
+        ? createPolicyExpenseChats({
+              policyID,
+              invitedEmailsToAccountIDs,
+              currentUser,
+              reportActionsList,
+              notificationPreference: policyExpenseChatNotificationPreference,
+              doesPersonalDetailExistByAccountID,
+          })
+        : {onyxSuccessData: [], onyxOptimisticData: [], onyxFailureData: [], reportCreationData: {}};
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};

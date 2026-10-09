@@ -101,6 +101,13 @@ function getAssignableWorkspaceMemberRoleItems(
             isSelected: currentRole === CONST.POLICY.ROLE.USER,
             keyForList: CONST.POLICY.ROLE.USER,
         },
+        {
+            value: CONST.POLICY.ROLE.APPROVE_ONLY,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.APPROVE_ONLY),
+            alternateText: translate('workspace.common.approveOnlyAlternateText'),
+            isSelected: currentRole === CONST.POLICY.ROLE.APPROVE_ONLY,
+            keyForList: CONST.POLICY.ROLE.APPROVE_ONLY,
+        },
     ];
 
     return workspaceRoles.filter((item) => canMemberAssignRole(policy, currentUserLogin, item.value) && (!allowedRoles || allowedRoles.includes(item.value)));

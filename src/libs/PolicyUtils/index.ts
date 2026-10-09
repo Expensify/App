@@ -55,7 +55,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import {canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
+import {canMemberWrite, canRoleCreateExpenses, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
 import {canPolicyAccessFeature, isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -142,6 +142,8 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
+            // No login means no member to resolve, so the create-expenses gate only applies per member.
+            (!currentUserLogin || canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin))) &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
     );
@@ -2110,6 +2112,8 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
             !policy.isJoinRequestPending &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             shouldShowPolicy(policy, false, currentUserLogin) &&
+            // Members without create-expenses permission cannot create reports on that workspace either.
+            canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin)) &&
             !isTeachersUnitePolicyID(policy.id),
     );
 }
