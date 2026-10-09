@@ -28,7 +28,7 @@ import type {TextInputKeyPressEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React,{useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type NewRulePromptFormID = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM;
@@ -101,7 +101,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
         return () => clearTimeout(focusTimeout);
     });
 
-    const submitFormOnModEnter =(event: TextInputKeyPressEvent | KeyboardEvent) => {
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {
             return;
         }
