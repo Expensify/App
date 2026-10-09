@@ -3,7 +3,6 @@
  */
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
@@ -23,6 +22,7 @@ import {
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
+    shouldShowQBOReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';

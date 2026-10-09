@@ -5,7 +5,6 @@ import type {SelectorType} from '@components/SelectionScreen';
 import {isQBORefreshTokenExpiringSoon} from '@libs/AccountingUtils';
 import {getBankAccountFromID} from '@libs/actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getApiRoot} from '@libs/ApiUtils';
 import {getCategoryApproverRule, hasAnyCategoryRules} from '@libs/CategoryUtils';
@@ -486,6 +485,11 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
 
 function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Partial<Rate>, withDecimals?: boolean) {
     return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit, withDecimals);
+}
+
+function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
 }
 
 /**
@@ -2599,6 +2603,7 @@ export {
     isTaxCodeCustomized,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,
+    shouldShowQBOReimbursableExportDestinationAccountError,
 };
 
 // Re-exported with `export *` rather than through the block above: a named re-export becomes a getter that throws
