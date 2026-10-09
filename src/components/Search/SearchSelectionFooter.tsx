@@ -197,8 +197,11 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     const answeredFooterTotals = recordAnsweredFooterTotals(currentSearchHash, requestedFooterTotal, metadata?.total, isSettledAnswer);
 
-    // Offline, the snapshot may still hold an earlier breakdown's total: show this breakdown's recorded one, or none.
-    const isSnapshotTotalFromEarlierBreakdown = isOffline && !shouldUseLiveData && !!answeredFooterTotals && answeredFooterTotals.answered !== requestedFooterTotal;
+    // Offline, the snapshot may still hold another breakdown's total: show this breakdown's recorded one, or none. The stamp
+    // survives a reload, which empties the recorded answers.
+    const snapshotAnsweredFooterTotal = metadata?.footerTotal ?? answeredFooterTotals?.answered;
+    const isSnapshotTotalFromEarlierBreakdown = isOffline && !shouldUseLiveData && !!snapshotAnsweredFooterTotal && snapshotAnsweredFooterTotal !== requestedFooterTotal;
+    console.log('>>>>>>>>>>>>>>>>>', {snapshotAnsweredFooterTotal, isSnapshotTotalFromEarlierBreakdown});
     const metadataCount = metadata?.count;
     const metadataReportCount = metadata?.reportCount;
     const metadataCurrency = metadata?.currency;
@@ -636,7 +639,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
         // A hand-picked selection is summed from its own rows, and a to-do search from live Onyx data, so both show the
         // new breakdown as soon as the query carries it and wait on nothing.
-        if (!hasPartialSelection && currentSearchQueryJSON && !shouldUseLiveData) {
+        // Offline nothing can answer it, so the recorded figure stands in and the refetch below asks once back online.
+        if (!isOffline && !hasPartialSelection && currentSearchQueryJSON && !shouldUseLiveData) {
             // Every other case needs the figure from the backend. The breakdown keys no hash — the rows it matches are
             // the ones already on screen — so nothing re-runs the search on its own and the footer asks for the
             // aggregate itself, against the snapshot the list is already reading. The request carries the page the

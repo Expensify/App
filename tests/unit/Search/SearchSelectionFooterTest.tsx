@@ -600,6 +600,57 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: 342}));
         });
 
+        it('asks nothing of the backend for a breakdown switched to offline, leaving the recorded figure in place', async () => {
+            // Given the plain total answered online
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 342)} />);
+            await waitForBatchedUpdates();
+
+            // When billable is picked offline
+            mockIsOffline.current = true;
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 342)} />);
+            await waitForBatchedUpdates();
+            await act(async () => {
+                mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
+                await waitForBatchedUpdates();
+            });
+
+            // Then no request is sent, since none could be answered, so the footer is not left waiting on one
+            expect(mockSearch).not.toHaveBeenCalled();
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
+        });
+
+        it('hides a total offline after a reload when the snapshot is stamped for another breakdown', async () => {
+            // Given a reload offline, which empties the recorded answers, over a snapshot whose total answers billable
+            mockIsOffline.current = true;
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+            const billableResults = buildSearchResults(CONST.CURRENCY.USD, 10, 229);
+            billableResults.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.BILLABLE;
+
+            render(<SearchSelectionFooter searchResults={billableResults} />);
+            await waitForBatchedUpdates();
+
+            // Then the billable figure is not shown as "Total spend"
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: undefined}));
+        });
+
+        it('shows a total offline after a reload when the snapshot is stamped for the breakdown on display', async () => {
+            // Given a reload offline over a snapshot whose total answers the plain total
+            mockIsOffline.current = true;
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+            const plainResults = buildSearchResults(CONST.CURRENCY.USD, 10, 342);
+            plainResults.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+
+            render(<SearchSelectionFooter searchResults={plainResults} />);
+            await waitForBatchedUpdates();
+
+            // Then its figure is shown
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: 342}));
+        });
+
         it('keeps a total offline when the breakdown is the one it was answered for', async () => {
             setSearchQuery('type:expense footerTotal:billable');
             mockSelectedTransactions.current = {};
