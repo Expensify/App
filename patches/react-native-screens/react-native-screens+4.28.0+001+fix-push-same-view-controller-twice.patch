@@ -1,0 +1,113 @@
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStack.mm b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+index c233036..0bd814f 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStack.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+@@ -175,6 +175,10 @@ @implementation RNSScreenStackView {
+   RNSPercentDrivenInteractiveTransition *_interactionController;
+   __weak RNSScreenStackManager *_manager;
+   BOOL _updateScheduled;
++  // Pushed controller that UIKit has not added to `viewControllers` yet.
++  __weak UIViewController *_pendingPushController;
++  // An update was skipped while the push was pending.
++  BOOL _updateSkippedForPendingPush;
+ }
+ 
+ - (instancetype)initWithFrame:(CGRect)frame
+@@ -244,6 +248,10 @@ - (void)navigationController:(UINavigationController *)navigationController
+       willShowViewController:(UIViewController *)viewController
+                     animated:(BOOL)animated
+ {
++  // The held push is running, stop waiting.
++  if (viewController == _pendingPushController) {
++    [self finishWaitingForPendingPush];
++  }
+   if (![viewController.view isKindOfClass:[RNSScreenView class]] ||
+       static_cast<RNSScreenView *>(viewController.view).isInvalidated) {
+     // if the screen was already deleted by React, its config was already removed
+@@ -281,6 +289,11 @@ - (void)presentationControllerDidDismiss:(UIPresentationController *)presentatio
+ - (void)didMoveToWindow
+ {
+   [super didMoveToWindow];
++  if (self.window == nil) {
++    // Detached stacks get a full update on the next attach, so stop waiting for a held push.
++    _pendingPushController = nil;
++    _updateSkippedForPendingPush = NO;
++  }
+   // for handling nested stacks
+   [self maybeAddToParentAndUpdateContainer];
+ }
+@@ -578,6 +591,20 @@ - (void)setModalViewControllers:(NSArray<UIViewController *> *)controllers
+ 
+ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
+ {
++  // iOS < 18 can hold an animated push until the next CA commit. Until then the controller is not in
++  // `viewControllers` and `transitionCoordinator` is nil, so another update would push it twice and crash.
++  // This runs before the "no change" check below: while the push is held, `viewControllers` still equals
++  // the stack from before the push, and an update that removes the pushed screen must be replayed.
++  if (_pendingPushController != nil) {
++    if (![_controller.viewControllers containsObject:_pendingPushController]) {
++      _updateSkippedForPendingPush = YES;
++      return;
++    }
++    // The push was applied, this update covers any skipped one.
++    _pendingPushController = nil;
++    _updateSkippedForPendingPush = NO;
++  }
++
+   // when there is no change we return immediately
+   if ([_controller.viewControllers isEqualToArray:controllers]) {
+     return;
+@@ -663,6 +690,12 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
+ 
+       [_controller setViewControllers:newControllers animated:NO];
+       [_controller pushViewController:top animated:YES];
++      if (@available(iOS 18.0, *)) {
++        // Not needed on iOS 18+.
++      } else if (![_controller.viewControllers containsObject:top]) {
++        // UIKit held the push.
++        _pendingPushController = top;
++      }
+     } else {
+       // don't really know what this case could be, but may need to handle it
+       // somehow
+@@ -674,6 +707,20 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
+   }
+ }
+ 
++- (void)finishWaitingForPendingPush
++{
++  _pendingPushController = nil;
++  if (!_updateSkippedForPendingPush) {
++    return;
++  }
++  _updateSkippedForPendingPush = NO;
++  __weak RNSScreenStackView *weakSelf = self;
++  // Run outside the UIKit callback.
++  dispatch_async(dispatch_get_main_queue(), ^{
++    [weakSelf updateContainer];
++  });
++}
++
+ - (void)updateContainer
+ {
+   NSMutableArray<UIViewController *> *pushControllers = [NSMutableArray new];
+@@ -988,6 +1035,10 @@ - (void)navigationController:(UINavigationController *)navigationController
+        didShowViewController:(UIViewController *)viewController
+                     animated:(BOOL)animated
+ {
++  // Check the controller: `setViewControllers:` before the push reports `didShow` for its own top first.
++  if (viewController == _pendingPushController) {
++    [self finishWaitingForPendingPush];
++  }
+   [self emitOnFinishTransitioningEvent];
+   [RNSScreenWindowTraits updateWindowTraits];
+   // Because of the bug that caused view to have incorrect dimensions while changing the orientation,
+@@ -1382,6 +1433,8 @@ - (void)prepareForRecycle
+   }
+ 
+   [_presentedModals removeAllObjects];
++  _pendingPushController = nil;
++  _updateSkippedForPendingPush = NO;
+   [_controller willMoveToParentViewController:nil];
+   [_controller removeFromParentViewController];
+   [_controller setViewControllers:@[ [UIViewController new] ]];
