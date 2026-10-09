@@ -125,7 +125,6 @@ function IOURequestStepDistanceGPS({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
@@ -206,7 +205,6 @@ function IOURequestStepDistanceGPS({
             participants,
             participantsPolicyTags,
             rules,
-            reusableDistanceRoutes,
         });
     };
 

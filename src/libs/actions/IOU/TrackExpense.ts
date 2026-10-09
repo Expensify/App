@@ -2507,7 +2507,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         writeBarrier,
         rules,
         personalDetailsByLogins,
-        reusableDistanceRoutes = [],
+        reusableDistanceRoutes,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2953,16 +2953,27 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            if (validWaypoints && transaction?.transactionID) {
+            const isMapDistance =
+                (distanceRequestType ? distanceRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP : isMapDistanceRequest(existingTransaction)) ||
+                (!distanceRequestType && !gpsCoordinates && odometerStart === undefined && odometerEnd === undefined);
+
+            if (isMapDistance && validWaypoints && transaction?.transactionID && reusableDistanceRoutes !== undefined) {
+                const distanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy});
+                const effectiveDistance =
+                    modifiedDistance ??
+                    distance ??
+                    existingTransaction?.comment?.customUnit?.quantity ??
+                    (selectedRouteDistance ? Number(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistance, distanceUnit).toFixed(CONST.DISTANCE_DECIMAL_PLACES)) : 0);
+
                 const reusableRouteOnyxData = getLocallyCreatedRouteOnyxData(
                     {
                         transactionID: transaction.transactionID,
                         waypoints: validWaypoints,
-                        distance: distance ?? 0,
+                        distance: effectiveDistance,
                         routeDistanceMeters: selectedRouteDistance,
                         inserted: created ?? DateUtils.getDBTime(),
                     },
-                    reusableDistanceRoutes,
+                    reusableDistanceRoutes ?? [],
                 );
                 onyxData?.optimisticData?.push(...reusableRouteOnyxData.optimisticData);
                 onyxData?.failureData?.push(...reusableRouteOnyxData.failureData);

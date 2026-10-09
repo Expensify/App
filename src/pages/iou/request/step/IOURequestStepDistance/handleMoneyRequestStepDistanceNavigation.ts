@@ -227,7 +227,7 @@ function handleMoneyRequestStepDistanceNavigation({
     isOffline = false,
     rules,
     isVendorMatchingBetaEnabled,
-    reusableDistanceRoutes = [],
+    reusableDistanceRoutes,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;

@@ -120,6 +120,7 @@ function useDistanceSubmission({
     const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
     const [iouReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
+    const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
 
     function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
         if (!transaction) {
@@ -199,6 +200,7 @@ function useDistanceSubmission({
             formatPhoneNumber,
             participantsPolicyTags,
             rules,
+            reusableDistanceRoutes,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
