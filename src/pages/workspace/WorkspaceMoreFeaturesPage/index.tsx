@@ -9,6 +9,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -103,7 +104,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {showConfirmModal} = useConfirmModal();
     const isRecruitingBetaEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
     // Connections replaces this section's pages, and turns each feature on as its first integration connects
-    const isUnifiedConnectionsBetaEnabled = isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS);
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
         'Accounting',

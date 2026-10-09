@@ -3,6 +3,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -125,9 +126,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
-    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const isUnifiedConnectionsBetaEnabled = isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS);
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);

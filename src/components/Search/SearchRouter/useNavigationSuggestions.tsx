@@ -10,6 +10,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -396,6 +397,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -451,7 +453,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         isOffline: !!isOffline,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
-        isUnifiedConnectionsBetaEnabled: isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS),
+        isUnifiedConnectionsBetaEnabled,
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),

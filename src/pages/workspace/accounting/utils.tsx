@@ -65,35 +65,55 @@ function getCurrentAccountingIntegrationName(policy: OnyxEntry<Policy>, translat
     return currentConnectionName === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline ? getQuickbooksOnlineIntegrationName(policy, translate) : currentConnectionName;
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params
+type AccountingIntegrationIcons = Record<
+    | 'IntacctSquare'
+    | 'IntuitSquare'
+    | 'QBOSquare'
+    | 'XeroSquare'
+    | 'NetSuiteSquare'
+    | 'QBDSquare'
+    | 'CertiniaSquare'
+    | 'RilletSquare'
+    | 'DualEntrySquare'
+    | 'CampfireSquare'
+    | 'BusinessCentralSquare',
+    IconAsset
+>;
+
+type GetAccountingIntegrationDataOptions = {
+    policy?: Policy;
+    key?: number;
+    integrationToDisconnect?: ConnectionName;
+    shouldDisconnectIntegrationBeforeConnecting?: boolean;
+    canUseNetSuiteUSATax?: boolean;
+    expensifyIcons?: AccountingIntegrationIcons;
+    cardFeeds?: CombinedCardFeeds;
+    cardList?: Record<string, WorkspaceCardsList | undefined>;
+
+    /** Picks QBO or Intuit Enterprise Suite explicitly instead of following the existing connection */
+    isIntuitEnterpriseSuiteOverride?: boolean;
+
+    /** Routes the connect flows through the Connections page instead of the Accounting page */
+    isUnifiedConnectionsBetaEnabled?: boolean;
+};
+
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
     existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean; dualEntry: boolean; campfire: boolean},
-    policy?: Policy,
-    key?: number,
-    integrationToDisconnect?: ConnectionName,
-    shouldDisconnectIntegrationBeforeConnecting?: boolean,
-    canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<
-        | 'IntacctSquare'
-        | 'IntuitSquare'
-        | 'QBOSquare'
-        | 'XeroSquare'
-        | 'NetSuiteSquare'
-        | 'QBDSquare'
-        | 'CertiniaSquare'
-        | 'RilletSquare'
-        | 'DualEntrySquare'
-        | 'CampfireSquare'
-        | 'BusinessCentralSquare',
-        IconAsset
-    >,
-    cardFeeds?: CombinedCardFeeds,
-    cardList?: Record<string, WorkspaceCardsList | undefined>,
-    isIntuitEnterpriseSuiteOverride?: boolean,
-    isUnifiedConnectionsBetaEnabled = false,
+    {
+        policy,
+        key,
+        integrationToDisconnect,
+        shouldDisconnectIntegrationBeforeConnecting,
+        canUseNetSuiteUSATax,
+        expensifyIcons,
+        cardFeeds,
+        cardList,
+        isIntuitEnterpriseSuiteOverride,
+        isUnifiedConnectionsBetaEnabled = false,
+    }: GetAccountingIntegrationDataOptions = {},
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;

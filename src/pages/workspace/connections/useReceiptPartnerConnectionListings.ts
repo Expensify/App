@@ -11,7 +11,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 
 import {openExternalLink} from '@userActions/Link';
-import {enablePolicyReceiptPartners} from '@userActions/Policy/Policy';
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -61,9 +61,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
         if (!connectFormData) {
             return;
         }
-        if (!policy?.receiptPartners?.enabled) {
-            enablePolicyReceiptPartners(policyID, true, false);
-        }
+        enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
         hasStartedUberConnectionRef.current = true;
         openExternalLink(`${CONST.UBER_CONNECT_URL}?${connectFormData}`);
     };

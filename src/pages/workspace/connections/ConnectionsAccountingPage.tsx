@@ -17,6 +17,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -85,6 +86,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
     const oldDotEnvironmentURL = getOldDotURLFromEnvironment(environment);
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {showConfirmModal} = useConfirmModal();
     const {activeIntegration} = useAccountingState();
     const {startIntegrationFlow} = useAccountingActions();
@@ -430,16 +432,15 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
                 dualEntry: hasReusablePoliciesConnectedToDualEntry,
                 campfire: hasReusablePoliciesConnectedToCampfire,
             },
-            policy,
-            undefined,
-            undefined,
-            undefined,
-            isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX),
-            accountingIcons,
-            cardFeeds,
-            cardLists,
-            isConnectedToIntuitEnterpriseSuite,
-            isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS),
+            {
+                policy,
+                canUseNetSuiteUSATax: isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX),
+                expensifyIcons: accountingIcons,
+                cardFeeds,
+                cardList: cardLists,
+                isIntuitEnterpriseSuiteOverride: isConnectedToIntuitEnterpriseSuite,
+                isUnifiedConnectionsBetaEnabled,
+            },
         );
         let connectionMessage;
         if (isSyncInProgress && connectionSyncStage) {
@@ -538,7 +539,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.ACCOUNTING}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS) || (!connectedIntegration && !hasUnsupportedNDIntegration)}
+            shouldBeBlocked={!isUnifiedConnectionsBetaEnabled || (!connectedIntegration && !hasUnsupportedNDIntegration)}
         >
             <ScreenWrapper
                 testID="ConnectionsAccountingPage"

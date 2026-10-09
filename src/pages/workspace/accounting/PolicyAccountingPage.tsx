@@ -557,15 +557,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             dualEntry: hasReusablePoliciesConnectedToDualEntry,
                             campfire: hasReusablePoliciesConnectedToCampfire,
                         },
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        accountingIcons,
-                        cardFeeds,
-                        cardLists,
-                        isIntuitEnterpriseSuite,
+                        {expensifyIcons: accountingIcons, cardFeeds, cardList: cardLists, isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite},
                     );
                     if (!integrationData) {
                         return undefined;
@@ -645,15 +637,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 dualEntry: hasReusablePoliciesConnectedToDualEntry,
                 campfire: hasReusablePoliciesConnectedToCampfire,
             },
-            policy,
-            undefined,
-            undefined,
-            undefined,
-            isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX),
-            accountingIcons,
-            cardFeeds,
-            cardLists,
-            isConnectedToIntuitEnterpriseSuite,
+            {
+                policy,
+                canUseNetSuiteUSATax: isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX),
+                expensifyIcons: accountingIcons,
+                cardFeeds,
+                cardList: cardLists,
+                isIntuitEnterpriseSuiteOverride: isConnectedToIntuitEnterpriseSuite,
+            },
         );
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
@@ -845,15 +836,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         dualEntry: hasReusablePoliciesConnectedToDualEntry,
                         campfire: hasReusablePoliciesConnectedToCampfire,
                     },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    accountingIcons,
-                    cardFeeds,
-                    cardLists,
-                    isIntuitEnterpriseSuite,
+                    {expensifyIcons: accountingIcons, cardFeeds, cardList: cardLists, isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite},
                 );
                 if (!integrationData) {
                     return undefined;

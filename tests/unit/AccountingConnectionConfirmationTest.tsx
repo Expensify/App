@@ -90,11 +90,11 @@ jest.mock('@hooks/useHasReusablePoliciesConnectedTo', () => ({
 let mockEnabledBetas: string[] = [];
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.includes(beta)}));
 
-const mockEnablePolicyConnections = jest.fn<void, [string, boolean, boolean]>();
+const mockEnablePolicyFeatureForConnection = jest.fn<void, [string | undefined, string]>();
 jest.mock('@userActions/Policy/Policy', () => ({
     __esModule: true,
-    enablePolicyConnections: (policyID: string, enabled: boolean, shouldGoBack: boolean) => {
-        mockEnablePolicyConnections(policyID, enabled, shouldGoBack);
+    enablePolicyFeatureForConnection: (policyToEnable: Policy | undefined, featureName: string) => {
+        mockEnablePolicyFeatureForConnection(policyToEnable?.id, featureName);
     },
 }));
 
@@ -367,7 +367,7 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
             expect(getShowConfirmModalOption('prompt')).toBe('workspace.connections.replaceConnectionPrompt:workspace.accounting.intuitEnterpriseSuite');
         });
 
-        it('should turn the Accounting feature on when a flow starts on a workspace that has it off', async () => {
+        it('should turn the Accounting feature on when a flow starts, since Connections has no toggle for it', async () => {
             // Given a workspace with the Accounting feature off, which Connections has no toggle for
             const ref = renderProvider({...policy, areConnectionsEnabled: false});
 
@@ -378,7 +378,7 @@ describe('AccountingContextProvider connect-confirmation prompt', () => {
             });
 
             // Then the feature is turned on without navigating away, so the integration can be used once it connects
-            expect(mockEnablePolicyConnections).toHaveBeenCalledWith(POLICY_ID, true, false);
+            expect(mockEnablePolicyFeatureForConnection).toHaveBeenCalledWith(POLICY_ID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
         });
     });
 });

@@ -1,8 +1,8 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemList from '@components/MenuItemList';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useReusablePoliciesConnectedTo from '@hooks/useReusablePoliciesConnectedTo';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,8 +25,8 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const policyID: string = route.params.policyID;
-    const {isBetaEnabled} = usePermissions();
-    const accountingConnectionsRoute = getAccountingConnectionsRoute(isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS), policyID);
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const accountingConnectionsRoute = getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID);
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToNetSuite} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, policyID);
 
     const menuItems = reusablePoliciesConnectedToNetSuite.map((policy) => {

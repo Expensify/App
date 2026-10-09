@@ -1,6 +1,6 @@
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,7 +21,7 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const shouldGoToEnterCredentials = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
-    const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     useEffect(() => {
         if (shouldGoToEnterCredentials) {
@@ -29,7 +29,7 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
             return;
         }
         if (!hasReusablePoliciesConnectedToSageIntacct) {
-            Navigation.navigate(`${getAccountingConnectionsRoute(isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS), policyID)}/${DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path}`);
+            Navigation.navigate(`${getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID)}/${DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path}`);
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));

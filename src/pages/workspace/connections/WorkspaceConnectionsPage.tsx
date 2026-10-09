@@ -19,6 +19,7 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -381,14 +382,14 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
 }
 
 function WorkspaceConnectionsPageWrapper(props: WithPolicyConnectionsProps) {
-    const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={props.policy?.id}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS)}
+            shouldBeBlocked={!isUnifiedConnectionsBetaEnabled}
         >
             <AccountingContextProvider policy={props.policy}>
                 <WorkspaceConnectionsPage {...props} />

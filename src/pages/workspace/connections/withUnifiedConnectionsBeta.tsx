@@ -1,6 +1,4 @@
-import usePermissions from '@hooks/usePermissions';
-
-import CONST from '@src/CONST';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 
 import type {ComponentProps, ComponentType} from 'react';
 
@@ -16,9 +14,9 @@ type WorkspaceConnectionsPageProps = ComponentProps<typeof WorkspaceConnectionsP
  */
 export default function withUnifiedConnectionsBeta<TProps extends Record<string, unknown>>(WrappedComponent: ComponentType<TProps>): ComponentType<TProps> {
     function WithUnifiedConnectionsBeta(props: TProps) {
-        const {isBetaEnabled} = usePermissions();
+        const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
-        if (isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS)) {
+        if (isUnifiedConnectionsBetaEnabled) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- these are the screen props of a page Connections replaced, and it only reads the policy ID and the connection to start from the route
             return <WorkspaceConnectionsPage {...(props as unknown as WorkspaceConnectionsPageProps)} />;
         }

@@ -1,9 +1,9 @@
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -122,7 +122,7 @@ function ConnectionsMergePageBaseContent({policyID, category, cards}: Connection
 
 function ConnectionsMergePageBase({policyID, category, cards, shouldBeBlocked}: ConnectionsMergePageBaseProps) {
     const {featureName, openPage} = PAGE_CONFIG[category];
-    const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     useWorkspaceDocumentTitle(undefined, `workspace.common.${category}`);
 
@@ -138,7 +138,7 @@ function ConnectionsMergePageBase({policyID, category, cards, shouldBeBlocked}: 
             policyID={policyID}
             featureName={featureName}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
-            shouldBeBlocked={(shouldBeBlocked ?? false) || !isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS) || !cards.some((card) => card.isConnected)}
+            shouldBeBlocked={(shouldBeBlocked ?? false) || !isUnifiedConnectionsBetaEnabled || !cards.some((card) => card.isConnected)}
         >
             <ConnectionsMergePageBaseContent
                 policyID={policyID}

@@ -1,3 +1,4 @@
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 /**
  * Builds the accounting listings for the Connections page and starts the accounting connect flows from them.
  * Must be rendered inside an AccountingContextProvider.
@@ -12,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, getIntegrationLastSuccessfulDate, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 
 import {useAccountingActions, useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
@@ -37,6 +38,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     const styles = useThemeStyles();
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {startIntegrationFlow} = useAccountingActions();
     const {activeIntegration, popoverAnchorRefs} = useAccountingState();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
@@ -81,9 +83,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             showReadOnlyModal();
             return;
         }
-        if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))) {
-            return;
-        }
         startIntegrationFlow(
             connectedIntegration
                 ? {name, isIntuitEnterpriseSuite, integrationToDisconnect: connectedIntegration, shouldDisconnectIntegrationBeforeConnecting: true}
@@ -123,22 +122,11 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     ]);
 
     return integrationOptions.flatMap(({name, isIntuitEnterpriseSuite}) => {
-        const integrationData = getAccountingIntegrationData(
-            name,
-            policyID,
-            translate,
-            NO_REUSABLE_CONNECTIONS,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            accountingIcons,
-            undefined,
-            undefined,
-            isIntuitEnterpriseSuite,
-            isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS),
-        );
+        const integrationData = getAccountingIntegrationData(name, policyID, translate, NO_REUSABLE_CONNECTIONS, {
+            expensifyIcons: accountingIcons,
+            isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite,
+            isUnifiedConnectionsBetaEnabled,
+        });
         if (!integrationData) {
             return [];
         }

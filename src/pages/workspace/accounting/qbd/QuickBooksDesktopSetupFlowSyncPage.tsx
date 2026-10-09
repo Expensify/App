@@ -1,5 +1,5 @@
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,7 +20,7 @@ function QuickBooksDesktopSetupFlowSyncPage({route}: QuickBooksDesktopSetupFlowS
     const policyID: string = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '-1'}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID ?? '-1'}`);
-    const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     useEffect(() => {
         if (!policyID) {
@@ -32,7 +32,7 @@ function QuickBooksDesktopSetupFlowSyncPage({route}: QuickBooksDesktopSetupFlowS
             syncConnection(policy, CONST.POLICY.CONNECTIONS.NAME.QBD, true);
         }
 
-        Navigation.navigate(getAccountingConnectionsRoute(isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS), policyID));
+        Navigation.navigate(getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID));
 
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-hooks/exhaustive-deps

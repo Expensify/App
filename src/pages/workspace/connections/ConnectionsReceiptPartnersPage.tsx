@@ -11,10 +11,10 @@ import ScrollView from '@components/ScrollView';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
@@ -52,7 +52,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
     const StyleUtils = useStyleUtils();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
-    const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const isLoading = policy?.isLoading;
@@ -155,7 +155,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS) || (!isLoading && !isUberConnected && !shouldShowEnterCredentialsError)}
+            shouldBeBlocked={!isUnifiedConnectionsBetaEnabled || (!isLoading && !isUberConnected && !shouldShowEnterCredentialsError)}
         >
             {isLoading ? (
                 <FullScreenLoadingIndicator

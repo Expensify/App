@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -77,6 +78,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
@@ -196,7 +198,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         shouldShowRBR,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
-        isUnifiedConnectionsBetaEnabled: isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS),
+        isUnifiedConnectionsBetaEnabled,
         convertToDisplayString,
     }).map((item) => ({
         ...item,

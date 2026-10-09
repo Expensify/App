@@ -5,10 +5,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 
-import {isMCPEnabled} from '@libs/PolicyUtils';
-
 import {openExternalLink} from '@userActions/Link';
-import {enablePolicyMCP} from '@userActions/Policy/Policy';
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -45,9 +43,7 @@ function useMCPConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[
                 showReadOnlyModal();
                 return;
             }
-            if (!isMCPEnabled(policy)) {
-                enablePolicyMCP(policyID, true, false);
-            }
+            enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED);
             openExternalLink(url);
         },
     }));

@@ -4,9 +4,9 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 
 import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {removePolicyConnection} from '@libs/actions/connections';
@@ -15,7 +15,7 @@ import {isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/Policy
 
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 
-import {enablePolicyConnections} from '@userActions/Policy/Policy';
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -46,8 +46,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const {showConfirmModal, closeModalByID} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS);
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const policyID = policy?.id;
 
     // `removePolicyConnection` only runs once the user confirms, which can be a while after the flow started, so the
@@ -146,21 +145,20 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                     dualEntry: hasReusablePoliciesConnectedToDualEntry,
                     campfire: hasReusablePoliciesConnectedToCampfire,
                 },
-                undefined,
-                undefined,
-                newActiveIntegration.integrationToDisconnect,
-                newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
-                undefined,
-                accountingIcons,
-                cardFeeds,
-                cardLists,
-                newActiveIntegration.isIntuitEnterpriseSuite,
-                isUnifiedConnectionsBetaEnabled,
+                {
+                    integrationToDisconnect: newActiveIntegration.integrationToDisconnect,
+                    shouldDisconnectIntegrationBeforeConnecting: newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
+                    expensifyIcons: accountingIcons,
+                    cardFeeds,
+                    cardList: cardLists,
+                    isIntuitEnterpriseSuiteOverride: newActiveIntegration.isIntuitEnterpriseSuite,
+                    isUnifiedConnectionsBetaEnabled,
+                },
             );
 
             // Connections has no feature toggle, so turn it on here. The Control upgrade only enables the integration's own feature.
-            if (isUnifiedConnectionsBetaEnabled && !policy?.areConnectionsEnabled) {
-                enablePolicyConnections(policyID, true, false);
+            if (isUnifiedConnectionsBetaEnabled) {
+                enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
             }
 
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
@@ -286,16 +284,15 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 dualEntry: hasReusablePoliciesConnectedToDualEntry,
                 campfire: hasReusablePoliciesConnectedToCampfire,
             },
-            policy,
-            activeIntegration.key,
-            undefined,
-            undefined,
-            undefined,
-            accountingIcons,
-            cardFeeds,
-            cardLists,
-            activeIntegration.isIntuitEnterpriseSuite,
-            isUnifiedConnectionsBetaEnabled,
+            {
+                policy,
+                key: activeIntegration.key,
+                expensifyIcons: accountingIcons,
+                cardFeeds,
+                cardList: cardLists,
+                isIntuitEnterpriseSuiteOverride: activeIntegration.isIntuitEnterpriseSuite,
+                isUnifiedConnectionsBetaEnabled,
+            },
         )?.setupConnectionFlow;
     };
 

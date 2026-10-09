@@ -9,10 +9,10 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
@@ -26,7 +26,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
-import {enablePolicyReceiptPartners} from '@userActions/Policy/Policy';
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,8 +61,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle']);
     const integrations = policy?.receiptPartners;
     const {isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
-    const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = isBetaEnabled(CONST.BETAS.UNIFIED_CONNECTIONS);
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
 
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
@@ -101,8 +100,8 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             featureName: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             onConnect: () => {
                 // Connections offers Uber before Receipt partners is on, so the feature is turned on as Uber connects
-                if (isUnifiedConnectionsBetaEnabled && !policy?.receiptPartners?.enabled) {
-                    enablePolicyReceiptPartners(policyID, true, false);
+                if (isUnifiedConnectionsBetaEnabled) {
+                    enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
                 }
                 openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
             },

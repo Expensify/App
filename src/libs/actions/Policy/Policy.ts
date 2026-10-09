@@ -5083,6 +5083,32 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldG
     }
 }
 
+type ConnectionFeatureName =
+    | typeof CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED
+    | typeof CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED
+    | typeof CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED
+    | typeof CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED
+    | typeof CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED;
+
+const ENABLE_CONNECTION_FEATURE = {
+    [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: enablePolicyConnections,
+    [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: enablePolicyHR,
+    [CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED]: enablePolicyRecruiting,
+    [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: enablePolicyReceiptPartners,
+    [CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED]: enablePolicyMCP,
+} as const;
+
+/**
+ * The Connections page has no feature toggles, so connecting an integration from it turns the integration's feature on.
+ * The user stays on the page they connected from.
+ */
+function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName: ConnectionFeatureName) {
+    if (!policy?.id || PolicyUtils.isPolicyFeatureEnabled(policy, featureName)) {
+        return;
+    }
+    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
+}
+
 /** Save the preferred export method for a policy */
 function savePreferredExportMethod(policyID: string, exportMethod: ReportExportType) {
     Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
@@ -8095,6 +8121,7 @@ export {
     enablePolicyRecruiting,
     enablePolicyMCP,
     enablePolicyReceiptPartners,
+    enablePolicyFeatureForConnection,
     enablePolicyReportFields,
     enablePolicyInvoiceFields,
     enablePolicyTaxes,

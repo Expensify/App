@@ -19,7 +19,7 @@ import {getHRCards} from '@pages/workspace/hr/utils';
 import type {MergeProviderCardCategory, MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
 import {getRecruitingCards} from '@pages/workspace/recruiting/utils';
 
-import {enablePolicyHR, enablePolicyRecruiting} from '@userActions/Policy/Policy';
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,13 +36,11 @@ const CATEGORY_CONFIG = {
     [CONST.POLICY.CONNECTIONS.CATEGORY.HR]: {
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
         upgradeAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias,
-        enableFeature: enablePolicyHR,
         getConfigureRoute: ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute,
     },
     [CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING]: {
         featureName: CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
         upgradeAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.alias,
-        enableFeature: enablePolicyRecruiting,
         getConfigureRoute: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.getRoute,
     },
 } as const;
@@ -94,9 +92,7 @@ function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (se
 
         const {setupLink} = card;
         const startSetup = () => {
-            if (!policy?.[config.featureName]) {
-                config.enableFeature(policyID, true, false);
-            }
+            enablePolicyFeatureForConnection(policy, config.featureName);
             onStartSetup(setupLink, card.category);
         };
 
