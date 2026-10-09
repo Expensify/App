@@ -38,6 +38,7 @@ import {
     getExpensifyTeamExclusions,
     getForwardsToAccount,
     getForwardsToFromRules,
+    getIntegrationLastSuccessfulDate,
     getManagerAccountID,
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
@@ -79,6 +80,7 @@ import {
     getXeroExpenseAccounts,
     getXeroSupplierByID,
     getXeroSuppliers,
+    hasAccountingConnections,
     hasConfiguredRules,
     hasDependentTags,
     hasDynamicExternalWorkflow,
@@ -126,7 +128,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
-import type {Connections, DualEntryVendor, FinancialForceSyncedEntity, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
+import type {
+    Connections,
+    DualEntryVendor,
+    FinancialForceSyncedEntity,
+    PolicyConnectionSyncProgress,
+    PolicyConnectionSyncStage,
+    QBONonReimbursableExportAccountType,
+    SageIntacctExportConfig,
+    TaxRates,
+} from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
@@ -1145,50 +1156,6 @@ describe('PolicyUtils', () => {
                 const rate = getRateDisplayValue(10.53135, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.5313');
             });
-        });
-    });
-
-    describe('getUberConnectionErrorDirectlyFromPolicy', () => {
-        it('should return true if Uber connection is enabled and has an error', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                receiptPartners: {
-                    uber: {
-                        enabled: true,
-                        error: 'Some error',
-                        connectFormData: 'Some data',
-                    },
-                },
-            };
-
-            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(true);
-        });
-
-        it('should return false if Uber connection is enabled but has no error', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                receiptPartners: {
-                    uber: {
-                        enabled: true,
-                        error: undefined,
-                        connectFormData: 'Some data',
-                    },
-                },
-            };
-
-            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
-        });
-
-        it('should return false if Uber connection does not exist', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-            };
-
-            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
-        });
-
-        it('should return false if policy is undefined', () => {
-            expect(getUberConnectionErrorDirectlyFromPolicy(undefined)).toBe(false);
         });
     });
 
@@ -3897,64 +3864,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasPolicyWithXeroConnection', () => {
-        it('should return false when no admin policies are provided', () => {
-            const result = hasPolicyWithXeroConnection(undefined);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when no admin policies have Xero connection', () => {
-            const adminPolicies: Policy[] = [
-                {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                            verified: true,
-                            lastSync: {
-                                errorDate: '',
-                                errorMessage: '',
-                                isAuthenticationError: false,
-                                isConnected: true,
-                                isSuccessful: true,
-                                source: 'NEWEXPENSIFY',
-                                successfulDate: '',
-                            },
-                        },
-                    }),
-                },
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-            ];
-            const result = hasPolicyWithXeroConnection(adminPolicies);
-            expect(result).toBe(false);
-        });
-
-        it('should return true when at least one admin policy has Xero connection', () => {
-            const adminPolicies: Policy[] = [
-                {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
-                            lastSync: {
-                                errorDate: '',
-                                errorMessage: '',
-                                isAuthenticationError: false,
-                                isConnected: true,
-                                isSuccessful: true,
-                                source: 'NEWEXPENSIFY',
-                                successfulDate: '',
-                            },
-                            config: createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['config']>({}),
-                            data: createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['data']>({}),
-                        },
-                    }),
-                },
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-            ];
-            const result = hasPolicyWithXeroConnection(adminPolicies);
-            expect(result).toBe(true);
-        });
-    });
-
     describe('getTagApproverRule', () => {
         it('should return undefined when no approval rules are present', () => {
             const policy: Policy = {
@@ -4862,65 +4771,6 @@ describe('PolicyUtils', () => {
 
         it('returns undefined when policy has no connections', () => {
             expect(getDefaultVendorID(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
-        });
-    });
-
-    describe('getSageIntacctVendors', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b);
-
-        it('sorts Intacct vendors alphabetically by value using localeCompare', () => {
-            const policy = createMock<Policy>({
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                        data: {
-                            vendors: [
-                                {id: '1', name: '1', value: 'Zebra'},
-                                {id: '2', name: '2', value: 'Apple'},
-                                {id: '3', name: '3', value: 'Banana'},
-                            ],
-                        },
-                    },
-                }),
-            });
-
-            const result = getSageIntacctVendors(policy, undefined, localeCompare);
-            expect(result.map((v) => v.text)).toEqual(['Apple', 'Banana', 'Zebra']);
-        });
-
-        it('breaks value ties using vendor id', () => {
-            const policy = createMock<Policy>({
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                        data: {
-                            vendors: [
-                                {id: 'vendor_b', name: 'b', value: 'Acme'},
-                                {id: 'vendor_a', name: 'a', value: 'Acme'},
-                            ],
-                        },
-                    },
-                }),
-            });
-
-            const result = getSageIntacctVendors(policy, undefined, localeCompare);
-            expect(result.map((v) => v.value)).toEqual(['vendor_a', 'vendor_b']);
-        });
-
-        it('returns unsorted vendors when localeCompare is not provided', () => {
-            const policy = createMock<Policy>({
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                        data: {
-                            vendors: [
-                                {id: '1', name: '1', value: 'Zebra'},
-                                {id: '2', name: '2', value: 'Apple'},
-                            ],
-                        },
-                    },
-                }),
-            });
-
-            const result = getSageIntacctVendors(policy, undefined);
-            expect(result.map((v) => v.text)).toEqual(['Zebra', 'Apple']);
         });
     });
 
@@ -6515,36 +6365,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getXeroExpenseAccounts', () => {
-        const XERO_EXPENSE_ACCOUNTS = [
-            {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
-            {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
-        ];
-
-        it('maps the expense accounts to selector options', () => {
-            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
-                {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
-                {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
-            ]);
-        });
-
-        it('marks only the selected account as selected', () => {
-            const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
-            expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
-                {keyForList: 'acc1', isSelected: false},
-                {keyForList: 'acc2', isSelected: true},
-            ]);
-        });
-
-        it('selects nothing when the stored account is no longer in the synced list', () => {
-            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
-        });
-
-        it('returns an empty array when Xero expense accounts have not synced yet', () => {
-            expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
-        });
-    });
-
     describe('hasPolicyRulesError', () => {
         // Whether a merchant rule failed is reduced by the caller's selector and covered in
         // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
@@ -6685,6 +6505,386 @@ describe('PolicyUtils', () => {
         it('returns true when sync is done, groups exist, and setup is not yet complete', () => {
             const policy = buildMergeHRPolicy(5, mergeHRBase);
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
+        });
+    });
+
+    describe('connections', () => {
+        describe('getUberConnectionErrorDirectlyFromPolicy', () => {
+            it('should return true if Uber connection is enabled and has an error', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    receiptPartners: {
+                        uber: {
+                            enabled: true,
+                            error: 'Some error',
+                            connectFormData: 'Some data',
+                        },
+                    },
+                };
+
+                expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(true);
+            });
+
+            it('should return false if Uber connection is enabled but has no error', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    receiptPartners: {
+                        uber: {
+                            enabled: true,
+                            error: undefined,
+                            connectFormData: 'Some data',
+                        },
+                    },
+                };
+
+                expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+            });
+
+            it('should return false if Uber connection does not exist', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                };
+
+                expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+            });
+
+            it('should return false if policy is undefined', () => {
+                expect(getUberConnectionErrorDirectlyFromPolicy(undefined)).toBe(false);
+            });
+        });
+
+        describe('hasAccountingConnections', () => {
+            it('returns false when the policy is undefined', () => {
+                expect(hasAccountingConnections(undefined)).toBe(false);
+            });
+
+            it('returns false when the policy has no connections', () => {
+                // Given a workspace without any connection
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
+
+                // When we check for an accounting connection
+                const result = hasAccountingConnections(policy);
+
+                // Then nothing is reported as connected
+                expect(result).toBe(false);
+            });
+
+            it('returns true when the policy has an accounting integration supported in NewDot', () => {
+                // Given a workspace connected to QuickBooks Online
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+
+                // When we check for an accounting connection
+                const result = hasAccountingConnections(policy);
+
+                // Then the QuickBooks Online connection counts as an accounting connection
+                expect(result).toBe(true);
+            });
+
+            it('ignores non-accounting connections (e.g. HR integrations)', () => {
+                // Given a workspace connected only to an HR integration
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {gusto: {data: {}}}});
+
+                // When we check for an accounting connection
+                const result = hasAccountingConnections(policy);
+
+                // Then the HR integration is not treated as an accounting connection
+                expect(result).toBe(false);
+            });
+
+            it('ignores unsupported integrations', () => {
+                // Given a workspace connected only to an integration that NewDot does not support
+                const policy: Policy = Object.assign(createRandomPolicy(0), {connections: {[CONST.POLICY.CONNECTIONS.UNSUPPORTED_NAMES.GENERIC_INDIRECT_CONNECTION]: {}}});
+
+                // When we check for an accounting connection
+                const result = hasAccountingConnections(policy);
+
+                // Then the unsupported integration is not counted, because only hasAccountingFeatureConnection includes it
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('getIntegrationLastSuccessfulDate', () => {
+            // Parses the ISO datetimes as-is, so the results do not depend on the machine's timezone
+            const getLocalDateFromDatetime = (datetime?: string) => (datetime ? new Date(datetime) : new Date());
+            const storedSuccessfulDate = '2026-01-01T10:00:00.000Z';
+            const buildSyncProgress = (stageInProgress: PolicyConnectionSyncStage, timestamp: string): PolicyConnectionSyncProgress => ({
+                stageInProgress,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                timestamp,
+            });
+            const qboConnection = createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]>({lastSync: {successfulDate: storedSuccessfulDate}});
+
+            it('returns undefined when there is no connection', () => {
+                expect(getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, undefined)).toBeUndefined();
+            });
+
+            it('returns the last successful sync date of the connection', () => {
+                // Given a QuickBooks Online connection with a stored successful sync date and no sync in progress
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, qboConnection);
+
+                // Then the stored successful date is returned
+                expect(result).toBe(storedSuccessfulDate);
+            });
+
+            it('returns lastSyncDate for a NetSuite connection', () => {
+                // Given a NetSuite connection, which stores its sync date in lastSyncDate instead of lastSync
+                const netSuiteConnection = createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE]>({lastSyncDate: storedSuccessfulDate});
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, netSuiteConnection);
+
+                // Then the NetSuite lastSyncDate is returned
+                expect(result).toBe(storedSuccessfulDate);
+            });
+
+            it('returns the sync progress timestamp when a newer sync has just finished', () => {
+                // Given a sync that finished after the stored successful date
+                const newerTimestamp = '2026-01-02T10:00:00.000Z';
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(
+                    getLocalDateFromDatetime,
+                    qboConnection,
+                    buildSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE, newerTimestamp),
+                );
+
+                // Then the finished sync's timestamp is shown, so the user sees the sync that just completed
+                expect(result).toBe(newerTimestamp);
+            });
+
+            it('keeps the stored date when the finished sync is older', () => {
+                // Given a finished sync whose timestamp is older than the stored successful date
+                const olderTimestamp = '2025-12-31T10:00:00.000Z';
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(
+                    getLocalDateFromDatetime,
+                    qboConnection,
+                    buildSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE, olderTimestamp),
+                );
+
+                // Then the stored successful date is kept
+                expect(result).toBe(storedSuccessfulDate);
+            });
+
+            it('keeps the stored date while a newer sync is still in progress', () => {
+                // Given a sync with a newer timestamp that has not finished yet
+                const newerTimestamp = '2026-01-02T10:00:00.000Z';
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(
+                    getLocalDateFromDatetime,
+                    qboConnection,
+                    buildSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBO, newerTimestamp),
+                );
+
+                // Then the stored successful date is kept, because the in-progress sync may still fail
+                expect(result).toBe(storedSuccessfulDate);
+            });
+
+            it('returns undefined when the connection has never synced successfully', () => {
+                // Given a connection without a successful sync date and a finished sync
+                const neverSyncedConnection = createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]>({lastSync: {}});
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(
+                    getLocalDateFromDatetime,
+                    neverSyncedConnection,
+                    buildSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE, '2026-01-02T10:00:00.000Z'),
+                );
+
+                // Then no date is returned, because the sync timestamp only replaces an existing successful date
+                expect(result).toBeUndefined();
+            });
+        });
+
+        describe('getConnectedIntegration', () => {
+            it('returns the connected accounting integration when present on the policy', () => {
+                const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+                expect(getConnectedIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBO);
+            });
+
+            it('returns undefined when there is no connected integration', () => {
+                expect(getConnectedIntegration(undefined)).toBeUndefined();
+                expect(getConnectedIntegration(createMock<Policy>({connections: {}}))).toBeUndefined();
+            });
+
+            it('ignores non-accounting connections (e.g. HR integrations)', () => {
+                const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
+                expect(getConnectedIntegration(policy)).toBeUndefined();
+            });
+        });
+
+        describe('getConnectionExporters', () => {
+            it('includes the Business Central preferred exporter', () => {
+                // Given a workspace connected to Business Central with a preferred exporter
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                            config: {export: {exporter: 'exporter@example.com'}},
+                        },
+                    },
+                });
+
+                // When the workspace's connection exporters are read
+                const exporters = getConnectionExporters(policy);
+
+                // Then the Business Central exporter is listed, so that member can export reports to Business Central
+                expect(exporters).toContain('exporter@example.com');
+            });
+        });
+    });
+
+    describe('xero', () => {
+        describe('hasPolicyWithXeroConnection', () => {
+            it('should return false when no admin policies are provided', () => {
+                const result = hasPolicyWithXeroConnection(undefined);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when no admin policies have Xero connection', () => {
+                const adminPolicies: Policy[] = [
+                    {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                                verified: true,
+                                lastSync: {
+                                    errorDate: '',
+                                    errorMessage: '',
+                                    isAuthenticationError: false,
+                                    isConnected: true,
+                                    isSuccessful: true,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
+                            },
+                        }),
+                    },
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                ];
+                const result = hasPolicyWithXeroConnection(adminPolicies);
+                expect(result).toBe(false);
+            });
+
+            it('should return true when at least one admin policy has Xero connection', () => {
+                const adminPolicies: Policy[] = [
+                    {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                                lastSync: {
+                                    errorDate: '',
+                                    errorMessage: '',
+                                    isAuthenticationError: false,
+                                    isConnected: true,
+                                    isSuccessful: true,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
+                                config: createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['config']>({}),
+                                data: createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['data']>({}),
+                            },
+                        }),
+                    },
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                ];
+                const result = hasPolicyWithXeroConnection(adminPolicies);
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('getXeroExpenseAccounts', () => {
+            const XERO_EXPENSE_ACCOUNTS = [
+                {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
+                {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
+            ];
+
+            it('maps the expense accounts to selector options', () => {
+                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
+                    {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
+                    {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
+                ]);
+            });
+
+            it('marks only the selected account as selected', () => {
+                const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
+                expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
+                    {keyForList: 'acc1', isSelected: false},
+                    {keyForList: 'acc2', isSelected: true},
+                ]);
+            });
+
+            it('selects nothing when the stored account is no longer in the synced list', () => {
+                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
+            });
+
+            it('returns an empty array when Xero expense accounts have not synced yet', () => {
+                expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
+            });
+        });
+    });
+
+    describe('sageIntacct', () => {
+        describe('getSageIntacctVendors', () => {
+            const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+            it('sorts Intacct vendors alphabetically by value using localeCompare', () => {
+                const policy = createMock<Policy>({
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            data: {
+                                vendors: [
+                                    {id: '1', name: '1', value: 'Zebra'},
+                                    {id: '2', name: '2', value: 'Apple'},
+                                    {id: '3', name: '3', value: 'Banana'},
+                                ],
+                            },
+                        },
+                    }),
+                });
+
+                const result = getSageIntacctVendors(policy, undefined, localeCompare);
+                expect(result.map((v) => v.text)).toEqual(['Apple', 'Banana', 'Zebra']);
+            });
+
+            it('breaks value ties using vendor id', () => {
+                const policy = createMock<Policy>({
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            data: {
+                                vendors: [
+                                    {id: 'vendor_b', name: 'b', value: 'Acme'},
+                                    {id: 'vendor_a', name: 'a', value: 'Acme'},
+                                ],
+                            },
+                        },
+                    }),
+                });
+
+                const result = getSageIntacctVendors(policy, undefined, localeCompare);
+                expect(result.map((v) => v.value)).toEqual(['vendor_a', 'vendor_b']);
+            });
+
+            it('returns unsorted vendors when localeCompare is not provided', () => {
+                const policy = createMock<Policy>({
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            data: {
+                                vendors: [
+                                    {id: '1', name: '1', value: 'Zebra'},
+                                    {id: '2', name: '2', value: 'Apple'},
+                                ],
+                            },
+                        },
+                    }),
+                });
+
+                const result = getSageIntacctVendors(policy, undefined);
+                expect(result.map((v) => v.text)).toEqual(['Zebra', 'Apple']);
+            });
         });
     });
 });
@@ -6968,23 +7168,6 @@ describe('hasActiveExpensifyCard', () => {
     });
 });
 
-describe('getConnectedIntegration', () => {
-    it('returns the connected accounting integration when present on the policy', () => {
-        const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
-        expect(getConnectedIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBO);
-    });
-
-    it('returns undefined when there is no connected integration', () => {
-        expect(getConnectedIntegration(undefined)).toBeUndefined();
-        expect(getConnectedIntegration(createMock<Policy>({connections: {}}))).toBeUndefined();
-    });
-
-    it('ignores non-accounting connections (e.g. HR integrations)', () => {
-        const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
-        expect(getConnectedIntegration(policy)).toBeUndefined();
-    });
-});
-
 describe('isMemberInHomeAndOfficeWorkspace', () => {
     it('only allows members of home and office workspaces', () => {
         // Given a workspace whose employee list contains one member
@@ -7026,25 +7209,5 @@ describe('shouldHideDynamicExternalWorkflowPeople', () => {
     it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
         const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
         expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
-    });
-});
-
-describe('getConnectionExporters', () => {
-    it('includes the Business Central preferred exporter', () => {
-        // Given a workspace connected to Business Central with a preferred exporter
-        const policy = createMock<Policy>({
-            ...createRandomPolicy(0),
-            connections: {
-                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
-                    config: {export: {exporter: 'exporter@example.com'}},
-                },
-            },
-        });
-
-        // When the workspace's connection exporters are read
-        const exporters = getConnectionExporters(policy);
-
-        // Then the Business Central exporter is listed, so that member can export reports to Business Central
-        expect(exporters).toContain('exporter@example.com');
     });
 });
