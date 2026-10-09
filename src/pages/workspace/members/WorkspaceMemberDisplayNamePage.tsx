@@ -59,62 +59,67 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
                 shouldEnableMaxHeight
                 testID="WorkspaceMemberDisplayNamePage"
             >
-                <HeaderWithBackButtonAndTitle
-                    title={translate('displayNamePage.headerTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                {isLoadingMemberPersonalDetails && <FullscreenLoadingIndicator />}
-                <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.WORKSPACE_MEMBER_DISPLAY_NAME_FORM}
-                    validate={validate}
-                    onSubmit={(values) => {
-                        if (!memberLogin) {
-                            return;
-                        }
-                        updatePolicyMemberDisplayName(policyID, values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, {
-                            accountID,
-                            email: memberLogin,
-                            firstName: memberPersonalDetails?.firstName,
-                            lastName: memberPersonalDetails?.lastName,
-                            displayName: memberPersonalDetails?.displayName,
-                            avatar: memberPersonalDetails?.avatar,
-                        });
-                        Navigation.goBack();
-                    }}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                    shouldValidateOnBlur
-                    shouldValidateOnChange
-                >
-                    <Text style={[styles.mb6]}>{translate('displayNamePage.isShownOnMemberProfile')}</Text>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.FIRST_NAME}
-                            name="fname"
-                            label={translate('common.firstName')}
-                            aria-label={translate('common.firstName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            spellCheck={false}
-                            autoCapitalize="words"
-                            autoComplete="given-name"
+                {isLoadingMemberPersonalDetails ? (
+                    <FullscreenLoadingIndicator />
+                ) : (
+                    <>
+                        <HeaderWithBackButtonAndTitle
+                            title={translate('displayNamePage.headerTitle')}
+                            onBackButtonPress={() => Navigation.goBack()}
                         />
-                    </View>
-                    <View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LAST_NAME}
-                            name="lname"
-                            label={translate('common.lastName')}
-                            aria-label={translate('common.lastName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            spellCheck={false}
-                            autoCapitalize="words"
-                            autoComplete="family-name"
-                        />
-                    </View>
-                </FormProvider>
+                        <FormProvider
+                            style={[styles.flexGrow1, styles.ph5]}
+                            formID={ONYXKEYS.FORMS.WORKSPACE_MEMBER_DISPLAY_NAME_FORM}
+                            validate={validate}
+                            onSubmit={(values) => {
+                                if (!memberLogin) {
+                                    return;
+                                }
+                                updatePolicyMemberDisplayName(policyID, values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, {
+                                    accountID,
+                                    email: memberLogin,
+                                    firstName: memberPersonalDetails?.firstName,
+                                    lastName: memberPersonalDetails?.lastName,
+                                    displayName: memberPersonalDetails?.displayName,
+                                    avatar: memberPersonalDetails?.avatar,
+                                });
+                                Navigation.goBack();
+                            }}
+                            submitButtonText={translate('common.save')}
+                            enabledWhenOffline
+                            shouldValidateOnBlur
+                            shouldValidateOnChange
+                        >
+                            <Text style={[styles.mb6]}>{translate('displayNamePage.isShownOnMemberProfile')}</Text>
+                            <View style={styles.mb4}>
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    inputID={INPUT_IDS.FIRST_NAME}
+                                    name="fname"
+                                    label={translate('common.firstName')}
+                                    aria-label={translate('common.firstName')}
+                                    role={CONST.ROLE.PRESENTATION}
+                                    spellCheck={false}
+                                    autoCapitalize="words"
+                                    autoComplete="given-name"
+                                />
+                            </View>
+                            <View>
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    inputID={INPUT_IDS.LAST_NAME}
+                                    name="lname"
+                                    label={translate('common.lastName')}
+                                    aria-label={translate('common.lastName')}
+                                    role={CONST.ROLE.PRESENTATION}
+                                    spellCheck={false}
+                                    autoCapitalize="words"
+                                    autoComplete="family-name"
+                                />
+                            </View>
+                        </FormProvider>
+                    </>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
