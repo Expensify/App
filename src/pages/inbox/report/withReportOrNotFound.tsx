@@ -112,7 +112,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 deleteTransactionNavigateBackUrl,
             });
 
-            if (decision === 'null') {
+            if (decision === 'blank') {
                 return null;
             }
 

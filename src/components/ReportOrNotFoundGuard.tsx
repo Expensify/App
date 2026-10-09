@@ -20,7 +20,7 @@ import React, {useState} from 'react';
 
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 
-type ReportOrNotFoundDecision = 'null' | 'loading' | 'notFound' | 'content';
+type ReportOrNotFoundDecision = 'blank' | 'loading' | 'notFound' | 'content';
 
 type ReportOrNotFoundDecisionParams = {
     shouldRequireReportID: boolean;
@@ -63,7 +63,7 @@ function getReportOrNotFoundDecision({
     // We also suppress the NotFound page while a delete-transaction navigation is in flight (e.g. deleting an invoice
     // navigates back to the invoice room without synchronously removing focus from this details RHP), mirroring ReportNotFoundGuard.
     if (shouldShowNotFoundPage && hasShownContent && (!isFocused || !!deleteTransactionNavigateBackUrl)) {
-        return 'null';
+        return 'blank';
     }
 
     if (shouldShowFullScreenLoadingIndicator) {
@@ -121,7 +121,7 @@ function ReportOrNotFoundGuard({reportID, shouldRequireReportID = true, children
         setHasShownContent(true);
     }
 
-    if (decision === 'null') {
+    if (decision === 'blank') {
         return null;
     }
 

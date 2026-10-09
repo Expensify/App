@@ -197,6 +197,26 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
             expect(screen.getByTestId('notFound')).toBeTruthy();
         });
 
+        it('should render nothing when a shown report disappears while a delete-transaction navigation is in flight', async () => {
+            // Given the content was shown and the screen keeps focus while a delete-transaction navigation is pending, as when deleting an invoice
+            await seedFinishedLoading();
+            await seedReport();
+            renderSubject();
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByTestId('content')).toBeTruthy();
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, 'r/1');
+            });
+
+            // When the report is removed
+            await removeReport();
+
+            // Then the not found page does not flash before the navigation completes
+            expect(screen.queryByTestId('content')).toBeNull();
+            expect(screen.queryByTestId('notFound')).toBeNull();
+            expect(screen.queryByTestId('loading')).toBeNull();
+        });
+
         it('should call OpenReport when the report is missing and has not been fetched yet', async () => {
             // Given a deep link to a report that is not in Onyx and has no finished OpenReport call
 
