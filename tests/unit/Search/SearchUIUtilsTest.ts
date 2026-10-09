@@ -861,11 +861,11 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
 
 const transactionsListItems = createMock<TransactionListItemType[]>([
     {
-        action: 'submit',
-        allActions: ['submit'],
+        action: 'view',
+        allActions: ['view'],
         canPay: false,
         canApprove: false,
-        canSubmit: true,
+        canSubmit: false,
         canChangeApprover: false,
         amount: -5000,
         report: report1,
@@ -926,12 +926,12 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         groupCurrency: 'USD',
     },
     {
-        action: 'approve',
-        allActions: ['approve', 'changeApprover'],
+        action: 'view',
+        allActions: ['view'],
         canPay: false,
-        canApprove: true,
+        canApprove: false,
         canSubmit: false,
-        canChangeApprover: true,
+        canChangeApprover: false,
         amount: -5000,
         report: report2,
         policy,
@@ -1216,11 +1216,11 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         transactionCount: 1,
         transactions: [
             {
-                action: 'submit',
-                allActions: ['submit'],
+                action: 'view',
+                allActions: ['view'],
                 canPay: false,
                 canApprove: false,
-                canSubmit: true,
+                canSubmit: false,
                 canChangeApprover: false,
                 report: report1,
                 policy,
@@ -1353,12 +1353,12 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         transactionCount: 1,
         transactions: [
             {
-                action: 'approve',
-                allActions: ['approve', 'changeApprover'],
+                action: 'view',
+                allActions: ['view'],
                 canPay: false,
-                canApprove: true,
+                canApprove: false,
                 canSubmit: false,
-                canChangeApprover: true,
+                canChangeApprover: false,
                 report: report2,
                 policy,
                 reportAction: reportAction2,
@@ -2290,12 +2290,137 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
-        test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
+        test('Should return `Submit` action for report on policy with delayed submission and no violations', () => {
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
 
-            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        test('Should return only `View` action for the expense of a single-expense report that can be submitted', () => {
+            // Given report1 holds a single expense and the report itself can be submitted
+            const reportActions = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+            expect(reportActions).toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+
+            // When the actions are computed for its expense row
+            const transactionActions = SearchUIUtils.getActions(
+                searchResults.data,
+                {},
+                `transactions_${transactionID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                adminAccountID,
+                {},
+                {},
+                undefined,
+            );
+
+            // Then Submit is a report level action, so the expense row only offers View
+            expect(transactionActions).toStrictEqual([CONST.SEARCH.ACTION_TYPES.VIEW]);
+        });
+
+        test('Should return only `View` action for the expense of a single-expense report that can be paid', async () => {
+            // Given report3 is ready to be paid and holds a single expense
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            await waitForBatchedUpdates();
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${reportID3}`]: {...searchResults.data[`report_${reportID3}`], transactionCount: 1},
+            };
+            const reportActions = SearchUIUtils.getActions(localSearchResults, {}, `report_${reportID3}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+            expect(reportActions).toContain(CONST.SEARCH.ACTION_TYPES.PAY);
+
+            // When the actions are computed for its expense row
+            const transactionActions = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `transactions_${transactionID3}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                adminAccountID,
+                {},
+                {},
+                undefined,
+            );
+
+            // Then Pay is a report level action, so the expense row only offers View
+            expect(transactionActions).toStrictEqual([CONST.SEARCH.ACTION_TYPES.VIEW]);
+        });
+
+        test('Should keep `Pay` action for the expense of a single-line invoice the current user can pay', () => {
+            // Given a submitted single-line invoice sent to the current user
+            const invoiceReportID = 'invoice-report-pay';
+            const invoiceChatReportID = 'invoice-chat-pay';
+            const invoiceTransactionID = 'invoice-transaction-pay';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${invoiceReportID}`]: {
+                    ...searchResults.data[`report_${reportID3}`],
+                    reportID: invoiceReportID,
+                    chatReportID: invoiceChatReportID,
+                    policyID: 'invoice-sender-policy',
+                    type: CONST.REPORT.TYPE.INVOICE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    transactionCount: 1,
+                },
+                [`report_${invoiceChatReportID}`]: {
+                    ...searchResults.data[`report_${reportID4}`],
+                    reportID: invoiceChatReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                    invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: adminAccountID},
+                },
+                [`transactions_${invoiceTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID3}`],
+                    transactionID: invoiceTransactionID,
+                    reportID: invoiceReportID,
+                },
+            };
+
+            // When the actions are computed for its invoice row
+            const action = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `transactions_${invoiceTransactionID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                adminAccountID,
+                {},
+                {},
+                undefined,
+            ).at(0);
+
+            // Then invoice rows still offer Pay since only expense rows drop report level actions
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+        });
+
+        test('Should show `View` and no Pay capability on the Expenses tab for a non-reimbursable single-expense report', async () => {
+            // Given report3 is ready to be paid and holds a single non-reimbursable expense
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${reportID3}`]: {...searchResults.data[`report_${reportID3}`], transactionCount: 1},
+                [`transactions_${transactionID3}`]: {...searchResults.data[`transactions_${transactionID3}`], reimbursable: false},
+            };
+
+            // When the Expenses tab sections are built
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: localSearchResults,
+                currentAccountID: adminAccountID,
+                currentUserEmail: adminEmail,
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
+            });
+            const transaction = sections.filter(SearchUIUtils.isTransactionListItemType).find((item) => item.transactionID === transactionID3);
+
+            // Then the row shows View like the Reports tab, instead of a Pay button that does nothing
+            expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+            expect(transaction?.canPay).toBe(false);
         });
 
         test('Should return `Submit` action for open expense report on Submit workspace when default submit-to is the owner', () => {
@@ -2589,7 +2714,7 @@ describe('SearchUIUtils', () => {
             const action = SearchUIUtils.getActions(
                 localSearchResults,
                 {},
-                `transactions_${dewTransactionID}`,
+                `report_${dewReportID}`,
                 CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 '',
                 adminAccountID,
@@ -2637,7 +2762,7 @@ describe('SearchUIUtils', () => {
             const action = SearchUIUtils.getActions(
                 localSearchResults,
                 {},
-                `transactions_${dewTransactionID}`,
+                `report_${dewReportID}`,
                 CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 '',
                 adminAccountID,
@@ -2687,7 +2812,7 @@ describe('SearchUIUtils', () => {
             const action = SearchUIUtils.getActions(
                 localSearchResults,
                 {},
-                `transactions_${nonDewTransactionID}`,
+                `report_${nonDewReportID}`,
                 CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 '',
                 adminAccountID,
@@ -2745,7 +2870,7 @@ describe('SearchUIUtils', () => {
             // report1 has ownerAccountID: adminAccountID, so adminAccountID is the owner
             const [sections] = SearchUIUtils.getSections({
                 dateFnsLocale: undefined,
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: searchResults.data,
                 currentAccountID: adminAccountID,
                 currentUserEmail: adminEmail,
@@ -2757,8 +2882,8 @@ describe('SearchUIUtils', () => {
                 convertToDisplayString,
                 reportAttributesDerivedValue: undefined,
             });
-            const transaction = sections.filter(SearchUIUtils.isTransactionListItemType).find((item) => item.transactionID === transactionID);
-            expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+            const reportSection = sections.filter(SearchUIUtils.isTransactionReportGroupListItemType).find((item) => item.reportID === reportID);
+            expect(reportSection?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
     });
 

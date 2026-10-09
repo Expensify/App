@@ -2154,10 +2154,15 @@ function getActions(
     }
 
     const policy = getPolicyFromKey(data, report);
-    const isExportAvailable = isExportAction(report, currentUserLogin, policy, reportActions) && !isTransaction;
+    const isExportAvailable = !isTransaction && isExportAction(report, currentUserLogin, policy, reportActions);
 
     if (isSettled(report) && !isExportAvailable) {
         return [CONST.SEARCH.ACTION_TYPES.PAID];
+    }
+
+    // Submit/Approve/Pay are report level actions, so expense rows only offer View.
+    if (isTransaction && !isInvoiceReport(report)) {
+        return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
@@ -2183,8 +2188,7 @@ function getActions(
 
     const isChatReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`]);
 
-    // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
-    // If this condition is not met, return early for performance reasons
+    // Only invoice rows reach here. They get report actions only when the invoice has a single line.
     if (isTransaction && !isOneTransactionReport(report)) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
