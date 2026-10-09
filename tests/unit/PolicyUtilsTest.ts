@@ -100,6 +100,7 @@ import {
     isMaxExpenseAmountSet,
     isMemberInHomeAndOfficeWorkspace,
     isMergeHRCompleteSetupNeededSelector,
+    isNonMemberApprover,
     isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
@@ -681,6 +682,19 @@ describe('PolicyUtils', () => {
                 // Then the normalized fallback still matches the admin entry and protects them
                 expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Admin@Test.com', undefined)).toBe(true);
                 expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Member@Test.com', undefined)).toBe(false);
+            });
+
+            it('protects a member who is an auditor of the policy in their own right', () => {
+                // Given a policy viewed by an admin, holding an auditor in its employee list
+                const auditorLogin = 'auditor@test.com';
+                const policy = buildPolicy();
+                const policyWithAuditor = {...policy, employeeList: {...policy.employeeList, [auditorLogin]: {role: CONST.POLICY.ROLE.AUDITOR}}};
+
+                // When that member's protection is resolved, including through a mixed-case login
+                // Then they are protected, because auditors are default members of the workspace chat and the server adds
+                // them back after removal. The viewer's global `role` must not hide the auditor's own role
+                expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, auditorLogin, undefined)).toBe(true);
+                expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, 'Auditor@Test.com', undefined)).toBe(true);
             });
 
             it('protects the policy owner by accountID even when the employee list does not list them', () => {
@@ -2885,6 +2899,32 @@ describe('PolicyUtils', () => {
                 {policyID: '1', name: 'Workspace 1'},
                 {policyID: '2', name: 'Workspace 2'},
             ]);
+        });
+    });
+
+    describe('isNonMemberApprover', () => {
+        const ownerEmail = 'owner@example.com';
+        const policy = createMock<Policy>({
+            id: '1',
+            owner: ownerEmail,
+            employeeList: {
+                [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+            },
+        });
+
+        it('flags an approver who is no longer on the workspace, but not a member', () => {
+            // Given a workspace with one member
+            // When checking a removed approver and that member
+            // Then only the removed approver is flagged
+            expect(isNonMemberApprover(policy, 'removed@example.com')).toBe(true);
+            expect(isNonMemberApprover(policy, employeeEmail)).toBe(false);
+        });
+
+        it('does not flag the owner when their employee entry is missing', () => {
+            // Given a workspace whose employeeList has no entry for the owner
+            // When checking the owner as an approver
+            // Then they still count as a member, since the owner always belongs to the workspace
+            expect(isNonMemberApprover(policy, ownerEmail)).toBe(false);
         });
     });
 

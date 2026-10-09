@@ -1298,6 +1298,27 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
 }
 
 /**
+ * A deleted report preview stays visible while it carries a payment failure. That error is the payer's only feedback
+ * when a delete races their queued payment.
+ */
+function isDeletedReportPreviewWithError(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isReportPreviewAction(reportAction) && isDeletedAction(reportAction) && !!reportAction?.errors?.[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY];
+}
+
+/**
+ * The errors a consumer should act on. While the expense report still exists a payment failure belongs on the pay
+ * action inside it, so drop the copy mirrored onto the chat's preview.
+ */
+function getVisibleReportActionErrors(reportAction: OnyxEntry<ReportAction>): ReportAction['errors'] {
+    const errors = reportAction?.errors ?? {};
+    if (!isReportPreviewAction(reportAction) || isDeletedAction(reportAction) || !(CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in errors)) {
+        return errors;
+    }
+    const {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: payFailure, ...rest} = errors;
+    return rest;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1398,6 +1419,10 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    if (isDeletedReportPreviewWithError(reportAction)) {
+        return true;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     return !!reportAction.pendingAction || !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
@@ -1474,7 +1499,7 @@ function isReportActionVisibleAsLastAction(
         return false;
     }
 
-    if (Object.keys(reportAction.errors ?? {}).length > 0) {
+    if (Object.keys(getVisibleReportActionErrors(reportAction) ?? {}).length > 0) {
         return false;
     }
 
@@ -5450,6 +5475,8 @@ export {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isDeletedReportPreviewWithError,
+    getVisibleReportActionErrors,
     isMemberChangeAction,
     isLeavePolicyAction,
     isExportIntegrationAction,

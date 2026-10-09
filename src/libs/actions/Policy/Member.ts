@@ -720,8 +720,7 @@ async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMem
     if (!policy?.id) {
         return;
     }
-    // Submit workspaces lock everyone to the Editor role — role changes are not allowed.
-    // This guard prevents any future code path from bypassing the UI-level blocks.
+    // Submit workspaces lock everyone to the Editor role, so role changes are not allowed.
     if (isSubmitPolicy(policy)) {
         return;
     }
@@ -732,9 +731,8 @@ async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMem
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 
-    // The approve-only blocked reasons live only on the response, which API.write does not expose.
     if (newRole === CONST.POLICY.ROLE.APPROVE_ONLY) {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- blocked reasons are only on the response, which API.write does not expose
         const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData});
         if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
             Onyx.update(failureData);
