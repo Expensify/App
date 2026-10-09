@@ -68,6 +68,7 @@ import {
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
+    getPolicyWorkArrangementMessage,
     getUpdatedCommuterExclusionsMessage,
     getUpdatedMemberWorkArrangementMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -1444,6 +1445,23 @@ describe('ReportActionsUtils', () => {
             ]);
         });
 
+        it('does not link Business Central export record IDs', () => {
+            // Given an export with one out-of-pocket record and multiple company card records stored as IDs
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.BUSINESS_CENTRAL, ['card-record-1', 'card-record-2'], ['reimbursable-record-1']);
+
+            // When the export confirmation is formatted
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            // Then both expense types remain visible without links to an unrelated accounting system
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.BUSINESS_CENTRAL}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'out-of-pocket expenses', url: ''},
+                {text: 'and', url: ''},
+                {text: 'company card expenses', url: ''},
+            ]);
+        });
+
         it('ends a single out-of-pocket expense link with a period by default', () => {
             // Given an export action whose only link is a single reimbursable expense URL
             const action = buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, [], ['https://system.netsuite.com/1']);
@@ -1614,6 +1632,23 @@ describe('ReportActionsUtils', () => {
             };
 
             expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
+        });
+
+        it('formats a closed support ticket as a muted system message', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                reportActionID: 'support-ticket-closed-action',
+                created: '2026-10-05 12:00:00.000',
+                message: [{text: 'Daniel resolved this support ticket.', type: CONST.REPORT.MESSAGE.TYPE.TEXT}],
+                originalMessage: {
+                    policyName: '',
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action, true)).toEqual([
+                {text: 'Daniel resolved this support ticket.', html: '<muted-text>Daniel resolved this support ticket.</muted-text>', type: 'COMMENT'},
+            ]);
         });
     });
 
@@ -2511,6 +2546,39 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isPushScopedToOthers', () => {
+        const cardholderAccountID = 1;
+        const auditorAccountID = 2;
+        const buildDecline = (originalMessage: Record<string, unknown>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE,
+                reportActionID: '1',
+                actorAccountID: 3,
+                created: '2026-10-06',
+                message: [],
+                originalMessage,
+            }) as ReportAction;
+
+        it('returns true for an account outside actionableForAccountIDs when the push is scoped', () => {
+            const decline = buildDecline({actionableForAccountIDs: [cardholderAccountID], shouldScopePushToActionableAccounts: true});
+            expect(ReportActionsUtils.isPushScopedToOthers(decline, auditorAccountID)).toBe(true);
+        });
+
+        it('returns false for an account in actionableForAccountIDs', () => {
+            const decline = buildDecline({actionableForAccountIDs: [cardholderAccountID], shouldScopePushToActionableAccounts: true});
+            expect(ReportActionsUtils.isPushScopedToOthers(decline, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the action does not ask to scope its push', () => {
+            const decline = buildDecline({actionableForAccountIDs: [cardholderAccountID]});
+            expect(ReportActionsUtils.isPushScopedToOthers(decline, auditorAccountID)).toBe(false);
+        });
+
+        it('returns false for an empty reportAction', () => {
+            expect(ReportActionsUtils.isPushScopedToOthers(undefined, auditorAccountID)).toBe(false);
+        });
+    });
+
     describe('doesReportHaveVisibleActions', () => {
         const reportID = 'report_1';
         const visibleComment: ReportAction = {
@@ -2564,6 +2632,21 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('shouldReportActionBeVisible', () => {
+        it('keeps a closed support ticket action visible', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    policyName: '',
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
+            expect(ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true)).toBe(false);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, undefined, true)).toBe(true);
+        });
+
         it('should return false for moved transaction if the report destination is unavailable', () => {
             // Given a moved transaction action but the report destination is not available
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
@@ -2834,6 +2917,157 @@ describe('ReportActionsUtils', () => {
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
             expect(actual).toBe(true);
+        });
+    });
+
+    describe('isDeletedReportPreviewWithError', () => {
+        const errorKey = CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY;
+        // An unrelated error, keyed by the microtime it was recorded at.
+        const otherErrorKey = 1737000000000;
+
+        /** A report preview marked deleted the way the server marks one when its report is removed. */
+        function buildDeletedReportPreview(errors?: ReportAction['errors']): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00', deleted: '2025-09-30 10:00:00.000'}],
+                originalMessage: {linkedReportID: '2'},
+                errors,
+            };
+        }
+
+        it('should return true for a deleted report preview that still carries an error', () => {
+            // Given a report preview whose report was deleted while the payer's payment sat in the offline queue,
+            // leaving the payment failure error behind on the preview
+            const reportAction = buildDeletedReportPreview({[errorKey]: 'This payment failed because the expense was deleted.'});
+
+            // When we ask whether it is an errored deleted preview
+            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
+
+            // Then it is, because that error is the payer's only feedback and needs somewhere to render
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for a deleted report preview with no error', () => {
+            // Given an ordinary deleted report preview, i.e. the expense was deleted and nothing failed
+            const reportAction = buildDeletedReportPreview();
+
+            // When we ask whether it is an errored deleted preview
+            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
+
+            // Then it is not, so it stays hidden as before
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for a deleted report preview whose errors were dismissed', () => {
+            // Given a preview whose error the payer already dismissed, which clears the values rather than the keys
+            const reportAction = buildDeletedReportPreview({[errorKey]: null});
+
+            // When we ask whether it is an errored deleted preview
+            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
+
+            // Then it is not, so dismissing removes the row instead of leaving an empty one behind
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for a deleted preview carrying an unrelated error', () => {
+            // Given a deleted preview whose only error came from something other than a failed payment
+            const reportAction = buildDeletedReportPreview({[otherErrorKey]: 'Some other error'});
+
+            // When we ask whether it is an errored deleted preview
+            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
+
+            // Then it is not, so it is neither revived nor relabelled as a payment failure
+            expect(actual).toBe(false);
+        });
+
+        it('should hide the payment failure on a preview whose report still exists', () => {
+            // Given a live report preview carrying the payment failure, i.e. the payment was rejected for some reason
+            // other than the expense being deleted
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00'}],
+                originalMessage: {linkedReportID: '2'},
+                errors: {[errorKey]: 'Unexpected error. Please try again later.'},
+            };
+
+            // When we ask which errors a consumer should act on
+            const actual = ReportActionsUtils.getVisibleReportActionErrors(reportAction);
+
+            // Then the payment failure is dropped, because the error still has a home on the pay action inside the
+            // expense report and the chat should not be red-dotted twice
+            expect(actual).toEqual({});
+        });
+
+        it('should keep other errors on a preview whose report still exists', () => {
+            // Given a live preview carrying the error left by a failed delete
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00'}],
+                originalMessage: {linkedReportID: '2'},
+                errors: {[otherErrorKey]: 'Unexpected error deleting this expense. Please try again later.'},
+            };
+
+            // When we ask which errors a consumer should act on
+            const actual = ReportActionsUtils.getVisibleReportActionErrors(reportAction);
+
+            // Then it is untouched, i.e. the suppression is scoped to the payment failure
+            expect(actual).toEqual({[otherErrorKey]: 'Unexpected error deleting this expense. Please try again later.'});
+        });
+
+        it('should keep the payment failure once the preview is deleted', () => {
+            // Given the same payment failure on a preview the server has since marked deleted
+            const reportAction = buildDeletedReportPreview({[errorKey]: 'Unexpected error. Please try again later.'});
+
+            // When we ask which errors a consumer should act on
+            const actual = ReportActionsUtils.getVisibleReportActionErrors(reportAction);
+
+            // Then it survives, because this is the payer's only remaining feedback
+            expect(actual).toEqual({[errorKey]: 'Unexpected error. Please try again later.'});
+        });
+
+        it('should return false for a non-preview deleted action that carries an error', () => {
+            // Given a deleted comment with an error, which must not be revived by this rule
+            const reportAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: '', type: 'COMMENT', text: ''}],
+                errors: {[errorKey]: 'Some error'},
+            };
+
+            // When we ask whether it is an errored deleted preview
+            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
+
+            // Then it is not, because the rule is scoped to report previews
+            expect(actual).toBe(false);
+        });
+
+        it('should keep an errored deleted report preview visible', () => {
+            // Given a deleted report preview carrying a payment failure error
+            const reportAction = buildDeletedReportPreview({[errorKey]: 'This payment failed because the expense was deleted.'});
+
+            // When the report view decides whether to render it
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+
+            // Then it is rendered, so the RBR beneath it has a preview to attach to
+            expect(actual).toBe(true);
+        });
+
+        it('should keep hiding a deleted report preview with no error', () => {
+            // Given the same preview without an error
+            const reportAction = buildDeletedReportPreview();
+
+            // When the report view decides whether to render it
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+
+            // Then it stays hidden, i.e. this fix did not make every deleted preview visible
+            expect(actual).toBe(false);
         });
     });
 
@@ -4535,6 +4769,73 @@ describe('ReportActionsUtils', () => {
             [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, undefined, 'changed exclude commutes to a fixed distance per claim (previously do not exclude commutes)'],
         ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
             expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
+        });
+    });
+
+    describe('getPolicyWorkArrangementMessage', () => {
+        const buildWorkArrangementAction = (originalMessage: Record<string, unknown>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [{type: 'COMMENT', html: 'raw text', text: 'raw text'}],
+            }) as ReportAction;
+
+        it.each([
+            [true, 'set the default work arrangement to Office-based'],
+            [false, 'set the default work arrangement to Remote or mobile'],
+        ])('reports only the new arrangement the first time it is set to %s', (newValue, expected) => {
+            // Given a change log for the first time an admin picks a work arrangement, which has no previous value
+            const action = buildWorkArrangementAction({newValue});
+
+            // When the message is built
+            const result = getPolicyWorkArrangementMessage(translateLocal, action);
+
+            // Then it names the new arrangement without claiming the workspace had a previous one
+            expect(result).toBe(expected);
+        });
+
+        it.each([
+            [true, false, 'changed the default work arrangement to Office-based (previously Remote or mobile)'],
+            [false, true, 'changed the default work arrangement to Remote or mobile (previously Office-based)'],
+        ])('names both arrangements when changing to %s from %s', (newValue, oldValue, expected) => {
+            // Given a change log for an admin switching an arrangement the workspace already had
+            const action = buildWorkArrangementAction({newValue, oldValue});
+
+            // When the message is built
+            const result = getPolicyWorkArrangementMessage(translateLocal, action);
+
+            // Then it names what the arrangement became and what it was
+            expect(result).toBe(expected);
+        });
+
+        it('falls back to the stored text when the action is of another type', () => {
+            // Given an action the resolver does not own, which can happen when a change log type is mapped wrongly
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {newValue: true},
+                message: [{type: 'COMMENT', html: 'raw text', text: 'raw text'}],
+            } as ReportAction;
+
+            // When the message is built
+            const result = getPolicyWorkArrangementMessage(translateLocal, action);
+
+            // Then the text the server sent is shown rather than an arrangement invented from the wrong payload
+            expect(result).toBe('raw text');
+        });
+
+        it('falls back to the stored text when the arrangement is missing from the payload', () => {
+            // Given a change log whose newValue never arrived, so there is no arrangement to name
+            const action = buildWorkArrangementAction({});
+
+            // When the message is built
+            const result = getPolicyWorkArrangementMessage(translateLocal, action);
+
+            // Then the text the server sent is shown instead of a half-built sentence
+            expect(result).toBe('raw text');
         });
     });
 

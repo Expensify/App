@@ -1,6 +1,8 @@
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import ScrollView from '@components/ScrollView';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import SearchMergeReportsListItem from '@components/Search/SearchList/ListItem/SearchMergeReportsListItem';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -10,6 +12,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -17,6 +20,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {mergeReports} from '@libs/actions/Report';
+import {getReportFromSearchSnapshot, setSearchMergeReportIDs} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
@@ -28,16 +32,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useMemo, useState} from 'react';
 
 function SearchMergeReports() {
-    const {selectedReports} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
-    const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchHash} = useSearchQueryContext();
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [selectedReportIDs, selectedReportIDsMeta] = useOnyx(ONYXKEYS.SEARCH_MERGE_REPORT_IDS);
+    const [allReports, allReportsMeta] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const isLoadingOnyxData = isLoadingOnyxValue(allReportsMeta, selectedReportIDsMeta);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -48,6 +54,7 @@ function SearchMergeReports() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
 
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -62,13 +69,14 @@ function SearchMergeReports() {
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
 
-    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReports);
+    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReportIDs);
 
     const allReportsTransactions: Record<string, Transaction[]> = useMemo(() => {
-        const selectedReportIDSet = new Set(selectedReports.map((report) => report.reportID));
+        const selectedReportIDSet = new Set(selectedReportIDs);
         const addedTransactionIDSet = new Set<string>();
 
         const isTransaction = (key: string, value: unknown): value is Transaction =>
@@ -104,18 +112,19 @@ function SearchMergeReports() {
             result[transaction.reportID].push(transaction);
         }
         return result;
-    }, [currentSearchResults?.data, selectedReports, allTransactions]);
+    }, [currentSearchResults?.data, selectedReportIDs, allTransactions]);
 
     const reportItems = useMemo(() => {
-        if (!selectedReports || currentSearchQueryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        if (!selectedReportIDs) {
             return [];
         }
-        return selectedReports
-            .map(({reportID}) => {
-                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        return selectedReportIDs
+            .map((reportID) => {
+                const report = getReportFromSearchSnapshot(reportID, currentSearchResults?.data, allReports);
                 if (!reportID || !report?.reportID || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return undefined;
                 }
+
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
                 return {
                     ...report,
@@ -128,10 +137,13 @@ function SearchMergeReports() {
                     totalDisplaySpend,
                     nonReimbursableSpend,
                     reimbursableSpend,
+                    errors: undefined,
+                    pendingAction: undefined,
+                    pendingFields: undefined,
                 };
             })
             .filter((item) => !!item);
-    }, [selectedReports, allReports, destinationReportID, personalDetails, currentSearchQueryJSON?.type]);
+    }, [selectedReportIDs, allReports, destinationReportID, personalDetails, currentSearchResults?.data]);
 
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
     const sourceReportIDs = destinationReport
@@ -176,6 +188,7 @@ function SearchMergeReports() {
             allReportsTransactions,
             bankAccountList,
             rules,
+            cardList,
             hash: currentSearchHash,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
@@ -187,12 +200,13 @@ function SearchMergeReports() {
 
         Navigation.dismissModal({
             afterTransition: () => {
+                setSearchMergeReportIDs(null);
                 clearSelectedTransactions(undefined, true);
                 // Wrap navigation in a microtask to avoid a visual glitch on Android.
                 // If we navigate before selection mode has fully exited and the UI has finished rendering,
                 // the report header may briefly display incorrectly.
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: destinationReportID}));
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: destinationReportID, backTo: Navigation.getActiveRoute()}));
                 });
             },
         });
@@ -201,6 +215,15 @@ function SearchMergeReports() {
     const onSelection = (item: ListItem) => {
         setDestinationReportID(item.reportID);
     };
+
+    // Loading while `selectedReportIDs` and `allReports` are being hydrated.
+    // Or while reports are being hydrated from snapshot data.
+    const isLoading =
+        isLoadingOnyxData ||
+        selectedReportIDs?.some((reportID) => {
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            return !allReports?.[reportKey] && !!currentSearchResults?.data[reportKey];
+        });
 
     if (!isReportMergeBetaEnabled) {
         return null;
@@ -214,23 +237,46 @@ function SearchMergeReports() {
             testID="SearchMergeReports"
             includeSafeAreaPaddingBottom
         >
-            <Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>
-            <SelectionList
-                data={reportItems}
-                onSelectRow={onSelection}
-                ListItem={SearchMergeReportsListItem}
-                isRowMultilineSupported
-                shouldSingleExecuteRowSelect
-                canSelectMultiple={false}
-                footerContent={
-                    <FormAlertWithSubmitButton
-                        buttonText={translate('common.confirm')}
-                        onSubmit={mergeSelectedReports}
-                        isDisabled={!isValidForMerge}
-                        enabledWhenOffline
+            {reportItems.length > 0 || isLoading ? (
+                <SelectionList
+                    data={reportItems}
+                    onSelectRow={onSelection}
+                    ListItem={SearchMergeReportsListItem}
+                    shouldSingleExecuteRowSelect
+                    canSelectMultiple={false}
+                    shouldShowLoadingPlaceholder={isLoading}
+                    customListHeader={<Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>}
+                    footerContent={
+                        !isLoading && (
+                            <FormAlertWithSubmitButton
+                                buttonText={translate('common.confirm')}
+                                onSubmit={mergeSelectedReports}
+                                isDisabled={!isValidForMerge}
+                                enabledWhenOffline
+                            />
+                        )
+                    }
+                />
+            ) : (
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                    <EmptyStateComponent
+                        cardStyles={[styles.appBG]}
+                        cardContentStyles={[styles.p0]}
+                        headerMedia={illustrations.EmptyShelves}
+                        title={translate('search.mergeReports.listPage.noEligibleReportsFound')}
+                        subtitleText={
+                            <Text
+                                style={[styles.textNormal, styles.colorMuted]}
+                                textAlign={'center'}
+                            >
+                                {translate('search.mergeReports.listPage.noEligibleReportsFoundSubtitle')}
+                            </Text>
+                        }
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.mb5]}
+                        headerContentStyles={styles.emptyStateTransactionMergeIllustration}
                     />
-                }
-            />
+                </ScrollView>
+            )}
         </StepScreenWrapper>
     );
 }

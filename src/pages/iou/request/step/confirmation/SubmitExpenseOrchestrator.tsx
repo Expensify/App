@@ -1,11 +1,7 @@
-import LocationPermissionModal from '@components/LocationPermissionModal';
-
 import useOnyx from '@hooks/useOnyx';
 import type {AfterTransition} from '@hooks/usePreMountDestination';
 
 import {armTransitionBarrier} from '@libs/API';
-import type {WriteReadyBarrier} from '@libs/API';
-import DateUtils from '@libs/DateUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
@@ -23,7 +19,8 @@ import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQue
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 
-import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+import hasLocationPermission from '@pages/iou/request/step/IOURequestStepScan/LocationPermission/hasLocationPermission';
+
 import {IMMEDIATE, markBarrierAsImmediate} from '@userActions/IOU/resolveWriteBarrier';
 
 import type {IOUType} from '@src/CONST';
@@ -33,9 +30,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
-import React, {useEffect, useRef, useState} from 'react';
+import type React from 'react';
+
+import {useEffect, useRef, useState} from 'react';
 
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
+import type {CreateTransactionParams} from './submission/types';
 
 import getSubmitExpenseSearchType from './getSubmitExpenseSearchType';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
@@ -53,7 +53,7 @@ type SubmitExpenseOrchestratorProps = {
      * optimistic data - so the re-render wave lands after the dismiss animation instead of during it.
      * Returns true when the write is still coming after the call returns (e.g. handed off to a GPS lookup).
      */
-    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean, writeBarrier?: WriteReadyBarrier) => boolean;
+    createTransaction: (params: CreateTransactionParams) => boolean;
 
     /** Report that the expense will land on (undefined when destination is unknown, e.g. global create to Search). */
     destinationReportID: string | undefined;
@@ -85,9 +85,6 @@ type SubmitExpenseOrchestratorProps = {
 
     /** Whether the distance request requires GPS permission before submitting. */
     gpsRequired: boolean;
-
-    /** ISO timestamp of the last GPS permission prompt (for throttling re-prompts). */
-    lastLocationPermissionPrompt: string | undefined;
 
     /** True when the transaction is a distance (mileage) request. */
     isDistanceRequest: boolean;
@@ -125,14 +122,9 @@ type SubmitExpenseOrchestratorProps = {
 
 /**
  * Encapsulates the submit-expense navigation orchestration: telemetry lifecycle,
- * dismiss animation coordination, deferred writes, and the GPS permission flow.
+ * dismiss animation coordination and deferred writes.
  * Exposes `onConfirm` and `isConfirming` via a render prop so the parent only
  * needs to wire them to `MoneyRequestConfirmationList`.
- *
- * A render-prop component (rather than a hook) is used because this wrapper
- * needs to render `LocationPermissionModal` conditionally. A hook cannot own
- * JSX, so we'd need to return the modal element and have the caller place it
- * - which spreads the concern across two files again.
  *
  * The decision tree (which handler to invoke) is extracted into the pure
  * `getSubmitHandler()` function (see getSubmitHandler.ts) for isolated
@@ -149,7 +141,6 @@ function SubmitExpenseOrchestrator({
     requestType,
     canDismissFromSearch,
     gpsRequired,
-    lastLocationPermissionPrompt,
     isDistanceRequest,
     isMovingTransactionFromTrackExpense,
     isUnreported,
@@ -165,7 +156,6 @@ function SubmitExpenseOrchestrator({
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
     const [destinationReportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationReportID}`);
     const [isConfirming, setIsConfirming] = useState(false);
-    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const confirmingSafetyTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     useEffect(() => {
@@ -242,7 +232,7 @@ function SubmitExpenseOrchestrator({
             // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
             // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
             // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
-            createTransaction(locationPermissionGranted);
+            createTransaction({locationPermissionGranted});
             setIsConfirming(false);
         });
     };
@@ -256,7 +246,7 @@ function SubmitExpenseOrchestrator({
         const pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armedBarrier.barrier, armedBarrier.cancel);
 
         const afterTransition = () => {
-            const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite.barrier);
+            const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite.barrier});
             pendingWrite.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
@@ -288,7 +278,7 @@ function SubmitExpenseOrchestrator({
         }
 
         const runAfterDismiss = () => {
-            const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite?.barrier);
+            const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite?.barrier});
             pendingWrite?.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
@@ -323,7 +313,7 @@ function SubmitExpenseOrchestrator({
         markPendingSearchWrite();
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: false});
             setIsConfirming(false);
         };
 
@@ -375,7 +365,7 @@ function SubmitExpenseOrchestrator({
             // is intentionally the same approach used in handleDefaultSubmit so
             // this fallback behaves identically to the standard submit path.
             requestAnimationFrame(() => {
-                createTransaction(locationPermissionGranted);
+                createTransaction({locationPermissionGranted});
                 requestAnimationFrame(() => {
                     setIsConfirming(false);
                 });
@@ -397,7 +387,7 @@ function SubmitExpenseOrchestrator({
 
         Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
             afterTransition: () => {
-                const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite?.barrier);
+                const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite?.barrier});
                 pendingWrite?.settleAfterSubmit(isWriteStillComing);
                 setIsConfirming(false);
             },
@@ -408,7 +398,7 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
         markPendingWriteForSearchPage(isFromGlobalCreateForNavigation);
         requestAnimationFrame(() => {
-            createTransaction(locationPermissionGranted);
+            createTransaction({locationPermissionGranted});
             requestAnimationFrame(() => {
                 setIsConfirming(false);
             });
@@ -436,7 +426,7 @@ function SubmitExpenseOrchestrator({
         }
 
         const runAfterDismiss = () => {
-            const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite?.barrier);
+            const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite?.barrier});
             pendingWrite?.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
@@ -480,47 +470,14 @@ function SubmitExpenseOrchestrator({
     // memoizing every handler + all their captured props for no measurable gain.
     const onConfirm = () => {
         setIsConfirming(true);
-
-        if (gpsRequired) {
-            const shouldStartPermissionFlow =
-                !lastLocationPermissionPrompt ||
-                (DateUtils.isValidDateString(lastLocationPermissionPrompt) &&
-                    DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt)) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
-
-            if (shouldStartPermissionFlow) {
-                setStartLocationPermissionFlow(true);
-                return;
-            }
+        if (!gpsRequired) {
+            dispatchSubmitHandler();
+            return;
         }
-
-        dispatchSubmitHandler();
+        hasLocationPermission().then((isGranted) => dispatchSubmitHandler(isGranted));
     };
 
-    return (
-        <>
-            {!!gpsRequired && (
-                <LocationPermissionModal
-                    startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => {
-                        setStartLocationPermissionFlow(false);
-                    }}
-                    onGrant={() => {
-                        dispatchSubmitHandler(true);
-                    }}
-                    onDeny={(wasUserInitiated) => {
-                        if (wasUserInitiated) {
-                            updateLastLocationPermissionPrompt();
-                        }
-                        dispatchSubmitHandler(false);
-                    }}
-                    onInitialGetLocationCompleted={() => {
-                        setIsConfirming(false);
-                    }}
-                />
-            )}
-            {children({onConfirm, isConfirming})}
-        </>
-    );
+    return children({onConfirm, isConfirming});
 }
 
 export default SubmitExpenseOrchestrator;

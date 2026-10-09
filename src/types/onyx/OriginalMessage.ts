@@ -336,6 +336,11 @@ type OriginalMessageClosed = {
     message?: string;
 };
 
+/** Model of a support ticket survey report action */
+type OriginalMessageSupportSurvey = {
+    html: string;
+};
+
 /** Model of `renamed` report action, created when chat rooms get renamed */
 type OriginalMessageRenamed = {
     /** Renamed room comment */
@@ -1710,6 +1715,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: OriginalMessageSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED]: OriginalMessageSubmitted;
+    [CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY]: OriginalMessageSupportSurvey;
     [CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED]: OriginalMessageAddExpenseOnSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: never;
@@ -1742,6 +1748,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION]: OriginalMessageUnreportedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
     [CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED]: OriginalMessageDEWFailed;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
