@@ -460,12 +460,12 @@ describe('PolicyUtils', () => {
                 }
             });
 
-            it('allows guests to read only the workspace overview', () => {
+            it('allows guests to read only the workspace overview but create expenses', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.GUEST);
 
                 for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
-                    expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW);
-                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+                    expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW || feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
                 }
             });
 
@@ -506,7 +506,6 @@ describe('PolicyUtils', () => {
                 expect(canRoleCreateExpenses(CONST.POLICY.ROLE.ADMIN)).toBe(true);
                 expect(canRoleCreateExpenses(CONST.POLICY.ROLE.AUDITOR)).toBe(true);
                 expect(canRoleCreateExpenses(CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
-                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.GUEST)).toBe(false);
             });
 
             it('allows Guest assignment only on Control workspaces', () => {

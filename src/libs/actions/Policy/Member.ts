@@ -732,12 +732,18 @@ async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMem
     };
 
     if (newRole === CONST.POLICY.ROLE.APPROVE_ONLY) {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- blocked reasons are only on the response, which API.write does not expose
-        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData});
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+        try {
+            // eslint-disable-next-line rulesdir/no-api-side-effects-method -- blocked reasons are only on the response, which API.write does not expose
+            const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData});
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                Onyx.update(failureData);
+            }
+            return response;
+        } catch (error) {
+            // Rejected requests leave the optimistic role changes in place, so revert them before surfacing the error.
             Onyx.update(failureData);
+            throw error;
         }
-        return response;
     }
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls -- the approve-only branch returns early
