@@ -111,7 +111,7 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 | `staging` | `staging-new-expensify-assets` | None until switchover, then `staging.new.expensify.com/*` | Staging |
 | `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` | Production |
 
-`test-staging` is for testing a staging build on a hostname nobody else uses. Deploy it with a staging build in `dist/`:
+`test-staging` serves a staging build on a hostname nobody else uses. Every staging deploy also deploys the same build there (the `webDeployTestStaging` job in `.github/workflows/deploy.yml`), using `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit this Worker. A failure there does not fail the staging deploy. To deploy it by hand, put a staging build in `dist/` and run:
 
 ```bash
 npx wrangler deploy --env test-staging
