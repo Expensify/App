@@ -763,20 +763,29 @@ function updateSettlementAccount(
     programKey: CardProgramKey,
     settlementBankAccountID?: number,
     currentSettlementBankAccountID?: number,
+    shouldClearSettlementAccountError = true,
 ) {
     if (!settlementBankAccountID) {
         return;
     }
 
-    const optimisticValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true, errorFields: {paymentBankAccountID: null}};
+    const optimisticValue = {
+        [programKey]: {paymentBankAccountID: settlementBankAccountID, errorFields: {paymentBankAccountID: null}},
+        isLoading: true,
+        // The backend writes its error to this root field, which Travel Billing shares, so leave it alone while Travel's error is pending
+        ...(shouldClearSettlementAccountError && {errorFields: {paymentBankAccountID: null}}),
+    };
 
     const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false};
 
     const failureValue = {
-        [programKey]: {paymentBankAccountID: currentSettlementBankAccountID},
+        // Kept under the program so it marks a card failure without touching the root field Travel Billing reads
+        // Key 0 sorts below the backend's error, so this generic copy only shows when the backend sends none
+        [programKey]: {
+            paymentBankAccountID: currentSettlementBankAccountID,
+            errorFields: {paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0)},
+        },
         isLoading: false,
-        // Key 0 sorts below the backend's actionable error in the same field, so the generic copy only shows when the backend sends none
-        errorFields: {paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0)},
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -811,8 +820,8 @@ function updateSettlementAccount(
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT, parameters, {optimisticData, successData, failureData});
 }
 
-function clearSettlementAccountError(workspaceAccountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {errorFields: {paymentBankAccountID: null}});
+function clearSettlementAccountError(workspaceAccountID: number, programKey: CardProgramKey) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {[programKey]: {errorFields: {paymentBankAccountID: null}}});
 }
 
 function getCardDefaultName(userName?: string) {

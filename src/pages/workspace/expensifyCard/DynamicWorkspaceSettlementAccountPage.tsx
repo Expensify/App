@@ -134,7 +134,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
             Log.alert('[WorkspaceSettlementAccountPage] handleSelectAccount called without a detected card program key');
             return;
         }
-        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID);
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID, !cardSettings?.pendingFields?.paymentBankAccountID);
         Navigation.goBack();
     };
 

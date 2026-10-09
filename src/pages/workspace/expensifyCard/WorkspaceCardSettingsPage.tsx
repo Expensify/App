@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCashbackToBillError, clearSettlementAccountError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings, toMonthlySettlementDate} from '@libs/CardUtils';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getLatestError} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -60,8 +60,9 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
-    // A pending field means the error belongs to the Travel Billing settlement flow, which shares this key
-    const settlementAccountErrors = cardSettings?.pendingFields?.paymentBankAccountID ? undefined : getLatestErrorField(cardSettings, 'paymentBankAccountID');
+    // Only a failed card settlement change sets the program error, the root one also holds the backend message and Travel Billing errors
+    const programSettlementAccountErrors = programKey ? cardSettings?.[programKey]?.errorFields?.paymentBankAccountID : undefined;
+    const settlementAccountErrors = programSettlementAccountErrors ? getLatestError({...programSettlementAccountErrors, ...cardSettings?.errorFields?.paymentBankAccountID}) : undefined;
     const settlementDate = toMonthlySettlementDate(settings?.monthlySettlementDate);
     // Nothing is shown when the settlement date can't be resolved to a real day — an empty hint beats a wrong settlement date.
     const monthlySettlementDateText =
@@ -90,7 +91,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                     <View>
                         <OfflineWithFeedback
                             errors={settlementAccountErrors}
-                            onClose={() => clearSettlementAccountError(defaultFundID)}
+                            onClose={() => programKey && clearSettlementAccountError(defaultFundID, programKey)}
                             errorRowStyles={styles.mh5}
                         >
                             <MenuItemField
