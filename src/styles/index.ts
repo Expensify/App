@@ -6878,6 +6878,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusNormal,
+            boxShadow: theme.shadow,
             padding: 12,
             rowGap: 8,
         },
