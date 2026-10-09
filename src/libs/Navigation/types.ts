@@ -2270,6 +2270,11 @@ type ProfileNavigatorParamList = {
         accountID: string;
         reportID: string;
         login?: string;
+        policyID?: string;
+    };
+    [SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME]: {
+        memberAccountID: string;
+        policyID: string;
     };
 };
 
