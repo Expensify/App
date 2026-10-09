@@ -225,6 +225,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: 'Bitte wähle das heutige oder ein zukünftiges Datum aus',
             invalidTimeShouldBeFuture: 'Bitte wähle eine Zeit, die mindestens eine Minute in der Zukunft liegt',
             invalidCharacter: 'Ungültiges Zeichen',
+            invalidField: (fieldName) => `Ungültiges Feld: ${fieldName}`,
             enterMerchant: 'Geben Sie einen Händlernamen ein',
             enterAmount: 'Betrag eingeben',
             missingMerchantName: 'Fehlender Händlername',
@@ -628,6 +629,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melde dich erneut an.',
+        notValid: 'Ungültiger Link.',
+        sessionMismatch: 'Der Link, den Sie angeklickt haben, ist für Ihre aktuelle Sitzung nicht gültig.',
+        switchAccount: {
+            title: 'Konten wechseln?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Sie sind als ${currentEmail} angemeldet. Diese Aktion meldet Sie stattdessen als ${newEmail} an.`,
+            confirm: 'Konten wechseln',
+            staySignedIn: 'Nicht das Konto wechseln',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -848,7 +858,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?`;
+            return `Sind Sie sicher, dass Sie diesen ${type} löschen möchten?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Alle Ausgaben in diesem Bericht werden als nicht gemeldet markiert.' : ''}`;
         },
         onlyVisible: 'Nur sichtbar für',
         explain: 'Erklären',
@@ -934,6 +944,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 ? `Dieser Chat ist nicht mehr aktiv, weil <strong>du</strong> kein Mitglied des Arbeitsbereichs ${policyName} mehr bist.`
                 : `Dieser Chat ist nicht mehr aktiv, weil ${displayName} kein Mitglied des Workspaces ${policyName} mehr ist.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `Dieser Chat ist nicht mehr aktiv, weil ${policyName} kein aktiver Workspace mehr ist.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `Dieser Chat ist nicht mehr aktiv, weil ${policyName} ein archivierter Workspace ist.`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) =>
             `Dieser Chat ist nicht mehr aktiv, weil ${policyName} kein aktiver Workspace mehr ist.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Diese Buchung ist archiviert.',
@@ -1196,6 +1207,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfe es und versuche es erneut.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfe es und versuche es erneut.`,
+        invalidApprovalLimit: 'Genehmigungslimits müssen gültige Beträge in der Währung des Arbeitsbereichs sein.',
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere Werte mit mehr als ${limit} Zeichen. Bitte überprüfe es und versuche es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',
@@ -1481,6 +1493,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Möchten Sie diesen Bericht wirklich löschen?',
             other: 'Möchten Sie diese Berichte wirklich löschen?',
         }),
+        deleteExpenseReportConfirmation: 'Möchten Sie diesen Bericht wirklich löschen? Alle Ausgaben in diesem Bericht werden als nicht gemeldet markiert.',
         settledExpensify: 'Bezahlt',
         paidStatusMarkedAsPaid: 'Als bezahlt markiert',
         paidStatusWithdrawing: 'Abhebung läuft',
@@ -1625,6 +1638,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Bitte gib für deine Aufteilung einen von null verschiedenen Betrag ein',
             noParticipantSelected: 'Bitte wählen Sie eine:n Teilnehmende:n aus',
             other: 'Unerwarteter Fehler. Bitte versuchen Sie es später erneut.',
+            payFailedExpenseDeleted: 'Die Zahlung ist fehlgeschlagen, weil die Spesenabrechnung gelöscht wurde.',
             genericCreateFailureMessage: 'Unerwarteter Fehler beim Einreichen dieser Ausgabe. Bitte versuche es später noch einmal.',
             genericCreateInvoiceFailureMessage: 'Unerwarteter Fehler beim Senden dieser Rechnung. Bitte versuche es später noch einmal.',
             genericHoldExpenseFailureMessage: 'Unerwarteter Fehler beim Zurückhalten dieser Ausgabe. Bitte versuche es später erneut.',
@@ -2049,6 +2063,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Kein weiterer Handlungsbedarf!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Ändere den Workspace des Berichts für weitere Aktionen.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2412,9 +2432,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',
+        talkToAHuman: 'Mit einer Person sprechen',
         helpPage: {
             title: 'Hilfe und Support',
             description: 'Wir sind rund um die Uhr für Sie da.',
+            talkToAHumanDescription: 'Holen Sie sich Hilfe von einer echten Person',
             helpSite: 'Hilfeseite',
             helpSiteDescription: 'Artikel, Tutorials und mehr',
             conciergeChat: 'Concierge',
@@ -2712,6 +2734,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: 'Standard-Zahlungsmethode festgelegt!',
         deleteAccount: 'Konto löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie dieses Konto löschen möchten?',
+        editNickname: 'Spitznamen bearbeiten',
+        nickname: 'Spitzname',
+        editNicknameInstruction: 'Geben Sie dem Bankkonto einen Spitznamen, der es von anderen unterscheidet.',
         deleteCard: 'Karte löschen',
         deleteCardConfirmation:
             'Alle nicht eingereichten Kartenumsätze, einschließlich der auf offenen Berichten, werden entfernt. Möchtest du diese Karte wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
@@ -2982,6 +3007,10 @@ ${amount} für ${merchant} – ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Dieses Mitglied gehört bereits zu einem anderen Genehmigungsworkflow. Alle Aktualisierungen hier werden sich auch dort auswirken.',
+        approverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person oder löschen Sie diesen Workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person.',
+        overLimitApproverNotWorkspaceMember:
+            'Die zusätzliche genehmigende Person für Berichte über dem Limit ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue zusätzliche genehmigende Person.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> genehmigt bereits Berichte für <strong>${name2}</strong>. Bitte wähle eine andere approvierende Person, um einen zirkulären Workflow zu vermeiden.`,
         emptyContent: {
@@ -3398,12 +3427,13 @@ ${amount} für ${merchant} – ${date}`,
         whereYouWork: 'Wo arbeitest du?',
         errorSelection: 'Wähle eine Option, um fortzufahren',
         purpose: {
-            title: 'Was möchtest du heute tun?',
-            errorContinue: 'Bitte auf „Weiter“ drücken, um die Einrichtung abzuschließen',
-            errorBackButton: 'Bitte beantworte die Einrichtungsfragen, um die App verwenden zu können',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Ausgaben bei meinem Arbeitgeber einreichen',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Verwalte die Ausgaben meines Teams',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Geschäftsausgaben nachverfolgen',
+            title: 'Was möchten Sie heute tun?',
+            errorContinue: 'Bitte drücken Sie auf „Weiter“, um die Einrichtung abzuschließen',
+            errorBackButton: 'Bitte beantworten Sie die Einrichtungsfragen, um die App verwenden zu können',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Treten Sie dem Unternehmensarbeitsbereich bei',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Spesen bei meinem Arbeitgeber einreichen',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Ausgaben meines Teams verwalten',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Ausgaben für mein Unternehmen erfassen',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Meine persönlichen Ausgaben organisieren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Etwas anderes',
         },
@@ -3462,6 +3492,8 @@ ${amount} für ${merchant} – ${date}`,
             title: 'Arbeits-E-Mail konnte nicht hinzugefügt werden',
             subtitle: (workEmail: string | undefined) =>
                 `Wir konnten ${workEmail} nicht hinzufügen. Bitte versuche es später in den Einstellungen erneut oder chatte mit Concierge, um Unterstützung zu erhalten.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Wir konnten ${workEmail} nicht hinzufügen. Um diese Konten zusammenzuführen, melden Sie sich bitte als ${workEmail} an und gehen Sie zu Konto > Sicherheit > Konten zusammenführen, um den Vorgang abzuschließen.`,
             workAccountClosedSubtitle:
                 'Das Arbeitskonto, das mit dieser E-Mail-Adresse verknüpft ist, wurde geschlossen. Bitte wenden Sie sich an Ihre Unternehmensadministratorin bzw. Ihren Unternehmensadministrator, um es zu reaktivieren, oder registrieren Sie sich mit einer anderen E-Mail-Adresse.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} ist ein domänengesteuerter Login für ein bestehendes Expensify-Konto.`,
@@ -3700,6 +3732,34 @@ ${amount} für ${merchant} – ${date}`,
                     Und schon bist du fertig!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Fügen Sie Ihre Arbeits-E-Mail hinzu',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Öffnen Sie [Arbeits-E-Mail hinzufügen](${workEmailLink}).
+                        2. Geben Sie Ihre geschäftliche E-Mail-Adresse ein.
+                        3. Geben Sie den Code ein, den wir Ihnen per E-Mail schicken.
+                        4. Wählen Sie einen Arbeitsbereich, dem Sie beitreten möchten, oder klicken Sie auf *Beitritt anfragen*, um eine Anfrage an die Eigentümerin bzw. den Eigentümer des Arbeitsbereichs zu senden.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Bestätigen Sie Ihre E-Mail-Adresse',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Öffnen Sie [Bestätigen Sie Ihr Konto](${validateEmailLink}).
+                        2. Geben Sie den Code ein, den wir an ${workEmail} gesendet haben.
+                        3. Wählen Sie einen Workspace zum Beitreten aus oder klicken Sie auf *Beitritt anfragen*, um eine Anfrage an den Workspace-Inhaber zu senden.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Treten Sie dem Arbeitsbereich Ihres Unternehmens bei',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Öffnen Sie [Einem Arbeitsbereich beitreten](${joinWorkspaceLink}).
+                        2. Suchen Sie Ihr Team in der Liste. Jedes zeigt die:nen Besitzer:in und die Anzahl der Personen an, die darin sind, die größten zuerst. Klicken Sie auf *Mehr anzeigen*, wenn Sie Ihres nicht sehen.
+                        3. Klicken Sie auf *Jetzt beitreten* oder auf *Beitritt anfragen*, wenn eine Admin-Genehmigung erforderlich ist.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Machen Sie eine [Probefahrt](${testDriveURL})` : 'Mach eine Probefahrt'),
@@ -3722,6 +3782,14 @@ ${amount} für ${merchant} – ${date}`,
             onboardingChatSplitMessage: 'Rechnungen mit Freund*innen zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
             onboardingAdminMessage: 'Erfahre, wie du als Admin den Arbeitsbereich deines Teams verwaltest und deine eigenen Ausgaben einreichst.',
             onboardingTestDriveReceiverMessage: '*Du erhältst 3 Monate gratis! Leg unten los.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Fügen Sie Ihre geschäftliche E-Mail-Adresse hinzu, und ich prüfe, welchen Workspaces Ihres Unternehmens Sie beitreten können.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Bestätigen Sie Ihre E-Mail-Adresse, und ich prüfe, welchen Workspaces bei ${companyDomain} Sie beitreten können.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Ihr Team bei ${companyDomain} ist bereits auf Expensify. [Sehen Sie sich die Workspaces an, denen Sie beitreten können.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Es sieht nicht so aus, als hätte Ihr Unternehmen beitretbare Arbeitsbereiche. Bitte wenden Sie sich an Ihre Verwaltungsperson und lassen Sie sich in deren Arbeitsbereich einladen.',
         },
         workspace: {
             title: 'Bleib mit einem Workspace organisiert',
@@ -3970,6 +4038,15 @@ ${amount} für ${merchant} – ${date}`,
         },
         unlockAlreadyRequestedTitle: 'Anfrage bereits eingereicht',
         unlockAlreadyRequestedDescription: 'Ihre Anfrage zur Entsperrung dieses Bankkontos wurde bereits gesendet. Concierge meldet sich bei Ihnen, falls noch etwas benötigt wird.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Muss mindestens ${minLength} Zeichen lang sein`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
+            invalidOption: 'Wähle eine der verfügbaren Optionen',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -4788,6 +4865,9 @@ ${amount} für ${merchant} – ${date}`,
                 'Möchten Sie diesen Workspace wirklich archivieren? Dadurch werden allen Benutzern die Kreditkarten entzogen und alle nicht eingereichten Kartenausgaben endgültig gelöscht.',
             archiveWithExpensifyCardsConfirmation:
                 'Möchten Sie diesen Workspace wirklich archivieren? Dadurch werden alle Expensify Card-Limits auf 0 $ gesetzt und neue Kaufversuche automatisch abgelehnt.',
+            unarchive: 'Wiederherstellen',
+            unarchiveWorkspace: 'Workspace wiederherstellen',
+            unarchiveConfirmation: 'Möchtest du diesen Workspace wirklich aus dem Archiv wiederherstellen?',
             deleteWorkspaceTitle: (workspaceName: string) => `${workspaceName} löschen?`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
@@ -4846,20 +4926,23 @@ ${amount} für ${merchant} – ${date}`,
             memberAlternateText: 'Berichte einreichen und freigeben.',
             adminAlternateText: 'Berichte und Arbeitsbereichseinstellungen verwalten.',
             auditorAlternateText: 'Berichte anzeigen und kommentieren.',
+            guestAlternateText: 'Berichte mit eingeschränkter Sichtbarkeit einreichen.',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
                         return 'Eigentümer';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Workspace-Administrator';
+                        return 'Workspace-Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Prüfer';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return 'Gast';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personalverwaltung';
+                        return 'Personenverwaltung';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
@@ -5350,11 +5433,11 @@ ${amount} für ${merchant} – ${date}`,
                         label: 'Datum der letzten Ausgabe',
                         description: 'Datum der letzten Ausgabe im Bericht.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Exportdatum',
                         description: 'Datum, an dem der Bericht nach Sage Intacct exportiert wurde.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Eingereichtes Datum',
                         description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
                     },
@@ -7123,6 +7206,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 one: 'Zum Prüfer machen',
                 other: 'Prüfende hinzufügen',
             }),
+            makeGuest: () => ({
+                one: 'Zur*m* Gast machen',
+                other: 'Zu Gästen machen',
+            }),
             makePeopleAdmin: () => ({
                 one: 'Zum Personaladministrator machen',
                 other: 'Personaladministratoren festlegen',
@@ -7159,6 +7246,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             admins: 'Workspace-Administratoren',
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
+            guests: 'Gäste',
             editors: 'Bearbeiter',
             emptyRoleFilter: {title: 'Keine Mitglieder entsprechen diesem Filter', subtitle: 'Laden Sie ein Mitglied ein oder ändern Sie den Filter oben.'},
             configureHRSync: (providerName: string) => `Synchronisierung mit ${providerName} einrichten.`,
@@ -7278,6 +7366,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7505,6 +7595,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Campfire-Daten werden synchronisiert';
                         case 'campfireSyncConnection':
                             return 'Verbindung zu Campfire wird initialisiert';
+                        case 'zohoBooksSyncConnection':
+                            return 'Verbindung zu Zoho Books wird initialisiert';
                         case 'campfireSyncImportData':
                             return 'Daten werden geladen';
                         case 'campfireSyncPayments':
@@ -7562,6 +7654,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Zum Aktivieren legen Sie ein Konto für Ihre Exporte fest.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
+            continuousReconciliationFeedSelection:
+                '<muted-text-label>Die fortlaufende Abstimmung wird pro Kartenfeed konfiguriert. Wählen Sie einen Feed aus, um zu ändern, welchen Sie konfigurieren.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Ihre QuickBooks Online-Verbindung läuft am ${date} ab.`,
             qboConnectionExpired: ({date}: {date: string}) => `Ihre QuickBooks Online-Verbindung ist am ${date} abgelaufen.`,
@@ -7700,9 +7795,32 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             startDate: 'Startdatum',
             endDate: 'Enddatum',
             autoGeneratedRateTooltip: 'Dieser Satz wurde automatisch erzeugt.',
+            automaticRates: 'Automatische Sätze',
             autoUpdateGovernmentRate: 'Regierungssätze automatisch aktualisieren',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Neue Sätze automatisch erstellen, wenn ${countryPhrase} neue Richtlinien veröffentlicht.`,
-            governmentRateCountries: {US: 'die Vereinigten Staaten', CA: 'Kanada', GB: 'Großbritannien', AU: 'Australien', NO: 'Norwegen', SE: 'Schweden', ZA: 'Südafrika'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
+                `Neue Sätze automatisch erstellen, wenn ${countryPhrase} neue Richtlinien veröffentlicht. Bestehende Sätze werden nicht geändert.`,
+            governmentRateCountries: {
+                US: 'die Vereinigten Staaten',
+                CA: 'Kanada',
+                GB: 'Großbritannien',
+                AU: 'Australien',
+                AT: 'Österreich',
+                BE: 'Belgien',
+                FI: 'Finnland',
+                DE: 'Deutschland',
+                NL: 'die Niederlande',
+                PT: 'Portugal',
+                ES: 'Spanien',
+                NO: 'Norwegen',
+                SE: 'Schweden',
+                ZA: 'Südafrika',
+            },
+            governmentRateCountryGeneric: 'Ihr Land',
+            governmentRateSourceCountry: 'Quellland der Entfernungssätze',
+            governmentRateCountrySelectionPrompt:
+                'Um die Funktion zur automatischen Aktualisierung staatlicher Entfernungssätze weiterhin zu nutzen, bestätigen Sie bitte, welches Land Sie künftig verwenden möchten.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Achtung! Wenn Sie die Währung des Arbeitsbereichs auf ${currency} ändern, werden stattdessen die staatlichen Kilometersätze verwendet, die ${countryPhrase} veröffentlicht. Möchten Sie wirklich fortfahren?`,
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',
@@ -8792,7 +8910,17 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
+                groups: {
+                    title: 'Gruppen',
+                    description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten',
+                    staleSelectionError: (providerName: string) =>
+                        `Einige der Gruppen, die Sie ausgewählt haben, existieren in ${providerName} nicht mehr, daher werden deren Mitarbeitende nicht mehr synchronisiert.`,
+                    updateSelectionLink: 'Aktualisieren Sie Ihre Gruppen.',
+                    noGroupsFound: 'Keine Gruppen gefunden',
+                    noGroupsFoundDescription:
+                        'Es gibt derzeit keine Gruppen zum Auswählen. Speichern Sie ohne ausgewählte Gruppen, um alle Mitarbeitenden zu synchronisieren, oder synchronisieren Sie die Verbindung erneut, sobald neue Gruppen vorhanden sind.',
+                    unnamedGroup: (groupID: string) => `Unbenannte Gruppe (${groupID})`,
+                },
             },
         },
         recruiting: {
@@ -9043,6 +9171,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noBankAccountsFoundDescription: 'Bitte fügen Sie Bankkonten in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
             noPaymentMethodsFound: 'Keine Zahlungsformen gefunden',
             noPaymentMethodsFoundDescription: 'Bitte fügen Sie Zahlungsformen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            accountsDescription: 'Ihre Dynamics 365 Business Central-Konten werden als Kategorien importiert.',
+            dimensionsImportAsTags: 'Alle Dimensionen aus Dynamics 365 Business Central werden als Tags importiert',
+            customers: 'Kunden',
+            projects: 'Projekte',
+            projectsAndCustomersCannotBeEnabled: 'Projekte und Kunden können nicht aktiviert werden',
+            projectsAndCustomersCannotBeEnabledDescription: 'Projekte und Kunden können nur aktiviert werden, wenn die Exportoption „Eingangsrechnung“ ist',
+            enableNewCategoriesDescription: 'Neue Dynamics 365 Business Central-Konten werden als Kategorien verfügbar sein.',
         },
     },
     getAssistancePage: {
@@ -9785,6 +9920,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         deleteTask: 'Aufgabe löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?',
     },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `Support-Ticket, ${date}: ${customer} und ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `Hallo, ich bin ${supportRep}, und ich werde mit Ihnen zusammenarbeiten, bis dieses Problem vollständig gelöst ist. Wenn Sie uns bereits Details mitgeteilt haben, werde ich diese vor meiner Antwort prüfen, damit Sie sich nicht wiederholen müssen. Wenn es sich um ein neues Problem handelt, lassen Sie mich wissen, wobei Sie Hilfe benötigen.`,
+        checkboxTooltip: 'Ihre Support-Mitarbeiterin/Ihr Support-Mitarbeiter wird dies überprüfen, sobald es behoben ist.',
+        genericCreateSupportTicketFailureMessage: 'Wir konnten dieses Supportticket nicht erstellen. Bitte schließen Sie diese Fehlermeldung und versuchen Sie es erneut.',
+        noSupportRepAvailable: 'Derzeit sind keine Support-Mitarbeiter verfügbar. Du kannst Concierge trotzdem um Hilfe bitten.',
+        fallbackTitle: 'Support-Ticket',
+        resolved: 'Dieses Support-Ticket ist gelöst.',
+        surveyPrompt: 'Wie war Ihre Erfahrung mit dem Support?',
+        reopenTicket: 'Ticket erneut öffnen',
+    },
     statementPage: {
         title: (year: number | string, monthName: string) => `Abrechnung ${monthName} ${year}`,
     },
@@ -10109,6 +10256,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         mergeReports: {
             title: 'Berichte zusammenführen',
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
+            listPage: {noEligibleReportsFound: 'Keine berechtigten Berichte gefunden', noEligibleReportsFoundSubtitle: 'Sie haben keine Berichte, die zusammengeführt werden können.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} bisher`,
         weekOf: ({date}: {date: string}) => `Woche vom ${date}`,
@@ -10892,6 +11040,40 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             taxOutOfPolicy: 'Steuersatz nicht mehr gültig',
             taxRateChanged: 'Steuersatz geändert',
             taxRequired: 'Fehlender Steuersatz',
+        },
+        ruleViolation: {
+            fallback: 'Verstößt gegen Spesenrichtlinie',
+            anyExpense: 'Beliebige Ausgabe',
+            expense: (adjectives: string) => (adjectives ? `${adjectives} Ausgabe` : 'Ausgabe'),
+            perDiem: 'Tagespauschale',
+            notExpenseType: (expenseType: string) => `kein(e) ${expenseType}`,
+            billable: {enabled: 'Abrechenbar', disabled: 'Nicht verrechenbar'},
+            reimbursable: {enabled: 'Erstattungsfähig', disabled: 'Nicht erstattungsfähig'},
+            withoutCategory: 'ohne Kategorie',
+            fromMerchant: (merchant: string) => `von ${merchant}`,
+            notFromMerchant: (merchant: string) => `nicht von ${merchant}`,
+            fromMerchantsContaining: (merchant: string) => `von Händlern mit ${merchant}`,
+            notFromMerchantsContaining: (merchant: string) => `nicht von Anbietern, die ${merchant} enthalten`,
+            withVendor: (vendor: string) => `mit Händler ${vendor}`,
+            withoutVendor: (vendor: string) => `ohne Anbieter ${vendor}`,
+            fromVendor: (vendor: string) => `von ${vendor}`,
+            notFromVendor: (vendor: string) => `nicht von ${vendor}`,
+            overAmount: (amount: string) => `über ${amount}`,
+            amountOrMore: (amount: string) => `${amount} oder mehr`,
+            underAmount: (amount: string) => `unter ${amount}`,
+            amountOrLess: (amount: string) => `${amount} oder weniger`,
+            withoutTag: 'ohne Tag',
+            tagged: (tag: string) => `markiert mit ${tag}`,
+            inCurrency: (currency: string) => `in ${currency}`,
+            notInCurrency: (currency: string) => `nicht in ${currency}`,
+            paidInCurrency: (currency: string) => `bezahlt in ${currency}`,
+            notPaidInCurrency: (currency: string) => `nicht bezahlt in ${currency}`,
+            attachment: 'ein Anhang',
+            attribute: (attribute: string) => `ein(e) ${attribute}`,
+            withAttributes: (attributes: string) => `mit ${attributes}`,
+            withoutAttributes: (attributes: string) => `ohne ${attributes}`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `bei ${merchantCode}`,
         },
     },
     reportViolations: {
