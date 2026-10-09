@@ -5,6 +5,8 @@ import type {TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {shallowEqual} from 'fast-equals';
+
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
 let transactionReportIDMapping: Record<string, string> = {};
 
@@ -117,7 +119,7 @@ export default createOnyxDerivedValueConfig({
 
         previousViolations = violations;
 
-        return reportTransactionsAndViolations;
+        return currentValue && shallowEqual(currentValue, reportTransactionsAndViolations) ? currentValue : reportTransactionsAndViolations;
     },
     // On cache clear, drop the cross-compute state so the map is rebuilt from scratch (see the engine's resetForClear).
     onReset: () => {
