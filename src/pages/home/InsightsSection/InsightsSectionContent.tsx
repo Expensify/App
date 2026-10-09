@@ -1,3 +1,4 @@
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
@@ -56,7 +57,12 @@ function InsightsSectionContent() {
         return null;
     }
 
-    return (
+    const navigateToInsights = () =>
+        Navigation.navigate(
+            isInsightsPageEnabled ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND) : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
+        );
+
+    const widget = (
         <WidgetContainer
             titleContent={
                 <InsightTitleDropdown
@@ -74,12 +80,7 @@ function InsightsSectionContent() {
                             {
                                 text: translate('common.view'),
                                 icon: icons.Expand,
-                                onSelected: () =>
-                                    Navigation.navigate(
-                                        isInsightsPageEnabled
-                                            ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)
-                                            : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
-                                    ),
+                                onSelected: navigateToInsights,
                                 shouldCallAfterModalHide: true,
                             },
                         ]}
@@ -99,10 +100,26 @@ function InsightsSectionContent() {
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
                         shouldShowGroupLabels={!isInsightsPageEnabled}
+                        shouldDrillDownOnPress={!isInsightsPageEnabled}
                     />
                 </View>
             )}
         </WidgetContainer>
+    );
+
+    if (!isInsightsPageEnabled) {
+        return widget;
+    }
+
+    return (
+        <PressableWithoutFeedback
+            accessibilityLabel={translate(config.translationPath)}
+            onPress={navigateToInsights}
+            role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
+        >
+            {widget}
+        </PressableWithoutFeedback>
     );
 }
 

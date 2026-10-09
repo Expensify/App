@@ -60,8 +60,8 @@ type ResolveTargetIndexArgs = {
  * Configuration for the chart interactions hook
  */
 type UseChartInteractionsProps = {
-    /** Callback triggered when a valid data point is tapped/clicked */
-    handlePress: (index: number) => void;
+    /** Callback triggered when a valid data point is tapped/clicked. Without it, the chart only reacts to hover */
+    handlePress?: (index: number) => void;
 
     /**
      * Worklet function to determine if the cursor is technically "hovering"
@@ -351,9 +351,9 @@ function useChartInteractions({
 
     /**
      * Tap gesture. Resolves the nearest data point entirely on the UI thread,
-     * then schedules handlePress on the JS thread if the cursor is over the target.
+     * then schedules onPress on the JS thread if the cursor is over the target.
      */
-    const tapGesture = () =>
+    const tapGesture = (onPress: (index: number) => void) =>
         Gesture.Tap().onEnd((e) => {
             'worklet';
 
@@ -375,7 +375,7 @@ function useChartInteractions({
             const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
             updateInteractionFlags(idx, cursorX, cursorY, currentChartBottom);
             if (isClickable) {
-                scheduleOnRN(handlePress, idx);
+                scheduleOnRN(onPress, idx);
             }
         });
 
@@ -403,7 +403,7 @@ function useChartInteractions({
         y: chartInteractionState.y.y.position.get(),
     }));
 
-    const customGestures = Gesture.Race(hoverGesture(), tapGesture());
+    const customGestures = handlePress ? Gesture.Race(hoverGesture(), tapGesture(handlePress)) : hoverGesture();
 
     return {
         /** Custom gestures to be passed to CartesianChart */

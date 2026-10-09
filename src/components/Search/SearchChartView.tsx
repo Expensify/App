@@ -1,4 +1,5 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -42,6 +43,9 @@ type SearchChartViewProps = {
     /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
     shouldShowGroupLabels?: boolean;
 
+    /** Whether pressing a bar, point or slice opens Search filtered to it */
+    shouldDrillDownOnPress?: boolean;
+
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
 
@@ -53,7 +57,7 @@ type SearchChartViewProps = {
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowGroupLabels = true, renderDetails, chartContainerStyle}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowGroupLabels = true, shouldDrillDownOnPress = true, renderDetails, chartContainerStyle}: SearchChartViewProps) {
     const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -72,7 +76,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
     });
     const points = rows.map((row) => row.point);
 
-    const handleItemPress = (index: number) => {
+    const handleItemPress = (dataPoint: ChartDataPoint, index: number) => {
         const item = rows.at(index)?.item;
         if (!item || !queryJSON) {
             return;
@@ -85,6 +89,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
         }
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: currentSearchKey}));
     };
+
+    const onItemPress = shouldDrillDownOnPress ? handleItemPress : undefined;
 
     const firstItem = data.at(0);
     const currency = sanitizeCurrencyCode(firstItem?.currency ?? CONST.CURRENCY.USD);
@@ -100,7 +106,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
             <BarChart
                 data={points}
                 isLoading={isLoading}
-                onBarPress={(dataPoint, index) => handleItemPress(index)}
+                onBarPress={onItemPress}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 shouldShowLabels={shouldShowGroupLabels}
@@ -110,7 +116,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
             <LineChart
                 data={points}
                 isLoading={isLoading}
-                onPointPress={(dataPoint, index) => handleItemPress(index)}
+                onPointPress={onItemPress}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
             />
@@ -119,7 +125,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
             <PieChart
                 data={points}
                 isLoading={isLoading}
-                onSlicePress={(dataPoint, index) => handleItemPress(index)}
+                onSlicePress={onItemPress}
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
                 shouldShowLegend={shouldShowGroupLabels}
