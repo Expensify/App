@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMergeATSFilters} from '@libs/actions/connections/merge/ATS';
 import {isMergeConnected} from '@libs/merge/MergeUtils';
-import {getMergeATSFilterValues, getConnectedATSProvider, getMergeATSFilterLabel} from '@libs/merge/RecruitingUtils';
+import {getConnectedATSProvider, getMergeATSFilterLabel} from '@libs/merge/RecruitingUtils';
 import type {MergeATSFilterType} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -51,6 +51,13 @@ function MergeATSFiltersPage({
     const filters = useMergeATSFiltersDraftState(policyID);
     const {setFilter} = useMergeATSFiltersDraftActions();
 
+    // A freshly enabled dimension has no values yet, so the toggle can't be derived from the values alone
+    const [enabledFilters, setEnabledFilters] = useState<Record<MergeATSFilterType, boolean>>(() => ({
+        [CONST.MERGE.ATS_FILTER_TYPE.STAGES]: !!filters.stages?.length,
+        [CONST.MERGE.ATS_FILTER_TYPE.TAGS]: !!filters.tags?.length,
+        [CONST.MERGE.ATS_FILTER_TYPE.OFFICES]: !!filters.offices?.length,
+    }));
+
     const providerName = getConnectedATSProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_ats;
 
     const filterRows: Array<{filterType: MergeATSFilterType; toggleTitle: string; rowDescription: string}> = [
@@ -77,7 +84,8 @@ function MergeATSFiltersPage({
         if (errorKey && isEnabled && filterType !== CONST.MERGE.ATS_FILTER_TYPE.OFFICES) {
             setErrorKey(undefined);
         }
-        setFilter(filterType, isEnabled ? getMergeATSFilterValues(filterType, mergeATS?.data) : []);
+        setEnabledFilters((previous) => ({...previous, [filterType]: isEnabled}));
+        setFilter(filterType, []);
     };
 
     const handleSave = () => {
@@ -114,7 +122,7 @@ function MergeATSFiltersPage({
                                     title={toggleTitle}
                                     switchAccessibilityLabel={toggleTitle}
                                     toggleContainerStyles={[styles.pv3, styles.mh5]}
-                                    isActive={!!filters[filterType]?.length}
+                                    isActive={enabledFilters[filterType]}
                                     onToggle={(isEnabled) => toggleFilter(filterType, isEnabled)}
                                     subMenuItems={
                                         <>

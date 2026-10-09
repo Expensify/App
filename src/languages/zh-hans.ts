@@ -8542,7 +8542,7 @@ ${reportName}`,
                 },
                 tags: {title: '标签', description: '选择要与此工作区同步的候选人标签', toggleTitle: '标签', allSelected: '所有标签'},
                 offices: {title: '办公室', description: '选择你想与此工作区同步的候选人办公地点', toggleTitle: '办公室', allSelected: '所有办公室'},
-                enableJobStagesOrTags: '启用职位阶段或标签以继续',
+                enableJobStagesOrTags: '请选择至少一个工作阶段或标签以继续',
             },
             subtitle: '连接招聘工具并保持候选人审批同步。',
             syncResults: {

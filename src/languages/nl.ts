@@ -8863,7 +8863,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     toggleTitle: 'Kantoren',
                     allSelected: 'Alle kantoren',
                 },
-                enableJobStagesOrTags: 'Schakel functiestadia of labels in om door te gaan',
+                enableJobStagesOrTags: 'Selecteer minstens één functiestap of tag om door te gaan',
             },
             subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
             syncResults: {

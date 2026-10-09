@@ -8877,7 +8877,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     allSelected: 'Wszystkie tagi',
                 },
                 offices: {title: 'Biuro', description: 'Wybierz biura kandydatów, które chcesz zsynchronizować z tym miejscem pracy', toggleTitle: 'Biura', allSelected: 'Wszystkie biura'},
-                enableJobStagesOrTags: 'Włącz etapy zleceń lub tagi, aby kontynuować',
+                enableJobStagesOrTags: 'Wybierz co najmniej jeden etap zadania lub znacznik, aby kontynuować',
             },
             subtitle: 'Połącz narzędzia rekrutacyjne i utrzymuj zgody kandydatów w synchronizacji.',
             syncResults: {
