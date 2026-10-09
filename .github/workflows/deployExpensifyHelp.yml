@@ -20,12 +20,11 @@ on:
   # Run on any manual trigger
   workflow_dispatch:
 
-# Production deploys (push to main / manual) share the 'pages' group: only one runs at a time and they are never
-# cancelled. Each PR preview gets its own group, so a PR's queued run can no longer be cancelled by another PR or by
-# main ("Canceling since a higher priority waiting request for pages exists"), and vice versa.
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('helpdot-preview-{0}', github.event.pull_request.number) || 'pages' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: 'pages'
+  cancel-in-progress: false
 
 jobs:
   build:
