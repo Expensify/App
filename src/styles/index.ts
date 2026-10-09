@@ -4193,11 +4193,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Overlays the hidden widest label that sizes the pill
         receiptPageNavigatorCurrentLabel: {
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
+            ...StyleSheet.absoluteFillObject,
             alignItems: 'center',
             justifyContent: 'center',
         },
