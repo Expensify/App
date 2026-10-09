@@ -113,12 +113,22 @@ describe('useInsightsFilters', () => {
     });
 
     it('waits for the stored selections before saying it has resolved', async () => {
-        // Given Onyx with nothing loaded yet
-        // When the dashboard first asks for its filters
+        // Given stored selections that are still being written
+        Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {
+            [SPEND_SEARCH_KEY]: {
+                query: buildInsightsQueryString({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD'}),
+            },
+        });
+
+        // When the dashboard asks for its filters before that write lands
         const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
 
         // Then it reports as unresolved, so the page doesn't request a dashboard the user never asked for
         expect(result.current.isResolved).toBe(false);
+
+        // And it resolves once the selections are in
+        await waitForBatchedUpdates();
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
     });
 
     it('stores a control’s selection alongside the rest of the dashboard’s filters', async () => {
