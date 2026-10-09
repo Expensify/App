@@ -747,6 +747,15 @@ describe('navigateToConfirmationPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
     });
 
+    it('should navigate to confirmation step with backTo when backTo is provided', () => {
+        const backTo = 'test-back-to-route';
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, false, undefined, false, backTo);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, undefined, backTo),
+        );
+    });
+
     it('should navigate to confirmation step with SEND iouType when iouType is SEND and from ManualDistanceRequest', () => {
         const backToReport = '111';
         IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.SEND, transactionID, reportID, backToReport, false, undefined, true);
