@@ -107,7 +107,7 @@ describe('SignUpWelcomeForm', () => {
         fireEvent.press(screen.getByLabelText('I agree to receive marketing texts from Expensify'));
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, true);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, true, undefined);
     });
 
     it('passes hasSMSMarketingConsent=false to signUpUser when checkbox is unchecked and Join is pressed', async () => {
@@ -117,7 +117,7 @@ describe('SignUpWelcomeForm', () => {
 
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false, undefined);
     });
 
     it('passes hasSMSMarketingConsent=false when checkbox is checked then unchecked', async () => {
@@ -129,7 +129,7 @@ describe('SignUpWelcomeForm', () => {
         fireEvent.press(screen.getByLabelText('I agree to receive marketing texts from Expensify'));
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false, undefined);
     });
 
     it('omits the consent param when signing up with an email', async () => {
@@ -139,6 +139,24 @@ describe('SignUpWelcomeForm', () => {
 
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(EMAIL_LOGIN, undefined, undefined);
+        expect(signUpUserSpy).toHaveBeenCalledWith(EMAIL_LOGIN, undefined, undefined, undefined);
+    });
+
+    it('passes the stored marketing attribution to signUpUser', async () => {
+        // Given marketing attribution captured from a Google ad
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const attribution = {utm_source: 'google', gclid: 'testGclid'};
+        await setCredentialsLogin(EMAIL_LOGIN);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.MARKETING_ATTRIBUTION, attribution);
+        });
+        await renderForm();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses Join
+        fireEvent.press(screen.getByText('Join'));
+
+        // Then the attribution is passed to signUpUser
+        expect(signUpUserSpy).toHaveBeenCalledWith(EMAIL_LOGIN, undefined, undefined, attribution);
     });
 });

@@ -616,8 +616,8 @@ function MoneyRequestReceiptView({
     // Expanding only opens the receipt to look at, so it asks for none of the permission above
     const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
 
-    // Show the count badge only after a multi-page PDF receipt loads.
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !(isMapDistanceRequest && isPendingReceiptRegeneration);
+    // Map distance receipts render as an e-receipt card, so their stored PDF page count is never shown.
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !isMapDistanceRequest;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (

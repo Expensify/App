@@ -13,6 +13,11 @@ type SignInWithShortLivedAuthTokenParams = {
      */
     authMethod?: ValueOf<typeof CONST.AUTH_METHOD>;
     deviceInfo: string;
+    /**
+     * The device's current session `authToken`, sent only when the device is already authenticated.
+     * Omit when the device has no current session.
+     */
+    currentAuthToken?: string;
 };
 
 export default SignInWithShortLivedAuthTokenParams;
