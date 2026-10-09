@@ -48,7 +48,12 @@ type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
-    const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
+    const tabBarContent = (
+        <TabBarBottomContent
+            selectedTab={NAVIGATION_TABS.SETTINGS}
+            shouldReserveDebugTabView
+        />
+    );
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();

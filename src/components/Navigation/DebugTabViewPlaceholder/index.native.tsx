@@ -2,9 +2,12 @@ import type NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGA
 
 import type {ValueOf} from 'type-fest';
 
-type TabBarBottomContentProps = {
+type Props = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
-    shouldReserveDebugTabView?: boolean;
 };
 
-export default TabBarBottomContentProps;
+function DebugTabViewPlaceholder(_props: Props) {
+    return null;
+}
+
+export default DebugTabViewPlaceholder;

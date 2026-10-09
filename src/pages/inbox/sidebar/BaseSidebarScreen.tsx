@@ -40,7 +40,12 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID="BaseSidebarScreen"
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INBOX} />}
+            bottomContent={
+                <TabBarBottomContent
+                    selectedTab={NAVIGATION_TABS.INBOX}
+                    shouldReserveDebugTabView
+                />
+            }
             bottomContentStyle={styles.overflowVisible}
         >
             {({insets}) => (
