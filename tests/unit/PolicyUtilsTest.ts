@@ -411,7 +411,7 @@ describe('PolicyUtils', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
-            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
+            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
@@ -419,12 +419,10 @@ describe('PolicyUtils', () => {
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
         });
 
-        it('allows Guest assignment only on Control workspaces', () => {
+        it('blocks Guest assignment even on Control workspaces', () => {
             const controlPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
-            const collectPolicy = {...controlPolicy, type: CONST.POLICY.TYPE.TEAM};
 
-            expect(canMemberAssignRole(controlPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
-            expect(canMemberAssignRole(collectPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
+            expect(canMemberAssignRole(controlPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
         });
 
         it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
