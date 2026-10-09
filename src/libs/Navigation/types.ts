@@ -1095,10 +1095,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
         subPage?: string;
         authType?: string;
+        isMigration?: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SETUP]: {
         policyID: string;
         accountID?: string;
+        isMigration?: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT]: {
         policyID: string;

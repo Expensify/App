@@ -4649,16 +4649,18 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
         route: 'workspaces/:policyID/accounting/netsuite/token-input/:subPage',
-        getRoute: (policyID: string | undefined, subPage: string, authType?: string) => {
+        getRoute: (policyID: string | undefined, subPage: string, authType?: string, isMigration?: boolean) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT route');
             }
-            return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}${authType ? `?authType=${authType}` : ''}` as const;
+            const query = [authType ? `authType=${authType}` : '', isMigration ? `isMigration=true` : ''].filter(Boolean).join('&');
+            return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}${query ? `?${query}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_NETSUITE_SETUP: {
         route: 'workspaces/:policyID/accounting/netsuite/setup/:accountID?',
-        getRoute: (policyID: string, accountID: string) => `workspaces/${policyID}/accounting/netsuite/setup/${accountID}` as const,
+        getRoute: (policyID: string, accountID: string, isMigration?: boolean) =>
+            `workspaces/${policyID}/accounting/netsuite/setup/${accountID}${isMigration ? '?isMigration=true' : ''}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'workspaces/:policyID/accounting/netsuite/import',
