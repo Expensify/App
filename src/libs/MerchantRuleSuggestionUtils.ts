@@ -10,9 +10,18 @@ import {resolveCurrentTaxCode} from './PolicyUtils';
 import {trimTag} from './TagUtils';
 import {getBillable, getCategory, getDescription, getMerchant, getReimbursable, getTag, getTagArrayFromName, getTaxCode, isMerchantMissing} from './TransactionUtils';
 
-/** Whether a stored offer still stands: it names an expense, was not left behind, and was not dismissed this session. */
+/**
+ * Whether a stored offer still stands: the server judged at least one of its edits worth a rule, and it was not left
+ * behind or dismissed this session.
+ *
+ * An edit is recorded before the server has answered, so a record on its own is not yet an offer. Callers mount the
+ * callout on this, and a pending record would spend its entrance animation before there was anything to show.
+ */
 function isMerchantRuleSuggestionLive(suggestion: OnyxEntry<MerchantRuleSuggestion>): boolean {
     if (!suggestion?.transactionID || suggestion.isRetired) {
+        return false;
+    }
+    if (!Object.values(suggestion.confirmedFields?.[suggestion.transactionID] ?? {}).some(Boolean)) {
         return false;
     }
     return !suggestion.dismissedTransactionIDs?.includes(suggestion.transactionID);
