@@ -139,9 +139,6 @@ type UsePopoverEditStateOptionsGeneric<T> = {
  *   - Value comparison to prevent no-op saves
  */
 function usePopoverEditState<T>(options: UsePopoverEditStateOptionsGeneric<T>) {
-    // The non-generic impl cannot accept the generic options type directly, and OXC's React Compiler bails on
-    // type params inside hooks, so the options cannot be retyped at the impl boundary.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return usePopoverEditStateImpl(options as UsePopoverEditStateOptions) as ReturnType<typeof usePopoverEditStateImpl> & {
         handleSave: (newValue: T) => void;
     };
