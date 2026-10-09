@@ -94,6 +94,8 @@ import useParticipantPickerState from './useParticipantPickerState';
 import useSubmitDestinationPreMount from './useSubmitDestinationPreMount';
 import InvoiceConfirmation from './variants/InvoiceConfirmation';
 import LegacyConfirmation from './variants/LegacyConfirmation';
+import PayConfirmation from './variants/PayConfirmation';
+import PerDiemConfirmation from './variants/PerDiemConfirmation';
 
 function IOURequestStepConfirmationContent({
     report: reportReal,
@@ -671,6 +673,47 @@ function IOURequestStepConfirmationContent({
         shouldHideToSection,
     };
 
+    const renderConfirmation = () => {
+        // Pay confirms through SendMoney rather than createTransaction, so it isn't a submission path and is picked by iouType.
+        if (iouType === CONST.IOU.TYPE.PAY) {
+            return (
+                <PayConfirmation
+                    submissionParams={submissionParams}
+                    listProps={listProps}
+                    destinationReportID={destinationReportID}
+                    optimisticP2PDestinationReportID={optimisticP2PDestinationReportID}
+                />
+            );
+        }
+
+        switch (submissionPath) {
+            case SUBMISSION_PATH.INVOICE:
+                return (
+                    <InvoiceConfirmation
+                        submissionParams={submissionParams}
+                        orchestratorProps={orchestratorProps}
+                        listProps={listProps}
+                    />
+                );
+            case SUBMISSION_PATH.PER_DIEM:
+                return (
+                    <PerDiemConfirmation
+                        submissionParams={submissionParams}
+                        orchestratorProps={orchestratorProps}
+                        listProps={listProps}
+                    />
+                );
+            default:
+                return (
+                    <LegacyConfirmation
+                        submissionParams={submissionParams}
+                        orchestratorProps={orchestratorProps}
+                        listProps={listProps}
+                    />
+                );
+        }
+    };
+
     return (
         <>
             <TelemetrySpanManager
@@ -767,21 +810,7 @@ function IOURequestStepConfirmationContent({
                                 dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                             />
                         </DragAndDropConsumer>
-                        {submissionPath === SUBMISSION_PATH.INVOICE ? (
-                            <InvoiceConfirmation
-                                submissionParams={submissionParams}
-                                orchestratorProps={orchestratorProps}
-                                listProps={listProps}
-                            />
-                        ) : (
-                            <LegacyConfirmation
-                                submissionParams={submissionParams}
-                                orchestratorProps={orchestratorProps}
-                                listProps={listProps}
-                                destinationReportID={destinationReportID}
-                                optimisticP2PDestinationReportID={optimisticP2PDestinationReportID}
-                            />
-                        )}
+                        {renderConfirmation()}
                         <ParticipantPicker
                             participants={participants}
                             iouType={participantPickerIOUType}

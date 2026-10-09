@@ -1,12 +1,10 @@
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import useReportTransactions from '@hooks/useReportTransactions';
 
-import {isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
-import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {isSelfDMSoleDestination} from '@libs/IOUUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
 import {getSpan} from '@libs/telemetry/activeSpans';
 import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
@@ -32,10 +30,9 @@ import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 import useDistanceDraftData from './submission/useDistanceDraftData';
 import useDistanceSubmission from './submission/useDistanceSubmission';
 import useGpsCapture from './submission/useGpsCapture';
-import usePerDiemSubmission from './submission/usePerDiemSubmission';
 import useRequestMoneySubmission from './submission/useRequestMoneySubmission';
-import useSendMoneySubmission from './submission/useSendMoneySubmission';
 import useSplitSubmission from './submission/useSplitSubmission';
+import useSubmissionOnboardingIntent from './submission/useSubmissionOnboardingIntent';
 import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 import useSubmissionViolations from './submission/useSubmissionViolations';
 import useTrackExpenseSubmission from './submission/useTrackExpenseSubmission';
@@ -132,15 +129,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         onExpenseWriteWillStart,
         submitLock,
     } = params;
-    const {setIsConfirmed, releaseSubmitLock, acquireSubmitLock} = submitLock;
+    const {releaseSubmitLock, acquireSubmitLock} = submitLock;
 
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
     const selectedParticipants = participants.filter((participant) => participant.selected);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const {isOffline} = useNetwork();
-    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
+    const {introSelected, isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
@@ -166,7 +160,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
      * goes back to reading what it needs, and every `TEMP` param below disappears.
      */
     const recentlyUsedData = useSubmissionRecentlyUsedData(policy?.id);
-    const {transactionViolations, transactionViolationsRef} = useSubmissionViolations();
+    const {transactionViolationsRef} = useSubmissionViolations();
     const distanceDraftData = useDistanceDraftData({transaction, isGPSDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest});
     const {submitWithGpsPoint} = useGpsCapture();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -193,19 +187,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
     // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
     const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
-
-    const {sendMoney} = useSendMoneySubmission({
-        transaction,
-        receiptFiles,
-        report,
-        participants,
-        currentUserPersonalDetails,
-        setIsConfirmed,
-        quickAction,
-        reportTransactions,
-        delegateAccountID,
-        onExpenseWriteWillStart,
-    });
 
     const requestMoneySubmission = useRequestMoneySubmission({
         transaction,
@@ -344,31 +325,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         participantsPolicyTags,
     });
 
-    const perDiemSubmission = usePerDiemSubmission({
-        transaction,
-        report,
-        reportDrafts,
-        policy,
-        policyCategories,
-        personalDetails,
-        currentUserPersonalDetails,
-        selectedParticipants,
-        isTrackExpense,
-        isSelfDMDestination,
-        isLookingAroundUser,
-        isTrackIntentUser,
-        backToReport,
-        onExpenseWriteWillStart,
-        recentlyUsedData,
-        policyTags,
-        rules,
-        quickAction,
-        selfDMReport,
-        transactionViolations,
-        reportTransactions,
-        delegateAccountID,
-    });
-
     // Which API command a submission will run. Resolved here rather than inside createTransaction because every
     // input is render-time state - that is what lets each path own its own hook once this file is split up.
     const submissionPath = resolveSubmissionPath({
@@ -384,17 +340,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isSubmittingExpenseToDraftWorkspace,
     });
 
-    // Invoices submit through InvoiceConfirmation; this composer only serves the paths that haven't forked yet.
-    const submitByPath: Record<Exclude<SubmissionPath, typeof SUBMISSION_PATH.INVOICE>, (params: CreateTransactionParams) => boolean> = {
+    // Invoices and per diem submit through their own variants; this composer only serves the paths that haven't forked yet.
+    const submitByPath: Record<Exclude<SubmissionPath, typeof SUBMISSION_PATH.INVOICE | typeof SUBMISSION_PATH.PER_DIEM>, (params: CreateTransactionParams) => boolean> = {
         [SUBMISSION_PATH.DISTANCE]: distanceSubmission.createTransaction,
         [SUBMISSION_PATH.SPLIT]: splitSubmission.createTransaction,
         [SUBMISSION_PATH.TRACK]: trackSubmission.createTransaction,
-        [SUBMISSION_PATH.PER_DIEM]: perDiemSubmission.createTransaction,
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
     function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams): boolean {
-        if (submissionPath === SUBMISSION_PATH.INVOICE) {
+        if (submissionPath === SUBMISSION_PATH.INVOICE || submissionPath === SUBMISSION_PATH.PER_DIEM) {
             return false;
         }
         getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
@@ -411,7 +366,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         return submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation, writeBarrier});
     }
 
-    return {createTransaction, sendMoney};
+    return {createTransaction};
 }
 
 export default useExpenseSubmission;
