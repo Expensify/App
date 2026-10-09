@@ -3,7 +3,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -19,25 +18,23 @@ import MergeSyncResultsListener from '@pages/workspace/merge/MergeSyncResultsLis
 import type {MergeProviderCardCategory, MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React, {useEffect, useState} from 'react';
 
 import ConnectionsMergeProviderCard from './ConnectionsMergeProviderCard';
-import useRedirectUnconnectedPanelToConnections from './useRedirectUnconnectedPanelToConnections';
 
 /** The handful of things that differ between the HR page and the Recruiting page. Everything else is shared. */
 const PAGE_CONFIG = {
     [CONST.POLICY.CONNECTIONS.CATEGORY.HR]: {
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
         openPage: openPolicyHRPage,
-        testID: 'WorkspaceHRPage',
+        testID: 'ConnectionsHRPage',
     },
     [CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING]: {
         featureName: CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
         openPage: openPolicyRecruitingPage,
-        testID: 'WorkspaceRecruitingPage',
+        testID: 'ConnectionsRecruitingPage',
     },
 } as const;
 
@@ -126,12 +123,6 @@ function ConnectionsMergePageBaseContent({policyID, category, cards}: Connection
 function ConnectionsMergePageBase({policyID, category, cards, shouldBeBlocked}: ConnectionsMergePageBaseProps) {
     const {featureName, openPage} = PAGE_CONFIG[category];
     const {isBetaEnabled} = usePermissions();
-    const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}`);
-    useRedirectUnconnectedPanelToConnections(
-        policyID,
-        !!hasConnectionsDataBeenFetched,
-        cards.some((card) => card.isConnected),
-    );
 
     useWorkspaceDocumentTitle(undefined, `workspace.common.${category}`);
 

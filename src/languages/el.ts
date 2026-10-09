@@ -5083,11 +5083,9 @@ ${amount} για ${merchant} - ${date}`,
             hrisListing: (providerName: string) => `${providerName} (HRIS)`,
             atsListing: (providerName: string) => `${providerName} (ATS)`,
             suggestIntegration: 'Δεν βλέπετε τη δική σας; Προτείνετε μια ενσωμάτωση και θα το εξετάσουμε.',
-            noResultsPrompt: 'Παρακαλούμε προσαρμόστε την αναζήτησή σας ή',
-            suggestAnIntegration: 'προτείνετε μια ενσωμάτωση',
-            noResultsPromptEnd: '.',
+            noResultsPrompt: '<muted-text><centered-text>Παρακαλούμε προσαρμόστε την αναζήτησή σας ή <a href="#">προτείνετε μια ενσωμάτωση</a>.</centered-text></muted-text>',
             allConnectedTitle: 'Έχετε συνδεθεί πλήρως',
-            allConnectedPrompt: 'Όλα εδώ είναι ήδη συνδεδεμένα. Μπορείτε επίσης να',
+            allConnectedPrompt: '<muted-text><centered-text>Όλα εδώ είναι ήδη συνδεδεμένα. Μπορείτε επίσης να <a href="#">προτείνετε μια ενσωμάτωση</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {

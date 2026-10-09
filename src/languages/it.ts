@@ -4979,11 +4979,9 @@ ${amount} per ${merchant} - ${date}`,
             hrisListing: (providerName: string) => `${providerName} (HRIS)`,
             atsListing: (providerName: string) => `${providerName} (ATS)`,
             suggestIntegration: "Non vedi la tua? Suggerisci un'integrazione, la valuteremo.",
-            noResultsPrompt: 'Modifica la tua ricerca oppure',
-            suggestAnIntegration: "suggerisci un'integrazione",
-            noResultsPromptEnd: '.',
+            noResultsPrompt: `<muted-text><centered-text>Modifica la tua ricerca oppure <a href="#">suggerisci un'integrazione</a>.</centered-text></muted-text>`,
             allConnectedTitle: 'Sei tutto connesso',
-            allConnectedPrompt: 'Qui è già tutto collegato. Puoi anche',
+            allConnectedPrompt: `<muted-text><centered-text>Qui è già tutto collegato. Puoi anche <a href="#">suggerire un'integrazione</a>.</centered-text></muted-text>`,
         },
         receiptPartners: {
             uber: {

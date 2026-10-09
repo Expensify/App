@@ -4944,11 +4944,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             hrisListing: (providerName: string) => `${providerName}（HRIS）`,
             atsListing: (providerName: string) => `${providerName}（ATS）`,
             suggestIntegration: 'お探しのものが見つかりませんか？連携を提案してください、こちらで検討します。',
-            noResultsPrompt: '検索条件を調整するか',
-            suggestAnIntegration: '連携を提案する',
-            noResultsPromptEnd: '。',
+            noResultsPrompt: '<muted-text><centered-text>検索条件を調整するか、<a href="#">連携を提案</a>してください。</centered-text></muted-text>',
             allConnectedTitle: 'すべて接続されました',
-            allConnectedPrompt: 'ここにあるものはすべてすでに連携されています。さらに、次のこともできます',
+            allConnectedPrompt: '<muted-text><centered-text>ここにあるものはすべてすでに連携されています。<a href="#">連携を提案</a>することもできます。</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {

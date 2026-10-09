@@ -4981,11 +4981,9 @@ ${amount} voor ${merchant} - ${date}`,
             hrisListing: (providerName: string) => `${providerName} (HRIS)`,
             atsListing: (providerName: string) => `${providerName} (ATS)`,
             suggestIntegration: 'Zie je de jouwe niet? Stel een integratie voor, dan kijken we ernaar.',
-            noResultsPrompt: 'Pas je zoekopdracht aan of',
-            suggestAnIntegration: 'stel een integratie voor',
-            noResultsPromptEnd: '.',
+            noResultsPrompt: '<muted-text><centered-text>Pas je zoekopdracht aan of <a href="#">stel een integratie voor</a>.</centered-text></muted-text>',
             allConnectedTitle: 'Je bent helemaal verbonden',
-            allConnectedPrompt: 'Alles hier is al verbonden. Je kunt ook',
+            allConnectedPrompt: '<muted-text><centered-text>Alles hier is al verbonden. Je kunt ook <a href="#">een integratie voorstellen</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {

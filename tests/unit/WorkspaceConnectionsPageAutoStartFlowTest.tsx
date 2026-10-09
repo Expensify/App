@@ -95,6 +95,7 @@ jest.mock('@components/ScrollView', () => ({
 
 jest.mock('@components/SidePanel/SidePanelButton', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/TabSelector/TabSelectorBase', () => ({__esModule: true, default: () => null}));
+jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/TextLink', () => ({__esModule: true, default: () => null}));
 jest.mock('@pages/workspace/connections/ConnectionsGrid', () => ({__esModule: true, default: () => null}));
 jest.mock('@pages/workspace/connections/useAccountingConnectionListings', () => ({__esModule: true, default: () => []}));

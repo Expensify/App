@@ -5188,11 +5188,9 @@ const translations = {
             hrisListing: (providerName: string) => `${providerName} (HRIS)`,
             atsListing: (providerName: string) => `${providerName} (ATS)`,
             suggestIntegration: "Don't see yours? Suggest an integration, we'll look into it.",
-            noResultsPrompt: 'Please adjust your search or',
-            suggestAnIntegration: 'suggest an integration',
-            noResultsPromptEnd: '.',
+            noResultsPrompt: '<muted-text><centered-text>Please adjust your search or <a href="#">suggest an integration</a>.</centered-text></muted-text>',
             allConnectedTitle: "You're all connected",
-            allConnectedPrompt: 'Everything here is already connected. You can also',
+            allConnectedPrompt: '<muted-text><centered-text>Everything here is already connected. You can also <a href="#">suggest an integration</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {

@@ -4830,11 +4830,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             hrisListing: (providerName: string) => `${providerName}（HRIS）`,
             atsListing: (providerName: string) => `${providerName}（ATS）`,
             suggestIntegration: '没找到适合你的？建议一个集成，我们会进行评估。',
-            noResultsPrompt: '请调整您的搜索条件或',
-            suggestAnIntegration: '建议一个集成',
-            noResultsPromptEnd: '。',
+            noResultsPrompt: '<muted-text><centered-text>请调整您的搜索条件或<a href="#">建议一个集成</a>。</centered-text></muted-text>',
             allConnectedTitle: '全部已连接',
-            allConnectedPrompt: '这里的一切都已连接完成。您也可以',
+            allConnectedPrompt: '<muted-text><centered-text>这里的一切都已连接完成。您也可以<a href="#">建议一个集成</a>。</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {

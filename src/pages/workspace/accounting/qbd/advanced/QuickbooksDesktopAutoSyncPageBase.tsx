@@ -2,21 +2,24 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksDesktopAutoSync} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
@@ -34,6 +37,7 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = policy?.id;
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const config = policy?.connections?.quickbooksDesktop?.config;
     const {autoSync, pendingFields} = config ?? {};
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
@@ -41,8 +45,13 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
         settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(navigateBackTo);
-    }, [navigateBackTo]);
+        Navigation.goBack(
+            navigateBackTo ??
+                (policyID
+                    ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))
+                    : undefined),
+        );
+    }, [isUnifiedConnectionsBetaEnabled, policyID, navigateBackTo]);
 
     return (
         <ConnectionLayout

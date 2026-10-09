@@ -51,4 +51,12 @@ function getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled: boolean,
     return ROUTES.POLICY_ACCOUNTING.getRoute(...params);
 }
 
-export {MCP_CONNECTOR, getSyncStatusMessage, getListingsForTab, getAccountingConnectionsRoute};
+/** The page an accounting integration's settings open from, which is the Connections accounting panel while the unified Connections beta is on */
+function getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled: boolean, policyID: string) {
+    if (isUnifiedConnectionsBetaEnabled) {
+        return ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
+    }
+    return ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
+}
+
+export {MCP_CONNECTOR, getSyncStatusMessage, getListingsForTab, getAccountingConnectionsRoute, getAccountingSettingsRoute};

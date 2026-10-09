@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import React from 'react';
+import React, {useId} from 'react';
 import {View} from 'react-native';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
@@ -18,7 +18,7 @@ function TabSelectorScrollFade({side}: TabSelectorScrollFadeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const gradientID = `tabSelectorScrollFade-${side}`;
+    const gradientID = useId();
 
     return (
         <View

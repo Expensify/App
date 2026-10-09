@@ -68,8 +68,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-import useRedirectUnconnectedPanelToConnections from './useRedirectUnconnectedPanelToConnections';
-
 /** Settings for the workspace's connected accounting integration, opened from the Connections page. */
 function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.accounting');
@@ -148,7 +146,6 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, accountingIntegrations);
     const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy);
-    useRedirectUnconnectedPanelToConnections(policyID, true, !!connectedIntegration || hasUnsupportedNDIntegration);
 
     const tenants = getXeroTenants(policy);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);

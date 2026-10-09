@@ -19,7 +19,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 import type {ConnectionListing} from './types';
 
@@ -30,12 +30,15 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const prevIsUberConnected = usePrevious(isUberConnected);
     const {isOffline} = useNetwork();
+    const hasStartedUberConnectionRef = useRef(false);
 
-    // The Uber connection finishes outside the app, so the invite flow opens once the connection shows up here
+    // The Uber connection finishes outside the app, so the invite flow opens once the connection shows up here. It only
+    // opens for a connection started from this page, not for one that shows up when the data first loads.
     useEffect(() => {
-        if (!policyID || !isUberConnected || prevIsUberConnected || !canWrite) {
+        if (!policyID || !isUberConnected || prevIsUberConnected || !canWrite || !hasStartedUberConnectionRef.current) {
             return;
         }
+        hasStartedUberConnectionRef.current = false;
         Navigation.navigate(
             createDynamicRoute(
                 DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER),
@@ -61,10 +64,12 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
         if (!policy?.receiptPartners?.enabled) {
             enablePolicyReceiptPartners(policyID, true, false);
         }
+        hasStartedUberConnectionRef.current = true;
         openExternalLink(`${CONST.UBER_CONNECT_URL}?${connectFormData}`);
     };
 
     const isConnected = isUberConnected || shouldShowEnterCredentialsError;
+    const isBroken = shouldShowEnterCredentialsError || !!uberData.errorFields;
 
     return [
         {
@@ -74,14 +79,21 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
             icon: uberData.icon,
             status: isConnected
                 ? {
-                      isBroken: shouldShowEnterCredentialsError,
-                      message: shouldShowEnterCredentialsError ? translate('workspace.connections.brokenConnection') : uberData.description,
+                      isBroken,
+                      message: isBroken ? translate('workspace.connections.brokenConnection') : uberData.description,
                   }
                 : undefined,
             // The Uber partner offer only applies to new connections
             offer: isConnected
                 ? undefined
-                : {onPress: canWrite ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)) : undefined},
+                : {
+                      onPress: canWrite
+                          ? () => {
+                                hasStartedUberConnectionRef.current = true;
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
+                            }
+                          : undefined,
+                  },
             onConnect: connectUber,
             isLoading: !policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners,
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS.getRoute(policyID)),

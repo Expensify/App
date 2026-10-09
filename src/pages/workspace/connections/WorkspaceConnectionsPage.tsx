@@ -7,6 +7,7 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
@@ -51,7 +52,10 @@ import {openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Account} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
@@ -80,6 +84,8 @@ type MergeSetupFlow = {
 };
 
 /** HR and recruiting providers are Control-only, so their data is only requested for Control workspaces */
+const accountManagerReportIDSelector = (account: OnyxEntry<Account>) => (account?.accountManagerAccountID ? account.accountManagerReportID : undefined);
+
 function fetchConnectionsData(policyID: string | undefined, canUseMergeConnections: boolean, isRecruitingBetaEnabled: boolean) {
     if (!policyID) {
         return;
@@ -106,7 +112,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountManagerReportIDSelector});
     const {startIntegrationFlow} = useAccountingActions();
     const {canWrite: canWriteAccounting} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab>(CONST.TAB.CONNECTIONS.ALL);
@@ -161,8 +167,8 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
             openConciergeAnywhere({reportID: String(policy.chatReportIDAdmins)});
             return;
         }
-        if (account?.accountManagerAccountID && account.accountManagerReportID) {
-            openConciergeAnywhere({reportID: account.accountManagerReportID});
+        if (accountManagerReportID) {
+            openConciergeAnywhere({reportID: accountManagerReportID});
             return;
         }
         openConciergeAnywhere({forceConcierge: true});
@@ -325,11 +331,12 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                         headerStyles={styles.emptyStateCardIllustrationContainer}
                         title={isSearching ? translate('common.noResultsFound') : translate('workspace.connections.allConnectedTitle')}
                         subtitleText={
-                            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
-                                {isSearching ? translate('workspace.connections.noResultsPrompt') : translate('workspace.connections.allConnectedPrompt')}{' '}
-                                <TextLink onPress={openSuggestIntegration}>{translate('workspace.connections.suggestAnIntegration')}</TextLink>
-                                {translate('workspace.connections.noResultsPromptEnd')}
-                            </Text>
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
+                                <RenderHTML
+                                    html={isSearching ? translate('workspace.connections.noResultsPrompt') : translate('workspace.connections.allConnectedPrompt')}
+                                    onLinkPress={openSuggestIntegration}
+                                />
+                            </View>
                         }
                     />
                 ) : (

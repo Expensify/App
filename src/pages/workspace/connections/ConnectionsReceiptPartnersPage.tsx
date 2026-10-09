@@ -41,8 +41,6 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect} from 'react';
 
-import useRedirectUnconnectedPanelToConnections from './useRedirectUnconnectedPanelToConnections';
-
 type ConnectionsReceiptPartnersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS>;
 
 function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageProps) {
@@ -58,7 +56,6 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const isLoading = policy?.isLoading;
-    useRedirectUnconnectedPanelToConnections(policyID, !!policy && !isLoading, isUberConnected || shouldShowEnterCredentialsError);
     const integrations = policy?.receiptPartners;
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
@@ -84,9 +81,8 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
     const {isOffline} = useNetwork({onReconnect: fetchReceiptPartners});
 
     useEffect(() => {
-        fetchReceiptPartners();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        openPolicyReceiptPartnersPage(policyID);
+    }, [policyID]);
 
     const toggleWorkspaceUberAutoInvite = () => {
         togglePolicyUberAutoInvite(policyID, !isAutoInvite);
@@ -168,7 +164,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                 />
             ) : (
                 <ScreenWrapper
-                    testID="WorkspaceReceiptPartnersPage"
+                    testID="ConnectionsReceiptPartnersPage"
                     enableEdgeToEdgeBottomSafeAreaPadding
                 >
                     <Header>
