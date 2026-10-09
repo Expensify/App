@@ -1100,6 +1100,8 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                // Clear errors from a previous failed submit
+                errors: null,
                 ...(shouldAddOptimisticSubmitAction
                     ? {
                           lastMessageText: getReportActionText(optimisticSubmittedReportAction),
@@ -1127,6 +1129,8 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                // Clear errors from a previous failed submit
+                errors: null,
                 // For DEW policies, don't optimistically update stateNum, statusNum, or nextStep
                 ...(isDEWPolicy
                     ? {}

@@ -3018,6 +3018,79 @@ describe('actions/IOU/ReportWorkflow', () => {
             const failureActionsUpdate = getRequiredOnyxUpdate(onyxData, 'failureData', reportActionsKey, Onyx.METHOD.MERGE, true);
             expect(failureActionsUpdate.value[reportActionID]).toBeNull();
         });
+
+        it('clears the errors of a previous failed submit when submitting from search again', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write onyxData to verify the optimistic error reset.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // Given a report whose previous submit from search failed
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                errors: {submitError: 'Report failed to submit'},
+            };
+
+            // When the user submits it from search again
+            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal, undefined);
+
+            // Then the old errors are cleared optimistically, so the Search row no longer says the report has errors
+            const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+            const optimisticReportsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.COLLECTION.REPORT, Onyx.METHOD.MERGE_COLLECTION, true);
+            expect(optimisticReportsUpdate.value[reportKey]).toEqual({errors: null});
+        });
+
+        it('clears the errors of a previous failed submit when submitting from the report again', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write onyxData to verify the optimistic error reset.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+
+            // Given a report whose previous submit failed
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+                errors: {submitError: 'Report failed to submit'},
+            };
+
+            // When the user submits it from the report again
+            submitReport({
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                submitterLogin: undefined,
+                expenseReport,
+                policy: {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                },
+                currentUserAccountIDParam: 100,
+                currentUserEmailParam: 'submitter@example.com',
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+
+            // Then the old errors are cleared optimistically instead of being merged back from the report
+            const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+            const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
+            expect(optimisticReportUpdate.value.errors).toBeNull();
+        });
     });
 
     describe('delegateAccountID forwarding', () => {

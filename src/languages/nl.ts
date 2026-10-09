@@ -10996,6 +10996,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,
         reportContainsExpensesWithViolations: 'Rapport bevat onkosten met overtredingen.',
+        reportHasErrors: 'Rapport bevat fouten.',
     },
     violationDismissal: {
         rter: {

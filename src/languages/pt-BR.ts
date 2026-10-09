@@ -10990,6 +10990,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,
         reportContainsExpensesWithViolations: 'O relatório contém despesas com violações.',
+        reportHasErrors: 'O relatório tem erros.',
     },
     violationDismissal: {
         rter: {

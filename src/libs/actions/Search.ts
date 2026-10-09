@@ -1617,6 +1617,12 @@ function submitMoneyRequestOnSearch(
                 : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
         });
     }
+    // Clear errors from a previous failed submit
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+        key: ONYXKEYS.COLLECTION.REPORT,
+        value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {errors: null}])),
+    });
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {

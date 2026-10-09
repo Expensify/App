@@ -11079,6 +11079,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} ist erforderlich`,
         reportContainsExpensesWithViolations: 'Der Bericht enthält Ausgaben mit Verstößen.',
+        reportHasErrors: 'Der Bericht enthält Fehler.',
     },
     violationDismissal: {
         rter: {
