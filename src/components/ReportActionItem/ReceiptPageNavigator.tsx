@@ -94,13 +94,6 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
             style={styles.receiptPageNavigator}
             dataSet={{[CONST.RECEIPT.HOVER_ZOOM_EXCLUDED_ELEMENT]: true}}
         >
-            <View
-                style={[styles.receiptPageNavigatorLabelContainer, styles.pointerEventsNone]}
-                accessibilityLiveRegion="polite"
-                role={CONST.ROLE.STATUS}
-            >
-                <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
-            </View>
             <PageButton
                 icon={icons.BackArrow}
                 label={translate('common.previous')}
@@ -108,7 +101,13 @@ function ReceiptPageNavigator({page, pageCount, isLoading, onChangePage}: Receip
                 onPress={() => onChangePage(page - 1)}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.PREVIOUS_PAGE_BUTTON}
             />
-            <View style={styles.receiptPageNavigatorSpacer} />
+            <View
+                style={[styles.receiptPageNavigatorLabelContainer, styles.pointerEventsNone]}
+                accessibilityLiveRegion="polite"
+                role={CONST.ROLE.STATUS}
+            >
+                <Text style={labelStyle}>{translate('receipt.pageCount', {page, pageCount})}</Text>
+            </View>
             <PageButton
                 icon={icons.ArrowRight}
                 label={translate('common.next')}
