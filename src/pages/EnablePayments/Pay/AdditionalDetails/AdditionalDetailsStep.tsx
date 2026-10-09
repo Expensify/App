@@ -235,6 +235,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         role={CONST.ROLE.PRESENTATION}
                         maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
+                        shouldSaveDraft
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 </FormProvider>
