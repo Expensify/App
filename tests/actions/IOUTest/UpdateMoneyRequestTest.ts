@@ -24,9 +24,10 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, SearchResults, TransactionViolation} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, PolicyVendors, RecentlyUsedTags, RecentWaypoint, Report, SearchResults, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type {Connections} from '@src/types/onyx/Policy';
 import type {Routes} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -46,6 +47,10 @@ import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {createGlobalFetchMock, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    isHybridApp: jest.fn(() => false),
+}));
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -3125,6 +3130,182 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
             const modifiedExpenseAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE));
             expect(modifiedExpenseAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+    });
+
+    describe('vendor matching inactiveVendor violation retention', () => {
+        it('retains inactiveVendor violation during optimistic expense update when assigned vendor is disabled in policyVendors', async () => {
+            const transactionID = 'txnVendorDisabled1';
+            const transactionThreadReportID = 'threadVendorDisabled1';
+            const parentReportID = 'parentVendorDisabled1';
+            const policyID = '50';
+            const vendorID = 'v-disabled';
+
+            const policy = createMock<Policy>({
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {vendors: [{id: vendorID, name: 'Acme Disabled', currency: 'USD', email: 'vendor@example.com'}]},
+                    },
+                }),
+            });
+
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: parentReportID,
+                category: '',
+                reimbursable: false,
+                comment: {vendor: {externalID: vendorID, wasManuallySet: false}},
+            };
+            const inactiveVendorViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            };
+
+            const policyVendors: PolicyVendors = {
+                [vendorID]: {
+                    externalID: vendorID,
+                    name: 'Acme Disabled',
+                    enabled: false,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, policyVendors);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [inactiveVendorViolation]);
+
+            updateMoneyRequestDescription({
+                isVendorMatchingBetaEnabled: true,
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                rules: undefined,
+                iouReportOwnerLogin: undefined,
+                comment: 'Updated description',
+                policy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                policyVendors,
+                reportPolicyTags: undefined,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: [inactiveVendorViolation],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(await getStoredViolationNames(transactionID)).toEqual([CONST.VIOLATIONS.INACTIVE_VENDOR]);
+        });
+
+        it('clears inactiveVendor violation during optimistic expense update when assigned vendor is re-enabled in policyVendors', async () => {
+            const transactionID = 'txnVendorEnabled1';
+            const transactionThreadReportID = 'threadVendorEnabled1';
+            const parentReportID = 'parentVendorEnabled1';
+            const policyID = '51';
+            const vendorID = 'v-enabled';
+
+            const policy = createMock<Policy>({
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                requiresCategory: false,
+                requiresTag: false,
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {vendors: [{id: vendorID, name: 'Acme Enabled', currency: 'USD', email: 'vendor@example.com'}]},
+                    },
+                }),
+            });
+
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(4),
+                transactionID,
+                reportID: parentReportID,
+                category: '',
+                reimbursable: false,
+                comment: {vendor: {externalID: vendorID, wasManuallySet: false}},
+            };
+            const inactiveVendorViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            };
+
+            const policyVendors: PolicyVendors = {
+                [vendorID]: {
+                    externalID: vendorID,
+                    name: 'Acme Enabled',
+                    enabled: true,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, policyVendors);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [inactiveVendorViolation]);
+
+            updateMoneyRequestDescription({
+                isVendorMatchingBetaEnabled: true,
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                rules: undefined,
+                iouReportOwnerLogin: undefined,
+                comment: 'Updated description',
+                policy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                policyVendors,
+                reportPolicyTags: undefined,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: [inactiveVendorViolation],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(await getStoredViolationNames(transactionID)).toEqual([]);
         });
     });
 });

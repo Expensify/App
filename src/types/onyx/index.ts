@@ -61,6 +61,7 @@ import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OneOnOneChatReportIDsDerivedValue,
@@ -117,6 +118,8 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MarketingAttribution from './MarketingAttribution';
+import type {StoredMarketingAttribution} from './MarketingAttribution';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
@@ -140,6 +143,7 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
@@ -147,10 +151,12 @@ import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
+import type {PolicyVendor} from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
+import type {Purchases} from './PurchaseList';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -176,6 +182,7 @@ import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
+import type ReusableDistanceRoute from './ReusableDistanceRoute';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type Rule from './Rule';
 import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
@@ -304,6 +311,8 @@ export type {
     PasskeyTransport,
     PendingContactAction,
     MapboxAccessToken,
+    MarketingAttribution,
+    StoredMarketingAttribution,
     Modal,
     Network,
     OnyxInputOrEntry,
@@ -322,6 +331,8 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyDataLoadingState,
+    PolicyVendor,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
@@ -343,6 +354,7 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
+    ReusableDistanceRoute,
     Report,
     Rule,
     ReportNameValuePairs,
@@ -393,6 +405,7 @@ export type {
     WalletTransfer,
     SupportalPermissionDenied,
     PurchaseList,
+    Purchases,
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
@@ -456,6 +469,7 @@ export type {
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
     OneOnOneChatReportIDsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
