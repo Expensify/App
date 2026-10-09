@@ -128,6 +128,15 @@ runs:
         max_attempts: 3
         command: npm ci
 
+    - name: Update wallet pod lockfile for test build
+      if: inputs.IS_HYBRID_BUILD == 'true'
+      shell: bash
+      run: |
+        readonly PATCH_FILE="$GITHUB_WORKSPACE/scripts/test-wallet-pod-lock.patch"
+        if ! git -C Mobile-Expensify apply --reverse --check "$PATCH_FILE" 2>/dev/null; then
+            git -C Mobile-Expensify apply "$PATCH_FILE"
+        fi
+
     - name: Mark sticky disks as installed
       if: steps.runner-info.outputs.use-sticky-disk == 'true'
       shell: bash
