@@ -1,8 +1,6 @@
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import type {BlurEvent} from 'react-native';
-
 import React from 'react';
 
 import SplitAmountInput from './SplitAmountInput';
@@ -19,14 +17,11 @@ type SplitListItemInputProps = {
     formattedOriginalAmount: string;
     /** The draft percentage value while the user is editing. */
     percentageDraft?: string;
-    /** Callback invoked when the split expense value changes. */
     onSplitExpenseValueChange: (value: string) => void;
     /** State setter for the percentage draft value. */
     setPercentageDraft: React.Dispatch<React.SetStateAction<string | undefined>>;
     /** Callback invoked when the input receives focus. */
     focusHandler: () => void;
-    /** Callback invoked when the input loses focus. */
-    onInputBlur: ((e: BlurEvent) => void) | undefined;
     /** Callback ref for accessing the underlying text input. */
     inputCallbackRef: (ref: BaseTextInputRef | null) => void;
 };
@@ -40,7 +35,6 @@ function SplitListItemInput({
     onSplitExpenseValueChange,
     setPercentageDraft,
     focusHandler,
-    onInputBlur,
     inputCallbackRef,
 }: SplitListItemInputProps) {
     if (isPercentageMode) {
@@ -52,7 +46,6 @@ function SplitListItemInput({
                 onSplitExpenseValueChange={onSplitExpenseValueChange}
                 setPercentageDraft={setPercentageDraft}
                 focusHandler={focusHandler}
-                onInputBlur={onInputBlur}
             />
         );
     }
@@ -63,7 +56,6 @@ function SplitListItemInput({
             formattedOriginalAmount={formattedOriginalAmount}
             onSplitExpenseValueChange={onSplitExpenseValueChange}
             focusHandler={focusHandler}
-            onInputBlur={onInputBlur}
             inputCallbackRef={inputCallbackRef}
         />
     );

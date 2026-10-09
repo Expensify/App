@@ -7,7 +7,14 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 /* eslint-disable @typescript-eslint/naming-convention */
-import {areAllExpensifyCardsShipped, defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards, hasIssuedExpensifyCardSelector} from '@selectors/Card';
+import {
+    areAllExpensifyCardsShipped,
+    defaultExpensifyCardSelector,
+    filterCardsHiddenFromSearch,
+    filterOutPersonalCards,
+    hasActiveExpensifyCardSelector,
+    hasIssuedExpensifyCardSelector,
+} from '@selectors/Card';
 
 import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../../utils/collections/card';
 import createMock from '../../utils/createMock';
@@ -193,12 +200,14 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomExpensifyCard(2, {fundID: '6666'}),
         };
         const result = defaultExpensifyCardSelector(allCards);
-        expect(result).toEqual({
+        expect(result).toMatchObject({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
         });
+        // Expensify Card feeds now also carry a domain/workspace subtitle. Its exact value is derived from mock data, so we only assert its presence.
+        expect(typeof result?.subtitle).toBe('string');
     });
 
     it('Should return the first Expensify Card feed when mixed cards exist (some Expensify, some not)', () => {
@@ -209,12 +218,14 @@ describe('defaultExpensifyCardSelector', () => {
         };
 
         const result = defaultExpensifyCardSelector(allCards);
-        expect(result).toEqual({
+        expect(result).toMatchObject({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
         });
+        // Expensify Card feeds now also carry a domain/workspace subtitle. Its exact value is derived from mock data, so we only assert its presence.
+        expect(typeof result?.subtitle).toBe('string');
     });
 
     it('Should ignore Expensify Cards without fundID when other Expensify Cards with fundID exist', () => {
@@ -223,12 +234,14 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomExpensifyCard(2, {fundID: '5555'}),
         };
         const result = defaultExpensifyCardSelector(allCards);
-        expect(result).toEqual({
+        expect(result).toMatchObject({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
         });
+        // Expensify Card feeds now also carry a domain/workspace subtitle. Its exact value is derived from mock data, so we only assert its presence.
+        expect(typeof result?.subtitle).toBe('string');
     });
 });
 
@@ -919,5 +932,71 @@ describe('hasIssuedExpensifyCardSelector', () => {
         Object.assign(cardsList, {cardList: {'9999': 'Card to assign'}});
 
         expect(hasIssuedExpensifyCardSelector(cardsList)).toBe(true);
+    });
+});
+
+describe('hasActiveExpensifyCardSelector', () => {
+    it('returns true when the user holds an active Expensify Card', () => {
+        // Given a cardholder with an open Expensify Card
+        const cardList: CardList = {'1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
+
+        // When the card list is reduced to a boolean
+        const result = hasActiveExpensifyCardSelector(cardList);
+
+        // Then the surfaces that prompt for a pending wallet approval know there is a card worth asking about
+        expect(result).toBe(true);
+    });
+
+    it('counts a card in any of the states the Wallet and Home surfaces display', () => {
+        // Given cards in each state those surfaces still render, none of them open
+        // When each one is reduced on its own
+        // Then every one counts, because a card the cardholder can still see can carry a pending wallet approval
+        expect(hasActiveExpensifyCardSelector({'1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED})})).toBe(true);
+        expect(hasActiveExpensifyCardSelector({'1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED})})).toBe(true);
+        expect(hasActiveExpensifyCardSelector({'1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED})})).toBe(true);
+    });
+
+    it('returns false when the only Expensify Cards are closed or deactivated', () => {
+        // Given a cardholder whose Expensify Cards are all gone
+        const cardList: CardList = {
+            '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
+            '2': createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}),
+        };
+
+        // When the card list is reduced to a boolean
+        const result = hasActiveExpensifyCardSelector(cardList);
+
+        // Then nothing asks the backend for a pending wallet approval, which only a live card can have
+        expect(result).toBe(false);
+    });
+
+    it('returns false when the user only holds company cards', () => {
+        // Given a cardholder with a company card but no Expensify Card
+        const cardList: CardList = {'1': createRandomCompanyCard(1, {bank: 'vcf'})};
+
+        // When the card list is reduced to a boolean
+        const result = hasActiveExpensifyCardSelector(cardList);
+
+        // Then it stays false, because the wallet approval flow is Expensify Card only
+        expect(result).toBe(false);
+    });
+
+    it('ignores the cardList of cards still available to assign', () => {
+        // Given a card list carrying only unassigned cards, which are keyed under `cardList` rather than by cardID
+        const cardList: CardList = {};
+        Object.assign(cardList, {cardList: {'1111': 'Card 1'}});
+
+        // When the card list is reduced to a boolean
+        const result = hasActiveExpensifyCardSelector(cardList);
+
+        // Then it stays false, since a card nobody holds yet cannot have a wallet addition waiting
+        expect(result).toBe(false);
+    });
+
+    it('returns false when there is no card list at all', () => {
+        // Given Onyx has not delivered the card list yet
+        // When the missing value is reduced
+        // Then it stays false rather than throwing, so the surfaces render before the card list arrives
+        expect(hasActiveExpensifyCardSelector(undefined)).toBe(false);
     });
 });

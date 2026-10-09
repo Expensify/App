@@ -75,7 +75,6 @@ const MOCK_POLICY = {
     name: 'Test Workspace',
     type: CONST.POLICY.TYPE.TEAM,
     role: CONST.POLICY.ROLE.ADMIN,
-    isPolicyExpenseChatEnabled: true,
     pendingAction: null,
     avatarURL: '',
     areInvoicesEnabled: false,
@@ -177,7 +176,7 @@ describe('SearchActionsBarCreateButton', () => {
             shouldNavigateToUpgradePath: false,
         });
 
-        // Set up multiple policies with chat enabled
+        // Set up multiple eligible group workspaces
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy-456`, {
@@ -237,6 +236,47 @@ describe('SearchActionsBarCreateButton', () => {
 
         // Then createNewReport is called to create the report directly
         expect(mockCreateNewReport).toHaveBeenCalled();
+    });
+
+    it('should open the empty report confirmation when an empty report appears while the menu is closed', async () => {
+        // Given user has a single valid policy and the component is rendered with the menu closed, so the empty report check is skipped
+        mockUsePolicyForMovingExpenses.mockReturnValue({
+            policyForMovingExpensesID: MOCK_POLICY_ID,
+            policyForMovingExpenses: MOCK_POLICY,
+            shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // And an empty open expense report owned by the user appears while the menu is closed
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}empty-report`, {
+                reportID: 'empty-report',
+                policyID: MOCK_POLICY_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the menu is opened and "Create report" is pressed
+        fireEvent.press(screen.getByText(translateLocal('common.create')));
+        await waitForBatchedUpdatesWithAct();
+        const createReportItem = screen.getByText(translateLocal('report.newReport.createReport'));
+        fireEvent.press(createReportItem, createMockPressEvent(createReportItem));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the confirmation opens instead of creating a report, because the check runs as soon as the menu is visible
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalled();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
     });
 
     it('should call interceptAnonymousUser when "Create report" is pressed', async () => {

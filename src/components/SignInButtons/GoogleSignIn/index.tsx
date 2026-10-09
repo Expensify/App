@@ -9,6 +9,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/modules/google';
 import type Locale from '@src/types/onyx/Locale';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
@@ -24,8 +27,8 @@ type GoogleSignInProps = {
 const mainId = 'google-sign-in-main';
 const desktopId = 'google-sign-in-desktop';
 
-const signIn = (response: Response, preferredLocale?: Locale) => {
-    beginGoogleSignIn(response.credential, preferredLocale);
+const signIn = (response: Response, preferredLocale?: Locale, marketingAttribution?: OnyxEntry<StoredMarketingAttribution>) => {
+    beginGoogleSignIn(response.credential, preferredLocale, marketingAttribution);
 };
 
 /**
@@ -38,13 +41,14 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [marketingAttribution] = useOnyx(ONYXKEYS.MARKETING_ATTRIBUTION);
     const loadScript = useCallback(() => {
         const google = window.google;
         if (google) {
             google.accounts.id.initialize({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 client_id: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
-                callback: (response) => signIn(response, preferredLocale),
+                callback: (response) => signIn(response, preferredLocale, marketingAttribution),
             });
             // Apply styles for each button
             google.accounts.id.renderButton(document.getElementById(mainId), {
@@ -61,7 +65,7 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
                 width: '300px',
             });
         }
-    }, [preferredLocale]);
+    }, [preferredLocale, marketingAttribution]);
 
     React.useEffect(() => {
         const script = document.createElement('script');

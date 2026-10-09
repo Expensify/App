@@ -1,4 +1,5 @@
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,6 +13,7 @@ import GroupChildrenContent from './GroupChildrenContent';
 import {useGroupCheckboxState} from './useGroupChildren';
 
 type GroupChildrenContainerProps = GroupChildrenContentProps & {
+    isFirstItem?: boolean;
     isLastItem?: boolean;
 };
 
@@ -27,12 +29,15 @@ function GroupChildrenContainer({
     onLongPressRow,
     nonPersonalAndWorkspaceCards,
     onUndelete,
+    isFirstItem = false,
     isLastItem,
     newTransactionID,
 }: GroupChildrenContainerProps) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
-    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
+    const hasBorder = !isFirstItem;
+    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, isExpanded && hasBorder, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
     const {isSelectAllChecked} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: item.transactions});
 
@@ -45,7 +50,9 @@ function GroupChildrenContainer({
     }
 
     return (
-        <View style={[styles.mh5, StyleUtils.getSearchRowBackgroundStyle(isSelected), isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
+        <View
+            style={[pageGutterMargin, StyleUtils.getSearchRowBackgroundStyle(isSelected), isLastItem && [styles.tableBottomRadius, styles.overflowHidden], hasBorder && styles.tableBorder]}
+        >
             <Animated.View style={animatedStyle}>
                 {isContentVisible ? (
                     <Animated.View

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
@@ -20,10 +20,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ConfirmWhisperContentProps = {
-    /** All the data of the action item */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>;
-
-    /** Report ID for the current report */
     reportID: string | undefined;
 
     /** ID of the original report from which the given reportAction is first created */

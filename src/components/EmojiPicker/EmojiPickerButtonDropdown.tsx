@@ -91,14 +91,14 @@ function EmojiPickerButtonDropdown({isDisabled = false, withoutOverlay = false, 
                             <View style={styles.emojiPickerButtonDropdownIcon}>
                                 <Icon
                                     src={icons.Emoji}
-                                    fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
+                                    fill={StyleUtils.getIconFillColor({buttonState: CONST.BUTTON_STATES.DISABLED})}
                                 />
                             </View>
                         )}
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
                                 src={icons.ArrowRight}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed})})}
                             />
                         </View>
                     </View>

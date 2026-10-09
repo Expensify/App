@@ -3,9 +3,10 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import {openPersonalBankAccountSetupView} from '@src/libs/actions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
+import HomeTaskGroup from '@src/pages/home/HomeTaskGroup';
 import useTimeSensitiveAddBankAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
+import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -66,6 +67,15 @@ jest.mock('@hooks/useCardFeedErrors', () =>
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'test@example.com'})));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
+
+function TimeSensitiveSection() {
+    return (
+        <HomeTaskGroup
+            title="homePage.timeSensitiveSection.title"
+            rows={useTimeSensitiveItems()}
+        />
+    );
+}
 
 const renderTimeSensitiveSection = () =>
     render(

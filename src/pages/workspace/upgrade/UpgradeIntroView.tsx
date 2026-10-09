@@ -1,6 +1,5 @@
-import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -9,6 +8,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -27,7 +27,7 @@ type UpgradeIntroViewProps = {
     /** Icon shown in the top-left of the card. When omitted, the icon is hidden. */
     iconSrc?: IconAsset;
 
-    /** Whether the icon should render as an illustration (Icon) rather than an Avatar. */
+    /** Whether the icon renders at the large avatar size without avatar border styles. */
     isIllustration?: boolean;
 
     /** Extra styles applied to the illustration icon. */
@@ -45,7 +45,6 @@ type UpgradeIntroViewProps = {
     /** Primary button label. */
     buttonText: string;
 
-    /** Unlock badge text. */
     unlockBadgeText?: string;
 
     /** Called when the primary button is pressed. */
@@ -77,6 +76,7 @@ function UpgradeIntroView({
     unlockBadgeText,
 }: UpgradeIntroViewProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {environmentURL} = useEnvironment();
@@ -85,24 +85,21 @@ function UpgradeIntroView({
 
     const subscriptionLink = subscriptionPlan ? `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute())}` : CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
 
+    const iconSize = StyleUtils.getAvatarSize(isIllustration ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.DEFAULT);
+    const iconStyles = isIllustration ? iconAdditionalStyles : StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE);
+
     return (
         <View style={styles.p5}>
             <View style={[styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
-                    {!!iconSrc &&
-                        (!isIllustration ? (
-                            <Avatar
-                                source={iconSrc}
-                                type={CONST.ICON_TYPE_AVATAR}
-                            />
-                        ) : (
-                            <Icon
-                                src={iconSrc}
-                                width={48}
-                                height={48}
-                                additionalStyles={iconAdditionalStyles}
-                            />
-                        ))}
+                    {!!iconSrc && (
+                        <Icon
+                            src={iconSrc}
+                            width={iconSize}
+                            height={iconSize}
+                            additionalStyles={iconStyles}
+                        />
+                    )}
                     <Badge
                         icon={Unlock}
                         text={unlockBadgeText ?? translate('workspace.upgrade.upgradeToUnlock')}

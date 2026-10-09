@@ -26,8 +26,15 @@ function loadModule(platform: string): TableAccessibilityModule {
 }
 
 // The pure prop builders are platform-independent, so any platform works when loading them.
-const {getTableContainerAccessibilityProps, getRowGroupAccessibilityProps, getRowAccessibilityProps, getColumnHeaderAccessibilityProps, getCellAccessibilityProps, assignCellColumnIndexes} =
-    loadModule(CONST.PLATFORM.WEB);
+const {
+    getTableContainerAccessibilityProps,
+    getRowGroupAccessibilityProps,
+    getRowAccessibilityProps,
+    getVirtualizedRowSemanticID,
+    getColumnHeaderAccessibilityProps,
+    getCellAccessibilityProps,
+    assignCellColumnIndexes,
+} = loadModule(CONST.PLATFORM.WEB);
 
 type CellProbe = {role?: string; 'aria-colindex'?: number; children?: React.ReactNode};
 
@@ -90,6 +97,10 @@ describe('tableAccessibility', () => {
                 'aria-colcount': 4,
             });
         });
+
+        it('reports only data rows when the current layout has no exposed header', () => {
+            expect(getTableContainerAccessibilityProps(true, 'Members', 3, 4, false)['aria-rowcount']).toBe(3);
+        });
     });
 
     describe('getRowGroupAccessibilityProps', () => {
@@ -120,6 +131,26 @@ describe('tableAccessibility', () => {
                 'aria-rowindex': 2,
             });
             expect(getRowAccessibilityProps(true, 5)['aria-rowindex']).toBe(7);
+        });
+
+        it('starts data rows at index 1 when the current layout has no exposed header', () => {
+            expect(getRowAccessibilityProps(true, 0, false, false)).toEqual({
+                role: CONST.ROLE.ROW,
+                'aria-rowindex': 1,
+            });
+            expect(getRowAccessibilityProps(true, 5, false, false)['aria-rowindex']).toBe(6);
+        });
+    });
+
+    describe('getVirtualizedRowSemanticID', () => {
+        it('keeps the real cell exposed and hides virtualization clones', () => {
+            expect(getVirtualizedRowSemanticID(true, 'Cell')).toBeUndefined();
+            expect(getVirtualizedRowSemanticID(true, 'Measurement')).toBeNull();
+            expect(getVirtualizedRowSemanticID(true, 'StickyHeader')).toBeNull();
+        });
+
+        it('leaves row semantics untouched when table semantics are disabled', () => {
+            expect(getVirtualizedRowSemanticID(false, 'Measurement')).toBeUndefined();
         });
     });
 

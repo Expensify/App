@@ -1,14 +1,18 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
+import useReportTransactions from '@hooks/useReportTransactions';
 
+import {close} from '@libs/actions/Modal';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
 import Log from '@libs/Log';
-import {navigateToCreatedExpense} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import navigateToCreatedExpense from '@libs/Navigation/helpers/navigateToCreatedExpense';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,10 +49,10 @@ type ExpenseAddedGrowlContentProps = {
     setActive: Dispatch<SetStateAction<ActiveGrowl | null>>;
 };
 
-/**  Watches the "an expense was just added" Onyx signal and shows an "Expense added" growl with a "View" action. */
+/** Watches the "an expense was just added" Onyx signal and shows an "Expense added" growl with a "View" action. */
 function ExpenseAddedGrowl() {
     const [active, setActive] = useState<ActiveGrowl | null>(null);
-    const [signal] = useOnyx(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+    const [signal] = useOnyx(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
     const transactionID = active?.transactionID ?? Object.keys(signal ?? {}).at(-1);
 
     if (!transactionID) {
@@ -70,9 +74,9 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
 
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const reportID = transaction?.reportID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -83,11 +87,14 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     const selfDMReportID = isUnreportedExpense ? findSelfDMReportID() : undefined;
     const hostReportID = isUnreportedExpense ? selfDMReportID : reportID;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${hostReportID}`);
+    const iouAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
+    const [personalDetails] = usePersonalDetailsByIDs([currentUserPersonalDetails?.accountID, iouAction?.actorAccountID]);
 
     // A tracked expense lives in a chat, not an expense report. Leaving iouReportID undefined tells
     // navigateToCreatedExpense to open the transaction thread directly instead of an expense report RHP.
     const iouReport = isMoneyRequestReport(report) || isInvoiceReport(report) ? report : undefined;
     const iouReportID = iouReport?.reportID;
+    const reportTransactions = useReportTransactions(iouReportID);
 
     useEffect(() => {
         if (active) {
@@ -108,7 +115,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
         mergeExpenseAddedGrowlTransactionIDs(Object.fromEntries(pendingTransactionIDs.map((id) => [id, null])));
 
         // Suppress the growl when the user is already viewing the expense's money-request report
-        if (Navigation.getTopmostReportId() === transaction.reportID) {
+        if (Navigation.getFocusedReportId() === transaction.reportID) {
             return;
         }
         nonceRef.current += 1;
@@ -124,16 +131,19 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     // Build the thread on press rather than when the growl shows, so it is only created if the user taps
     // "View" and is built against the freshest Onyx data.
     const navigateToExpense = () => {
-        const iouAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), active.transactionID);
+        // The expense was deleted while the growl was up, so there is nothing left to open.
+        if (!transaction || isTransactionPendingDelete(transaction)) {
+            return;
+        }
         let threadReportID = transaction?.transactionThreadReportID ?? iouAction?.childReportID;
         if (threadReportID) {
             setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
         } else {
             const optimisticThread = createTransactionThreadReport({
                 introSelected,
+                conciergeChat,
                 currentUserLogin: currentUserPersonalDetails?.login ?? '',
                 currentUserAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                betas,
                 iouReport,
                 iouReportAction: iouAction,
                 transaction,
@@ -145,7 +155,8 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
             Log.warn('[ExpenseAddedGrowl] Unable to resolve transaction thread reportID on View press.');
             return;
         }
-        navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID});
+        // The growl sits above popovers, so close any open one first, the same as tapping a notification.
+        close(() => navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID, reportTransactions}));
     };
 
     return (

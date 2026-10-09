@@ -1,4 +1,6 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
 
@@ -32,90 +34,95 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
     const trainDuration = DateUtils.getFormattedDurationBetweenDates(translate, new Date(reservation.start.date), new Date(reservation.end.date));
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
+    const routeName = reservation.route?.name;
+    const confirmationNumber = reservation.confirmations?.at(0)?.value;
 
     return (
         <>
             <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{trainRouteDescription}</Text>
 
-            <MenuItemWithTopDescription
-                description={`${translate('travel.train')} ${trainDuration ? `${CONST.DOT_SEPARATOR} ${trainDuration}` : ''}`}
-                title={reservation.route?.name}
-                copyValue={reservation.route?.name}
-                copyable
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={translate('common.date')}
-                title={startDate.date}
-                interactive={false}
+            <MenuItemField
+                name={`${translate('travel.train')} ${trainDuration ? `${CONST.DOT_SEPARATOR} ${trainDuration}` : ''}`}
+                value={routeName}
+            >
+                {!!routeName && <MenuItem.Copy value={routeName} />}
+            </MenuItemField>
+            <MenuItemField
+                name={translate('common.date')}
+                value={startDate.date}
             />
 
-            <MenuItemWithTopDescription
-                description={translate('travel.trainDetails.departs')}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>}
-                helperText={formatTransitLocationLabel(reservation.start)}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-                interactive={false}
+            <MenuItem.Root>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.trainDetails.departs')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>
+                    </MenuItemField.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={formatTransitLocationLabel(reservation.start)}
+                style={[styles.mtn2, styles.mb0, styles.ph5, styles.pb3]}
             />
-            <MenuItemWithTopDescription
-                description={translate('travel.trainDetails.arrives')}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>}
-                helperText={formatTransitLocationLabel(reservation.end)}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-                interactive={false}
+            <MenuItem.Root>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.trainDetails.arrives')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>
+                    </MenuItemField.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={formatTransitLocationLabel(reservation.end)}
+                style={[styles.mtn2, styles.mb0, styles.ph5, styles.pb3]}
             />
 
             <View style={[styles.flexRow, styles.flexWrap]}>
                 {!!reservation.coachNumber && (
                     <View style={styles.w50}>
-                        <MenuItemWithTopDescription
-                            description={translate('travel.trainDetails.coachNumber')}
-                            title={reservation.coachNumber}
-                            interactive={false}
+                        <MenuItemField
+                            name={translate('travel.trainDetails.coachNumber')}
+                            value={reservation.coachNumber}
                         />
                     </View>
                 )}
                 {!!reservation.seatNumber && (
                     <View style={styles.w50}>
-                        <MenuItemWithTopDescription
-                            description={translate('travel.trainDetails.seat')}
-                            title={reservation.seatNumber}
-                            interactive={false}
+                        <MenuItemField
+                            name={translate('travel.trainDetails.seat')}
+                            value={reservation.seatNumber}
                         />
                     </View>
                 )}
             </View>
-            {!!reservation.confirmations?.at(0)?.value && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.trainDetails.confirmation')}
-                    title={reservation.confirmations?.at(0)?.value}
-                    copyValue={reservation.confirmations?.at(0)?.value}
-                    interactive={false}
-                    copyable
-                />
+            {!!confirmationNumber && (
+                <MenuItemField
+                    name={translate('travel.trainDetails.confirmation')}
+                    value={confirmationNumber}
+                >
+                    <MenuItem.Copy value={confirmationNumber} />
+                </MenuItemField>
             )}
 
             {!!displayName && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.trainDetails.passenger')}
-                    descriptionTextStyle={styles.fontSizeLabel}
-                    interactive={false}
-                    accessibilityLabel={`${translate('travel.trainDetails.passenger')} ${displayName}`}
-                    titleComponent={
-                        <UserPills
-                            users={[
-                                {
-                                    avatar: personalDetails?.avatar,
-                                    displayName,
-                                    accountID: personalDetails?.accountID,
-                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
-                                },
-                            ]}
-                        />
-                    }
-                />
+                <MenuItem.Root accessibilityLabel={`${translate('travel.trainDetails.passenger')} ${displayName}`}>
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('travel.trainDetails.passenger')}>
+                            <UserPills
+                                users={[
+                                    {
+                                        avatar: personalDetails?.avatar,
+                                        displayName,
+                                        accountID: personalDetails?.accountID,
+                                        email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                    },
+                                ]}
+                            />
+                        </MenuItemField.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             )}
         </>
     );

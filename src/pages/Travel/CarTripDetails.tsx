@@ -1,3 +1,5 @@
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
@@ -37,6 +39,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     }
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
+    const confirmationNumber = reservation.confirmations?.at(0)?.value ?? reservation.reservationID;
 
     return (
         <>
@@ -64,48 +67,43 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 helperTextStyle={[styles.pb3, styles.mtn2]}
             />
             {!!reservation.carInfo?.name && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.carDetails.carType')}
-                    title={reservation.carInfo.name}
-                    interactive={false}
+                <MenuItemField
+                    name={translate('travel.carDetails.carType')}
+                    value={reservation.carInfo.name}
                 />
             )}
             {!!cancellationText && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.carDetails.cancellation')}
-                    title={cancellationText}
-                    interactive={false}
-                    numberOfLinesTitle={2}
+                <MenuItemField
+                    name={translate('travel.carDetails.cancellation')}
+                    value={cancellationText}
+                    numberOfLinesValue={2}
                 />
             )}
-            {!!reservation.reservationID && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.carDetails.confirmation')}
-                    title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
-                    interactive={false}
-                    copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
-                    copyable
-                />
+            {!!confirmationNumber && (
+                <MenuItemField
+                    name={translate('travel.carDetails.confirmation')}
+                    value={confirmationNumber}
+                >
+                    <MenuItem.Copy value={confirmationNumber} />
+                </MenuItemField>
             )}
             {!!displayName && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.carDetails.driver')}
-                    descriptionTextStyle={styles.fontSizeLabel}
-                    interactive={false}
-                    accessibilityLabel={`${translate('travel.carDetails.driver')} ${displayName}`}
-                    titleComponent={
-                        <UserPills
-                            users={[
-                                {
-                                    avatar: personalDetails?.avatar,
-                                    displayName,
-                                    accountID: personalDetails?.accountID,
-                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
-                                },
-                            ]}
-                        />
-                    }
-                />
+                <MenuItem.Root accessibilityLabel={`${translate('travel.carDetails.driver')} ${displayName}`}>
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('travel.carDetails.driver')}>
+                            <UserPills
+                                users={[
+                                    {
+                                        avatar: personalDetails?.avatar,
+                                        displayName,
+                                        accountID: personalDetails?.accountID,
+                                        email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                    },
+                                ]}
+                            />
+                        </MenuItemField.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             )}
         </>
     );

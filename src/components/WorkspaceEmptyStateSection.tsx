@@ -1,3 +1,4 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,7 +26,6 @@ type WorkspaceEmptyStateSectionProps = {
     /** The icon to display along with the title */
     icon: IconAsset;
 
-    /** Additional style for container */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Whether to apply card style to container */
@@ -35,12 +35,15 @@ type WorkspaceEmptyStateSectionProps = {
 function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shouldStyleAsCard = true, subtitleComponent}: WorkspaceEmptyStateSectionProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {pageGutterMargin, cardGapBottom} = useLayoutSpacing();
 
     return (
         <View
             style={[
                 styles.pageWrapper,
                 shouldStyleAsCard && styles.cardSectionContainer,
+                shouldStyleAsCard && pageGutterMargin,
+                shouldStyleAsCard && cardGapBottom,
                 styles.workspaceSection,
                 styles.ph8,
                 shouldUseNarrowLayout ? styles.pv10 : styles.pv12,

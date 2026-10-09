@@ -1,3 +1,4 @@
+import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import type isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,6 +18,9 @@ jest.mock('@libs/Navigation/helpers/isReportOpenInSuperWideRHP', () => () => fal
 jest.mock('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue', () => (callback: () => void) => {
     callback();
 });
+jest.mock('@libs/actions/Transaction', () => ({
+    mergeExpenseAddedGrowlTransactionIDs: jest.fn(),
+}));
 jest.mock('@libs/getIsNarrowLayout', () => () => false);
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     isTracking: () => mockGetTrackingState(),
@@ -32,7 +36,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(() => ({
-            routes: [],
+            routes: [{state: {key: 'rhp-key'}}],
         })),
     },
 }));
@@ -76,5 +80,33 @@ describe('dismissModalAndOpenReportInInboxTab', () => {
         // Should fall through to dismissModalWithReport, not use RHP logic
         expect(Navigation.dismissToPreviousRHP).not.toHaveBeenCalled();
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID});
+    });
+
+    it('should remove the pending growl before navigating to a multi-expense report', () => {
+        // Given a new transaction will be shown in a multi-expense report
+        const reportID = 'report-123';
+        const transactionID = 'transaction-123';
+        mockIsReportOpenInRHP.mockReturnValue(true);
+
+        // When the modal is dismissed and the expense report navigation is queued
+        dismissModalAndOpenReportInInboxTab(reportID, undefined, true, transactionID);
+
+        // Then the pending growl is consumed before navigating to the expense report
+        expect(mergeExpenseAddedGrowlTransactionIDs).toHaveBeenCalledWith({
+            [transactionID]: null,
+        });
+        expect(Navigation.navigate).toHaveBeenCalled();
+    });
+
+    it('should keep the pending growl when navigating to an Inbox chat', () => {
+        // Given a new transaction will be shown in an Inbox chat rather than a multi-expense report
+        const reportID = 'report-123';
+        const transactionID = 'transaction-123';
+
+        // When the modal is dismissed and the chat is opened
+        dismissModalAndOpenReportInInboxTab(reportID, undefined, false, transactionID);
+
+        // Then the pending growl is kept
+        expect(mergeExpenseAddedGrowlTransactionIDs).not.toHaveBeenCalled();
     });
 });
