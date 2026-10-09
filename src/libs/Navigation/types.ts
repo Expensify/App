@@ -130,9 +130,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
-
-        /** Whether the validation was opened from the join-workspace Concierge task. */
-        isJoinWorkspaceTask?: 'true';
     };
     [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]:
         | {
@@ -3416,14 +3413,10 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
-        isJoinWorkspaceTask?: string;
-        reportID?: string;
     };
     [SCREENS.ONBOARDING.WORKSPACES]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
-        isJoinWorkspaceTask?: string;
-        shouldCreateJoinWorkspaceTaskOnExit?: string;
     };
     [SCREENS.ONBOARDING.PURPOSE]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -3435,8 +3428,8 @@ type OnboardingModalNavigatorParamList = {
     };
     [SCREENS.ONBOARDING.ACCOUNTING]: undefined;
     [SCREENS.ONBOARDING.INTERESTED_FEATURES]: undefined;
-    [SCREENS.ONBOARDING.WORK_EMAIL]: {isJoinWorkspaceTask?: string; reportID?: string};
-    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {isJoinWorkspaceTask?: string; reportID?: string};
+    [SCREENS.ONBOARDING.WORK_EMAIL]: undefined;
+    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: undefined;
     [SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
