@@ -80,6 +80,7 @@ function SearchEditMultiplePage() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPolicyTagsLoadingStates] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [personalDetailsList] = usePersonalDetailsByIDs(
@@ -196,6 +197,7 @@ function SearchEditMultiplePage() {
                 reportActions: mergedReportActions,
                 policyCategories: allPolicyCategories,
                 policyTags: allPolicyTags,
+                policyTagsLoadingStates: allPolicyTagsLoadingStates,
                 violations: allTransactionViolations,
                 reportNameValuePairs,
                 hash: currentSearchHash,
