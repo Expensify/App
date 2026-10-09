@@ -1,3 +1,4 @@
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 
 import {updateZenefitsFinalApprover} from '@libs/actions/connections/Zenefits';
@@ -5,6 +6,7 @@ import {isZenefitsConnected} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import {getHRSettingsRoute} from '@pages/workspace/connections/utils';
 import MergeFinalApproverPageBase from '@pages/workspace/merge/MergeFinalApproverPageBase';
 import type {MergeFinalApproverProviderConfig} from '@pages/workspace/merge/MergeFinalApproverPageBase';
 
@@ -21,11 +23,13 @@ function ZenefitsFinalApproverPage({
     },
 }: ZenefitsFinalApproverPageProps) {
     const {translate} = useLocalize();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     const config: MergeFinalApproverProviderConfig = {
         testID: 'ZenefitsFinalApproverPage',
         isConnected: isZenefitsConnected,
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+        backRoute: getHRSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID),
         getCurrentFinalApprover: (policy) => policy?.connections?.zenefits?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
         getHeaderTitle: () => translate('workspace.merge.finalApprover'),

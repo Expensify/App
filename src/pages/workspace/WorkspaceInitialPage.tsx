@@ -214,7 +214,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         renderTooltipContent: renderConnectionsTooltip,
     } = useConnectionsMovedTooltip(
         // New workspaces never used the old integration pages, so only point this out where something is already connected.
-        isWorkspacesTabFocused && !hasPolicyCreationError && !isEmptyObject(policy?.connections) && workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
+        isWorkspacesTabFocused &&
+            !hasPolicyCreationError &&
+            (!isEmptyObject(policy?.connections) || !!policy?.receiptPartners?.uber?.enabled) &&
+            workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
         activeRoute,
         isWorkspacesTabFocused,
     );

@@ -81,7 +81,7 @@ function ConnectionsMergeProviderCard({card, policy, handleConnect, onDisconnect
                 />
                 <Header.Right>
                     {card.isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
-                    {card.isConnected && !card.isSyncInProgress && <Header.ThreeDotsMenu items={overflowMenu} />}
+                    {card.isConnected && canWriteMoreFeatures && !card.isSyncInProgress && <Header.ThreeDotsMenu items={overflowMenu} />}
                 </Header.Right>
             </Header>
             <ScrollView

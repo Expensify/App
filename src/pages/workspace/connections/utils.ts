@@ -60,4 +60,11 @@ function getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled: boolean, po
     return ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
 }
 
-export {MCP_CONNECTOR, getSyncStatusMessage, getListingsForTab, getAccountingConnectionsRoute, getAccountingSettingsRoute};
+function getHRSettingsRoute(isUnifiedConnectionsBetaEnabled: boolean, policyID: string) {
+    if (isUnifiedConnectionsBetaEnabled) {
+        return ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID);
+    }
+    return ROUTES.WORKSPACE_HR.getRoute(policyID);
+}
+
+export {MCP_CONNECTOR, getSyncStatusMessage, getListingsForTab, getAccountingConnectionsRoute, getAccountingSettingsRoute, getHRSettingsRoute};
