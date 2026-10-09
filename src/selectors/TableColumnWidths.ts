@@ -7,6 +7,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 const tableColumnWidthsSelector = (columnResizingID: string) => (tableColumnWidths: OnyxEntry<TableColumnWidths>) => tableColumnWidths?.[columnResizingID];
 
 const hasTableColumnWidthsSelector = (columnResizingID: string | undefined) => (tableColumnWidths: OnyxEntry<TableColumnWidths>) =>
-    !isEmptyObject(tableColumnWidthsSelector(columnResizingID)(tableColumnWidths));
+    !!columnResizingID && !isEmptyObject(tableColumnWidthsSelector(columnResizingID)(tableColumnWidths));
 
 export {tableColumnWidthsSelector, hasTableColumnWidthsSelector};
