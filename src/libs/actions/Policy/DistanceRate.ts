@@ -863,8 +863,8 @@ type OfficeLocationMemberUpdate = {
 /**
  * Assign one or more workspace members to an office, keyed in the workspace's officeLocations, or to the company
  * address with CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID. The single command covers both individual and bulk updates:
- * employeeAccountIDList carries every affected accountID, and one optimistic member office location changelog action is
- * created per member in the workspace admins room.
+ * employeeLoginList carries the login of every affected member, and one optimistic member office location changelog
+ * action is created per member in the workspace admins room.
  */
 function updateEmployeeOfficeLocation(
     policy: OnyxEntry<Policy>,
@@ -984,7 +984,6 @@ function updateEmployeeOfficeLocation(
 
     const parameters: UpdateEmployeeOfficeLocationParams = {
         policyID,
-        employeeAccountIDList: updates.map((update) => update.accountID).join(','),
         employeeLoginList: updates.map((update) => update.email).join(','),
         officeID,
     };

@@ -829,7 +829,7 @@ describe('DistanceRate', () => {
             resetQueue();
         });
 
-        it('should send every member that changed in one request, by accountID and by login', async () => {
+        it('should send every member that changed in one request, by login', async () => {
             // Given two members following the primary office
             const policy: Policy = {
                 ...createRandomPolicy(31),
@@ -845,11 +845,10 @@ describe('DistanceRate', () => {
             updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, personalDetails, TestHelper.translateLocal);
             await waitForBatchedUpdates();
 
-            // Then one request carries both members, so the logins still match them if an offline invite replaces their accountIDs
+            // Then one request carries both members by login, which still matches them if an offline invite replaces their accountIDs
             expect(writeSpy).toHaveBeenCalledTimes(1);
             expect(writeSpy.mock.calls.at(0)?.[1]).toEqual({
                 policyID: policy.id,
-                employeeAccountIDList: `${member1AccountID},${member2AccountID}`,
                 employeeLoginList: `${member1Email},${member2Email}`,
                 officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID,
             });
