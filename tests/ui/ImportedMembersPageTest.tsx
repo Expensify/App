@@ -227,4 +227,42 @@ describe('ImportedMembersPage', () => {
         );
         expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('/imported/confirmation'));
     });
+
+    it('converts imported approval limits to cents before sending them to the backend', async () => {
+        // Given a Control workspace and a spreadsheet whose approval limits are display amounts, as a user would type them
+        await seedOnyx(
+            buildSpreadsheet(
+                [CONST.CSV_IMPORT_COLUMNS.EMAIL, CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD],
+                [
+                    ['Email', 'one@example.com', 'two@example.com', 'three@example.com', 'four@example.com'],
+                    ['Approval limit', '200.00', '$1,000.50', '16.4', ''],
+                ],
+            ),
+            {...buildSubmitPolicy(), type: CONST.POLICY.TYPE.CORPORATE} as Policy,
+        );
+        const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers').mockResolvedValue({
+            titleKey: 'spreadsheet.importSuccessfulTitle',
+            promptKey: 'spreadsheet.importMembersAdded',
+            promptKeyParams: {count: 4},
+        });
+
+        renderImportedMembersPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the import is confirmed
+        fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the backend receives the limits in cents (like the manual approval limit page sends them) and blank cells stay blank
+        expect(importPolicyMembersSpy).toHaveBeenCalledWith(
+            expect.objectContaining({id: POLICY_ID}),
+            [
+                expect.objectContaining({email: 'one@example.com', approvalLimit: '20000'}),
+                expect.objectContaining({email: 'two@example.com', approvalLimit: '100050'}),
+                expect.objectContaining({email: 'three@example.com', approvalLimit: '1640'}),
+                expect.objectContaining({email: 'four@example.com', approvalLimit: ''}),
+            ],
+            false,
+        );
+    });
 });
