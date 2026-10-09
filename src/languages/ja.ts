@@ -6805,11 +6805,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             emptySubtitle: '会計システムとの同期が完了すると、ここに取引先が表示されます。',
             findVendor: '取引先を検索',
             managedInAccountingSoftware: '取引先は次の場所で管理されます：',
-            enableVendor: 'ベンダーを有効にする',
-            enableVendors: 'ベンダーを有効にする',
-            disableVendor: '取引先を無効にする',
-            disableVendors: '取引先を無効化',
-            updateFailureMessage: '仕入先の更新中にエラーが発生しました。もう一度お試しください。',
         },
         tags: {
             tagName: 'タグ名',
