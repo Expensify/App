@@ -336,12 +336,14 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                 ],
                 {},
             );
             const reportAttributesComputedValue = reportAttributes.compute(
                 [
                     reports,
+                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -488,6 +490,7 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                 ],
                 {},
             );
@@ -510,6 +513,7 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                 ],
                 personalDetailsSource,
             );
@@ -523,6 +527,7 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     changedPersonalDetails,
+                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -682,6 +687,30 @@ describe('OnyxDerived', () => {
                     '1234567890': 'Error message 1',
                     '1234567891': 'Error message 2',
                 });
+            });
+        });
+
+        describe('RBR handling for support tickets', () => {
+            it('does not show a Fix badge for a support ticket error', async () => {
+                const supportTicket = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                    errorFields: {
+                        createReport: {
+                            '1234567890': 'Support ticket error',
+                        },
+                    },
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${supportTicket.reportID}`, supportTicket);
+                await waitForBatchedUpdates();
+
+                const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[supportTicket.reportID]).toMatchObject({
+                    reportErrors: {'1234567890': 'Support ticket error'},
+                });
+                expect(derivedReportAttributes?.reports[supportTicket.reportID].brickRoadStatus).toBeUndefined();
+                expect(derivedReportAttributes?.reports[supportTicket.reportID].actionBadge).toBeUndefined();
             });
         });
 
