@@ -1,9 +1,6 @@
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-
 import type {Rule} from 'eslint';
 
-import {Linter, RuleTester} from 'eslint';
+import {RuleTester} from 'eslint';
 import path from 'path';
 import {parser as tsParser} from 'typescript-eslint';
 
@@ -28,8 +25,6 @@ const ruleModule: unknown = require('../../eslint-plugin-local-rules/no-unsafe-o
 if (!isLocalRuleModule(ruleModule)) {
     throw new TypeError('Expected no-unsafe-onyx-read to export an ESLint rule module.');
 }
-
-const localRule: LocalRuleModule = ruleModule;
 
 const ruleTester = new RuleTester({
     languageOptions: {
@@ -246,44 +241,6 @@ describe('no-unsafe-onyx-read', () => {
     });
 });
 
-const RESTRICTED_ERRORS = [{messageId: 'noRestrictedOnyxKey'}];
-
-const UNRESOLVABLE_ERRORS = [{messageId: 'noUnresolvableOnyxKey'}];
-
-describe('no-unsafe-onyx-read restricted keys', () => {
-    ruleTester.run(ruleModule.name, ruleModule, {
-        valid: [
-            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.SESSION); }`},
-
-            {code: `${ONYX_IMPORT} export function submit(id) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\`); }`},
-            {code: `${ONYX_IMPORT} export function submit() { const key = ONYXKEYS.SESSION; return Onyx.get(ONYXKEYS.SESSION); }`},
-        ],
-        invalid: [
-            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.COLLECTION.REPORT); }`, errors: RESTRICTED_ERRORS},
-            {
-                code: `${ONYX_IMPORT} export function submit(reportID) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); }`,
-                errors: RESTRICTED_ERRORS,
-            },
-
-            {
-                code: `${ONYX_IMPORT} export function submit() { const key = ONYXKEYS.COLLECTION.REPORT; return Onyx.get(key); }`,
-                errors: RESTRICTED_ERRORS,
-            },
-            {
-                code: `${ONYX_IMPORT} export function submit(reportID) { const key = \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`; return Onyx.get(key); }`,
-                errors: RESTRICTED_ERRORS,
-            },
-            {code: `${ONYX_IMPORT} export function submit(key) { return Onyx.get(key); }`, errors: UNRESOLVABLE_ERRORS},
-            {code: `${ONYX_IMPORT} export function submit() { let key = ONYXKEYS.SESSION; key = other; return Onyx.get(key); }`, errors: UNRESOLVABLE_ERRORS},
-            {code: `${ONYX_IMPORT} export function submit(id) { return Onyx.get(getTravelCardKey(id)); }`, errors: UNRESOLVABLE_ERRORS},
-            {
-                code: `${ONYX_IMPORT} export function submit(formID) { return Onyx.get(\`\${formID}Draft\`); }`,
-                errors: UNRESOLVABLE_ERRORS,
-            },
-        ],
-    });
-});
-
 describe('no-unsafe-onyx-read under the TypeScript parser', () => {
     tsRuleTester.run(ruleModule.name, ruleModule, {
         valid: [
@@ -298,72 +255,12 @@ describe('no-unsafe-onyx-read under the TypeScript parser', () => {
             {code: `${ONYX_IMPORT} export function submit(): Promise<unknown> { return Onyx.get(ONYXKEYS.SESSION); }`},
         ],
         invalid: [
-            {code: `${ONYX_IMPORT} export function submit(reportID: string) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\` as const); }`, errors: RESTRICTED_ERRORS},
-            {
-                code: `${ONYX_IMPORT} export function submit(reportID: string) { const key = \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\` as typeof ONYXKEYS.COLLECTION.REPORT; return Onyx.get(key); }`,
-                errors: RESTRICTED_ERRORS,
-            },
-            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.PERSONAL_DETAILS_LIST as OnyxKey); }`, errors: RESTRICTED_ERRORS},
-            {code: `${ONYX_IMPORT} export function submit(key: OnyxKey) { return Onyx.get(key as OnyxKey); }`, errors: UNRESOLVABLE_ERRORS},
-
             {
                 code: `${ONYX_IMPORT} function Row({id}: {id: string}) { const value = Onyx.get(ONYXKEYS.SESSION as OnyxKey); return <View value={value} id={id} />; }`,
                 errors: RENDER_ERRORS,
             },
             {code: `${ONYX_IMPORT} const initialValue = Onyx.get(ONYXKEYS.SESSION as OnyxKey);`, errors: MODULE_SCOPE_ERRORS},
         ],
-    });
-});
-
-describe('no-unsafe-onyx-read restricted keys', () => {
-    const linter = new Linter();
-
-    function isSearchSnapshotKey(value: string): boolean {
-        return !value.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((prefix) => value.startsWith(prefix));
-    }
-
-    function isRecord(value: unknown): value is Record<string, unknown> {
-        return typeof value === 'object' && value !== null;
-    }
-
-    function collectKeyPaths(node: Record<string, unknown>, prefix: string[] = []): Array<[string, string]> {
-        return Object.entries(node).flatMap<[string, string]>(([name, value]) => {
-            if (typeof value === 'string') {
-                return [[[...prefix, name].join('.'), value]];
-            }
-
-            return isRecord(value) ? collectKeyPaths(value, [...prefix, name]) : [];
-        });
-    }
-
-    function isRejected(keyPath: string): boolean {
-        const code = `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.${keyPath}); }`;
-        const messages = linter.verify(code, {
-            plugins: {localRules: {rules: {[localRule.name]: localRule}}},
-            languageOptions: {ecmaVersion: 2022, sourceType: 'module'},
-            rules: {[`localRules/${localRule.name}`]: 'error'},
-        });
-
-        return messages.some((message) => message.messageId === 'noRestrictedOnyxKey');
-    }
-
-    it('rejects exactly the ONYXKEYS entries a Search scope would redirect', () => {
-        const keyPaths = collectKeyPaths(ONYXKEYS);
-        expect(keyPaths.length).toBeGreaterThan(500);
-
-        const disagreements = keyPaths.filter(([keyPath, value]) => isRejected(keyPath) !== isSearchSnapshotKey(value));
-
-        expect(disagreements).toEqual([]);
-    });
-
-    it('covers every Search snapshot prefix', () => {
-        const rejectedValues = collectKeyPaths(ONYXKEYS)
-            .filter(([keyPath]) => isRejected(keyPath))
-            .map(([, value]) => value);
-
-        for (const prefix of CONST.SEARCH.SNAPSHOT_ONYX_KEYS) {
-            expect(rejectedValues.some((value) => value.startsWith(prefix))).toBe(true);
-        }
     });
 });
 
@@ -460,29 +357,6 @@ describe('no-unsafe-onyx-read multiGet', () => {
 
             {code: `${ONYX_IMPORT} const {multiGet} = Onyx; const initialValues = multiGet([ONYXKEYS.SESSION]);`, errors: MODULE_SCOPE_ERRORS},
             {code: `${ONYX_IMPORT} const readMany = Onyx.multiGet; function Row() { const values = readMany([ONYXKEYS.SESSION]); return <View values={values} />; }`, errors: RENDER_ERRORS},
-
-            {code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT]); }`, errors: RESTRICTED_ERRORS},
-            {
-                code: `${ONYX_IMPORT} export function submit(reportID) { return Onyx.multiGet([ONYXKEYS.PERSONAL_DETAILS_LIST, \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`]); }`,
-                errors: [{messageId: 'noRestrictedOnyxKey'}, {messageId: 'noRestrictedOnyxKey'}],
-            },
-            {code: `${ONYX_IMPORT} export function submit() { const keys = [ONYXKEYS.COLLECTION.REPORT]; return Onyx.multiGet(keys); }`, errors: RESTRICTED_ERRORS},
-            {code: `${ONYX_IMPORT} const {multiGet} = Onyx; export function submit() { return multiGet([ONYXKEYS.COLLECTION.REPORT]); }`, errors: RESTRICTED_ERRORS},
-
-            {code: `${ONYX_IMPORT} export function submit(keys) { return Onyx.multiGet(keys); }`, errors: UNRESOLVABLE_ERRORS},
-            {code: `${ONYX_IMPORT} export function submit(key) { return Onyx.multiGet([ONYXKEYS.SESSION, key]); }`, errors: UNRESOLVABLE_ERRORS},
-            {code: `${ONYX_IMPORT} export function submit(keys) { return Onyx.multiGet([ONYXKEYS.SESSION, ...keys]); }`, errors: UNRESOLVABLE_ERRORS},
-            {code: `${ONYX_IMPORT} export function submit(ids) { return Onyx.multiGet(ids.map((id) => \`\${ONYXKEYS.COLLECTION.POLICY_TAGS}\${id}\`)); }`, errors: UNRESOLVABLE_ERRORS},
         ],
-    });
-});
-
-describe('no-unsafe-onyx-read multiGet under the TypeScript parser', () => {
-    tsRuleTester.run(ruleModule.name, ruleModule, {
-        valid: [
-            {code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.ACCOUNT] as const); }`},
-            {code: `${ONYX_IMPORT} export function submit() { const keys = [ONYXKEYS.SESSION, ONYXKEYS.ACCOUNT] as const; return Onyx.multiGet(keys); }`},
-        ],
-        invalid: [{code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT] as const); }`, errors: RESTRICTED_ERRORS}],
     });
 });

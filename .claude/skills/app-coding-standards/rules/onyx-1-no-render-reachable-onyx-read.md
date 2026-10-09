@@ -7,7 +7,7 @@ title: Keep Onyx reads off the render path and out of a written tick
 
 ### Reasoning
 
-`await Onyx.get()` reads a key once and never subscribes. `Onyx.multiGet()` does the same for each key in an array, so everything below about `Onyx.get` applies to it too. `no-unsafe-onyx-read` catches most misuse, so this rule covers only what lint can't see.
+`await Onyx.get()` reads a key once and never subscribes. `Onyx.multiGet()` does the same for each key in an array, so everything below about `Onyx.get` applies to it too. `no-unsafe-onyx-read` and `no-onyx-get-snapshot-key` catch most misuse, so this rule covers only what lint can't see.
 
 Do not re-check these:
 
@@ -16,9 +16,9 @@ Do not re-check these:
 | `Onyx.get` or `Onyx.multiGet` outside `src/components`, `src/pages`, `src/hooks` and `tests` | `no-unsafe-onyx-read` |
 | A read during render or at module scope | `no-unsafe-onyx-read` |
 | A read inside an effect, or in a same-file function an effect calls | `no-unsafe-onyx-read` |
-| A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-unsafe-onyx-read` |
+| A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-onyx-get-snapshot-key` |
 | A runtime import of `react-native-onyx/dist/OnyxUtils` | `@typescript-eslint/no-restricted-imports` |
-| An inline `eslint-disable` of the rule, or one over a runtime OnyxUtils import | `scripts/checkOnyxConnectBypass.ts` |
+| An inline `eslint-disable` of `no-unsafe-onyx-read`, one over a runtime OnyxUtils import, or a `no-onyx-get-snapshot-key` disable without a reason after `--` | `scripts/checkOnyxConnectBypass.ts` |
 | A missing `await` whose value is then used | `tsc` |
 
 What's left crosses a file boundary, depends on write ordering, only shows in the diff, or happens after the read.
@@ -32,6 +32,8 @@ Mutating a read result writes the cache, since the value is the cached object. `
 **C. Effect in another file.** Lint bans a read inside an effect, but only within one file. A handler that reads can still end up in an effect when it's passed to a child or hook that calls it from `useEffect`, `useLayoutEffect` or `useFocusEffect`. A receiver that only registers the handler for an event (an `on*` prop, `addEventListener`, `useKeyboardShortcut`) is fine, even if the handler sits in that effect's dependency array.
 
 **D. Output.** A read value that reaches the screen later, through state, a ref or a module variable a component renders, stays frozen at the moment of the read. Flag it when the screen presents it as the current value.
+
+**E. Live read of a snapshot key.** A `no-onyx-get-snapshot-key` disable claims the code wants live data. That holds only when the value it replaces was live too: `useOnyxWithoutSnapshots`, `Onyx.connect`, or a `useOnyx` call that runs outside every `SearchScopeProvider`, such as one in a provider mounted above the Search list. A `useOnyx` read of the same key in a component inside a Search scope showed the snapshot, so reading it live changes what the code acts on.
 
 ### Incorrect
 
@@ -104,6 +106,19 @@ function CurrentTheme() {
 }
 ```
 
+**E. A snapshot read turned live.**
+
+```tsx
+// Inside a Search list row, which renders under SearchScopeProvider
+function Row({reportID}: Props) {
+    // Removed: const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`); which read the snapshot
+    const onPress = async () => {
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- needs the latest report
+        approve(await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`));
+    };
+}
+```
+
 ### Correct
 
 ```tsx
@@ -132,6 +147,13 @@ return <ContactsList onReady={() => saveContacts(countryCode)} />;
 // D: anything shown as current stays on useOnyx.
 const [theme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
 return <Text>Current theme: {theme}</Text>;
+
+// E: a disable only where the replaced read was already live.
+// Removed: const [report] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+const onPress = async () => {
+    // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a useOnyxWithoutSnapshots read, so the row already acted on live data
+    approve(await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`));
+};
 ```
 
 ---
@@ -158,6 +180,10 @@ return <Text>Current theme: {theme}</Text>;
 
 - D1. The read's value goes to a `useState` setter, a `useRef`, or a module variable, a render position in the same file reads it, and the screen presents it as the current value. Comment on the read.
 
+#### E. Live read of a snapshot key
+
+- E1. The diff adds a `no-onyx-get-snapshot-key` disable. Find what the read replaces: a removed `useOnyx` line in the diff, or the hook or context the value came from before. Flag the disable when that was the `@hooks/useOnyx` wrapper reading the same key in a component that renders under a `SearchScopeProvider` (rows under `src/components/Search/`, or anything mounted inside the Search list). Comment on the disable, naming the replaced subscription.
+
 **DO NOT flag if:**
 
 - The read sits in an event handler or `useCallback` body that render doesn't invoke, and the reading function isn't exported, isn't a render body by A2, and isn't passed as a render callback
@@ -170,6 +196,7 @@ return <Text>Current theme: {theme}</Text>;
 - (B only) The read sits in a deliberate deferral: a `.then`, a timer, `runAfterTransitions`, `runAfterInteractions`, or a callback passed to an async API. Don't suggest hoisting it above the deferral, since that pins the value to the moment before the wait. A `.then` chained on the read itself is not a deferral, and a deferral never excuses an A, C or D finding
 - The write and the read are in exclusive branches, or the write's branch returns first
 - The keys differ and the read key isn't derived from the written one
+- (E only) The disabled read replaces `useOnyxWithoutSnapshots`, `Onyx.connect`, or a `useOnyx` call in a provider or screen mounted outside `SearchScopeProvider`
 
 **Search Patterns** (hints for reviewers):
 
@@ -179,3 +206,4 @@ return <Text>Current theme: {theme}</Text>;
 - removed `useOnyx(` lines in the diff, then that variable's name in the rest of the diff
 - `useEffect(`, `useLayoutEffect(`, `useFocusEffect(`, `useRef(`, `useState(`
 - `runAfterTransitions`, `runAfterInteractions`, `.then(`, `setTimeout(` around a read that follows a write
+- `no-onyx-get-snapshot-key` in added `eslint-disable` comments

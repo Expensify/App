@@ -2,6 +2,7 @@
  * Finds `eslint-disable` directives that silence one of the bans in `BANNED_RULES`:
  * `rulesdir/no-onyx-connect`, `rulesdir/no-unsafe-onyx-read`, and the
  * `@typescript-eslint/no-restricted-imports` entry for `react-native-onyx/dist/OnyxUtils`.
+ * `rulesdir/no-onyx-get-snapshot-key` may be disabled, but only with a reason after `--`.
  *
  * A directive counts when it names the ban's rule, or when it is a blanket disable over a banned
  * call: `Onyx.connect()` for the connect ban, `Onyx.get()` or `Onyx.multiGet()` for the read ban.
@@ -44,6 +45,8 @@ type BannedRule = {
     appliesTo: (file: string) => boolean;
     searchTerms: string[];
     message: string;
+    /** Allows a directive that names the rule when it explains itself after `--`, instead of banning every disable. */
+    requiresReason?: boolean;
 };
 
 const ONYX_CONNECT_BAN: BannedRule = {
@@ -82,7 +85,23 @@ const ONYX_UTILS_IMPORT_BAN: BannedRule = {
         'The react-native-onyx/dist/OnyxUtils import restriction cannot be silenced with eslint-disable. Read Onyx with useOnyx(), Onyx.get() or Onyx.multiGet() instead. Type-only imports of OnyxUtils are still allowed.',
 };
 
-const BANNED_RULES: BannedRule[] = [ONYX_CONNECT_BAN, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN];
+const ONYX_SNAPSHOT_KEY_BAN: BannedRule = {
+    id: 'rulesdir/no-onyx-get-snapshot-key',
+    name: 'no-onyx-get-snapshot-key',
+    objects: new Set(),
+    methods: new Set(),
+    grandfathered: new Map<string, number>(),
+    appliesTo: (file) => file.startsWith('src/'),
+    searchTerms: ['no-onyx-get-snapshot-key', 'eslint-disable'],
+    requiresReason: true,
+    message:
+        'Disables of no-onyx-get-snapshot-key need a reason after `--` that says why live data is right for this Search snapshot key, for example: `// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- acts on the live report, not the snapshot row`.',
+};
+
+const BANNED_RULES: BannedRule[] = [ONYX_CONNECT_BAN, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN, ONYX_SNAPSHOT_KEY_BAN];
+
+/** Shortest text after `--` that counts as a reason, so a token like `-- ok` does not pass. */
+const MIN_REASON_LENGTH = 12;
 
 /** A banned-rule violation that an inline disable directive silenced. */
 type SuppressedBan = {
@@ -257,6 +276,11 @@ function directiveTargetsBan(args: string, ban: BannedRule): boolean {
     });
 }
 
+function hasReason(args: string): boolean {
+    const reason = args.match(/--(?<reason>[\s\S]*)$/)?.groups?.reason ?? '';
+    return reason.replaceAll(/[\s*]+/g, ' ').trim().length >= MIN_REASON_LENGTH;
+}
+
 function isBlanketDirective(args: string): boolean {
     return normalizedDirectiveArgs(args).length === 0;
 }
@@ -318,6 +342,15 @@ function collectDisableDirectivesFromSource(source: string, file: string, ban: B
         return [];
     }
     const bans: SuppressedBan[] = [];
+    if (ban.requiresReason) {
+        for (const match of collectDirectiveMatches(parsed.comments, source, 'disable')) {
+            const args = directiveArgs(match);
+            if (directiveTargetsBan(args, ban) && !hasReason(args)) {
+                bans.push({file, line: source.slice(0, match.index).split('\n').length});
+            }
+        }
+        return bans;
+    }
     const callOffsets = ban.importSources ? collectBannedImportOffsets(parsed.root, ban.importSources) : collectBannedCallOffsets(parsed.root, ban);
     const enableMatches = collectDirectiveMatches(parsed.comments, source, 'enable');
     for (const match of collectDirectiveMatches(parsed.comments, source, 'disable')) {
@@ -356,5 +389,16 @@ function findNewBypasses(suppressedBans: readonly SuppressedBan[], rule: BannedR
     return newBypasses;
 }
 
-export {BANNED_RULE_ID, BANNED_RULE_NAME, BANNED_RULES, GRANDFATHERED_BYPASSES, ONYX_CONNECT_BAN, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN, collectDisableDirectivesFromSource, findNewBypasses};
+export {
+    BANNED_RULE_ID,
+    BANNED_RULE_NAME,
+    BANNED_RULES,
+    GRANDFATHERED_BYPASSES,
+    ONYX_CONNECT_BAN,
+    ONYX_READ_BAN,
+    ONYX_SNAPSHOT_KEY_BAN,
+    ONYX_UTILS_IMPORT_BAN,
+    collectDisableDirectivesFromSource,
+    findNewBypasses,
+};
 export type {BannedRule, SuppressedBan};

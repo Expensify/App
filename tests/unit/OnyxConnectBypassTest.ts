@@ -1,4 +1,4 @@
-import {BANNED_RULE_ID, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN, collectDisableDirectivesFromSource, findNewBypasses} from '../../scripts/onyxConnectBypass';
+import {BANNED_RULE_ID, ONYX_READ_BAN, ONYX_SNAPSHOT_KEY_BAN, ONYX_UTILS_IMPORT_BAN, collectDisableDirectivesFromSource, findNewBypasses} from '../../scripts/onyxConnectBypass';
 
 const ONYX_CONNECT_CALL = `Onyx${'.connect'}`;
 const onyxConnectCall = (key: string): string => `${ONYX_CONNECT_CALL}({key: "${key}"});`;
@@ -214,6 +214,45 @@ describe('no-unsafe-onyx-read bypasses', () => {
         // Then tests are out of scope, since reads are allowed there and suites assert on Search snapshot keys
         expect(ONYX_READ_BAN.appliesTo('src/pages/Foo.tsx')).toBe(true);
         expect(ONYX_READ_BAN.appliesTo('tests/unit/FooTest.ts')).toBe(false);
+    });
+});
+
+describe('no-onyx-get-snapshot-key disables', () => {
+    const snapshotKeyRead = `await Onyx${'.get'}(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`);`;
+
+    it('allows a disable that explains itself', () => {
+        // Given a deliberate live read of a snapshot key with a reason after --
+        const source = ['// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- acts on the live report, not the snapshot row', snapshotKeyRead].join('\n');
+
+        // When the snapshot key ban scans it
+        // Then nothing is reported, since a reviewed reason is how this rule is meant to be bypassed
+        expect(collectDisableDirectivesFromSource(source, 'src/components/Foo.tsx', ONYX_SNAPSHOT_KEY_BAN)).toEqual([]);
+    });
+
+    it('flags a disable without a reason, or with one too short to explain anything', () => {
+        // Given one disable with no reason and one with a token reason
+        const source = [
+            '// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key',
+            snapshotKeyRead,
+            '// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- ok',
+            snapshotKeyRead,
+        ].join('\n');
+
+        // When the snapshot key ban scans it
+        // Then both count as bypasses, so every live read of a snapshot key says why
+        expect(collectDisableDirectivesFromSource(source, 'src/components/Foo.tsx', ONYX_SNAPSHOT_KEY_BAN)).toEqual([
+            {file: 'src/components/Foo.tsx', line: 1},
+            {file: 'src/components/Foo.tsx', line: 3},
+        ]);
+    });
+
+    it('does not let a reasoned key disable silence no-unsafe-onyx-read', () => {
+        // Given a disable that names both rules, with a reason
+        const source = ['// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key, rulesdir/no-unsafe-onyx-read -- acts on the live report', snapshotKeyRead].join('\n');
+
+        // When the read ban scans it
+        // Then it still counts as a read bypass, because only the key choice may be explained away
+        expect(collectDisableDirectivesFromSource(source, 'src/components/Foo.tsx', ONYX_READ_BAN)).toEqual([{file: 'src/components/Foo.tsx', line: 1}]);
     });
 });
 

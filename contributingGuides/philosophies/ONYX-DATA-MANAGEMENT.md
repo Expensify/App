@@ -66,7 +66,7 @@ In rare cases a component that subscribes to multiple large collections through 
 It reads the cache once and never subscribes, so the value it returns MUST NOT reach rendered output, directly or through state, a ref or a module variable. Use it in event handlers and `useCallback` bodies under `src/components`, `src/pages` and `src/hooks`. Never during render, at module scope, or in code an effect runs.
 
 ### - `Onyx.get()` MUST NOT read the Search snapshot keys
-`@hooks/useOnyx` redirects the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` to a Search snapshot inside a `SearchScopeProvider`, and `Onyx.get()` always reads the global key. These keys stay on `useOnyx`, and no element of an `Onyx.multiGet()` key list may be one of them. Write that list as an array literal of static keys, or a `const` bound to one, so lint can check each element.
+`@hooks/useOnyx` redirects the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` to a Search snapshot inside a `SearchScopeProvider`, and `Onyx.get()` always reads the global key. These keys stay on `useOnyx`, and no element of an `Onyx.multiGet()` key list may be one of them. Write that list as an array literal of static keys, or a `const` bound to one, so lint can check each element. When the code deliberately wants live data (it replaces `useOnyxWithoutSnapshots` or `Onyx.connect`), disable `rulesdir/no-onyx-get-snapshot-key` on that line with a reason after `--`. The Concierge chat is never in a snapshot, so `Onyx.get()` may read a report key built from `ONYXKEYS.CONCIERGE_REPORT_ID` without a disable.
 
 ### - Reads MUST come before a write in the same tick, or after the write is awaited
 `Onyx.get()` captures the cache when it is called, and most writes land later, so a read queued behind a write returns the old value. A derived key (`ONYXKEYS.DERIVED.*`) lags its sources, so read it only before writing them.
@@ -77,7 +77,7 @@ If the value re-runs an effect, directly or through a callback in a dependency a
 ### - Reapply the `selector` and never mutate the result
 `Onyx.get()` returns the stored value, not the `selector` projection `useOnyx` hands out, and a single-key read is the cached object itself, so writing to it changes the cache without telling subscribers.
 
-`rulesdir/no-unsafe-onyx-read` enforces the mechanical parts of these rules and cannot be disabled inline. [ONYX-1](../../.claude/skills/app-coding-standards/rules/onyx-1-no-render-reachable-onyx-read.md) covers the rest in review, with examples.
+`rulesdir/no-unsafe-onyx-read` enforces where a read may happen and cannot be disabled inline. `rulesdir/no-onyx-get-snapshot-key` enforces which keys it may read, and may be disabled only with a reason after `--`. [ONYX-1](../../.claude/skills/app-coding-standards/rules/onyx-1-no-render-reachable-onyx-read.md) covers the rest in review, with examples.
 
 ## Onyx Derived Values
 
