@@ -168,6 +168,13 @@ function AddBankAccount() {
             return;
         }
 
+        // Edit pages are opened from the confirmation, so back returns there. Clearing the draft here would reset the
+        // setup type while the earlier sub-pages are still mounted in the stack, leaving "Add bank account" unresponsive.
+        if (isEditing) {
+            Navigation.goBack(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: CONST.ENABLE_PAYMENTS.PAGE_NAMES.ADD_BANK_ACCOUNT, subPage: ADD_BANK_ACCOUNT_SUB_PAGES.CONFIRMATION}));
+            return;
+        }
+
         if (pageIndex === 0) {
             // Clearing the draft clears setupType, which switches this page back to the setup method view.
             clearPersonalBankAccount();
