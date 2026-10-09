@@ -64,11 +64,25 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 
 const mockOpenDropdown = jest.fn();
 let mockShouldOpenInDropdown: boolean | undefined;
+let mockOnLandscapePress: (() => void) | undefined;
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
     const {useImperativeHandle} = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; role?: string}>>>('react-native');
-    return ({name, onPress, shouldOpenInDropdown, ref}: {name: string; onPress: () => void; shouldOpenInDropdown: boolean; ref?: React.Ref<ExpenseFieldDropdownHandle>}) => {
+    return ({
+        name,
+        onPress,
+        onLandscapePress,
+        shouldOpenInDropdown,
+        ref,
+    }: {
+        name: string;
+        onPress: () => void;
+        onLandscapePress: () => void;
+        shouldOpenInDropdown: boolean;
+        ref?: React.Ref<ExpenseFieldDropdownHandle>;
+    }) => {
         mockShouldOpenInDropdown = shouldOpenInDropdown;
+        mockOnLandscapePress = onLandscapePress;
         useImperativeHandle(ref, () => ({open: mockOpenDropdown}));
         return (
             <Pressable
@@ -122,6 +136,7 @@ describe('CategoryField', () => {
     beforeEach(async () => {
         // `jest.clearAllMocks()` does not touch this, so a value left by an earlier render could satisfy a later assertion.
         mockShouldOpenInDropdown = undefined;
+        mockOnLandscapePress = undefined;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -432,6 +447,24 @@ describe('CategoryField', () => {
             await waitFor(() => {
                 expect(mockOpenDropdown).toHaveBeenCalledTimes(1);
             });
+        });
+
+        it('opens the category page marked to close itself in portrait when the phone is in landscape', async () => {
+            // Given a category row whose list would open in place, on a phone held in landscape
+            await givenManualExpense();
+            render(renderCreateCategoryField({policy: enabledPolicy, shouldSelectPolicy: false}));
+            await waitFor(() => {
+                expect(mockOnLandscapePress).toBeDefined();
+            });
+
+            // When the row hands over to the full page because there is no room for the sheet
+            mockOnLandscapePress?.();
+
+            // Then the Category step opens for this expense, flagged so it goes back to the form, and its list, in portrait
+            const route = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0);
+            expect(route).toContain('category');
+            expect(route).toContain(`transactionID=${TRANSACTION_ID}`);
+            expect(route).toContain('shouldCloseInPortrait=true');
         });
     });
 

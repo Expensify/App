@@ -4,6 +4,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -11,7 +12,8 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {ComponentRef, ReactNode, Ref} from 'react';
 import type {View} from 'react-native';
 
-import React, {useImperativeHandle, useRef, useState} from 'react';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import type {ExpenseFieldRowProps} from './ExpenseFieldRow';
 
@@ -87,9 +89,15 @@ type ExpenseFieldDropdownProps = Omit<ExpenseFieldRowProps, 'onPress' | 'anchorR
     /** Opens the field's full-page selector, for every case `shouldOpenInDropdown` rules out */
     onPress: () => void;
 
+    /** Opens the full-page selector in place of the list on a phone in landscape. That page must close itself once the phone is back in portrait, so the list can reopen here. */
+    onLandscapePress: () => void;
+
     /** Lets the field open its list without a press, e.g. once the user is back from a step the press sent them to */
     ref?: Ref<ExpenseFieldDropdownHandle>;
 };
+
+/** idle → departing (full page opened for landscape) → away (form left for it) → idle (form focused again) */
+type LandscapeStep = 'idle' | 'departing' | 'away';
 
 type ExpenseFieldDropdownHandle = {
     /** Opens the list as a press would, falling back to `onPress` when it can't open in place. Does nothing if it is already open. */
@@ -101,16 +109,19 @@ type ExpenseFieldDropdownHandle = {
  *
  * `PopoverWithMeasuredContent` makes it a pop-over on a wide layout and a bottom sheet on a narrow one. The
  * pop-over matches the row's width and opens below it, or above when there isn't room, capped so it is never
- * clipped. A phone in landscape has no room for either, so it opens the full-page selector instead. Knows nothing
- * about any particular field: each passes its own list in through `renderDropdown`.
+ * clipped. A phone in landscape has no room for either, so it opens the full-page selector instead, including when
+ * the phone is turned while the sheet is open. Knows nothing about any particular field: each passes its own list in
+ * through `renderDropdown`.
  */
-function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ref, ...rowProps}: ExpenseFieldDropdownProps) {
+function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, onLandscapePress, ref, ...rowProps}: ExpenseFieldDropdownProps) {
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {contentHeaderHeight} = useContentHeaderHeight();
     const {top: safeAreaTop} = useSafeAreaInsets();
+    const isFocused = useIsFocused();
     const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
+    const landscapeStepRef = useRef<LandscapeStep>('idle');
     const [isVisible, setIsVisible] = useState(false);
     const [hasEverOpened, setHasEverOpened] = useState(false);
     const [layout, setLayout] = useState<DropdownLayout>({
@@ -123,9 +134,39 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, re
 
     const closeDropdown = () => setIsVisible(false);
 
+    const openPageForLandscape = () => {
+        landscapeStepRef.current = 'departing';
+        onLandscapePress();
+    };
+
+    // Turned to landscape with the sheet open: hide the sheet and hand over to the full page, as a press in landscape would.
+    const shouldHandOverToPage = isVisible && isInLandscapeMode;
+
+    useEffect(() => {
+        if (!shouldHandOverToPage) {
+            return;
+        }
+        // Wait for the sheet to finish closing, since navigating while it is still up gets dropped on iOS.
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                setIsVisible(false);
+                landscapeStepRef.current = 'departing';
+                onLandscapePress();
+            },
+        });
+        return () => handle.cancel();
+    }, [shouldHandOverToPage, onLandscapePress]);
+
+    useEffect(() => {
+        if (isFocused || landscapeStepRef.current !== 'departing') {
+            return;
+        }
+        landscapeStepRef.current = 'away';
+    }, [isFocused]);
+
     const openDropdown = () => {
         if (isInLandscapeMode) {
-            onPress();
+            openPageForLandscape();
             return;
         }
 
@@ -170,6 +211,26 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, re
         openDropdown();
     };
 
+    // Back on the form from the page opened for landscape. If the phone is in portrait again, that page closed itself, so
+    // the list reopens once the page has finished closing. Still in landscape means the user picked or went back.
+    useFocusEffect(() => {
+        if (landscapeStepRef.current !== 'away') {
+            return;
+        }
+        if (isInLandscapeMode || !shouldOpenInDropdown) {
+            landscapeStepRef.current = 'idle';
+            return;
+        }
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                landscapeStepRef.current = 'idle';
+                openDropdown();
+            },
+            waitForUpcomingTransition: 'navigation',
+        });
+        return () => handle.cancel();
+    });
+
     useImperativeHandle(ref, () => ({
         open: () => {
             if (!shouldOpenInDropdown) {
@@ -187,12 +248,12 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, re
             <ExpenseFieldRow
                 {...rowProps}
                 anchorRef={shouldOpenInDropdown ? anchorRef : undefined}
-                isExpanded={shouldOpenInDropdown ? isVisible : undefined}
+                isExpanded={shouldOpenInDropdown ? isVisible && !shouldHandOverToPage : undefined}
                 onPress={handlePress}
             />
             {hasEverOpened &&
                 renderDropdown({
-                    isVisible,
+                    isVisible: isVisible && !shouldHandOverToPage,
                     onClose: closeDropdown,
                     anchorPosition: {horizontal: layout.horizontal, vertical: layout.vertical},
                     anchorAlignment: layout.shouldOpenAbove ? ANCHOR_ALIGNMENT_ABOVE : ANCHOR_ALIGNMENT_BELOW,
