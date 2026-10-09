@@ -52,43 +52,21 @@ Create inline comments for any violation of the rules defined in those governanc
      - For files >1000 lines: Read in overlapping chunks using offset/limit to maintain context
      - **Never rely on grep alone** - semantic violations require understanding context, not just pattern matching
 
-3. **For each violation you can fix with replacement text, immediately create an inline comment that contains a committable suggestion** using the available GitHub inline comment tool. See "Every inline comment must be a committable suggestion" below.
+3. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
 
 4. **Required parameters for each inline comment:**
    - `path`: Full file path (e.g., "docs/articles/new-expensify/chat/Create-a-New-Chat.md")
-   - `line`: Line number where the issue occurs — **must be a line that appears in the PR diff (added or modified)**. Do not use line numbers from unchanged portions of the file. For a suggestion that replaces several lines, this is the **last** line of the range.
-   - Start line (multi-line suggestions only): the **first** line of the range, set with the tool's start-line parameter. Every line in the range must be in the diff.
-   - `body`: One short sentence naming the violation, followed by a ```suggestion block
-
-5. **Return your leftover findings.** When you finish, return a short list of the violations you did NOT post because they couldn't be written as a suggestion (see below), each with its file and line. The summary reviewer includes them in its comment.
-
-## Every inline comment must be a committable suggestion
-
-PR authors and reviewers accept fixes with GitHub's **Commit suggestion** button. A comment without a suggestion block can't be committed, so don't post one.
-
-- Every inline comment body must contain exactly one ```suggestion block.
-- The block holds the complete replacement for the commented line or range, exactly as it should read after the fix. Keep the original indentation, list markers, and Markdown, and change only what the violation requires.
-- The replacement replaces **every** line in the range. If you comment on lines 109–115, the block must contain the full corrected text of lines 109–115, not just the changed words.
-- Never use a suggestion block to delete content unless the rule requires deleting it.
-
-Don't post an inline comment when you can't write the exact replacement text. Return the finding to the orchestrator instead (step 5). This applies when:
-
-- The fix depends on something you can't verify from the repo, such as the exact live UI label ("confirm **Selected** is the exact label").
-- The fix would change lines outside the diff, such as making other, unchanged procedures match.
-- The issue is about the whole article (structure, scope, missing sections) rather than specific lines.
+   - `line`: Line number where the issue occurs — **must be a line that appears in the PR diff (added or modified)**. Do not use line numbers from unchanged portions of the file.
+   - `body`: Concise description of the violation, followed by a ```suggestion block with the corrected text, so the author can commit it. For a fix that spans several lines, also set the tool's start line and put all of those lines, corrected, in the block. If you can't write the exact replacement text, don't post the comment.
 
 ## Tool Usage Example
 For each violation, call the tool like this:
-````
+```
 mcp__github_inline_comment__create_inline_comment:
   path: 'docs/articles/new-expensify/chat/Create-a-New-Chat.md'
   line: 9
-  body: |
-    **Terminology**: Use "workspace" instead of "policy".
-    ```suggestion
-    1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
-    ```
-````
+  body: "**Terminology violation**: Use \"workspace\" instead of \"policy\".\n```suggestion\nIn the navigation tabs, select **Workspaces**.\n```"
+```
 
 **IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
 
@@ -103,7 +81,8 @@ gh pr comment --body "Use "workspace" instead of "policy""
 
 ## Comment Format
 Keep inline comments concise and actionable:
-- **Issue type in bold**: One sentence explaining the violation and why it matters (if not obvious)
-- A ```suggestion block with the corrected text
+- **Issue type in bold**: Brief explanation
+- A ```suggestion block with the corrected text. Every inline comment must be a committable suggestion.
+- Include why it matters (if not obvious)
 
-**CRITICAL**: You must actually call the mcp__github_inline_comment__create_inline_comment tool for each violation that has a suggestion. Don't just describe what you found - create the actual inline comments! Violations without a suggestion go in the list you return, never in an inline comment.
+**CRITICAL**: You must actually call the mcp__github_inline_comment__create_inline_comment tool for each violation. Don't just describe what you found - create the actual inline comments!
