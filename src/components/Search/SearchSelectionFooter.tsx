@@ -227,8 +227,14 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 count += 1;
             }
         }
+        // An empty report has no expenses to exclude, so it is excluded under its own report key.
+        for (const key of excludedTransactionsKeys) {
+            if (key === excludedTransactions[key]?.reportID && !currentSearchTransactionsByReportID?.get(key)?.length) {
+                count += 1;
+            }
+        }
         return count;
-    }, [currentSearchTransactionsByReportID, excludedTransactionsKeys, isReportsSearch]);
+    }, [currentSearchTransactionsByReportID, excludedTransactions, excludedTransactionsKeys, isReportsSearch]);
 
     // Individually-selected transactions (loose rows in a grouped view, or every row on a flat search).
     const selectedTransactionIDs = useMemo(

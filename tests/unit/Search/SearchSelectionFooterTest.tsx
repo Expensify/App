@@ -277,6 +277,23 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 86}));
     });
 
+    it('takes an empty report the user unticked off the report count of a select-all', async () => {
+        // Given a select-all over more reports than are loaded, with an empty draft report among them
+        setSearchQuery('type:expense-report footerCount:reports');
+        mockSelectedTransactions.current = {};
+        mockTransactionsByReportID.current = new Map([['report1', [{transactionID: 'transaction1'}]]]);
+        mockAreAllMatchingItemsSelected.current = true;
+
+        // When the empty report is unticked, which excludes it under its own report key since it holds no expense
+        mockExcludedTransactions.current = {report2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, 0, 'report2')};
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
+        await waitForBatchedUpdates();
+
+        // Then it comes off the server's whole-search report count like any other report
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 86}));
+    });
+
     it('keeps a part-unticked report in the report count, since the selection still covers it', async () => {
         // Given the same select-all, with only one of a report's two expenses unticked
         setSearchQuery('type:expense-report footerCount:reports');
