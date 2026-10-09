@@ -3,6 +3,7 @@ apply plugin: 'maven-publish'
 def artifactsDir = findProperty('artifactsDir') ?: error('artifactsDir property is required')
 def patchedVersion = findProperty('patchedVersion') ?: error('patchedVersion property is required')
 def patchesHash = findProperty('patchesHash') ?: error('patchesHash property is required')
+def hermesVersion = findProperty('hermesVersion') ?: error('hermesVersion property is required')
 def packageName = findProperty('packageName') ?: error('packageName property is required')
 
 configurations.maybeCreate('iosArtifacts')
@@ -50,6 +51,7 @@ publishing {
 
                 properties = [
                     'patchesHash': patchesHash,
+                    'hermesVersion': hermesVersion,
                 ]
 
                 developers {
