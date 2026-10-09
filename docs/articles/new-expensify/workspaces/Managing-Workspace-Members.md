@@ -138,6 +138,8 @@ When mapping columns, you can assign each one to any of the following member fie
 
 Mapping the **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields sets up each member's approval workflow, which you can review under **Workflows** after the import completes.
 
+**Approval limit format:** Enter the **Approval limit** as an amount in your workspace currency, not in cents. For example, `500` sets a $500 limit. Currency symbols, currency codes, commas, and spaces are allowed, so `$1,234.56` also works. If any value isn't a valid amount, the import stops and shows the error "Approval limits must be valid amounts for the workspace currency."
+
 **Note:** Use this **[spreadsheet import template](https://docs.google.com/spreadsheets/d/19fjknN-KOS74RjXDccXZGUNTm-utdV7Gvveo5EyrJLE/edit?gid=0#gid=0)** to ensure proper formatting.
 
 **Control plan required:** The **Submit to**, **Forward to**, **Over limit forward to**, **Approval limit**, **Custom field 1**, and **Custom field 2** fields — along with specialized roles like **Auditor** and **Card admin** — are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
@@ -169,6 +171,10 @@ Yes. Use the search tool during invite or import members using a spreadsheet (se
 ## Why am I prompted to upgrade when importing members from a spreadsheet?
 
 Your file maps an advanced field (**Submit to**, **Forward to**, **Over limit forward to**, **Approval limit**, **Custom field 1**, or **Custom field 2**) or assigns a specialized role like **Auditor** or **Card admin**. These are only available on the Control plan, so you'll need to upgrade your workspace to the Control plan before the import can finish.
+
+## Why do I see "Approval limits must be valid amounts for the workspace currency" when importing members?
+
+At least one value in your **Approval limit** column isn't a valid amount. Enter each limit as an amount in your workspace currency, such as `500` or `$1,234.56`, and remove any text that isn't part of the amount. Then upload the file again.
 
 ## Why can't I download a list of workspace members to a CSV file?
 
