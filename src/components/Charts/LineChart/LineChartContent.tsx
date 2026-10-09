@@ -168,13 +168,14 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         return isInPlotArea(args) && isCursorOverLabel(args, activeIndex);
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition, onChartMoved} = useChartInteractions({
-        handlePress: handlePointPress,
-        checkIsOver: checkIsOverBand,
-        isCursorOverLabel: checkIsOverLabelInPlotArea,
-        resolveLabelTouchX: findLabelCursorX,
-        chartBottom,
-    });
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition, onChartMoved, onTooltipDismiss} =
+        useChartInteractions({
+            handlePress: handlePointPress,
+            checkIsOver: checkIsOverBand,
+            isCursorOverLabel: checkIsOverLabelInPlotArea,
+            resolveLabelTouchX: findLabelCursorX,
+            chartBottom,
+        });
 
     const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
 
@@ -341,6 +342,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
+                    onDismiss={onTooltipDismiss}
                 />
             </Animated.View>
         </GestureDetector>

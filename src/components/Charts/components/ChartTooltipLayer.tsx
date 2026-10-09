@@ -29,13 +29,16 @@ type ChartTooltipLayerProps = {
 
     /** Called with how far the chart moved in the window while the tooltip is shown */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
+
+    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
+    onDismiss?: () => void;
 };
 
 /**
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition, onChartMoved}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition, onChartMoved, onDismiss}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     useAnimatedReaction(
@@ -61,6 +64,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
             initialTooltipPosition={initialTooltipPosition}
             isVisible={isTooltipActive}
             onChartMoved={onChartMoved}
+            onDismiss={onDismiss}
         />
     );
 }

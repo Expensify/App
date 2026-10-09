@@ -8,12 +8,15 @@ import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUti
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
-import React, {useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {DeviceEventEmitter, View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -43,6 +46,9 @@ type ChartTooltipProps = {
 
     /** Updates the hovered point after the chart is moved in the window (e.g. via scroll) by the given offset */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
+
+    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned; called on any touch on the screen or when the screen loses focus */
+    onDismiss?: () => void;
 };
 
 function getAmountContent(amount: string, percentage?: string): string {
@@ -53,7 +59,7 @@ function getAmountContent(amount: string, percentage?: string): string {
     return `${amount} (${percentage})`;
 }
 
-function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, initialTooltipPosition, isVisible, onChartMoved}: ChartTooltipProps) {
+function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, initialTooltipPosition, isVisible, onChartMoved, onDismiss}: ChartTooltipProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
 
@@ -108,6 +114,23 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
             scheduleOnRN(setIsShown, isCurrentlyShown);
         },
     );
+
+    const isFocused = useIsFocused();
+
+    // A pinned tooltip has no hover to end it, so the screen's touch start (which still lets the touch through) hides it
+    useEffect(() => {
+        if (!isShown || !onDismiss) {
+            return;
+        }
+
+        // The tooltip is drawn in a root portal, so it would stay on top of the next screen after navigating away
+        if (!isFocused) {
+            onDismiss();
+            return;
+        }
+        const dismissListener = DeviceEventEmitter.addListener(CONST.EVENTS.CHART_TOOLTIP_DISMISS, onDismiss);
+        return () => dismissListener.remove();
+    }, [isShown, isFocused, onDismiss]);
 
     const handleOriginChange = (x: number, y: number) => {
         const previousOrigin = origin.get();

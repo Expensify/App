@@ -29,7 +29,7 @@ import type {InsightsDashboardID} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
-import {View} from 'react-native';
+import {DeviceEventEmitter, View} from 'react-native';
 
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
@@ -166,6 +166,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
@@ -211,32 +212,37 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const state = getDashboardState(dashboard, isOffline, charts);
 
     return (
-        <ScreenWrapper
-            shouldShowOfflineIndicatorInWideScreen
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
-            testID="InsightsPage"
+        <View
+            style={styles.flex1}
+            onTouchStart={() => DeviceEventEmitter.emit(CONST.EVENTS.CHART_TOOLTIP_DISMISS)}
         >
-            <TopBar
-                breadcrumbLabel={translate('common.insights')}
-                shouldDisplayHelpButton
-            />
-            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
-                <InsightsPageControls
-                    filters={filters}
-                    defaultFilters={defaultFilters}
-                    onChange={setFilters}
+            <ScreenWrapper
+                shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
+                bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
+                testID="InsightsPage"
+            >
+                <TopBar
+                    breadcrumbLabel={translate('common.insights')}
+                    shouldDisplayHelpButton
                 />
-            )}
-            <InsightsDashboardContent
-                state={state}
-                headlineChart={headlineChart}
-                supportingCharts={supportingCharts}
-                filters={filters}
-                onRetry={requestDashboard}
-                onGroupByChange={(groupBy) => setFilters({groupBy})}
-            />
-        </ScreenWrapper>
+                {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
+                    <InsightsPageControls
+                        filters={filters}
+                        defaultFilters={defaultFilters}
+                        onChange={setFilters}
+                    />
+                )}
+                <InsightsDashboardContent
+                    state={state}
+                    headlineChart={headlineChart}
+                    supportingCharts={supportingCharts}
+                    filters={filters}
+                    onRetry={requestDashboard}
+                    onGroupByChange={(groupBy) => setFilters({groupBy})}
+                />
+            </ScreenWrapper>
+        </View>
     );
 }
 

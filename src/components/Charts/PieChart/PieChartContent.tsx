@@ -41,6 +41,9 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
     const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
+
+    /** True while a slice tooltip opened by a touch tap is shown, which lets a touch anywhere on the screen hide it */
+    const [isTouchPinned, setIsTouchPinned] = useState(false);
     const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
     // Shared values for hover state
@@ -108,10 +111,17 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
 
-    const toggleActiveSlice = (x: number, y: number) => {
+    // Touch taps show the slice tooltip instead of drilling in, and the next touch anywhere on the screen hides it
+    const showTouchedSlice = (x: number, y: number) => {
         const {centerX, centerY} = pieGeometry;
         const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, innerRadius, processedSlices);
-        setActiveSliceIndex(sliceIndex === activeSliceIndex ? -1 : sliceIndex);
+        setActiveSliceIndex(sliceIndex);
+        setIsTouchPinned(sliceIndex >= 0);
+    };
+
+    const dismissTouchedSlice = () => {
+        setActiveSliceIndex(-1);
+        setIsTouchPinned(false);
     };
 
     // Hover gesture
@@ -124,6 +134,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                     return;
                 }
                 isHovering.set(true);
+                scheduleOnRN(setIsTouchPinned, false);
                 cursorX.set(e.x);
                 cursorY.set(e.y);
                 tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
@@ -158,7 +169,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
             if (e.pointerType === PointerType.TOUCH) {
                 tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
-                scheduleOnRN(toggleActiveSlice, e.x, e.y);
+                scheduleOnRN(showTouchedSlice, e.x, e.y);
                 return;
             }
 
@@ -261,6 +272,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                             chartWidth={canvasWidth}
                             initialTooltipPosition={tooltipPosition}
                             onChartMoved={onChartMoved}
+                            onDismiss={isTouchPinned ? dismissTouchedSlice : undefined}
                         />
                     )}
                 </Animated.View>

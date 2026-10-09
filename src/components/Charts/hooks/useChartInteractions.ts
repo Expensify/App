@@ -1,6 +1,6 @@
 import type {SharedValue} from 'react-native-reanimated';
 
-import {useCallback} from 'react';
+import {useCallback, useState} from 'react';
 import {Gesture, PointerType} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
@@ -183,7 +183,9 @@ function useChartInteractions({
     const isCursorOverTarget = useSharedValue(false);
     const isCursorOverClickable = useSharedValue(false);
     const isTooltipActive = useSharedValue(false);
-    const isTouchPinned = useSharedValue(false);
+
+    /** True while a tooltip opened by a touch tap is shown, which lets a touch anywhere on the screen hide it */
+    const [isTouchPinned, setIsTouchPinned] = useState(false);
 
     /**
      * Called by chart content from handleScaleChange to populate canvas positions.
@@ -336,7 +338,6 @@ function useChartInteractions({
         'worklet';
 
         chartInteractionState.isActive.set(false);
-        isTouchPinned.set(false);
         isCursorOverTarget.set(false);
         isCursorOverClickable.set(false);
         isTooltipActive.set(false);
@@ -358,7 +359,7 @@ function useChartInteractions({
                 if (e.pointerType === PointerType.TOUCH) {
                     return;
                 }
-                isTouchPinned.set(false);
+                scheduleOnRN(setIsTouchPinned, false);
                 const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
                 const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
                 chartInteractionState.isActive.set(true);
@@ -388,22 +389,15 @@ function useChartInteractions({
             });
 
     /**
-     * Touch taps toggle the tooltip instead of drilling in, since touch devices have no hover.
-     * Tapping a new target shows its tooltip and tapping the same target again or empty space hides it.
+     * Touch taps show the tooltip instead of drilling in, since touch devices have no hover.
+     * While it is shown, the next touch anywhere on the screen hides it.
      */
     const handleTouchTap = (cursorX: number, cursorY: number) => {
         'worklet';
 
-        const previousIndex = chartInteractionState.matchedIndex.get();
-        const wasPinned = isTouchPinned.get();
         const bottom = chartBottom?.get() ?? cursorY;
         const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
         const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
-        if (targetIndex < 0 || (wasPinned && targetIndex === previousIndex)) {
-            hideTooltip();
-            return;
-        }
-
         chartInteractionState.isActive.set(true);
         applyTargetIndex(targetIndex);
         const isOverTarget = updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
@@ -411,12 +405,19 @@ function useChartInteractions({
             hideTooltip();
             return;
         }
-        isTouchPinned.set(true);
+        scheduleOnRN(setIsTouchPinned, true);
+    };
+
+    const dismissTouchTooltip = () => {
+        hideTooltip();
+        // Clearing the target unmounts the tooltip, so the next tap mounts a fresh one instead of revealing the old content for a frame
+        applyTargetIndex(-1);
+        setIsTouchPinned(false);
     };
 
     /**
      * Tap gesture. Resolves the nearest data point entirely on the UI thread.
-     * Touch taps toggle the tooltip; other pointers schedule handlePress on the JS thread if the cursor is over the target.
+     * Touch taps show the tooltip; other pointers schedule handlePress on the JS thread if the cursor is over the target.
      */
     const tapGesture = () =>
         Gesture.Tap().onEnd((e) => {
@@ -494,6 +495,8 @@ function useChartInteractions({
         activePointPosition,
         /** Call with how far the chart moved in the window, e.g. on page scroll, to re-check the hover under a still cursor */
         onChartMoved,
+        /** Hides the tooltip pinned by a touch tap, undefined while nothing is pinned */
+        onTooltipDismiss: isTouchPinned ? dismissTouchTooltip : undefined,
     };
 }
 
