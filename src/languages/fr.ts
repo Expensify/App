@@ -7012,6 +7012,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             tagRules: 'Règles de tags',
             approverDescription: 'Approbateur',
             importTags: 'Importer des tags',
+            appendCustomTagList: 'Ajouter une liste de tags personnalisée',
             importTagsSupportingText: 'Codez vos dépenses avec un seul type de tag ou plusieurs.',
             configureMultiLevelTags: 'Configurez votre liste de tags pour le multi-niveau.',
             importMultiLevelTagsSupportingText: `Voici un aperçu de vos tags. Si tout semble correct, cliquez ci-dessous pour les importer.`,

@@ -901,6 +901,10 @@ function setImportedSpreadsheetIsImportingIndependentMultiLevelTags(isImportingI
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isImportingIndependentMultiLevelTags});
 }
 
+function setImportedSpreadsheetIsAppendingToExistingLists(isAppendingToExistingLists: boolean) {
+    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isAppendingToExistingLists});
+}
+
 function setImportedSpreadsheetIsFirstLineHeader(containsHeader: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {containsHeader});
 }
@@ -916,6 +920,19 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
 
     const importFinalModalID = getImportFinalModalID();
     const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [
+        getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
+    ];
+    // When appending, the accounting connection tag lists are kept, so a failed append shouldn't change whether the policy has multiple tag lists
+    if (!spreadsheet.isAppendingToExistingLists) {
+        failureData.unshift({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                hasMultipleTagLists: false,
+            },
+        });
+    }
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
@@ -927,16 +944,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
             },
             getImportFinalModalOnyxData(importFinalModalID, getImportMultiLevelTagsFinalModal()),
         ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    hasMultipleTagLists: false,
-                },
-            },
-            getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
-        ],
+        failureData,
     };
 
     return new Promise((resolve) => {
@@ -949,6 +957,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                     isFirstLineHeader: spreadsheet.containsHeader,
                     isIndependent: spreadsheet.isImportingIndependentMultiLevelTags,
                     isGLAdjacent: spreadsheet.isGLAdjacent,
+                    appendToExistingLists: !!spreadsheet.isAppendingToExistingLists,
                     file,
                 };
 
@@ -1542,6 +1551,7 @@ export {
     cleanPolicyTags,
     setImportedSpreadsheetIsImportingMultiLevelTags,
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
+    setImportedSpreadsheetIsAppendingToExistingLists,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
     importMultiLevelTags,

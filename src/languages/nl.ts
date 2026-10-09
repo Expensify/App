@@ -6938,6 +6938,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             tagRules: 'Tagregels',
             approverDescription: 'Fiatteur',
             importTags: 'Labels importeren',
+            appendCustomTagList: 'Aangepaste taglijst toevoegen',
             importTagsSupportingText: 'Codeer je onkosten met één type tag of met meerdere.',
             configureMultiLevelTags: 'Configureer je lijst met tags voor taggen op meerdere niveaus.',
             importMultiLevelTagsSupportingText: `Hier is een voorbeeldweergave van je tags. Als alles er goed uitziet, klik hieronder om ze te importeren.`,

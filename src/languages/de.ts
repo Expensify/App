@@ -6994,6 +6994,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             tagRules: 'Tag-Regeln',
             approverDescription: 'Genehmiger',
             importTags: 'Tags importieren',
+            appendCustomTagList: 'Benutzerdefinierte Tag-Liste anhängen',
             importTagsSupportingText: 'Kategorisiere deine Ausgaben mit einem oder mehreren Tags.',
             configureMultiLevelTags: 'Konfiguriere deine Liste von Tags für mehrstufiges Tagging.',
             importMultiLevelTagsSupportingText: `Hier ist eine Vorschau deiner Tags. Wenn alles gut aussieht, klicke unten, um sie zu importieren.`,
