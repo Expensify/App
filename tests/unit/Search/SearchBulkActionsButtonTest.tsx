@@ -29,6 +29,7 @@ let mockIsOffline = false;
 let mockSelectedTransactions: SelectedTransactions = {tx1: makeTransaction()};
 let mockAreAllMatchingItemsSelected = true;
 let mockShouldUseNarrowLayout = false;
+let mockSearchData: Record<string, unknown> = {};
 
 jest.mock('@components/BulkActionBar', () => ({
     __esModule: true,
@@ -82,7 +83,7 @@ jest.mock('@hooks/useSearchBulkActions', () => ({
         isDuplicateReportOptionVisible: false,
         allTransactions: {},
         allReports: {},
-        searchData: {},
+        searchData: mockSearchData,
     }),
 }));
 jest.mock('@components/Search/SearchContext', () => ({
@@ -163,6 +164,7 @@ describe('SearchBulkActionsButton all-matching count', () => {
         mockSelectedTransactions = {tx1: makeTransaction()};
         mockAreAllMatchingItemsSelected = true;
         mockShouldUseNarrowLayout = false;
+        mockSearchData = {};
     });
 
     it('shows the all-matching label and keeps loading while the server count is missing', () => {
@@ -215,6 +217,53 @@ describe('SearchBulkActionsButton all-matching count', () => {
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
+    });
+
+    it('counts the rows of a group checked through its header as the whole group, including the rows not loaded', () => {
+        // Given a group of 692 expenses checked through its header with only two of its rows loaded, next to an expense of another group checked on its own
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
+        mockAreAllMatchingItemsSelected = false;
+        mockSearchData = {[groupKey]: {count: 692, total: 12990, currency: CONST.CURRENCY.USD}};
+        mockSelectedTransactions = {
+            tx1: {...makeTransaction(), groupKey, isSelectedViaGroup: true},
+            tx2: {...makeTransaction(), groupKey, isSelectedViaGroup: true},
+            tx3: {...makeTransaction(), groupKey: `${CONST.SEARCH.GROUP_PREFIX}2026_10_03`},
+        };
+
+        // When the bar shows that selection
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then it counts what an export of the selection covers, which is the whole group plus the other expense
+        expect(getBarProps()).toEqual({selectedCount: 693, isSelectedCountLoading: false});
+    });
+
+    it('subtracts one expense for a row excluded from Select all after its group was checked through the header', () => {
+        // Given Select all with one row unchecked, where the row still carries the claim of the group header that checked it
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
+        mockSearchCount = 694;
+        mockSearchData = {[groupKey]: {count: 692, total: 12990, currency: CONST.CURRENCY.USD}};
+        mockExcludedTransactions = {tx2: {...makeTransaction(), groupKey, isSelectedViaGroup: true}};
+
+        // When the bar shows the selection
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then only that row leaves the count, since the rest of its group stays selected
+        expect(getBarProps()).toEqual({selectedCount: 693, isSelectedCountLoading: false});
+    });
+
+    it('counts a row checked again inside a group excluded whole from Select all', () => {
+        // Given Select all over ten expenses, a five-expense group excluded whole, and one of its rows checked again on its own
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
+        mockSearchCount = 10;
+        mockSearchData = {[groupKey]: {count: 5, total: 500, currency: CONST.CURRENCY.USD}};
+        mockExcludedTransactions = {[groupKey]: makeTransaction()};
+        mockSelectedTransactions = {tx1: {...makeTransaction(), groupKey}};
+
+        // When the bar shows the selection
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then the row counts alongside the five expenses still selected, as its checkbox shows
+        expect(getBarProps()).toEqual({selectedCount: 6, isSelectedCountLoading: false});
     });
 
     it('keeps loading when an exclusion exists before the count arrives', () => {

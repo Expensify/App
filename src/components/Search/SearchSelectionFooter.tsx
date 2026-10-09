@@ -19,6 +19,7 @@ import type {SelectedTransactionInfo, SelectedTransactions} from './types';
 
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
+import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
 
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
@@ -103,8 +104,9 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
+    const {selectedTransactions: loadedSelection, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
+    const selectedTransactions = mergeRowsIntoPartlyLoadedGroups(loadedSelection, currentSearchResults?.data, areAllMatchingItemsSelected);
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
@@ -168,6 +170,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         () => excludedTransactionsKeys.map((key) => excludedTransactions[key]?.transaction?.transactionID).filter((transactionID): transactionID is string => !!transactionID),
         [excludedTransactions, excludedTransactionsKeys],
     );
+    // A group's exclusion takes off the rows checked again inside it along with the rest of the group, so the count and the total add them back.
+    const rowsCheckedInExcludedGroups = getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions);
+    const rowsCheckedInExcludedGroupsCount = Object.keys(rowsCheckedInExcludedGroups).length;
+    const rowsCheckedInExcludedGroupsTransactionIDs = Object.values(rowsCheckedInExcludedGroups)
+        .map((transaction) => transaction.transaction?.transactionID)
+        .filter((transactionID): transactionID is string => !!transactionID);
     const selectedReportIDs = useMemo(() => {
         if (!isReportsSearch) {
             return EMPTY_REPORT_IDS;
@@ -333,12 +341,25 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         if (hasExcludedReports) {
             return areAllSelectedReportsConverted(excludedReportIDs, (reportID) => isReportFresh(reportID, selectedCurrency));
         }
-        return areAllSelectedEntriesConverted(
-            excludedTransactions,
-            (key) => isGroupFresh(key, selectedCurrency),
-            (transactionID) => isTransactionFresh(transactionID, selectedCurrency),
+        return [excludedTransactions, rowsCheckedInExcludedGroups].every((entries) =>
+            areAllSelectedEntriesConverted(
+                entries,
+                (key) => isGroupFresh(key, selectedCurrency),
+                (transactionID) => isTransactionFresh(transactionID, selectedCurrency),
+            ),
         );
-    }, [excludedReportIDs, excludedTransactions, hasCustomFooterCurrency, hasExcludedExpenses, hasExcludedReports, isGroupFresh, isReportFresh, isTransactionFresh, selectedCurrency]);
+    }, [
+        excludedReportIDs,
+        excludedTransactions,
+        hasCustomFooterCurrency,
+        hasExcludedExpenses,
+        hasExcludedReports,
+        isGroupFresh,
+        isReportFresh,
+        isTransactionFresh,
+        rowsCheckedInExcludedGroups,
+        selectedCurrency,
+    ]);
 
     // Show the loading skeleton only while a conversion can still arrive — there is something to convert, the request
     // can be made (online) and hasn't failed. Otherwise the footer stays on the default-currency total instead of a
@@ -445,7 +466,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 });
             }
 
-            const excludedTransactionIDsToConvert = excludedTransactionIDs.filter((transactionID) => !wasTransactionRequested(transactionID, selectedCurrency));
+            const excludedTransactionIDsToConvert = [...excludedTransactionIDs, ...rowsCheckedInExcludedGroupsTransactionIDs].filter(
+                (transactionID) => !wasTransactionRequested(transactionID, selectedCurrency),
+            );
             if (excludedTransactionIDsToConvert.length > 0) {
                 getFooterConvertedAmounts({
                     queryJSON: currentSearchQueryJSON,
@@ -488,6 +511,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         wasTransactionRequested,
         metadataTotal,
         reportSourceByID,
+        rowsCheckedInExcludedGroupsTransactionIDs,
         selectedCurrency,
         selectedGroupKeys,
         selectedReportIDs,
@@ -549,12 +573,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             !hasConversionFailed &&
             selectedCurrencyConvertedTotal
         ) {
-            let excludedConvertedTotal = 0;
-            if (hasExcludedReports && selectedCurrency) {
-                excludedConvertedTotal = excludedReportIDs.reduce((total, reportID) => total - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
-            } else if (hasExcludedExpenses) {
-                excludedConvertedTotal = excludedTransactionsKeys.reduce((total, key) => {
-                    const transaction = excludedTransactions[key];
+            const getConvertedTotal = (entries: SelectedTransactions) =>
+                Object.entries(entries).reduce((total, [key, transaction]) => {
                     const transactionID = transaction.transaction?.transactionID;
                     let convertedAmount;
                     if (isGroupEntry(key)) {
@@ -564,17 +584,23 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                     }
                     return total - (convertedAmount ?? getEntrySource(transaction));
                 }, 0);
+            let excludedConvertedTotal = 0;
+            if (hasExcludedReports && selectedCurrency) {
+                excludedConvertedTotal = excludedReportIDs.reduce((total, reportID) => total - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
+            } else if (hasExcludedExpenses) {
+                excludedConvertedTotal = getConvertedTotal(excludedTransactions) - getConvertedTotal(rowsCheckedInExcludedGroups);
             }
             return {
-                count: Math.max(selectedCurrencyConvertedTotal.count - excludedExpenseCount, 0),
+                count: Math.max(selectedCurrencyConvertedTotal.count - excludedExpenseCount + rowsCheckedInExcludedGroupsCount, 0),
                 total: selectedCurrencyConvertedTotal.total - excludedConvertedTotal,
                 currency: selectedCurrency,
             };
         }
 
-        const excludedTotal = hasExcludedExpenses || hasExcludedReports ? getTransactionTotal(Object.values(excludedTransactions)) : 0;
+        const excludedTotal =
+            hasExcludedExpenses || hasExcludedReports ? getTransactionTotal(Object.values(excludedTransactions)) - getTransactionTotal(Object.values(rowsCheckedInExcludedGroups)) : 0;
         return {
-            count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0),
+            count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount + rowsCheckedInExcludedGroupsCount, 0),
             total: metadataTotal === undefined ? undefined : metadataTotal - excludedTotal,
             currency: effectiveDefaultCurrency ?? metadataCurrency,
         };
@@ -588,7 +614,6 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         excludedExpenseCount,
         excludedReportIDs,
         excludedTransactions,
-        excludedTransactionsKeys,
         hasConversionFailed,
         hasCustomFooterCurrency,
         hasExcludedExpenses,
@@ -598,6 +623,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         metadataCount,
         metadataCurrency,
         metadataTotal,
+        rowsCheckedInExcludedGroups,
+        rowsCheckedInExcludedGroupsCount,
         selectedCurrency,
         selectedCurrencyConvertedTotal,
         selectedExpenseCount,

@@ -41,6 +41,7 @@ import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from '
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
 import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -142,10 +143,10 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         };
 
         return {
-            selectedItemsCount: getItemsCount(selectedTransactions),
-            excludedItemsCount: getItemsCount(excludedTransactions),
+            selectedItemsCount: getItemsCount(mergeRowsIntoPartlyLoadedGroups(selectedTransactions, searchData, areAllMatchingItemsSelected)),
+            excludedItemsCount: getItemsCount(excludedTransactions) - getItemsCount(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions)),
         };
-    }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
+    }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData, areAllMatchingItemsSelected]);
 
     const payBulkSelectedItem = (subItem: PopoverMenuItem, triggerKYCFlow: (kycParams: ContinueActionParams) => void) =>
         handleBulkPayItemSelected({

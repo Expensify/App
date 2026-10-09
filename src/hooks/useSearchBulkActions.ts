@@ -6,7 +6,7 @@ import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemPr
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
+import {getClaimedGroupKey, getSearchGroupCountByKey, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
@@ -298,14 +298,10 @@ function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions
     const groupKeys = new Set<SearchGroupKey>();
 
     for (const [key, transaction] of Object.entries(selectedTransactions)) {
-        if (isGroupEntry(key)) {
-            groupKeys.add(key);
-            continue;
+        const groupKey = isGroupEntry(key) ? key : getClaimedGroupKey(transaction);
+        if (groupKey) {
+            groupKeys.add(groupKey);
         }
-        if (!transaction.isSelectedViaGroup || !transaction.groupKey || !isGroupEntry(transaction.groupKey)) {
-            continue;
-        }
-        groupKeys.add(transaction.groupKey);
     }
 
     return [...groupKeys];
@@ -445,6 +441,17 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
     });
 
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+}
+
+/**
+ * The query an action on whole reports, such as Pay or Mark as exported, sends under Select all, or undefined when the unchecked rows cannot be left out of it.
+ * The Reports view leaves out the report of each unchecked expense. An expense search has no report to leave out for one unchecked expense, so it needs nothing unchecked.
+ */
+function getAllMatchingReportActionQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions, isExpenseReportType: boolean): SearchQueryJSON | undefined {
+    if (isExpenseReportType) {
+        return getAllMatchingReportQuery(queryJSON, excludedTransactions);
+    }
+    return isEmptyObject(excludedTransactions) ? queryJSON : undefined;
 }
 
 const MERCHANT_GROUP_EXACT_MATCH_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
@@ -611,8 +618,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions: loadedSelection, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
+    // A group checked through its header that is still loading reaches the actions as one entry, as a collapsed one does, so no action takes only its loaded rows.
+    const selectedTransactions = useMemo(
+        () => mergeRowsIntoPartlyLoadedGroups(loadedSelection, currentSearchResults?.data, areAllMatchingItemsSelected),
+        [loadedSelection, currentSearchResults?.data, areAllMatchingItemsSelected],
+    );
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -1578,13 +1590,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (areAllMatchingItemsSelected) {
-                const allMatchingQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : queryJSON;
-                if (isExpenseReportType && !allMatchingQuery) {
-                    Log.info('[BulkPay] Dropping bulk pay: report exclusion has no reportID');
+                const allMatchingQuery = queryJSON ? getAllMatchingReportActionQuery(queryJSON, excludedTransactions, isExpenseReportType) : undefined;
+                if (!allMatchingQuery) {
+                    Log.info('[BulkPay] Dropping bulk pay: the unchecked expenses cannot be left out of the matching reports');
                     return;
                 }
-                const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
-                queueBulkPayReports(serializedQuery);
+                queueBulkPayReports(serializeQueryJSONForBackend(allMatchingQuery));
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
                 return;
@@ -2064,6 +2075,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             payableSelectedReports.length > 0
                 ? Object.values(selectedTransactions).some((transaction) => transaction.isHeld && !!transaction.reportID && payableSelectedReportIDs.includes(transaction.reportID))
                 : isAnyTransactionOnHold;
+        const allMatchingReportActionQuery = areAllMatchingItemsSelected && queryJSON ? getAllMatchingReportActionQuery(queryJSON, excludedTransactions, isExpenseReportType) : undefined;
 
         const getExportOptions = () => {
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
@@ -2336,13 +2348,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     .filter((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED))
                     .map((report) => report.reportID)
                     .filter((reportID): reportID is string => reportID !== undefined);
-                if (reportIDsToMark.length > 0) {
+                if (reportIDsToMark.length > 0 && (!areAllMatchingItemsSelected || allMatchingReportActionQuery)) {
                     // Under "select all matching", the loaded page can only ever hold a subset of the full matching
                     // set, so the partial-export and export-again modals below (built from page-scoped counts) do
                     // not apply. Send the query instead of the loaded IDs, the same way bulk pay does, so the
                     // backend resolves and marks every matching report on this connection, not just this page.
                     const handleMarkAllMatchingAction = () => {
-                        if (!hash || !queryJSON) {
+                        if (!hash || !allMatchingReportActionQuery) {
                             return;
                         }
                         if (isOffline) {
@@ -2354,7 +2366,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             integration === CONST.POLICY.CONNECTIONS.NAME.QBO && isIntuitEnterpriseSuiteConnection(integrationPolicy)
                                 ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE
                                 : undefined;
-                        queueBulkMarkAsExported(serializeQueryJSONForBackend(queryJSON), integration, qboIntegrationAlias);
+                        queueBulkMarkAsExported(serializeQueryJSONForBackend(allMatchingReportActionQuery), integration, qboIntegrationAlias);
                         playSound(SOUNDS.SUCCESS);
                     };
                     const handleMarkAction = areAllMatchingItemsSelected
@@ -2536,7 +2548,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
         const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
         const shouldShowPayOption = areAllMatchingItemsSelected
-            ? hasLoadedPayableReport && !!bulkPayButtonOptions?.length
+            ? hasLoadedPayableReport && !!bulkPayButtonOptions?.length && !!allMatchingReportActionQuery
             : !isAnyPayableTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
         const payButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
             icon: expensifyIcons.MoneyBag,
@@ -2652,10 +2664,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return buildResult(deletedTransactionOptions);
         }
 
+        // A group entry stands for expenses that are not loaded, so Edit multiple and Merge, which act only on the expenses they can read, would leave the group out.
+        const hasGroupEntrySelected = selectedTransactionsKeys.some(isGroupEntry);
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
             .filter((transaction): transaction is Transaction => !!transaction);
         const canEditMultiple =
+            !hasGroupEntrySelected &&
             canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, policies, rules, isExpenseReportSearch, searchResults?.data) &&
             isBetaEnabled(CONST.BETAS.BULK_EDIT);
 
@@ -3083,7 +3098,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
+        if (!hasGroupEntrySelected && selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
             const {transactions: searchedTransactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
             if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, accountID)) {

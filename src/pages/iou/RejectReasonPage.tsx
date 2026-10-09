@@ -68,7 +68,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             getCurrencyDecimals,
             {rules},
         );
-        removeTransaction(transactionID);
+        removeTransaction(transactionID, {isDeleted: false});
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {
             Navigation.dismissToSuperWideRHP();

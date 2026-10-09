@@ -1,6 +1,7 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {isGroupedItemArray, isGroupEntry, isTransactionGroupListItemType, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -202,53 +203,158 @@ function mapTransactionItemToSelectedEntry({
 
 function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType | TransactionGroupListItemType): [string, SelectedTransactionInfo] {
     if (isTransactionReportGroupListItemType(item)) {
-        const currency = item.currency ?? '';
         return [
             item.keyForList ?? '',
-            {
-                isFromOneTransactionReport: false,
-                isSelected: true,
-                canHold: false,
-                canSplit: false,
-                canReject: false,
-                hasBeenSplit: false,
-                isHeld: false,
-                canUnhold: false,
-                canChangeReport: false,
-                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: item.reportID,
-                policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
+            buildGroupSelectedEntry({
                 amount: item.totalDisplaySpend ?? item.total ?? 0,
                 displayAmount: item.totalDisplaySpend ?? 0,
-                currency,
-                ...(currency ? {groupCurrency: currency} : {}),
-            },
+                currency: item.currency ?? '',
+                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                reportID: item.reportID,
+                policyID: item.policyID,
+            }),
         ];
     }
 
-    const currency = item.currency ?? '';
-
+    const total = item.total ?? 0;
     return [
         item.keyForList ?? '',
-        {
-            isFromOneTransactionReport: false,
-            isSelected: true,
-            canHold: false,
-            canSplit: false,
-            canReject: false,
-            hasBeenSplit: false,
-            isHeld: false,
-            canUnhold: false,
-            canChangeReport: false,
+        buildGroupSelectedEntry({
+            amount: total,
+            displayAmount: total,
+            currency: item.currency ?? '',
             action: CONST.SEARCH.ACTION_TYPES.VIEW,
             reportID: item.reportID,
-            policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
-            amount: item.total ?? 0,
-            displayAmount: item.total ?? 0,
-            currency,
-            ...(currency ? {groupCurrency: currency} : {}),
-        },
+            policyID: item.policyID,
+        }),
     ];
+}
+
+/** The entry of a group selected under its own key, which stands for every row in it. */
+function buildGroupSelectedEntry({
+    amount,
+    displayAmount,
+    currency,
+    action,
+    reportID,
+    policyID,
+}: Pick<SelectedTransactionInfo, 'amount' | 'displayAmount' | 'currency' | 'action' | 'reportID' | 'policyID'>): SelectedTransactionInfo {
+    return {
+        isFromOneTransactionReport: false,
+        isSelected: true,
+        canHold: false,
+        canSplit: false,
+        canReject: false,
+        hasBeenSplit: false,
+        isHeld: false,
+        canUnhold: false,
+        canChangeReport: false,
+        action,
+        reportID,
+        policyID: policyID ?? CONST.POLICY.ID_FAKE,
+        amount,
+        displayAmount,
+        currency,
+        ...(currency ? {groupCurrency: currency} : {}),
+    };
+}
+
+/** The group a row checked through its group header stands for, or undefined for a row checked on its own. */
+function getClaimedGroupKey(transaction: SelectedTransactionInfo): SearchGroupKey | undefined {
+    return transaction.isSelectedViaGroup && transaction.groupKey && isGroupEntry(transaction.groupKey) ? transaction.groupKey : undefined;
+}
+
+/**
+ * Rows checked again inside a group excluded whole from Select all. The group's exclusion still takes them off with the rest of the group,
+ * so a count or a total adds them back.
+ */
+function getRowsCheckedInExcludedGroups(selectedTransactions: SelectedTransactions, excludedTransactions: SelectedTransactions): SelectedTransactions {
+    const rows: SelectedTransactions = {};
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (!isGroupEntry(key) && transaction.isSelected && !!transaction.groupKey && isGroupEntry(transaction.groupKey) && Object.hasOwn(excludedTransactions, transaction.groupKey)) {
+            rows[key] = transaction;
+        }
+    }
+    return rows;
+}
+
+/** For each group checked through its header, how many selected rows stand for it and whether any of them records the group as wholly selected. */
+function getGroupClaims(selectedTransactions: SelectedTransactions): Map<SearchGroupKey, {rowCount: number; isEntireGroupSelected: boolean}> {
+    const claimByGroupKey = new Map<SearchGroupKey, {rowCount: number; isEntireGroupSelected: boolean}>();
+    for (const transaction of Object.values(selectedTransactions)) {
+        const groupKey = getClaimedGroupKey(transaction);
+        if (!groupKey) {
+            continue;
+        }
+        const claim = claimByGroupKey.get(groupKey) ?? {rowCount: 0, isEntireGroupSelected: false};
+        claim.rowCount += 1;
+        claim.isEntireGroupSelected = claim.isEntireGroupSelected || !!transaction.isEntireGroupSelected;
+        claimByGroupKey.set(groupKey, claim);
+    }
+    return claimByGroupKey;
+}
+
+/** The keys of the selected rows in each group, whether the group's rows are loaded or not. */
+function getSelectedRowKeysByGroupKey(selectedTransactions: SelectedTransactions): Map<string, string[]> {
+    const rowKeysByGroupKey = new Map<string, string[]>();
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (!transaction.groupKey || isGroupEntry(key)) {
+            continue;
+        }
+        const rowKeys = rowKeysByGroupKey.get(transaction.groupKey);
+        if (rowKeys) {
+            rowKeys.push(key);
+        } else {
+            rowKeysByGroupKey.set(transaction.groupKey, [key]);
+        }
+    }
+    return rowKeysByGroupKey;
+}
+
+/**
+ * A row checked through its group header stands for every row of the group, loaded or not, which is how an export reads it.
+ * While some of a group's rows are not loaded, this puts one entry for the whole group in place of those rows, so a count, a total or a bulk action covers what an export would.
+ * Under Select all every action sends the query, which already covers the rows not loaded, so nothing is merged.
+ */
+function mergeRowsIntoPartlyLoadedGroups(
+    selectedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+    areAllMatchingItemsSelected: boolean,
+): SelectedTransactions {
+    if (areAllMatchingItemsSelected) {
+        return selectedTransactions;
+    }
+    const partlyLoadedGroups = new Map<SearchGroupKey, SearchGroupBase>();
+    for (const [groupKey, {rowCount, isEntireGroupSelected}] of getGroupClaims(selectedTransactions)) {
+        const group = searchData?.[groupKey];
+        const groupCount = getSearchGroupCount(group);
+        if (group && groupCount !== undefined && !isEntireGroupSelected && rowCount < groupCount) {
+            partlyLoadedGroups.set(groupKey, group);
+        }
+    }
+    if (partlyLoadedGroups.size === 0) {
+        return selectedTransactions;
+    }
+
+    // The group's entry stands for every row in it, so a row of the group checked one by one would otherwise be counted a second time.
+    const merged: SelectedTransactions = {};
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        const groupKey = transaction.groupKey;
+        if (!groupKey || !isGroupEntry(groupKey) || !partlyLoadedGroups.has(groupKey)) {
+            merged[key] = transaction;
+        }
+    }
+    for (const [groupKey, group] of partlyLoadedGroups) {
+        merged[groupKey] = buildGroupSelectedEntry({
+            amount: group.total,
+            displayAmount: group.total,
+            currency: group.currency,
+            action: CONST.SEARCH.ACTION_TYPES.VIEW,
+            reportID: undefined,
+            policyID: undefined,
+        });
+    }
+    return merged;
 }
 
 type PrepareTransactionsListParams = {
@@ -418,6 +524,9 @@ type GroupSelectionParams = {
 
     /** Whether every matching item is selected, which checks rows that have no entry of their own */
     areAllMatchingItemsSelected: boolean;
+
+    /** How many rows the group holds, loaded or not, or undefined where the group carries no count */
+    groupCount: number | undefined;
 };
 
 /** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked. */
@@ -427,7 +536,7 @@ function isGroupSelected(params: GroupSelectionParams): boolean {
 }
 
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
-function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
+function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, groupCount}: GroupSelectionParams): {
     isSelectAllChecked: boolean;
     isIndeterminate: boolean;
 } {
@@ -442,14 +551,35 @@ function getGroupCheckboxState({groupKey, children, selectedTransactions, exclud
             checkedCount++;
         }
     }
+    // The group's own key answers for the rows it has not loaded, which is every row while none are.
+    const areUnloadedRowsChecked = !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
     // A group carrying no rows answers from its own key. One whose rows are all being deleted has rows, so it does not.
     if (children.length === 0) {
-        return {
-            isSelectAllChecked: !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
-            isIndeterminate: false,
-        };
+        return {isSelectAllChecked: areUnloadedRowsChecked, isIndeterminate: false};
     }
-    return {isSelectAllChecked: selectableCount > 0 && checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
+    const hasUnloadedRows = groupCount !== undefined && groupCount > children.length;
+    const hasCheckedUnloadedRows = hasUnloadedRows && areUnloadedRowsChecked;
+    // The rows not loaded are covered by the group's own key, Select all, a header check, or rows checked one by one that the stamp found to be every row of the group.
+    const isGroupCoveredByLoadedRows = () =>
+        !!groupKey &&
+        children.some((child) => {
+            const entry = selectedTransactions[child.keyForList];
+            return !!entry && (getClaimedGroupKey(entry) === groupKey || (entry.groupKey === groupKey && !!entry.isEntireGroupSelected));
+        });
+    // A refresh can leave rows checked or unchecked one by one off the loaded page, and the header still has to show them.
+    let loadedRowKeys: Set<string> | undefined;
+    const isRowLeftOut = (key: string, entry: SelectedTransactionInfo) => {
+        if (!groupKey || key === groupKey || entry.groupKey !== groupKey) {
+            return false;
+        }
+        loadedRowKeys ??= new Set(children.map((child) => child.keyForList));
+        return !loadedRowKeys.has(key);
+    };
+    const hasExcludedRowLeftOut = () => Object.entries(excludedTransactions).some(([key, entry]) => isRowLeftOut(key, entry));
+    const hasCheckedRowLeftOut = () => Object.entries(selectedTransactions).some(([key, entry]) => !!entry.isSelected && isRowLeftOut(key, entry));
+    const areUnloadedRowsCovered = () => !hasUnloadedRows || ((areUnloadedRowsChecked || isGroupCoveredByLoadedRows()) && !hasExcludedRowLeftOut());
+    const isSelectAllChecked = selectableCount > 0 && checkedCount === selectableCount && areUnloadedRowsCovered();
+    return {isSelectAllChecked, isIndeterminate: !isSelectAllChecked && (checkedCount > 0 || hasCheckedUnloadedRows || (hasUnloadedRows && hasCheckedRowLeftOut()))};
 }
 
 type RowCheckedParams = {
@@ -736,5 +866,11 @@ export {
     isRowChecked,
     getSearchGroupCount,
     getSearchGroupCountByKey,
+    getClaimedGroupKey,
+    getGroupClaims,
+    getSelectedRowKeysByGroupKey,
+    getRemainingSearchGroupCount,
+    getRowsCheckedInExcludedGroups,
+    mergeRowsIntoPartlyLoadedGroups,
     stampGroupCoverageFlags,
 };

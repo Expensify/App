@@ -90,6 +90,7 @@ describe('isGroupSelected', () => {
         selectedTransactions,
         excludedTransactions: {},
         areAllMatchingItemsSelected: false,
+        groupCount: undefined,
         ...overrides,
     });
 
@@ -136,6 +137,67 @@ describe('isGroupSelected', () => {
         // Then both read unchecked, so the click can check the group again rather than deselecting it twice
         expect(isGroupSelected(params)).toBe(false);
         expect(getGroupCheckboxState(params).isSelectAllChecked).toBe(false);
+    });
+
+    it('reads a partly loaded group excluded whole as unchecked, since its exclusion covers the rows it has not loaded', () => {
+        // Given the same group, with the group itself excluded as well as its loaded row
+        const params = groupOf({}, {areAllMatchingItemsSelected: true, excludedTransactions: selectionOf('c1', 'groupA'), groupCount: 692});
+
+        // When the checkbox is drawn
+        const {isSelectAllChecked, isIndeterminate} = getGroupCheckboxState(params);
+
+        // Then it reads unchecked, since nothing under it is selected
+        expect(isSelectAllChecked).toBe(false);
+        expect(isIndeterminate).toBe(false);
+    });
+
+    it('reads a partly loaded group excluded whole as partly checked once its loaded row is checked again, since the rows it has not loaded stay excluded', () => {
+        // Given a 692-expense group excluded whole under an all-matching selection, whose one loaded row was then checked on its own
+        const params = groupOf(selectionOf('c1'), {areAllMatchingItemsSelected: true, excludedTransactions: selectionOf('groupA'), groupCount: 692});
+
+        // When the checkbox is drawn
+        const {isSelectAllChecked, isIndeterminate} = getGroupCheckboxState(params);
+
+        // Then it reads partly checked rather than checked, so it does not claim the rows its exclusion still leaves out
+        expect(isSelectAllChecked).toBe(false);
+        expect(isIndeterminate).toBe(true);
+    });
+
+    it.each([
+        {through: 'a check of its header', groupKey: `${CONST.SEARCH.GROUP_PREFIX}a`, isClaimed: true, isKeySelected: false, areAllMatchingItemsSelected: false},
+        {through: 'its own key', groupKey: 'groupA', isClaimed: false, isKeySelected: true, areAllMatchingItemsSelected: false},
+        {through: 'Select all', groupKey: 'groupA', isClaimed: false, isKeySelected: false, areAllMatchingItemsSelected: true},
+    ])(
+        'reads a partly loaded group as checked when its loaded rows are checked through $through, which stands for the rows it has not loaded',
+        ({groupKey, isClaimed, isKeySelected, areAllMatchingItemsSelected}) => {
+            // Given a five-expense group whose one loaded row is checked through something that also covers the rows not loaded
+            const [, entry] = mapEmptyReportToSelectedEntry(makeGroup('anyGroup'));
+            const selectedTransactions: SelectedTransactions = {
+                c1: isClaimed ? {...entry, groupKey, isSelectedViaGroup: true} : entry,
+                ...(isKeySelected ? {[groupKey]: entry} : {}),
+            };
+            const params = groupOf(selectedTransactions, {groupKey, groupCount: 5, areAllMatchingItemsSelected});
+
+            // When the checkbox is drawn
+            const {isSelectAllChecked} = getGroupCheckboxState(params);
+
+            // Then it reads checked, since every row of the group is selected
+            expect(isSelectAllChecked).toBe(true);
+        },
+    );
+
+    it('reads a partly loaded group under Select all as partly checked when a row unchecked on a later page was left off by a refresh', () => {
+        // Given every matching item selected, a five-expense group whose loaded row is checked, and a row on a later page unchecked that a refresh left out
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}a`;
+        const [, entry] = mapEmptyReportToSelectedEntry(makeGroup('anyGroup'));
+        const params = groupOf({}, {groupKey, groupCount: 5, areAllMatchingItemsSelected: true, excludedTransactions: {c7: {...entry, groupKey}}});
+
+        // When the checkbox is drawn
+        const {isSelectAllChecked, isIndeterminate} = getGroupCheckboxState(params);
+
+        // Then it reads partly checked, since that row is still out of the selection
+        expect(isSelectAllChecked).toBe(false);
+        expect(isIndeterminate).toBe(true);
     });
 
     it('ignores a row being deleted, so clicking the header cannot mean deselect while the checkbox reads unchecked', () => {

@@ -264,6 +264,8 @@ type SearchSelectionActionsValue = {
      * `shouldPreserveAllMatchingSelection` keeps that mode active for row toggles and records removed rows as exclusions.
      * `shouldClearAllMatchingSelectionWhenEmpty` exits that mode when no selected rows or additional results remain.
      * `reconciledExcludedTransactions` refreshes or prunes exclusions when the underlying search data changes.
+     * `deselectedWithoutEntry` names keys deselected while they had no entry of their own, such as a group excluded whole,
+     * which the previous/next diff cannot see leave.
      */
     applySelection: (
         updater: (previousSelectedTransactions: SelectedTransactions, previousSelection: PreviousSelectionSlices) => SelectedTransactions,
@@ -273,6 +275,7 @@ type SearchSelectionActionsValue = {
             shouldPreserveAllMatchingSelection?: boolean;
             shouldClearAllMatchingSelectionWhenEmpty?: boolean;
             reconciledExcludedTransactions?: SelectedTransactions;
+            deselectedWithoutEntry?: SelectedTransactions;
         },
     ) => void;
     /** Read on demand without subscribing, so a handler can anchor from the live selection without re-rendering every row */
@@ -286,7 +289,8 @@ type SearchSelectionActionsValue = {
         (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
         (clearIDs: true, unused?: undefined): void;
     };
-    removeTransaction: (transactionID: string | undefined) => void;
+    /** Takes an expense out of the selection after an action on it. A deleted expense leaves its group. One rejected or moved stays in it, which makes a group checked through its header a partial selection */
+    removeTransaction: (transactionID: string | undefined, options: {isDeleted: boolean}) => void;
     selectAllMatchingItems: (on: boolean) => void;
 };
 
