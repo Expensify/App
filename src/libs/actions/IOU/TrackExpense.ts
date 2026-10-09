@@ -87,6 +87,7 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData} from '@userActions/Report';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
+import {getLocallyCreatedRouteOnyxData} from '@userActions/ReusableDistanceRoutes';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 
@@ -2508,6 +2509,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         writeBarrier,
         rules,
         personalDetailsByLogins,
+        reusableDistanceRoutes,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2951,6 +2953,32 @@ function trackExpense(params: CreateTrackExpenseParams) {
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
+            }
+
+            const isMapDistance =
+                (distanceRequestType ? distanceRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP : isMapDistanceRequest(existingTransaction)) ||
+                (!distanceRequestType && !gpsCoordinates && odometerStart === undefined && odometerEnd === undefined);
+
+            if (isMapDistance && validWaypoints && transaction?.transactionID && reusableDistanceRoutes !== undefined) {
+                const distanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy});
+                const effectiveDistance =
+                    modifiedDistance ??
+                    distance ??
+                    existingTransaction?.comment?.customUnit?.quantity ??
+                    (selectedRouteDistance ? Number(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistance, distanceUnit).toFixed(CONST.DISTANCE_DECIMAL_PLACES)) : 0);
+
+                const reusableRouteOnyxData = getLocallyCreatedRouteOnyxData(
+                    {
+                        transactionID: transaction.transactionID,
+                        waypoints: validWaypoints,
+                        distance: effectiveDistance,
+                        routeDistanceMeters: selectedRouteDistance,
+                        inserted: created ?? DateUtils.getDBTime(),
+                    },
+                    reusableDistanceRoutes ?? [],
+                );
+                onyxData?.optimisticData?.push(...reusableRouteOnyxData.optimisticData);
+                onyxData?.failureData?.push(...reusableRouteOnyxData.failureData);
             }
 
             API.writeWhenReady(
