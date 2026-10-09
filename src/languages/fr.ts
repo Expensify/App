@@ -8385,6 +8385,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 applyUpdates: 'Appliquer ces mises à jour :',
                 saveRule: 'Enregistrer la règle',
                 previewMatches: 'Aperçu des correspondances',
+                previewMatchesDescription: 'Voyez comment cette règle s’applique à vos dépenses',
+                preview: 'Aperçu',
                 confirmError: 'Saisissez un commerçant et appliquez au moins une mise à jour',
                 confirmErrorMerchant: 'Veuillez saisir le commerçant',
                 confirmErrorUpdate: 'Veuillez appliquer au moins une mise à jour',
@@ -8722,6 +8724,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
                 createAgentRule: 'Décrire la règle de l’agent',
                 createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                describe: 'Décrire',
+                describeRule: 'Décrivez votre règle avec vos propres mots et Concierge la créera pour vous',
+                describeRuleInputLabel: 'Décrivez la règle',
+                promptErrors: {
+                    unsupported: 'Cette règle n’est pas encore prise en charge — nous y travaillons. Essayez une autre règle pour le moment.',
+                    unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
+                    multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats en magasin sur toutes les cartes.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',

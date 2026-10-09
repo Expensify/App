@@ -8365,6 +8365,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 applyUpdates: 'Diese Aktualisierungen anwenden:',
                 saveRule: 'Regel speichern',
                 previewMatches: 'Übereinstimmungen anzeigen',
+                previewMatchesDescription: 'Sieh dir an, wie diese Regel auf deine Ausgaben angewendet wird',
+                preview: 'Vorschau',
                 confirmError: 'Gib ein Händlerunternehmen ein und nimm mindestens eine Aktualisierung vor',
                 confirmErrorMerchant: 'Bitte Händler eingeben',
                 confirmErrorUpdate: 'Bitte wende mindestens ein Update an',
@@ -8701,6 +8703,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
                 createAgentRule: 'Agentenregel beschreiben',
                 createAgentRuleDescription: 'Erstellen Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
+                describe: 'Beschreiben',
+                describeRule: 'Beschreibe deine Regel in einfachen Worten und Concierge erstellt sie für dich',
+                describeRuleInputLabel: 'Beschreibe die Regel',
+                promptErrors: {
+                    unsupported: 'Diese Regel wird noch nicht unterstützt – wir arbeiten daran. Bitte versuche vorerst eine andere Regel.',
+                    unintelligible: 'Formuliere deine Regel etwa so: Wenn Ausgaben über 100 $ liegen, ist ein Beleg erforderlich.',
+                    multipleRules: 'Bitte eine Regel nach der anderen – beschreibe eine einzelne Regel, z. B.: Einzelhandelskäufe auf allen Karten blockieren.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
