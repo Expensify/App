@@ -1,42 +1,41 @@
+/**
+ * Hook that derives a workspace's approval workflows from the source of truth and reports whether the workspace
+ * actually has a custom (advanced) approval workflow, so callers don't trust the stale `policy.approvalMode` flag.
+ */
+import {isControlPolicy} from '@libs/PolicyUtils';
 import {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
     getApproverPendingActionByMemberEmail,
+    getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
 } from '@libs/WorkflowUtils';
-import type {PolicyConversionResult} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {Member} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
-const policyRulesSelector = (policyID: string | undefined) => (rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID);
+type UseApprovalWorkflowsResult = {
+    /** Every approval workflow the workspace's data describes, derived from the policy employees or the approval-workflow rules */
+    approvalWorkflows: ApprovalWorkflow[];
 
-type UseApprovalWorkflowsParams = {
-    /** Policy to derive the approval workflows from */
-    policy: OnyxEntry<Policy>;
+    /** The subset of `approvalWorkflows` the Workflows tab displays: only the default workflow unless the workspace uses advanced approvals */
+    filteredApprovalWorkflows: ApprovalWorkflow[];
 
-    /** Personal details of all users, already in scope on every current call site */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** Current user's login, used to decide whether Expensify team members are filtered out */
-    currentUserLogin?: string;
-};
-
-type UseApprovalWorkflowsResult = PolicyConversionResult & {
     /**
      * The workflows the workspace's approval mode actually enforces, with every member on the workflow that governs
      * them. Read this wherever a member's approver is surfaced, so a workflow the workspace has stopped enforcing
@@ -44,38 +43,68 @@ type UseApprovalWorkflowsResult = PolicyConversionResult & {
      */
     enforcedApprovalWorkflows: ApprovalWorkflow[];
 
+    /** List of available members that can be selected in a workflow */
+    availableMembers: Member[];
+
+    /** Emails that are already used as approvers in the configured workflows */
+    usedApproverEmails: string[];
+
+    /** Whether the workspace has a custom (advanced) approval workflow on top of the plain default one */
+    isAdvanceApproval: boolean;
+
     /**
      * The pending state of each member's approver while a change to it is in flight, keyed by member email. Read this
      * alongside the approver itself, since the change lands in a different place depending on the beta.
      */
     approverPendingActionByMemberEmail: Record<string, PendingAction>;
+
+    /** The workspace's approval-workflow rules, exposed so consumers don't need a second `RULE` subscription */
+    rulesCollection: OnyxCollection<Rule>;
+
+    /** Personal details, exposed so consumers don't need a second `PERSONAL_DETAILS_LIST` subscription */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-/** Derives the policy's approval workflows, from rules or from `employeeList` depending on the `MULTIPLE_APPROVERS` beta. */
-function useApprovalWorkflows({policy, personalDetails, currentUserLogin}: UseApprovalWorkflowsParams): UseApprovalWorkflowsResult {
+/**
+ * Derives approval workflows from policy employees or approval rules when `MULTIPLE_APPROVERS` is enabled.
+ *
+ * Prefer `isAdvanceApproval` over `policy.approvalMode`: the stored value is updated optimistically and can drift from the actual workflow structure.
+ */
+function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsResult {
+    const policyID = policy?.id;
     const {localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const policyID = policy?.id;
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const [personalDetails] = useAllPersonalDetails();
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID)});
+
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
-
-    // `rules` is resolved inside the beta branch below, so the collection is not traversed on the default path.
-    // Memoized because `policyRulesSelector` is a factory, so calling it inline would hand `useOnyx` a new selector
-    // on every render.
-    const rulesSelector = useMemo(() => policyRulesSelector(policyID), [policyID]);
-    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: rulesSelector});
-
-    const params = {policy, personalDetails: personalDetails ?? {}, localeCompare, currentUserLogin};
-
-    const result = isMultipleApproversBetaEnabled
-        ? convertApprovalWorkflowRulesToWorkflows({...params, rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID)})
+    const params = {
+        policy,
+        personalDetails: personalDetails ?? {},
+        localeCompare,
+        currentUserLogin,
+        rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID),
+    };
+    const {approvalWorkflows, availableMembers, usedApproverEmails} = isMultipleApproversBetaEnabled
+        ? convertApprovalWorkflowRulesToWorkflows(params)
         : convertPolicyEmployeesToApprovalWorkflows(params);
 
-    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflowsForMembers(result.approvalWorkflows, policy, isMultipleApproversBetaEnabled);
+    const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
+
+    const filteredApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
+    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflowsForMembers(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
 
     return {
-        ...result,
+        approvalWorkflows,
+        filteredApprovalWorkflows,
         enforcedApprovalWorkflows,
+        availableMembers,
+        usedApproverEmails,
+        isAdvanceApproval,
         approverPendingActionByMemberEmail: getApproverPendingActionByMemberEmail(policy, enforcedApprovalWorkflows, isMultipleApproversBetaEnabled ? rulesCollection : undefined),
+        rulesCollection,
+        personalDetails,
     };
 }
 

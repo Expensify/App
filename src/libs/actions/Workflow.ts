@@ -2,7 +2,7 @@ import {write} from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getDefaultApprover} from '@libs/PolicyUtils';
+import {getDefaultApprover, isNonMemberApprover} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
 import {
     addMembersToRule,
@@ -12,6 +12,7 @@ import {
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
     getApprovalWorkflowRulesForPolicy,
+    getNonMemberApproverError,
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
@@ -295,7 +296,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
-                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
+                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
             },
         },
     ];
@@ -648,6 +649,8 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
         return {
             ...existingApprover,
             isCircularReference: hasCircularReference,
+            // Re-check, so picking a new additional approver for reports over the limit clears the flag
+            isOverLimitForwardsToNotWorkspaceMember: isNonMemberApprover(policy, existingApprover.overLimitForwardsTo) || undefined,
         };
     });
 
@@ -772,6 +775,11 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
 
         if (approver?.isCircularReference) {
             errors[`approver-${approverIndex}`] = 'workflowsPage.approverCircularReference';
+        }
+
+        const nonMemberApproverError = getNonMemberApproverError(approver, approvalWorkflow.isDefault);
+        if (nonMemberApproverError) {
+            errors[`approver-${approverIndex}`] = nonMemberApproverError;
         }
 
         // Validate that if overLimitForwardsTo is set, approvalLimit must also be set

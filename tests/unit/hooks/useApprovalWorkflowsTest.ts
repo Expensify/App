@@ -1,6 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 
@@ -14,6 +15,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
 import {buildPersonalDetails} from '../../utils/TestHelper';
 
+jest.mock('@hooks/useCurrentUserPersonalDetails');
 jest.mock('@hooks/useLocalize');
 jest.mock('@hooks/usePermissions');
 
@@ -66,9 +68,12 @@ describe('useApprovalWorkflows', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.mocked(useLocalize).mockReturnValue(createMock<ReturnType<typeof useLocalize>>({localeCompare: (a: string, b: string) => a.localeCompare(b)}));
+        jest.mocked(useCurrentUserPersonalDetails).mockReturnValue(createMock<ReturnType<typeof useCurrentUserPersonalDetails>>({login: CURRENT_USER_LOGIN}));
         mockIsBetaEnabled([]);
+        // The hook reads the personal details itself, so they are seeded rather than passed in.
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
     });
 
     afterEach(async () => {
@@ -86,7 +91,7 @@ describe('useApprovalWorkflows', () => {
             },
         };
 
-        const {result} = renderHook(() => useApprovalWorkflows({policy, personalDetails, currentUserLogin: CURRENT_USER_LOGIN}));
+        const {result} = renderHook(() => useApprovalWorkflows(policy));
 
         await waitFor(() => {
             expect(result.current.approvalWorkflows).toHaveLength(1);
@@ -110,7 +115,7 @@ describe('useApprovalWorkflows', () => {
             employeeList: {[SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL}, [APPROVER_EMAIL]: {email: APPROVER_EMAIL}},
         };
 
-        const {result} = renderHook(() => useApprovalWorkflows({policy, personalDetails, currentUserLogin: CURRENT_USER_LOGIN}));
+        const {result} = renderHook(() => useApprovalWorkflows(policy));
 
         await waitFor(() => {
             expect(result.current.approvalWorkflows).toHaveLength(1);
@@ -125,7 +130,7 @@ describe('useApprovalWorkflows', () => {
 
         const policy = {...createRandomPolicy(1), id: POLICY_ID, employeeList: {[SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL}}};
 
-        const {result} = renderHook(() => useApprovalWorkflows({policy, personalDetails, currentUserLogin: CURRENT_USER_LOGIN}));
+        const {result} = renderHook(() => useApprovalWorkflows(policy));
 
         await waitFor(() => {
             expect(result.current.approvalWorkflows).toHaveLength(0);

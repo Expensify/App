@@ -63,6 +63,7 @@ import {
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
+    canMemberRead,
     canMemberWrite,
     canRolePay,
     getConnectionExporters,
@@ -143,6 +144,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const getWorkspaceMembers = () => {
+        if (!canMemberRead(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS)) {
+            return;
+        }
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
         openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
     };
@@ -182,8 +186,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevAccountIDs = usePrevious(accountIDs);
     const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
+    const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail} = useApprovalWorkflows(policy);
 
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
@@ -249,21 +253,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
 
         if (hasApprovers) {
-            const ownerEmail = ownerDetails.login;
+            // Fall back to the employeeList email and policy owner, so submitters are still reassigned when personal
+            // details aren't loaded. Skipping it would leave them submitting to someone no longer on the workspace.
+            const ownerEmail = ownerDetails?.login ?? policy?.owner;
             let currentWorkflows = approvalWorkflows;
             for (const login of selectedEmployees) {
-                if (!isPolicyApprover(policy, login)) {
+                if (!isPolicyApprover(policy, login) || !ownerEmail) {
                     continue;
                 }
 
-                const accountID = policyMemberEmailsToAccountIDs[login];
-                const removedApprover = personalDetails?.[accountID];
-                if (!removedApprover?.login || !ownerEmail) {
-                    continue;
-                }
                 const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
                     approvalWorkflows: currentWorkflows,
-                    removedApprover,
+                    removedApproverEmail: login,
+                    ownerEmail,
                     ownerDetails,
                 });
                 currentWorkflows = updatedWorkflows.filter((workflow) => !workflow.removeApprovalWorkflow);
@@ -465,7 +467,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 !isPendingDeleteOrError &&
                 !isOwner &&
                 !isCurrentUser &&
-                !details.isOptimisticPersonalDetail &&
                 canMemberAssignRole(policy, currentUserLogin ?? '', policyEmployee.role) &&
                 (!isReimburser || canReimburserChangeRole);
             const approver = shouldShowApproverColumn ? firstApproverByMemberEmail[login] : undefined;
@@ -673,6 +674,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
+        const guestOption = {
+            text: translate('workspace.people.makeGuest', {count: selectedEmployees.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_GUEST,
+            icon: icons.User,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.GUEST),
+        };
         const cardAdminOption = {
             text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
@@ -696,6 +704,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
+        const hasAtLeastOneNonGuestRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.GUEST);
         const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonPeopleAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PEOPLE_ADMIN);
         const hasAtLeastOneNonPaymentsAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PAYMENTS_ADMIN);
@@ -721,6 +730,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.AUDITOR)
         ) {
             options.push(auditorOption);
+        }
+
+        if (
+            hasAtLeastOneNonGuestRole &&
+            isControlPolicy(policy) &&
+            !hasAtLeastOnePayer &&
+            canManageSelectedEmployees &&
+            canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.GUEST)
+        ) {
+            options.push(guestOption);
         }
 
         if (hasAtLeastOneNonCardAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
