@@ -5,4 +5,4 @@ export {default as EditingCellProvider} from './EditingCellContext';
 export {useEditingCellState} from './EditingCellContext';
 export {default as useInlineEditState} from './useInlineEditState';
 export {default as usePopoverEditState} from './usePopoverEditState';
-export type {EditableProps} from './types';
+export type {EditableProps, InlineEditSaveResult} from './types';
