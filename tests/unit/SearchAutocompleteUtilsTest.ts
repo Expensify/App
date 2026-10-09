@@ -41,6 +41,42 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
+        it('should highlight in: filter when no type is set', () => {
+            // Given an in: filter without an explicit type, which resolves to type:chat
+            const input = 'in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then the in: value is highlighted as valid
+            expect(result).toEqual([{start: 3, type: 'mention-user', length: 6}]);
+        });
+
+        it('should highlight in: filter for type:chat', () => {
+            // Given an in: filter with type:chat, which supports in:
+            const input = 'type:chat in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then both the type and the in: value are highlighted as valid
+            expect(result).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 13, type: 'mention-user', length: 6},
+            ]);
+        });
+
+        it('should not highlight in: filter for type:expense', () => {
+            // Given an in: filter with type:expense, which does not support in:
+            const input = 'type:expense in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then only the type is highlighted, so the user can see in: is not valid for expenses
+            expect(result).toEqual([{start: 5, type: 'mention-user', length: 7}]);
+        });
+
         it('should highlight current user mentions with mention-here type', () => {
             const input = 'from:currentuser@example.com';
 

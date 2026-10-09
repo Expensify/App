@@ -19,7 +19,7 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -303,6 +303,11 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
+            // `in:` only works for types that support it (chat, task). A bare `in:` with no explicit type resolves to `type:chat`, so keep suggesting in that case.
+            if (typeFilter && !isFilterSupported(CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, currentType)) {
+                return getEmptyArray<AutocompleteItemData>();
+            }
+
             // If autocompleteValue is empty or just whitespace and we have already completed keys,
             // return empty array to hide suggestion list (consistent with group-by behavior)
             if (!autocompleteValue.trim() && alreadyAutocompletedKeys.size > 0) {
