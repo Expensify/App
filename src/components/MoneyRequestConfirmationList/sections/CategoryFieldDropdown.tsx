@@ -1,11 +1,11 @@
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useOnyx from '@hooks/useOnyx';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -46,7 +46,7 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddC
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policy?.id)}`);
+    const policyCategories = usePolicyCategoriesForConfirmation(policy?.id);
 
     const {updateCategory} = useUpdateTransactionCategory({
         transactionID,
