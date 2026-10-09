@@ -41,7 +41,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type VendorBulkActionsProps = {
@@ -139,12 +139,12 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
 
     // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
-    const fetchVendors = useCallback(() => {
+    const fetchVendors = () => {
         if (!isFeatureAvailable) {
             return;
         }
         openPolicyVendorsPage(policyID);
-    }, [isFeatureAvailable, policyID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchVendors});
 
