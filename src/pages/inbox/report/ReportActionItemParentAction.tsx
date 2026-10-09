@@ -116,7 +116,7 @@ function ReportActionItemParentAction({
                 errors={
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
-                errorRowStyles={[styles.ml10, styles.mr2]}
+                errorRowStyles={styles.ml10}
                 onClose={onCloseParentReportActionItem}
             >
                 {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}) => (
