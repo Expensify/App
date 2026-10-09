@@ -942,6 +942,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
                 value: {
                     isLoading: true,
                     isCreateCorpayBankAccount: true,
+                    errors: null,
                 },
             },
         ],
