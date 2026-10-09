@@ -1,7 +1,9 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
+import {measureSearchRouterQueryPhase} from '@libs/telemetry/searchRouterQuerySpans';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -126,32 +128,34 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const options: OptionList | null = useMemo(
         () =>
             enabled && allReports && allPersonalDetails
-                ? createFilteredOptionList(
-                      allPersonalDetails,
-                      allReports,
-                      reportAttributesDerived,
-                      privateIsArchivedMap,
-                      allPolicies,
-                      {
-                          currentUserAccountID,
-                          currentUserLogin,
-                          transactionThreadIDs,
-                          lastActions,
-                          dateFnsLocale,
-                          convertToDisplayString,
-                          conciergeReportID,
-                          maxRecentReports: reportsLimit,
-                          includeP2P,
-                          isSearching,
-                          deferContactsUntilSearch,
-                          locale: preferredLocale,
-                          pendingDeleteMemberAccountIDsByReportID,
-                      },
-                      rules,
-                      undefined,
-                      undefined,
-                      isTrackIntentUser,
-                      sortedActions,
+                ? measureSearchRouterQueryPhase(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY_PHASE.OPTION_LIST, undefined, () =>
+                      createFilteredOptionList(
+                          allPersonalDetails,
+                          allReports,
+                          reportAttributesDerived,
+                          privateIsArchivedMap,
+                          allPolicies,
+                          {
+                              currentUserAccountID,
+                              currentUserLogin,
+                              transactionThreadIDs,
+                              lastActions,
+                              dateFnsLocale,
+                              convertToDisplayString,
+                              conciergeReportID,
+                              maxRecentReports: reportsLimit,
+                              includeP2P,
+                              isSearching,
+                              deferContactsUntilSearch,
+                              locale: preferredLocale,
+                              pendingDeleteMemberAccountIDsByReportID,
+                          },
+                          rules,
+                          undefined,
+                          undefined,
+                          isTrackIntentUser,
+                          sortedActions,
+                      ),
                   )
                 : null,
         [
