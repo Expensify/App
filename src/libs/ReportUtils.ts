@@ -5089,6 +5089,8 @@ function getReasonAndReportActionThatRequiresAttention({
         currentUserAccountID,
         reportActions,
         transactionViolations,
+        // Always false here because of the early return above, but we still pass it so getIOUReportActionWithBadge doesn't read the archived state from the Onyx cache
+        isReportArchived,
         reports,
         allReportActionsParam ?? allReportActions,
     );
