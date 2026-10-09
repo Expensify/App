@@ -1,4 +1,5 @@
 import {TOOLTIP_BAR_GAP} from '@components/Charts/hooks';
+import {pinChartTooltip, unpinChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,15 +9,13 @@ import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUti
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {DeviceEventEmitter, View} from 'react-native';
+import {View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -44,6 +43,9 @@ type ChartTooltipProps = {
     /** Whether the tooltip should be shown, treated as always shown when omitted */
     isVisible?: DerivedValue<boolean>;
 
+    /** Whether the rendered content belongs to the current target, so the old content is never drawn at the new position */
+    isContentCurrent?: DerivedValue<boolean>;
+
     /** Updates the hovered point after the chart is moved in the window (e.g. via scroll) by the given offset */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 
@@ -59,7 +61,7 @@ function getAmountContent(amount: string, percentage?: string): string {
     return `${amount} (${percentage})`;
 }
 
-function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, initialTooltipPosition, isVisible, onChartMoved, onDismiss}: ChartTooltipProps) {
+function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, initialTooltipPosition, isVisible, isContentCurrent, onChartMoved, onDismiss}: ChartTooltipProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
 
@@ -117,7 +119,7 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
 
     const isFocused = useIsFocused();
 
-    // A pinned tooltip has no hover to end it, so the screen's touch start (which still lets the touch through) hides it
+    // A pinned tooltip has no hover to end it, so it is registered for the screen's touch start to hide it
     useEffect(() => {
         if (!isShown || !onDismiss) {
             return;
@@ -128,8 +130,8 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
             onDismiss();
             return;
         }
-        const dismissListener = DeviceEventEmitter.addListener(CONST.EVENTS.CHART_TOOLTIP_DISMISS, onDismiss);
-        return () => dismissListener.remove();
+        pinChartTooltip(onDismiss);
+        return () => unpinChartTooltip(onDismiss);
     }, [isShown, isFocused, onDismiss]);
 
     const handleOriginChange = (x: number, y: number) => {
@@ -165,7 +167,7 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
         const topAbove = originY + y - height;
         const shiftedLeft = left + PopoverWithMeasuredContentUtils.computeHorizontalShift(left, width, windowWidth);
         const shiftedTop = topAbove + PopoverWithMeasuredContentUtils.computeVerticalShift(topAbove, height, windowHeight, 2 * TOOLTIP_BAR_GAP, true);
-        const isTooltipShown = (isVisible?.get() ?? true) && isOriginMeasured.get() && width > 0;
+        const isTooltipShown = (isVisible?.get() ?? true) && (isContentCurrent?.get() ?? true) && isOriginMeasured.get() && width > 0;
 
         return {
             left: Math.max(0, Math.min(windowWidth - width, shiftedLeft)),

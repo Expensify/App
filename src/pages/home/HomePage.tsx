@@ -1,3 +1,4 @@
+import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -19,7 +20,6 @@ import openHomePage from '@libs/actions/HomePage';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
@@ -27,7 +27,7 @@ import type {ComponentRef} from 'react';
 import {PortalHost} from '@gorhom/portal';
 import {useFocusEffect} from '@react-navigation/native';
 import {useRef, useState} from 'react';
-import {DeviceEventEmitter, View} from 'react-native';
+import {View} from 'react-native';
 
 import EarlyRenewalOfferSection from './EarlyRenewalOfferSection';
 import ForYouSection from './ForYouSection';
@@ -137,7 +137,6 @@ function HomePage() {
         <View
             ref={receiptDropTargetRef}
             style={styles.flex1}
-            onTouchStart={() => DeviceEventEmitter.emit(CONST.EVENTS.CHART_TOOLTIP_DISMISS)}
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}
@@ -158,6 +157,7 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
+                        onTouchStart={dismissPinnedChartTooltip}
                         contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"

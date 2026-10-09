@@ -1,5 +1,6 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
@@ -29,7 +30,7 @@ import type {InsightsDashboardID} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
-import {DeviceEventEmitter, View} from 'react-native';
+import {View} from 'react-native';
 
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
@@ -127,6 +128,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
         <ScrollView
             style={styles.insightsDashboardScrollView}
             onScroll={triggerScrollEvent}
+            onTouchStart={dismissPinnedChartTooltip}
             contentContainerStyle={[styles.flexGrow1, pageGutter, styles.pb5]}
             addBottomSafeAreaPadding
         >
@@ -166,7 +168,6 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
@@ -212,37 +213,32 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const state = getDashboardState(dashboard, isOffline, charts);
 
     return (
-        <View
-            style={styles.flex1}
-            onTouchStart={() => DeviceEventEmitter.emit(CONST.EVENTS.CHART_TOOLTIP_DISMISS)}
+        <ScreenWrapper
+            shouldShowOfflineIndicatorInWideScreen
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
+            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
+            testID="InsightsPage"
         >
-            <ScreenWrapper
-                shouldShowOfflineIndicatorInWideScreen
-                enableEdgeToEdgeBottomSafeAreaPadding={false}
-                bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
-                testID="InsightsPage"
-            >
-                <TopBar
-                    breadcrumbLabel={translate('common.insights')}
-                    shouldDisplayHelpButton
-                />
-                {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
-                    <InsightsPageControls
-                        filters={filters}
-                        defaultFilters={defaultFilters}
-                        onChange={setFilters}
-                    />
-                )}
-                <InsightsDashboardContent
-                    state={state}
-                    headlineChart={headlineChart}
-                    supportingCharts={supportingCharts}
+            <TopBar
+                breadcrumbLabel={translate('common.insights')}
+                shouldDisplayHelpButton
+            />
+            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
+                <InsightsPageControls
                     filters={filters}
-                    onRetry={requestDashboard}
-                    onGroupByChange={(groupBy) => setFilters({groupBy})}
+                    defaultFilters={defaultFilters}
+                    onChange={setFilters}
                 />
-            </ScreenWrapper>
-        </View>
+            )}
+            <InsightsDashboardContent
+                state={state}
+                headlineChart={headlineChart}
+                supportingCharts={supportingCharts}
+                filters={filters}
+                onRetry={requestDashboard}
+                onGroupByChange={(groupBy) => setFilters({groupBy})}
+            />
+        </ScreenWrapper>
     );
 }
 

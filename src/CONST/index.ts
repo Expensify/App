@@ -6949,7 +6949,6 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
-        CHART_TOOLTIP_DISMISS: 'chartTooltipDismiss',
         TRANSITION_END_SCREEN_WRAPPER: 'transitionEndScreenWrapper',
     },
     SELECTION_BUTTON_POSITION: {

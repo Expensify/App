@@ -3,8 +3,8 @@ import type {ChartDataPoint} from '@components/Charts/types';
 
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
-import React, {useState} from 'react';
-import {useAnimatedReaction} from 'react-native-reanimated';
+import React, {useLayoutEffect, useState} from 'react';
+import {useAnimatedReaction, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import ChartTooltip from './ChartTooltip';
@@ -48,6 +48,13 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
         },
     );
 
+    // The target changes on the UI thread a frame before its content renders, so the tooltip stays hidden until both match
+    const renderedIndex = useSharedValue(-1);
+    useLayoutEffect(() => {
+        renderedIndex.set(activeDataIndex);
+    }, [activeDataIndex, renderedIndex]);
+    const isContentCurrent = useDerivedValue(() => matchedIndex.get() === renderedIndex.get());
+
     const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
     if (!tooltipData) {
@@ -63,6 +70,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
             chartWidth={chartWidth}
             initialTooltipPosition={initialTooltipPosition}
             isVisible={isTooltipActive}
+            isContentCurrent={isContentCurrent}
             onChartMoved={onChartMoved}
             onDismiss={onDismiss}
         />
