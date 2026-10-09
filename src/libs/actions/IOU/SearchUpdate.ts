@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
@@ -37,6 +38,7 @@ const expenseReportStatusFilterMapping: Record<string, ExpenseReportStatusPredic
 type GetSearchOnyxUpdateParams = {
     transaction: OnyxTypes.Transaction;
     participant?: Participant;
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     iouReport?: OnyxEntry<OnyxTypes.Report>;
     iouAction?: OnyxEntry<OnyxTypes.ReportAction>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
@@ -156,10 +158,13 @@ function getSearchOnyxUpdate({
     isFromOneTransactionReport,
     isInvoice,
     previousMoneyRequestAction,
+    currentUserPersonalDetails: passedCurrentUserPersonalDetails,
 }: GetSearchOnyxUpdateParams): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
     const toAccountID = participant?.accountID;
-    const deprecatedCurrentUserPersonalDetails = getCurrentUserPersonalDetails();
-    const fromAccountID = deprecatedCurrentUserPersonalDetails?.accountID;
+    // Callers that already have the current user's details (e.g. read from the CurrentUserPersonalDetails context) pass them in.
+    // The rest fall back to the Onyx subscription until they are migrated.
+    const currentUserPersonalDetails = passedCurrentUserPersonalDetails ?? getCurrentUserPersonalDetails();
+    const fromAccountID = currentUserPersonalDetails?.accountID;
 
     if (toAccountID === undefined || fromAccountID === undefined) {
         return;
@@ -175,9 +180,9 @@ function getSearchOnyxUpdate({
         },
         [fromAccountID]: {
             accountID: fromAccountID,
-            avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-            displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-            login: deprecatedCurrentUserPersonalDetails?.login,
+            avatar: currentUserPersonalDetails?.avatar,
+            displayName: currentUserPersonalDetails?.displayName,
+            login: currentUserPersonalDetails?.login,
         },
     };
     const hasGenuineModifiedMerchant = !!transaction.modifiedMerchant && !isInvalidMerchantValue(transaction.modifiedMerchant);

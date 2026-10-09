@@ -3,6 +3,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -123,6 +124,7 @@ function useReportSelectionActions({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
     const targetTransactions = transaction ? [transaction] : [];
@@ -211,6 +213,7 @@ function useReportSelectionActions({
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
+                        currentUserPersonalDetails,
                         newReport: report,
                         policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
@@ -246,6 +249,7 @@ function useReportSelectionActions({
                     isASAPSubmitBetaEnabled,
                     accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: session?.email ?? '',
+                    currentUserPersonalDetails,
                     policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                     policyTagList,
                     transactions: targetTransactions,

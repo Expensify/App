@@ -1,5 +1,6 @@
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -51,6 +52,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -104,6 +106,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
+                        currentUserPersonalDetails,
                         newReport: reportToConfirm,
                         policy,
                         policyCategories,

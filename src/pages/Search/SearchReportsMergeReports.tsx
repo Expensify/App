@@ -179,6 +179,7 @@ function SearchMergeReports() {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            currentUserPersonalDetails,
             policy: policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined,
             policyCategories: policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined,
             policyTagList: policyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {}) : {},

@@ -4,6 +4,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useOnyx from '@hooks/useOnyx';
 
+import {getCurrentUserPersonalDetails} from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -44,7 +45,15 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'currentUserPersonalDetails'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -53,7 +62,14 @@ type LegacyChangeTransactionsReportProps = Omit<
     isTrackIntentUser: boolean | undefined;
 };
 
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
+function changeTransactionsReport({
+    allTransactions,
+    transactionIDs,
+    transactionViolations,
+    personalPolicyOutputCurrency,
+    selfDMReportActions,
+    ...rest
+}: LegacyChangeTransactionsReportProps & {currentUserPersonalDetails: CurrentUserPersonalDetails}) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
     changeTransactionsReportAction({
         transactionIDs,
@@ -337,6 +353,7 @@ describe('actions/Transaction', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: result.current.report,
+                currentUserPersonalDetails,
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
@@ -447,6 +464,7 @@ describe('actions/Transaction', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: destinationReport,
+                currentUserPersonalDetails,
                 policy: movePolicy,
                 allTransactions,
                 policyTagList: {},
@@ -548,6 +566,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
+                currentUserPersonalDetails,
                 newReport: destinationReport,
                 policy: movePolicy,
                 allTransactions,
@@ -647,6 +666,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: RORY_ACCOUNT_ID,
                 email: RORY_EMAIL,
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: mockPolicy,
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
@@ -750,6 +770,7 @@ describe('actions/Transaction', () => {
                     isVendorMatchingBetaEnabled: false,
                     accountID: RORY_ACCOUNT_ID,
                     email: RORY_EMAIL,
+                    currentUserPersonalDetails,
                     newReport: destinationReport,
                     policy,
                     allTransactions: {
@@ -885,6 +906,7 @@ describe('actions/Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: RORY_ACCOUNT_ID,
                     email: RORY_EMAIL,
+                    currentUserPersonalDetails,
                     newReport,
                     policy,
                     allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: transaction},
