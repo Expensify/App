@@ -128,6 +128,9 @@ type UseConfirmationValidationParams = {
 
     /** Whether the inline tax amount field is currently left empty (new manual expense flow) */
     isTaxAmountEmpty: boolean;
+
+    /** Whether the inline date field is holding digits that do not read as a date, which never reach the transaction */
+    hasDateValidationError: boolean;
 };
 
 /**
@@ -177,6 +180,7 @@ function useConfirmationValidation({
     isReadOnly,
     shouldShowDate,
     isTaxAmountEmpty,
+    hasDateValidationError,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -228,6 +232,11 @@ function useConfirmationValidation({
         // invoice, ...). Block confirmation when the user cleared it.
         if (isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually)) {
             return {errorKey: 'common.error.fieldRequired'};
+        }
+        // An entry the field could not read as a date is never handed over, so the transaction still holds the date
+        // from before it. Confirming would save that one and silently discard what the user typed.
+        if (shouldShowDate && !isReadOnly && hasDateValidationError) {
+            return {errorKey: 'common.error.dateInvalid'};
         }
         const merchantValue = iouMerchant ?? '';
         const {isValid: isMerchantLengthValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);

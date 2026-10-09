@@ -68,10 +68,14 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
         return format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     });
 
-    const [errorText, setErrorText] = useState('');
+    // A required error belongs after the field has been left or the page submitted, and not while the date is being filled
+    const [hasVisitedDateField, setHasVisitedDateField] = useState(false);
+    // The field reports a date its calendar would never have offered, which only typing can reach
+    const [dateError, setDateError] = useState('');
+    const requiredError = hasVisitedDateField && !isRequiredFulfilled(startDate) ? translate('common.error.fieldRequired') : '';
 
     const handleSelectDateOption = (dateOption: DateOption) => {
-        setErrorText('');
+        setHasVisitedDateField(false);
         setLocalDateOption(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
@@ -84,7 +88,11 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
 
     const submit = () => {
         if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
-            setErrorText(translate('common.error.fieldRequired'));
+            setHasVisitedDateField(true);
+            return;
+        }
+
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && dateError) {
             return;
         }
 
@@ -151,16 +159,11 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
                                         inputID=""
                                         value={startDate}
                                         label={translate('iou.startDate')}
-                                        onInputChange={(value) => {
-                                            if (!isRequiredFulfilled(value)) {
-                                                setErrorText(translate('common.error.fieldRequired'));
-                                            } else {
-                                                setErrorText('');
-                                            }
-                                            setStartDate(value);
-                                        }}
+                                        onInputChange={setStartDate}
                                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                        errorText={errorText}
+                                        errorText={requiredError}
+                                        onTouched={() => setHasVisitedDateField(true)}
+                                        onValidationErrorChange={setDateError}
                                     />
                                 </View>
                             ) : null

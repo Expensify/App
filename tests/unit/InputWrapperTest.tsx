@@ -56,6 +56,7 @@ function renderAndCaptureRegistration({autoGrowSingleLine, autoGrowHeight, multi
         registerInput,
         getErrorAnnouncementKey: () => 0,
         getFallbackAnnouncementMessage: () => '',
+        setInputValidationError: () => {},
     };
 
     render(

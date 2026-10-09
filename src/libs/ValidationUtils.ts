@@ -290,6 +290,28 @@ function getAgeRequirementError(translate: LocalizedTranslate, date: string, min
 }
 
 /**
+ * Validate that a date sits inside the range its calendar would have offered. Typing reaches dates the calendar
+ * cannot, so a field that once could only hold a date the calendar offered now has to say when it does not.
+ */
+function getDateRangeError(translate: LocalizedTranslate, date: string, minimumDate: Date, maximumDate: Date): string {
+    const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, new Date());
+
+    if (!isValid(testDate)) {
+        return translate('common.error.dateInvalid');
+    }
+
+    if (isAfter(testDate, startOfDay(maximumDate))) {
+        return translate('privatePersonalDetails.error.dateShouldBeBefore', format(maximumDate, CONST.DATE.FNS_FORMAT_STRING));
+    }
+
+    if (isBefore(testDate, startOfDay(minimumDate))) {
+        return translate('privatePersonalDetails.error.dateShouldBeAfter', format(minimumDate, CONST.DATE.FNS_FORMAT_STRING));
+    }
+
+    return '';
+}
+
+/**
  * Validate that given date is not in the past.
  */
 function getDatePassedError(translate: LocalizedTranslate, inputDate: string): string {
@@ -900,6 +922,7 @@ export {
     isNumeric,
     isValidAccountRoute,
     getDatePassedError,
+    getDateRangeError,
     isValidRecoveryCode,
     validateDateTimeIsAtLeastOneMinuteInFuture,
     prepareValues,

@@ -25,6 +25,12 @@ type PopoverWithoutOverlayProps = ChildrenProps &
 
         /** Whether we should display the popover below other modals (e.g. SidePanel, RHP) */
         shouldDisplayBelowModals?: boolean;
+
+        /**
+         * Whether scrolling the page dismisses the popover, which it should unless the popover tracks its anchor.
+         * @default true
+         */
+        shouldCloseOnWheel?: boolean;
     };
 
 export default PopoverWithoutOverlayProps;

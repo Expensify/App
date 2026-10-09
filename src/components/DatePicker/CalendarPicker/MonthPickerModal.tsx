@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+import {usePopoverActions} from '@components/PopoverProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -11,7 +12,9 @@ import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useState} from 'react';
+import type {View} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type MonthPickerModalProps = {
@@ -32,9 +35,21 @@ type MonthPickerModalProps = {
 function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
+    const {setActivePopoverExtraAnchorRef} = usePopoverActions();
+    const contentRef = useRef<View>(null);
     const [searchText, setSearchText] = useState('');
     const resolvedCurrentMonth = currentMonth ?? new Date().getMonth();
     const monthNames = DateUtils.getMonthNames(dateFnsLocale);
+
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+
+        // This modal is rendered above the calendar rather than inside it, so a press on a month counts as a press
+        // outside the calendar popover and would dismiss it. Registering the content keeps the calendar open.
+        setActivePopoverExtraAnchorRef(contentRef);
+    }, [isVisible, setActivePopoverExtraAnchorRef]);
 
     const allMonths = DateUtils.getFilteredMonthItems(monthNames, resolvedCurrentMonth);
 
@@ -69,6 +84,7 @@ function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shou
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
+                ref={contentRef}
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding

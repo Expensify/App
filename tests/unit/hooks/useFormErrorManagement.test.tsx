@@ -49,6 +49,7 @@ const baseParams: Params = {
     isDistanceRequest: false,
     shouldShowDate: false,
     isReadOnly: false,
+    hasDateValidationError: false,
 };
 
 // A manual draft the user never typed a merchant into: `initMoneyRequest` seeds it with the "Expense" placeholder.

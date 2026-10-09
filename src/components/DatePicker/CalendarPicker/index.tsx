@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
+import {addMonths, addYears, format, getDaysInMonth, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -28,7 +28,7 @@ import MonthPickerModal from './MonthPickerModal';
 import YearPickerModal from './YearPickerModal';
 
 type CalendarPickerProps = {
-    /** An initial value of date string */
+    /** The date the calendar opens on and marks as chosen. Empty for a field that holds no date yet */
     value?: Date | string;
 
     /** A minimum date (oldest) allowed to select */
@@ -45,6 +45,12 @@ type CalendarPickerProps = {
 
     onSelected?: (selectedDate: string) => void;
 
+    /**
+     * Called when a month or year is picked from its own picker, with the date that pick lands on. The selection is
+     * not finished, so the calendar stays open for the day press. Leave it out to have those picks only move the view.
+     */
+    onMonthOrYearSelected?: (selectedDate: string) => void;
+
     /** Optional style override for the header container */
     headerContainerStyle?: StyleProp<ViewStyle>;
 
@@ -53,39 +59,58 @@ type CalendarPickerProps = {
 
     /** Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
+
+    /**
+     * Moves the calendar to this month without selecting a day, so it can follow a date being typed into the input.
+     * The calendar still owns its own view, so its arrows and month picker keep working between updates.
+     */
+    viewDate?: Date;
+
+    /** Changes every time `viewDate` is asserted, including when it repeats the month the calendar already shows */
+    viewDateVersion?: number;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
-    let initialCurrentDateView: Date;
-    if (typeof value === 'string') {
-        if (!value) {
-            initialCurrentDateView = new Date();
-        } else {
-            initialCurrentDateView = parseISO(value);
-        }
-    } else {
-        initialCurrentDateView = new Date(value);
+    // A date the field actually holds is followed even when it sits outside the range, so reopening the calendar does
+    // not lose the year that was typed. Validation is what reports a date that cannot be picked.
+    if (value) {
+        return typeof value === 'string' ? parseISO(value) : new Date(value);
     }
 
-    if (maxDate < initialCurrentDateView) {
-        initialCurrentDateView = maxDate;
-    } else if (minDate > initialCurrentDateView) {
-        initialCurrentDateView = minDate;
+    // Without a date to follow the calendar starts from today, pulled into range so it still opens on a month that
+    // has days to select.
+    const today = new Date();
+
+    if (maxDate < today) {
+        return maxDate;
     }
 
-    return initialCurrentDateView;
+    if (minDate > today) {
+        return minDate;
+    }
+
+    return today;
+}
+
+// Keeps the day inside the target month, since setYear alone turns February 29 into March 1 on a non leap year
+function setYearKeepingDay(date: Date, year: number) {
+    const firstOfTargetMonth = setYear(setDate(date, 1), year);
+    return setDate(firstOfTargetMonth, Math.min(date.getDate(), getDaysInMonth(firstOfTargetMonth)));
 }
 
 function CalendarPicker({
-    value = new Date(),
+    value = '',
     minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
+    onMonthOrYearSelected,
     DayComponent = Day,
     selectableDates,
     headerContainerStyle,
     containerStyle,
     shouldEnableMonthYearBackdropInNarrowPane = false,
+    viewDate,
+    viewDateVersion = 0,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -94,16 +119,13 @@ function CalendarPicker({
     const {translate, dateFnsLocale} = useLocalize();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const monthPressableRef = useRef<ComponentRef<typeof View>>(null);
-    const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
+    // The popover unmounts its content, so the calendar starts over every time it is reopened. A view the field has
+    // already asserted is what it starts from, since a date still being typed has no committed value to fall back to.
+    const [currentDateView, setCurrentDateView] = useState(() => viewDate ?? getInitialCurrentDateView(value, minDate, maxDate));
+    const [appliedViewDateVersion, setAppliedViewDateVersion] = useState(viewDateVersion);
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
     const isFirstRender = useRef(true);
-
-    const currentMonthView = currentDateView.getMonth();
-    const currentYearView = currentDateView.getFullYear();
-    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-    const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
-    const heightValue = useSharedValue(initialHeight);
 
     const minYear = CONST.CALENDAR_PICKER.MIN_YEAR;
     const maxYear = CONST.CALENDAR_PICKER.MAX_YEAR;
@@ -117,22 +139,40 @@ function CalendarPicker({
         })),
     );
 
+    // Catching up with the caller here rather than in an effect keeps the view and the month matrix in step within a
+    // single render, so the calendar never paints the old month first. The date is deliberately not clamped, so the
+    // calendar shows the year that was typed rather than the nearest one that could be picked.
+    if (viewDate && viewDateVersion !== appliedViewDateVersion) {
+        setAppliedViewDateVersion(viewDateVersion);
+        setCurrentDateView(viewDate);
+        // A year the list does not cover matches nothing, which is what leaves the year picker showing no selection
+        // rather than the one it happened to be on before the field moved it.
+        setYears((prevYears) => prevYears.map((item) => ({...item, isSelected: item.value === viewDate.getFullYear()})));
+    }
+
+    const currentMonthView = currentDateView.getMonth();
+    const currentYearView = currentDateView.getFullYear();
+    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
+    const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
+    const heightValue = useSharedValue(initialHeight);
+
     const onYearSelected = (year: number) => {
-        setCurrentDateView((prev) => {
-            const newCurrentDateView = setYear(new Date(prev), year);
-            setYears((prevYears) =>
-                prevYears.map((item) => ({
-                    ...item,
-                    isSelected: item.value === newCurrentDateView.getFullYear(),
-                })),
-            );
-            return newCurrentDateView;
-        });
+        const newCurrentDateView = setYearKeepingDay(new Date(currentDateView), year);
+        setCurrentDateView(newCurrentDateView);
+        setYears((prevYears) =>
+            prevYears.map((item) => ({
+                ...item,
+                isSelected: item.value === newCurrentDateView.getFullYear(),
+            })),
+        );
+        onMonthOrYearSelected?.(format(newCurrentDateView, CONST.DATE.FNS_FORMAT_STRING));
         requestAnimationFrame(() => setIsYearPickerVisible(false));
     };
 
     const onMonthSelected = (month: number) => {
-        setCurrentDateView((prev) => setMonth(new Date(prev), month));
+        const newCurrentDateView = setMonth(new Date(currentDateView), month);
+        setCurrentDateView(newCurrentDateView);
+        onMonthOrYearSelected?.(format(newCurrentDateView, CONST.DATE.FNS_FORMAT_STRING));
         requestAnimationFrame(() => setIsMonthPickerVisible(false));
     };
 

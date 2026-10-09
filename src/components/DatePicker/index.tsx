@@ -1,15 +1,20 @@
+import FormContext from '@components/Form/FormContext';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDateSegmentInput from '@hooks/useDateSegmentInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useRemeasureOnScroll from '@hooks/useRemeasureOnScroll';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
-import {isNumeric} from '@libs/ValidationUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getDateRangeError, isNumeric} from '@libs/ValidationUtils';
 
 import {setDraftValues} from '@userActions/FormActions';
 
@@ -18,9 +23,9 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 
-import {format, setYear} from 'date-fns';
+import {setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {DateInputWithPickerProps} from './types';
@@ -52,11 +57,17 @@ function DatePicker({
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
+    onValidationErrorChange,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
+    // The window's own width, and not the narrow layout, which a right hand pane reports even on a wide screen. Most
+    // date fields sit in one, and there is room to type beside them there.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {setInputValidationError} = useContext(FormContext);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
@@ -69,6 +80,71 @@ function DatePicker({
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
+
+    // Touch devices keep the calendar on its own, so the soft keyboard does not cover it. A narrow window has no room
+    // to show the calendar beside the field either, so it covers what is being typed.
+    const shouldAllowTyping = !canUseTouchScreen() && !isSmallScreenWidth;
+    const dateMask = translate('common.dateFormat');
+
+    // A date the calendar could never have offered is one nothing downstream expects, and typing is what makes those
+    // reachable. Returns an empty string when the date is fine, which is how the form reads "no error".
+    const getRangeError = (date: string) => (date ? getDateRangeError(translate, date, minDate, maxDate) : '');
+
+    // Updates the field without ending the selection, so the calendar stays open for whatever the user does next
+    const commitDate = (newDate: string) => {
+        setSelectedDate(newDate);
+
+        // The form validates from inside onInputChange, which runs before this render's effects, so the error has to
+        // be recorded here as well for it to clear in the same keystroke that fixes the date.
+        setInputValidationError(inputID, getRangeError(newDate));
+
+        // A date being typed reads as empty until it is finished. Marking the field touched then would show a
+        // required error over a date the user is part way through.
+        if (newDate) {
+            onTouched?.();
+        }
+
+        onInputChange?.(newDate);
+    };
+
+    const setPickerVisibility = useCallback(
+        (isVisible: boolean) => {
+            setIsModalVisible(isVisible);
+            onPickerVisibilityChange?.(isVisible);
+        },
+        [onPickerVisibilityChange],
+    );
+
+    const closeDatePicker = useCallback(() => {
+        openIntentRef.current = false;
+        setPickerVisibility(false);
+
+        if (!shouldDismissKeyboardBeforeShow || shouldAllowTyping) {
+            return;
+        }
+
+        textInputRef.current?.blur();
+        ComposerFocusManager.blurActiveInput();
+        Keyboard.dismiss();
+    }, [shouldDismissKeyboardBeforeShow, shouldAllowTyping, setPickerVisibility]);
+
+    // The hook is the single gate on typing. When the platform does not allow it, the handlers it returns are no-ops
+    // and the value passes straight through, so the call sites below do not have to check again.
+    const segmentInput = useDateSegmentInput({
+        value: selectedDate,
+        isEnabled: shouldAllowTyping,
+        minDate,
+        maxDate,
+        onCommit: commitDate,
+        // Tabbing away leaves a calendar nothing has been pressed outside of, which is what otherwise dismisses it
+        onLeaveByKeyboard: () => {
+            if (!isModalVisible) {
+                return;
+            }
+
+            closeDatePicker();
+        },
+    });
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
@@ -84,9 +160,14 @@ function DatePicker({
         if (value === undefined) {
             return;
         }
+        // A date part way through being typed reports itself as empty, so the value prop trails a render behind the
+        // field. Putting it back while the user is still entering a date would undo the digit they just entered.
+        if (segmentInput.isEditing) {
+            return;
+        }
 
         setSelectedDate(value);
-    }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
+    }, [formID, inputID, selectedDate, shouldSaveDraft, value, segmentInput.isEditing]);
 
     const calculatePopoverPosition = useCallback(
         (onMeasured?: () => void) => {
@@ -105,20 +186,22 @@ function DatePicker({
         [windowHeight],
     );
 
-    const setPickerVisibility = useCallback(
-        (isVisible: boolean) => {
-            setIsModalVisible(isVisible);
-            onPickerVisibilityChange?.(isVisible);
-        },
-        [onPickerVisibilityChange],
-    );
-
     const showDatePickerModal = useCallback(() => {
-        cancelAutoFocus();
-        // Blur the date input before showing the modal, so the focus won't be returned after the modal is closed
-        textInputRef.current?.blur();
+        // Re-opening would remeasure and re-announce a calendar that is already showing. Both a press and a focus can
+        // ask for it, and while typing both arrive for a single click.
+        if (isModalVisible) {
+            return;
+        }
 
-        if (shouldDismissKeyboardBeforeShow) {
+        cancelAutoFocus();
+
+        // While typing is allowed the calendar sits under an input the user is still writing in, so the caret has to
+        // stay put. Otherwise blur first so focus is not returned once the modal closes.
+        if (!shouldAllowTyping) {
+            textInputRef.current?.blur();
+        }
+
+        if (shouldDismissKeyboardBeforeShow && !shouldAllowTyping) {
             // Blur whichever input is focused (e.g. a preceding text field) so closing the picker does not briefly restore its keyboard.
             ComposerFocusManager.blurActiveInput();
             // Dismiss in parallel with opening — do not await the hide animation or the open feels sluggish.
@@ -142,26 +225,16 @@ function DatePicker({
         };
 
         openPicker();
-    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
-
-    const closeDatePicker = useCallback(() => {
-        openIntentRef.current = false;
-        setPickerVisibility(false);
-
-        if (!shouldDismissKeyboardBeforeShow) {
-            return;
-        }
-
-        textInputRef.current?.blur();
-        ComposerFocusManager.blurActiveInput();
-        Keyboard.dismiss();
-    }, [shouldDismissKeyboardBeforeShow, setPickerVisibility]);
+    }, [isModalVisible, shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, shouldAllowTyping, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
 
     const handlePress = useCallback<NonNullable<BaseTextInputProps['onPress']>>(
         (event) => {
+            // The field focuses its own input on any press it is not told to leave alone, which would be the year
+            // whichever segment was actually pressed. The segments are focused by the press itself instead.
             if ('preventDefault' in event) {
                 event.preventDefault();
             }
+
             showDatePickerModal();
         },
         [showDatePickerModal],
@@ -186,10 +259,55 @@ function DatePicker({
         requestAnimationFrame(() => onInputChange?.(newDate));
     };
 
+    // Only the typing calendar stays open while the page scrolls. Every other one is dismissed instead, so it never
+    // has to follow the field, and following it keeps an edit in progress from being interrupted.
+    useRemeasureOnScroll({isActive: shouldAllowTyping && isModalVisible, remeasure: calculatePopoverPosition});
+
+    // The error text renders inside the anchor, so showing or hiding it changes the height the calendar was positioned
+    // from. Remeasuring on the anchor's own layout covers that without having to name each thing that can resize it.
+    const handleAnchorLayout = () => {
+        if (!isModalVisible) {
+            return;
+        }
+
+        calculatePopoverPosition();
+    };
+
+    // Digits that do not add up to a date read as no date at all, so a form with no rule about this field would accept
+    // the entry in silence.
+    const ownError = segmentInput.hasInvalidEntry ? translate('common.error.dateInvalid') : getRangeError(selectedDate);
+    // Nullish coalescing would keep an empty errorText, which is a form reporting no error rather than an empty one
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const dateErrorText = errorText || ownError;
+
+    // An entry part way through is never handed over, so the field still holds the date from before it. Saving that
+    // would discard an edit the user is in the middle of, and the error is not shown because they are still making it.
+    const blockingError = segmentInput.hasIncompleteEntry ? translate('common.error.dateInvalid') : ownError;
+
+    useEffect(() => {
+        setInputValidationError(inputID, blockingError);
+        onValidationErrorChange?.(blockingError);
+
+        // A field that is gone has nothing left to report, so its error must not outlive it and block the form
+        return () => {
+            setInputValidationError(inputID, '');
+            onValidationErrorChange?.('');
+        };
+    }, [inputID, blockingError, setInputValidationError, onValidationErrorChange]);
+
+    // Leaving the field is the point the user is finished with it, which is when a form lets a required error show
+    const handleFieldBlur = () => {
+        segmentInput.onFieldBlur();
+        onTouched?.();
+    };
+
     const handleClear = () => {
         onTouched?.();
+        setInputValidationError(inputID, '');
+        onValidationErrorChange?.('');
         onInputChange?.('');
         setSelectedDate('');
+        segmentInput.onClear();
     };
 
     useEffect(() => {
@@ -216,45 +334,64 @@ function DatePicker({
         [autoFocus],
     );
 
-    const getValidDateForCalendar = useMemo(() => {
-        if (!selectedDate) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            return defaultValue || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-        }
-        return selectedDate;
-    }, [selectedDate, defaultValue]);
+    // Standing today in for a field holding nothing would both mark today as the chosen day and send the calendar to a
+    // month it may have no business opening on. An empty value leaves it to work out where to start on its own.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const calendarValue = selectedDate || defaultValue || '';
 
     return (
         <>
             <View
                 ref={anchorRef}
+                onLayout={handleAnchorLayout}
                 style={styles.mv2}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
+                    // A date part way through being typed reads as no date at all, so the icon has to give way to the
+                    // clear button on the digits rather than on the value
+                    icon={selectedDate || segmentInput.hasTypedDigits || shouldHideCalendarIcon ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.COMBOBOX}
                     accessibilityState={{expanded: isModalVisible}}
+                    type={shouldAllowTyping ? 'dateSegments' : 'default'}
+                    dateSegmentsConfig={
+                        shouldAllowTyping
+                            ? {
+                                  mask: dateMask,
+                                  getSegmentProps: segmentInput.getSegmentProps,
+                                  setSegmentRef: segmentInput.setSegmentRef,
+                                  focusFirstUnfilledSegment: segmentInput.focusFirstUnfilledSegment,
+                                  selectLastSegment: segmentInput.selectLastSegment,
+                                  selectAllSegments: segmentInput.selectAllSegments,
+                                  isSegmentElement: segmentInput.isSegmentElement,
+                                  isAllSelected: segmentInput.isAllSelected,
+                                  onFieldBlur: handleFieldBlur,
+                                  hasTypedDigits: segmentInput.hasTypedDigits,
+                              }
+                            : undefined
+                    }
                     value={selectedDate}
-                    placeholder={placeholder ?? translate('common.dateFormat')}
-                    errorText={errorText}
-                    inputStyle={styles.pointerEventsNone}
+                    placeholder={placeholder ?? dateMask}
+                    errorText={dateErrorText}
+                    inputStyle={shouldAllowTyping ? undefined : styles.pointerEventsNone}
                     disabled={disabled}
-                    hideFocusedState={shouldDismissKeyboardBeforeShow}
-                    onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
-                    onSubmitEditing={() => showDatePickerModal()}
-                    onKeyPress={handleInputKeyPress}
+                    hideFocusedState={shouldDismissKeyboardBeforeShow && !shouldAllowTyping}
+                    onPress={shouldDismissKeyboardBeforeShow || shouldAllowTyping ? handlePress : () => showDatePickerModal()}
+                    onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
+                    // Reaching the field by keyboard never fires a press, so focus is what opens the calendar
+                    onFocus={shouldAllowTyping ? showDatePickerModal : undefined}
+                    onKeyPress={shouldAllowTyping ? undefined : handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
-                    disableKeyboard
+                    disableKeyboard={!shouldAllowTyping}
                     rightHandSideComponent={rightHandSideComponent}
                 />
             </View>
@@ -263,7 +400,7 @@ function DatePicker({
                 inputID={inputID}
                 minDate={minDate}
                 maxDate={maxDate}
-                value={getValidDateForCalendar}
+                value={calendarValue}
                 onSelected={handleDateSelected}
                 isVisible={isModalVisible}
                 onClose={closeDatePicker}
@@ -271,6 +408,13 @@ function DatePicker({
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
                 shouldCloseWhenBrowserNavigationChanged
+                anchorRef={anchorRef}
+                withoutOverlay={shouldAllowTyping}
+                shouldAllowWithoutOverlayInNarrowPane={shouldAllowTyping}
+                shouldCloseOnWheel={!shouldAllowTyping}
+                viewDate={segmentInput.viewDate}
+                viewDateVersion={segmentInput.viewDateVersion}
+                onMonthOrYearSelected={shouldAllowTyping ? commitDate : undefined}
             />
         </>
     );
