@@ -57,7 +57,7 @@ type ExpenseFieldRowProps = {
     hintText?: string;
 
     /** Opens the field's list, either in the container anchored to this row or on its own page */
-    onPress: () => void;
+    onPress?: () => void;
 
     /** Measured to place the container a dropdown field opens. Sits on the bordered box, not the outer wrapper, so the container lines up with the border. */
     anchorRef?: RefObject<ComponentRef<typeof View> | null>;
