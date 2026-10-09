@@ -1,3 +1,4 @@
+import type {InlineEditSaveResult} from '@components/EditableCell';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
@@ -6,7 +7,13 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {filterCardsByPersonalDetails, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {
+    filterCardsByPersonalDetails,
+    getDefaultExpensifyCardLimitType,
+    getDisplayedExpensifyCardLimitType,
+    getTranslationKeyForCardStatus,
+    getTranslationKeyForLimitType,
+} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -17,7 +24,8 @@ import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCar
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import type {Card, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import type {Card, PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
@@ -26,6 +34,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -51,12 +60,18 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     frozenDate?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    canEditLimitType?: boolean;
+    canEditLimit?: boolean;
     action: () => void;
+    onChangeLimitType?: (limitType: CardLimitType) => void;
+    /** Return false, or a promise of false, to keep the limit editor open until a confirm modal resolves. */
+    onChangeLimit?: (newLimit: string) => InlineEditSaveResult;
     onClose: () => void;
 };
 
 type WorkspaceExpensifyCardsTableProps = {
     policyID: string;
+    policy: OnyxEntry<Policy>;
 
     /** Optional page-level content rendered above the card labels that scrolls with the rows */
     headerComponent?: ReactElement;
@@ -92,6 +107,7 @@ type WorkspaceExpensifyCardsTableProps = {
 
 export default function WorkspaceExpensifyCardsTable({
     policyID,
+    policy,
     headerComponent,
     cards,
     selectionEnabled,
@@ -111,6 +127,8 @@ export default function WorkspaceExpensifyCardsTable({
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const errorMessage = getLatestErrorMessage(cardSettings) ?? '';
+    const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
+    const getLimitTypeLabel = (limitType: CardLimitType | undefined) => translate(getTranslationKeyForLimitType(getDisplayedExpensifyCardLimitType(limitType, defaultLimitType)));
 
     const columns: Array<TableColumn<WorkspaceExpensifyCardTableColumnKey, WorkspaceExpensifyCardTableRowData>> = [
         {
@@ -150,11 +168,16 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.card.issueNewCard.limitType'),
             sortable: true,
             styling: {
-                containerStyles: [styles.mnw0],
+                // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
+                // so a long limit type value truncates instead of widening the column.
+                // editableCellHeader matches the padded Limit type cell so the label and value share an edge.
+                containerStyles: [styles.mnw0, styles.editableCellHeader],
             },
             dynamicSizing: {
-                getContentToMeasure: (item) => [{text: translate(getTranslationKeyForLimitType(item.limitType)), fontSize: fontScale.text}],
+                getContentToMeasure: (item) => [{text: getLimitTypeLabel(item.limitType), fontSize: fontScale.text}],
                 shouldFitContent: true,
+                // Padding and border sit inside the track. The limit type is pinned to its text, so that chrome has to be measured or the label clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -187,11 +210,14 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.expensifyCard.limit'),
             sortable: true,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                // editableCellHeader insets the right-aligned label to match the padded Limit cell.
+                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.limit, item.currency), fontSize: fontScale.text}],
                 shouldFitContent: true,
+                // Padding and border sit inside the track. The limit is pinned to its text, so that chrome has to be measured or the amount clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -199,11 +225,14 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.expensifyCard.remaining'),
             sortable: true,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                // Same chrome as Limit so the two amount columns share a right edge even though Remaining is not editable.
+                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.remainingLimit, item.currency), fontSize: fontScale.text}],
                 shouldFitContent: true,
+                // Same padding and border as Limit, so the two amounts share an edge. That chrome sits inside the track, so it has to be measured or the amount clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -224,8 +253,8 @@ export default function WorkspaceExpensifyCardsTable({
         }
 
         if (activeSorting.columnKey === 'limitType') {
-            const limitType1 = translate(getTranslationKeyForLimitType(item1.limitType));
-            const limitType2 = translate(getTranslationKeyForLimitType(item2.limitType));
+            const limitType1 = getLimitTypeLabel(item1.limitType);
+            const limitType2 = getLimitTypeLabel(item2.limitType);
             return localeCompare(limitType1, limitType2) * orderMultiplier;
         }
 
@@ -269,6 +298,7 @@ export default function WorkspaceExpensifyCardsTable({
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            policy={policy}
             shouldShowExportAccountColumn={shouldShowExportAccountColumn}
         />
     );
@@ -299,6 +329,7 @@ export default function WorkspaceExpensifyCardsTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_EXPENSIFY_CARDS}
             initialSortColumn="name"
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.expensifyCard')}

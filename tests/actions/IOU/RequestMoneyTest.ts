@@ -43,6 +43,7 @@ import type {MockFetch} from '../../utils/TestHelper';
 
 import currencyList from '../../unit/currencyList.json';
 import createPersonalDetails from '../../utils/collections/personalDetails';
+import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
@@ -1067,7 +1068,7 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise<void>((resolve) => {
                                 if (iouReportID) {
-                                    clearAllRelatedReportActionErrors(iouReportID, iouAction ?? null, iouReportID, false);
+                                    clearAllRelatedReportActionErrors({reportID: iouReportID, reportAction: iouAction ?? null, originalReportID: iouReportID, isOffline: false});
                                 }
                                 resolve();
                             }),
@@ -1630,6 +1631,69 @@ describe('actions/IOU', () => {
             });
 
             expect(newNonReimbursableTotal).toBe(-100);
+        });
+
+        it('should record that auto-categorize was off when the expense was created', async () => {
+            // Given a workspace that does not auto-categorize new expenses
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                currency: CONST.CURRENCY.USD,
+                policyID: 'A',
+            };
+            const workspaceChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+                iouReportID: expenseReport.reportID,
+                policyID: 'A',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+
+            // When the expense is created
+            requestMoney({
+                isVendorMatchingBetaEnabled: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                conciergeChat: undefined,
+                report: expenseReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: workspaceChat.reportID, isPolicyExpenseChat: true},
+                },
+                policyParams: {policy: {...createRandomPolicy(1), id: 'A', autoCategorizeNewExpenses: false}},
+                transactionParams: {
+                    amount: 100,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'Starbucks',
+                    comment: '',
+                },
+                shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: true,
+                transactionViolations: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                policyRecentlyUsedCurrencies: [],
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
+                quickAction: undefined,
+                personalDetails: {},
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the stored expense remembers it, so turning the setting on later cannot claim it is being categorized
+            const transactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+            const transaction = Object.values(transactions ?? {}).find((storedTransaction) => storedTransaction?.merchant === 'Starbucks');
+            expect(transaction?.wasAutoCategorizeEnabledOnCreation).toBe(false);
         });
 
         it('should update policyRecentlyUsedTags when tag is provided', async () => {

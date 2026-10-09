@@ -438,8 +438,14 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         }
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
+    loadPersonalDetails();
 
     return openAppPromise;
+}
+
+function loadPersonalDetails() {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- API.read would wait for OpenApp, so it cannot run in parallel
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOAD_PERSONAL_DETAILS, null);
 }
 
 /**
@@ -492,6 +498,9 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
+        if (isFullReconnect) {
+            loadPersonalDetails();
+        }
 
         return reconnectAppPromise;
     });
@@ -612,8 +621,9 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     Navigation.clearPreloadedRoutes();
-    // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
-    // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
+    // The helper seeds the loading state and LAST_FULL_RECONNECT_TIME so consumers cannot evaluate transient
+    // post-clear state and subscribeToFullReconnect doesn't fire a duplicate ReconnectApp once the
+    // openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
     const resetPromise = clearWorkboxRecoveryCaches().then(() =>
         clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE)
             .then(() => {
