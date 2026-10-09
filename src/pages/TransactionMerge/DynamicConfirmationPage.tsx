@@ -91,6 +91,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
 
     const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceTransaction?.reportID)}`);
+    const sourceReportTransactionsCollection = useReportTransactionsCollection(sourceTransaction?.reportID);
     const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
     const selfDMSourceIOUAction =
         selfDMReport?.reportID && sourceTransaction ? getIOUActionForTransactionID(Object.values(selfDMReportActions ?? {}), sourceTransaction.transactionID) : undefined;
@@ -116,6 +117,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         // lingers in the stack and briefly flashes the "not found" page when the user taps back. Must be read pre-merge.
         const willDeleteTargetTransactionReport = Object.keys(targetReportTransactionsCollection ?? {}).length === 1;
 
+        const transactionsOfDeletableReportCollection = mergeTransaction.reportID === targetTransaction.reportID ? sourceReportTransactionsCollection : targetReportTransactionsCollection;
+
         setIsMergingExpenses(true);
 
         mergeTransactionRequest({
@@ -126,6 +129,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
+            transactionsOfDeletableReportCollection,
             targetTransactionThreadReport,
             targetTransactionThreadParentReport,
             iouReportOwnerLogin,
