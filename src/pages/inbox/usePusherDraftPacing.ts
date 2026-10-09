@@ -1,3 +1,4 @@
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
 
 import {getReportChannelName} from '@libs/actions/Report';
@@ -43,6 +44,7 @@ type PusherDraftPaceRefs = {
 };
 
 type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
+    accountIDToNameRef: MutableRef<Record<string, string>>;
     completedReportActionIDsRef: MutableRef<Set<string>>;
     currentDraftRef: MutableRef<ConciergeDraft | null>;
     isGroupPolicyReport: boolean;
@@ -222,7 +224,7 @@ function publishVisibleEvent(
     status?: ConciergeDraftEvent['status'],
     finalRenderedHTML?: string,
 ) {
-    const {isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
+    const {accountIDToNameRef, isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
 
     if (visibleMarkdown) {
         visibleBodyMarkdownRef.current = visibleMarkdown.bodyMarkdown;
@@ -242,7 +244,7 @@ function publishVisibleEvent(
         status: visibleStatus,
     };
     setDraft((currentDraft) => {
-        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport);
+        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, accountIDToNameRef.current);
         return cacheDraftWithPusherPaceState(runtime, next);
     });
 }
@@ -866,6 +868,11 @@ function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime) {
 }
 
 function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
+    const accountIDToName = useAccountIDToNameMap();
+    const accountIDToNameRef = useRef(accountIDToName);
+    useEffect(() => {
+        accountIDToNameRef.current = accountIDToName;
+    }, [accountIDToName]);
     const [pendingLocalReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {
         selector: (pendingResponse) => pendingResponse?.reportAction.reportActionID,
     });
@@ -893,6 +900,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     const clearDraft = () => {
         clearCachedPusherDraft({
+            accountIDToNameRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
@@ -934,7 +942,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleSourceOffsetRef,
         });
         setDraft((currentDraft) => {
-            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport);
+            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, accountIDToNameRef.current);
             currentDraftRef.current = next;
             setCachedDraft(reportID, next);
             return next;
@@ -970,6 +978,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
         const sequence = Math.max(currentDraft.sequence, latestPusherDraftEvent?.sequence ?? 0, visibleSequenceRef.current) + 1;
         startFinalRenderedHTMLReveal(
             {
+                accountIDToNameRef,
                 completedReportActionIDsRef,
                 completedPusherDraftEventRef,
                 currentDraftRef,
@@ -1007,6 +1016,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     useEffect(() => {
         const runtime = {
+            accountIDToNameRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,

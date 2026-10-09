@@ -13,6 +13,7 @@ import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@compo
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -62,6 +63,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const accountIDToName = useAccountIDToNameMap();
     const personalDetails = usePersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -73,9 +75,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     }, [report]);
 
     const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
-    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre, {accountIDToName}), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
-    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
+    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre, {accountIDToName});
     const isCompletedFromOnyx = isCompletedTaskReport(report);
     const shouldDisableCompletedOnboardingTaskLink =
         isCompletedFromOnyx && [introSelected?.addWorkEmail, introSelected?.validateEmail, introSelected?.joinWorkspace].includes(report?.reportID);

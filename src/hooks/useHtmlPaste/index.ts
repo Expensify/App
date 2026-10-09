@@ -1,3 +1,4 @@
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
 import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
@@ -46,6 +47,7 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
 };
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
+    const accountIDToName = useAccountIDToNameMap();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     /**
@@ -103,9 +105,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
     const handlePastedHTML = useCallback(
         (html: string) => {
             // Built here rather than in render so it costs nothing until a paste actually happens.
-            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports)}));
+            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports), accountIDToName}));
         },
-        [paste, reports],
+        [paste, reports, accountIDToName],
     );
 
     /**
