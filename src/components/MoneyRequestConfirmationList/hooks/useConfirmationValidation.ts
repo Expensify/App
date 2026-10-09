@@ -4,6 +4,7 @@ import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {isP2PRecipient} from '@libs/IOUUtils';
 import {isConfirmationAmountMissing, isConfirmationDateMissing, isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {canSubmitPerDiemExpenseFromWorkspace, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
@@ -220,7 +221,9 @@ function useConfirmationValidation({
             !isTimeRequest &&
             !isDistanceRequest &&
             !isEditingSplitBill &&
-            !isValidMoneyRequestAmount(iouAmount, iouType, true, isP2P)
+            // P2P chats don't support negative amounts. The Scan flow lets the user pick a 1:1 recipient before entering
+            // the amount, so the participant picker's negative-amount guard never applies and the block has to live here.
+            !isValidMoneyRequestAmount(iouAmount, iouType, !isP2PRecipient(firstParticipant, currentUserPersonalDetails.accountID), isP2P)
         ) {
             return {errorKey: 'common.error.invalidAmount'};
         }
