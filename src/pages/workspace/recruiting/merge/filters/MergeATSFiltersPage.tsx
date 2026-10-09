@@ -51,12 +51,8 @@ function MergeATSFiltersPage({
     const filters = useMergeATSFiltersDraftState(policyID);
     const {setFilter} = useMergeATSFiltersDraftActions();
 
-    // A freshly enabled dimension has no values yet, so the toggle can't be derived from the values alone
-    const [enabledFilters, setEnabledFilters] = useState<Record<MergeATSFilterType, boolean>>(() => ({
-        [CONST.MERGE.ATS_FILTER_TYPE.STAGES]: !!filters.stages?.length,
-        [CONST.MERGE.ATS_FILTER_TYPE.TAGS]: !!filters.tags?.length,
-        [CONST.MERGE.ATS_FILTER_TYPE.OFFICES]: !!filters.offices?.length,
-    }));
+    // A freshly enabled dimension has no values yet, so a toggle is on when it has values or was switched on by the admin
+    const [switchedOnFilters, setSwitchedOnFilters] = useState<Partial<Record<MergeATSFilterType, boolean>>>({});
 
     const providerName = getConnectedATSProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_ats;
 
@@ -81,10 +77,7 @@ function MergeATSFiltersPage({
     const hasRequiredFilter = !!filters.tags?.length || !!filters.stages?.length;
 
     const toggleFilter = (filterType: MergeATSFilterType, isEnabled: boolean) => {
-        if (errorKey && isEnabled && filterType !== CONST.MERGE.ATS_FILTER_TYPE.OFFICES) {
-            setErrorKey(undefined);
-        }
-        setEnabledFilters((previous) => ({...previous, [filterType]: isEnabled}));
+        setSwitchedOnFilters((previous) => ({...previous, [filterType]: isEnabled}));
         setFilter(filterType, []);
     };
 
@@ -122,7 +115,7 @@ function MergeATSFiltersPage({
                                     title={toggleTitle}
                                     switchAccessibilityLabel={toggleTitle}
                                     toggleContainerStyles={[styles.pv3, styles.mh5]}
-                                    isActive={enabledFilters[filterType]}
+                                    isActive={!!filters[filterType]?.length || !!switchedOnFilters[filterType]}
                                     onToggle={(isEnabled) => toggleFilter(filterType, isEnabled)}
                                     subMenuItems={
                                         <>
@@ -142,7 +135,7 @@ function MergeATSFiltersPage({
                     </OfflineWithFeedback>
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
-                    {!!errorKey && (
+                    {!!errorKey && !hasRequiredFilter && (
                         <FormHelpMessage
                             isError
                             message={translate(errorKey)}
