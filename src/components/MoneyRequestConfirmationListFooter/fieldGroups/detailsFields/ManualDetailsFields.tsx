@@ -58,6 +58,7 @@ function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, 
 
             <DescriptionField
                 isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                descriptionHint={requiredFlags.descriptionHint}
                 policy={policy}
             />
         </>

@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.4-0",
+  "version": "9.5.6-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -93,14 +93,12 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
-    "@dotlottie/react-player": "^1.6.3",
     "@expensify/nitro-utils": "file:./modules/ExpensifyNitroUtils",
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.342",
     "@expensify/react-native-wallet": "0.1.22",
     "@expo/metro-config": "57.0.7",
-    "@expo/metro-runtime": "57.0.7",
     "@formatjs/intl-listformat": "^7.5.7",
     "@formatjs/intl-locale": "^4.0.0",
     "@formatjs/intl-numberformat": "^8.10.3",
@@ -242,7 +240,6 @@
     "@babel/plugin-proposal-private-methods": "^7.18.6",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@babel/plugin-transform-export-namespace-from": "^7.27.1",
-    "@babel/traverse": "^7.22.20",
     "@callstack/reassure-compare": "^1.0.0-rc.4",
     "@callstack/repack": "5.3.0",
     "@callstack/repack-plugin-expo-modules": "5.3.0",
@@ -345,7 +342,6 @@
     "jest-transformer-svg": "^2.0.1",
     "knip": "^6.34.0",
     "lefthook": "2.1.9",
-    "link": "^2.1.1",
     "memfs": "^4.6.0",
     "nitrogen": "0.37.1",
     "onchange": "^7.1.0",
@@ -416,7 +412,7 @@
       "eslint": "^9.36.0"
     },
     "node-abi": "^3.78.0",
-    "pdfjs-dist": "^5.5.207",
+    "pdfjs-dist": "5.5.207",
     "lightningcss": "1.30.1",
     "@fullstory/react-native": {
       "expo": "57.0.8"
