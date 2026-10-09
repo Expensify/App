@@ -1,18 +1,16 @@
 ---
 title: Connect to NetSuite
 description: Connect NetSuite to Expensify for streamlined expense reporting and accounting integration.
-keywords: [NetSuite, integration, Expensify Classic, expense reporting, accounting, automated reporting, NetSuite OAuth 2.0]
+keywords: [NetSuite, integration, Expensify Classic, expense reporting, accounting, automated reporting]
 order: 1
 ---
 
 
 Expensify integrates directly with NetSuite to automate report exports, customize your coding preferences, and leverage NetSuite's advanced features. Follow the steps below to set up the integration.
 
-**Note:** New NetSuite connections use OAuth 2.0, which you can only set up in New Expensify. To connect NetSuite, switch to New Expensify and follow the steps in [Connect to NetSuite in New Expensify](/articles/new-expensify/connections/netsuite/Connect-To-NetSuite). After you connect, the connection works in both Expensify Classic and New Expensify.
-
 # Before You Connect NetSuite to Expensify
 
-- **OAuth 2.0** is how new connections are set up. You set it up in New Expensify, and you need two-factor authentication enabled on your Expensify account.
+- **Token-based authentication** ensures each request to NetSuite is signed and verified for authenticity.
 - You must have **administrator access** in NetSuite to initiate the connection.
 - **Control Plan** in Expensify is required for this integration.
 - Employees do not need NetSuite access or a license to submit expense reports; the integration is managed by the Workspace Admin.
@@ -30,13 +28,9 @@ Expensify integrates directly with NetSuite to automate report exports, customiz
 4. If you already have the Expensify Connect bundle installed, go to **Customization > SuiteBundler > Search & Install Bundles > List** and update to the latest version.
 5. Ensure **Show on Existing Custom Forms** is selected for all available fields.
 
-The latest bundle version includes the permissions Expensify needs for OAuth 2.0 and REST web services, so update it before you connect.
-
 ---
 
 # Step 2: Enable Token-Based Authentication
-
-**Note:** Steps 2–4 and Step 12 describe how existing token-based connections were set up. You can no longer create a new token-based connection. Existing token-based connections keep working until they migrate to OAuth 2.0, and we'll let you know well before token-based authentication is removed. To set up a new connection, follow the steps in [Connect to NetSuite in New Expensify](/articles/new-expensify/connections/netsuite/Connect-To-NetSuite).
 
 1. In NetSuite, navigate to **Setup > Company > Enable Features > SuiteCloud > Manage Authentication**.
 2. Enable **Token-Based Authentication**.
@@ -138,8 +132,6 @@ Ensure **Tax Groups** can be applied to expenses by setting the **Tax Code Lists
 
 # Step 12: Connect Expensify and NetSuite
 
-**Note:** You can no longer create a new token-based connection. New connections use OAuth 2.0, and Expensify Classic directs you to New Expensify to complete the connection. The steps below show how existing token-based connections were set up.
-
 1. Log into Expensify as a **Workspace Admin** and go to **Settings > Workspaces > [Workspace Name] > Accounting > NetSuite**.
 2. Click **Connect to NetSuite**.
 3. Enter your **Account ID** (found in NetSuite under **Setup > Integration > Web Services Preferences**).
@@ -170,26 +162,6 @@ To transfer the connection ownership:
 3. Select **Do not connect to NetSuite**, then **Connect to NetSuite** again.
 4. Enter the new admin's email address and NetSuite account ID.
 5. Follow the steps to reconfigure the connection.
-
-Reconnecting creates a new connection, so you'll complete it in New Expensify using OAuth 2.0.
-
----
-
-## Why do I need New Expensify to connect NetSuite?
-
-The OAuth 2.0 connection and re-authorization flows are only available in New Expensify. After you connect, you can keep using Expensify Classic to manage your NetSuite settings and export reports.
-
----
-
-## Do I need to do anything about my existing NetSuite connection?
-
-No. Workspaces that already connect to NetSuite using token-based authentication keep working exactly as they do today. When it's time to re-authorize using OAuth 2.0, we'll let you know, and you'll complete it in New Expensify.
-
----
-
-## When is token-based authentication going away?
-
-We'll remove token-based authentication once every customer with an existing connection has migrated to OAuth 2.0. We'll give you notice and migration steps before that happens, so you don't need to do anything yet.
 
 ---
 

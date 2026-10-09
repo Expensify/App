@@ -1,6 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import type {ExpenseFieldDropdownHandle, ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import Text from '@components/Text';
 
@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
-import React, {createRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -84,51 +84,6 @@ describe('ExpenseFieldDropdown', () => {
                 renderDropdown={renderDropdown}
             />,
         );
-
-    describe('open()', () => {
-        const renderFieldWithRef = (shouldOpenInDropdown: boolean, onPress: () => void) => {
-            const ref = createRef<ExpenseFieldDropdownHandle>();
-            render(
-                <ExpenseFieldDropdown
-                    ref={ref}
-                    name={FIELD_NAME}
-                    testID={ROW_TEST_ID}
-                    shouldOpenInDropdown={shouldOpenInDropdown}
-                    onPress={onPress}
-                    renderDropdown={renderDropdown}
-                />,
-            );
-            return ref;
-        };
-
-        it('opens the list in the container without a press', () => {
-            // Given a field whose list can open in place, opened by its parent rather than by the user
-            const onPress = jest.fn();
-            mockRowAt(ROW_TOP);
-            const ref = renderFieldWithRef(true, onPress);
-
-            // When the parent opens it
-            act(() => ref.current?.open());
-
-            // Then the list opens in the container and the full-page selector is never reached
-            expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
-            expect(onPress).not.toHaveBeenCalled();
-        });
-
-        it('falls back to the full-page selector when the list cannot open in place', () => {
-            // Given a field whose list cannot open in place, e.g. because there is no workspace to list categories from
-            const onPress = jest.fn();
-            mockRowAt(ROW_TOP);
-            const ref = renderFieldWithRef(false, onPress);
-
-            // When the parent opens it
-            act(() => ref.current?.open());
-
-            // Then it does what a press would and hands over to the full-page selector, never mounting the list
-            expect(onPress).toHaveBeenCalledTimes(1);
-            expect(renderCount).toBe(0);
-        });
-    });
 
     it('does not mount the list until the row is pressed', () => {
         // Given a field whose list opens in the container anchored to the row

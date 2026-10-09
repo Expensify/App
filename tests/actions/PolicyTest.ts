@@ -733,61 +733,6 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
         });
 
-        it('duplicate workspace without the rules and codingRules options copies no merchant rules', async () => {
-            // Given a source workspace with a merchant rule
-            const fakePolicy = createRandomPolicy(16, CONST.POLICY.TYPE.CORPORATE);
-            const sourceRule: Rule = {
-                scope: CONST.RULES.SCOPE.POLICY,
-                scopeID: fakePolicy.id,
-                triggers: indexMap(CONST.RULES.TRIGGERS.CREATE_TRANSACTION),
-                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
-                actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}),
-            };
-            // The request stays paused so the assertions read the optimistic data, which is where a wrongly copied rule would appear.
-            mockFetch?.pause?.();
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await waitForBatchedUpdates();
-
-            const policyID = Policy.generatePolicyID();
-
-            // When the workspace is duplicated with both the Rules and Merchant rules options unselected
-            Policy.duplicateWorkspace(fakePolicy, {
-                currentUserAccountID: ESH_ACCOUNT_ID,
-                currentUserEmail: ESH_EMAIL,
-                policyName: 'No Rules Workspace',
-                policyID: fakePolicy.id,
-                targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                    codingRules: false,
-                },
-                localCurrency: 'USD',
-                rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
-            });
-            await waitForBatchedUpdates();
-
-            // Then no merchant rule is scoped to the duplicate and the Rules feature stays off, because the admin chose not to copy either
-            const duplicatedRules = Object.values((await getRulesCollection()) ?? {}).filter((rule) => rule?.scopeID === policyID);
-            expect(duplicatedRules).toHaveLength(0);
-            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-            expect(policy?.areRulesEnabled).toBe(false);
-
-            await mockFetch?.resume?.();
-            await waitForBatchedUpdates();
-        });
-
         it('duplicate workspace with 3+ members creates optimistic announce chat using currentUserAccountID', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const basePolicy = createRandomPolicy(16, CONST.POLICY.TYPE.TEAM);

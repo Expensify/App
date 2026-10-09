@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reuse route, reuse prior route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense, change distance rate, edit distance rate, move distance expense, move expense to another workspace, rate not valid for this workspace, distance rate violation]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense, change distance rate, edit distance rate, move distance expense, move expense to another workspace, rate not valid for this workspace, distance rate violation]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -39,7 +39,6 @@ To create an expense using distance between the starting and ending locations of
 2. Select **Map** from the top row.
 3. Enter the **Start** and **Stop** locations.
    - To include additional stops, select **Add stop**.
-   - To use a route from a map-based Distance expense you created in the last 90 days, select **Reuse route** and choose the route. The stops and distance fill in automatically.
 4. If more than one driving route is available, the map draws both routes. The selected route is highlighted in darker green with its distance shown in a dark label, and the alternate route appears in lighter green with a lighter distance label. To choose the alternate route, tap it on the map — it becomes the selected route, and the distance and amount update to match.
 5. Select **Next**.
 6. On the confirmation screen, review and confirm:

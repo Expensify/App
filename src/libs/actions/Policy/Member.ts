@@ -732,8 +732,7 @@ async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMem
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 
-    // The backend can refuse the approve-only role and list why in response.data.blockedReasons. API.write never
-    // exposes the response, so this role goes through a side-effects request to show those reasons in a modal.
+    // The approve-only blocked reasons live only on the response, which API.write does not expose.
     if (newRole === CONST.POLICY.ROLE.APPROVE_ONLY) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData});
@@ -743,8 +742,7 @@ async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMem
         return response;
     }
 
-    // Only one request runs per call: the approve-only branch above returns early, so this is not a chained call.
-    // eslint-disable-next-line rulesdir/no-multiple-api-calls
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls -- the approve-only branch returns early
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 

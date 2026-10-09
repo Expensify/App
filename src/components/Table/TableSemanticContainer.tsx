@@ -10,7 +10,6 @@ import type {LayoutChangeEvent} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import ColumnResizeScope from './columnResize/ColumnResizeScope';
 import {getTableContainerAccessibilityProps} from './tableAccessibility';
 import TableBody from './TableBody';
 import TableHeader from './TableHeader';
@@ -50,9 +49,8 @@ type TableSemanticContainerProps = {
      * The width the rows need when the columns don't fit, which scrolls the header/body run horizontally as one so the
      * header stays aligned with its rows. Set only for tables whose filter bar isn't in the list. The others are
      * scrolled by the list itself (see `TableBody`).
-     * Resizable tables always pass a CSS expression, so a drag past the edge scrolls without a re-render.
      */
-    scrollWidth: number | string | undefined;
+    scrollWidth: number | undefined;
 
     /**
      * Measures the width the table's columns have to share. This node is the right thing to measure because it keeps the
@@ -60,12 +58,6 @@ type TableSemanticContainerProps = {
      * produced.
      */
     onLayout: ((event: LayoutChangeEvent) => void) | undefined;
-
-    /** Measures the same node as `onLayout` as soon as it mounts, ahead of the first paint. */
-    measureWidthRef: ((node: unknown) => void) | undefined;
-
-    /** Receives the element the resizable columns' widths are written on. Set only when column resizing is enabled. */
-    onScopeElement: ((element: HTMLElement | null) => void) | undefined;
 
     /** Table children — expected to contain a contiguous `TableHeader`/`TableBody` run. */
     children: React.ReactNode;
@@ -92,8 +84,6 @@ function TableSemanticContainer({
     hasHeaderRow,
     scrollWidth,
     onLayout,
-    measureWidthRef,
-    onScopeElement,
     children,
 }: TableSemanticContainerProps) {
     const styles = useThemeStyles();
@@ -131,7 +121,6 @@ function TableSemanticContainer({
                 // it doesn't. Either way the measured node keeps the table's own width rather than growing with the
                 // content, so measuring it can't feed back into the widths it produced.
                 onLayout={scrollWidth ? undefined : onLayout}
-                ref={scrollWidth ? undefined : measureWidthRef}
                 {...getTableContainerAccessibilityProps(isEnabled, title, rowCount, columnCount, hasHeaderRow)}
             >
                 {rowGroup}
@@ -141,26 +130,20 @@ function TableSemanticContainer({
         // The columns don't fit, so the header and the body scroll horizontally as one and stay aligned. The content
         // container carries the width they need, and the rows fill it, matching how the Search table scrolls.
         renderedChildren.push(
-            // Wraps the scroller too, so one width write resizes its content along with the header and rows.
-            <ColumnResizeScope
-                key={`tableSemanticContainerScope-${renderedChildren.length}`}
-                onScopeElement={onScopeElement}
-            >
-                {scrollWidth ? (
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator
-                        style={[styles.flex1, styles.mnh0]}
-                        contentContainerStyle={StyleUtils.getWidthStyle(scrollWidth)}
-                        onLayout={onLayout}
-                        ref={measureWidthRef}
-                    >
-                        {rowGroupContainer}
-                    </ScrollView>
-                ) : (
-                    rowGroupContainer
-                )}
-            </ColumnResizeScope>,
+            scrollWidth ? (
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator
+                    key={`tableSemanticContainerScroll-${renderedChildren.length}`}
+                    style={[styles.flex1, styles.mnh0]}
+                    contentContainerStyle={StyleUtils.getWidthStyle(scrollWidth)}
+                    onLayout={onLayout}
+                >
+                    {rowGroupContainer}
+                </ScrollView>
+            ) : (
+                rowGroupContainer
+            ),
         );
         rowGroup = [];
     };

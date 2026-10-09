@@ -458,22 +458,6 @@ function setMoneyRequestReceipt(
     });
 }
 
-function readReceiptFile(receiptFilename: string, receiptPath: ReceiptSource, receiptType: string | undefined, onSuccess: (file: File) => void, onFailure: () => void) {
-    const path = ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString();
-    let didFail = false;
-    const markFailed = () => {
-        didFail = true;
-    };
-
-    return readFileAsync(path, receiptFilename, onSuccess, markFailed, receiptType).then(() => {
-        if (!didFail) {
-            return;
-        }
-
-        return ReceiptStorage.recheckAfterSwap(receiptPath).then((isPresent) => (isPresent ? readFileAsync(path, receiptFilename, onSuccess, onFailure, receiptType) : onFailure()));
-    });
-}
-
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
     receiptFilename: string | undefined,
@@ -509,7 +493,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
         }
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
-    return readReceiptFile(receiptFilename, receiptPath, receiptType, onSuccess, onFailure);
+    readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 function checkIfLocalFileIsAccessible(
@@ -524,7 +508,7 @@ function checkIfLocalFileIsAccessible(
         return Promise.resolve();
     }
 
-    return readReceiptFile(receiptFilename, receiptPath, receiptType, onSuccess, onFailure);
+    return readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 function clearReceiptUploadError({

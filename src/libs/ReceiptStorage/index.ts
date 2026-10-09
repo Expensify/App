@@ -34,15 +34,9 @@ const resolve: ReceiptStorage['resolve'] = (source) => {
 
 const receiptStorage: ReceiptStorage = {
     adopt: (uriOrPath) => Promise.resolve(uriOrPath),
-    overwrite: (durableName) => Promise.resolve(durableName),
-    discard: () => Promise.resolve(),
-    locate: (source) => Promise.resolve(resolve(source)),
-    settle: () => Promise.resolve(),
-    recheckAfterSwap: () => Promise.resolve(false),
     toLocalUri: (durableName) => durableName,
     retain,
     resolve,
-    sweepLeftovers: () => Promise.resolve(),
 };
 
 export default receiptStorage;

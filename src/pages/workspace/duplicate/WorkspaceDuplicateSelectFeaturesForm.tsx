@@ -198,16 +198,12 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         return result.filter((item): item is NonNullable<typeof item> => !!item);
     })();
 
-    // Merchant rules live under Rules, so they are copied only along with it. The Rules row is hidden when the source has no workspace-level rules, and merchant rules can then be copied on their own.
-    const hasRulesItem = items.some((item) => item.value === 'rules');
-    const effectiveSelectedItems = hasRulesItem && !selectedItems.includes('rules') ? selectedItems.filter((value) => value !== 'codingRules') : selectedItems;
-
     const featuresToCopy: ListItem[] = items.map((option) => {
         const alternateText = option?.alternateText ? option.alternateText.trim().replaceAll(/,$/g, '') : undefined;
         return {
             text: option.translation,
             keyForList: option.value,
-            isSelected: effectiveSelectedItems.includes(option.value),
+            isSelected: selectedItems.includes(option.value),
             alternateText,
         };
     });
@@ -231,25 +227,25 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             policyID: policy.id,
             targetPolicyID: duplicateWorkspace.policyID,
             welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
-            policyCategories: effectiveSelectedItems.includes('categories') ? policyCategories : undefined,
+            policyCategories: selectedItems.includes('categories') ? policyCategories : undefined,
             personalDetailsByLogins: employeePersonalDetails,
             parts: {
-                people: effectiveSelectedItems.includes('members'),
-                reports: effectiveSelectedItems.includes('reports'),
-                connections: effectiveSelectedItems.includes('accounting'),
-                categories: effectiveSelectedItems.includes('categories'),
-                tags: effectiveSelectedItems.includes('tags'),
-                taxes: effectiveSelectedItems.includes('taxes'),
-                perDiem: effectiveSelectedItems.includes('perDiem'),
-                reimbursements: effectiveSelectedItems.includes('invoices'),
-                expenses: effectiveSelectedItems.includes('rules'),
-                distance: effectiveSelectedItems.includes('distanceRates'),
-                invoices: effectiveSelectedItems.includes('invoices'),
-                invoiceFields: effectiveSelectedItems.includes('invoices'),
-                exportLayouts: effectiveSelectedItems.includes('workflows'),
-                overview: effectiveSelectedItems.includes('overview'),
-                travel: effectiveSelectedItems.includes('travel'),
-                codingRules: effectiveSelectedItems.includes('codingRules'),
+                people: selectedItems.includes('members'),
+                reports: selectedItems.includes('reports'),
+                connections: selectedItems.includes('accounting'),
+                categories: selectedItems.includes('categories'),
+                tags: selectedItems.includes('tags'),
+                taxes: selectedItems.includes('taxes'),
+                perDiem: selectedItems.includes('perDiem'),
+                reimbursements: selectedItems.includes('invoices'),
+                expenses: selectedItems.includes('rules'),
+                distance: selectedItems.includes('distanceRates'),
+                invoices: selectedItems.includes('invoices'),
+                invoiceFields: selectedItems.includes('invoices'),
+                exportLayouts: selectedItems.includes('workflows'),
+                overview: selectedItems.includes('overview'),
+                travel: selectedItems.includes('travel'),
+                codingRules: selectedItems.includes('codingRules'),
             },
             file: duplicatedWorkspaceAvatar,
             localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -261,7 +257,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const duplicateWorkspaceName = duplicateWorkspace?.name;
     const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
     const onConfirmSelectList = () => {
-        if (!totalMembers || totalMembers < 2 || !effectiveSelectedItems.includes('members')) {
+        if (!totalMembers || totalMembers < 2 || !selectedItems.includes('members')) {
             confirmDuplicate();
             return;
         }
@@ -291,7 +287,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     };
 
     const toggleAllItems = () => {
-        if (effectiveSelectedItems.length === items.length) {
+        if (selectedItems.length === items.length) {
             setSelectedItems([]);
         } else {
             setSelectedItems(items.map((i) => i.value));
@@ -300,18 +296,15 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
     const updateSelectedItems = (listItem: ListItem) => {
         if (listItem.isSelected) {
-            const deselectedItems = listItem.keyForList === 'rules' ? ['rules', 'codingRules'] : [listItem.keyForList];
-            setSelectedItems(selectedItems.filter((i) => !deselectedItems.includes(i)));
+            setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList));
             return;
         }
 
         const newItem = items.find((i) => i.value === listItem.keyForList)?.value;
-        if (!newItem) {
-            return;
-        }
 
-        const newItems = newItem === 'codingRules' && hasRulesItem ? [newItem, 'rules'] : [newItem];
-        setSelectedItems(Array.from(new Set([...selectedItems, ...newItems])));
+        if (newItem) {
+            setSelectedItems([...selectedItems, newItem]);
+        }
     };
 
     // When the component mounts, if there is a new avatar, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -346,7 +339,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isSelectAllChecked = effectiveSelectedItems.length > 0 && effectiveSelectedItems.length === items.length;
+    const isSelectAllChecked = selectedItems.length > 0 && selectedItems.length === items.length;
 
     const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {
         showButton: true,
@@ -370,7 +363,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={effectiveSelectedItems.length > 0 && effectiveSelectedItems.length !== items.length}
+                            isIndeterminate={selectedItems.length > 0 && selectedItems.length !== items.length}
                             onPress={toggleAllItems}
                             disabled={items.length === 0}
                             shouldSelectOnPressEnter

@@ -15,7 +15,4 @@ const sessionEmailAndAccountIDSelector = (session: OnyxEntry<Session>) => ({emai
 
 const authTokenSelector = (session: OnyxEntry<Session>) => session?.authToken;
 
-/** Whether the user is signed in to a real account, which excludes the anonymous sessions used to view public rooms */
-const hasNonAnonymousSessionSelector = (session: OnyxEntry<Session>) => !!session?.authToken && session.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
-
-export {emailSelector, accountIDSelector, sessionEmailAndAccountIDSelector, authTokenSelector, hasNonAnonymousSessionSelector, isSupportalSessionSelector, isDelegateSessionSelector};
+export {emailSelector, accountIDSelector, sessionEmailAndAccountIDSelector, authTokenSelector, isSupportalSessionSelector, isDelegateSessionSelector};

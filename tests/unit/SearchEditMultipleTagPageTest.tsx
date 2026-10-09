@@ -17,7 +17,6 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'A1B2C3';
@@ -123,8 +122,6 @@ async function renderAndTap({
 
 describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', () => {
     beforeEach(async () => {
-        // The tag picker sends OpenPolicyTagsPage when it mounts, so mock fetch to keep that request off the real network.
-        global.fetch = getGlobalFetchMock();
         mockSelectionList.mockClear();
         mockUpdateBulkEditDraftTransaction.mockClear();
         await Onyx.clear();

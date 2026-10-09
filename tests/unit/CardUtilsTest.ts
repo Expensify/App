@@ -613,17 +613,6 @@ describe('CardUtils', () => {
             expect(isCustomFeed).toBe(true);
         });
 
-        it('Should return true for the mock commercial feed', () => {
-            // Given a mock commercial feed.
-            const customFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK;
-
-            // When checking whether it is a custom feed.
-            const isCustomFeed = isCustomFeedCardUtils(customFeed);
-
-            // Then it is treated as a custom feed.
-            expect(isCustomFeed).toBe(true);
-        });
-
         test.each(directFeedBanks)('Should return false for the direct feed %s', (directFeed) => {
             const isCustomFeed = isCustomFeedCardUtils(directFeed);
             expect(isCustomFeed).toBe(false);
@@ -2073,19 +2062,6 @@ describe('CardUtils', () => {
         it('should return the feed name with with the first smallest available number', () => {
             const feedType = getFeedType('vcf', companyCardsCustomVisaFeedSettingsWithNumbers);
             expect(feedType).toBe('vcf2');
-        });
-
-        it('should number mock commercial feeds', () => {
-            // Given an existing numbered mock commercial feed.
-            const cardFeeds = createMock<CombinedCardFeeds>({
-                [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK}1`]: {},
-            });
-
-            // When finding the next feed type.
-            const feedType = getFeedType(CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK, cardFeeds);
-
-            // Then the next number is returned.
-            expect(feedType).toBe(`${CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK}2`);
         });
     });
 

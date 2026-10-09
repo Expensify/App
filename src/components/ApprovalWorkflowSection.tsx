@@ -6,11 +6,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import sortAlphabetically from '@libs/sortAlphabetically';
-import {getApprovalLimitDescription, getNonMemberApproverError} from '@libs/WorkflowUtils';
+import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -112,17 +111,6 @@ function ApprovalWorkflowSection({
         email: m.email,
     }));
     const pressAction = isDisabled ? undefined : onPress;
-
-    // Only shown to someone who can fix it, since the copy asks them to pick a new approver
-    const getApproverError = (approver: Approver) => {
-        const error = isDisabled ? undefined : getNonMemberApproverError(approver, approvalWorkflow.isDefault);
-        return error ? translate(error) : undefined;
-    };
-    const nonMemberApproverError = approvalWorkflow.approvers.map(getApproverError).find(Boolean);
-    const editWorkflowText = translate('workflowsPage.editWorkflowAction');
-
-    // The approver rows aren't exposed to screen readers, so the Edit button reads the error out instead
-    const editButtonAccessibilityLabel = nonMemberApproverError ? `${editWorkflowText}, ${nonMemberApproverError}` : editWorkflowText;
     const accessibilityLabel = translate('workflowsPage.accessibilityLabel', {
         members,
         approvers: approvalWorkflow?.approvers
@@ -222,8 +210,6 @@ function ApprovalWorkflowSection({
                                 }
                                 helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
                                 helperTextStyle={styles.workflowApprovalLimitText}
-                                brickRoadIndicator={getApproverError(approver) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={getApproverError(approver)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                             />
                         </View>
@@ -235,11 +221,11 @@ function ApprovalWorkflowSection({
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onPress}
-                        accessibilityLabel={editButtonAccessibilityLabel}
+                        accessibilityLabel={translate('workflowsPage.editWorkflowAction')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
                     >
                         <Button.Icon src={icons.Pencil} />
-                        <Button.Text>{editWorkflowText}</Button.Text>
+                        <Button.Text>{translate('workflowsPage.editWorkflowAction')}</Button.Text>
                     </Button>
                 </View>
             )}

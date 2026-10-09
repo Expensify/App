@@ -1,13 +1,14 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {getReportOrNotFoundDecision} from '@components/ReportOrNotFoundGuard';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
+import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasExpensifyGuidesEmails} from '@libs/ReportUtils';
+import {canAccessReport, hasExpensifyGuidesEmails} from '@libs/ReportUtils';
 
 import type {
     ParticipantsNavigatorParamList,
@@ -32,9 +33,8 @@ import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React from 'react';
-
-import useReportDeepLinkOnOpen from './useReportDeepLinkOnOpen';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React, {useEffect} from 'react';
 
 type WithReportOrNotFoundOnyxProps = {
     report: OnyxTypes.Report;
@@ -79,12 +79,18 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             // with a `reportID` inherited from the surrounding report chain in the URL.
             const reportID = 'notificationReportID' in params ? params.notificationReportID : params.reportID;
             const {isBetaEnabled} = usePermissions();
+            const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+            const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
             const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+            const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
             const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+            const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
             const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
             const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
             const isFocused = useIsFocused();
@@ -95,33 +101,45 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
             const shouldFetchReport = isReportIdInRoute && reportLoadingState?.isLoadingInitialReportActions !== false;
 
-            useReportDeepLinkOnOpen({reportID, isReportLoaded, shouldFetchReport});
+            // When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
+            // So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
+            useEffect(() => {
+                if (isReportLoaded || !shouldFetchReport) {
+                    // If the report is not required or is already loaded, we don't need to call the API
+                    return;
+                }
 
-            const decision = getReportOrNotFoundDecision({
-                shouldRequireReportID,
-                isReportIdInRoute,
-                isReportLoaded,
-                report,
-                isLoadingReportData,
-                shouldFetchReport,
-                isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                hasGuidesEmails,
-                isReportArchived,
-                isFocused,
-                hasShownContent: contentShown.current,
-                deleteTransactionNavigateBackUrl,
-            });
+                openReport({
+                    reportID,
+                    introSelected,
+                    conciergeChat,
+                    hasReportActions,
+                    currentUserAccountID,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                });
+                // eslint-disable-next-line react-hooks/exhaustive-deps
+            }, [shouldFetchReport, isReportLoaded, reportID, currentUserAccountID]);
 
-            if (decision === 'blank') {
-                return null;
-            }
+            if (shouldRequireReportID || isReportIdInRoute) {
+                const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
+                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isReportArchived);
 
-            if (decision === 'loading') {
-                return <FullscreenLoadingIndicator shouldUseGoBackButton />;
-            }
+                // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
+                // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
+                // We also suppress the NotFound page while a delete-transaction navigation is in flight (e.g. deleting an invoice
+                // navigates back to the invoice room without synchronously removing focus from this details RHP), mirroring ReportNotFoundGuard.
+                if (shouldShowNotFoundPage && contentShown.current && (!isFocused || !!deleteTransactionNavigateBackUrl)) {
+                    return null;
+                }
 
-            if (decision === 'notFound') {
-                return <NotFoundPage isReportRelatedPage />;
+                if (shouldShowFullScreenLoadingIndicator) {
+                    return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+                }
+
+                if (shouldShowNotFoundPage) {
+                    return <NotFoundPage isReportRelatedPage />;
+                }
             }
 
             if (!contentShown.current) {

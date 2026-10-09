@@ -29,7 +29,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useNavigationState} from '@react-navigation/native';
@@ -56,18 +55,13 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     // Keep the removed approver visible until navigation finishes.
     // Without this temporary state, clearing the approver immediately causes the empty state to flash
     // while this screen is still mounted during the dismiss animation.
-    const [removingApprover, setRemovingApprover] = useState<Approver>();
+    const [removingApproverEmail, setRemovingApproverEmail] = useState<string>();
 
     const isChangeApproverRoute = route.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE;
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const currentApprover = approvalWorkflow?.approvers[approverIndex];
-    const visibleSelectedApprover = removingApprover ?? currentApprover;
-    const visibleSelectedApproverEmail = visibleSelectedApprover?.email;
-
-    // An approver who left the workspace isn't on employeeList, so they get their own selected row the admin can tap
-    // to remove them. It only exists while they hold this slot, so once removed or replaced they can't be picked again.
-    const nonMemberApprover = visibleSelectedApprover?.isNotWorkspaceMember ? visibleSelectedApprover : undefined;
-    const nonMemberApproverAccountID = nonMemberApprover ? personalDetailsByEmail?.[nonMemberApprover.email]?.accountID : undefined;
+    const selectedApproverEmail = currentApprover?.email;
+    const visibleSelectedApproverEmail = removingApproverEmail ?? selectedApproverEmail;
 
     const employeeList = policy?.employeeList;
     const approversFromWorkflow = approvalWorkflow?.approvers;
@@ -83,7 +77,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
         const membersEmail = approvalWorkflow?.members?.map((member) => member.email);
 
-        const approvers = Object.values(employeeList)
+        return Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
                 const email = employee.email;
 
@@ -140,20 +134,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-
-        if (nonMemberApprover && !approvers.some((approver) => approver.login === nonMemberApprover.email)) {
-            approvers.push({
-                text: nonMemberApprover.displayName,
-                alternateText: nonMemberApprover.email,
-                keyForList: nonMemberApprover.email,
-                isSelected: true,
-                login: nonMemberApprover.email,
-                value: nonMemberApprover.email,
-                icons: [{source: nonMemberApprover.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: nonMemberApprover.displayName, id: nonMemberApproverAccountID}],
-            });
-        }
-
-        return approvers;
     }, [
         isApprovalWorkflowLoading,
         employeeList,
@@ -170,11 +150,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         personalDetails,
         icons.FallbackAvatar,
         shouldFilterOutExpensifyTeam,
-        nonMemberApprover,
-        nonMemberApproverAccountID,
     ]);
 
-    const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApprover;
+    const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApproverEmail;
 
     const goBack = useCallback(() => {
         let backToRoute;
@@ -197,7 +175,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             const isRemovingApprover = approvers.length === 0;
 
             if (isRemovingApprover) {
-                setRemovingApprover(visibleSelectedApprover);
+                setRemovingApproverEmail(visibleSelectedApproverEmail);
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
                 if (isChangeApproverRoute && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
                     // Don't compare params — see goBack above.
@@ -250,7 +228,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             personalDetailsByEmail,
             isChangeApproverRoute,
             firstApprover,
-            visibleSelectedApprover,
+            visibleSelectedApproverEmail,
         ],
     );
 

@@ -27,7 +27,7 @@ import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import variables from '@styles/variables';
 
 import {completeOnboarding} from '@userActions/Report';
-import {clearOnboardingMergeAccountBlocked, setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
+import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -132,9 +132,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 // validation, so it still needs to add one; an unvalidated private-domain one already has one and
                 // only needs to validate it.
                 if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
-                    // A merge blocked earlier in onboarding leaves isMergingAccountBlocked set, which would make the work
-                    // email step reopen in its blocked state instead of showing the form.
-                    clearOnboardingMergeAccountBlocked();
                     const isCurrentPrimaryPublicDomain = PUBLIC_DOMAINS_SET.has(session?.email?.split('@').at(1)?.toLowerCase() ?? '');
                     if (isValidated && !isCurrentPrimaryPublicDomain) {
                         Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));

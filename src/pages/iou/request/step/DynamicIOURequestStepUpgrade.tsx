@@ -59,7 +59,7 @@ type DynamicIOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNa
 
 function DynamicIOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, upgradeBackTo, shouldReturnToConfirmation},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, upgradeBackTo},
     },
 }: DynamicIOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -257,9 +257,6 @@ function DynamicIOURequestStepUpgrade({
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.goBack();
-                if (shouldReturnToConfirmation) {
-                    break;
-                }
                 navigateWithMicrotask(
                     upgradeBackTo ?? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID})),
                 );
@@ -272,7 +269,6 @@ function DynamicIOURequestStepUpgrade({
         isVendorMatchingBetaEnabled,
         action,
         upgradeBackTo,
-        shouldReturnToConfirmation,
         navigateWithMicrotask,
         reportID,
         shouldSubmitExpense,

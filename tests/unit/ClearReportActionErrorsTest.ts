@@ -1,6 +1,5 @@
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
 
@@ -170,42 +169,6 @@ describe('ClearReportActionErrors', () => {
             // Then the parent action's matching error should also be cleared
             const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
             expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.errors).toEqual({});
-        });
-
-        it('should clear the mirrored pay error on the chat preview without deleting the preview itself', async () => {
-            // Given a failed payment: the optimistic pay action inside the IOU report and the chat's report preview
-            // both carry the same error key, which is what links them.
-            const iouReport = createMockReport({
-                parentReportID: PARENT_REPORT_ID,
-                parentReportActionID: PARENT_REPORT_ACTION_ID,
-            });
-            const payAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
-                // A failed optimistic pay action keeps its ADD pending state, so dismissing it removes the action.
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: 'Unexpected error. Please try again later.'},
-            });
-            const reportPreviewAction = getFakeReportAction(Number(PARENT_REPORT_ACTION_ID), {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: 'Unexpected error. Please try again later.'},
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, iouReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: payAction});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {[PARENT_REPORT_ACTION_ID]: reportPreviewAction});
-            await waitForBatchedUpdates();
-
-            // When the payer dismisses the error from inside the expense report
-            clearAllRelatedReportActionErrors(REPORT_ID, payAction, REPORT_ID, false);
-            await waitForBatchedUpdates();
-
-            // Then the copy on the chat preview is cleared too, so a dismissed error cannot resurface later when the
-            // expense is deleted and that preview becomes visible again.
-            const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
-            expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.errors).toEqual({});
-
-            // And the preview survives. It is a real server action, so it must not take the optimistic-delete path.
-            expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]).toBeTruthy();
-            expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
         });
 
         it('should not clear parent errors when ignore is set to parent', async () => {

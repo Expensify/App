@@ -1,6 +1,6 @@
 import type {ComposerRef, TextSelection} from '@components/Composer/types';
 
-import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import CONST from '@src/CONST';
 
@@ -35,7 +35,7 @@ type UseEditComposerToggleProps = {
  * and to update the selection of the composer when the editing state is toggled on.
  */
 function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, onSelectionChange}: UseEditComposerToggleProps) {
-    const shouldEditInComposer = useShouldEditInComposer();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {isEditingInComposer, editingState, editingReportActionID, editingMessage, currentEditMessageSelection, draftComment} = useComposerEditState();
     const {setDidResetComposerHeightWhileEditing} = useComposerEditActions();
@@ -43,7 +43,7 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
     const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
 
     const wasEditingRef = useRef(isEditing);
-    const wasEditingInComposerRef = useRef(shouldEditInComposer);
+    const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     const previousDraftSelectionRef = useRef<TextSelection | null>(null);
     const previousEditingReportActionIDRef = useRef<string | null>(null);
     const previousTextRef = useRef<string | null>(null);
@@ -100,7 +100,7 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
             }
 
             wasEditingRef.current = false;
-            wasEditingInComposerRef.current = shouldEditInComposer;
+            wasEditingInComposerRef.current = shouldUseNarrowLayout;
             previousDraftSelectionRef.current = null;
             return;
         }
@@ -111,9 +111,9 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
             previousDraftSelectionRef.current = selection;
 
             wasEditingRef.current = true;
-            wasEditingInComposerRef.current = shouldEditInComposer;
+            wasEditingInComposerRef.current = shouldUseNarrowLayout;
 
-            if (!shouldEditInComposer) {
+            if (!shouldUseNarrowLayout) {
                 // Wide layout – another editor handles the edit, keep composer draft as-is.
                 return;
             }
@@ -124,7 +124,7 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
         }
 
         // Editing is ongoing and layout toggled from wide to narrow.
-        if (shouldEditInComposer && !wasEditingInComposerRef.current) {
+        if (shouldUseNarrowLayout && !wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = true;
             // We just moved from wide to narrow while editing – start editing in the composer.
             applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
@@ -132,14 +132,14 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
         }
 
         // Editing is ongoing and layout toggled from narrow to wide.
-        if (!shouldEditInComposer && wasEditingInComposerRef.current) {
+        if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = false;
             applyComposerValue(draftComment ?? '');
             return;
         }
 
         // The editing report action and message changed
-        if (shouldEditInComposer && editingReportActionID !== previousEditingReportActionIDRef.current) {
+        if (shouldUseNarrowLayout && editingReportActionID !== previousEditingReportActionIDRef.current) {
             applyComposerValue(editingMessage ?? '', {isEditingInComposer: true, shouldForceNativeValueUpdate: true});
             previousEditingReportActionIDRef.current = editingReportActionID;
         }
@@ -154,7 +154,7 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
         onFocus,
         selection,
         setDidResetComposerHeightWhileEditing,
-        shouldEditInComposer,
+        shouldUseNarrowLayout,
         draftComment,
         onValueChange,
     ]);

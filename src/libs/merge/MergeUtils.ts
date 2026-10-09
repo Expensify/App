@@ -38,13 +38,9 @@ function hasMergeAuthenticationError(policy: OnyxEntry<Policy>, connectionName: 
 /**
  * Returns true when the last sync of the given Merge connection ended in an error the admin has to resolve — either
  * the integration needs to be reconnected, or the sync itself failed.
- *
- * A failure the connection's own settings caused is excluded: the settings may already have been corrected, and the
- * next sync only reports back once it runs, so callers surface those from the current settings instead.
  */
 function hasMergeSyncError(policy: OnyxEntry<Policy>, connectionName: MergeConnectionName): boolean {
-    const lastSync = policy?.connections?.[connectionName]?.lastSync;
-    return hasMergeAuthenticationError(policy, connectionName) || (lastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.FAILED && !lastSync?.isConfigurationError);
+    return hasMergeAuthenticationError(policy, connectionName) || policy?.connections?.[connectionName]?.lastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.FAILED;
 }
 
 /** Returns the given Merge connection's finalApprover when it is in basic or advanced (manager) approval mode, or null otherwise. */

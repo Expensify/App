@@ -500,7 +500,6 @@ function WorkspaceCompanyCardsTable({
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
             shouldUseDynamicColumns
-            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_COMPANY_CARDS}
             initialSortColumn="member"
             selectionEnabled={showTableControls}
             selectedKeys={validSelectedCardKeys}

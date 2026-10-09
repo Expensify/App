@@ -2666,7 +2666,6 @@ type MoneyRequestNavigatorParamList = {
         upgradeBackTo?: Routes;
         upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
         shouldSubmitExpense?: boolean;
-        shouldReturnToConfirmation?: boolean;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: {
         action: IOUAction;

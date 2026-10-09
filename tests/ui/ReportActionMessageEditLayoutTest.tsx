@@ -62,13 +62,6 @@ const wideLayout = createMock<ReturnType<typeof useResponsiveLayout>>({
     isSmallScreen: false,
 });
 
-// A report opened in the RHP on a wide screen: shouldUseNarrowLayout is true, but the screen is not small
-const wideRHPLayout = createMock<ReturnType<typeof useResponsiveLayout>>({
-    ...wideLayout,
-    shouldUseNarrowLayout: true,
-    isInNarrowPaneModal: true,
-});
-
 jest.mock('@libs/getPlatform', () => ({
     __esModule: true,
     default: () => 'web',
@@ -380,31 +373,6 @@ describe('ReportActionMessageEdit layout and draft (narrow vs wide)', () => {
         expect(screen.getByTestId(testIds.REPORT_ACTION_ITEM_MESSAGE_EDIT)).toBeOnTheScreen();
         expect(screen.getByTestId(testIds.MESSAGE_EDIT_CANCEL_INLINE)).toBeOnTheScreen();
         expect(screen.queryByTestId(testIds.MESSAGE_EDIT_CANCEL_MAIN_COMPOSER)).toBeNull();
-    });
-
-    it('in the RHP on a wide screen, edits stay inline and typing in the main composer does not change the edit draft', async () => {
-        // Given a report opened in the RHP on a wide screen, where shouldUseNarrowLayout is true but the screen is not small
-        await seedReportAndActions();
-        await setReportActionDraftWithMessage('RHP inline');
-        await waitForBatchedUpdatesWithAct();
-
-        mockUseResponsiveLayout.mockReturnValue(wideRHPLayout);
-        render(<MessageEditLayoutHost layout="wide" />);
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the main composer stays in normal draft mode and does not take the edited message
-        const mainRoot = screen.getByTestId(testIds.REPORT_ACTION_COMPOSE);
-        expect(within(mainRoot).getByTestId(testIds.DRAFT_MESSAGE_ACTION_ROW)).toBeOnTheScreen();
-        expect(within(mainRoot).queryByTestId(testIds.EDITING_MESSAGE_ACTION_ROW)).toBeNull();
-        expect(within(mainRoot).getByTestId(CONST.COMPOSER.NATIVE_ID).props.value).not.toBe('RHP inline');
-        expect(screen.getByTestId(testIds.REPORT_ACTION_ITEM_MESSAGE_EDIT)).toBeOnTheScreen();
-
-        // When the user types in the main composer
-        fireEvent.changeText(within(mainRoot).getByTestId(CONST.COMPOSER.NATIVE_ID), 'New comment');
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the inline edit draft is unchanged, because the main composer only edits messages on small screens
-        expect(await getReportActionDraftMessage(defaultReport.reportID, commentAction.reportActionID)).toBe('RHP inline');
     });
 
     it('switches the editing surface from inline (wide) to main composer (narrow) when layout becomes narrow', async () => {

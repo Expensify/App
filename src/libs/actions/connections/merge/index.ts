@@ -68,9 +68,6 @@ function syncMerge(policy: OnyxEntry<Policy>, connectionName: MergeConnectionNam
                             syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING,
                             syncType: CONST.MERGE.SYNC_TYPE.MANUAL,
                             manualSyncTimestamps: [DateUtils.getDBTime(), ...(previousLastSync?.manualSyncTimestamps ?? [])],
-                            // A prior failure may have been a configuration error; starting a fresh sync clears
-                            // that flag so a later unrelated failure isn't mistaken for one that's already fixed.
-                            isConfigurationError: false,
                         },
                     },
                 },
@@ -89,7 +86,6 @@ function syncMerge(policy: OnyxEntry<Policy>, connectionName: MergeConnectionNam
                             syncStatus: CONST.MERGE.SYNC_STATUS.FAILED,
                             errorMessage: null,
                             manualSyncTimestamps: previousLastSync?.manualSyncTimestamps ?? null,
-                            isConfigurationError: false,
                         },
                     },
                 },

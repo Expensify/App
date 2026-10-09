@@ -92,8 +92,7 @@ When issuing a card, you can also apply an existing Spend Rule or create a new o
    - Limit type
    - Card name
    - Deactivation
-4. On the web, you can also hover over a card's **Name**, **Limit type**, or **Limit** in the list and click the pencil icon that appears to edit it inline.
-5. To change the linked bank account, update settlement frequency, or manage cash back settings, click **Settings**.
+4. To change the linked bank account, update settlement frequency, or manage cash back settings, click **Settings**.
 
 Your workspace also has built-in default protections that automatically block certain transaction categories on every Expensify Card, and you can set Spend Rules to approve or decline transactions in real time. To learn more, [learn how to set up Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 

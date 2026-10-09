@@ -84,9 +84,7 @@ If a report contains both reimbursable and non-reimbursable expenses, Expensify 
 
 ## How to set a default vendor for Certinia (FFA)
 
-Select **Default vendor**, then choose a vendor from your Certinia FFA account. This vendor is assigned to non-reimbursable expenses that don't already have a vendor assigned.
-
-If vendor matching is enabled for your Workspace, [learn how to manage vendor matching for Certinia](/articles/new-expensify/connections/certinia/Manage-Vendor-Matching-for-Certinia).
+Select a vendor from your Certinia FFA account. This vendor is assigned to non-reimbursable payable invoices.
 
 ---
 
@@ -137,7 +135,7 @@ No. Enabling Auto-sync does not affect previously approved or reimbursed reports
 
 ## How do reports map to records in Certinia?
 
-- **FFA (Payable Invoices):** Account Name = the account linked to the submitter's email (for non-reimbursable expenses, the assigned vendor account is used when one is available), Reference 1 = the report URL, Invoice Description = the report title.
+- **FFA (Payable Invoices):** Account Name = the account linked to the submitter's email, Reference 1 = the report URL, Invoice Description = the report title.
 - **PSA/SRP (Expense Reports):** Expense Report Name = the report title, Resource = the submitter's email, Description = the report URL, Approver = the Expensify report approver.
 
 ## How do I export tax?

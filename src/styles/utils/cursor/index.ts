@@ -47,10 +47,6 @@ const cursor: CursorStyles = {
     cursorEwResize: {
         cursor: 'ew-resize' as ViewStyle['cursor'],
     },
-    cursorColResize: {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- "col-resize" is a valid web cursor that react-native's CursorValue type doesn't include
-        cursor: 'col-resize' as ViewStyle['cursor'],
-    },
     cursorNsResize: {
         cursor: 'ns-resize' as ViewStyle['cursor'],
     },

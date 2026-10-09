@@ -223,12 +223,6 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
          */
         shouldUseDynamicColumns?: boolean;
 
-        /**
-         * Enables column resizing and keys the stored widths. Requires `shouldUseDynamicColumns`, the `resizableTableColumns` beta, and works on web in the wide layout only.
-         * Name it after the column set, not the screen, so tables with the same columns share widths.
-         */
-        columnResizingID?: string;
-
         /** Optional filter configuration for dropdown filters. */
         filters?: FilterConfig<FilterKey>;
 

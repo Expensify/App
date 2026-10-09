@@ -71,8 +71,6 @@ Once **Track tax** is enabled, you can assign a tax rate and tax reclaimable amo
    - **Tax reclaimable** (if enabled)
 5. Select **Save**.
 
-On the web, you can also edit a rate's **Name** or **Rate** directly from the table. Hover over the value and click the pencil icon that appears to edit it inline.
-
 ---
 
 ## How to disable or delete distance rates

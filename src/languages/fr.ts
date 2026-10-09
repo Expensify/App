@@ -628,15 +628,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Lancement d’Expensify',
         expired: 'Votre session a expiré.',
         signIn: 'Veuillez vous reconnecter.',
-        notValid: 'Lien invalide.',
-        sessionMismatch: 'Le lien sur lequel vous avez cliqué n’est pas valide pour votre session actuelle.',
-        switchAccount: {
-            title: 'Changer de compte ?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Vous êtes connecté en tant que ${currentEmail}. Cette action vous connectera plutôt en tant que ${newEmail}.`,
-            confirm: 'Changer de compte',
-            staySignedIn: 'Ne changez pas de compte',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -858,7 +849,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Voulez-vous vraiment supprimer ce ${type} ?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Toutes les dépenses de ce rapport seront considérées comme non déclarées.' : ''}`;
+            return `Voulez-vous vraiment supprimer ce ${type} ?`;
         },
         onlyVisible: 'Visible uniquement par',
         explain: 'Expliquer',
@@ -1499,7 +1490,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Êtes-vous sûr de vouloir supprimer ce rapport ?',
             other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?',
         }),
-        deleteExpenseReportConfirmation: 'Êtes-vous sûr de vouloir supprimer ce rapport ? Toutes les dépenses de ce rapport seront considérées comme non déclarées.',
         settledExpensify: 'Payé',
         paidStatusMarkedAsPaid: 'Marqué comme payé',
         paidStatusWithdrawing: 'Retrait',
@@ -1643,7 +1633,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Veuillez saisir un montant non nul pour votre répartition',
             noParticipantSelected: 'Veuillez sélectionner un participant',
             other: 'Erreur inattendue. Veuillez réessayer plus tard.',
-            payFailedExpenseDeleted: 'Le paiement a échoué car la note de frais a été supprimée.',
             genericCreateFailureMessage: 'Erreur inattendue lors de la soumission de cette dépense. Veuillez réessayer plus tard.',
             genericCreateInvoiceFailureMessage: 'Erreur inattendue lors de l’envoi de cette facture. Veuillez réessayer plus tard.',
             genericHoldExpenseFailureMessage: 'Erreur inattendue lors de la mise en attente de cette dépense. Veuillez réessayer ultérieurement.',
@@ -3012,10 +3001,6 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Ce membre appartient déjà à un autre circuit d’approbation. Toute mise à jour effectuée ici sera également répercutée là-bas.',
-        approverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur ou supprimez ce flux de travail.',
-        defaultWorkflowApproverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur.',
-        overLimitApproverNotWorkspaceMember:
-            'L’approbateur supplémentaire pour les notes de frais au-delà de la limite n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur supplémentaire.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approuve déjà les notes de frais de <strong>${name2}</strong>. Veuillez choisir un autre approbateur pour éviter un circuit d'approbation circulaire.`,
         emptyContent: {
@@ -8941,17 +8926,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
             mergeHR: {
-                groups: {
-                    title: 'Groupes',
-                    description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail',
-                    staleSelectionError: (providerName: string) =>
-                        `Certains des groupes que vous avez sélectionnés n’existent plus dans ${providerName}, donc leurs employés ont cessé de se synchroniser.`,
-                    updateSelectionLink: 'Mettez à jour vos groupes.',
-                    noGroupsFound: 'Aucun groupe trouvé',
-                    noGroupsFoundDescription:
-                        'Il n’y a aucun groupe à sélectionner pour le moment. Enregistrez sans groupe sélectionné pour synchroniser tous les employés, ou synchronisez à nouveau la connexion une fois que de nouveaux groupes existent.',
-                    unnamedGroup: (groupID: string) => `Groupe sans nom (${groupID})`,
-                },
+                groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
             },
         },
         recruiting: {

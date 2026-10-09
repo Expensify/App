@@ -14,7 +14,6 @@ const cursor: CursorStyles = {
     cursorInitial: {},
     cursorText: {},
     cursorEwResize: {},
-    cursorColResize: {},
     cursorNsResize: {},
     cursorNeswResize: {},
     cursorNwseResize: {},

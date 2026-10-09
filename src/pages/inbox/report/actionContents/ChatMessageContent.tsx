@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
@@ -19,7 +20,6 @@ import {
 
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
-import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,8 +60,8 @@ function ChatMessageContent({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const shouldEditInComposer = useShouldEditInComposer();
-    const isEditingInline = !shouldEditInComposer && draftMessage !== undefined;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
     const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
     const attachmentContextValue = isOnSearch ? {type: CONST.ATTACHMENT_TYPE.SEARCH} : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};

@@ -40,7 +40,6 @@ import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportAction
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 import useDebouncedSaveReportActionDraft from '@pages/inbox/report/useDebouncedSaveReportActionDraft';
 import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
-import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
 
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
@@ -216,7 +215,6 @@ function ComposerWithSuggestions({
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldEditInComposer = useShouldEditInComposer();
 
     const composerRef = useRef<ComposerRef | null>(null);
 
@@ -535,7 +533,7 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldEditInComposer) {
+            if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
                     debouncedSaveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
@@ -566,7 +564,7 @@ function ComposerWithSuggestions({
             setText,
             onValueChange,
             editingState,
-            shouldEditInComposer,
+            shouldUseNarrowLayout,
             suggestionsRef,
             setCurrentEditMessageSelection,
             setEditingMessage,

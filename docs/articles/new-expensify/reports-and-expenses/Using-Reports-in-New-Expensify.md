@@ -145,7 +145,7 @@ To view saved searches:
 
 Saved searches are listed in alphabetical order by name.
 
-To update a saved search, change its filters while viewing it, click **Save**, then select **Update existing**. To keep the original and save your changes as a new search, select **Create new** instead. You can rename, share, or delete a saved search by selecting the three dots **(⋮)** next to it. Selecting **Share** copies the search URL to your clipboard.
+To rename a saved search, click **Save** while viewing it and enter a new name. You can also rename, share, or delete a saved search by selecting the three dots **(⋮)** next to it. Selecting **Share** copies the search URL to your clipboard.
 
 ## Why you have a My expenses saved search
 

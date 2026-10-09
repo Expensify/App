@@ -2790,10 +2790,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        tableColumnResizeIndicator: {
-            backgroundColor: theme.iconMenu,
-        },
-
         tableRowHeightCompact: {
             minHeight: variables.tableRowHeightCompact,
         },

@@ -46,7 +46,7 @@ jest.mock('@userActions/Session', () => ({
     clearSignInData: jest.fn(),
     setAccountError: jest.fn(),
     setIsAuthenticatingWithShortLivedToken: jest.fn(),
-    signInWithShortLivedAuthToken: jest.fn().mockResolvedValue(undefined),
+    signInWithShortLivedAuthToken: jest.fn(),
 }));
 
 const mockedOpenAuthSessionAsync = jest.mocked(openAuthSessionAsync);
@@ -169,7 +169,7 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
         expect(clearSignInData).not.toHaveBeenCalled();
     });
 
@@ -181,6 +181,6 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
     });
 });

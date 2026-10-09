@@ -16,6 +16,7 @@ import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canRoleCreateExpenses, isGroupPolicy} from '@libs/PolicyUtils';
@@ -55,13 +56,17 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         if (!selectedPolicyID) {
             return;
         }
+        if (!navigateTo) {
+            Log.hmmm(`[SetDefaultWorkspacePage] navigateTo is undefined. Cannot navigate after setting default workspace to ${selectedPolicyID}`);
+            return;
+        }
+
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`];
 
         // eslint-disable-next-line rulesdir/no-default-id-values
         setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
 
-        // Without a destination, the caller handles what comes next once it is back in focus.
-        if (navigateTo && policy?.areCategoriesEnabled) {
+        if (policy?.areCategoriesEnabled) {
             Navigation.navigate(navigateTo);
             return;
         }

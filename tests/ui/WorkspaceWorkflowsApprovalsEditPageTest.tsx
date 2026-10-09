@@ -1,7 +1,6 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
-import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -97,7 +96,7 @@ const renderEditPage = (route = mockRoute) =>
             <Stack.Navigator>
                 <Stack.Screen name={SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT}>
                     {() => (
-                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                             <WorkspaceWorkflowsApprovalsEditPage
                                 // @ts-expect-error - route type from navigator
                                 route={route}
@@ -244,31 +243,6 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         expect(approvalWorkflows).toHaveLength(1);
         expect(approvalWorkflows.at(0)?.isDefault).toBe(true);
         expect(approvalWorkflows.at(0)?.approvers.map((approver) => approver.email)).toEqual([bobEmail]);
-    });
-
-    describe('approver no longer on the workspace', () => {
-        it('flags the approver as soon as the editor opens and blocks saving', async () => {
-            // Given Bob still submits to someone who was removed from the workspace
-            const bobEmail = 'bob@example.com';
-            const removedEmail = 'removed@example.com';
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[bobEmail]: {email: bobEmail, submitsTo: removedEmail}}});
-                await waitForBatchedUpdatesWithAct();
-            });
-
-            // When the admin opens that workflow in the editor
-            renderEditPage({...mockRoute, params: {policyID: POLICY_ID, firstApproverEmail: removedEmail}});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then the approver shows the error right away, before any Save attempt
-            expect(await screen.findByText(translateLocal('workflowsPage.approverNotWorkspaceMember'))).toBeOnTheScreen();
-
-            // And saving is blocked until the admin picks a new approver or deletes the workflow
-            jest.mocked(Navigation.dismissModal).mockClear();
-            fireEvent.press(screen.getByText(translateLocal('common.save')));
-            await waitForBatchedUpdatesWithAct();
-            expect(Navigation.dismissModal).not.toHaveBeenCalled();
-        });
     });
 
     describe('shared approver hint', () => {

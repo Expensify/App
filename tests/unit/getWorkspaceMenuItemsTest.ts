@@ -267,25 +267,6 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.workflows')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
-    it('shows an error indicator on workflows only when a workflow the user can fix has an approver who left the workspace', () => {
-        // Given a workspace with workflows enabled
-        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areWorkflowsEnabled: true});
-        const getWorkflowsIndicator = (hasApprovalWorkflowWithNonMemberApprover: boolean) =>
-            getWorkspaceMenuItems({
-                policy,
-                policyID: policy.id,
-                currentUserLogin,
-                icons,
-                hasApprovalWorkflowWithNonMemberApprover,
-                convertToDisplayString: () => '',
-            }).find((item) => item.translationKey === 'workspace.common.workflows')?.brickRoadIndicator;
-
-        // When the menu is built with and without such a workflow
-        // Then only the broken workflow puts an error on the Workflows row
-        expect(getWorkflowsIndicator(true)).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
-        expect(getWorkflowsIndicator(false)).toBeUndefined();
-    });
-
     it('shows an error indicator when a merchant rule failed to save', () => {
         const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areRulesEnabled: true});
 

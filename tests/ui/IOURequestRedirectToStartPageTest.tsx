@@ -24,7 +24,6 @@ import Onyx from 'react-native-onyx';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@libs/API');
 jest.mock('@userActions/Tab');
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),

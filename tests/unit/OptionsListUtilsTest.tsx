@@ -2051,49 +2051,6 @@ describe('OptionsListUtils', () => {
 
             expect(hasMore).toBe(false);
         });
-
-        it('should return the self DM when searching "me"', () => {
-            // Given options with a self DM, whose title and login don't contain "me"
-            const optionsWithSelfDM = createFilteredOptionList(
-                PERSONAL_DETAILS,
-                REPORTS_WITH_SELF_DM,
-                undefined,
-                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
-                undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
-                undefined,
-            );
-
-            // When we call getValidOptions with includeSelfDM and the localized word the current user uses to refer to themselves,
-            // without includeCurrentUser, like New chat does
-            const {options: results} = getValidOptions(
-                {reports: optionsWithSelfDM.reports, personalDetails: optionsWithSelfDM.personalDetails},
-                allPolicies,
-                {},
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                undefined,
-                {
-                    getReportByID: getReportByIDFromOnyx,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    includeSelfDM: true,
-                    searchString: 'me',
-                },
-                translateLocal,
-                undefined,
-            );
-
-            // Then the self DM should be returned, because it is the only row that represents the current user
-            expect(results.recentReports.some((option) => option.isSelfDM)).toBe(true);
-        });
     });
 
     describe('getValidOptions() with lazy contact options', () => {
@@ -5802,64 +5759,6 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
         });
 
-        it('should return the self DM when searching "me"', () => {
-            // Given a set of options with a self DM, whose title and login don't contain "me"
-            const optionsWithSelfDM = createFilteredOptionList(
-                PERSONAL_DETAILS,
-                REPORTS_WITH_SELF_DM,
-                undefined,
-                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
-                undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
-                undefined,
-            );
-            const {options} = getSearchOptions({
-                getReportByID: getReportByIDFromOnyx,
-                rules: undefined,
-                dateFnsLocale: undefined,
-                convertToDisplayString,
-                translate: translateLocal,
-                options: optionsWithSelfDM,
-                draftComments: {},
-                loginList,
-                isDefaultRoomsBetaEnabled: true,
-                policyCollection: allPolicies,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
-                personalDetails: PERSONAL_DETAILS,
-                sortedActions: undefined,
-                conciergeReportID: undefined,
-            });
-
-            // When we call filterAndOrderOptions with the localized word the current user uses to refer to themselves
-            const filteredOptions = filterAndOrderOptions({
-                options,
-                searchInputValue: 'me',
-                countryCode: COUNTRY_CODE,
-                loginList,
-                currentUserEmail: CURRENT_USER_EMAIL,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                personalDetails: PERSONAL_DETAILS,
-                config: {
-                    dateFnsLocale: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    convertToDisplayString,
-                },
-                translate: translateLocal,
-                rules: undefined,
-                activePolicyID,
-            });
-
-            // Then the self DM should be returned so the current user can find their own chat
-            expect(filteredOptions.recentReports.some((option) => option.isSelfDM)).toBe(true);
-        });
-
         it('should return the same matches for normalized multi-word queries with extra spaces', () => {
             const {options} = getSearchOptions({
                 getReportByID: getReportByIDFromOnyx,
@@ -7086,7 +6985,7 @@ describe('OptionsListUtils', () => {
         it('should return the report when there are no search terms', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and no search terms
-            const result = filterSelfDMChat(REPORT, [], translateLocal);
+            const result = filterSelfDMChat(REPORT, []);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -7095,7 +6994,7 @@ describe('OptionsListUtils', () => {
         it('should return undefined, when the search term does not match the report', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and a search term that does not match the report
-            const result = filterSelfDMChat(REPORT, ['XYZ'], translateLocal);
+            const result = filterSelfDMChat(REPORT, ['XYZ']);
 
             // Then the returned value should be undefined
             expect(result).toBeUndefined();
@@ -7104,7 +7003,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by text', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and search term that matches the report
-            const result = filterSelfDMChat(REPORT, ['Google'], translateLocal);
+            const result = filterSelfDMChat(REPORT, ['Google']);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -7113,7 +7012,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by exact text', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and multiple search terms that match the report's exact name
-            const result = filterSelfDMChat(REPORT, ['Google', 'Workspace'], translateLocal);
+            const result = filterSelfDMChat(REPORT, ['Google', 'Workspace']);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -7122,7 +7021,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by login', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and a search term that matches the report's login
-            const result = filterSelfDMChat({...REPORT, login: LOGIN}, ['john'], translateLocal);
+            const result = filterSelfDMChat({...REPORT, login: LOGIN}, ['john']);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -7131,7 +7030,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by exact login', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and multiple search terms that match the report's exact login
-            const result = filterSelfDMChat({...REPORT, login: LOGIN}, [LOGIN], translateLocal);
+            const result = filterSelfDMChat({...REPORT, login: LOGIN}, [LOGIN]);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -7140,7 +7039,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by alternate text', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and a search term that matches the report's alternate text
-            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['William'], translateLocal);
+            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['William']);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -7149,7 +7048,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by exact alternate text', () => {
             // Given a report object that is a thread
             // When we call filterSelfDMChat with the report and multiple search terms that match the report's exact alternate text
-            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['John', 'William', 'Doe'], translateLocal);
+            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['John', 'William', 'Doe']);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -7158,7 +7057,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by alternate text if it is not a thread', () => {
             // Given a report object that is not a thread
             // When we call filterSelfDMChat with the report and a search term that matches the report's alternate text
-            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: false}, ['William'], translateLocal);
+            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: false}, ['William']);
 
             // Then the returned value should be undefined
             expect(result?.reportID).toBeUndefined();
@@ -7167,7 +7066,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by subtitle', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and a search term that matches the report's subtitle
-            const result = filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software'], translateLocal);
+            const result = filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software']);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -7176,7 +7075,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by exact subtitle', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and multiple search terms that match the report's exact subtitle
-            const result = filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software', 'Engineer'], translateLocal);
+            const result = filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software', 'Engineer']);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -7193,7 +7092,6 @@ describe('OptionsListUtils', () => {
                     isChatRoom: false,
                 },
                 ['Software'],
-                translateLocal,
             );
 
             // Then the returned value should be undefined
@@ -7211,33 +7109,10 @@ describe('OptionsListUtils', () => {
                     isChatRoom: true,
                 },
                 ['Software'],
-                translateLocal,
             );
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
-        });
-
-        it.each(['me', 'you'])('should filter the self DM by the localized "%s"', (searchTerm) => {
-            // Given a self DM whose title and login don't contain the search term
-            const selfDM = {...REPORT, text: 'Test User', login: 'test@test.com', isPolicyExpenseChat: false, isSelfDM: true};
-
-            // When we call filterSelfDMChat with the localized word the current user uses to refer to themselves
-            const result = filterSelfDMChat(selfDM, [searchTerm], translateLocal);
-
-            // Then the self DM should be returned so the current user can find their own chat
-            expect(result?.reportID).toEqual(REPORT.reportID);
-        });
-
-        it('should not filter a non-self DM report by "me"', () => {
-            // Given a report that is not a self DM and whose title and login don't contain "me"
-            const report = {...REPORT, text: 'Test User', login: 'test@test.com', isPolicyExpenseChat: false};
-
-            // When we call filterSelfDMChat with "me"
-            const result = filterSelfDMChat(report, ['me'], translateLocal);
-
-            // Then the report should not be returned, because only the self DM belongs to the current user
-            expect(result).toBeUndefined();
         });
     });
 
@@ -7250,7 +7125,7 @@ describe('OptionsListUtils', () => {
             // cspell:disable-next-line
             const searchTerms = ['Alex Timon Dartagnan Zoe'];
             // When we call filterReports with the report and search terms
-            const filteredReports = filterReports(reports, searchTerms, translateLocal);
+            const filteredReports = filterReports(reports, searchTerms);
 
             // Then the returned value should match the search term
             expect(filteredReports).toEqual(reports);
@@ -7277,7 +7152,7 @@ describe('OptionsListUtils', () => {
             const report: OptionData = {text: reportText, reportID: 'normalized', keyForList: 'normalized'};
 
             // When the report is filtered with the normalized search value
-            const filteredReports = filterReports([report], [searchText], translateLocal);
+            const filteredReports = filterReports([report], [searchText]);
 
             // Then the report should remain in the results
             expect(filteredReports).toEqual([report]);
@@ -7291,7 +7166,7 @@ describe('OptionsListUtils', () => {
                 keyForList: 'email',
             };
 
-            const filteredReports = filterReports([report], ['testuser@example.com'], translateLocal);
+            const filteredReports = filterReports([report], ['testuser@example.com']);
 
             expect(filteredReports).toEqual([report]);
         });
@@ -7304,7 +7179,7 @@ describe('OptionsListUtils', () => {
                 keyForList: 'phone',
             };
 
-            const filteredReports = filterReports([report], [getSearchValueForPhoneOrEmail('+1 (234) 567-8901', COUNTRY_CODE)], translateLocal);
+            const filteredReports = filterReports([report], [getSearchValueForPhoneOrEmail('+1 (234) 567-8901', COUNTRY_CODE)]);
 
             expect(filteredReports).toEqual([report]);
         });
@@ -7322,7 +7197,7 @@ describe('OptionsListUtils', () => {
         it('matches an email query against an email address', () => {
             // Given a report with a matching email address
             // When the query is an email search
-            const doesMatch = doesReportMatchSearchTerms(report, ['person@'], translateLocal);
+            const doesMatch = doesReportMatchSearchTerms(report, ['person@']);
 
             // Then the report matches
             expect(doesMatch).toBe(true);
@@ -7338,7 +7213,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When the query uses the same accented name in uppercase
-            const doesMatch = doesReportMatchSearchTerms(groupReport, ['JOSÉ'], translateLocal);
+            const doesMatch = doesReportMatchSearchTerms(groupReport, ['JOSÉ']);
 
             // Then the group report matches
             expect(doesMatch).toBe(true);
@@ -7360,24 +7235,9 @@ describe('OptionsListUtils', () => {
             };
 
             // When the query uses that participant name
-            const doesMatch = doesReportMatchSearchTerms(groupReport, [displayName], translateLocal);
+            const doesMatch = doesReportMatchSearchTerms(groupReport, [displayName]);
 
             // Then the group report matches
-            expect(doesMatch).toBe(true);
-        });
-
-        it.each(['Me', 'You'])('matches the self DM when searching the localized "%s"', (searchTerm) => {
-            // Given a self DM whose title and login don't contain the search term
-            const selfDMReport: SearchOption<Report> = {
-                ...report,
-                isSelfDM: true,
-                item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.SELF_DM},
-            };
-
-            // When the query is the localized word the current user uses to refer to themselves
-            const doesMatch = doesReportMatchSearchTerms(selfDMReport, [searchTerm], translateLocal);
-
-            // Then the self DM matches, so it shows up in pickers like New chat
             expect(doesMatch).toBe(true);
         });
     });

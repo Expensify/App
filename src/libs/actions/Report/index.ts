@@ -349,12 +349,6 @@ type OpenReportActionParams = {
 
     isNewThread?: boolean;
 
-    /**
-     * Remove the optimistically created report if the create fails, rather than leaving a `createChat` error on it.
-     * Set it for reports the app creates on the user's behalf, where a "Fix" badge is not actionable.
-     */
-    shouldRemoveOptimisticReportOnFailure?: boolean;
-
     /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
     transaction?: Transaction;
 
@@ -1702,7 +1696,6 @@ function openReport(params: OpenReportActionParams) {
         isFromDeepLink = false,
         personalDetails,
         isNewThread = false,
-        shouldRemoveOptimisticReportOnFailure = false,
         transaction,
         transactionViolations,
         parentReportID,
@@ -1727,10 +1720,6 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
-
-    // `failureData` runs after the response's own `onyxData`, so nulling these keys also clears what the server wrote.
-    const shouldRollBackOptimisticReport = isCreatingNewReport && shouldRemoveOptimisticReportOnFailure;
-
     let shouldClearManualUnreadMarker = false;
     if (!shouldKeepManualUnreadMarker) {
         // True only on a genuine return trip: `flagReportNavigatedAway` sets it on blur/unmount, so it is false on the
@@ -1841,7 +1830,7 @@ function openReport(params: OpenReportActionParams) {
         },
     ];
 
-    if (isNewThread && !shouldRollBackOptimisticReport) {
+    if (isNewThread) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1962,15 +1951,6 @@ function openReport(params: OpenReportActionParams) {
                 },
             },
         });
-
-        // The preview action exists only to point at the thread, so it goes too, or its `childReportID` dangles.
-        if (shouldRollBackOptimisticReport) {
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
-                value: {[iouReportActionID]: null},
-            });
-        }
 
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
 
@@ -2100,7 +2080,7 @@ function openReport(params: OpenReportActionParams) {
             failureData.push(PersonalDetailsUtils.buildPersonalDetailsUpdate(settledPersonalDetails));
         }
 
-        if (!isNewThread && !shouldRollBackOptimisticReport) {
+        if (!isNewThread) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2112,34 +2092,11 @@ function openReport(params: OpenReportActionParams) {
             });
         }
 
-        if (shouldRollBackOptimisticReport) {
-            // `SidebarUtils` force-displays any report carrying errors, so keeping this one leaves a dead LHN row.
-            failureData.push(
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: null,
-                },
-                {
-                    // Remove only the action we created. Nulling the whole key would take anything the user queued in
-                    // the thread with it, e.g. a comment written while offline.
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: {[optimisticCreatedAction.reportActionID]: null},
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-                    value: null,
-                },
-            );
-        } else {
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-            });
-        }
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
 
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
@@ -2154,8 +2111,7 @@ function openReport(params: OpenReportActionParams) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                // The thread is rolled back, so the parent action must not keep pointing at it.
-                value: {[parentReportActionID]: shouldRollBackOptimisticReport ? {childReportID: null, childType: ''} : {childType: ''}},
+                value: {[parentReportActionID]: {childType: ''}},
             });
         }
     }
@@ -2568,8 +2524,6 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         personalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
-        // The app creates this thread, not the user, so a "Fix" row on it is not actionable. Roll it back instead.
-        shouldRemoveOptimisticReportOnFailure: true,
         transaction,
         transactionViolations,
         parentReportID: selfDMReportID,

@@ -8,10 +8,10 @@ import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverC
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
-import type {ComponentRef, ReactNode, Ref} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 import type {View} from 'react-native';
 
-import React, {useImperativeHandle, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 import type {ExpenseFieldRowProps} from './ExpenseFieldRow';
 
@@ -86,14 +86,6 @@ type ExpenseFieldDropdownProps = Omit<ExpenseFieldRowProps, 'onPress' | 'anchorR
 
     /** Opens the field's full-page selector, for every case `shouldOpenInDropdown` rules out */
     onPress: () => void;
-
-    /** Lets the field open its list without a press, e.g. once the user is back from a step the press sent them to */
-    ref?: Ref<ExpenseFieldDropdownHandle>;
-};
-
-type ExpenseFieldDropdownHandle = {
-    /** Opens the list as a press would, falling back to `onPress` when it can't open in place. Does nothing if it is already open. */
-    open: () => void;
 };
 
 /**
@@ -103,7 +95,7 @@ type ExpenseFieldDropdownHandle = {
  * pop-over matches the row's width and opens below it, or above when there isn't room, capped so it is never
  * clipped. Knows nothing about any particular field: each passes its own list in through `renderDropdown`.
  */
-function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ref, ...rowProps}: ExpenseFieldDropdownProps) {
+function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ...rowProps}: ExpenseFieldDropdownProps) {
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -164,18 +156,6 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, re
         openDropdown();
     };
 
-    useImperativeHandle(ref, () => ({
-        open: () => {
-            if (!shouldOpenInDropdown) {
-                onPress();
-                return;
-            }
-            if (!isVisible) {
-                openDropdown();
-            }
-        },
-    }));
-
     return (
         <>
             <ExpenseFieldRow
@@ -200,4 +180,4 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, re
 }
 
 export default ExpenseFieldDropdown;
-export type {ExpenseFieldDropdownHandle, ExpenseFieldDropdownRenderProps};
+export type {ExpenseFieldDropdownRenderProps};

@@ -1426,12 +1426,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const deleteModalTitle = isDeletingOnlyExpenses
         ? getDeleteExpenseTitle(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount)
         : translate('iou.deleteReport', {count: deleteCount});
-    let deleteModalPrompt = translate('iou.deleteReportConfirmation', {count: deleteCount});
-    if (isDeletingOnlyExpenses) {
-        deleteModalPrompt = getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount, hasSomePendingExpenses);
-    } else if (isExpenseReportType && deleteCount === 1) {
-        deleteModalPrompt = translate('iou.deleteExpenseReportConfirmation');
-    }
+    const deleteModalPrompt = isDeletingOnlyExpenses
+        ? getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount, hasSomePendingExpenses)
+        : translate('iou.deleteReportConfirmation', {count: deleteCount});
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
         if (!hash) {

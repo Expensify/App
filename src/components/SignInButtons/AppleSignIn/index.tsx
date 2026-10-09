@@ -9,10 +9,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
 import type Locale from '@src/types/onyx/Locale';
-import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 
 import type {NativeConfig} from 'react-native-config';
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
@@ -55,9 +53,9 @@ const config = {
  * Apple Sign In success and failure listeners.
  */
 
-const successListener = (event: AppleIDSignInOnSuccessEvent, preferredLocale?: Locale, marketingAttribution?: OnyxEntry<StoredMarketingAttribution>) => {
+const successListener = (event: AppleIDSignInOnSuccessEvent, preferredLocale?: Locale) => {
     const token = event.detail.authorization.id_token;
-    beginAppleSignIn(token, preferredLocale, marketingAttribution);
+    beginAppleSignIn(token, preferredLocale);
 };
 
 const failureListener = (event: AppleIDSignInOnFailureEvent) => {
@@ -72,7 +70,6 @@ const failureListener = (event: AppleIDSignInOnFailureEvent) => {
  */
 function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [marketingAttribution] = useOnyx(ONYXKEYS.MARKETING_ATTRIBUTION);
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
         // first mounted.
@@ -80,17 +77,14 @@ function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
     }, []);
     //  Result listeners need to live within the focused item to avoid duplicate
     //  side effects on success and failure.
-    //  The success listener is kept in a variable so the cleanup removes the same function, otherwise a re-run of this effect would
-    //  leave the previous listener attached and sign in twice.
     React.useEffect(() => {
-        const onSuccess = (event: AppleIDSignInOnSuccessEvent) => successListener(event, preferredLocale, marketingAttribution);
-        document.addEventListener('AppleIDSignInOnSuccess', onSuccess);
+        document.addEventListener('AppleIDSignInOnSuccess', (event) => successListener(event, preferredLocale));
         document.addEventListener('AppleIDSignInOnFailure', failureListener);
         return () => {
-            document.removeEventListener('AppleIDSignInOnSuccess', onSuccess);
+            document.removeEventListener('AppleIDSignInOnSuccess', (event) => successListener(event, preferredLocale));
             document.removeEventListener('AppleIDSignInOnFailure', failureListener);
         };
-    }, [preferredLocale, marketingAttribution]);
+    }, [preferredLocale]);
 
     return isDesktopFlow ? (
         <div
