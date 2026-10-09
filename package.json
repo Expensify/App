@@ -241,9 +241,9 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@babel/plugin-transform-export-namespace-from": "^7.27.1",
     "@callstack/reassure-compare": "^1.0.0-rc.4",
-    "@callstack/repack": "5.3.0",
-    "@callstack/repack-plugin-expo-modules": "5.3.0",
-    "@callstack/repack-plugin-reanimated": "5.3.0",
+    "@callstack/repack": "5.4.1-canary-20261005140324",
+    "@callstack/repack-plugin-expo-modules": "5.4.1-canary-20261005140324",
+    "@callstack/repack-plugin-reanimated": "5.4.1-canary-20261005140324",
     "@dword-design/eslint-plugin-import-alias": "^5.0.0",
     "@fullstory/babel-plugin-annotate-react": "^2.4.0",
     "@fullstory/babel-plugin-react-native": "^1.7.1",
@@ -369,6 +369,9 @@
     "wait-port": "^0.2.9"
   },
   "overrides": {
+    "@rock-js/plugin-repack": {
+      "@callstack/repack": "$@callstack/repack"
+    },
     "typescript": "$typescript",
     "@typescript-eslint/eslint-plugin": "8.58.1",
     "@typescript-eslint/parser": "8.58.1",
