@@ -705,6 +705,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             secondOptionText: translate('common.buttonConfirm'),
         });
     }, [showDecisionModal, translate]);
+
     const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
     const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
