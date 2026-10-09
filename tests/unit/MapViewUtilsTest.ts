@@ -197,40 +197,65 @@ describe('MapView utils', () => {
 
     describe('getMapboxLanguage', () => {
         it('passes locales that are already valid Mapbox codes through unchanged', () => {
-            expect(utils.getMapboxLanguage('en')).toBe('en');
-            expect(utils.getMapboxLanguage('es')).toBe('es');
-            expect(utils.getMapboxLanguage('fr')).toBe('fr');
-            expect(utils.getMapboxLanguage('de')).toBe('de');
+            // Given app locales whose values are already BCP-47 codes that Mapbox can localize labels to
+
+            // When each locale is mapped to the language the map labels are rendered in
+            const languages = [utils.getMapboxLanguage('en'), utils.getMapboxLanguage('es'), utils.getMapboxLanguage('fr'), utils.getMapboxLanguage('de')];
+
+            // Then every locale is passed through as is, because Mapbox already understands it and the labels should match the app's language
+            expect(languages).toEqual(['en', 'es', 'fr', 'de']);
         });
 
         it('remaps locales whose value differs from the Mapbox code', () => {
-            expect(utils.getMapboxLanguage('pt-BR')).toBe('pt');
-            expect(utils.getMapboxLanguage('zh-hans')).toBe('zh-Hans');
+            // Given app locales whose values are not the codes Mapbox expects, so Mapbox would not recognize them as is
+
+            // When each locale is mapped to the language the map labels are rendered in
+            const languages = [utils.getMapboxLanguage('pt-BR'), utils.getMapboxLanguage('zh-hans')];
+
+            // Then each locale is converted to the matching Mapbox code, so the labels are still shown in the user's language
+            expect(languages).toEqual(['pt', 'zh-Hans']);
         });
 
         it('returns undefined when there is no locale', () => {
-            expect(utils.getMapboxLanguage(undefined)).toBeUndefined();
+            // Given a user whose preferred locale has not loaded yet
+
+            // When the missing locale is mapped to a Mapbox language
+            const language = utils.getMapboxLanguage(undefined);
+
+            // Then no language is returned, so the map keeps its default labels instead of being set to an invalid language
+            expect(language).toBeUndefined();
         });
     });
 
     describe('getMapboxWorldview', () => {
         it('passes country codes Mapbox defines a worldview for through unchanged', () => {
-            expect(utils.getMapboxWorldview('US')).toBe('US');
-            expect(utils.getMapboxWorldview('CN')).toBe('CN');
-            expect(utils.getMapboxWorldview('IN')).toBe('IN');
-            expect(utils.getMapboxWorldview('JP')).toBe('JP');
+            // Given countries that Mapbox draws disputed borders for from their own point of view
+
+            // When each country is mapped to the worldview the map's borders are drawn from
+            const worldviews = [utils.getMapboxWorldview('US'), utils.getMapboxWorldview('CN'), utils.getMapboxWorldview('IN'), utils.getMapboxWorldview('JP')];
+
+            // Then every country is passed through as is, so users see the borders as their own country recognizes them
+            expect(worldviews).toEqual(['US', 'CN', 'IN', 'JP']);
         });
 
         it('passes countries without a dedicated worldview through so Mapbox falls back to the style default', () => {
-            expect(utils.getMapboxWorldview('DE')).toBe('DE');
-            expect(utils.getMapboxWorldview('AU')).toBe('AU');
+            // Given countries that Mapbox has no dedicated worldview for
+
+            // When each country is mapped to the worldview the map's borders are drawn from
+            const worldviews = [utils.getMapboxWorldview('DE'), utils.getMapboxWorldview('AU')];
+
+            // Then the countries are still passed through, because Mapbox falls back to the style's default worldview and a hardcoded list of supported countries would go stale
+            expect(worldviews).toEqual(['DE', 'AU']);
         });
 
         it('drops anything that is not a country code, which Mapbox would reject', () => {
-            expect(utils.getMapboxWorldview(undefined)).toBeUndefined();
-            expect(utils.getMapboxWorldview('')).toBeUndefined();
-            expect(utils.getMapboxWorldview('USA')).toBeUndefined();
-            expect(utils.getMapboxWorldview('us')).toBeUndefined();
+            // Given values that are not two-letter uppercase country codes, such as a missing country or a three-letter code
+
+            // When each value is mapped to the worldview the map's borders are drawn from
+            const worldviews = [utils.getMapboxWorldview(undefined), utils.getMapboxWorldview(''), utils.getMapboxWorldview('USA'), utils.getMapboxWorldview('us')];
+
+            // Then no worldview is returned for any of them, because Mapbox raises an error for codes it can't parse
+            expect(worldviews).toEqual([undefined, undefined, undefined, undefined]);
         });
     });
 });
