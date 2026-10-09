@@ -17,6 +17,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useFrozenSplitTransactionIDs from '@hooks/useFrozenSplitTransactionIDs';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -69,7 +70,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -158,27 +158,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const isSearchBackPath = backPath.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route);
     const activeGroupSearchHashes = isSearchBackPath ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
-    const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
-        const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`];
-        const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`] ?? report;
-        const currentItemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentItemReport?.policyID}`];
-
-        return (
-            !currentTransaction ||
-            isSplitAction(
-                currentItemReport,
-                [currentTransaction],
-                originalTransaction,
-                currentUserPersonalDetails.login ?? '',
-                currentUserPersonalDetails.accountID,
-                rules,
-                getLoginByAccountID(currentItemReport?.ownerAccountID, personalDetails),
-                currentItemPolicy,
-                parentReport,
-            )
-        );
-    };
-
     const isSplitAvailable =
         report &&
         transaction &&
@@ -212,6 +191,22 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
+
+    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs({
+        splitExpenses,
+        allTransactions,
+        allReports,
+        fallbackReport: report,
+        searchResultsData: currentSearchResults?.data,
+        originalTransaction,
+        currentUserLogin: currentUserPersonalDetails.login ?? '',
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        rules,
+        personalDetails,
+        allPolicies,
+        parentReport,
+    });
+    const frozenSplitsContext = {frozenSplitTransactionIDs, searchResultsData: currentSearchResults?.data};
 
     useEffect(() => {
         setErrorMessage('');
@@ -261,7 +256,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     let isUnitRateIDOutOfPolicy = false;
     for (const splitExpense of splitExpenses) {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpense.transactionID)}`] ?? transaction;
-        const isEditable = isSplitExpenseEditable(splitExpense);
+        const isEditable = !frozenSplitTransactionIDs.has(splitExpense.transactionID);
         if (!splitTransaction || !isEditable) {
             continue;
         }
@@ -313,6 +308,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getCurrencySymbol,
             getCurrencyDecimals,
             allPolicies,
+            frozenSplitsContext,
         );
     };
 
@@ -449,6 +445,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
+                frozenSplitsContext,
             );
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
@@ -462,6 +459,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
+                frozenSplitsContext,
             );
         }
     };
@@ -517,7 +515,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             onSplitExpenseValueChange,
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
-            isEditable: isSplitExpenseEditable(item),
+            isEditable: !frozenSplitTransactionIDs.has(item.transactionID),
             isAmountEditable: !isZeroTotalDistanceSplit,
         };
     });
