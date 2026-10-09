@@ -35,7 +35,6 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {rand64} from '@libs/NumberUtils';
 import openExternalLink from '@libs/openExternalLink';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
@@ -72,7 +71,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
-import type {Report, TryNewDot} from '@src/types/onyx';
+import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1440,7 +1439,7 @@ function updateAuthToken(authToken?: string, encryptedAuthToken?: string) {
 
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
     updateAuthToken(authToken, encryptedAuthToken);
-    return openApp().then(() => API.waitForWrites(WRITE_COMMANDS.OPEN_APP));
+    openApp();
 }
 
 function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean, options: ValidateTwoFactorAuthOptions = {}) {
@@ -1663,13 +1662,8 @@ type AddWorkEmailFormID = typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typ
  * @param formID the form that submitted the request. Its loading state and errors follow the request, so the submit button stops spinning and the failure
  * renders inline. Defaults to the onboarding form, which is where this action is called from during onboarding.
  */
-function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID | OnyxEntry<Report> = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM) {
-    const isOnboardingFlow = typeof formIDOrTaskReport !== 'string' || formIDOrTaskReport === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
-    const formID = typeof formIDOrTaskReport === 'string' ? formIDOrTaskReport : ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
-    const addWorkEmailTaskReport = typeof formIDOrTaskReport === 'string' ? undefined : formIDOrTaskReport;
-    // Auth completes direct additions and MergeIntoAccountAndLogin completes existing-account additions. Both commands
-    // need the same client-generated action ID, but AddWorkEmail must not complete the task before a required merge.
-    const completedTaskReportActionID = addWorkEmailTaskReport ? rand64() : undefined;
+function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM) {
+    const isOnboardingFlow = formID === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
 
     const optimisticData: Array<OnyxUpdate<AddWorkEmailFormID | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = isOnboardingFlow
         ? [
@@ -1679,7 +1673,6 @@ function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID 
                   value: {
                       onboardingWorkEmail: workEmail,
                       isLoading: true,
-                      completedTaskReportActionID: completedTaskReportActionID ?? null,
                   },
               },
               {
@@ -1691,7 +1684,7 @@ function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID 
         : [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
-                  key: formID,
+                  key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
                   value: {
                       isLoading: true,
                       errorFields: null,
@@ -1713,7 +1706,7 @@ function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID 
             : [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
-                      key: formID,
+                      key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
                       value: {
                           isLoading: false,
                       },
@@ -1724,7 +1717,7 @@ function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
-        {workEmail, completedTaskReportActionID},
+        {workEmail},
         {
             optimisticData,
             successData: getLoadingFinishedData(),
@@ -1747,7 +1740,7 @@ function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID 
         // Outside of onboarding we show the failure on the form the user is looking at, instead of writing onboarding-only state that the caller doesn't render.
         // The backend also rejects this command with errors we have no specific copy for (e.g. a 403), so fall back to a generic message rather than showing nothing.
         if (!isOnboardingFlow) {
-            setErrorFields(formID, {
+            setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
                 [ADD_WORK_EMAIL_INPUT_IDS.EMAIL]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey ?? 'common.genericErrorMessage'),
             });
             return;
@@ -1762,14 +1755,11 @@ function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID 
         if (response?.message === CONST.WORK_DOMAIN_CONTROLLED_ERROR || response?.title === CONST.WORK_DOMAIN_CONTROLLED_ERROR) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
         }
-        if (addWorkEmailTaskReport && response?.message === CONST.WORK_EMAIL_VALIDATED_PUBLIC_DOMAIN_ERROR) {
-            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle');
-        }
         Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
     });
 }
 
-function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined, completedTaskReportActionID?: string) {
+function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1821,9 +1811,9 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
     ];
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(
+    API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
-        {workEmail, validateCode, accountID, completedTaskReportActionID},
+        {workEmail, validateCode, accountID},
         {
             optimisticData,
             successData,
@@ -1837,27 +1827,18 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
             } else {
                 Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
             }
-            return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
+            return;
         }
-
-        const responseOnyxData = response?.onyxData as Array<{key: string; value?: unknown}> | undefined;
-        const onboardingUpdate = responseOnyxData?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING);
-        const shouldRedirectToClassicAfterMerge =
-            !!onboardingUpdate?.value && typeof onboardingUpdate.value === 'object' && 'shouldRedirectToClassicAfterMerge' in onboardingUpdate.value
-                ? onboardingUpdate.value.shouldRedirectToClassicAfterMerge === true
-                : false;
-        const conciergeReportUpdate = responseOnyxData?.find((update) => update.key === ONYXKEYS.CONCIERGE_REPORT_ID);
-        const conciergeReportID = typeof conciergeReportUpdate?.value === 'string' ? conciergeReportUpdate.value : undefined;
 
         // When the action is successful, we need to update the new authToken and encryptedAuthToken
         // This action needs to be synchronous as the user will be logged out due to middleware if old authToken is used
         // For more information see the slack discussion: https://expensify.slack.com/archives/C08CZDJFJ77/p1742838796040369
         return SequentialQueue.waitForIdle().then(() => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
-                return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
+                return;
             }
 
-            return updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken).then(() => ({didMerge: true, shouldRedirectToClassicAfterMerge, conciergeReportID}));
+            updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
         });
     });
 }
