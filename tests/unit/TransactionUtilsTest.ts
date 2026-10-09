@@ -6168,6 +6168,30 @@ describe('isFailedScanAmountPlaceholder for zero-amount Scans', () => {
         expect(TransactionUtils.isFailedScanAmountPlaceholder(transaction)).toBe(true);
     });
 
+    it('keeps a failed Scan amount missing while the expense is deleted', () => {
+        // Given a deleted failed Scan whose unset amount is still stored as zero
+        const transaction = generateTransaction({...openScan, receipt: {...openScan.receipt, state: CONST.IOU.RECEIPT_STATE.DELETED}});
+
+        // When the deleted transaction amount is classified
+        const isPlaceholder = TransactionUtils.isFailedScanAmountPlaceholder(transaction);
+
+        // Then it remains a missing amount instead of becoming an explicit zero
+        expect(isPlaceholder).toBe(true);
+        expect(TransactionUtils.isAmountMissing(transaction)).toBe(true);
+    });
+
+    it('keeps an explicitly entered zero visible while the Scan expense is deleted', () => {
+        // Given a deleted Scan whose zero amount was explicitly confirmed
+        const transaction = generateTransaction({...openScan, modifiedAmount: 0, receipt: {...openScan.receipt, state: CONST.IOU.RECEIPT_STATE.DELETED}});
+
+        // When the deleted transaction amount is classified
+        const isPlaceholder = TransactionUtils.isFailedScanAmountPlaceholder(transaction);
+
+        // Then the confirmed zero is not treated as a missing amount
+        expect(isPlaceholder).toBe(false);
+        expect(TransactionUtils.isAmountMissing(transaction)).toBe(false);
+    });
+
     it('shows the zero amount after the report is settled', () => {
         // Given a failed Scan whose zero amount is still represented as a placeholder on the transaction
         const transaction = generateTransaction({...openScan, receipt: {...openScan.receipt, state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}});
