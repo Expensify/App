@@ -174,7 +174,7 @@ function TagPicker({
     const textInputOptions = {
         value: searchValue,
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, (sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
         label: translate('common.search'),
         // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
         disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),

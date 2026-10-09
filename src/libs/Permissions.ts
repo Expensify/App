@@ -6,16 +6,16 @@ import type BetaOverrides from '@src/types/onyx/BetaOverrides';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isProduction} from './Environment/Environment';
+import type Environment from './Environment/getEnvironment/types';
 
-// Start from the synchronous config so overrides never apply in production, then refine with the resolved
-// environment, which downgrades TestFlight builds to staging
-let isProductionEnvironment = CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION;
-isProduction()
-    .then((value) => {
-        isProductionEnvironment = value;
-    })
-    .catch(() => {});
+/**
+ * Overrides are a test tool, so they never apply in production.
+ * Android staging and TestFlight are compiled as production, so only the resolved environment tells a real production
+ * build apart from those. It is passed in because it arrives after startup.
+ */
+function canApplyBetaOverrides(environment: Environment): boolean {
+    return !(CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION && environment === CONST.ENVIRONMENT.PRODUCTION);
+}
 
 // eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
@@ -29,9 +29,9 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-/** The configuration and the overrides are required so that no call site can skip them by accident. */
-function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>, betaOverrides: OnyxEntry<BetaOverrides>): boolean {
-    if (!isProductionEnvironment) {
+/** The configuration, the overrides and the environment are required so that no call site can skip them by accident. */
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>, betaOverrides: OnyxEntry<BetaOverrides>, environment: Environment): boolean {
+    if (canApplyBetaOverrides(environment)) {
         const override = betaOverrides?.[beta];
         if (override !== undefined) {
             return override;
@@ -66,9 +66,12 @@ function canUsePrivateNotes(): boolean {
     return false;
 }
 
+// usePermissions calls every member of this object with no arguments, so only no-argument checks belong here
 export default {
     canUseLinkPreviews,
     canUseTrackFlows,
     canUsePrivateNotes,
     isBetaEnabled,
 };
+
+export {canApplyBetaOverrides};

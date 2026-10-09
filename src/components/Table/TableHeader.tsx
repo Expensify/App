@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -72,6 +73,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {pageGutterMargin} = useLayoutSpacing();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -132,7 +134,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         <View
             style={[
                 styles.pv2,
-                styles.mh5,
+                pageGutterMargin,
                 // Same expression as the rows, so headings stay aligned with their cells.
                 !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
                 styles.highlightBG,
@@ -147,7 +149,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
-                // Grid with `space-between` would spread a narrowed column's leftover room between tracks, so pack to the start like the rows.
+                // Overrides the flex fallback's `justifyContentBetween`, which would spread a narrowed column's leftover room between grid tracks.
                 !!dynamicGridTemplateColumns && !shouldUseNarrowTableLayout && styles.justifyContentStart,
                 // Resize lines hang below the header, so keep them above the rows.
                 !!columnResize && styles.zIndex1,

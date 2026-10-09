@@ -2,7 +2,9 @@
  * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
  * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
  */
-import getDraggedColumnWidth from '@components/Table/columnResize/columnResizeGestures';
+import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColumnWidth';
+
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
 
@@ -25,7 +27,6 @@ function getHandleStyle(columnGap: number): React.CSSProperties {
         bottom: 0,
         right: -(columnGap / 2 + CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH / 2),
         width: CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH,
-        cursor: CONST.TABLES.COLUMN_RESIZE.CURSOR,
         // Centres the grip and the line on the column edge.
         display: 'flex',
         justifyContent: 'center',
@@ -45,6 +46,7 @@ type Drag = {
 };
 
 function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, dragMinWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
+    const styles = useThemeStyles();
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
     const {revealIndicator, hideIndicator} = useResizeIndicator(scopeElementRef);
@@ -90,7 +92,8 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
             startClientX: event.clientX,
             startWidth: readColumnWidth(columnKey) ?? 0,
         };
-        document.body.style.cursor = CONST.TABLES.COLUMN_RESIZE.CURSOR;
+        // On the whole page mid-drag, so the cursor doesn't flicker once the pointer outruns the handle.
+        document.body.style.cursor = styles.cursorColResize.cursor ?? '';
     };
 
     const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -156,7 +159,7 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         return {
-            style: getHandleStyle(columnGap),
+            style: {...getHandleStyle(columnGap), ...styles.cursorColResize},
             ref: trackHeadingHover,
             onPointerDown: (event) => handlePointerDown(columnKey, event),
             onPointerMove: handlePointerMove,
