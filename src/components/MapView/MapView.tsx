@@ -163,7 +163,8 @@ function MapView({
                 }
                 cameraRef.current?.setCamera({
                     zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
-                    animationMode: 'none',
+                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
                     centerCoordinate: [currentPositionLongitude, currentPositionLatitude],
                 });
                 return;
