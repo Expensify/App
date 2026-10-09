@@ -766,7 +766,7 @@ describe('actions/IOU', () => {
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
-                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, amount: 1000, created: '2024-01-01'}],
                     splitExpensesTotal: 1000,
                 },
             });
@@ -794,8 +794,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'new-tx-1', reportID: 'other-report-1', statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-2', reportID: 'other-report-2', statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-1', reportID: 'other-report-1', amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: 'other-report-2', amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
@@ -828,8 +828,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
@@ -867,9 +867,9 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'existing-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-3', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-4', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'existing-tx-2', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-3', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-4', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1500,
                 },
@@ -901,7 +901,7 @@ describe('actions/IOU', () => {
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
-                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, amount: 1000, created: '2024-01-01'}],
                     splitExpensesTotal: 1000,
                 },
             });
@@ -923,8 +923,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'new-search-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-search-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-search-tx-1', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-search-tx-2', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
@@ -948,8 +948,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'new-inbox-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-inbox-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-inbox-tx-1', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-inbox-tx-2', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
@@ -981,8 +981,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'moved-tx-1', reportID: 'other-report-1', statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'moved-tx-2', reportID: 'other-report-2', statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'moved-tx-1', reportID: 'other-report-1', amount: 500, created: '2024-01-01'},
+                        {transactionID: 'moved-tx-2', reportID: 'other-report-2', amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
