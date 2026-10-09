@@ -7433,7 +7433,7 @@ function setPolicyPreventPayoutNonReimbursableReports(policyID: string, preventP
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                preventPayoutNonReimbursableReports: preventPayoutNonReimbursableReports ?? null,
+                preventPayoutNonReimbursableReports: preventPayoutNonReimbursableReports,
                 pendingFields: {
                     preventPayoutNonReimbursableReports: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
