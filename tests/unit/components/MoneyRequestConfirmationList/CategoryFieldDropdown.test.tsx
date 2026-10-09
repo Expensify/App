@@ -4,10 +4,12 @@ import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFiel
 import CategoryFieldDropdown from '@components/MoneyRequestConfirmationList/sections/CategoryFieldDropdown';
 
 import Navigation from '@libs/Navigation/Navigation';
-import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
+import type TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as ReactNative from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -25,7 +27,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 // Holds the post-transition work until the test runs it, standing in for the pop-over finishing its close.
 let mockRunPendingTransition: (() => void) | undefined;
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
-    runAfterTransitions: ({callback}: {callback: () => void}): CancelHandle => {
+    runAfterTransitions: ({callback}: Parameters<typeof TransitionTracker.runAfterTransitions>[0]): ReturnType<typeof TransitionTracker.runAfterTransitions> => {
         mockRunPendingTransition = callback;
         return {cancel: () => {}};
     },
@@ -34,8 +36,7 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 jest.mock('@hooks/useUpdateTransactionCategory', () => () => ({updateCategory: jest.fn()}));
 
 jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
-    const {Pressable, Text} =
-        jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityLabel?: string}>>>('react-native');
+    const {Pressable, Text} = jest.requireActual<typeof ReactNative>('react-native');
     return ({onAddCategory}: {onAddCategory?: () => void}) =>
         onAddCategory ? (
             <Pressable

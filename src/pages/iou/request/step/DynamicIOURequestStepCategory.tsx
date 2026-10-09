@@ -110,7 +110,7 @@ function DynamicIOURequestStepCategory({
                       if (!policyID || !reportID) {
                           return;
                       }
-                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute({action, iouType, transactionID, reportID})));
+                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path));
                   },
               },
           ]

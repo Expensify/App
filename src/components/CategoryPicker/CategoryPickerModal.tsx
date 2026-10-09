@@ -31,6 +31,9 @@ import {View} from 'react-native';
 
 import CategoryPicker from '.';
 
+/** Height of the add-category header the list shows above its options. Shared with the row sizing the container, so the two never disagree. */
+const CATEGORY_PICKER_HEADER_HEIGHT = variables.componentSizeNormal;
+
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -97,7 +100,7 @@ function CategoryPickerModal({
 
     const categoriesCount = policyCategories ?? 0;
     const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const headerHeight = onAddCategory ? variables.componentSizeNormal : 0;
+    const headerHeight = onAddCategory ? CATEGORY_PICKER_HEADER_HEIGHT : 0;
     const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable}) + headerHeight;
 
     // A bottom sheet is sized by the screen, so the content estimate only applies to the pop-over.
@@ -167,3 +170,4 @@ function CategoryPickerModal({
 }
 
 export default CategoryPickerModal;
+export {CATEGORY_PICKER_HEADER_HEIGHT};
