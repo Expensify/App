@@ -129,7 +129,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
-import {linkingConfig} from './Navigation/linkingConfig';
+import linkingPrefixes from './Navigation/linkingConfig/prefixes';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import {getDBTimeWithSkew, getServerAnchoredDBTime} from './NetworkState';
 import {rand64} from './NumberUtils';
@@ -11316,7 +11316,7 @@ function getRouteFromLink(url: string | null): string {
     // Get the reportID from URL
     let route = url;
     const localWebAndroidRegEx = /^(https:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
-    for (const prefix of linkingConfig.prefixes) {
+    for (const prefix of linkingPrefixes) {
         if (route.startsWith(prefix)) {
             route = route.replace(prefix, '');
         } else if (localWebAndroidRegEx.test(route)) {
