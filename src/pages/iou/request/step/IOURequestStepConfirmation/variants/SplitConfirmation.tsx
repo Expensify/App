@@ -7,7 +7,7 @@ import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/Subm
 
 import CONST from '@src/CONST';
 
-import React, {useEffect} from 'react';
+import React from 'react';
 
 import type {ConfirmationVariantProps} from './types';
 
@@ -31,13 +31,6 @@ function SplitConfirmation({submissionParams, orchestratorProps, listProps}: Con
         submitLock,
     } = submissionParams;
     const {isSelfDMDestination} = orchestratorProps;
-
-    // TEMP: remount check for the per-path split - remove before merge.
-    useEffect(() => {
-        console.log('[ConfirmationVariant] SplitConfirmation mounted', transaction?.transactionID);
-        return () => console.log('[ConfirmationVariant] SplitConfirmation unmounted');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const {transactionTaxCode, transactionTaxAmount, transactionTaxValue} = getTransactionTaxValues({
         transaction,

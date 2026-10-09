@@ -67,7 +67,6 @@ import ReceiptFileValidator from '@pages/iou/request/step/confirmation/ReceiptFi
 import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
 import {resolveSubmissionPath, SUBMISSION_PATH} from '@pages/iou/request/step/confirmation/submission/utils/resolveSubmissionPath';
 import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
-import type {UseExpenseSubmissionParams} from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 
@@ -87,17 +86,18 @@ import React, {startTransition, useCallback, useEffect, useMemo, useState} from 
 import {View} from 'react-native';
 
 import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
-import type {ConfirmationVariantProps} from './variants/types';
+import type {ConfirmationSubmissionParams, ConfirmationVariantProps} from './variants/types';
 
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
 import useParticipantPickerState from './useParticipantPickerState';
 import useSubmitDestinationPreMount from './useSubmitDestinationPreMount';
 import DistanceConfirmation from './variants/DistanceConfirmation';
 import InvoiceConfirmation from './variants/InvoiceConfirmation';
-import LegacyConfirmation from './variants/LegacyConfirmation';
 import PayConfirmation from './variants/PayConfirmation';
 import PerDiemConfirmation from './variants/PerDiemConfirmation';
+import RequestMoneyConfirmation from './variants/RequestMoneyConfirmation';
 import SplitConfirmation from './variants/SplitConfirmation';
+import TrackConfirmation from './variants/TrackConfirmation';
 
 function IOURequestStepConfirmationContent({
     report: reportReal,
@@ -410,7 +410,13 @@ function IOURequestStepConfirmationContent({
             formHasBeenSubmitted,
         });
 
-    const submissionParams: UseExpenseSubmissionParams = {
+    // "Submit to my employer" with no existing workspace creates a draft Submit (submit2026) workspace. Route it
+    // through trackExpense (AddTrackedExpenseToPolicy) so the workspace is created and the expense submitted
+    // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
+    // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
+    const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+
+    const submissionParams: ConfirmationSubmissionParams = {
         reportDrafts,
         transaction,
         transactions,
@@ -436,6 +442,7 @@ function IOURequestStepConfirmationContent({
         isSharingTrackExpense,
         isUnreported,
         isPolicyExpenseChat,
+        isSubmittingExpenseToDraftWorkspace,
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
@@ -443,9 +450,7 @@ function IOURequestStepConfirmationContent({
         submitLock,
     };
 
-    // "Submit to my employer" with no existing workspace creates a draft Submit workspace, submitted through trackExpense.
-    // Mirrors the same check in useExpenseSubmission; one of them goes away with that composer.
-    const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
+    // Which API command this confirmation submits through - it decides which variant renders below.
     const submissionPath = resolveSubmissionPath({
         iouType,
         action,
@@ -721,9 +726,17 @@ function IOURequestStepConfirmationContent({
                         listProps={listProps}
                     />
                 );
+            case SUBMISSION_PATH.TRACK:
+                return (
+                    <TrackConfirmation
+                        submissionParams={submissionParams}
+                        orchestratorProps={orchestratorProps}
+                        listProps={listProps}
+                    />
+                );
             default:
                 return (
-                    <LegacyConfirmation
+                    <RequestMoneyConfirmation
                         submissionParams={submissionParams}
                         orchestratorProps={orchestratorProps}
                         listProps={listProps}

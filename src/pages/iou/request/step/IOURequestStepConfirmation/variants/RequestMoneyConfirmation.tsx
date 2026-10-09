@@ -1,10 +1,10 @@
-import DistanceConfirmationList from '@components/MoneyRequestConfirmationList/variants/DistanceConfirmationList';
+import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
 import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
-import useDistanceSubmission from '@pages/iou/request/step/confirmation/submission/useDistanceSubmission';
+import useRequestMoneySubmission from '@pages/iou/request/step/confirmation/submission/useRequestMoneySubmission';
 import getTransactionTaxValues from '@pages/iou/request/step/confirmation/submission/utils/getTransactionTaxValues';
 import guardSubmission from '@pages/iou/request/step/confirmation/submission/utils/guardSubmission';
 import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
@@ -15,12 +15,16 @@ import React from 'react';
 
 import type {ConfirmationVariantProps} from './types';
 
-/** Confirms a distance expense (map, manual, odometer or GPS), submitting through CreateDistanceRequest. */
-function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
+/**
+ * Confirms an expense submitted through RequestMoney: manual, scan and time expenses, plus the paths that fall
+ * through the others (e.g. a distance or per diem expense moved off a track expense).
+ */
+function RequestMoneyConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
     const {
         transaction,
         transactions,
         receiptFiles,
+        canEnterScanFieldsManually,
         report,
         reportDrafts,
         policy,
@@ -30,13 +34,18 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
         participants,
         iouType,
         action,
+        isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
         isPerDiemRequest,
         isTimeRequest,
+        isMovingTransactionFromTrackExpense,
+        isCategorizingTrackExpense,
+        isSharingTrackExpense,
         isUnreported,
         isPolicyExpenseChat,
         draftTransactionIDs,
+        privateIsArchivedMap,
         backToReport,
         onExpenseWriteWillStart,
         submitLock,
@@ -50,15 +59,16 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
         isUnreported,
         isTrackExpense: iouType === CONST.IOU.TYPE.TRACK,
         isSelfDMDestination,
-        isDistanceRequest: true,
+        isDistanceRequest,
         isPerDiemRequest,
         isTimeRequest,
     });
 
-    const distanceSubmission = useDistanceSubmission({
+    const requestMoneySubmission = useRequestMoneySubmission({
         transaction,
         transactions,
         receiptFiles,
+        canEnterScanFieldsManually,
         report,
         reportDrafts,
         policy,
@@ -67,28 +77,31 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
         currentUserPersonalDetails,
         selectedParticipants: participants.filter((participant) => participant.selected),
         iouType,
+        action,
         isGPSDistanceRequest: isGPSDistanceRequestTransactionUtils(transaction),
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
+        isTimeRequest,
+        isMovingTransactionFromTrackExpense,
+        isCategorizingTrackExpense,
+        isSharingTrackExpense,
+        isSelfDMDestination,
+        draftTransactionIDs,
+        privateIsArchivedMap,
+        backToReport,
         transactionTaxCode,
         transactionTaxAmount,
         transactionTaxValue,
-        backToReport,
-        draftTransactionIDs,
-        isSelfDMDestination,
-        action,
         onExpenseWriteWillStart,
     });
 
     // Only a workspace destination can enforce a workspace's distance rules.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: isPolicyExpenseChat ? policy?.id : undefined,
-        isDistanceRequest: true,
+        isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
     });
 
-    const createTransaction = guardSubmission(submitLock, distanceSubmission.createTransaction, blockDistanceRequestIfNeeded);
+    const createTransaction = guardSubmission(submitLock, requestMoneySubmission.createTransaction, blockDistanceRequestIfNeeded);
 
     return (
         <SubmitExpenseOrchestrator
@@ -96,7 +109,7 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
             createTransaction={createTransaction}
         >
             {({onConfirm, isConfirming}) => (
-                <DistanceConfirmationList
+                <MoneyRequestConfirmationList
                     {...listProps}
                     onConfirm={onConfirm}
                     isConfirming={isConfirming}
@@ -106,4 +119,4 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
     );
 }
 
-export default DistanceConfirmation;
+export default RequestMoneyConfirmation;
