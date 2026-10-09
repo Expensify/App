@@ -13,6 +13,7 @@ import {
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
+    canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
     getVendorDisplayName,
@@ -23,6 +24,7 @@ import {
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getConnectedIntegration,
+    getConnectionExporters,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
@@ -43,8 +45,10 @@ import {
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getPolicyApproverLogins,
+    hasActiveExpensifyCard,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
+    getPolicyForAssignedCard,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
     getOwnerChangePayerSuccessData,
@@ -60,6 +64,10 @@ import {
     findPolicyTagAtLevel,
     findPolicyTagEntryByParentFilter,
     getTagGLCode,
+    getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
+    getTagLists,
+    isMultiLevelTags,
     isTagInPolicy,
     matchesParentTagPath,
     matchesParentTagsFilter,
@@ -90,6 +98,7 @@ import {
     isMaxExpenseAmountSet,
     isMemberInHomeAndOfficeWorkspace,
     isMergeHRCompleteSetupNeededSelector,
+    isNonMemberApprover,
     isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
@@ -105,6 +114,7 @@ import {
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
+    getDefaultVendorID,
     sortVendors,
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -325,360 +335,484 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('canMemberRead and canMemberWrite', () => {
-        const memberLogin = 'member@test.com';
-        const buildPolicy = (role: Policy['role']): Policy =>
-            createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                role,
-                employeeList: {
-                    [memberLogin]: {
-                        role,
+    describe('policyType', () => {
+        describe('isArchivedPolicy', () => {
+            it('returns true when the policy has an archivedDate', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), archivedDate: '2024-01-01'};
+
+                expect(isArchivedPolicy(policy)).toBe(true);
+            });
+
+            it('returns false when the policy has no archivedDate', () => {
+                const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE);
+
+                expect(isArchivedPolicy(policy)).toBe(false);
+            });
+
+            it('returns false for an undefined policy', () => {
+                expect(isArchivedPolicy(undefined)).toBe(false);
+            });
+        });
+
+        describe('isSubmitterApproveBlockedOnSubmitWorkspace', () => {
+            const submitPolicy: Policy = {...createRandomPolicy(99000, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-approve-block-test'};
+            const teamPolicy: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.TEAM), id: 'policy-team-approve-block-test'};
+            const submitterAccountID = 100;
+
+            it('returns true when policy is Submit and the approver is the report owner', () => {
+                expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, submitterAccountID, submitterAccountID)).toBe(true);
+            });
+
+            it('returns false when policy is Submit and the approver is not the report owner', () => {
+                expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, submitterAccountID, approverAccountID)).toBe(false);
+            });
+
+            it('returns false when policy is not Submit even if the approver is the report owner', () => {
+                expect(isSubmitterApproveBlockedOnSubmitWorkspace(teamPolicy, submitterAccountID, submitterAccountID)).toBe(false);
+            });
+
+            it('returns false when report owner account ID is undefined', () => {
+                expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, undefined, submitterAccountID)).toBe(false);
+            });
+        });
+    });
+
+    describe('canUnarchivePolicy', () => {
+        it('returns true for the owner of an archived workspace when the beta is enabled', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, true)).toBe(true);
+        });
+
+        it('returns false when the beta is disabled', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, false)).toBe(false);
+        });
+
+        it('returns false when the workspace is not archived', () => {
+            expect(canUnarchivePolicy(false, ownerAccountID, ownerAccountID, true)).toBe(false);
+        });
+
+        it('returns false when the current user is not the owner', () => {
+            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID + 1, true)).toBe(false);
+        });
+
+        it('returns false when the owner is unknown', () => {
+            expect(canUnarchivePolicy(true, undefined, ownerAccountID, true)).toBe(false);
+        });
+    });
+
+    describe('permissions', () => {
+        describe('canMemberRead and canMemberWrite', () => {
+            const memberLogin = 'member@test.com';
+            const buildPolicy = (role: Policy['role']): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role,
+                    employeeList: {
+                        [memberLogin]: {
+                            role,
+                        },
                     },
-                },
+                });
+
+            it('allows write access to satisfy read access', () => {
+                expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(true);
             });
 
-        it('allows write access to satisfy read access', () => {
-            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(true);
-        });
+            it('denies access when the role does not have the feature', () => {
+                expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+            });
 
-        it('denies access when the role does not have the feature', () => {
-            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
-        });
-
-        it('uses the requested member role when login is provided', () => {
-            const policy = {
-                ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
-                employeeList: {
-                    'member@test.com': {
-                        role: CONST.POLICY.ROLE.USER,
+            it('uses the requested member role when login is provided', () => {
+                const policy = {
+                    ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+                    employeeList: {
+                        'member@test.com': {
+                            role: CONST.POLICY.ROLE.USER,
+                        },
                     },
-                },
-            };
+                };
 
-            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
-        });
-
-        it('allows admins to write every policy feature', () => {
-            const policy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
-
-            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
-                expect(canMemberWrite(policy, memberLogin, feature)).toBe(true);
-            }
-        });
-
-        it('does not allow editors to assign elevated roles', () => {
-            const policy = buildPolicy(CONST.POLICY.ROLE.EDITOR);
-
-            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
-            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
-        });
-
-        it('allows auditors to read but not write every policy feature', () => {
-            const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
-
-            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
-                expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
-                expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
-            }
-        });
-
-        it('limits scoped admins to their assigned write features', () => {
-            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS)).toBe(true);
-            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(false);
-            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)).toBe(true);
-            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
-        });
-
-        it('limits People Admin member role management to members and auditors', () => {
-            const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
-
-            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
-            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
-            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
-            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
-            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
-            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
-        });
-
-        it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
-            const policy = {
-                ...buildPolicy(CONST.POLICY.ROLE.EDITOR),
-                type: CONST.POLICY.TYPE.SUBMIT,
-            };
-
-            expect(canMemberManageMemberWithRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(true);
-            expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(false);
-        });
-
-        it('denies write access to an archived policy even for admins', () => {
-            const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
-
-            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
-        });
-
-        it('denies workspace settings edit access to an archived policy even for admins', () => {
-            const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
-
-            expect(canEditWorkspaceSettings(policy, memberLogin)).toBe(false);
-        });
-    });
-
-    describe('isArchivedPolicy', () => {
-        it('returns true when the policy has an archivedDate', () => {
-            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), archivedDate: '2024-01-01'};
-
-            expect(isArchivedPolicy(policy)).toBe(true);
-        });
-
-        it('returns false when the policy has no archivedDate', () => {
-            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE);
-
-            expect(isArchivedPolicy(policy)).toBe(false);
-        });
-
-        it('returns false for an undefined policy', () => {
-            expect(isArchivedPolicy(undefined)).toBe(false);
-        });
-    });
-
-    describe('isPolicyAdmin', () => {
-        const adminLogin = 'admin@test.com';
-        const memberLogin = 'member@test.com';
-        // `role` is the role of the user currently viewing the policy, `employeeList` holds every member's own role
-        const buildPolicy = (): Policy =>
-            createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                role: CONST.POLICY.ROLE.ADMIN,
-                employeeList: {
-                    [adminLogin]: {role: CONST.POLICY.ROLE.ADMIN},
-                    [memberLogin]: {role: CONST.POLICY.ROLE.USER},
-                },
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
             });
 
-        it('resolves the role of the passed login when shouldCheckGlobalPolicyRole is false', () => {
-            // Given a policy viewed by an admin, holding one admin and one regular member in its employee list
-            // When the role of each login is resolved without the global policy role
-            // Then each login resolves to its own role, not the viewer's
-            expect(isPolicyAdmin(buildPolicy(), memberLogin, false)).toBe(false);
-            expect(isPolicyAdmin(buildPolicy(), adminLogin, false)).toBe(true);
-        });
+            it('allows admins to write every policy feature', () => {
+                const policy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
 
-        it('ignores the passed login and answers for the viewing user by default', () => {
-            // Given a policy viewed by an admin, holding a regular member in its employee list
-            // When the member's role is resolved with the default shouldCheckGlobalPolicyRole
-            // Then the check short-circuits on the viewer's role and reports the member as an admin. This documents the
-            // trap that made every member of a workspace chat look like an admin to a viewing admin, which disabled the
-            // "Remove from chat" button for all of them
-            expect(isPolicyAdmin(buildPolicy(), memberLogin)).toBe(true);
-        });
-
-        it('returns false for a login that is not in the employee list when shouldCheckGlobalPolicyRole is false', () => {
-            // Given a policy that does not list the passed login as an employee
-            // When that login's role is resolved without the global policy role
-            // Then it does not resolve to an admin
-            expect(isPolicyAdmin(buildPolicy(), 'stranger@test.com', false)).toBe(false);
-        });
-
-        it('returns false for an undefined login when shouldCheckGlobalPolicyRole is false', () => {
-            // Given a member whose login could not be resolved
-            // When their role is resolved without the global policy role
-            // Then it does not resolve to an admin
-            expect(isPolicyAdmin(buildPolicy(), undefined, false)).toBe(false);
-        });
-
-        it('matches an employee whose login is not lowercase when shouldCheckGlobalPolicyRole is false', () => {
-            // Given an employee list keyed by canonical lowercase logins
-            // When a mixed-case login read off personal details is resolved without the global policy role
-            // Then it still matches the employee entry through the normalized fallback
-            expect(isPolicyAdmin(buildPolicy(), 'Admin@Test.com', false)).toBe(true);
-            expect(isPolicyAdmin(buildPolicy(), 'Member@Test.com', false)).toBe(false);
-        });
-
-        it('prefers an exact employee list key over the normalized one', () => {
-            // Given an employee list holding both a mixed-case and a lowercase key with different roles
-            const policy = createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                employeeList: {
-                    'Mixed@Test.com': {role: CONST.POLICY.ROLE.ADMIN},
-                    'mixed@test.com': {role: CONST.POLICY.ROLE.USER},
-                },
+                for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(true);
+                }
             });
 
-            // When each key is resolved without the global policy role
-            // Then the exact key wins, so the normalized fallback can never regress an existing hit
-            expect(isPolicyAdmin(policy, 'Mixed@Test.com', false)).toBe(true);
-            expect(isPolicyAdmin(policy, 'mixed@test.com', false)).toBe(false);
-        });
+            it('does not allow editors to assign elevated roles', () => {
+                const policy = buildPolicy(CONST.POLICY.ROLE.EDITOR);
 
-        it('stops at the exact employee list key even when that entry carries no role', () => {
-            // Given an employee list where the exact mixed-case key exists without a role, next to an admin entry
-            // under the normalized key. `role` is optional on PolicyEmployee, so this is representable
-            const policy = createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                employeeList: {
-                    'Mixed@Test.com': {},
-                    'mixed@test.com': {role: CONST.POLICY.ROLE.ADMIN},
-                },
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
             });
 
-            // When the mixed-case login is resolved without the global policy role
-            // Then the exact entry still wins and resolves to no role, rather than borrowing the other entry's role.
-            // Reading one account's role off a different account's entry is the failure this check exists to prevent
-            expect(isPolicyAdmin(policy, 'Mixed@Test.com', false)).toBe(false);
-        });
-    });
+            it('allows auditors to read every policy feature but write only rooms', () => {
+                const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 
-    describe('isRoomMemberProtectedByPolicyRole', () => {
-        const adminLogin = 'admin@test.com';
-        const memberLogin = 'member@test.com';
-        const policyOwnerAccountID = 3001;
-        const regularMemberAccountID = 3002;
-        // `role` is the role of the user currently viewing the policy, `employeeList` holds every member's own role
-        const buildPolicy = (): Policy =>
-            createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                role: CONST.POLICY.ROLE.ADMIN,
-                ownerAccountID: policyOwnerAccountID,
-                employeeList: {
-                    [adminLogin]: {role: CONST.POLICY.ROLE.ADMIN},
-                    [memberLogin]: {role: CONST.POLICY.ROLE.USER},
-                },
+                for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                    expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS);
+                }
             });
 
-        it('protects a member who is an admin of the policy in their own right', () => {
-            // Given a policy viewed by an admin, holding another admin in its employee list
-            // When that member's protection is resolved
-            // Then they are protected, because removing a workspace admin from the chat is not allowed
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), adminLogin, undefined)).toBe(true);
-        });
+            it('allows guests to read only the workspace overview', () => {
+                const policy = buildPolicy(CONST.POLICY.ROLE.GUEST);
 
-        it('does not protect a regular member even when the viewing user is an admin', () => {
-            // Given a policy whose global `role` marks the viewer as an admin, holding a regular member
-            // When that member's protection is resolved
-            // Then they are not protected, because the listed member's own role is what counts. This is the bug that
-            // made every member of a workspace chat un-removable to a viewing admin
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), memberLogin, undefined)).toBe(false);
-        });
-
-        it('fails closed for a member whose login is missing', () => {
-            // Given a room member with personal details but no login, which `login?: string` allows
-            // When their protection is resolved
-            // Then they are protected, because a role we cannot resolve must not be treated as "not an admin".
-            // Both the members list and the member details page depend on this branch to avoid offering removal
-            // for a member who may well be a workspace admin
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), undefined, undefined)).toBe(true);
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), '', undefined)).toBe(true);
-        });
-
-        it('does not protect a member who is absent from the employee list', () => {
-            // Given a login that the policy does not list as an employee
-            // When their protection is resolved
-            // Then they are not protected, since a resolvable login that holds no policy role is not an admin
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'stranger@test.com', undefined)).toBe(false);
-        });
-
-        it('protects an admin whose login is not lowercase', () => {
-            // Given an employee list keyed by canonical lowercase logins
-            // When a mixed-case login read off personal details is resolved
-            // Then the normalized fallback still matches the admin entry and protects them
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Admin@Test.com', undefined)).toBe(true);
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Member@Test.com', undefined)).toBe(false);
-        });
-
-        it('protects the policy owner by accountID even when the employee list does not list them', () => {
-            // Given the policy owner participating in another employee's workspace chat, absent from `employeeList`
-            // When their protection is resolved
-            // Then they are protected by `ownerAccountID`, not incidentally by carrying `role: admin` in the roster.
-            // The callers' own owner check compares against `report.ownerAccountID`, which is the employee whose
-            // expense chat it is, so without this the policy owner has no identity-based protection at all
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'owner@test.com', policyOwnerAccountID)).toBe(true);
-        });
-
-        it('protects the policy owner even when the employee list is blank', () => {
-            // Given a policy whose `employeeList` has not loaded, which happens when it is not the viewer's active
-            // policy, so no login can resolve to a role
-            const policyWithoutRoster = createMock<Policy>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                role: undefined,
-                ownerAccountID: policyOwnerAccountID,
-                employeeList: {},
+                for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                    expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW);
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+                }
             });
 
-            // When the owner's protection is resolved
-            // Then they are still protected, because `ownerAccountID` is a required top-level field that resolves
-            // without the roster
-            expect(isRoomMemberProtectedByPolicyRole(policyWithoutRoster, 'owner@test.com', policyOwnerAccountID)).toBe(true);
+            it('limits scoped admins to their assigned write features', () => {
+                expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS)).toBe(true);
+                expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(false);
+                expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)).toBe(true);
+                expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
+            });
+
+            it('limits People Admin member role management to guests, members, and auditors', () => {
+                const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+            });
+
+            it('allows Guest assignment only on Control workspaces', () => {
+                const controlPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+                const collectPolicy = {...controlPolicy, type: CONST.POLICY.TYPE.TEAM};
+
+                expect(canMemberAssignRole(controlPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
+                expect(canMemberAssignRole(collectPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
+            });
+
+            it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
+                const policy = {
+                    ...buildPolicy(CONST.POLICY.ROLE.EDITOR),
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                };
+
+                expect(canMemberManageMemberWithRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(true);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(false);
+            });
+
+            it('denies write access to an archived policy even for admins', () => {
+                const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
+
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
+            });
+
+            it('denies workspace settings edit access to an archived policy even for admins', () => {
+                const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
+
+                expect(canEditWorkspaceSettings(policy, memberLogin)).toBe(false);
+            });
         });
 
-        it('does not protect a non-owner just because an accountID is passed', () => {
-            // Given a regular member's accountID alongside their login
-            // When their protection is resolved
-            // Then they stay removable, since the owner check must not widen protection to every member with an
-            // accountID. This is the regression that would reintroduce the original bug
-            expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), memberLogin, regularMemberAccountID)).toBe(false);
+        describe('isPolicyAdmin', () => {
+            const adminLogin = 'admin@test.com';
+            const memberLogin = 'member@test.com';
+            // `role` is the role of the user currently viewing the policy, `employeeList` holds every member's own role
+            const buildPolicy = (): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminLogin]: {role: CONST.POLICY.ROLE.ADMIN},
+                        [memberLogin]: {role: CONST.POLICY.ROLE.USER},
+                    },
+                });
+
+            it('resolves the role of the passed login when shouldCheckGlobalPolicyRole is false', () => {
+                // Given a policy viewed by an admin, holding one admin and one regular member in its employee list
+                // When the role of each login is resolved without the global policy role
+                // Then each login resolves to its own role, not the viewer's
+                expect(isPolicyAdmin(buildPolicy(), memberLogin, false)).toBe(false);
+                expect(isPolicyAdmin(buildPolicy(), adminLogin, false)).toBe(true);
+            });
+
+            it('ignores the passed login and answers for the viewing user by default', () => {
+                // Given a policy viewed by an admin, holding a regular member in its employee list
+                // When the member's role is resolved with the default shouldCheckGlobalPolicyRole
+                // Then the check short-circuits on the viewer's role and reports the member as an admin. This documents the
+                // trap that made every member of a workspace chat look like an admin to a viewing admin, which disabled the
+                // "Remove from chat" button for all of them
+                expect(isPolicyAdmin(buildPolicy(), memberLogin)).toBe(true);
+            });
+
+            it('returns false for a login that is not in the employee list when shouldCheckGlobalPolicyRole is false', () => {
+                // Given a policy that does not list the passed login as an employee
+                // When that login's role is resolved without the global policy role
+                // Then it does not resolve to an admin
+                expect(isPolicyAdmin(buildPolicy(), 'stranger@test.com', false)).toBe(false);
+            });
+
+            it('returns false for an undefined login when shouldCheckGlobalPolicyRole is false', () => {
+                // Given a member whose login could not be resolved
+                // When their role is resolved without the global policy role
+                // Then it does not resolve to an admin
+                expect(isPolicyAdmin(buildPolicy(), undefined, false)).toBe(false);
+            });
+
+            it('matches an employee whose login is not lowercase when shouldCheckGlobalPolicyRole is false', () => {
+                // Given an employee list keyed by canonical lowercase logins
+                // When a mixed-case login read off personal details is resolved without the global policy role
+                // Then it still matches the employee entry through the normalized fallback
+                expect(isPolicyAdmin(buildPolicy(), 'Admin@Test.com', false)).toBe(true);
+                expect(isPolicyAdmin(buildPolicy(), 'Member@Test.com', false)).toBe(false);
+            });
+
+            it('prefers an exact employee list key over the normalized one', () => {
+                // Given an employee list holding both a mixed-case and a lowercase key with different roles
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    employeeList: {
+                        'Mixed@Test.com': {role: CONST.POLICY.ROLE.ADMIN},
+                        'mixed@test.com': {role: CONST.POLICY.ROLE.USER},
+                    },
+                });
+
+                // When each key is resolved without the global policy role
+                // Then the exact key wins, so the normalized fallback can never regress an existing hit
+                expect(isPolicyAdmin(policy, 'Mixed@Test.com', false)).toBe(true);
+                expect(isPolicyAdmin(policy, 'mixed@test.com', false)).toBe(false);
+            });
+
+            it('stops at the exact employee list key even when that entry carries no role', () => {
+                // Given an employee list where the exact mixed-case key exists without a role, next to an admin entry
+                // under the normalized key. `role` is optional on PolicyEmployee, so this is representable
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    employeeList: {
+                        'Mixed@Test.com': {},
+                        'mixed@test.com': {role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                });
+
+                // When the mixed-case login is resolved without the global policy role
+                // Then the exact entry still wins and resolves to no role, rather than borrowing the other entry's role.
+                // Reading one account's role off a different account's entry is the failure this check exists to prevent
+                expect(isPolicyAdmin(policy, 'Mixed@Test.com', false)).toBe(false);
+            });
         });
 
-        describe('approvers auto-added to the expense chat by the approval chain', () => {
-            const approverLogin = 'approver@test.com';
-            const forwardsToLogin = 'forwardsto@test.com';
-            const chainApproverAccountID = 3003;
-            // An approval chain that pulls two non-admin approvers into the member's expense chat: one they submit to,
-            // one their reports forward to. `policy.approver` is the workspace's default approver on top of that
-            const buildPolicyWithApprovalChain = (approverRole: ValueOf<typeof CONST.POLICY.ROLE> = CONST.POLICY.ROLE.USER): Policy =>
+        describe('isRoomMemberProtectedByPolicyRole', () => {
+            const adminLogin = 'admin@test.com';
+            const memberLogin = 'member@test.com';
+            const policyOwnerAccountID = 3001;
+            const regularMemberAccountID = 3002;
+            // `role` is the role of the user currently viewing the policy, `employeeList` holds every member's own role
+            const buildPolicy = (): Policy =>
                 createMock<Policy>({
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: CONST.POLICY.ROLE.ADMIN,
                     ownerAccountID: policyOwnerAccountID,
-                    approver: approverLogin,
                     employeeList: {
-                        [approverLogin]: {role: approverRole},
-                        [forwardsToLogin]: {role: approverRole},
-                        [memberLogin]: {role: CONST.POLICY.ROLE.USER, submitsTo: approverLogin, forwardsTo: forwardsToLogin},
+                        [adminLogin]: {role: CONST.POLICY.ROLE.ADMIN},
+                        [memberLogin]: {role: CONST.POLICY.ROLE.USER},
                     },
                 });
 
-            it('protects an approver who holds no admin role of their own', () => {
-                // Given a workspace chat whose participants include two approvers from the submitter's approval
-                // chain, both plain members of the workspace
-                const policy = buildPolicyWithApprovalChain();
-
-                // When each approver's protection is resolved
-                // Then they are protected on the strength of being approvers alone. Approvers are auto-added to the
-                // chat of everyone who submits to them, so their membership is governed by the workspace's approval
-                // workflow rather than by this screen: only a member who was invited to the chat can be removed from
-                // it, per the expense chat rules in contributingGuides/philosophies/SECURITY.md
-                expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, chainApproverAccountID)).toBe(true);
-                expect(isRoomMemberProtectedByPolicyRole(policy, forwardsToLogin, chainApproverAccountID)).toBe(true);
+            it('protects a member who is an admin of the policy in their own right', () => {
+                // Given a policy viewed by an admin, holding another admin in its employee list
+                // When that member's protection is resolved
+                // Then they are protected, because removing a workspace admin from the chat is not allowed
+                expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), adminLogin, undefined)).toBe(true);
             });
 
-            it('still allows removing an invited member of a workspace that has an approval chain', () => {
-                // Given the same approval chain, and the submitter who is neither an admin, the owner, nor an approver
-                const policy = buildPolicyWithApprovalChain();
+            it('does not protect a regular member even when the viewing user is an admin', () => {
+                // Given a policy whose global `role` marks the viewer as an admin, holding a regular member
+                // When that member's protection is resolved
+                // Then they are not protected, because the listed member's own role is what counts. This is the bug that
+                // made every member of a workspace chat un-removable to a viewing admin
+                expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), memberLogin, undefined)).toBe(false);
+            });
 
+            it('fails closed for a member whose login is missing', () => {
+                // Given a room member with personal details but no login, which `login?: string` allows
                 // When their protection is resolved
-                // Then they stay removable. Protecting approvers must not widen back out to every member and
-                // reintroduce the bug this PR fixes
-                expect(isRoomMemberProtectedByPolicyRole(policy, memberLogin, regularMemberAccountID)).toBe(false);
+                // Then they are protected, because a role we cannot resolve must not be treated as "not an admin".
+                // Both the members list and the member details page depend on this branch to avoid offering removal
+                // for a member who may well be a workspace admin
+                expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), undefined, undefined)).toBe(true);
+                expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), '', undefined)).toBe(true);
             });
 
-            it('protects an approver who is also an admin of the policy', () => {
-                // Given the same approval chain, with both approvers holding the admin role
-                const policy = buildPolicyWithApprovalChain(CONST.POLICY.ROLE.ADMIN);
-
-                // When each approver's protection is resolved
-                // Then they are protected, because they are admins. Most approvers are, so this is the common case
-                expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, chainApproverAccountID)).toBe(true);
-                expect(isRoomMemberProtectedByPolicyRole(policy, forwardsToLogin, chainApproverAccountID)).toBe(true);
+            it('does not protect a member who is absent from the employee list', () => {
+                // Given a login that the policy does not list as an employee
+                // When their protection is resolved
+                // Then they are not protected, since a resolvable login that holds no policy role is not an admin
+                expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'stranger@test.com', undefined)).toBe(false);
             });
 
-            it('protects an approver who is the policy owner', () => {
-                // Given an approval chain whose approvers are plain members, one of whom owns the workspace
-                const policy = buildPolicyWithApprovalChain();
+            it('protects an admin whose login is not lowercase', () => {
+                // Given an employee list keyed by canonical lowercase logins
+                // When a mixed-case login read off personal details is resolved
+                // Then the normalized fallback still matches the admin entry and protects them
+                expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Admin@Test.com', undefined)).toBe(true);
+                expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Member@Test.com', undefined)).toBe(false);
+            });
 
-                // When the owning approver's protection is resolved by accountID
-                // Then they are protected as the policy owner, regardless of their role in the employee list
-                expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, policyOwnerAccountID)).toBe(true);
+            it('protects the policy owner by accountID even when the employee list does not list them', () => {
+                // Given the policy owner participating in another employee's workspace chat, absent from `employeeList`
+                // When their protection is resolved
+                // Then they are protected by `ownerAccountID`, not incidentally by carrying `role: admin` in the roster.
+                // The callers' own owner check compares against `report.ownerAccountID`, which is the employee whose
+                // expense chat it is, so without this the policy owner has no identity-based protection at all
+                expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'owner@test.com', policyOwnerAccountID)).toBe(true);
+            });
+
+            it('protects the policy owner even when the employee list is blank', () => {
+                // Given a policy whose `employeeList` has not loaded, which happens when it is not the viewer's active
+                // policy, so no login can resolve to a role
+                const policyWithoutRoster = createMock<Policy>({
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: undefined,
+                    ownerAccountID: policyOwnerAccountID,
+                    employeeList: {},
+                });
+
+                // When the owner's protection is resolved
+                // Then they are still protected, because `ownerAccountID` is a required top-level field that resolves
+                // without the roster
+                expect(isRoomMemberProtectedByPolicyRole(policyWithoutRoster, 'owner@test.com', policyOwnerAccountID)).toBe(true);
+            });
+
+            it('does not protect a non-owner just because an accountID is passed', () => {
+                // Given a regular member's accountID alongside their login
+                // When their protection is resolved
+                // Then they stay removable, since the owner check must not widen protection to every member with an
+                // accountID. This is the regression that would reintroduce the original bug
+                expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), memberLogin, regularMemberAccountID)).toBe(false);
+            });
+
+            describe('approvers auto-added to the expense chat by the approval chain', () => {
+                const approverLogin = 'approver@test.com';
+                const forwardsToLogin = 'forwardsto@test.com';
+                const chainApproverAccountID = 3003;
+                // An approval chain that pulls two non-admin approvers into the member's expense chat: one they submit to,
+                // one their reports forward to. `policy.approver` is the workspace's default approver on top of that
+                const buildPolicyWithApprovalChain = (approverRole: ValueOf<typeof CONST.POLICY.ROLE> = CONST.POLICY.ROLE.USER): Policy =>
+                    createMock<Policy>({
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        ownerAccountID: policyOwnerAccountID,
+                        approver: approverLogin,
+                        employeeList: {
+                            [approverLogin]: {role: approverRole},
+                            [forwardsToLogin]: {role: approverRole},
+                            [memberLogin]: {role: CONST.POLICY.ROLE.USER, submitsTo: approverLogin, forwardsTo: forwardsToLogin},
+                        },
+                    });
+
+                it('protects an approver who holds no admin role of their own', () => {
+                    // Given a workspace chat whose participants include two approvers from the submitter's approval
+                    // chain, both plain members of the workspace
+                    const policy = buildPolicyWithApprovalChain();
+
+                    // When each approver's protection is resolved
+                    // Then they are protected on the strength of being approvers alone. Approvers are auto-added to the
+                    // chat of everyone who submits to them, so their membership is governed by the workspace's approval
+                    // workflow rather than by this screen: only a member who was invited to the chat can be removed from
+                    // it, per the expense chat rules in contributingGuides/philosophies/SECURITY.md
+                    expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, chainApproverAccountID)).toBe(true);
+                    expect(isRoomMemberProtectedByPolicyRole(policy, forwardsToLogin, chainApproverAccountID)).toBe(true);
+                });
+
+                it('still allows removing an invited member of a workspace that has an approval chain', () => {
+                    // Given the same approval chain, and the submitter who is neither an admin, the owner, nor an approver
+                    const policy = buildPolicyWithApprovalChain();
+
+                    // When their protection is resolved
+                    // Then they stay removable. Protecting approvers must not widen back out to every member and
+                    // reintroduce the bug this PR fixes
+                    expect(isRoomMemberProtectedByPolicyRole(policy, memberLogin, regularMemberAccountID)).toBe(false);
+                });
+
+                it('protects an approver who is also an admin of the policy', () => {
+                    // Given the same approval chain, with both approvers holding the admin role
+                    const policy = buildPolicyWithApprovalChain(CONST.POLICY.ROLE.ADMIN);
+
+                    // When each approver's protection is resolved
+                    // Then they are protected, because they are admins. Most approvers are, so this is the common case
+                    expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, chainApproverAccountID)).toBe(true);
+                    expect(isRoomMemberProtectedByPolicyRole(policy, forwardsToLogin, chainApproverAccountID)).toBe(true);
+                });
+
+                it('protects an approver who is the policy owner', () => {
+                    // Given an approval chain whose approvers are plain members, one of whom owns the workspace
+                    const policy = buildPolicyWithApprovalChain();
+
+                    // When the owning approver's protection is resolved by accountID
+                    // Then they are protected as the policy owner, regardless of their role in the employee list
+                    expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, policyOwnerAccountID)).toBe(true);
+                });
+            });
+        });
+
+        describe('getPolicyApproverLogins', () => {
+            it('returns an empty set when policy is undefined', () => {
+                expect(getPolicyApproverLogins(undefined).size).toBe(0);
+            });
+
+            it('returns an empty set when there is no approver and no employees route anywhere', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: undefined,
+                    employeeList: {
+                        'employee@test.com': {email: 'employee@test.com', submitsTo: '', forwardsTo: '', overLimitForwardsTo: ''},
+                    },
+                };
+                expect(getPolicyApproverLogins(policy).size).toBe(0);
+            });
+
+            it('includes the named policy approver', () => {
+                const policy: Policy = {...createRandomPolicy(0), approver: 'boss@test.com', employeeList: {}};
+                expect([...getPolicyApproverLogins(policy)]).toEqual(['boss@test.com']);
+            });
+
+            it('collects submitsTo, forwardsTo and overLimitForwardsTo targets', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: undefined,
+                    employeeList: {
+                        'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
+                        'b@test.com': {email: 'b@test.com', forwardsTo: 'director@test.com'},
+                        'c@test.com': {email: 'c@test.com', overLimitForwardsTo: 'vp@test.com'},
+                    },
+                };
+                expect([...getPolicyApproverLogins(policy)].sort()).toEqual(['director@test.com', 'manager@test.com', 'vp@test.com']);
+            });
+
+            it('deduplicates approvers referenced by multiple employees or fields', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'manager@test.com',
+                    employeeList: {
+                        'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
+                        'b@test.com': {email: 'b@test.com', submitsTo: 'manager@test.com', forwardsTo: 'manager@test.com'},
+                    },
+                };
+                expect([...getPolicyApproverLogins(policy)]).toEqual(['manager@test.com']);
+            });
+
+            it('ignores empty-string routing fields', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: '',
+                    employeeList: {
+                        'a@test.com': {email: 'a@test.com', submitsTo: '', forwardsTo: 'director@test.com', overLimitForwardsTo: ''},
+                    },
+                };
+                expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
             });
         });
     });
@@ -1581,15 +1715,15 @@ describe('PolicyUtils', () => {
         const buildRule = (rule: ApprovalWorkflowRule): Rule => ({...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
 
         const submitRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
             filters: submitFilter,
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
         };
 
         // After the admin approves, an under-limit report continues to the approver and an over-limit one is
         // escalated to the category approver instead.
         const underLimitRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
@@ -1599,10 +1733,10 @@ describe('PolicyUtils', () => {
                     right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                 },
             },
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: approverEmail}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: approverEmail}},
         };
         const overLimitRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
@@ -1612,16 +1746,16 @@ describe('PolicyUtils', () => {
                     right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000},
                 },
             },
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: categoryApprover1Email}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: categoryApprover1Email}},
         };
         const terminalRule: ApprovalWorkflowRule = {
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE},
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 left: submitFilter,
                 right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approverEmail},
             },
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.APPROVE_REPORT}},
         };
 
         // A workspace whose employeeList still points somewhere else, so a rule-driven answer is distinguishable
@@ -1680,9 +1814,9 @@ describe('PolicyUtils', () => {
             });
 
             const buildAmountRule = (operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: number): ApprovalWorkflowRule => ({
-                triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
                 filters: {operator, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right},
-                actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
             });
 
             it.each([
@@ -1711,22 +1845,22 @@ describe('PolicyUtils', () => {
 
             it('does not match a filter on a field this client does not understand', () => {
                 const rule: ApprovalWorkflowRule = {
-                    triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
                     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: 'unsupportedField', right: employeeEmail},
-                    actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                    actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
                 };
                 expect(evaluateApprovalWorkflowRule(rule, {submitterEmail: employeeEmail, reportTotal: 0})).toBe(false);
             });
 
             it('matches an OR filter when either side matches', () => {
                 const rule: ApprovalWorkflowRule = {
-                    triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+                    triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
                     filters: {
                         operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
                         left: submitFilter,
                         right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [adminEmail]},
                     },
-                    actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: adminEmail}},
+                    actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: adminEmail}},
                 };
 
                 // Only the left side matches this submitter, but OR only needs one side.
@@ -1944,92 +2078,316 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getTagList', () => {
-        it.each([
-            ['when index is 0', 0, policyTags.TagListTest0.name],
-            ['when index is 1', 1, policyTags.TagListTest2.name],
-            ['when index is out of range', 2, ''],
-        ])('%s', (_description, index, expected) => {
-            const tagList = getTagList(policyTags, index);
-            expect(tagList.name).toEqual(expected);
+    describe('tag', () => {
+        describe('getTagList', () => {
+            it.each([
+                ['when index is 0', 0, policyTags.TagListTest0.name],
+                ['when index is 1', 1, policyTags.TagListTest2.name],
+                ['when index is out of range', 2, ''],
+            ])('%s', (_description, index, expected) => {
+                const tagList = getTagList(policyTags, index);
+                expect(tagList.name).toEqual(expected);
+            });
         });
-    });
-    describe('getTagListByOrderWeight', () => {
-        it.each([
-            ['when orderWeight is 0', 0, policyTags.TagListTest0.name],
-            ['when orderWeight is 2', 2, policyTags.TagListTest2.name],
-            ['when orderWeight is out of range', 1, ''],
-        ])('%s', (_description, orderWeight, expected) => {
-            const tagList = getTagListByOrderWeight(policyTags, orderWeight);
-            expect(tagList.name).toEqual(expected);
+        describe('getTagListByOrderWeight', () => {
+            it.each([
+                ['when orderWeight is 0', 0, policyTags.TagListTest0.name],
+                ['when orderWeight is 2', 2, policyTags.TagListTest2.name],
+                ['when orderWeight is out of range', 1, ''],
+            ])('%s', (_description, orderWeight, expected) => {
+                const tagList = getTagListByOrderWeight(policyTags, orderWeight);
+                expect(tagList.name).toEqual(expected);
+            });
         });
-    });
-    describe('getTagGLCode', () => {
-        // Tag lists are intentionally declared out of orderWeight order to verify levels resolve by orderWeight
-        const glCodePolicyTagLists: PolicyTagLists = {
-            Project: {
-                name: 'Project',
-                orderWeight: 1,
-                required: false,
-                tags: {
-                    Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '5678'},
-                    Internal: {name: 'Internal', enabled: true},
+        describe('getTagGLCode', () => {
+            // Tag lists are intentionally declared out of orderWeight order to verify levels resolve by orderWeight
+            const glCodePolicyTagLists: PolicyTagLists = {
+                Project: {
+                    name: 'Project',
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '5678'},
+                        Internal: {name: 'Internal', enabled: true},
+                    },
                 },
-            },
-            Department: {
-                name: 'Department',
-                orderWeight: 0,
-                required: false,
-                tags: {
-                    Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
-                    Marketing: {name: 'Marketing', enabled: true},
-                    'Sales\\:EMEA': {name: 'Sales\\:EMEA', enabled: true, 'GL Code': '"4321"'},
-                },
-            },
-        };
-
-        it('returns empty string when policy tags are undefined or empty', () => {
-            expect(getTagGLCode(undefined, 'Engineering')).toBe('');
-            expect(getTagGLCode({}, 'Engineering')).toBe('');
-        });
-
-        it('returns empty string when the transaction tag is undefined or empty', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, undefined)).toBe('');
-            expect(getTagGLCode(glCodePolicyTagLists, '')).toBe('');
-        });
-
-        it('returns empty string when the tag is missing from the policy or has no GL code', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Nonexistent')).toBe('');
-            expect(getTagGLCode(glCodePolicyTagLists, 'Marketing')).toBe('');
-        });
-
-        it('returns the GL code of a single-level tag', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Engineering')).toBe('1234');
-        });
-
-        it('joins the GL codes of multi-level tags in tag list order', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 5678');
-        });
-
-        it('skips multi-level tag levels without a GL code', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Marketing:Roadshow')).toBe('5678');
-            expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Internal')).toBe('1234');
-        });
-
-        it('resolves tags with escaped colons against the matching tag list level and strips double quotes', () => {
-            expect(getTagGLCode(glCodePolicyTagLists, 'Sales\\:EMEA:Roadshow')).toBe('4321, 5678');
-        });
-
-        it('resolves dependent tags by name and parent filter when same-named children exist under different parents', () => {
-            // Same-named child tags of dependent lists are stored under unique record keys,
-            // so they can only be told apart by their parentTagsFilter
-            const dependentPolicyTagLists: PolicyTagLists = {
                 Department: {
                     name: 'Department',
                     orderWeight: 0,
                     required: false,
                     tags: {
                         Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                        Marketing: {name: 'Marketing', enabled: true},
+                        'Sales\\:EMEA': {name: 'Sales\\:EMEA', enabled: true, 'GL Code': '"4321"'},
+                    },
+                },
+            };
+
+            it('returns empty string when policy tags are undefined or empty', () => {
+                expect(getTagGLCode(undefined, 'Engineering')).toBe('');
+                expect(getTagGLCode({}, 'Engineering')).toBe('');
+            });
+
+            it('returns empty string when the transaction tag is undefined or empty', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, undefined)).toBe('');
+                expect(getTagGLCode(glCodePolicyTagLists, '')).toBe('');
+            });
+
+            it('returns empty string when the tag is missing from the policy or has no GL code', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Nonexistent')).toBe('');
+                expect(getTagGLCode(glCodePolicyTagLists, 'Marketing')).toBe('');
+            });
+
+            it('returns the GL code of a single-level tag', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Engineering')).toBe('1234');
+            });
+
+            it('joins the GL codes of multi-level tags in tag list order', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 5678');
+            });
+
+            it('skips multi-level tag levels without a GL code', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Marketing:Roadshow')).toBe('5678');
+                expect(getTagGLCode(glCodePolicyTagLists, 'Engineering:Internal')).toBe('1234');
+            });
+
+            it('resolves tags with escaped colons against the matching tag list level and strips double quotes', () => {
+                expect(getTagGLCode(glCodePolicyTagLists, 'Sales\\:EMEA:Roadshow')).toBe('4321, 5678');
+            });
+
+            it('resolves dependent tags by name and parent filter when same-named children exist under different parents', () => {
+                // Same-named child tags of dependent lists are stored under unique record keys,
+                // so they can only be told apart by their parentTagsFilter
+                const dependentPolicyTagLists: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                            Marketing: {name: 'Marketing', enabled: true},
+                        },
+                    },
+                    Project: {
+                        name: 'Project',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                            'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+                        },
+                    },
+                };
+
+                expect(getTagGLCode(dependentPolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 2222');
+                expect(getTagGLCode(dependentPolicyTagLists, 'Marketing:Roadshow')).toBe('1111');
+            });
+
+            it('matches a dependent tag deeper in the hierarchy against the accumulated parent tag path', () => {
+                const deepDependentPolicyTagLists: PolicyTagLists = {
+                    State: {
+                        name: 'State',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            California: {name: 'California', enabled: true},
+                        },
+                    },
+                    City: {
+                        name: 'City',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            'San Francisco': {name: 'San Francisco', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                        },
+                    },
+                    District: {
+                        name: 'District',
+                        orderWeight: 2,
+                        required: false,
+                        tags: {
+                            Mission: {name: 'Mission', enabled: true, 'GL Code': '9000', rules: {parentTagsFilter: '^California:San Francisco$'}},
+                            'Mission-1': {name: 'Mission', enabled: true, 'GL Code': '9999', rules: {parentTagsFilter: '^Texas:Austin$'}},
+                        },
+                    },
+                };
+
+                expect(getTagGLCode(deepDependentPolicyTagLists, 'California:San Francisco:Mission')).toBe('9000');
+            });
+
+            it('returns the GL code as a string when malformed Onyx data stores it as a number', () => {
+                const tagListsWithNumberGLCode: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            // @ts-expect-error - Defensively handles malformed Onyx data that violates the string type.
+                            Engineering: {name: 'Engineering', enabled: true, 'GL Code': 1234},
+                        },
+                    },
+                };
+                expect(getTagGLCode(tagListsWithNumberGLCode, 'Engineering')).toBe('1234');
+            });
+        });
+
+        describe('matchesParentTagPath', () => {
+            it('matches any parent tag path when the tag has no parent filter', () => {
+                expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, '')).toBe(true);
+                expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, 'California:100:South')).toBe(true);
+            });
+
+            it('matches only the parent tag path allowed by the parent filter', () => {
+                const tag = {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}};
+                expect(matchesParentTagPath(tag, 'California:100:North')).toBe(true);
+                expect(matchesParentTagPath(tag, 'California:100:South')).toBe(false);
+            });
+
+            it('reads the parent filter off the tag root when it is not nested under rules', () => {
+                expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Marketing')).toBe(true);
+                expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Engineering')).toBe(false);
+            });
+
+            it('prefers the parent filter nested under rules over the one on the tag root', () => {
+                const tag = {name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$', rules: {parentTagsFilter: '^Engineering$'}};
+                expect(matchesParentTagPath(tag, 'Engineering')).toBe(true);
+                expect(matchesParentTagPath(tag, 'Marketing')).toBe(false);
+            });
+        });
+
+        describe('matchesParentTagsFilter', () => {
+            it('matches an escaped literal filter against the exact parent tag path', () => {
+                // Given literal filters with escaped characters, as the backend writes them
+                const filter = '^TW Strategic Initiative \\- AI Workforce Design$';
+                const colonFilter = '^Sales\\\\:EMEA$';
+
+                // When matching them against parent tag paths
+                // Then only the unescaped path matches, not a prefix or a longer path
+                expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design')).toBe(true);
+                expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative')).toBe(false);
+                expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design:Team')).toBe(false);
+                expect(matchesParentTagsFilter(colonFilter, 'Sales\\:EMEA')).toBe(true);
+                expect(matchesParentTagsFilter(colonFilter, 'Sales:EMEA')).toBe(false);
+            });
+
+            it('unescapes an escaped line terminator like RegExp does', () => {
+                // Given a literal filter with a backslash before a newline, which RegExp reads as a literal newline
+                const filter = '^Line\\\nBreak$';
+
+                // When matching it against a parent tag path containing that newline
+                // Then the literal fast path agrees with RegExp
+                expect(new RegExp(filter).test('Line\nBreak')).toBe(true);
+                expect(matchesParentTagsFilter(filter, 'Line\nBreak')).toBe(true);
+            });
+
+            it('evaluates filters with regex operators as regular expressions', () => {
+                // Given filters that are not plain anchored literals
+                // When matching them against parent tag paths
+                // Then they keep regex semantics - character classes, alternation and unanchored matches
+                expect(matchesParentTagsFilter('^Region\\d$', 'Region7')).toBe(true);
+                expect(matchesParentTagsFilter('^Region\\d$', 'RegionX')).toBe(false);
+                expect(matchesParentTagsFilter('^(Sales|Marketing)$', 'Marketing')).toBe(true);
+                expect(matchesParentTagsFilter('Sales', 'EMEA Sales')).toBe(true);
+            });
+        });
+
+        describe('findPolicyTagAtLevel', () => {
+            // Dependent tag lists key their tags by the full tag path, so the tag name alone is never a record key
+            const dependentLevelTags: PolicyTags = {
+                'California:100:North:20': {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}},
+                'California:100:South:30': {name: '30', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:South$'}},
+            };
+
+            // Independent tag lists key their tags by name and carry no parent filter
+            const independentLevelTags: PolicyTags = {
+                Engineering: {name: 'Engineering', enabled: true},
+                Marketing: {name: 'Marketing', enabled: true},
+            };
+
+            it('returns undefined when no tag of the level carries the name', () => {
+                expect(findPolicyTagAtLevel(dependentLevelTags, 'Nonexistent', 'California:100:North')).toBeUndefined();
+            });
+
+            it('returns the tag matching the record key when the level has no parent filters', () => {
+                expect(findPolicyTagAtLevel(independentLevelTags, 'Engineering', '')?.name).toBe('Engineering');
+            });
+
+            it('resolves a dependent tag by name when the record key is the full tag path', () => {
+                expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:North')?.name).toBe('20');
+                expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:South')?.name).toBe('30');
+            });
+
+            it('returns undefined when the name exists at the level but under a different parent', () => {
+                expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:South')).toBeUndefined();
+                expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:North')).toBeUndefined();
+            });
+
+            it('tells same-named children of different parents apart', () => {
+                const sameNamedChildren: PolicyTags = {
+                    Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                    'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+                };
+
+                expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Marketing')?.['GL Code']).toBe('1111');
+                expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
+                expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Sales')).toBeUndefined();
+            });
+
+            it('skips a record key that collides with the name but fails the parent filter', () => {
+                // The record key equals the name here, so the direct key lookup must still be parent filtered
+                const collidingKey: PolicyTags = {
+                    Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                    'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+                };
+
+                expect(findPolicyTagAtLevel(collidingKey, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
+            });
+
+            it('matches a parent tag path holding escaped colons', () => {
+                // Parent tag paths keep the escaped colons of getTagArrayFromName, so a parent filter of a tag
+                // nested under a colon holding parent has to escape the backslash to match
+                const escapedParentTags: PolicyTags = {
+                    'Sales\\:EMEA:Roadshow': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Sales\\\\:EMEA$'}},
+                };
+
+                expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales\\:EMEA')?.name).toBe('Roadshow');
+                expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales')).toBeUndefined();
+            });
+        });
+
+        describe('findPolicyTagEntryByParentFilter', () => {
+            const dependentTags: PolicyTags = {
+                Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+                'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+            };
+
+            it('returns the tag and storage key when parentTagsFilter matches', () => {
+                expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Engineering$')).toEqual({
+                    tag: dependentTags['Roadshow-1'],
+                    tagKey: 'Roadshow-1',
+                });
+            });
+
+            it('returns the tag by name when parentTagsFilter is not provided', () => {
+                expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow')).toEqual({
+                    tag: dependentTags.Roadshow,
+                    tagKey: 'Roadshow',
+                });
+            });
+
+            it('returns undefined when parentTagsFilter does not match any tag', () => {
+                expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Sales$')).toBeUndefined();
+            });
+        });
+
+        describe('isTagInPolicy', () => {
+            const dependentPolicyTagLists: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
                         Marketing: {name: 'Marketing', enabled: true},
                     },
                 },
@@ -2038,296 +2396,381 @@ describe('PolicyUtils', () => {
                     orderWeight: 1,
                     required: false,
                     tags: {
-                        Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
-                        'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
-                    },
-                },
-            };
-
-            expect(getTagGLCode(dependentPolicyTagLists, 'Engineering:Roadshow')).toBe('1234, 2222');
-            expect(getTagGLCode(dependentPolicyTagLists, 'Marketing:Roadshow')).toBe('1111');
-        });
-
-        it('matches a dependent tag deeper in the hierarchy against the accumulated parent tag path', () => {
-            const deepDependentPolicyTagLists: PolicyTagLists = {
-                State: {
-                    name: 'State',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        California: {name: 'California', enabled: true},
-                    },
-                },
-                City: {
-                    name: 'City',
-                    orderWeight: 1,
-                    required: false,
-                    tags: {
-                        'San Francisco': {name: 'San Francisco', enabled: true, rules: {parentTagsFilter: '^California$'}},
-                    },
-                },
-                District: {
-                    name: 'District',
-                    orderWeight: 2,
-                    required: false,
-                    tags: {
-                        Mission: {name: 'Mission', enabled: true, 'GL Code': '9000', rules: {parentTagsFilter: '^California:San Francisco$'}},
-                        'Mission-1': {name: 'Mission', enabled: true, 'GL Code': '9999', rules: {parentTagsFilter: '^Texas:Austin$'}},
-                    },
-                },
-            };
-
-            expect(getTagGLCode(deepDependentPolicyTagLists, 'California:San Francisco:Mission')).toBe('9000');
-        });
-
-        it('returns the GL code as a string when malformed Onyx data stores it as a number', () => {
-            const tagListsWithNumberGLCode: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        // @ts-expect-error - Defensively handles malformed Onyx data that violates the string type.
-                        Engineering: {name: 'Engineering', enabled: true, 'GL Code': 1234},
-                    },
-                },
-            };
-            expect(getTagGLCode(tagListsWithNumberGLCode, 'Engineering')).toBe('1234');
-        });
-    });
-
-    describe('matchesParentTagPath', () => {
-        it('matches any parent tag path when the tag has no parent filter', () => {
-            expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, '')).toBe(true);
-            expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, 'California:100:South')).toBe(true);
-        });
-
-        it('matches only the parent tag path allowed by the parent filter', () => {
-            const tag = {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}};
-            expect(matchesParentTagPath(tag, 'California:100:North')).toBe(true);
-            expect(matchesParentTagPath(tag, 'California:100:South')).toBe(false);
-        });
-
-        it('reads the parent filter off the tag root when it is not nested under rules', () => {
-            expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Marketing')).toBe(true);
-            expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Engineering')).toBe(false);
-        });
-
-        it('prefers the parent filter nested under rules over the one on the tag root', () => {
-            const tag = {name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$', rules: {parentTagsFilter: '^Engineering$'}};
-            expect(matchesParentTagPath(tag, 'Engineering')).toBe(true);
-            expect(matchesParentTagPath(tag, 'Marketing')).toBe(false);
-        });
-    });
-
-    describe('matchesParentTagsFilter', () => {
-        it('matches an escaped literal filter against the exact parent tag path', () => {
-            // Given literal filters with escaped characters, as the backend writes them
-            const filter = '^TW Strategic Initiative \\- AI Workforce Design$';
-            const colonFilter = '^Sales\\\\:EMEA$';
-
-            // When matching them against parent tag paths
-            // Then only the unescaped path matches, not a prefix or a longer path
-            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design')).toBe(true);
-            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative')).toBe(false);
-            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design:Team')).toBe(false);
-            expect(matchesParentTagsFilter(colonFilter, 'Sales\\:EMEA')).toBe(true);
-            expect(matchesParentTagsFilter(colonFilter, 'Sales:EMEA')).toBe(false);
-        });
-
-        it('unescapes an escaped line terminator like RegExp does', () => {
-            // Given a literal filter with a backslash before a newline, which RegExp reads as a literal newline
-            const filter = '^Line\\\nBreak$';
-
-            // When matching it against a parent tag path containing that newline
-            // Then the literal fast path agrees with RegExp
-            expect(new RegExp(filter).test('Line\nBreak')).toBe(true);
-            expect(matchesParentTagsFilter(filter, 'Line\nBreak')).toBe(true);
-        });
-
-        it('evaluates filters with regex operators as regular expressions', () => {
-            // Given filters that are not plain anchored literals
-            // When matching them against parent tag paths
-            // Then they keep regex semantics - character classes, alternation and unanchored matches
-            expect(matchesParentTagsFilter('^Region\\d$', 'Region7')).toBe(true);
-            expect(matchesParentTagsFilter('^Region\\d$', 'RegionX')).toBe(false);
-            expect(matchesParentTagsFilter('^(Sales|Marketing)$', 'Marketing')).toBe(true);
-            expect(matchesParentTagsFilter('Sales', 'EMEA Sales')).toBe(true);
-        });
-    });
-
-    describe('findPolicyTagAtLevel', () => {
-        // Dependent tag lists key their tags by the full tag path, so the tag name alone is never a record key
-        const dependentLevelTags: PolicyTags = {
-            'California:100:North:20': {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}},
-            'California:100:South:30': {name: '30', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:South$'}},
-        };
-
-        // Independent tag lists key their tags by name and carry no parent filter
-        const independentLevelTags: PolicyTags = {
-            Engineering: {name: 'Engineering', enabled: true},
-            Marketing: {name: 'Marketing', enabled: true},
-        };
-
-        it('returns undefined when no tag of the level carries the name', () => {
-            expect(findPolicyTagAtLevel(dependentLevelTags, 'Nonexistent', 'California:100:North')).toBeUndefined();
-        });
-
-        it('returns the tag matching the record key when the level has no parent filters', () => {
-            expect(findPolicyTagAtLevel(independentLevelTags, 'Engineering', '')?.name).toBe('Engineering');
-        });
-
-        it('resolves a dependent tag by name when the record key is the full tag path', () => {
-            expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:North')?.name).toBe('20');
-            expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:South')?.name).toBe('30');
-        });
-
-        it('returns undefined when the name exists at the level but under a different parent', () => {
-            expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:South')).toBeUndefined();
-            expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:North')).toBeUndefined();
-        });
-
-        it('tells same-named children of different parents apart', () => {
-            const sameNamedChildren: PolicyTags = {
-                Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
-                'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
-            };
-
-            expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Marketing')?.['GL Code']).toBe('1111');
-            expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
-            expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Sales')).toBeUndefined();
-        });
-
-        it('skips a record key that collides with the name but fails the parent filter', () => {
-            // The record key equals the name here, so the direct key lookup must still be parent filtered
-            const collidingKey: PolicyTags = {
-                Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
-                'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
-            };
-
-            expect(findPolicyTagAtLevel(collidingKey, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
-        });
-
-        it('matches a parent tag path holding escaped colons', () => {
-            // Parent tag paths keep the escaped colons of getTagArrayFromName, so a parent filter of a tag
-            // nested under a colon holding parent has to escape the backslash to match
-            const escapedParentTags: PolicyTags = {
-                'Sales\\:EMEA:Roadshow': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Sales\\\\:EMEA$'}},
-            };
-
-            expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales\\:EMEA')?.name).toBe('Roadshow');
-            expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales')).toBeUndefined();
-        });
-    });
-
-    describe('findPolicyTagEntryByParentFilter', () => {
-        const dependentTags: PolicyTags = {
-            Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
-            'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
-        };
-
-        it('returns the tag and storage key when parentTagsFilter matches', () => {
-            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Engineering$')).toEqual({
-                tag: dependentTags['Roadshow-1'],
-                tagKey: 'Roadshow-1',
-            });
-        });
-
-        it('returns the tag by name when parentTagsFilter is not provided', () => {
-            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow')).toEqual({
-                tag: dependentTags.Roadshow,
-                tagKey: 'Roadshow',
-            });
-        });
-
-        it('returns undefined when parentTagsFilter does not match any tag', () => {
-            expect(findPolicyTagEntryByParentFilter(dependentTags, 'Roadshow', '^Sales$')).toBeUndefined();
-        });
-    });
-
-    describe('isTagInPolicy', () => {
-        const dependentPolicyTagLists: PolicyTagLists = {
-            Department: {
-                name: 'Department',
-                orderWeight: 0,
-                required: false,
-                tags: {
-                    Engineering: {name: 'Engineering', enabled: true},
-                    Marketing: {name: 'Marketing', enabled: true},
-                },
-            },
-            Project: {
-                name: 'Project',
-                orderWeight: 1,
-                required: false,
-                tags: {
-                    Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
-                    'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}},
-                },
-            },
-        };
-
-        it('returns false when policy tags are undefined', () => {
-            expect(isTagInPolicy('Engineering', undefined)).toBe(false);
-        });
-
-        it('returns false when the tag list level is missing', () => {
-            expect(isTagInPolicy('Engineering:Roadshow:Extra', dependentPolicyTagLists)).toBe(false);
-        });
-
-        it('returns false when the tag is not in the policy', () => {
-            expect(isTagInPolicy('Nonexistent', dependentPolicyTagLists)).toBe(false);
-        });
-
-        it('returns true for every level of an existing multi-level tag', () => {
-            expect(isTagInPolicy('Engineering:Roadshow', dependentPolicyTagLists)).toBe(true);
-            expect(isTagInPolicy('Marketing:Roadshow', dependentPolicyTagLists)).toBe(true);
-        });
-
-        it('returns false when the dependent child matching the parent tag path is pending deletion', () => {
-            // Only the Engineering child is deleted, so the same-named Marketing child must not keep the tag alive
-            const tagListsWithDeletedChild: PolicyTagLists = {
-                ...dependentPolicyTagLists,
-                Project: {
-                    ...dependentPolicyTagLists.Project,
-                    tags: {
                         Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
-                        'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}},
                     },
                 },
             };
 
-            expect(isTagInPolicy('Engineering:Roadshow', tagListsWithDeletedChild)).toBe(false);
-            expect(isTagInPolicy('Marketing:Roadshow', tagListsWithDeletedChild)).toBe(true);
-        });
+            it('returns false when policy tags are undefined', () => {
+                expect(isTagInPolicy('Engineering', undefined)).toBe(false);
+            });
 
-        it('returns false when a non-dependent tag is pending deletion', () => {
-            const tagListsWithDeletedTag: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            it('returns false when the tag list level is missing', () => {
+                expect(isTagInPolicy('Engineering:Roadshow:Extra', dependentPolicyTagLists)).toBe(false);
+            });
+
+            it('returns false when the tag is not in the policy', () => {
+                expect(isTagInPolicy('Nonexistent', dependentPolicyTagLists)).toBe(false);
+            });
+
+            it('returns true for every level of an existing multi-level tag', () => {
+                expect(isTagInPolicy('Engineering:Roadshow', dependentPolicyTagLists)).toBe(true);
+                expect(isTagInPolicy('Marketing:Roadshow', dependentPolicyTagLists)).toBe(true);
+            });
+
+            it('returns false when the dependent child matching the parent tag path is pending deletion', () => {
+                // Only the Engineering child is deleted, so the same-named Marketing child must not keep the tag alive
+                const tagListsWithDeletedChild: PolicyTagLists = {
+                    ...dependentPolicyTagLists,
+                    Project: {
+                        ...dependentPolicyTagLists.Project,
+                        tags: {
+                            Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+                            'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        },
                     },
-                },
-            };
+                };
 
-            expect(isTagInPolicy('Engineering', tagListsWithDeletedTag)).toBe(false);
+                expect(isTagInPolicy('Engineering:Roadshow', tagListsWithDeletedChild)).toBe(false);
+                expect(isTagInPolicy('Marketing:Roadshow', tagListsWithDeletedChild)).toBe(true);
+            });
+
+            it('returns false when a non-dependent tag is pending deletion', () => {
+                const tagListsWithDeletedTag: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        },
+                    },
+                };
+
+                expect(isTagInPolicy('Engineering', tagListsWithDeletedTag)).toBe(false);
+            });
         });
-    });
 
-    describe('getGLCodeFromPolicyTag', () => {
-        it('returns empty string when tag is undefined', () => {
-            expect(getGLCodeFromPolicyTag(undefined)).toBe('');
+        describe('getGLCodeFromPolicyTag', () => {
+            it('returns empty string when tag is undefined', () => {
+                expect(getGLCodeFromPolicyTag(undefined)).toBe('');
+            });
+
+            it('returns empty string when tag has no GL code', () => {
+                expect(getGLCodeFromPolicyTag({})).toBe('');
+            });
+
+            it('returns stripped GL code from tag', () => {
+                expect(getGLCodeFromPolicyTag({'GL Code': '"1234"'})).toBe('1234');
+            });
         });
 
-        it('returns empty string when tag has no GL code', () => {
-            expect(getGLCodeFromPolicyTag({})).toBe('');
+        describe('hasDependentTags', () => {
+            it('returns false when policy has no multiple tag lists', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: false});
+                const policyTagList: PolicyTagLists = {};
+                expect(hasDependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(hasDependentTags(undefined, {})).toBe(false);
+            });
+
+            it('returns false when tags have no parentTagsFilter', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasDependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns true when a tag has rules.parentTagsFilter', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasDependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns true when a tag has parentTagsFilter at the top level', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, parentTagsFilter: '^California$'},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasDependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns true when a later tag list has a dependent tag', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList: PolicyTagLists = {
+                    Company: {name: 'Company', required: false, orderWeight: 0, tags: {acme: {name: 'Acme Corp', enabled: true}}},
+                    Department: {name: 'Department', required: false, orderWeight: 1, tags: {admin: {name: 'Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}}}},
+                };
+
+                expect(hasDependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('skips a tag list left as null or without tags by an Onyx merge', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                // An Onyx merge leaves a deleted tag list as null, and an empty one without the `tags` key
+                const mergedTagLists = {
+                    Company: {name: 'Company', required: false, orderWeight: 0},
+                    Department: null,
+                    GLCode: {name: 'GL code', required: false, orderWeight: 2, tags: {gl100: {name: 'GL-100', enabled: true, parentTagsFilter: '^Acme Corp:Admin$'}}},
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+                expect(hasDependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns false when every tag list is empty or missing its tags', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                // A tag list arrives without the `tags` key when it holds no tags
+                const mergedTagLists = {
+                    Company: {name: 'Company', required: false, orderWeight: 0, tags: {}},
+                    Department: {name: 'Department', required: false, orderWeight: 1},
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+                expect(hasDependentTags(policy, policyTagList)).toBe(false);
+            });
         });
 
-        it('returns stripped GL code from tag', () => {
-            expect(getGLCodeFromPolicyTag({'GL Code': '"1234"'})).toBe('1234');
+        describe('hasIndependentTags', () => {
+            it('returns false when policy has no multiple tag lists', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: false});
+                const policyTagList: PolicyTagLists = {};
+                expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(hasIndependentTags(undefined, {})).toBe(false);
+            });
+
+            it('returns false when tags are dependent (have parentTagsFilter)', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns false when all tag lists are empty', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {},
+                        required: false,
+                        orderWeight: 0,
+                    },
+                    Location: {
+                        name: 'Location',
+                        tags: {},
+                        required: false,
+                        orderWeight: 1,
+                    },
+                });
+                expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+            });
+
+            it('returns true when tags are independent and at least one tag exists', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                        required: false,
+                        orderWeight: 0,
+                    },
+                });
+                expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns true when at least one tag list has tags and others are empty', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                const policyTagList = createMock<PolicyTagLists>({
+                    Department: {
+                        name: 'Department',
+                        tags: {},
+                        required: false,
+                        orderWeight: 0,
+                    },
+                    Location: {
+                        name: 'Location',
+                        tags: {
+                            'New York': {name: 'New York', enabled: true},
+                        },
+                        required: false,
+                        orderWeight: 1,
+                    },
+                });
+                expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+            });
+
+            it('returns false when policyTagList is undefined', () => {
+                const policy = createMock<Policy>({hasMultipleTagLists: true});
+                expect(hasIndependentTags(policy, undefined)).toBe(false);
+            });
+        });
+
+        describe('getCleanedTagName', () => {
+            it.each([
+                ['unescapes colons used to build multi-level tags', 'Parent\\: Child', 'Parent: Child'],
+                ['HTML-decodes encoded entities', 'R&amp;D', 'R&D'],
+                ['unescapes colons and decodes entities together', 'R&amp;D\\: Lab', 'R&D: Lab'],
+                ['returns a plain tag unchanged', 'Engineering', 'Engineering'],
+                ['returns an empty string for an empty tag', '', ''],
+            ])('%s', (_description, tag, expected) => {
+                // Given a raw tag name as stored on a transaction or policy
+                // When it is cleaned for display
+                const result = getCleanedTagName(tag);
+
+                // Then escaped colons are restored and HTML entities are decoded so the user sees the readable name
+                expect(result).toBe(expected);
+            });
+        });
+
+        describe('getTagLists', () => {
+            it('returns an empty array when the policy tag lists are undefined', () => {
+                // Given a policy whose tag lists have not loaded
+                // When the tag lists are read
+                const result = getTagLists(undefined);
+
+                // Then no tag lists are returned
+                expect(result).toEqual([]);
+            });
+
+            it('returns an empty array when the policy has no tag lists', () => {
+                // Given a policy with an empty tag lists object
+                // When the tag lists are read
+                const result = getTagLists({});
+
+                // Then no tag lists are returned
+                expect(result).toEqual([]);
+            });
+
+            it('returns the tag lists sorted by orderWeight', () => {
+                // Given tag lists stored out of orderWeight order, as they can arrive from Onyx
+                const policyTagLists = createMock<PolicyTagLists>({
+                    Project: {name: 'Project', orderWeight: 2, required: false, tags: {}},
+                    Department: {name: 'Department', orderWeight: 0, required: false, tags: {}},
+                    Location: {name: 'Location', orderWeight: 1, required: false, tags: {}},
+                });
+
+                // When the tag lists are read
+                const result = getTagLists(policyTagLists);
+
+                // Then they come back in level order so index N maps to the Nth tag level
+                expect(result.map((tagList) => tagList.name)).toEqual(['Department', 'Location', 'Project']);
+            });
+
+            it('skips a tag list left as null by an Onyx merge', () => {
+                // Given tag lists where an Onyx merge left a deleted list as null
+                const mergedTagLists = {
+                    Location: {name: 'Location', orderWeight: 1, required: false, tags: {}},
+                    Project: null,
+                    Department: {name: 'Department', orderWeight: 0, required: false, tags: {}},
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const policyTagLists = mergedTagLists as unknown as PolicyTagLists;
+
+                // When the tag lists are read
+                const result = getTagLists(policyTagLists);
+
+                // Then the null list is dropped instead of crashing the orderWeight sort
+                expect(result.map((tagList) => tagList.name)).toEqual(['Department', 'Location']);
+            });
+        });
+
+        describe('getCommaSeparatedTagNameWithSanitizedColons', () => {
+            it.each([
+                ['joins each tag level with a comma', 'Department:Engineering:Backend', 'Department, Engineering, Backend'],
+                ['skips empty tag levels', 'Department::Backend', 'Department, Backend'],
+                ['keeps escaped colons inside a single level', 'Parent\\: Child:Engineering', 'Parent: Child, Engineering'],
+                ['HTML-decodes each level', 'R&amp;D:Engineering', 'R&D, Engineering'],
+                ['returns a single-level tag unchanged', 'Engineering', 'Engineering'],
+                ['returns an empty string for an empty tag', '', ''],
+            ])('%s', (_description, tag, expected) => {
+                // Given a colon-delimited multi-level tag
+                // When it is converted for display
+                const result = getCommaSeparatedTagNameWithSanitizedColons(tag);
+
+                // Then each non-empty level is cleaned and the levels are joined with commas
+                expect(result).toBe(expected);
+            });
+        });
+
+        describe('isMultiLevelTags', () => {
+            it('returns false when the policy tag lists are undefined', () => {
+                // Given a policy whose tag lists have not loaded
+                // When checking for multi-level tags
+                // Then it is not treated as multi-level
+                expect(isMultiLevelTags(undefined)).toBe(false);
+            });
+
+            it('returns false when the policy has no tag lists', () => {
+                // Given a policy with no tag lists
+                // When checking for multi-level tags
+                // Then it is not treated as multi-level
+                expect(isMultiLevelTags({})).toBe(false);
+            });
+
+            it('returns false when the policy has a single tag list', () => {
+                // Given a policy with only one tag list
+                const policyTagLists = createMock<PolicyTagLists>({
+                    Department: {name: 'Department', orderWeight: 0, required: false, tags: {}},
+                });
+
+                // When checking for multi-level tags
+                // Then a single list is not multi-level
+                expect(isMultiLevelTags(policyTagLists)).toBe(false);
+            });
+
+            it('returns true when the policy has more than one tag list', () => {
+                // Given a policy with two tag lists
+                const policyTagLists = createMock<PolicyTagLists>({
+                    Department: {name: 'Department', orderWeight: 0, required: false, tags: {}},
+                    Location: {name: 'Location', orderWeight: 1, required: false, tags: {}},
+                });
+
+                // When checking for multi-level tags
+                // Then more than one list means the policy uses multi-level tags
+                expect(isMultiLevelTags(policyTagLists)).toBe(true);
+            });
         });
     });
 
@@ -2367,6 +2810,32 @@ describe('PolicyUtils', () => {
                 {policyID: '1', name: 'Workspace 1'},
                 {policyID: '2', name: 'Workspace 2'},
             ]);
+        });
+    });
+
+    describe('isNonMemberApprover', () => {
+        const ownerEmail = 'owner@example.com';
+        const policy = createMock<Policy>({
+            id: '1',
+            owner: ownerEmail,
+            employeeList: {
+                [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+            },
+        });
+
+        it('flags an approver who is no longer on the workspace, but not a member', () => {
+            // Given a workspace with one member
+            // When checking a removed approver and that member
+            // Then only the removed approver is flagged
+            expect(isNonMemberApprover(policy, 'removed@example.com')).toBe(true);
+            expect(isNonMemberApprover(policy, employeeEmail)).toBe(false);
+        });
+
+        it('does not flag the owner when their employee entry is missing', () => {
+            // Given a workspace whose employeeList has no entry for the owner
+            // When checking the owner as an approver
+            // Then they still count as a member, since the owner always belongs to the workspace
+            expect(isNonMemberApprover(policy, ownerEmail)).toBe(false);
         });
     });
 
@@ -4229,6 +4698,171 @@ describe('PolicyUtils', () => {
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
         });
+
+        it('breaks name ties using externalID when id is absent', () => {
+            const vendors = [
+                {externalID: 'vendor_b', name: 'Acme'},
+                {externalID: 'vendor_a', name: 'Acme'},
+            ];
+
+            const result = sortVendors(vendors, localeCompare);
+            expect(result.map((v) => v.externalID)).toEqual(['vendor_a', 'vendor_b']);
+        });
+    });
+
+    describe('getDefaultVendorID', () => {
+        it('resolves QBO credit card default vendor when destination is credit_card', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                            nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('qbo_vendor_1');
+        });
+
+        it('returns undefined for QBO when destination is not credit_card', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {
+                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+                            nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
+        });
+
+        it('resolves Sage Intacct credit card charge default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        config: {
+                            export: {
+                                nonReimbursableCreditCardChargeDefaultVendor: 'intacct_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('intacct_vendor_1');
+        });
+
+        it('resolves Xero default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                        config: {
+                            defaultVendor: 'xero_contact_1',
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.XERO)).toBe('xero_contact_1');
+        });
+
+        it('resolves Rillet default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'rillet_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET)).toBe('rillet_vendor_1');
+        });
+
+        it('resolves DualEntry default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'dualentry_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY)).toBe('dualentry_vendor_1');
+        });
+
+        it('resolves Campfire default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'campfire_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+        });
+
+        it('resolves Business Central default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            export: {
+                                defaultVendorID: 'bc_vendor_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBe('bc_vendor_1');
+        });
+
+        it('resolves Certinia default vendor', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                        config: {
+                            export: {
+                                vendorAccount: 'certinia_acc_1',
+                            },
+                        },
+                    },
+                }),
+            });
+
+            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA)).toBe('certinia_acc_1');
+        });
+
+        it('returns undefined when policy has no connections', () => {
+            expect(getDefaultVendorID(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
+        });
     });
 
     describe('getSageIntacctVendors', () => {
@@ -4290,218 +4924,37 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasDependentTags', () => {
-        it('returns false when policy has no multiple tag lists', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: false});
-            const policyTagList: PolicyTagLists = {};
-            expect(hasDependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns false when policy is undefined', () => {
-            expect(hasDependentTags(undefined, {})).toBe(false);
-        });
-
-        it('returns false when tags have no parentTagsFilter', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasDependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns true when a tag has rules.parentTagsFilter', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasDependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns true when a tag has parentTagsFilter at the top level', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true, parentTagsFilter: '^California$'},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasDependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns true when a later tag list has a dependent tag', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList: PolicyTagLists = {
-                Company: {name: 'Company', required: false, orderWeight: 0, tags: {acme: {name: 'Acme Corp', enabled: true}}},
-                Department: {name: 'Department', required: false, orderWeight: 1, tags: {admin: {name: 'Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}}}},
-            };
-
-            expect(hasDependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('skips a tag list left as null or without tags by an Onyx merge', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            // An Onyx merge leaves a deleted tag list as null, and an empty one without the `tags` key
-            const mergedTagLists = {
-                Company: {name: 'Company', required: false, orderWeight: 0},
-                Department: null,
-                GLCode: {name: 'GL code', required: false, orderWeight: 2, tags: {gl100: {name: 'GL-100', enabled: true, parentTagsFilter: '^Acme Corp:Admin$'}}},
-            };
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
-
-            expect(hasDependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns false when every tag list is empty or missing its tags', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            // A tag list arrives without the `tags` key when it holds no tags
-            const mergedTagLists = {
-                Company: {name: 'Company', required: false, orderWeight: 0, tags: {}},
-                Department: {name: 'Department', required: false, orderWeight: 1},
-            };
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
-
-            expect(hasDependentTags(policy, policyTagList)).toBe(false);
-        });
-    });
-
-    describe('hasIndependentTags', () => {
-        it('returns false when policy has no multiple tag lists', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: false});
-            const policyTagList: PolicyTagLists = {};
-            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns false when policy is undefined', () => {
-            expect(hasIndependentTags(undefined, {})).toBe(false);
-        });
-
-        it('returns false when tags are dependent (have parentTagsFilter)', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns false when all tag lists are empty', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {},
-                    required: false,
-                    orderWeight: 0,
-                },
-                Location: {
-                    name: 'Location',
-                    tags: {},
-                    required: false,
-                    orderWeight: 1,
-                },
-            });
-            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
-        });
-
-        it('returns true when tags are independent and at least one tag exists', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
-                    },
-                    required: false,
-                    orderWeight: 0,
-                },
-            });
-            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns true when at least one tag list has tags and others are empty', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            const policyTagList = createMock<PolicyTagLists>({
-                Department: {
-                    name: 'Department',
-                    tags: {},
-                    required: false,
-                    orderWeight: 0,
-                },
-                Location: {
-                    name: 'Location',
-                    tags: {
-                        'New York': {name: 'New York', enabled: true},
-                    },
-                    required: false,
-                    orderWeight: 1,
-                },
-            });
-            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
-        });
-
-        it('returns false when policyTagList is undefined', () => {
-            const policy = createMock<Policy>({hasMultipleTagLists: true});
-            expect(hasIndependentTags(policy, undefined)).toBe(false);
-        });
-    });
-
     describe('hasConfiguredRules', () => {
         it('returns false when policy is undefined', () => {
-            expect(hasConfiguredRules(undefined)).toBe(false);
+            expect(hasConfiguredRules(undefined, undefined, false)).toBe(false);
         });
 
         it('returns false when policy has no rules configured', () => {
-            expect(hasConfiguredRules(createMock<Policy>({}))).toBe(false);
+            expect(hasConfiguredRules(createMock<Policy>({}), undefined, false)).toBe(false);
         });
 
         describe('customRules', () => {
             it('returns true when customRules is non-empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}), undefined, false)).toBe(true);
             });
 
             it('returns false when customRules is an empty string', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: ''}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({customRules: ''}), undefined, false)).toBe(false);
             });
 
             it('returns false when customRules is only whitespace', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}), undefined, false)).toBe(false);
             });
         });
 
         describe('rules.approvalRules', () => {
             it('returns true when approvalRules has items', () => {
                 const policy = createMock<Policy>({rules: {approvalRules: [{id: '1', applyWhen: [], approver: 'approver@test.com'}]}});
-                expect(hasConfiguredRules(policy)).toBe(true);
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
             });
 
             it('returns false when approvalRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}), undefined, false)).toBe(false);
             });
         });
 
@@ -4518,157 +4971,151 @@ describe('PolicyUtils', () => {
                         ],
                     },
                 });
-                expect(hasConfiguredRules(policy)).toBe(true);
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
             });
 
             it('returns false when expenseRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}), undefined, false)).toBe(false);
             });
         });
 
-        describe('rules.codingRules', () => {
-            it('returns true when codingRules has entries', () => {
-                const policy = createMock<Policy>({
-                    rules: {
-                        codingRules: {
-                            rule1: {
-                                ruleID: 'rule1',
-                                filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-                            },
-                        },
-                    },
-                });
-                expect(hasConfiguredRules(policy)).toBe(true);
+        describe('merchant rules', () => {
+            // Which rules count towards this is decided by the caller's selector and covered in
+            // ExpenseDefaultRuleUtilsTest, so only the pass-through is checked here.
+            const policy = createMock<Policy>({id: 'policy1', rules: {}});
+
+            it('returns true when the policy has a merchant rule', () => {
+                expect(hasConfiguredRules(policy, undefined, true)).toBe(true);
             });
 
-            it('returns false when codingRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {codingRules: {}}}))).toBe(false);
+            it('returns false when it has none', () => {
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAmount', () => {
             it('returns true when maxExpenseAmount is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAmount is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAmount is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAge', () => {
             it('returns true when maxExpenseAge is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAge is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAge is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAmountNoReceipt', () => {
             it('returns true when maxExpenseAmountNoReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAmountNoReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAmountNoReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAmountNoItemizedReceipt', () => {
             it('returns true when maxExpenseAmountNoItemizedReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAmountNoItemizedReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAmountNoItemizedReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('defaultBillable', () => {
             it('returns true when defaultBillable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}), undefined, false)).toBe(true);
             });
 
             it('returns false when defaultBillable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}), undefined, false)).toBe(false);
             });
         });
 
         describe('defaultReimbursable', () => {
             it('returns true when defaultReimbursable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}), undefined, false)).toBe(true);
             });
 
             it('returns false when defaultReimbursable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}), undefined, false)).toBe(false);
             });
         });
 
         describe('eReceipts', () => {
             it('returns true when eReceipts is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}), undefined, false)).toBe(true);
             });
 
             it('returns false when eReceipts is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}), undefined, false)).toBe(false);
             });
         });
 
         describe('requireCompanyCardsEnabled', () => {
             it('returns true when requireCompanyCardsEnabled is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}), undefined, false)).toBe(true);
             });
 
             it('returns false when requireCompanyCardsEnabled is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}), undefined, false)).toBe(false);
             });
         });
 
         describe('prohibitedExpenses', () => {
             it('returns true when a prohibitedExpenses value differs from its default', () => {
                 // alcohol defaults to false — setting it to true triggers the rule
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}), undefined, false)).toBe(true);
             });
 
             it('returns true when gambling is disabled (differs from default true)', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}), undefined, false)).toBe(true);
             });
 
             it('returns false when prohibitedExpenses matches all defaults', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}), undefined, false)).toBe(false);
             });
 
             it('returns false when prohibitedExpenses is an empty object', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}), undefined, false)).toBe(false);
             });
         });
 
         it('returns true when only Classic category rules exist', () => {
             const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(true);
+            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(true);
         });
 
         it('returns false when categories have no active rule fields', () => {
             const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(false);
+            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(false);
         });
     });
 
@@ -4761,27 +5208,6 @@ describe('PolicyUtils', () => {
             expect(result['bob@acme.com']).toBeUndefined();
         });
     });
-    describe('isSubmitterApproveBlockedOnSubmitWorkspace', () => {
-        const submitPolicy: Policy = {...createRandomPolicy(99000, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-approve-block-test'};
-        const teamPolicy: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.TEAM), id: 'policy-team-approve-block-test'};
-        const submitterAccountID = 100;
-
-        it('returns true when policy is Submit and the approver is the report owner', () => {
-            expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, submitterAccountID, submitterAccountID)).toBe(true);
-        });
-
-        it('returns false when policy is Submit and the approver is not the report owner', () => {
-            expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, submitterAccountID, approverAccountID)).toBe(false);
-        });
-
-        it('returns false when policy is not Submit even if the approver is the report owner', () => {
-            expect(isSubmitterApproveBlockedOnSubmitWorkspace(teamPolicy, submitterAccountID, submitterAccountID)).toBe(false);
-        });
-
-        it('returns false when report owner account ID is undefined', () => {
-            expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, undefined, submitterAccountID)).toBe(false);
-        });
-    });
 
     describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
         const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
@@ -4813,7 +5239,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('Vendor matching helpers', () => {
+    describe('vendor', () => {
         const buildQBOPolicy = (
             exportDestination: QBONonReimbursableExportAccountType | undefined,
             vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-1', name: 'Acme Co', currency: 'USD'}],
@@ -4923,6 +5349,26 @@ describe('PolicyUtils', () => {
                 expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toBe(false);
                 expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy([]))).toBe(true);
                 expect(getMatchingVendors(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toEqual([]);
+            });
+
+            it('uses Campfire vendors when Campfire and Business Central are both configured', () => {
+                // Given a workspace configured with both Business Central and Campfire connections
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = createMock<Connections>({
+                    ...policy.connections,
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {isConfigured: true},
+                        data: {vendors: [{id: 'cf-1', name: 'Campfire vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR}]},
+                    },
+                });
+
+                // When resolving the vendor source without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then Campfire is the source, so the vendor field never shows the beta-gated Business Central list
+                expect(isVendorFeatureAvailable).toBe(true);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['cf-1']);
             });
 
             it('uses the Business Central empty state when the synced list has no vendors', () => {
@@ -5222,12 +5668,49 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(undefined), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Xero is connected because Xero (R3) is still pre-GA', () => {
-                expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
+            it('returns true when beta is disabled and Xero is connected because Xero (R3) is generally available', () => {
+                // Given a workspace with a configured Xero connection
+                const policy = buildXeroPolicy();
+
+                // When the vendor feature is checked without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then the feature is available because Xero does not depend on the beta
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Xero is connected but isConfigured=false because GA did not widen the configuration gate', () => {
+                // Given a Xero connection in the middle of a tenant switch, which Integration Server marks as not configured
+                const policy = buildXeroPolicy(undefined, {isConfigured: false});
+
+                // When the vendor feature is checked without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then the feature stays off so the contacts left over from the previous tenant are not offered
+                expect(isVendorFeatureAvailable).toBe(false);
             });
 
             it('returns true when beta is disabled and Rillet is connected because Rillet is generally available', () => {
                 expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(true);
+            });
+
+            it.each([
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Campfire vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Campfire workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: connection}});
+
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
+
+                // Then only a configured connection enables Campfire vendor matching
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
             });
 
             it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
@@ -5436,9 +5919,13 @@ describe('PolicyUtils', () => {
         describe('hasVendorFeatureOnAnyPolicy', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
+            const campfirePolicy = createMock<Policy>({id: 'campfire', connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured: true}}}});
+            const businessCentralPolicy: Policy = {...buildBusinessCentralPolicy(), id: 'businessCentral'};
             const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
             const qboKey = `${ONYXKEYS.COLLECTION.POLICY}qbo`;
             const xeroKey = `${ONYXKEYS.COLLECTION.POLICY}xero`;
+            const campfireKey = `${ONYXKEYS.COLLECTION.POLICY}campfire`;
+            const businessCentralKey = `${ONYXKEYS.COLLECTION.POLICY}businessCentral`;
             const plainKey = `${ONYXKEYS.COLLECTION.POLICY}plain`;
 
             it('is false when no workspace has the vendor feature', () => {
@@ -5449,12 +5936,48 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeatureOnAnyPolicy({[qboKey]: qboPolicy, [plainKey]: plainPolicy}, false)).toBe(true);
             });
 
-            it('is true for a Xero workspace with the beta', () => {
-                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy, [plainKey]: plainPolicy}, true)).toBe(true);
+            it('is true for a Xero workspace without the beta', () => {
+                // Given a configured Xero workspace next to one with no accounting connection
+                const policies = {[xeroKey]: xeroPolicy, [plainKey]: plainPolicy};
+
+                // When the vendor feature is checked across the workspaces without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then the feature is available because Xero is generally available
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('is true for a Campfire workspace without the beta', () => {
+                // Given a configured Campfire workspace and a workspace with no accounting connection
+                const policies = {[campfireKey]: campfirePolicy, [plainKey]: plainPolicy};
+
+                // When Search checks vendor availability without beta enrollment
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then Campfire makes vendor filtering available
+                expect(isVendorFeatureAvailable).toBe(true);
+            });
+
+            it('is true for a Business Central workspace with the beta', () => {
+                // Given a configured Business Central workspace, an integration that still depends on the beta
+                const policies = {[businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
+
+                // When the vendor feature is checked across the workspaces with the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, true);
+
+                // Then the feature is available because the beta unlocks Business Central
+                expect(isVendorFeatureAvailable).toBe(true);
             });
 
             it('ignores beta-gated integrations while the beta is off', () => {
-                expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy}, false)).toBe(false);
+                // Given only a Business Central workspace, an integration that still depends on the beta
+                const policies = {[businessCentralKey]: businessCentralPolicy};
+
+                // When the vendor feature is checked across the workspaces without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeatureOnAnyPolicy(policies, false);
+
+                // Then the feature is not available on any workspace because Business Central still depends on the beta
+                expect(isVendorFeatureAvailable).toBe(false);
             });
         });
 
@@ -5683,36 +6206,6 @@ describe('PolicyUtils', () => {
 
             it('returns undefined when Xero contacts have not synced yet', () => {
                 expect(getXeroSupplierByID(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), 'xc1')).toBeUndefined();
-            });
-        });
-
-        describe('getXeroExpenseAccounts', () => {
-            const XERO_EXPENSE_ACCOUNTS = [
-                {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
-                {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
-            ];
-
-            it('maps the expense accounts to selector options', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
-                    {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
-                    {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
-                ]);
-            });
-
-            it('marks only the selected account as selected', () => {
-                const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
-                expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
-                    {keyForList: 'acc1', isSelected: false},
-                    {keyForList: 'acc2', isSelected: true},
-                ]);
-            });
-
-            it('selects nothing when the stored account is no longer in the synced list', () => {
-                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
-            });
-
-            it('returns an empty array when Xero expense accounts have not synced yet', () => {
-                expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
             });
         });
 
@@ -5973,47 +6466,122 @@ describe('PolicyUtils', () => {
                 });
             });
         });
+
+        describe('sortVendors', () => {
+            const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+            it('sorts vendors alphabetically by name using localeCompare', () => {
+                const vendors = [
+                    {id: '1', name: 'Zebra'},
+                    {id: '2', name: 'Apple'},
+                    {id: '3', name: 'Banana'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
+            });
+
+            it('breaks name ties using vendor id', () => {
+                const vendors = [
+                    {id: 'vendor_b', name: 'Acme'},
+                    {id: 'vendor_a', name: 'Acme'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
+            });
+
+            it('does not sort the input array in place', () => {
+                const vendors = [
+                    {id: '2', name: 'Zebra'},
+                    {id: '1', name: 'Alpha'},
+                ];
+
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).not.toBe(vendors);
+                expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
+            });
+
+            it('returns empty array for empty input', () => {
+                expect(sortVendors([], localeCompare)).toEqual([]);
+            });
+
+            it('returns single-element array as-is', () => {
+                const vendors = [{id: '1', name: 'Only'}];
+                const result = sortVendors(vendors, localeCompare);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.name).toBe('Only');
+            });
+        });
+    });
+
+    describe('getXeroExpenseAccounts', () => {
+        const XERO_EXPENSE_ACCOUNTS = [
+            {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
+            {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
+        ];
+
+        it('maps the expense accounts to selector options', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
+                {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
+                {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
+            ]);
+        });
+
+        it('marks only the selected account as selected', () => {
+            const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
+            expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
+                {keyForList: 'acc1', isSelected: false},
+                {keyForList: 'acc2', isSelected: true},
+            ]);
+        });
+
+        it('selects nothing when the stored account is no longer in the synced list', () => {
+            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
+        });
+
+        it('returns an empty array when Xero expense accounts have not synced yet', () => {
+            expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
+        });
     });
 
     describe('hasPolicyRulesError', () => {
+        // Whether a merchant rule failed is reduced by the caller's selector and covered in
+        // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
+        const POLICY_ID = 'policy-with-rules';
+
         it('returns false for an undefined policy', () => {
-            expect(hasPolicyRulesError(undefined)).toBe(false);
+            expect(hasPolicyRulesError(undefined, false)).toBe(false);
         });
 
-        it('returns false when no coding or agent rules exist', () => {
-            const policy: Policy = {...createRandomPolicy(0), rules: {}};
-            expect(hasPolicyRulesError(policy)).toBe(false);
+        it('returns false when no merchant or agent rules exist', () => {
+            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
+            expect(hasPolicyRulesError(policy, false)).toBe(false);
         });
 
-        it('returns false when rules exist but none have errors', () => {
+        it('returns false when agent rules exist but none have errors', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
-                rules: {
-                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}}},
-                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
-                },
+                id: POLICY_ID,
+                rules: {agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}}},
             };
-            expect(hasPolicyRulesError(policy)).toBe(false);
+            expect(hasPolicyRulesError(policy, false)).toBe(false);
         });
 
-        it('returns true when a coding rule has errors', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                rules: {
-                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, errors: {123: 'boom'}}},
-                },
-            };
-            expect(hasPolicyRulesError(policy)).toBe(true);
+        it('returns true when a merchant rule has errors', () => {
+            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
+            expect(hasPolicyRulesError(policy, true)).toBe(true);
         });
 
         it('returns true when an agent rule has errors', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
+                id: POLICY_ID,
                 rules: {
                     agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
                 },
             };
-            expect(hasPolicyRulesError(policy)).toBe(true);
+            expect(hasPolicyRulesError(policy, false)).toBe(true);
         });
     });
 
@@ -6281,6 +6849,43 @@ describe('getPolicyIDFromDomainName', () => {
     });
 });
 
+describe('getPolicyForAssignedCard', () => {
+    const policy: Policy = {...createRandomPolicy(0), id: 'A1B2C3', policyAccountID: 88801};
+    const policies = {[`${ONYXKEYS.COLLECTION.POLICY}A1B2C3`]: policy};
+
+    // The workspace is what decides whether the cardholder is shown the fix link or told to ask an admin, so a card
+    // has to find it whatever the company named their domain.
+    it('finds the workspace for a card on a domain that is not a workspace feed', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('finds the workspace for a card on a workspace-feed domain', () => {
+        const card = {domainName: 'expensify-policyA1B2C3.exfy', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('falls back to the domain name for a card that has no fundID', () => {
+        const card = {domainName: 'expensify-policyA1B2C3.exfy'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+    });
+
+    it('returns undefined when no workspace matches the card', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '99999'};
+
+        expect(getPolicyForAssignedCard(card, policies)).toBeUndefined();
+    });
+
+    it('returns undefined when there are no policies', () => {
+        const card = {domainName: 'acme-corp.com', fundID: '88801'};
+
+        expect(getPolicyForAssignedCard(card, {})).toBeUndefined();
+    });
+});
+
 describe('getDefaultWorkspacePlanType', () => {
     const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
     const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
@@ -6313,61 +6918,53 @@ describe('getDefaultWorkspacePlanType', () => {
     });
 });
 
-describe('getPolicyApproverLogins', () => {
-    it('returns an empty set when policy is undefined', () => {
-        expect(getPolicyApproverLogins(undefined).size).toBe(0);
+describe('hasActiveExpensifyCard', () => {
+    it('returns false when policy is undefined', () => {
+        expect(hasActiveExpensifyCard(undefined, 'cardholder@test.com')).toBe(false);
     });
 
-    it('returns an empty set when there is no approver and no employees route anywhere', () => {
+    it('returns true when the backend flags the member as holding an active Expensify Card', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
-            approver: undefined,
             employeeList: {
-                'employee@test.com': {email: 'employee@test.com', submitsTo: '', forwardsTo: '', overLimitForwardsTo: ''},
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
             },
         };
-        expect(getPolicyApproverLogins(policy).size).toBe(0);
+        expect(hasActiveExpensifyCard(policy, 'cardholder@test.com')).toBe(true);
     });
 
-    it('includes the named policy approver', () => {
-        const policy: Policy = {...createRandomPolicy(0), approver: 'boss@test.com', employeeList: {}};
-        expect([...getPolicyApproverLogins(policy)]).toEqual(['boss@test.com']);
-    });
-
-    it('collects submitsTo, forwardsTo and overLimitForwardsTo targets', () => {
+    it('returns false when the flag is false or missing', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
-            approver: undefined,
             employeeList: {
-                'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
-                'b@test.com': {email: 'b@test.com', forwardsTo: 'director@test.com'},
-                'c@test.com': {email: 'c@test.com', overLimitForwardsTo: 'vp@test.com'},
+                'former-cardholder@test.com': {email: 'former-cardholder@test.com', hasActiveExpensifyCard: false},
+                'employee@test.com': {email: 'employee@test.com'},
             },
         };
-        expect([...getPolicyApproverLogins(policy)].sort()).toEqual(['director@test.com', 'manager@test.com', 'vp@test.com']);
+        expect(hasActiveExpensifyCard(policy, 'former-cardholder@test.com')).toBe(false);
+        expect(hasActiveExpensifyCard(policy, 'employee@test.com')).toBe(false);
     });
 
-    it('deduplicates approvers referenced by multiple employees or fields', () => {
+    it('returns false when the member is not in the employeeList', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
-            approver: 'manager@test.com',
             employeeList: {
-                'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
-                'b@test.com': {email: 'b@test.com', submitsTo: 'manager@test.com', forwardsTo: 'manager@test.com'},
+                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
             },
         };
-        expect([...getPolicyApproverLogins(policy)]).toEqual(['manager@test.com']);
+        expect(hasActiveExpensifyCard(policy, 'someone-else@test.com')).toBe(false);
     });
 
-    it('ignores empty-string routing fields', () => {
+    it('returns true when the secondary login is checked and the backend flags its paired primary login', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
-            approver: '',
+            primaryLoginsInvited: {'secondary@test.com': 'primary@test.com'},
             employeeList: {
-                'a@test.com': {email: 'a@test.com', submitsTo: '', forwardsTo: 'director@test.com', overLimitForwardsTo: ''},
+                'secondary@test.com': {email: 'secondary@test.com'},
+                'primary@test.com': {email: 'primary@test.com', hasActiveExpensifyCard: true},
             },
         };
-        expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+        expect(hasActiveExpensifyCard(policy, 'secondary@test.com')).toBe(true);
     });
 });
 
@@ -6429,5 +7026,25 @@ describe('shouldHideDynamicExternalWorkflowPeople', () => {
     it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
         const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
         expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+});
+
+describe('getConnectionExporters', () => {
+    it('includes the Business Central preferred exporter', () => {
+        // Given a workspace connected to Business Central with a preferred exporter
+        const policy = createMock<Policy>({
+            ...createRandomPolicy(0),
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                    config: {export: {exporter: 'exporter@example.com'}},
+                },
+            },
+        });
+
+        // When the workspace's connection exporters are read
+        const exporters = getConnectionExporters(policy);
+
+        // Then the Business Central exporter is listed, so that member can export reports to Business Central
+        expect(exporters).toContain('exporter@example.com');
     });
 });

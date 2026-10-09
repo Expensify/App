@@ -5,6 +5,7 @@ import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
+import canvaskitPackageJson from 'canvaskit-wasm/package.json' with {type: 'json'};
 import {execSync} from 'child_process';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -44,6 +45,17 @@ function getCurrentBranchName(): string {
 }
 
 const localBranchName = getCurrentBranchName();
+
+/**
+ * CanvasKit ships as a matched pair: the JS glue (`canvaskit.js`, bundled into a content-hashed chunk) and
+ * the `canvaskit.wasm` binary it instantiates. The pair is only compatible within a single `canvaskit-wasm`
+ * release, so the binary must be served from a URL that changes with the release too. Otherwise a client can
+ * pair one deploy's glue with another deploy's binary (stale HTTP cache, or a tab that outlived a deploy and
+ * got claimed by the new service worker) and CanvasKit either fails to link (`LinkError: Import #N "a" "wd"`)
+ * or links against the wrong exports and resolves without its bindings (`PictureRecorder is not a constructor`).
+ * See https://github.com/Expensify/App/issues/102042.
+ */
+const CANVASKIT_WASM_FILENAME = `canvaskit-${canvaskitPackageJson.version}.wasm`;
 
 /**
  * React Compiler + react-native-worklets loaders.
@@ -139,6 +151,9 @@ function getDefineValues(file: string): DefinePluginOptions {
         // Expose the current git branch so the debug menu can display it in the browser tab title.
         // Empty string in non-development builds.
         __GIT_BRANCH__: JSON.stringify(isDevelopmentFile ? localBranchName : ''),
+        // Where `SkiaWebChart` tells CanvasKit to fetch its wasm binary from. Versioned so the glue in this
+        // bundle can never be paired with another release's binary (see `CANVASKIT_WASM_FILENAME`).
+        __CANVASKIT_WASM_URL__: JSON.stringify(`/${CANVASKIT_WASM_FILENAME}`),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
 }
@@ -407,8 +422,10 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
                 // Group‑IB web SDK injection file
                 {from: 'web/snippets/gib.js', to: 'gib.js'},
-                // CanvasKit WASM files for @shopify/react-native-skia web support (uses full version)
-                {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm'},
+                // CanvasKit WASM binary for @shopify/react-native-skia web support (uses the full build). Emitted
+                // under a versioned name so it can't be served stale against newer glue. The URL is passed to
+                // the app through the `__CANVASKIT_WASM_URL__` define above.
+                {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm', to: CANVASKIT_WASM_FILENAME},
             ],
         },
         html: {
@@ -425,7 +442,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             // Rsbuild's default exclusion, plus the `.br` twins BrotliCompressionPlugin emits below: listing them would
             // double the report with a meaningless "gzipped size" of already-Brotli-compressed bytes.
             printFileSize: {exclude: (asset) => /\.(?:map|LICENSE\.txt|d\.(?:ts|mts|cts)|br)$/.test(asset.name)},
-            // We have to load the whole lottie player to get the player to work in offline mode
             // heic-to library is used sparsely so we load it as a separate chunk to reduce initial bundle size
             // ExpensifyIcons/illustrations chunks are loaded eagerly for offline support
             // Vendor: extract all 3rd party deps (~75% of App) to a separate js file for better caching
@@ -433,11 +449,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 strategy: 'custom',
                 splitChunks: {
                     cacheGroups: {
-                        lottiePlayer: {
-                            test: /[\\/]node_modules[\\/](@dotlottie\/react-player)[\\/]/,
-                            name: 'lottiePlayer',
-                            chunks: 'all',
-                        },
                         heicTo: {
                             test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                             name: 'heicTo',
@@ -504,10 +515,12 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   clientsClaim: true,
                                   skipWaiting: true,
                                   // Cap is generous on purpose: the vendor (~6.5 MiB), main (~5.5 MiB),
-                                  // authScreens.prefetch (~6.3 MiB) chunks and canvaskit.wasm (~7.6 MiB) are
-                                  // all critical for offline boot, so we precache the lot. Everything in the
-                                  // App build is content-hashed, so growth here only costs first-install bytes.
-                                  maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+                                  // authScreens.prefetch (~10.1 MiB) chunks and the canvaskit wasm (~7.7 MiB) are
+                                  // all critical for offline boot, so we precache the lot. JS chunks are
+                                  // content-hashed and the wasm is versioned (see `CANVASKIT_WASM_FILENAME`),
+                                  // so growth here only costs first-install bytes. Copied assets that keep a
+                                  // fixed name (e.g. `cmaps/`) are keyed by Workbox revision instead.
+                                  maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
                                   // Workbox's defaults, plus the `.br` twins BrotliCompressionPlugin emits: the service
                                   // worker requests the original URLs and the CDN transparently serves the Brotli copy,
                                   // so adding the twins to the precache as well would download every chunk twice.

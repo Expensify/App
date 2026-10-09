@@ -67,6 +67,9 @@ type Message = {
 
     /** Email the balance was transferred to, for a balance-transfer row */
     transferTo?: string;
+
+    /** Purchase ID of the bill a balance transfer was taken from */
+    fromPurchaseID?: number;
     cardSpendSurchargePercent?: number;
     cashBackAmount?: number;
     cashBackPercentage?: number;
@@ -133,6 +136,9 @@ type Purchase = {
 /** Array of purchases */
 type PurchaseList = Purchase[];
 
+/** Purchases keyed by purchaseID, so a single purchase can be merged without rewriting the whole set */
+type Purchases = Record<string, Purchase>;
+
 export default PurchaseList;
 
-export type {Purchase};
+export type {Purchase, Purchases};

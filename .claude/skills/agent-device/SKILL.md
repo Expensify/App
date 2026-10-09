@@ -1,7 +1,7 @@
 ---
 name: agent-device
 description: Drive iOS and Android devices for the Expensify App - testing, debugging, performance profiling, bug reproduction, and feature verification. Use when the developer needs to interact with the mobile app on a device.
-allowed-tools: Bash(agent-device *) Bash(npm root *) Bash(scripts/is-hybrid-app.sh)
+allowed-tools: Bash(agent-device *) Bash(scripts/is-hybrid-app.sh)
 ---
 
 # agent-device
@@ -12,7 +12,7 @@ These checks evaluate at skill load. If any line shows `FAIL`, stop and surface 
 
 `agent-device` version: !`R=0.20.0; V=$(agent-device --version 2>/dev/null); [ -n "$V" ] && [ "$(printf '%s\n%s\n' "$R" "$V" | sort -V | head -1)" = "$R" ] && echo "OK ($V)" || echo "FAIL (need v$R+, got: ${V:-not installed}). Fix: npm install -g agent-device@latest"`
 
-Bundled CLI skills dir: !`D="$(npm root -g)/agent-device/skills/agent-device"; test -s "$D/SKILL.md" && echo "OK ($D)" || echo "FAIL (missing $D/SKILL.md). Fix: npm install -g agent-device@latest"`
+CLI guide: !`agent-device help workflow >/dev/null 2>&1 && echo "OK (agent-device help workflow)" || echo "FAIL (agent-device help workflow unavailable). Fix: npm install -g agent-device@latest"`
 
 HybridApp mode: !`M=$(scripts/is-hybrid-app.sh 2>/dev/null | tail -1); [ "$M" = "true" ] && echo "OK (HybridApp)" || echo "FAIL (got: ${M:-unknown}). This skill only supports the HybridApp build - ensure the Mobile-Expensify submodule is present."`
 
@@ -117,7 +117,7 @@ After pressing the action, verify the expected destination or control state with
 
 ### Canonical skill references
 
-Read these files directly for device automation guidance (bootstrap, exploration, verification, debugging): !`echo "$(npm root -g)/agent-device/skills/agent-device"`
+For device automation guidance (exploration, verification, debugging), run `agent-device help workflow`. Topic guides: `agent-device help <topic>`, for example `react-native`, `debugging`, `scripting`, `batch`.
 
 ## Flows
 
