@@ -103,7 +103,7 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                                         styles.overflowHidden,
                                     ]}
                                 >
-                                    <VictoryChartContent shouldUseStaticCanvas />
+                                    <VictoryChartContent />
                                 </View>
                             ))}
                     </View>

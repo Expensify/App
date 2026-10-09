@@ -1,0 +1,13 @@
+diff --git a/node_modules/victory-native/src/utils/tickHelpers.ts b/node_modules/victory-native/src/utils/tickHelpers.ts
+index 100fb89..ea9fdca 100644
+--- a/node_modules/victory-native/src/utils/tickHelpers.ts
++++ b/node_modules/victory-native/src/utils/tickHelpers.ts
+@@ -17,7 +17,7 @@ export const downsampleTicks = (tickValues: number[], tickCount: number) => {
+   }
+ 
+   if (tickCount <= 0) {
+-    return [];
++    return tickValues;
+   }
+ 
+   if (!Array.isArray(tickValues) || tickValues.length <= tickCount) {

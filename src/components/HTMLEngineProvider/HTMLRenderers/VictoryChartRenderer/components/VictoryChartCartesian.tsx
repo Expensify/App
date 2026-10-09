@@ -5,7 +5,6 @@ import type {CartesianChartData, YKey} from '@components/HTMLEngineProvider/HTML
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
-import getStaticChartCanvasProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getStaticChartCanvasProps';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
@@ -29,9 +28,6 @@ type VictoryChartCartesianProps = {
     /** When true, renders without visible chrome (used for snapshots/tests) */
     headless?: boolean;
 
-    /** Render into a static bitmap canvas instead of a live WebGL canvas (web) */
-    shouldUseStaticCanvas?: boolean;
-
     onRenderArgs?: (renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => void;
 };
 
@@ -39,7 +35,7 @@ type VictoryChartCartesianProps = {
  * Renders the CartesianChart with data, axes, and domain config drawn from context.
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
-function VictoryChartCartesian({explicitSize, headless, shouldUseStaticCanvas, onRenderArgs}: VictoryChartCartesianProps) {
+function VictoryChartCartesian({explicitSize, headless, onRenderArgs}: VictoryChartCartesianProps) {
     const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles, pixelScale} = useVictoryChartContext();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
@@ -69,7 +65,6 @@ function VictoryChartCartesian({explicitSize, headless, shouldUseStaticCanvas, o
             domainPadding={domainPadding}
             padding={padding}
             {...getChartLayoutModeProps(explicitSize, headless)}
-            canvasProps={shouldUseStaticCanvas ? getStaticChartCanvasProps() : undefined}
             renderOutside={(renderArgs) => {
                 const overlayContent = (
                     <VictoryChartRenderArgsProvider value={{...renderArgs, pixelScale}}>
