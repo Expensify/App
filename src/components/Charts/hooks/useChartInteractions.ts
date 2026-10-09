@@ -108,6 +108,12 @@ function normalizeChartCoordinate(coordinate: number, coordinateScale: number): 
     return Number.isFinite(coordinateScale) && coordinateScale > 0 ? coordinate / coordinateScale : coordinate;
 }
 
+function denormalizeChartCoordinate(coordinate: number, coordinateScale: number): number {
+    'worklet';
+
+    return Number.isFinite(coordinateScale) && coordinateScale > 0 ? coordinate * coordinateScale : coordinate;
+}
+
 /**
  * Binary search over canvas x positions to find the index of the closest data point.
  * Equivalent to victory-native's internal findClosestPoint utility.
@@ -411,9 +417,10 @@ function useChartInteractions({
         // Position tooltip at the top of the bar (min of targetY and yZero)
         const barTopY = Math.min(targetY, currentYZero);
 
+        // Chart tooltip is drawn outside the chart's scale transform
         return {
-            x: targetX,
-            y: barTopY - TOOLTIP_BAR_GAP,
+            x: denormalizeChartCoordinate(targetX, coordinateScale),
+            y: denormalizeChartCoordinate(barTopY, coordinateScale) - TOOLTIP_BAR_GAP,
         };
     });
 

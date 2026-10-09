@@ -33,7 +33,7 @@ type ChartTooltipProps = {
     /** Optional translated expense count (e.g., "841 expenses") */
     expenseCount?: string;
 
-    /** The width of the chart container */
+    /** The width of the chart container as displayed in the window */
     chartWidth: number;
 
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
