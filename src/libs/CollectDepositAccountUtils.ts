@@ -7,6 +7,7 @@ import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 import type {BankAccountFieldsMap} from './BankAccountFields/types';
 
 import {addErrorMessage} from './ErrorUtils';
+import {isValidRoutingNumber} from './ValidationUtils';
 
 /** Validates against the mapping's regexes, which are the same ones the API applies to local submissions. */
 function getValidationErrors(values: CollectDepositAccountForm, fieldsMap: BankAccountFieldsMap, translate: LocaleContextProps['translate']): Record<string, string> {
@@ -24,7 +25,9 @@ function getValidationErrors(values: CollectDepositAccountForm, fieldsMap: BankA
             continue;
         }
 
-        if (!matchesValidator.test(value)) {
+        const failsChecksum = fieldName === INPUT_IDS.ROUTING_NUMBER && values[INPUT_IDS.BANK_COUNTRY] === CONST.COUNTRY.US && !isValidRoutingNumber(value);
+
+        if (!matchesValidator.test(value) || failsChecksum) {
             addErrorMessage(errors, fieldName, field.errorMessage || translate('common.error.invalidField', field.label));
         }
     }
