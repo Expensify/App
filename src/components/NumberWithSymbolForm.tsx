@@ -72,6 +72,9 @@ type NumberWithSymbolFormProps = {
     shouldWrapInputInContainer?: boolean;
     scrollViewStyle?: StyleProp<ViewStyle>;
 
+    /** Style for the outer text-input wrapper, the sibling of the currency symbol. */
+    outerContainerStyles?: StyleProp<ViewStyle>;
+
     /** Whether to refocus the input when clicking on the ScrollView empty space */
     shouldRefocusOnScrollViewClick?: boolean;
 
@@ -126,7 +129,7 @@ type NumberWithSymbolFormProps = {
      * standalone amount input rather than a row inside a form, so it keeps the pill.
      */
     shouldUseBorderlessButtons?: boolean;
-} & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
+} & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp' | 'containerStyles'>;
 
 type NumberWithSymbolFormRef = {
     clearSelection: () => void;
@@ -183,6 +186,7 @@ function NumberWithSymbolForm({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     scrollViewStyle,
+    outerContainerStyles,
     shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
@@ -629,6 +633,7 @@ function NumberWithSymbolForm({
             symbolTextStyle={[symbolTextStyle, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
             style={[style, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
             containerStyle={containerStyle}
+            containerStyles={outerContainerStyles}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             autoFocus={props.autoFocus}
