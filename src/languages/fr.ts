@@ -11085,6 +11085,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,
         reportContainsExpensesWithViolations: 'La note de frais contient des dépenses avec des violations.',
+        reportFailedToSubmit: 'La note de frais n’a pas pu être soumise en raison d’erreurs.',
     },
     violationDismissal: {
         rter: {

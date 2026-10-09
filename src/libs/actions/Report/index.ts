@@ -5328,6 +5328,13 @@ function clearIOUError(reportID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 
+function clearReportErrors(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errors: null});
+}
+
 function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM, false);
 }
@@ -9059,6 +9066,7 @@ export {
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,
     clearIOUError,
+    clearReportErrors,
     clearNewRoomFormError,
     setNewRoomFormLoading,
     clearPolicyRoomNameErrors,

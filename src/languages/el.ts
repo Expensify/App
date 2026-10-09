@@ -11276,6 +11276,7 @@ ${reportName}`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,
         reportContainsExpensesWithViolations: 'Η αναφορά περιέχει δαπάνες με παραβιάσεις.',
+        reportFailedToSubmit: 'Η υποβολή της αναφοράς απέτυχε λόγω σφαλμάτων.',
     },
     violationDismissal: {
         rter: {
