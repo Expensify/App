@@ -218,7 +218,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
           )
         : undefined;
 
-    const shouldHideSupportTicketSurvey = isSupportTicket(report) && (!isResolvedSupportTicket(report) || !!reportNameValuePairs?.reopenedAsReportID);
+    const shouldHideSupportTicketSurvey = isSupportTicket(report) && !isResolvedSupportTicket(report);
     const latestResolvedSupportTicketAction = sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
     const latestSupportTicketSurveyAction = latestResolvedSupportTicketAction
         ? sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && action.created >= latestResolvedSupportTicketAction.created)
