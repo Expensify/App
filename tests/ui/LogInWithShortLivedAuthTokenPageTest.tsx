@@ -2,14 +2,17 @@ import {act, render} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 
-import {signInWithShortLivedAuthToken} from '@userActions/Session';
+import {signInWithShortLivedAuthToken, signInWithSupportAuthToken} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {NavigationContainer} from '@react-navigation/native';
@@ -125,5 +128,19 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, false, undefined, undefined);
+    });
+
+    it('leaves the transition URL in place after a support sign-in', async () => {
+        // Given a supportal link that names a report action in the customer's account
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute('123', '456');
+
+        // When the signed-out transition page handles the support token
+        renderPage({shortLivedAuthToken: 'token', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, exitTo: reportRoute, shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page only signs in, because the signed-in screens read exitTo from the /transition URL and a navigation here would replace it
+        expect(signInWithSupportAuthToken).toHaveBeenCalledWith('token');
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });
