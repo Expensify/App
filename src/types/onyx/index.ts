@@ -118,6 +118,8 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MarketingAttribution from './MarketingAttribution';
+import type {StoredMarketingAttribution} from './MarketingAttribution';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
@@ -149,6 +151,7 @@ import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
+import type {PolicyVendor} from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -309,6 +312,8 @@ export type {
     PasskeyTransport,
     PendingContactAction,
     MapboxAccessToken,
+    MarketingAttribution,
+    StoredMarketingAttribution,
     Modal,
     Network,
     OnyxInputOrEntry,
@@ -328,6 +333,7 @@ export type {
     PolicyCategories,
     PolicyCategory,
     PolicyDataLoadingState,
+    PolicyVendor,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
