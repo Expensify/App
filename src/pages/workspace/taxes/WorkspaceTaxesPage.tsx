@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -394,11 +394,9 @@ function WorkspaceTaxesPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader={!selectionModeHeader}
+                <HeaderCentralPane
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -409,7 +407,7 @@ function WorkspaceTaxesPage({
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={pageGutter}>{headerButtons}</View>}
                 {(!hasVisibleTaxes || isLoading) && headerContent}
                 {isLoading && (

@@ -1,5 +1,5 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -62,7 +62,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
             testID="SubscriptionSettingsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => {
                     if (backTo) {
@@ -71,10 +71,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                     }
                     Navigation.goBack();
                 }}
-                shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                shouldUseHeadlineHeader
             />
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

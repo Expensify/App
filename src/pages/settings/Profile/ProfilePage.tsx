@@ -5,7 +5,7 @@ import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
@@ -212,7 +212,7 @@ function ProfilePage() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     title={translate('common.profile')}
                     onBackButtonPress={() => {
                         if (route.params?.backTo) {
@@ -221,10 +221,7 @@ function ProfilePage() {
                         }
                         Navigation.goBack();
                     }}
-                    shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
-                    shouldUseHeadlineHeader
                 />
             </CollapsibleHeaderOnKeyboard>
             <ScrollView

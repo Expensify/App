@@ -1,5 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -293,13 +293,9 @@ function SecuritySettingsPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 title={translate('initialSettingsPage.security')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={Navigation.goBack}
-                shouldUseHeadlineHeader
                 shouldDisplaySearchRouter
-                shouldDisplayHelpButton
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

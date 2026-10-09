@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
@@ -306,13 +306,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     testID="WorkspaceReceiptPartnersPage"
                     shouldShowOfflineIndicatorInWideScreen
                 >
-                    <HeaderWithBackButton
-                        title={translate('workspace.common.receiptPartners')}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        shouldUseHeadlineHeader
-                        shouldDisplayHelpButton
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <HeaderCentralPane title={translate('workspace.common.receiptPartners')} />
                     <ScrollView
                         contentContainerStyle={styles.pt3}
                         addBottomSafeAreaPadding
