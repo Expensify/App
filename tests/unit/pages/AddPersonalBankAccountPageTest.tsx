@@ -258,7 +258,7 @@ describe('AddPersonalBankAccountPage', () => {
             // When they confirm the bank account
             fireEvent.press(screen.getByText('Confirm'));
 
-            // Then it is added straight away, because nothing in their private personal details changes
+            // Then it is added straight away, because their saved phone number doesn't change
             expect(addPersonalBankAccount).toHaveBeenCalledTimes(1);
             expect(jest.mocked(addPersonalBankAccount).mock.lastCall?.[2]?.validateCode).toBeUndefined();
             expect(navigateSpy).not.toHaveBeenCalled();
@@ -278,6 +278,29 @@ describe('AddPersonalBankAccountPage', () => {
             // Then they are sent to the magic code step first, as in Profile > Private, and nothing is submitted yet
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.VALIDATE_CODE, undefined));
             expect(addPersonalBankAccount).not.toHaveBeenCalled();
+        });
+
+        it('adds the bank account without a magic code when only the legal name and address change', async () => {
+            // Given a user who entered a new legal name and address but kept their saved phone number
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                    ...MANUAL_BANK_ACCOUNT_DRAFT,
+                    legalFirstName: 'Janet',
+                    addressStreet: '456 Oak St',
+                    addressCity: 'Oakland',
+                    addressZipCode: '94607',
+                });
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);
+
+            // When they confirm the bank account
+            fireEvent.press(screen.getByText('Confirm'));
+
+            // Then it is added straight away, because only a phone number change needs a magic code
+            expect(addPersonalBankAccount).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(addPersonalBankAccount).mock.lastCall?.[2]?.validateCode).toBeUndefined();
+            expect(navigateSpy).not.toHaveBeenCalled();
         });
 
         it('asks for a magic code when the saved phone number is not in E.164 format', async () => {
@@ -316,7 +339,7 @@ describe('AddPersonalBankAccountPage', () => {
             // When they confirm the bank account
             fireEvent.press(screen.getByText('Confirm'));
 
-            // Then they must enter a magic code, since the flow would write those details to their profile
+            // Then they must enter a magic code, since the flow would save a phone number to their profile
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.VALIDATE_CODE, undefined));
             expect(addPersonalBankAccount).not.toHaveBeenCalled();
         });
@@ -380,7 +403,7 @@ describe('AddPersonalBankAccountPage', () => {
             // Given a user on the magic code step whose first submission failed the account ownership check
             await act(async () => {
                 await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
-                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
             });
             await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
             await act(async () => {
@@ -404,10 +427,10 @@ describe('AddPersonalBankAccountPage', () => {
         });
 
         it('sends the user back to the confirmation step when the magic code step gets the account ownership error', async () => {
-            // Given a user on the magic code step after changing their legal name
+            // Given a user on the magic code step after changing their phone number
             await act(async () => {
                 await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
-                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
             });
             await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
 
@@ -434,7 +457,7 @@ describe('AddPersonalBankAccountPage', () => {
             // Given the account ownership error from a submission on the confirmation step, still in Onyx while it's being cleared
             await act(async () => {
                 await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
-                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
                 await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
             });
 
@@ -446,10 +469,10 @@ describe('AddPersonalBankAccountPage', () => {
         });
 
         it('keeps the user on the magic code step for other errors', async () => {
-            // Given a user on the magic code step after changing their legal name
+            // Given a user on the magic code step after changing their phone number
             await act(async () => {
                 await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
-                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
             });
             await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
 
@@ -469,7 +492,7 @@ describe('AddPersonalBankAccountPage', () => {
             // Given a user back on the confirmation step with the account ownership error from their previous submission
             await act(async () => {
                 await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
-                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, legalFirstName: 'Janet'});
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
                 await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[Date.now()]: 'Unable to verify bank account ownership.'}});
             });
             await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.CONFIRMATION);

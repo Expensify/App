@@ -56,9 +56,6 @@ const pagesWithManualSetup = [{pageName: SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETA
 const DEFAULT_OBJECT = {};
 const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
 
-// The fields addPersonalBankAccount saves to the user's private personal details
-const PERSONAL_DETAILS_FIELDS = ['legalFirstName', 'legalLastName', 'addressStreet', 'addressStreet2', 'addressCity', 'addressState', 'addressZipCode', 'country', 'phoneNumber'] as const;
-
 function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const route = useRoute();
@@ -148,21 +145,10 @@ function AddPersonalBankAccountPage() {
             ...bankAccountWithToken,
             phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
         };
-        // Compare against the values exactly as saved, without the fallbacks and formatting applied above, so that anything the backend treats as a change also asks for the magic
-        // code here. At worst this asks for a code the backend wouldn't need, such as when a saved phone number isn't in E.164 format.
-        const savedPersonalDetails = {
-            legalFirstName: privatePersonalDetails?.legalFirstName,
-            legalLastName: privatePersonalDetails?.legalLastName,
-            addressStreet,
-            addressStreet2: street2,
-            addressCity: currentAddress?.city,
-            addressState: currentAddress?.state,
-            addressZipCode: currentAddress?.zip,
-            country: currentAddress?.country,
-            phoneNumber: privatePersonalDetails?.phoneNumber,
-        };
-        const hasPersonalDetailsChanges = PERSONAL_DETAILS_FIELDS.some((field) => (accountData[field] ?? '') !== (savedPersonalDetails[field] ?? ''));
-        return {accountData, hasPersonalDetailsChanges};
+        // Compare against the phone number exactly as saved, without the fallback and formatting applied above, so that anything the backend treats as a change also asks for the
+        // magic code here. At worst this asks for a code the backend wouldn't need, such as when a saved phone number isn't in E.164 format.
+        const hasPhoneNumberChange = (accountData.phoneNumber ?? '') !== (privatePersonalDetails?.phoneNumber ?? '');
+        return {accountData, hasPhoneNumberChange};
     };
 
     const pages = isManual ? pagesWithManualSetup : pagesWithPlaid;
@@ -198,10 +184,10 @@ function AddPersonalBankAccountPage() {
         }
         // On the confirmation step we submit the bank account first; the success step is
         // only shown once the request succeeds (see the effect below).
-        // Saving a changed name, address, or phone number to the user's private personal details requires a magic code, as it does from Profile > Private.
+        // Saving a changed phone number to the user's private personal details requires a magic code, because it is used to verify Expensify Card transactions.
         if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
-            const {accountData, hasPersonalDetailsChanges} = getAccountData();
-            if (hasPersonalDetailsChanges) {
+            const {accountData, hasPhoneNumberChange} = getAccountData();
+            if (hasPhoneNumberChange) {
                 // The error belongs to the previous submission, so the magic code page doesn't show it
                 clearPersonalBankAccountErrors();
                 nextPage();
