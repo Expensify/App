@@ -105,7 +105,6 @@ function getAssignableWorkspaceMemberRoleItems(
         },
     ];
 
-    // Keep the guest role visible when the member already has it, so an existing guest's role is still displayed while the beta is off.
     return workspaceRoles.filter(
         (item) =>
             (isGuestWorkspaceRoleEnabled || currentRole === CONST.POLICY.ROLE.GUEST || item.value !== CONST.POLICY.ROLE.GUEST) &&
