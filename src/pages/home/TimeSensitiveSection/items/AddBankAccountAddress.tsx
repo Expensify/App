@@ -69,7 +69,13 @@ function BankAccountAddressWidgetItem({title, subtitle, ctaText, onCtaPress, isC
     );
 }
 
-function AddPersonalBankAccountAddress({bankAccountID, additionalData, title, subtitle, ctaText}: Pick<AddBankAccountAddressProps, 'bankAccountID' | 'additionalData'> & WidgetCopyPropsWithoutCta) {
+function AddPersonalBankAccountAddress({
+    bankAccountID,
+    additionalData,
+    title,
+    subtitle,
+    ctaText,
+}: Pick<AddBankAccountAddressProps, 'bankAccountID' | 'additionalData'> & WidgetCopyPropsWithoutCta) {
     const handleCtaPress = () => {
         const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
         resetPersonalBankAccountForUpdate(
@@ -154,7 +160,7 @@ function AddWorkspaceBankAccountAddress({bankAccountID, policyID, title, subtitl
             return;
         }
 
-        if (!isEmptyObject(reimbursementAccount?.errors ?? {})) {
+        if (hasSeenReimbursementAccountLoadingRef.current && !isEmptyObject(reimbursementAccount?.errors ?? {})) {
             showWorkspaceLoadError();
             return;
         }
