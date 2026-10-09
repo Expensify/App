@@ -11,10 +11,11 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import replaceCompanyCardsRoute from '@libs/Navigation/helpers/replaceCompanyCardsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,6 +31,10 @@ function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
     const policyID = policy?.id;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path);
     const {export: exportConfig, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
+    // Skip the per-card list on back unless Intacct is exporting as Vendor bill or Credit card charge (see the SAGE_INTACCT case in getExportMenuItem)
+    const sageConfig = exportConfig?.nonReimbursable ?? exportConfig?.reimbursable;
+    const shouldGoBackToSpecificRoute =
+        sageConfig !== CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL && sageConfig !== CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE;
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path}` : undefined;
     const travelPayableAccount = policy?.connections?.intacct?.data?.creditCards?.find((account) => account.name === exportConfig?.travelInvoicingPayableAccountID);
 
@@ -91,7 +96,7 @@ function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
             title="workspace.sageIntacct.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            onBackButtonPress={() => Navigation.goBack(replaceCompanyCardsRoute(backPath))}
+            onBackButtonPress={() => goBackFromExportConnection(shouldGoBackToSpecificRoute, backPath)}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
