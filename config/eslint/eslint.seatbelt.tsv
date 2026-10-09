@@ -11,7 +11,6 @@
 "../../__mocks__/react-native-onyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../__mocks__/react-native-safe-area-context.tsx"	"react-hooks/refs"	4
 "../../__mocks__/react-native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../.github/actions/javascript/authorChecklist/categories/newComponentCategory.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../.github/actions/javascript/failureNotifier/failureNotifier.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/formatCodeCovComment/formatCodeCovComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../.github/actions/javascript/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts"	"rulesdir/no-default-id-values"	1
@@ -606,8 +605,7 @@
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/ReportWorkflow.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	5
-"../../src/libs/actions/IOU/ReportWorkflow.ts"	"no-restricted-imports"	1
+"../../src/libs/actions/IOU/ReportWorkflow.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	3
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/SendInvoice.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SendInvoice.ts"	"no-restricted-syntax"	1
@@ -1635,7 +1633,7 @@
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/members/WorkspaceMemberCustomFieldPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceOwnerChangeCheck.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
@@ -1712,7 +1710,6 @@
 "../../src/pages/workspace/WorkspaceConfirmationOwnerSelectorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceConfirmationSuccessPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceInitialPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceMembersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceMoreFeaturesPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceNamePage.tsx"	"no-restricted-imports"	1
@@ -1720,7 +1717,6 @@
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/workspace/WorkspaceOverviewClientIDPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewDescriptionPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1828,7 +1824,6 @@
 "../../tests/actions/PolicyCategoryTest.ts"	"@typescript-eslint/no-restricted-imports"	1
 "../../tests/actions/PolicyProfileTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/PolicyTagTest.ts"	"@typescript-eslint/no-restricted-imports"	1
-"../../tests/actions/PolicyTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/ReportFieldTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/ReportPreviewActionUtilsTest.ts"	"no-restricted-imports"	2
 "../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-restricted-imports"	1
