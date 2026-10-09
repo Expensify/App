@@ -10,6 +10,7 @@ import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans (Typical on the ranking charts) */
 const COMPARE_TYPICAL_PERIOD_COUNT = 1;
@@ -42,7 +43,7 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
 /** Builds a chart's query with the page's filters applied. */
 function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): SearchQueryString {
     return buildQueryStringFromFilterFormValues(
-        {...buildFilterFormValues(filters), groupBy: chart.groupBy ?? filters.groupBy, view: chart.view, compare},
+        {...buildFilterFormValues(filters), groupBy: chart.groupBy ?? getQueryGroupBy(filters), view: chart.view, compare},
         {sortBy: chart.sortBy, sortOrder: chart.sortOrder, limit: chart.limit},
     );
 }
@@ -94,7 +95,7 @@ type InsightsQuery = {
 
 /** Builds one request for the whole dashboard, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsQuery | undefined {
-    const inputQuery = buildInsightsQueryString({...filters, compare: undefined});
+    const inputQuery = buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined});
     const queryJSON = buildSearchQueryJSON(inputQuery);
     if (!queryJSON) {
         return undefined;
