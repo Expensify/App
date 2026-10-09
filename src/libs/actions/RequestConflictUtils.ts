@@ -410,6 +410,36 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(
     };
 }
 
+/**
+ * Removing the vacation delegate supersedes any change to it still waiting in the queue, e.g. a clear after date changed offline
+ * before the removal. Sending that change first would let its response bring the removed delegate back until the removal lands.
+ * Only the current user's own delegate is matched, so a domain admin's change for a member is left alone.
+ */
+function resolveVacationDelegateDeletionConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>): ConflictActionData {
+    const indicesToDelete = persistedRequests.reduce<number[]>((indices, request, index) => {
+        if (request.command === WRITE_COMMANDS.SET_VACATION_DELEGATE && !request.data?.domainAccountID) {
+            indices.push(index);
+        }
+        return indices;
+    }, []);
+
+    if (indicesToDelete.length === 0) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'delete',
+            indices: indicesToDelete,
+            pushNewRequest: true,
+        },
+    };
+}
+
 export {
     resolveDuplicationConflictAction,
     resolveOpenAppDuplicationConflictAction,
@@ -425,6 +455,7 @@ export {
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
     resolveDetachReceiptConflicts,
+    resolveVacationDelegateDeletionConflicts,
 };
 
 export type {EnablePolicyFeatureCommand, AnyRequestMatcher};

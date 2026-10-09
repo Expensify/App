@@ -15,6 +15,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -29,7 +30,10 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
 
+import {clearDraftValues} from '@libs/actions/FormActions';
+import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
 import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,6 +41,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
@@ -49,9 +54,10 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {ComponentRef} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -67,7 +73,7 @@ function ProfilePage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
@@ -99,15 +105,38 @@ function ProfilePage() {
     const [commuterExclusionsWorkspaceName] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: homeAndOfficeCommuterExclusionPolicyNameSelector});
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const activeVacationDelegate = getActiveVacationDelegate(vacationDelegate);
+    const hasVacationDelegate = !!activeVacationDelegate;
+    const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(activeVacationDelegate);
+    const vacationDelegateName = hasVacationDelegate
+        ? getVacationDelegateDisplayName(vacationDelegatePersonalDetails?.login ?? activeVacationDelegate, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber)
+        : '';
+    // With no delegate there is nothing to show on the form yet, so go straight to picking one.
+    const vacationDelegateRoute = hasVacationDelegate ? ROUTES.SETTINGS_VACATION_DELEGATE : ROUTES.SETTINGS_VACATION_DELEGATE_SELECT;
+    const vacationDelegateClearDate = hasVacationDelegate
+        ? formatVacationDelegateClearDateTime(getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, currentUserPersonalDetails?.timezone?.selected), dateFnsLocale)
+        : '';
+    const vacationDelegateUntilText = vacationDelegateClearDate ? translate('statusPage.vacationDelegate.until', vacationDelegateClearDate) : '';
+    const vacationDelegateBrickRoadIndicator = isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const publicOptions: Array<{
         description: string;
         title: string;
         pageRoute?: Route;
+        onPress?: () => void;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         testID?: string;
         sentryLabel?: string;
+
+        /** Replaces the default name and value line, for a value that is not plain text */
+        content?: ReactNode;
+
+        /** Accessibility label for a row whose `content` is not plain text */
+        accessibilityLabel?: string;
+
+        /** Greys the row out while a change to its value is waiting for the network */
+        pendingAction?: PendingAction;
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -131,9 +160,33 @@ function ProfilePage() {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
-            brickRoadIndicator: isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             testID: 'status-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
+        },
+        {
+            description: translate('common.vacationDelegate'),
+            title: vacationDelegateName,
+            content: hasVacationDelegate ? (
+                <VacationDelegateMenuItem.Row
+                    label={translate('common.vacationDelegate')}
+                    displayName={vacationDelegateName}
+                    avatar={vacationDelegatePersonalDetails?.avatar}
+                    accountID={vacationDelegatePersonalDetails?.accountID}
+                    login={vacationDelegatePersonalDetails?.login ?? activeVacationDelegate}
+                    untilText={vacationDelegateUntilText}
+                    brickRoadIndicator={vacationDelegateBrickRoadIndicator}
+                />
+            ) : undefined,
+            accessibilityLabel: hasVacationDelegate ? [translate('common.vacationDelegate'), vacationDelegateName, vacationDelegateUntilText].filter(Boolean).join(', ') : undefined,
+            pageRoute: vacationDelegateRoute,
+            onPress: () => {
+                clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
+                Navigation.navigate(vacationDelegateRoute);
+            },
+            brickRoadIndicator: vacationDelegateBrickRoadIndicator,
+            pendingAction: vacationDelegate?.pendingAction ?? undefined,
+            testID: 'vacation-delegate-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.VACATION_DELEGATE,
         },
         ...(isAgentAccount === false
             ? [
@@ -277,24 +330,32 @@ function ProfilePage() {
                             {publicOptions.map((detail) => {
                                 const {pageRoute} = detail;
                                 return (
-                                    <MenuItemSectionRoot
+                                    <OfflineWithFeedback
                                         key={detail.testID}
-                                        onPress={pageRoute ? () => Navigation.navigate(pageRoute) : undefined}
-                                        testID={detail?.testID}
-                                        sentryLabel={detail.sentryLabel}
+                                        pendingAction={detail.pendingAction}
+                                        shouldHideOnDelete={false}
                                     >
-                                        <MenuItemField.Row
-                                            name={detail.description}
-                                            value={detail.title}
+                                        <MenuItemSectionRoot
+                                            onPress={detail.onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined)}
+                                            testID={detail?.testID}
+                                            sentryLabel={detail.sentryLabel}
+                                            accessibilityLabel={detail.accessibilityLabel}
                                         >
-                                            {(!!detail.brickRoadIndicator || !!pageRoute) && (
-                                                <>
-                                                    {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
-                                                    {!!pageRoute && <MenuItem.Chevron />}
-                                                </>
+                                            {detail.content ?? (
+                                                <MenuItemField.Row
+                                                    name={detail.description}
+                                                    value={detail.title}
+                                                >
+                                                    {(!!detail.brickRoadIndicator || !!pageRoute) && (
+                                                        <>
+                                                            {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                                            {!!pageRoute && <MenuItem.Chevron />}
+                                                        </>
+                                                    )}
+                                                </MenuItemField.Row>
                                             )}
-                                        </MenuItemField.Row>
-                                    </MenuItemSectionRoot>
+                                        </MenuItemSectionRoot>
+                                    </OfflineWithFeedback>
                                 );
                             })}
                             <Button
