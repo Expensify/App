@@ -7,6 +7,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {findSelfDMReportID, getParticipantsChatKey, isMoneyRequestReport} from '@libs/ReportUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
+import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -19,8 +21,6 @@ import type {RefObject} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
-
-import getSubmitExpensePreMountDestinationRoute from '../confirmation/getSubmitExpensePreMountDestinationRoute';
 
 type UseSubmitDestinationPreMountParams = {
     transaction: OnyxEntry<Transaction>;

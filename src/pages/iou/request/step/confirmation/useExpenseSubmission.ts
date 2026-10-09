@@ -32,7 +32,6 @@ import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 import useDistanceDraftData from './submission/useDistanceDraftData';
 import useDistanceSubmission from './submission/useDistanceSubmission';
 import useGpsCapture from './submission/useGpsCapture';
-import useInvoiceSubmission from './submission/useInvoiceSubmission';
 import usePerDiemSubmission from './submission/usePerDiemSubmission';
 import useRequestMoneySubmission from './submission/useRequestMoneySubmission';
 import useSendMoneySubmission from './submission/useSendMoneySubmission';
@@ -108,7 +107,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         receiptFiles,
         canEnterScanFieldsManually,
         report,
-        reportID,
         reportDrafts,
         policy,
         policyCategories,
@@ -371,21 +369,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         delegateAccountID,
     });
 
-    const invoiceSubmission = useInvoiceSubmission({
-        transaction,
-        receiptFiles,
-        report,
-        reportID,
-        policy,
-        policyCategories,
-        currentUserPersonalDetails,
-        action,
-        draftTransactionIDs,
-        recentlyUsedData,
-        policyTags,
-        delegateAccountID,
-    });
-
     // Which API command a submission will run. Resolved here rather than inside createTransaction because every
     // input is render-time state - that is what lets each path own its own hook once this file is split up.
     const submissionPath = resolveSubmissionPath({
@@ -401,16 +384,19 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isSubmittingExpenseToDraftWorkspace,
     });
 
-    const submitByPath: Record<SubmissionPath, (params: CreateTransactionParams) => boolean> = {
+    // Invoices submit through InvoiceConfirmation; this composer only serves the paths that haven't forked yet.
+    const submitByPath: Record<Exclude<SubmissionPath, typeof SUBMISSION_PATH.INVOICE>, (params: CreateTransactionParams) => boolean> = {
         [SUBMISSION_PATH.DISTANCE]: distanceSubmission.createTransaction,
         [SUBMISSION_PATH.SPLIT]: splitSubmission.createTransaction,
-        [SUBMISSION_PATH.INVOICE]: invoiceSubmission.createTransaction,
         [SUBMISSION_PATH.TRACK]: trackSubmission.createTransaction,
         [SUBMISSION_PATH.PER_DIEM]: perDiemSubmission.createTransaction,
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
     function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams): boolean {
+        if (submissionPath === SUBMISSION_PATH.INVOICE) {
+            return false;
+        }
         getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
         if (blockDistanceRequestIfNeeded()) {
             return false;
@@ -429,3 +415,4 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 }
 
 export default useExpenseSubmission;
+export type {UseExpenseSubmissionParams};

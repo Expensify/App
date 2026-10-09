@@ -36,7 +36,6 @@ const mockCreateDistanceRequestAction = jest.fn<ReturnType<CreateDistanceRequest
 const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForSubmitCleanup = jest.fn();
-const mockSendInvoiceAction = jest.fn();
 const mockSplitBillAction = jest.fn();
 const mockSplitBillAndOpenReportAction = jest.fn();
 const mockStartSplitBillAction = jest.fn();
@@ -63,11 +62,6 @@ jest.mock('@userActions/IOU/Split', () => ({
     splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
     resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
     startSplitBill: (...args: unknown[]) => mockStartSplitBillAction(...args),
-}));
-
-jest.mock('@userActions/IOU/SendInvoice', () => ({
-    sendInvoice: (...args: unknown[]) => mockSendInvoiceAction(...args),
-    getReceiverType: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab', () => ({
@@ -125,11 +119,6 @@ jest.mock('@hooks/useOnboardingTaskInformation', () => ({
 }));
 
 jest.mock('@hooks/useParentReportAction', () => ({
-    __esModule: true,
-    default: () => undefined,
-}));
-
-jest.mock('@hooks/useParticipantsInvoiceReport', () => ({
     __esModule: true,
     default: () => undefined,
 }));
@@ -1224,40 +1213,5 @@ describe('useExpenseSubmission action-bailout safety', () => {
         expect(mockTrackExpenseAction).not.toHaveBeenCalled();
         expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
         expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
-    });
-
-    describe('invoice path', () => {
-        it('calls cleanupAndNavigateAfterExpenseCreate with isInvoice when shouldHandleNavigation=true', async () => {
-            const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.INVOICE})));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockSendInvoiceAction).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    isInvoice: true,
-                    optimisticChatReportID: REPORT_ID,
-                    transactionID: TRANSACTION_ID,
-                }),
-            );
-        });
-
-        it('calls cleanupAfterExpenseCreate and skips cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=false', async () => {
-            const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.INVOICE})));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(mockSendInvoiceAction).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
-            expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
-        });
     });
 });
