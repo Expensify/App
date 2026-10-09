@@ -67,6 +67,8 @@ jest.mock('@components/BlockingViews/FullPageNotFoundView', () => (props: {child
 jest.mock('@components/HeaderWithBackButton', () => jest.fn());
 jest.mock('@components/HighlightableMenuItem', () => jest.fn());
 jest.mock('@components/Navigation/TabBarBottomContent', () => jest.fn());
+jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps', () => () => ({}));
+jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScrollProps', () => () => ({}));
 jest.mock(
     '@components/OfflineWithFeedback',
     () =>

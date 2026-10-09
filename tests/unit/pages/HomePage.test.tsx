@@ -58,6 +58,8 @@ jest.mock('@components/ScrollView', () => {
     }
     return MockScrollView;
 });
+jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps', () => () => ({}));
+jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScrollProps', () => () => ({}));
 jest.mock('@components/Navigation/NavigationTabBar', () => {
     function MockNavigationTabBar() {
         return null;
