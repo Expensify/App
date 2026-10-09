@@ -1131,6 +1131,14 @@ function isValidateLoginFlow(state: NavigationState | undefined) {
     return !!state && findFocusedRoute(state)?.name === SCREENS.VALIDATE_LOGIN;
 }
 
+/**
+ * Keeps onboarding from opening over the validate login screen. Once the onboarding navigator is in the root stack it stays
+ * registered, because unregistering it drops its route and the user's onboarding progress.
+ */
+function shouldHideOnboardingNavigator(state: NavigationState | undefined) {
+    return isValidateLoginFlow(state) && !state?.routes.some((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
+}
+
 function clearPreloadedRoutes() {
     const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
@@ -1331,6 +1339,7 @@ export default {
     isOnboardingFlow,
     clearPreloadedRoutes,
     isValidateLoginFlow,
+    shouldHideOnboardingNavigator,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     revealRouteBeforeDismissingModal,

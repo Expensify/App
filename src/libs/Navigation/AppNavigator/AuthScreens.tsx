@@ -139,7 +139,7 @@ function AuthScreens() {
     const {isVisitingSecureLink} = useOnboardingFlowRouter();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     // Subscribed to navigation state so the onboarding navigator gets registered as soon as the user leaves the validate login screen
-    const isValidateLoginFlow = useRootNavigationState(Navigation.isValidateLoginFlow);
+    const shouldHideOnboardingNavigator = useRootNavigationState(Navigation.shouldHideOnboardingNavigator);
     useGPSTripStateChecker();
     useGPSInProgressModal();
 
@@ -359,7 +359,7 @@ function AuthScreens() {
                          * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
                          * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
                          */}
-                        {!shouldSuppressPromotionalUI && !isVisitingSecureLink && !isValidateLoginFlow && (
+                        {!shouldSuppressPromotionalUI && !isVisitingSecureLink && !shouldHideOnboardingNavigator && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
