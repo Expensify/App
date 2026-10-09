@@ -1,6 +1,11 @@
+import {useFrozenColumnState} from '@components/Search/FrozenColumnContext';
+import {FROZEN_CELL_DATA_KEY, getFrozenCellStyle} from '@components/Search/frozenColumnUtils';
 import SearchSelectAllMenu from '@components/Search/SearchList/SearchSelectAllMenu';
 
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -56,6 +61,9 @@ function SelectionTopBar({
     SearchTableHeader,
 }: SelectionTopBarProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {pinnedColumns} = useFrozenColumnState();
+    const isCheckboxFrozen = pinnedColumns.left.length > 0;
 
     return (
         <View
@@ -66,14 +74,27 @@ function SelectionTopBar({
             ]}
         >
             {canSelectMultiple && (
-                <SearchSelectAllMenu
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    shouldShowTextButton={selectAllButtonVisible}
-                    onAllCheckboxPress={onAllCheckboxPress}
-                />
+                <View
+                    dataSet={isCheckboxFrozen ? {[FROZEN_CELL_DATA_KEY]: true} : undefined}
+                    style={
+                        isCheckboxFrozen &&
+                        getFrozenCellStyle({
+                            backgroundColor: theme.highlightBG,
+                            side: 'left',
+                            isEdge: false,
+                            verticalBleed: variables.searchTableHeaderPaddingVertical,
+                        })
+                    }
+                >
+                    <SearchSelectAllMenu
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
+                        selectedItemsLength={selectedItemsLength}
+                        totalItems={totalItems}
+                        shouldShowTextButton={selectAllButtonVisible}
+                        onAllCheckboxPress={onAllCheckboxPress}
+                    />
+                </View>
             )}
 
             {SearchTableHeader}

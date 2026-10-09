@@ -1,10 +1,12 @@
 import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -12,8 +14,8 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React from 'react';
-import {View} from 'react-native';
+import React, {useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 import type {SortOrder} from './types';
 
@@ -29,6 +31,23 @@ type SearchTableHeaderColumnProps = WithSentryLabel & {
     innerContainerStyle?: StyleProp<ViewStyle>;
     textStyle?: StyleProp<TextStyle>;
     onPress: (order: SortOrder) => void;
+
+    /** Data attributes for the container, such as the marker the frozen edge overlay is measured from. */
+    dataSet?: Record<string, boolean>;
+
+    /**
+     * Opens the column's menu, given where the header cell sits in the window. When set, both a press and a right-click
+     * or long press open the menu instead of sorting.
+     */
+    onMenuPress?: (cellFrame: HeaderCellFrame) => void;
+};
+
+/** Where a header cell sits in the window, which its menu is anchored to. */
+type HeaderCellFrame = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
 };
 
 export default function SortableHeaderText({
@@ -41,33 +60,79 @@ export default function SortableHeaderText({
     innerContainerStyle,
     isSortable = true,
     onPress,
+    onMenuPress,
     sentryLabel,
+    dataSet,
 }: SearchTableHeaderColumnProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong']);
+    const containerRef = useRef<View>(null);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong', 'DownArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
+    // The pressable stretches across the cell, so it carries the cell's own alignment to keep the content in place.
+    const pressableStyle = [styles.searchTableHeaderPressable, {alignItems: StyleSheet.flatten(containerStyle)?.alignItems}];
+    const openMenu = () => {
+        containerRef.current?.measureInWindow((x, y, width, height) => onMenuPress?.({x, y, width, height}));
+    };
+
+    // Hints on hover that the heading opens a menu. It takes no room in the row, so it sits right after the label without
+    // moving anything, spilling into the gap beside the cell when the label fills it.
+    const renderMenuChevron = (isHovered: boolean) =>
+        !!onMenuPress &&
+        isHovered && (
+            <Icon
+                src={icons.DownArrow}
+                fill={theme.icon}
+                width={variables.searchTableHeaderMenuChevronSize}
+                height={variables.searchTableHeaderMenuChevronSize}
+                additionalStyles={styles.searchTableHeaderMenuChevron}
+            />
+        );
 
     if (!isSortable) {
+        const renderContent = (isHovered: boolean) => (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, innerContainerStyle]}>
+                {!!icon && (
+                    <Icon
+                        src={icon}
+                        fill={theme.icon}
+                        height={16}
+                        width={16}
+                    />
+                )}
+                {!!text && (
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, textStyle]}
+                    >
+                        {text}
+                    </Text>
+                )}
+                {renderMenuChevron(isHovered)}
+            </View>
+        );
+
         return (
-            <View style={containerStyle}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, innerContainerStyle]}>
-                    {!!icon && (
-                        <Icon
-                            src={icon}
-                            fill={theme.icon}
-                            height={16}
-                            width={16}
-                        />
-                    )}
-                    {!!text && (
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textMicroSupporting, textStyle]}
-                        >
-                            {text}
-                        </Text>
-                    )}
-                </View>
+            <View
+                ref={containerRef}
+                style={containerStyle}
+                dataSet={dataSet}
+            >
+                {onMenuPress ? (
+                    <PressableWithSecondaryInteraction
+                        onPress={openMenu}
+                        onSecondaryInteraction={openMenu}
+                        wrapperStyle={styles.searchTableHeaderPressableWrapper}
+                        style={pressableStyle}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={text}
+                        accessible
+                        sentryLabel={sentryLabel}
+                    >
+                        {({hovered}) => renderContent(hovered)}
+                    </PressableWithSecondaryInteraction>
+                ) : (
+                    renderContent(false)
+                )}
             </View>
         );
     }
@@ -79,42 +144,54 @@ export default function SortableHeaderText({
     const nextSortOrder = isActive && sortOrder === CONST.SEARCH.SORT_ORDER.DESC ? CONST.SEARCH.SORT_ORDER.ASC : CONST.SEARCH.SORT_ORDER.DESC;
 
     return (
-        <View style={containerStyle}>
-            <PressableWithFeedback
-                onPress={() => onPress(nextSortOrder)}
+        <View
+            ref={containerRef}
+            style={containerStyle}
+            dataSet={dataSet}
+        >
+            <PressableWithSecondaryInteraction
+                onPress={onMenuPress ? openMenu : () => onPress(nextSortOrder)}
+                onSecondaryInteraction={onMenuPress ? openMenu : undefined}
+                wrapperStyle={styles.searchTableHeaderPressableWrapper}
+                style={pressableStyle}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
                 accessible
                 disabled={!isSortable}
                 sentryLabel={sentryLabel}
             >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, innerContainerStyle]}>
-                    {!!icon && (
-                        <Icon
-                            src={icon}
-                            fill={theme.icon}
-                            height={16}
-                            width={16}
-                        />
-                    )}
-                    {!!text && (
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textMicroSupporting, activeColumnStyle, textStyle]}
-                        >
-                            {text}
-                        </Text>
-                    )}
-                    {displayIcon && (
-                        <Icon
-                            src={sortArrowIcon}
-                            fill={theme.icon}
-                            height={12}
-                            width={12}
-                        />
-                    )}
-                </View>
-            </PressableWithFeedback>
+                {({hovered}) => (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, innerContainerStyle]}>
+                        {!!icon && (
+                            <Icon
+                                src={icon}
+                                fill={theme.icon}
+                                height={16}
+                                width={16}
+                            />
+                        )}
+                        {!!text && (
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.textMicroSupporting, activeColumnStyle, textStyle]}
+                            >
+                                {text}
+                            </Text>
+                        )}
+                        {displayIcon && (
+                            <Icon
+                                src={sortArrowIcon}
+                                fill={theme.icon}
+                                height={12}
+                                width={12}
+                            />
+                        )}
+                        {renderMenuChevron(hovered)}
+                    </View>
+                )}
+            </PressableWithSecondaryInteraction>
         </View>
     );
 }
+
+export type {HeaderCellFrame};

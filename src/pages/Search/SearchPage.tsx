@@ -1,4 +1,5 @@
 import {ReportSubmitToPopoverHost, SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT} from '@components/ReportSubmitToPopoverAnchor';
+import {FrozenColumnProvider} from '@components/Search/FrozenColumnContext';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -187,18 +188,20 @@ function SearchPage({route}: SearchPageProps) {
                             isOverlayActive={isOverlayActive}
                         />
                     ) : (
-                        <SearchPageWide
-                            queryJSON={currentSearchQueryJSON}
-                            searchResults={searchResults}
-                            contentQueryJSON={contentQueryJSON}
-                            contentSearchResults={contentSearchResults}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            handleSearchAction={handleSearchAction}
-                            onSortPressedCallback={onSortPressedCallback}
-                            route={route}
-                            searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onSearchContentReady}
-                        />
+                        <FrozenColumnProvider queryJSON={currentSearchQueryJSON}>
+                            <SearchPageWide
+                                queryJSON={currentSearchQueryJSON}
+                                searchResults={searchResults}
+                                contentQueryJSON={contentQueryJSON}
+                                contentSearchResults={contentSearchResults}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                handleSearchAction={handleSearchAction}
+                                onSortPressedCallback={onSortPressedCallback}
+                                route={route}
+                                searchOverlayContent={searchOverlayContent}
+                                onSearchContentReady={onSearchContentReady}
+                            />
+                        </FrozenColumnProvider>
                     )}
                 </Animated.View>
             </PaymentContextProvider>

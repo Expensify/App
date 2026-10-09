@@ -1,10 +1,16 @@
 import ScrollView from '@components/ScrollView';
+import {hasPinnedColumns, PIN_SIDE, useFrozenColumnState} from '@components/Search/FrozenColumnContext';
+import {getFrozenEdgeOverlayStyle, getFrozenMarginOverlayStyle, measureFrozenEdge, setFrozenScrollOffset, syncFrozenScrollTimeline} from '@components/Search/frozenColumnUtils';
+import type {FrozenEdgePosition, FrozenSide} from '@components/Search/frozenColumnUtils/types';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getTableMinWidth} from '@libs/SearchUIUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -12,7 +18,8 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 // Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
 let savedHorizontalScrollOffset = 0;
@@ -76,8 +83,34 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
 
     const horizontalScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
+    const theme = useTheme();
+    const {pinnedColumns} = useFrozenColumnState();
+    const hasFrozenColumns = hasPinnedColumns(pinnedColumns);
+    const tableContainerRef = useRef<View>(null);
+    const [frozenEdgePositions, setFrozenEdgePositions] = useState<Record<FrozenSide, FrozenEdgePosition | null>>({left: null, right: null});
+
+    const updateFrozenEdgePosition = useCallback(() => {
+        requestAnimationFrame(() => {
+            const scrollableNode: unknown = horizontalScrollViewRef.current?.getScrollableNode();
+            syncFrozenScrollTimeline(scrollableNode);
+            setFrozenEdgePositions({
+                left: measureFrozenEdge(tableContainerRef.current, scrollableNode, variables.searchTableHeaderPaddingVertical, PIN_SIDE.LEFT),
+                right: measureFrozenEdge(tableContainerRef.current, scrollableNode, variables.searchTableHeaderPaddingVertical, PIN_SIDE.RIGHT),
+            });
+        });
+    }, []);
+
+    // Rows and column widths settle after the first layout, so the edge is measured again whenever they may have moved.
+    useLayoutEffect(() => {
+        if (!hasFrozenColumns) {
+            return;
+        }
+        updateFrozenEdgePosition();
+    }, [hasFrozenColumns, pinnedColumns, columns, dataKey, shouldScrollHorizontally, updateFrozenEdgePosition]);
+
     const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
         savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
+        setFrozenScrollOffset(horizontalScrollViewRef.current?.getScrollableNode(), savedHorizontalScrollOffset);
     }, []);
 
     // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
@@ -88,11 +121,7 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
         horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
     }, [dataKey, shouldScrollHorizontally]);
 
-    if (!shouldScrollHorizontally) {
-        return children;
-    }
-
-    return (
+    const table = shouldScrollHorizontally ? (
         <ScrollView
             ref={horizontalScrollViewRef}
             horizontal
@@ -101,10 +130,39 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
             contentContainerStyle={{width: contentTableWidth}}
             contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
             onScroll={handleHorizontalScroll}
+            onContentSizeChange={hasFrozenColumns ? updateFrozenEdgePosition : undefined}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             {children}
         </ScrollView>
+    ) : (
+        children
+    );
+
+    if (!hasFrozenColumns) {
+        return table;
+    }
+
+    return (
+        <View
+            ref={tableContainerRef}
+            style={styles.flex1}
+            onLayout={updateFrozenEdgePosition}
+        >
+            {table}
+            {[PIN_SIDE.LEFT, PIN_SIDE.RIGHT].map((side) => {
+                const position = frozenEdgePositions[side];
+                if (!position) {
+                    return null;
+                }
+                return (
+                    <React.Fragment key={side}>
+                        <View style={getFrozenMarginOverlayStyle(position, theme.appBG, side)} />
+                        <View style={getFrozenEdgeOverlayStyle(position, theme.border, side)} />
+                    </React.Fragment>
+                );
+            })}
+        </View>
     );
 }
 

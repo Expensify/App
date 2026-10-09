@@ -10378,6 +10378,14 @@ const translations = {
             groupBy: 'Group by',
             limitResults: 'Limit results',
         },
+        columnMenu: {
+            sortAscending: 'Sort ascending',
+            sortDescending: 'Sort descending',
+            pinLeft: 'Pin left',
+            pinRight: 'Pin right',
+            unpin: 'Unpin',
+            hideColumn: 'Hide column',
+        },
         has: 'Has',
         view: {
             label: 'View',
