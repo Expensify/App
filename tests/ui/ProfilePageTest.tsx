@@ -286,6 +286,7 @@ describe('ProfilePage - agent account', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
                 id: '1',
                 name: 'Boulder Development',
+                areDistanceRatesEnabled: true,
                 commuterExclusions: {method: 'homeAndOffice'},
             });
         });
@@ -293,6 +294,7 @@ describe('ProfilePage - agent account', () => {
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
+        expect(screen.getByTestId('address-menu-item')).toHaveTextContent('info-brickRoadIndicator');
         expect(screen.getByTestId('address-menu-item-further-details')).toHaveTextContent('Boulder Development uses this address for commuter exclusions.');
     });
 
@@ -311,6 +313,24 @@ describe('ProfilePage - agent account', () => {
 
         expect(screen.getByTestId('address-menu-item')).toBeDefined();
         expect(screen.queryByTestId('address-menu-item-further-details')).toBeNull();
+    });
+
+    it('shows the commuter exclusion indicator when distance rates are disabled but the setting remains active', async () => {
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                id: '1',
+                name: 'Boulder Development',
+                areDistanceRatesEnabled: false,
+                commuterExclusions: {method: 'homeAndOffice'},
+            });
+        });
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('address-menu-item')).toHaveTextContent('info-brickRoadIndicator');
+        expect(screen.getByTestId('address-menu-item-further-details')).toHaveTextContent('Boulder Development uses this address for commuter exclusions.');
     });
 
     it('shows contact methods, pronouns, timezone and private section for non-agent account', async () => {

@@ -169,6 +169,51 @@ describe('WorkspaceMoreFeaturesPage', () => {
         jest.clearAllMocks();
     });
 
+    describe('Distance rates toggle', () => {
+        it('locks Distance rates and explains why while home and office commuter exclusions are enabled', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        id: POLICY_ID,
+                        areDistanceRatesEnabled: true,
+                        commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                    }),
+                );
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.distanceRates.subtitle'));
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.distanceRates.commuterExclusionsOnTitle'))).toBeOnTheScreen();
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.distanceRates.disableLockedByCommuterExclusionsPrompt'))).toBeOnTheScreen();
+                expect(screen.getByText(TestHelper.translateLocal('common.buttonConfirm'))).toBeOnTheScreen();
+            });
+        });
+
+        it('keeps Distance rates available to re-enable when commuter exclusions remain active', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        id: POLICY_ID,
+                        areDistanceRatesEnabled: false,
+                        commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                    }),
+                );
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+
+            await expect(findUnlockedSwitch('workspace.moreFeatures.distanceRates.subtitle')).resolves.toBeOnTheScreen();
+        });
+    });
+
     describe('Workflows toggle', () => {
         it('locks the Workflows switch when the workspace has a Smart-Limit Expensify Card', async () => {
             await TestHelper.signInWithTestUser();

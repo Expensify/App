@@ -6506,6 +6506,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             distanceRates: {
                 title: 'Kilometertarieven',
                 subtitle: 'Tarieven toevoegen, bijwerken en afdwingen.',
+                commuterExclusionsOnTitle: 'Woon-werkuitzonderingen zijn ingeschakeld',
+                disableLockedByCommuterExclusionsPrompt: 'Om afstandstarieven uit te schakelen, stel je eerst Woon-werkverkeer uitsluiten in op ‘Woon-werkverkeer niet uitsluiten’.',
             },
             perDiem: {
                 title: 'Dagvergoeding',

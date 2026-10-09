@@ -6504,6 +6504,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             distanceRates: {
                 title: 'Taxas de distância',
                 subtitle: 'Adicione, atualize e aplique tarifas.',
+                commuterExclusionsOnTitle: 'Exclusões de deslocamento estão ativadas',
+                disableLockedByCommuterExclusionsPrompt: 'Para desativar as tarifas de distância, primeiro defina Excluir deslocamentos como “Não excluir deslocamentos”.',
             },
             perDiem: {
                 title: 'Diária',

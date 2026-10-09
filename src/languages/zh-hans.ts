@@ -6294,6 +6294,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             distanceRates: {
                 title: '距离费率',
                 subtitle: '添加、更新并执行费率。',
+                commuterExclusionsOnTitle: '通勤排除已开启',
+                disableLockedByCommuterExclusionsPrompt: '若要关闭距离费率，首先将“排除通勤”设置为“不要排除通勤”。',
             },
             perDiem: {
                 title: '每日津贴',
