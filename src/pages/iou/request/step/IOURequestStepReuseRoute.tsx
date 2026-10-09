@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {filterRoutes, getRouteEndpoints} from '@libs/ReusableDistanceRoutesUtils';
+import {filterRoutes, getRouteEndpoints, getRouteKey} from '@libs/ReusableDistanceRoutesUtils';
 import {getRateID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -167,7 +167,7 @@ function IOURequestStepReuseRoute({
     const data: ReuseRouteListItemData[] = filteredRoutes.map((route) => ({
         route,
         text: getRouteEndpoints(route).start,
-        keyForList: route.transactionID,
+        keyForList: getRouteKey(route) || route.transactionID,
         shouldHideSelectionButton: true,
     }));
 

@@ -58,6 +58,35 @@ function formatLastUsed(inserted: string): string {
 }
 
 /**
+ * Generates a stable key for a route based on its ordered waypoint coordinates or addresses.
+ */
+function getRouteKey(route: ReusableDistanceRoute): string {
+    const orderedWaypoints = getOrderedWaypoints(route);
+    return orderedWaypoints
+        .map((waypoint) => {
+            if (typeof waypoint.lat === 'number' && typeof waypoint.lng === 'number') {
+                return `${Math.round(waypoint.lat * 1e5)},${Math.round(waypoint.lng * 1e5)}`;
+            }
+            return waypoint.address ?? '';
+        })
+        .join(';');
+}
+
+const routeThumbnailCache = new Map<string, string>();
+
+function getCachedRouteThumbnail(routeKey: string): string | undefined {
+    return routeThumbnailCache.get(routeKey);
+}
+
+function setCachedRouteThumbnail(routeKey: string, thumbnailSource: string) {
+    routeThumbnailCache.set(routeKey, thumbnailSource);
+}
+
+function clearRouteThumbnailCache() {
+    routeThumbnailCache.clear();
+}
+
+/**
  * Builds the large thumbnail URL for the source expense receipt.
  */
 function getRouteThumbnailSource(receiptSource: string | undefined): string | undefined {
@@ -71,4 +100,15 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
     return `${resolvedSource}.1024.jpg`;
 }
 
-export {getOrderedWaypoints, getRouteEndpoints, filterRoutes, formatLastUsed, getRouteThumbnailSource, normalizeRouteWaypoints};
+export {
+    clearRouteThumbnailCache,
+    filterRoutes,
+    formatLastUsed,
+    getCachedRouteThumbnail,
+    getOrderedWaypoints,
+    getRouteEndpoints,
+    getRouteKey,
+    getRouteThumbnailSource,
+    normalizeRouteWaypoints,
+    setCachedRouteThumbnail,
+};
