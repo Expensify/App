@@ -197,7 +197,7 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // When the payer dismisses the error from inside the expense report
-            clearAllRelatedReportActionErrors(REPORT_ID, payAction, REPORT_ID, false);
+            clearAllRelatedReportActionErrors({reportID: REPORT_ID, reportAction: payAction, originalReportID: REPORT_ID, isOffline: false});
             await waitForBatchedUpdates();
 
             // Then the copy on the chat preview is cleared too, so a dismissed error cannot resurface later when the
