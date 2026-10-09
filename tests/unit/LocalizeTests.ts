@@ -5,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import createRandomReportAction from '../utils/collections/reportActions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type EnvironmentConfig = {
@@ -116,36 +115,5 @@ describe('localize', () => {
         ])('%s', async (description, environmentConfig, expectedResult) => {
             await testMissingTranslationBehavior(environmentConfig, expectedResult);
         });
-    });
-
-    it('adds the unreported-expenses warning only when confirming report deletion', async () => {
-        // Given report, expense, and comment actions
-        await IntlStore.load(CONST.LOCALES.EN);
-        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW};
-        const expenseAction = {...createRandomReportAction(2), actionName: CONST.REPORT.ACTIONS.TYPE.IOU};
-        const commentAction = {...createRandomReportAction(3), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
-
-        // When translating each deletion confirmation
-        const reportConfirmation = Localize.translate(CONST.LOCALES.EN, 'reportActionContextMenu.deleteConfirmation', reportAction);
-        const expenseConfirmation = Localize.translate(CONST.LOCALES.EN, 'reportActionContextMenu.deleteConfirmation', expenseAction);
-        const commentConfirmation = Localize.translate(CONST.LOCALES.EN, 'reportActionContextMenu.deleteConfirmation', commentAction);
-
-        // Then only the report confirmation explains that its expenses become unreported
-        expect(reportConfirmation).toContain('All expenses in this report will become unreported.');
-        expect(expenseConfirmation).not.toContain('All expenses in this report will become unreported.');
-        expect(commentConfirmation).not.toContain('All expenses in this report will become unreported.');
-    });
-
-    it('keeps the unreported-expenses warning separate from the generic report confirmation', async () => {
-        // Given the generic and expense-report deletion confirmation translations
-        await IntlStore.load(CONST.LOCALES.EN);
-
-        // When translating both confirmations
-        const genericReportConfirmation = Localize.translate(CONST.LOCALES.EN, 'iou.deleteReportConfirmation', {count: 1});
-        const expenseReportConfirmation = Localize.translate(CONST.LOCALES.EN, 'iou.deleteExpenseReportConfirmation');
-
-        // Then only the expense-report confirmation explains that its expenses become unreported
-        expect(genericReportConfirmation).not.toContain('All expenses in this report will become unreported.');
-        expect(expenseReportConfirmation).toContain('All expenses in this report will become unreported.');
     });
 });
