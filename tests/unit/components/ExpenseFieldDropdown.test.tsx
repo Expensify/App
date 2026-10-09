@@ -18,7 +18,10 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // Below this width the container is a bottom sheet, so these tests default to a wide layout.
 let mockIsSmallScreenWidth = false;
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth})));
+let mockIsInLandscapeMode = false;
+jest.mock('@hooks/useResponsiveLayout', () =>
+    jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth, isInLandscapeMode: mockIsInLandscapeMode})),
+);
 // Read lazily so a test can shrink the viewport, leaving the row short of room on both sides at once.
 let mockWindowHeight = 800;
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280, windowHeight: mockWindowHeight})));
@@ -66,6 +69,7 @@ describe('ExpenseFieldDropdown', () => {
         renderCount = 0;
         mockWindowHeight = WINDOW_HEIGHT;
         mockIsSmallScreenWidth = false;
+        mockIsInLandscapeMode = false;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -257,6 +261,22 @@ describe('ExpenseFieldDropdown', () => {
         // Then the sheet opens anyway: it is placed and sized by the screen, not by the row
         expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
         expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('opens the full-page selector on a phone in landscape', () => {
+        // Given a phone turned to landscape, where a bottom sheet is taller than the screen and would scroll as a whole
+        const onPress = jest.fn();
+        mockIsSmallScreenWidth = true;
+        mockIsInLandscapeMode = true;
+        mockRowAt(ROW_TOP);
+        renderField(true, onPress);
+
+        // When the row is pressed
+        act(() => pressRow());
+
+        // Then it opens the page instead, so the list itself can scroll, and no sheet is mounted
+        expect(onPress).toHaveBeenCalledTimes(1);
+        expect(renderCount).toBe(0);
     });
 
     it('closes the list when the row is pressed again', () => {

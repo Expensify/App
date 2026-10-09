@@ -101,12 +101,13 @@ type ExpenseFieldDropdownHandle = {
  *
  * `PopoverWithMeasuredContent` makes it a pop-over on a wide layout and a bottom sheet on a narrow one. The
  * pop-over matches the row's width and opens below it, or above when there isn't room, capped so it is never
- * clipped. Knows nothing about any particular field: each passes its own list in through `renderDropdown`.
+ * clipped. A phone in landscape has no room for either, so it opens the full-page selector instead. Knows nothing
+ * about any particular field: each passes its own list in through `renderDropdown`.
  */
 function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, ref, ...rowProps}: ExpenseFieldDropdownProps) {
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {contentHeaderHeight} = useContentHeaderHeight();
     const {top: safeAreaTop} = useSafeAreaInsets();
     const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
@@ -123,6 +124,11 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, re
     const closeDropdown = () => setIsVisible(false);
 
     const openDropdown = () => {
+        if (isInLandscapeMode) {
+            onPress();
+            return;
+        }
+
         if (isSmallScreenWidth) {
             setHasEverOpened(true);
             setIsVisible(true);
