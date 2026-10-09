@@ -241,7 +241,7 @@ function MapView({
         return {ne: northEast, sw: southWest};
     }, [waypoints, allDirectionCoordinates]);
 
-    const defaultSettings: Mapbox.CameraStop = useMemo(() => {
+    const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
         if (interactive) {
             if (!centerCoordinate) {
                 return undefined;
@@ -252,7 +252,7 @@ function MapView({
             };
         }
         if (!waypointsBounds) {
-            return {};
+            return undefined;
         }
         return {
             bounds: waypointsBounds,
@@ -281,7 +281,9 @@ function MapView({
             >
                 <Mapbox.Camera
                     ref={cameraRef}
-                    defaultSettings={{...defaultSettings, animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT, animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE}}
+                    defaultSettings={
+                        defaultSettings ? {...defaultSettings, animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT, animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE} : undefined
+                    }
                     // Include centerCoordinate here as well to address the issue of incorrect coordinates
                     // displayed after the first render when the app's storage is cleared.
                     centerCoordinate={initCenterCoordinate}
