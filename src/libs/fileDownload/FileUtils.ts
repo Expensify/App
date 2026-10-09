@@ -178,6 +178,12 @@ function getFileNameWithFallback(fileName: string | null | undefined, uri: strin
 }
 
 /**
+ * Extensions to use instead of mime-db's first registered one. mime-db lists `video/quicktime` as
+ * `qt` first, but `Str.isVideo` only recognizes `mov`, so a `.qt` file would render as a generic file.
+ */
+const MIME_TYPE_EXTENSION_OVERRIDES = new Map<string, string>([['video/quicktime', 'mov']]);
+
+/**
  * Returns the most common file extension registered for a MIME type, e.g. `video/mp4` resolves to `mp4`.
  * Returns undefined for an empty or unrecognized MIME type so callers can pick their own fallback.
  */
@@ -185,7 +191,7 @@ function getExtensionFromMimeType(mimeType: string | undefined): string | undefi
     if (!mimeType) {
         return undefined;
     }
-    return mimeDb[mimeType]?.extensions?.at(0);
+    return MIME_TYPE_EXTENSION_OVERRIDES.get(mimeType) ?? mimeDb[mimeType]?.extensions?.at(0);
 }
 
 /**

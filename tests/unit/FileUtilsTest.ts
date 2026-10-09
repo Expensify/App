@@ -586,6 +586,13 @@ describe('FileUtils', () => {
             expect(getExtensionFromMimeType('application/pdf')).toBe('pdf');
         });
 
+        it('should return mov for a QuickTime video', () => {
+            // Given the QuickTime MIME type, which mime-db lists as `qt` first
+            // When the extension is looked up
+            // Then `mov` is returned, because `Str.isVideo` doesn't recognize `qt` and the file would render as a generic file
+            expect(getExtensionFromMimeType('video/quicktime')).toBe('mov');
+        });
+
         it('should return undefined for an unknown or missing MIME type', () => {
             // Given a MIME type that is unregistered, empty or undefined
             // When the extension is looked up

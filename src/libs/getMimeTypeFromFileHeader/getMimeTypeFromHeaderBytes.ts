@@ -1,13 +1,14 @@
-// cspell:ignore ftyp heix heim heis hevc hevx avis
+// cspell:ignore ftyp isom mmp4
 
 /** Number of leading bytes read from a file, enough to cover every signature below. */
 const FILE_HEADER_LENGTH = 32;
 
 /**
- * ISO base media brands that are images rather than videos. HEIC/HEIF must keep its extensionless name so
- * the HEIC conversion flow isn't bypassed, and AVIF shares the `ftyp` box with MP4.
+ * ISO base media brands known to be MP4 videos. Any other brand returns no type, because image formats
+ * such as HEIC and AVIF share the `ftyp` box with MP4, and a wrong extension is worse than none. HEIC in
+ * particular must keep its extensionless name so the HEIC conversion flow isn't bypassed.
  */
-const IMAGE_FTYP_BRANDS = new Set(['heic', 'heix', 'heim', 'heis', 'hevc', 'hevx', 'mif1', 'msf1', 'avif', 'avis']);
+const MP4_FTYP_BRANDS = new Set(['isom', 'iso2', 'iso3', 'iso4', 'iso5', 'iso6', 'mp41', 'mp42', 'avc1', 'dash', 'M4V ', 'mmp4']);
 
 const AUDIO_FTYP_BRANDS = new Set(['M4A ', 'M4B ']);
 
@@ -20,8 +21,8 @@ function readASCII(bytes: Uint8Array, offset: number, length: number): string {
 }
 
 function getMimeTypeFromFtypBrand(brand: string): string | undefined {
-    if (IMAGE_FTYP_BRANDS.has(brand)) {
-        return undefined;
+    if (MP4_FTYP_BRANDS.has(brand)) {
+        return 'video/mp4';
     }
     if (AUDIO_FTYP_BRANDS.has(brand)) {
         return 'audio/mp4';
@@ -32,7 +33,7 @@ function getMimeTypeFromFtypBrand(brand: string): string | undefined {
     if (brand.startsWith('3gp')) {
         return 'video/3gpp';
     }
-    return 'video/mp4';
+    return undefined;
 }
 
 /**

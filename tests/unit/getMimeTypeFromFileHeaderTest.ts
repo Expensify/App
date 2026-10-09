@@ -38,9 +38,10 @@ describe('getMimeTypeFromHeaderBytes', () => {
     it('identifies ISO base media files by their ftyp brand', () => {
         // Given the headers of an MP4, a QuickTime movie, a 3GP video, and an M4A audio file
         // When they are identified
-        // Then each maps to its own MIME type, and an unlisted brand is treated as MP4
+        // Then each maps to its own MIME type
         expect(getMimeTypeFromHeaderBytes(ftypHeader('isom'))).toBe('video/mp4');
         expect(getMimeTypeFromHeaderBytes(ftypHeader('mp42'))).toBe('video/mp4');
+        expect(getMimeTypeFromHeaderBytes(ftypHeader('M4V '))).toBe('video/mp4');
         expect(getMimeTypeFromHeaderBytes(ftypHeader('qt  '))).toBe('video/quicktime');
         expect(getMimeTypeFromHeaderBytes(ftypHeader('3gp5'))).toBe('video/3gpp');
         expect(getMimeTypeFromHeaderBytes(ftypHeader('M4A '))).toBe('audio/mp4');
@@ -53,6 +54,14 @@ describe('getMimeTypeFromHeaderBytes', () => {
         expect(getMimeTypeFromHeaderBytes(ftypHeader('heic'))).toBeUndefined();
         expect(getMimeTypeFromHeaderBytes(ftypHeader('mif1'))).toBeUndefined();
         expect(getMimeTypeFromHeaderBytes(ftypHeader('avif'))).toBeUndefined();
+    });
+
+    it('returns undefined for an unknown ftyp brand', () => {
+        // Given an ftyp brand that isn't a known MP4, QuickTime, 3GP, or M4A brand
+        // When it is identified
+        // Then no type is returned, because guessing MP4 could give an image or audio file a wrong `.mp4` extension
+        expect(getMimeTypeFromHeaderBytes(ftypHeader('abcd'))).toBeUndefined();
+        expect(getMimeTypeFromHeaderBytes(ftypHeader('crx '))).toBeUndefined();
     });
 
     it('identifies signatures at the start of the file', () => {
