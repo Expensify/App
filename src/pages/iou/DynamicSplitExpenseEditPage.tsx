@@ -434,7 +434,6 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 );
                             }}
                             style={[styles.moneyRequestMenuItem]}
-                            titleWrapperStyle={styles.flex1}
                             numberOfLinesTitle={2}
                             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
                         />

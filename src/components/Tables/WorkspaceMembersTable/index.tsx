@@ -66,6 +66,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
+    GUESTS: 'guests',
     MEMBERS: 'members',
     PAYMENTS_ADMINS: 'paymentsAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
@@ -152,6 +153,8 @@ export default function WorkspaceMembersTable({
                 getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
                 // A role is one of a short, known set of labels, so the column always shows them in full.
                 shouldFitContent: true,
+                // Padding and border sit inside the track. A role is pinned to its text, so that chrome has to be measured or the label clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -231,6 +234,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isGuest = item.role === CONST.POLICY.ROLE.GUEST;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.GUESTS) && isGuest) {
+            return true;
+        }
+
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -280,6 +288,11 @@ export default function WorkspaceMembersTable({
         filterConfig.role.options.push({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.guests'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
         });
     }
 

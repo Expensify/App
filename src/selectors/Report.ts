@@ -330,6 +330,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         // `undefined` keeps the projection stable through that reconciliation.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         managerID: report.managerID || undefined,
+        supportTicketCalendarLink: report.supportTicketCalendarLink,
         ownerAccountID: report.ownerAccountID,
         participants: report.participants,
         total: report.total,

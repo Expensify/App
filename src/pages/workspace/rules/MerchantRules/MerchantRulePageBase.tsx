@@ -27,13 +27,13 @@ import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {deletePolicyCategoryTax, movePolicyCategoryTax, openPolicyCategoriesPage, setPolicyCategoryTaxes} from '@libs/actions/Policy/Category';
-import {deleteMerchantRule, setMerchantRule} from '@libs/actions/Policy/Rules';
+import {deleteRule, setRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {canEditMerchantRule, getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
+import {buildMerchantRule, canEditMerchantRule, getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -431,7 +431,7 @@ function MerchantRulePageBase({
             return;
         }
 
-        setMerchantRule(policyID, form, policy, ruleID, existingRule, shouldUpdateMatchingTransactions);
+        setRule(policyID, buildMerchantRule(form, policy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
         if (isCreatedFromExpense) {
             // Opened from the callout, so this page is a suffix on the expense's path. Dropping it returns to the
             // expense instead of the workspace Rules page.
@@ -482,7 +482,7 @@ function MerchantRulePageBase({
         startWithLoading(() => saveRule());
     };
 
-    const deleteRule = () => {
+    const handleDeleteRule = () => {
         if (!policy) {
             return false;
         }
@@ -490,7 +490,7 @@ function MerchantRulePageBase({
         if (editCategoryTaxRuleFor) {
             deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
         } else if (ruleID) {
-            deleteMerchantRule(policy.id, ruleID, existingRule);
+            deleteRule(ruleID, existingRule);
         }
         return true;
     };
@@ -502,7 +502,7 @@ function MerchantRulePageBase({
 
     const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canDeleteRule,
-        onDelete: deleteRule,
+        onDelete: handleDeleteRule,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE,
         backTo: categorySettingsBackPath,
     });
