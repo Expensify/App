@@ -13,6 +13,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {openPolicyVendorsPage} from '@libs/actions/Policy/Vendor';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getVendorEmptyState, hasVendorFeature, isXeroActiveMatchingSource, sortVendors} from '@libs/PolicyUtils';
@@ -24,7 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -66,6 +67,15 @@ function IOURequestStepVendor({
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
+
+    // Sessions loaded before the policyVendors_ collection shipped never get it backfilled
+    // by the Onyx update stream, so the vendor list shows empty. Fetch it on demand.
+    useEffect(() => {
+        if (!isFeatureAvailable || !policy?.id || policyVendors !== undefined) {
+            return;
+        }
+        openPolicyVendorsPage(policy.id);
+    }, [isFeatureAvailable, policy?.id, policyVendors]);
     const isOnXero = isXeroActiveMatchingSource(policy);
     const emptyState = getVendorEmptyState(policy, translate);
 

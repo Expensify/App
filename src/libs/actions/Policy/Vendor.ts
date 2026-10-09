@@ -1,10 +1,11 @@
 /**
  * Actions for enabling/disabling policy vendors and clearing their offline errors.
  */
-import {write} from '@libs/API';
+import {write, read} from '@libs/API';
 import type {SetPolicyVendorsEnabledParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -110,4 +111,13 @@ function clearVendorErrors(policyID: string, vendorID: string) {
     });
 }
 
-export {setPolicyVendorsEnabled, clearVendorErrors};
+function openPolicyVendorsPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyVendorsPage invalid params', {policyID});
+        return;
+    }
+
+    read(READ_COMMANDS.OPEN_POLICY_VENDORS_PAGE, {policyID});
+}
+
+export {setPolicyVendorsEnabled, clearVendorErrors, openPolicyVendorsPage};
