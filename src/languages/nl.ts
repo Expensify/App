@@ -6510,8 +6510,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             distanceRates: {
                 title: 'Kilometertarieven',
                 subtitle: 'Tarieven toevoegen, bijwerken en afdwingen.',
-                disableLockedByCommuterExclusionsPrompt:
-                    'Je kunt kilometertarieven niet uitschakelen zolang woon-werkverkeer tussen huis en kantoor is uitgesloten. Stel Woon-werkverkeer uitsluiten eerst in op ‘Woon-werkverkeer niet uitsluiten’.',
+                commuterExclusionsOnTitle: 'Woon-werkuitzonderingen zijn ingeschakeld',
+                disableLockedByCommuterExclusionsPrompt: 'Om afstandstarieven uit te schakelen, stel je eerst Woon-werkverkeer uitsluiten in op ‘Woon-werkverkeer niet uitsluiten’.',
             },
             perDiem: {
                 title: 'Dagvergoeding',

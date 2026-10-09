@@ -326,7 +326,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const promptDisableDistanceRatesForCommuterExclusions = async () => {
         await showConfirmModal({
-            title: translate('workspace.distanceRates.oopsNotSoFast'),
+            title: translate('workspace.moreFeatures.distanceRates.commuterExclusionsOnTitle'),
             prompt: translate('workspace.moreFeatures.distanceRates.disableLockedByCommuterExclusionsPrompt'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,

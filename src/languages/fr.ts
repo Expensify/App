@@ -6570,8 +6570,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             distanceRates: {
                 title: 'Taux de distance',
                 subtitle: 'Ajoutez, mettez à jour et appliquez les taux.',
+                commuterExclusionsOnTitle: 'Les exclusions de trajet domicile-travail sont activées',
                 disableLockedByCommuterExclusionsPrompt:
-                    'Vous ne pouvez pas désactiver les taux de distance tant que les exclusions des trajets entre le domicile et le bureau sont activées. Définissez d’abord Exclure les trajets sur « Ne pas exclure les trajets ».',
+                    'Pour désactiver les taux de distance, commencez par définir Exclure les trajets domicile-travail sur « Ne pas exclure les trajets domicile-travail ».',
             },
             perDiem: {
                 title: 'Indemnité journalière',

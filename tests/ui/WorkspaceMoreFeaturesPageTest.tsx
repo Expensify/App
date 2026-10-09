@@ -188,7 +188,9 @@ describe('WorkspaceMoreFeaturesPage', () => {
             fireEvent.press(await findLockedSwitch('workspace.moreFeatures.distanceRates.subtitle'));
 
             await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.distanceRates.commuterExclusionsOnTitle'))).toBeOnTheScreen();
                 expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.distanceRates.disableLockedByCommuterExclusionsPrompt'))).toBeOnTheScreen();
+                expect(screen.getByText(TestHelper.translateLocal('common.buttonConfirm'))).toBeOnTheScreen();
             });
         });
 

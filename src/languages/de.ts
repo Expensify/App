@@ -6564,8 +6564,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             distanceRates: {
                 title: 'Kilometersätze',
                 subtitle: 'Sätze Tarife fest, aktualisiere sie und setze sie durch.',
-                disableLockedByCommuterExclusionsPrompt:
-                    'Du kannst Distanzsätze nicht deaktivieren, solange Ausschlüsse für den Arbeitsweg zwischen Zuhause und Büro aktiv sind. Stelle zuerst „Arbeitswege ausschließen“ auf „Keine Arbeitswege ausschließen“.',
+                commuterExclusionsOnTitle: 'Pendlerfahrten-Ausschlüsse sind aktiviert',
+                disableLockedByCommuterExclusionsPrompt: 'Um Entfernungsraten zu deaktivieren, stellen Sie zuerst „Arbeitswege ausschließen“ auf „Arbeitswege nicht ausschließen“.',
             },
             perDiem: {
                 title: 'Tagegeld',
