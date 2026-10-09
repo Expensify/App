@@ -757,20 +757,58 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
+        // Only the mobile web bar uses this; iOS and Android draw native tab bars.
         navigationTabBarContainer: {
             flexDirection: 'row',
-            height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
+            height: variables.floatingTabBarHeight,
+            marginHorizontal: variables.floatingTabBarHorizontalInset,
+            borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.appBG,
+            borderWidth: variables.hairlineBorderWidth,
+            borderColor: theme.border,
+            // Insets the row so the selected item's capsule keeps the same margin inside the bar's rounded edge on
+            // every side, past the overhang it reaches beyond the first and last tabs.
+            ...spacing.pv1,
+            paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
+            // Clips each item's hover and press background to the capsule's rounded ends.
+            overflow: 'hidden',
         },
 
+        // Stretches every tab to its slot, so a long label truncates inside the slot instead of spilling into its neighbors.
+        navigationTabBarItemNarrow: {
+            alignSelf: 'stretch',
+            paddingHorizontal: variables.floatingTabBarLabelInset,
+        },
+
+        navigationTabBarItemSelected: {
+            backgroundColor: theme.floatingTabBarSelectedBG,
+            borderRadius: variables.componentBorderRadiusCircle,
+            // The extra padding matches the negative margin, so the label keeps the same width selected or not.
+            paddingHorizontal: variables.floatingTabBarLabelInset + variables.floatingTabBarSelectedOverhang,
+            marginHorizontal: -variables.floatingTabBarSelectedOverhang,
+        },
+
+        androidNativeTabBarSpacer: {
+            height: variables.androidNativeTabBarHeight,
+        },
+
+        // The gap between the floating bar and the bottom edge of the screen.
+        floatingTabBarBottomInset: {
+            paddingBottom: variables.floatingTabBarBottomInset,
+        },
+
+        // Used both for a tab's pressable and for the wrapper around its icon and label.
         navigationTabBarItem: {
             height: '100%',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            paddingHorizontal: 4,
+        },
+
+        // Lets the floating bar's avatar overflow the glyph box evenly above and below, so its label lines up
+        // with the labels of the icons next to it and its centre with theirs.
+        navigationTabBarAvatar: {
+            marginVertical: (variables.iconFloatingTabBar - variables.avatarFloatingTabBar) / 2,
         },
 
         navigationTabBarFABItem: {
@@ -6952,6 +6990,39 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // The tab bar is laid over the bottom of a tab root screen, so the offline indicator floats above it without
+        // shrinking the content that runs under the bar.
+        tabBarOfflineIndicator: (bottom: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom,
+                left: 0,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
+        // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
+        // against it without taking part in the tab screen's layout.
+        nativeTabBarFloatingButtons: (bottom: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom,
+                left: 0,
+                height: 0,
+            }) satisfies ViewStyle,
+
+        // Covers Material's bar and the gesture inset under it, and casts the shadow up over the screen content.
+        androidNativeTabBarShadow: (bottomInset: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                left: 0,
+                height: variables.androidNativeTabBarHeight + bottomInset,
+                boxShadow: theme.androidTabBarShadow,
+            }) satisfies ViewStyle,
+
         getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,

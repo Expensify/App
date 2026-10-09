@@ -1,18 +1,18 @@
 import {PressableWithFeedback} from '@components/Pressable';
 
+import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getTabNavigatorStateKey, isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation, {startOpenReportSpan} from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
-import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {getSpan} from '@libs/telemetry/activeSpans';
+import {startNavigateToInboxTabSpan} from '@libs/telemetry/startTabNavigationSpans';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -30,22 +30,9 @@ import React, {useEffect, useRef} from 'react';
 import getLastRoute from './getLastRoute';
 import getReusableReportsTabStateKey from './getReusableReportsTabStateKey';
 import getStringParam from './getStringParam';
+import navigateToInboxTab from './navigateToInboxTab';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
-
-function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
-    startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
-        name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-        op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-        forceTransaction: true,
-        // Read before the tab navigation is dispatched, because jumping to the tab drops its preloaded key.
-        attributes: {
-            [CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout,
-            [CONST.TELEMETRY.ATTRIBUTE_IS_PRELOADED]: isReportsTabPreloaded(navigationRef.getRootState()),
-            [CONST.TELEMETRY.ATTRIBUTE_WAITED_ON_OPEN_REPORT]: false,
-        },
-    });
-}
 
 function markNavigateToInboxTabWaitedOnOpenReport() {
     getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_WAITED_ON_OPEN_REPORT, true);
@@ -217,17 +204,9 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
 
 function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
+    const {status: chatTabBrickRoad, indicatorColor: statusIndicatorColor} = useInboxTabIndicatorStatus();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
-
-    let statusIndicatorColor: string | undefined;
-    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-        statusIndicatorColor = theme.iconSuccessFill;
-    } else if (chatTabBrickRoad) {
-        statusIndicatorColor = theme.danger;
-    }
 
     const accessibilityLabel = chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox');
 
@@ -245,9 +224,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
             return;
         }
-
-        startNavigateToInboxTabSpan({isWideLayout: false});
-        Navigation.navigate(ROUTES.INBOX);
+        navigateToInboxTab();
     };
 
     return (

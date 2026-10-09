@@ -1,3 +1,4 @@
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
@@ -69,6 +70,7 @@ type WorkspaceListTableProps = {
 };
 
 export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
+    const {contentInsetAdjustmentBehavior} = useTabRootScrollProps();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -211,6 +213,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
+            contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />

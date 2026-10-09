@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import PulsingView from '@components/PulsingView';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,6 +13,7 @@ import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPa
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
@@ -77,8 +78,6 @@ type SearchPageNarrowProps = {
     isOverlayActive: boolean;
 };
 
-const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SEARCH} />;
-
 function SearchPageNarrow({
     queryJSON,
     searchResults,
@@ -101,6 +100,7 @@ function SearchPageNarrow({
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.SEARCH);
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData} = useSearchResultsContext();
@@ -189,6 +189,8 @@ function SearchPageNarrow({
     });
     const [isInteractive, setIsInteractive] = useState(!useStaticRendering);
     const [isHeaderInteractive, setIsHeaderInteractive] = useState(!useStaticRendering);
+    // A page mounted in the background, as native tabs mount Spend, keeps its skeleton still until it is first shown.
+    const [hasBeenFocused, setHasBeenFocused] = useState(!useStaticRendering);
     const isHeaderInteractiveRef = useRef(isHeaderInteractive);
     const [, startTransition] = useTransition();
     useEffect(() => {
@@ -211,6 +213,7 @@ function SearchPageNarrow({
     // useFocusEffect avoids the extra re-renders that useIsFocused causes on every focus change.
     useFocusEffect(
         useCallback(() => {
+            setHasBeenFocused(true);
             if (isInteractive) {
                 return;
             }
@@ -264,10 +267,9 @@ function SearchPageNarrow({
                 <ScreenWrapper
                     testID="SearchPageNarrow"
                     shouldEnableMaxHeight
-                    offlineIndicatorStyle={styles.mtAuto}
                     shouldShowOfflineIndicator={!!searchResults}
-                    bottomContent={tabBarContent}
-                    bottomContentStyle={styles.overflowVisible}
+                    {...tabRootScreenWrapperProps}
+                    offlineIndicatorStyle={[styles.mtAuto, tabRootScreenWrapperProps.offlineIndicatorStyle]}
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         {!isMobileSelectionModeEnabled ? (
@@ -343,6 +345,12 @@ function SearchPageNarrow({
                                             onDestinationVisible={endSubmitNavigationSpans}
                                             onContentReady={onSearchContentReady}
                                             hasFilterBars={hasFilterBars}
+                                        />
+                                    )}
+                                    {!isInteractive && !searchOverlayContent && (
+                                        <SearchRowSkeleton
+                                            shouldAnimate={hasBeenFocused}
+                                            containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
                                         />
                                     )}
                                     {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}

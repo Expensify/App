@@ -31,6 +31,13 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    floatingTabBarHeight: 60,
+    floatingTabBarHorizontalInset: 16,
+    // How far the selected pill reaches past its tab on each side, whatever the label's length.
+    floatingTabBarSelectedOverhang: 4,
+    // Space between a label's truncation edge and its tab's edge, so a neighbor's selected pill never reaches the label.
+    floatingTabBarLabelInset: 8,
+    floatingTabBarBottomInset: 8,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
@@ -45,6 +52,7 @@ export default {
     spacing2: 8,
     rulesDocumentThumbnailMaxWidth: 368,
     rulesDocumentThumbnailHeight: 200,
+    hairlineBorderWidth: 0.5,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,
@@ -98,6 +106,31 @@ export default {
     iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
+    /** Glyph size in the floating tab bar. */
+    iconFloatingTabBar: 20,
+    /** Account avatar size in the floating tab bar. */
+    avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
+    /** Glyph size in the iOS native tab bar. */
+    iconNativeTabBarIOS: 22,
+    /** Account avatar size in the iOS native tab bar. */
+    avatarNativeTabBarIOS: 26,
+    /** Radius of the status dot drawn into a native tab bar icon. */
+    nativeTabIconDotRadius: 4,
+    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
+    nativeTabIconDotCutout: 2,
+    /** Gap between the glyph and the label drawn under it in an iOS native tab bar icon. */
+    nativeTabIconLabelGap: 6,
+    /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
+    iosNativeTabBarHorizontalInset: 25,
+    // UITabBar sizes its items to their icons and gives the selected pill a minimum width, so a label as wide as an even
+    // share of the bar lets that pill reach over the label next to it.
+    iosNativeTabBarLabelInset: 8,
+    /** Material's BottomNavigationView row, without the gesture inset under it. */
+    androidNativeTabBarHeight: 80,
+    /** Material's bar row (androidNativeTabBarHeight) plus the 16 dp Material keeps between a FAB and the bar. */
+    androidNativeTabBarFloatingButtonsBottom: 96,
+    /** UITabBar's row above the home indicator inset, plus the gap to the floating buttons. */
+    iosNativeTabBarFloatingButtonsBottom: 50,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,

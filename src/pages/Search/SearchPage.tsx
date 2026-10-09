@@ -6,6 +6,7 @@ import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/Playbac
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useHasFilterBars from '@hooks/useHasFilterBars';
+import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import {PaymentContextProvider} from '@hooks/usePaymentContext';
@@ -25,6 +26,7 @@ import {isQueryARefinement} from '@libs/SearchQueryRefinement';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 
@@ -51,7 +53,10 @@ function SearchPage({route}: SearchPageProps) {
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    useSearchPageSetup(currentSearchQueryJSON);
+    // Until Spend is first shown, it neither requests a search nor saves its default query over the latest search that the
+    // Spend tab reopens.
+    const hasSpendBeenShown = useHasTabBeenShown(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    useSearchPageSetup(hasSpendBeenShown ? currentSearchQueryJSON : undefined);
     useSeedMyExpensesSearch();
     useReleaseOptionListCaches();
 

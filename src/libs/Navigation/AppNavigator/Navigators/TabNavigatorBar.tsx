@@ -10,20 +10,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
-import cancelTabNavigationSpans, {INBOX_TAB_SPAN_IDS, REPORTS_TAB_SPAN_IDS} from '@libs/telemetry/cancelTabNavigationSpans';
+import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
 
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-
-const NAVIGATION_TAB_TO_SPANS: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, readonly string[]>> = {
-    [NAVIGATION_TABS.INBOX]: INBOX_TAB_SPAN_IDS,
-    [NAVIGATION_TABS.SEARCH]: REPORTS_TAB_SPAN_IDS,
-};
 
 /**
  * Custom tab bar rendered by the BottomTabNavigator. Only receives `state` (not the
@@ -40,7 +34,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);
     // --- Narrow-only animation logic (hooks must run unconditionally per Rules of Hooks) ---
-    // On native, screens also render the tab bar via bottomContent for swipe-back animations.
+    // Screens also render the tab bar via bottomContent for swipe-back animations.
     // Delay showing this navigator's tab bar only when navigating back from a deeper screen
     // (where the tab bar was hidden). Keep it visible during tab switches so it doesn't flash.
     // Guard with shouldUseNarrowLayout so prevShouldHide stays false in wide layout,

@@ -8,8 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {startSpan} from '@libs/telemetry/activeSpans';
-import {startNavigateToReportsSpans} from '@libs/telemetry/navigateToReportsSpans';
+import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
 import navigationRef from '@navigation/navigationRef';
 
@@ -44,12 +43,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
-                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
-                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
-                forceTransaction: true,
-            });
-            startNavigateToReportsSpans();
+            startNavigateToReportsTabSpans();
 
             Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuery));
         });
