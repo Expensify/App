@@ -1,8 +1,8 @@
-import DecisionModal from '@components/DecisionModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -10,13 +10,11 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {createNewReport} from '@libs/actions/Report';
 import {autoReportTransactions, changeTransactionsReport} from '@libs/actions/Transaction';
@@ -43,7 +41,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -57,12 +55,8 @@ function SearchTransactionsChangeReport() {
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const {showOfflineModal} = useAlertModals();
 
     const allMatchingQueryParams = getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
 
@@ -231,7 +225,7 @@ function SearchTransactionsChangeReport() {
 
     const createReport = () => {
         if (shouldBlockOfflineAllMatchingMove()) {
-            setIsOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
         if (shouldNavigateToUpgradePath && selectedTransactionsKeys.length > 0) {
@@ -286,7 +280,7 @@ function SearchTransactionsChangeReport() {
             return;
         }
         if (shouldBlockOfflineAllMatchingMove()) {
-            setIsOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
 
@@ -337,7 +331,7 @@ function SearchTransactionsChangeReport() {
             return;
         }
         if (shouldBlockOfflineAllMatchingMove()) {
-            setIsOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
@@ -367,37 +361,26 @@ function SearchTransactionsChangeReport() {
     };
 
     return (
-        <>
-            <IOURequestEditReportCommon
-                backTo={undefined}
-                transactionIDs={selectedTransactionsKeys}
-                isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
-                isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
-                isDistanceRequest={transactions.some(isDistanceRequestUtil)}
-                selectedReportID={selectedReportID}
-                selectReport={selectReport}
-                removeFromReport={removeFromReport}
-                createReport={createReport}
-                isEditing
-                isUnreported={areAllTransactionsUnreported}
-                targetOwnerAccountID={targetOwnerAccountID}
-                transactionPolicyID={selectedReportPolicyID}
-                isPerDiemRequest={hasPerDiemTransactions}
-                isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
-                hasMultipleSubmitters={hasMultipleSubmitters}
-                areAllManagedCardsResolvable={areAllManagedCardsResolvable}
-                autoReport={autoReport}
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isOfflineModalVisible}
-                onClose={() => setIsOfflineModalVisible(false)}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={undefined}
+            transactionIDs={selectedTransactionsKeys}
+            isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
+            isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
+            isDistanceRequest={transactions.some(isDistanceRequestUtil)}
+            selectedReportID={selectedReportID}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            createReport={createReport}
+            isEditing
+            isUnreported={areAllTransactionsUnreported}
+            targetOwnerAccountID={targetOwnerAccountID}
+            transactionPolicyID={selectedReportPolicyID}
+            isPerDiemRequest={hasPerDiemTransactions}
+            isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
+            hasMultipleSubmitters={hasMultipleSubmitters}
+            areAllManagedCardsResolvable={areAllManagedCardsResolvable}
+            autoReport={autoReport}
+        />
     );
 }
 

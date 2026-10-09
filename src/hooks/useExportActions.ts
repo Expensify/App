@@ -21,6 +21,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import useAlertModals from './useAlertModals';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDecisionModal from './useDecisionModal';
 import useExportAgainModal from './useExportAgainModal';
@@ -87,6 +88,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 
     const {showDecisionModal} = useDecisionModal();
+    const {showOfflineModal, showDownloadErrorModal} = useAlertModals();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
@@ -110,22 +112,6 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'GustoSquare',
         'ArrowRight',
     ]);
-
-    const showOfflineModal = () => {
-        showDecisionModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.offlinePrompt'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    };
-
-    const showDownloadErrorModal = () => {
-        showDecisionModal({
-            title: translate('common.downloadFailedTitle'),
-            prompt: translate('common.downloadFailedDescription'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    };
 
     const showEmptyReportDownloadErrorModal = () => {
         showDecisionModal({
