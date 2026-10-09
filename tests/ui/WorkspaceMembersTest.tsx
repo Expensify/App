@@ -466,8 +466,7 @@ describe('WorkspaceMembers', () => {
             // When the admin removes that approver
             const row = await screen.findByLabelText(new RegExp(`^${approverWithoutDetails}`));
             fireEvent.press(within(row).getByLabelText(TestHelper.translateLocal('common.select')));
-            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
-            await waitForBatchedUpdatesWithAct();
+            await openBulkActions();
             const removeMenuItem = screen.getByText(TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1}));
             fireEvent.press(removeMenuItem, {nativeEvent: {}, type: 'press', target: removeMenuItem, currentTarget: removeMenuItem});
             await waitForBatchedUpdatesWithAct();
