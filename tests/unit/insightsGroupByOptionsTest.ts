@@ -23,8 +23,11 @@ describe('insightsGroupByOptions', () => {
             ['year to date in October', {preset: YEAR_TO_DATE}, [WEEK, MONTH, QUARTER]],
             ['last 12 months', {preset: LAST_12_MONTHS}, [WEEK, MONTH, QUARTER]],
             ['a range under two weeks', {from: '2026-03-01', to: '2026-03-10'}, [DAY]],
+            ['a range of 13 days', {from: '2026-03-01', to: '2026-03-13'}, [DAY]],
+            ['a range of 14 days', {from: '2026-03-01', to: '2026-03-14'}, [DAY, WEEK]],
+            ['a range of 62 days', {from: '2026-03-01', to: '2026-05-01'}, [DAY, WEEK, MONTH]],
+            ['a range of 63 days', {from: '2026-03-01', to: '2026-05-02'}, [WEEK, MONTH]],
             ['a range of exactly two months', {from: '2026-01-01', to: '2026-02-28'}, [DAY, WEEK, MONTH]],
-            ['a range just over 62 days', {from: '2026-01-01', to: '2026-03-04'}, [WEEK, MONTH]],
             ['a range of two years', {from: '2024-01-01', to: '2025-12-31'}, [WEEK, MONTH, QUARTER, YEAR]],
             ['a single day', {on: '2026-03-04'}, []],
         ])('offers the options that fit %s', (_label, date, expected) => {
