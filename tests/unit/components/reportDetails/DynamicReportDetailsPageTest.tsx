@@ -231,12 +231,7 @@ describe('DynamicReportDetailsPage', () => {
                     <CurrentUserPersonalDetailsContext.Provider value={{accountID: currentUserAccountID}}>
                         <LocaleContextProvider>
                             <DynamicReportDetailsPage
-                                isLoadingReportData={false}
                                 navigation={navigationMock}
-                                policy={policy}
-                                report={report}
-                                reportMetadata={undefined}
-                                reportLoadingState={undefined}
                                 route={getRouteMock(reportID)}
                             />
                         </LocaleContextProvider>
