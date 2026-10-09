@@ -332,6 +332,7 @@
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestView.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	5
 "../../src/components/ReportActionItem/receiptHoverUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/components/ReportActionItem/SupportTicketView.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
@@ -1681,7 +1682,7 @@
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateNameEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/distanceRates/PolicyDistanceRatesSettingsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
+"../../src/pages/workspace/distanceRates/PolicyDistanceRatesSettingsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	3
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateTaxRateEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateTaxReclaimableEditPage.tsx"	"no-restricted-imports"	1
