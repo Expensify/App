@@ -195,6 +195,7 @@ import {
     isPayOptional,
     isPolicyRelatedReport,
     isReportManager,
+    isReportIneligibleForMoveExpenses,
     isReportOutstanding,
     isReportPendingDelete,
     isResolvedSupportTicket,
@@ -12041,6 +12042,110 @@ describe('ReportUtils', () => {
             const result = canAddTransaction(report, undefined, isReportArchived.current);
 
             // Then the result is false
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isReportIneligibleForMoveExpenses', () => {
+        const instantSubmitPolicy: Policy = {
+            ...createRandomPolicy(3000),
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        };
+
+        it('returns false when the destination transactions have not been loaded', () => {
+            // Given an instant-submit, submit-and-close report whose summary totals look non-reimbursable
+            const report: Report = {
+                ...createRandomReport(30001, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                transactionCount: 1,
+                total: -100,
+                nonReimbursableTotal: -100,
+            };
+
+            // When the move eligibility is checked without locally cached transactions
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
+
+            // Then the report remains available because aggregate totals cannot prove every transaction is non-reimbursable
+            expect(result).toBe(false);
+        });
+
+        it('returns true when all destination transactions are loaded and non-reimbursable', () => {
+            // Given an instant-submit, submit-and-close report with a complete non-reimbursable transaction list
+            const report: Report = {
+                ...createRandomReport(30006, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                transactionCount: 1,
+            };
+            const transactions: Transaction[] = [{...createRandomTransaction(30006), reportID: report.reportID, reimbursable: false}];
+
+            // When the move eligibility is checked with all destination transactions
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, transactions);
+
+            // Then the report is excluded before it can be selected as a move destination
+            expect(result).toBe(true);
+        });
+
+        it('returns false for a retracted Open draft even when its totals contain only non-reimbursable transactions', () => {
+            // Given a retracted report that Auth treats as a draft
+            const report: Report = {
+                ...createRandomReport(30002, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                hasReportBeenRetracted: true,
+                transactionCount: 1,
+                total: -100,
+                nonReimbursableTotal: -100,
+            };
+
+            // When the move eligibility is checked
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, []);
+
+            // Then the draft remains available because Auth allows transactions to be moved into it
+            expect(result).toBe(false);
+        });
+
+        it('returns false when only a partial set of destination transactions is loaded', () => {
+            // Given a report with two transactions whose first loaded transaction is non-reimbursable
+            const report: Report = {
+                ...createRandomReport(30004, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                transactionCount: 2,
+            };
+            const transactions: Transaction[] = [{...createRandomTransaction(30004), reportID: report.reportID, reimbursable: false}];
+
+            // When move eligibility is checked before all destination transactions are available
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, transactions);
+
+            // Then the report remains available until the complete transaction set can be evaluated
+            expect(result).toBe(false);
+        });
+
+        it('uses fully loaded destination transactions instead of stale report totals', () => {
+            // Given report totals that look non-reimbursable but a complete local transaction list containing a reimbursable transaction
+            const report: Report = {
+                ...createRandomReport(30006, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                transactionCount: 2,
+                total: -200,
+                nonReimbursableTotal: -200,
+            };
+            const transactions: Transaction[] = [
+                {...createRandomTransaction(30006), reportID: report.reportID, reimbursable: false},
+                {...createRandomTransaction(30007), reportID: report.reportID, reimbursable: true},
+            ];
+
+            // When move eligibility is checked with the complete local transaction list
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, transactions);
+
+            // Then the report remains available because it contains a reimbursable transaction
             expect(result).toBe(false);
         });
     });

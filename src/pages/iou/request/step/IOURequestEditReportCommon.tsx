@@ -21,7 +21,16 @@ import useReportTransactions from '@hooks/useReportTransactions';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
-import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {
+    canAddTransaction,
+    getIconsForExpenseReport,
+    isIOUReport,
+    isOpenReport,
+    isReportIneligibleForMoveExpenses,
+    isReportOwner,
+    isSelfDM,
+    sortOutstandingReportsBySelected,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
@@ -100,6 +109,7 @@ function IOURequestEditReportCommon({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReportTransactionsAndViolations] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -180,6 +190,11 @@ function IOURequestEditReportCommon({
                     return false;
                 }
 
+                const destinationReportTransactions = Object.values(allReportTransactionsAndViolations?.[report.reportID]?.transactions ?? {});
+                if (isReportIneligibleForMoveExpenses(report, policy, destinationReportTransactions)) {
+                    return false;
+                }
+
                 if (canAddTransaction(report, rules, undefined, true)) {
                     return true;
                 }
@@ -209,6 +224,7 @@ function IOURequestEditReportCommon({
         personalDetails,
         localeCompare,
         allPolicies,
+        allReportTransactionsAndViolations,
         currentUserPersonalDetails.accountID,
         hasMultipleSubmitters,
         isPerDiemRequest,
