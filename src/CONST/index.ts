@@ -311,6 +311,11 @@ const CONST = {
         customField1: 'employeeUserID',
         customField2: 'employeePayrollID',
     },
+    POLICY_CHANGE_LOG_EMPLOYEE_FIELDS: {
+        ROLE: 'role',
+        SUBMITS_TO: 'submitsTo',
+        FORWARDS_TO: 'forwardsTo',
+    },
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
     ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
