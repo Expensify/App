@@ -9,6 +9,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import * as ReportModule from '@libs/actions/Report';
 import {
     canActionTask,
+    canDeleteTaskAsPolicyAdmin,
     canModifyTask,
     completeTask,
     completeTestDriveTask,
@@ -323,6 +324,39 @@ describe('actions/Task', () => {
                     expect(canActionTask(taskReport, undefined, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
                 });
             });
+        });
+    });
+
+    describe('canDeleteTaskAsPolicyAdmin', () => {
+        const adminAccountID = 1;
+        const employeeAccountID = 2;
+        const guideAccountID = 3;
+        const adminPolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
+        const policyRoom: Report = {...getFakeReport([adminAccountID, employeeAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM};
+        const adminsRoom: Report = {...getFakeReport([adminAccountID, employeeAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS};
+        const employeeTask: Report = {...getFakeReport([adminAccountID, employeeAccountID]), type: CONST.REPORT.TYPE.TASK, ownerAccountID: employeeAccountID};
+
+        it('lets an admin delete a task someone else created in a workspace room', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, adminPolicy, [])).toBe(true);
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, adminsRoom, adminPolicy, [])).toBe(true);
+        });
+
+        it('does not let a non-admin delete the task', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, {...adminPolicy, role: CONST.POLICY.ROLE.USER}, [])).toBe(false);
+        });
+
+        it('does not apply to personal workspaces or to chats that are not workspace rooms', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, {...adminPolicy, type: CONST.POLICY.TYPE.PERSONAL}, [])).toBe(false);
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, getFakeReport([adminAccountID, employeeAccountID]), adminPolicy, [])).toBe(false);
+        });
+
+        it('does not let an admin delete a task in an archived room', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, adminPolicy, [], true)).toBe(false);
+        });
+
+        it('does not let an admin delete a Guide or Concierge setup task in #admins', () => {
+            expect(canDeleteTaskAsPolicyAdmin({...employeeTask, ownerAccountID: CONST.ACCOUNT_ID.CONCIERGE}, adminsRoom, adminPolicy, [])).toBe(false);
+            expect(canDeleteTaskAsPolicyAdmin({...employeeTask, ownerAccountID: guideAccountID}, adminsRoom, adminPolicy, [guideAccountID])).toBe(false);
         });
     });
 

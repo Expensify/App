@@ -82,7 +82,10 @@ function SearchActionsBarCreateButton() {
         [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, getCurrencyDecimals, rules],
     );
 
-    const {createReport, isVisible: isCreateReportVisible} = useCreateReport({onCreateReport: handleCreateWorkspaceReport});
+    const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
+        onCreateReport: handleCreateWorkspaceReport,
+        shouldSkipEmptyReportConfirmation: !isCreateMenuActive,
+    });
 
     const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
     const showCreateMenu = useCallback(() => {

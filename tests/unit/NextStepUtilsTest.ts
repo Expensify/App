@@ -938,6 +938,53 @@ describe('libs/NextStepUtils', () => {
             expect(result).toBe(currentNextStep);
         });
 
+        it('returns the change workspace next step when the policy is archived', () => {
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    rules: undefined,
+                    chatReportID: 'chat-archived',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    isASAPSubmitBetaEnabled: true,
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                nextStep: currentNextStep,
+            } as Report;
+
+            const policy = createMock<Policy>({
+                id: policyID,
+                archivedDate: '2026-01-01 00:00:00',
+            });
+
+            const result = getReportNextStep({
+                rules: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
+
+            expect(result).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE,
+                icon: CONST.NEXT_STEP.ICONS.BOX,
+            });
+        });
+
         it('returns an optimistic fix issue next step when all transactions have submission-blocking violations', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({

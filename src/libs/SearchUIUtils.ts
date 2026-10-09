@@ -62,7 +62,7 @@ import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCard
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
+import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -100,7 +100,7 @@ import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {addDays, format, parse, subDays} from 'date-fns';
+import {addDays, format, getYear, parse, subDays} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 
 import type {TransactionPreviewData} from './actions/Search';
@@ -110,7 +110,6 @@ import type {SearchTypeMenuItem} from './SearchSuggestionUtils';
 
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
-import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
 import {createTransactionThreadReport} from './actions/Report';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
@@ -163,6 +162,9 @@ import {
 import {getReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
+    canApproveIOU,
+    canIOUBePaid,
+    canSubmitReport,
     canDeleteMoneyRequestReport,
     canUserPerformWriteAction,
     findSelfDMReportID,
@@ -180,7 +182,6 @@ import {
     getTransactionDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
-    hasOnlyNonReimbursableTransactions,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -192,6 +193,7 @@ import {
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
+    isPayOptional,
     isProcessingReport,
     isSettled,
     shouldReportShowSubscript,
@@ -2314,7 +2316,7 @@ function getPrimaryAction(
     const submitExclusion = getSubmitExclusion(report?.ownerAccountID, currentAccountID);
     if (isReportEntry(key) && report) {
         const allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
-        const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(report.reportID, allReportTransactions);
+        const shouldHidePayAsPrimaryAction = isPayOptional(report, allReportTransactions);
         return getAction(allActions, [...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []), ...submitExclusion]);
     }
     return getAction(allActions, submitExclusion);
@@ -2862,7 +2864,7 @@ function getReportSections({
                 const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived, conciergeReportID);
 
                 const isRejectedReport = reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN && reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
-                const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
+                const shouldHidePayAsPrimaryAction = isPayOptional(reportItem, allReportTransactions);
                 const primaryActionExclusions: SearchTransactionAction[] = [
                     ...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []),
                     ...getSubmitExclusion(reportItem.ownerAccountID, currentAccountID),
@@ -3474,6 +3476,25 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
     return [tagSectionsValues, tagSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+/** Whether the day, month or quarter groups fall in more than one year */
+function doGroupsSpanMultipleYears(data: OnyxTypes.SearchResults['data']): boolean {
+    const years = Object.keys(data)
+        .filter(isGroupEntry)
+        .map((key) => {
+            const group = data[key];
+            if ('day' in group) {
+                return getYearOfDate(group.day);
+            }
+            return 'year' in group ? group.year : undefined;
+        })
+        .filter((year) => year !== undefined);
+    return new Set(years).size > 1;
+}
+
+function getYearOfDate(date: string): number {
+    return getYear(parse(date, CONST.DATE.FNS_FORMAT_STRING, new Date()));
+}
+
 /**
  * Organizes data into list sections grouped by day.
  */
@@ -3483,6 +3504,7 @@ function getDaySections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionDayGroupListItemType[], number, boolean] {
     const daySections: Record<string, TransactionDayGroupListItemType> = {};
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
     for (const key in data) {
         if (!isGroupEntry(key)) {
             continue;
@@ -3500,7 +3522,7 @@ function getDaySections(
             transactionsQueryJSON,
             ...dayGroup,
             formattedDay: DateUtils.formatToReadableString(dayGroup.day, dateFnsLocale),
-            shortFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale),
+            shortFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale, shouldShowShortLabelYear),
             keyForList: key,
         };
     }
@@ -3521,6 +3543,7 @@ function getMonthSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionMonthGroupListItemType[], number, boolean] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const monthGroup = data[key];
@@ -3538,7 +3561,7 @@ function getMonthSections(
                 keyForList: key,
                 ...monthGroup,
                 formattedMonth: DateUtils.getFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale),
-                shortFormattedMonth: DateUtils.getShortFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale),
+                shortFormattedMonth: DateUtils.getShortFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale, shouldShowShortLabelYear),
                 sortKey: monthGroup.year * 100 + monthGroup.month,
             };
         }
@@ -3558,6 +3581,7 @@ function getWeekSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionWeekGroupListItemType[], number, boolean] {
     const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
+    const weeks: Record<string, {weekGroup: SearchWeekGroup; weekStart: string; weekEnd: string; transactionsQueryJSON: SearchQueryJSON | undefined}> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
             const weekGroup = data[key];
@@ -3566,22 +3590,30 @@ function getWeekSections(
             }
             const rawRange = DateUtils.getWeekDateRange(weekGroup.week);
             const dateResult = queryJSON && weekGroup.week ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
-            const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
-            const weekStart = dateResult?.start ?? rawRange.start;
-            const weekEnd = dateResult?.end ?? rawRange.end;
-            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
-            const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
-
-            weekSections[key] = {
-                groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                transactions: [],
-                transactionsQueryJSON,
-                ...weekGroup,
-                formattedWeek,
-                shortFormattedWeek,
-                keyForList: key,
+            weeks[key] = {
+                weekGroup,
+                weekStart: dateResult?.start ?? rawRange.start,
+                weekEnd: dateResult?.end ?? rawRange.end,
+                transactionsQueryJSON: dateResult?.transactionsQueryJSON,
             };
         }
+    }
+
+    // Years come from the week as trimmed to the date filter, so a filter starting Jan 1 doesn't count the days before it
+    const shouldShowShortLabelYear = new Set(Object.values(weeks).flatMap(({weekStart, weekEnd}) => [getYearOfDate(weekStart), getYearOfDate(weekEnd)])).size > 1;
+    for (const [key, {weekGroup, weekStart, weekEnd, transactionsQueryJSON}] of Object.entries(weeks)) {
+        const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
+        const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale, shouldShowShortLabelYear);
+
+        weekSections[key] = {
+            groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+            transactions: [],
+            transactionsQueryJSON,
+            ...weekGroup,
+            formattedWeek,
+            shortFormattedWeek,
+            keyForList: key,
+        };
     }
 
     const weekSectionsValues = Object.values(weekSections);
@@ -3626,6 +3658,7 @@ function getQuarterSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionQuarterGroupListItemType[], number, boolean] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const quarterGroup = data[key];
@@ -3637,7 +3670,7 @@ function getQuarterSections(
                     ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
                     : undefined;
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
-            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
+            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale, shouldShowShortLabelYear);
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
@@ -5087,27 +5120,31 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, con
             const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
             const shouldShowApprovedViolation = availability.shouldShowApprovedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
             return [
-                {text: translate('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
-                {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
-                ...(shouldShowTag ? [{text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG}] : []),
-                ...(shouldShowCategory ? [{text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY}] : []),
-                ...(shouldShowSubmittedViolation ? [{text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}] : []),
-                ...(shouldShowApprovedViolation ? [{text: translate('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}] : []),
+                {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.RECEIPT]), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.ATTACHMENT]), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                ...(shouldShowTag ? [{text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.TAG]), value: CONST.SEARCH.HAS_VALUES.TAG}] : []),
+                ...(shouldShowCategory ? [{text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.CATEGORY]), value: CONST.SEARCH.HAS_VALUES.CATEGORY}] : []),
+                ...(shouldShowSubmittedViolation
+                    ? [{text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}]
+                    : []),
+                ...(shouldShowApprovedViolation
+                    ? [{text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}]
+                    : []),
             ];
         }
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
-                {text: translate('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
-                {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.LINK]), value: CONST.SEARCH.HAS_VALUES.LINK},
+                {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.ATTACHMENT]), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
             ];
         default:
             return [];
     }
 }
 
-type SubmittedTransactionViolationShortName = ValueOf<typeof CONST.VIOLATIONS>;
+type SubmittedTransactionViolationShortName = Exclude<ValueOf<typeof CONST.VIOLATIONS>, typeof CONST.VIOLATIONS.RULE_VIOLATION>;
 
-const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(Object.values(CONST.VIOLATIONS));
+const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.RULE_VIOLATION));
 
 function isSubmittedTransactionViolationShortName(name: string): name is SubmittedTransactionViolationShortName {
     return SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET.has(name);
@@ -5118,6 +5155,9 @@ function isSubmittedTransactionViolationShortName(name: string): name is Submitt
  * Falls back to the raw identifier when no short-name translation exists.
  */
 function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    if (violationName === CONST.VIOLATIONS.RULE_VIOLATION) {
+        return translate('violations.shortName.customRules');
+    }
     return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
 }
 
