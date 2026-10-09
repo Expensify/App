@@ -9,6 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
+import {isSettled} from '@libs/ReportUtils';
+import {isFailedScanAmountPlaceholder} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 
@@ -46,7 +48,8 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
         dateFnsLocale,
     );
 
-    const formattedAmount = convertToDisplayString(expense.amount, expense.currency);
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(expense.transaction, isSettled(expense.report));
+    const formattedAmount = hasFailedScanAmountPlaceholder ? '' : convertToDisplayString(expense.amount, expense.currency);
 
     // The row always uses the stacked ("mobile") layout because it lives in the narrow right column on web/desktop
     // too: a thumbnail, then the merchant + amount on the first line and the date + type underneath. This mirrors the

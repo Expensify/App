@@ -13,7 +13,7 @@ import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -28,6 +28,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+
+const mockConvertToDisplayString = jest.fn((amount: number, currency: string) => `${currency} ${amount}`);
+jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({convertToDisplayString: mockConvertToDisplayString})}));
 
 // The component calls useIsFocused to dismiss the hovered receipt preview on blur; the test harness doesn't
 // mount a NavigationContainer, so stub it to a focused state.
@@ -115,6 +118,7 @@ type RecentlyAddedRowFixture = {
     amount: number;
     currency: string;
     transaction: Transaction;
+    report?: Report;
 };
 
 function buildTransaction(transactionID: string, reportID: string): Transaction {
@@ -308,6 +312,74 @@ describe('RecentlyAddedSection', () => {
             expect(screen.getByText('Velocity Systems')).toBeOnTheScreen();
             expect(screen.getByText('Nitro Fuel Supply Co.')).toBeOnTheScreen();
             expect(screen.queryByTestId('recentlyAddedEmptyState')).not.toBeOnTheScreen();
+        });
+
+        it('hides a failed-scan placeholder amount', async () => {
+            // Given a failed Scan whose zero amount is only a placeholder
+            const failedScanRow = {
+                ...ROW_1,
+                amount: 0,
+                transaction: {
+                    ...ROW_1.transaction,
+                    amount: 0,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                },
+            };
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [failedScanRow], isAwaitingFirstResult: false});
+
+            // When the Recently Added row is rendered
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the placeholder is not formatted as a real zero amount
+            expect(screen.queryByText('USD 0')).not.toBeOnTheScreen();
+        });
+
+        it('shows a zero amount that the user explicitly confirmed', async () => {
+            // Given a Scan whose zero amount was explicitly confirmed by the user
+            const confirmedZeroRow = {
+                ...ROW_1,
+                amount: 0,
+                transaction: {
+                    ...ROW_1.transaction,
+                    amount: 0,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                    isAmountSet: true,
+                },
+            };
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [confirmedZeroRow], isAwaitingFirstResult: false});
+
+            // When the Recently Added row is rendered
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the confirmed zero remains visible
+            expect(screen.getByText('USD 0')).toBeOnTheScreen();
+        });
+
+        it('shows a zero amount on a settled report', async () => {
+            // Given a zero-value Scan on a settled report
+            const settledZeroRow = {
+                ...ROW_1,
+                amount: 0,
+                report: {reportID: ROW_1.reportID, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} as Report,
+                transaction: {
+                    ...ROW_1.transaction,
+                    amount: 0,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                },
+            };
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [settledZeroRow], isAwaitingFirstResult: false});
+
+            // When the Recently Added row is rendered
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the settled zero remains visible
+            expect(screen.getByText('USD 0')).toBeOnTheScreen();
         });
     });
 
