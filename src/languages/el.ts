@@ -3473,13 +3473,12 @@ ${amount} για ${merchant} - ${date}`,
         errorSelection: 'Επιλέξτε μια επιλογή για να συνεχίσετε',
         purpose: {
             title: 'Τι θέλετε να κάνετε σήμερα;',
-            errorContinue: 'Παρακαλώ πατήστε «συνέχεια» για να ολοκληρωθεί η ρύθμιση',
-            errorBackButton: 'Παρακαλούμε ολοκληρώστε τις ερωτήσεις ρύθμισης για να ξεκινήσετε να χρησιμοποιείτε την εφαρμογή',
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Συμμετοχή στον χώρο εργασίας της εταιρείας μου',
+            errorContinue: 'Πατήστε «συνέχεια» για να ολοκληρώσετε τη ρύθμιση',
+            errorBackButton: 'Ολοκληρώστε τις ερωτήσεις ρύθμισης για να αρχίσετε να χρησιμοποιείτε την εφαρμογή',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Υποβολή εξόδων στον εργοδότη μου',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Διαχείριση των εξόδων της ομάδας μου',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Παρακολουθήστε τα έξοδα της επιχείρησής σας',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Οργάνωση των προσωπικών μου εξόδων',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Παρακολουθήστε τα έξοδά μου για την επιχείρησή μου',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Οργάνωση των προσωπικών μου δαπανών',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Κάτι άλλο',
         },
         personalTrackGoal: {
@@ -3538,8 +3537,6 @@ ${amount} για ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Δεν ήταν δυνατή η προσθήκη της εργασιακής διεύθυνσης email',
             subtitle: (workEmail: string | undefined) => `Δεν ήταν δυνατή η προσθήκη του ${workEmail}. Δοκιμάστε ξανά αργότερα στις ρυθμίσεις ή συνομιλήστε με το Concierge για καθοδήγηση.`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `Δεν ήταν δυνατή η προσθήκη του ${workEmail}. Για να συγχωνεύσετε αυτούς τους λογαριασμούς, συνδεθείτε ως ${workEmail} και μεταβείτε σε Λογαρια​σμός > Ασφάλεια > Συγχώνευση λογαριασμών για να ολοκληρώσετε τη διαδικασία.`,
             workAccountClosedSubtitle:
                 'Ο επαγγελματικός λογαριασμός που σχετίζεται με αυτό το email είναι κλειστός. Παρακαλούμε επικοινωνήστε με τον διαχειριστή της εταιρείας σας για να τον επανενεργοποιήσει ή εγγραφείτε με διαφορετικό email.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} είναι ένα στοιχείο σύνδεσης ελεγχόμενο από τομέα για έναν υπάρχοντα λογαριασμό Expensify.`,
@@ -3774,34 +3771,6 @@ ${amount} για ${merchant} - ${date}`,
                     Και είστε έτοιμοι!
                 `),
             },
-            addWorkEmailTask: {
-                title: 'Προσθέστε το επαγγελματικό σας email',
-                description: ({workEmailLink = ''}) =>
-                    Str.dedent(`
-                        1. Ανοίξτε το [Προσθήκη επαγγελματικού email](${workEmailLink}).
-                        2. Εισαγάγετε τη διεύθυνση εταιρικού email σας.
-                        3. Εισαγάγετε τον κωδικό που θα σας στείλουμε με email.
-                        4. Επιλέξτε έναν χώρο εργασίας για να συμμετάσχετε ή κάντε κλικ στο *Αίτημα συμμετοχής* για να στείλετε αίτημα στον ιδιοκτήτη του χώρου εργασίας.
-                    `),
-            },
-            validateEmailTask: {
-                title: 'Επικυρώστε το email σας',
-                description: ({validateEmailLink = '', workEmail = ''}) =>
-                    Str.dedent(`
-                        1. Ανοίξτε το [επαληθεύστε τον λογαριασμό σας](${validateEmailLink}).
-                        2. Εισαγάγετε τον κωδικό που στείλαμε στο ${workEmail}.
-                        3. Επιλέξτε έναν χώρο εργασίας για να συμμετάσχετε ή κάντε κλικ στο *αίτημα συμμετοχής* για να στείλετε ένα αίτημα στον ιδιοκτήτη του χώρου εργασίας.
-                    `),
-            },
-            joinWorkspaceTask: {
-                title: 'Γίνετε μέλος του χώρου εργασίας της εταιρείας σας',
-                description: ({joinWorkspaceLink = ''}) =>
-                    Str.dedent(`
-                        1. Ανοίξτε το [Συμμετοχή σε χώρο εργασίας](${joinWorkspaceLink}).
-                        2. Βρείτε την ομάδα σας στη λίστα. Κάθε μία εμφανίζει τον κάτοχό της και πόσα άτομα έχει, με τις μεγαλύτερες πρώτες. Κάντε κλικ στο *Εμφάνιση περισσότερων* αν δεν βλέπετε τη δική σας.
-                        3. Κάντε κλικ στο *Συμμετοχή τώρα* ή στο *Αίτημα συμμετοχής* αν απαιτείται έγκριση διαχειριστή.
-                    `),
-            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Κάντε ένα [test drive](${testDriveURL})` : 'Κάντε μια δοκιμαστική χρήση'),
@@ -3824,14 +3793,6 @@ ${amount} για ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Το να μοιράζεστε λογαριασμούς με φίλους είναι τόσο εύκολο όσο το να στέλνετε ένα μήνυμα. Δείτε πώς.',
             onboardingAdminMessage: 'Μάθετε πώς να διαχειρίζεστε τον χώρο εργασίας της ομάδας σας ως διαχειριστής και να υποβάλλετε τις δικές σας δαπάνες.',
             onboardingTestDriveReceiverMessage: '*Έχετε 3 μήνες δωρεάν! Ξεκινήστε παρακάτω.*',
-            onboardingJoinWorkspaceAddWorkEmailMessage:
-                'Αφού θέλετε να συμμετάσχετε στον χώρο εργασίας της εταιρείας σας, δεν δημιούργησα έναν για εσάς. Προσθέστε το επαγγελματικό σας email και θα ελέγξω σε ποιους χώρους εργασίας της εταιρείας σας μπορείτε να συμμετάσχετε.',
-            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Αφού θέλετε να συμμετάσχετε στον χώρο εργασίας της εταιρείας σας, δεν δημιούργησα έναν για εσάς. Επαληθεύστε το email σας και θα ελέγξω σε ποιους χώρους εργασίας στο ${companyDomain} μπορείτε να συμμετάσχετε.`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `Εφόσον θέλετε να συμμετάσχετε στον χώρο εργασίας της εταιρείας σας, δεν δημιούργησα έναν για εσάς. Η ομάδα σας στο ${companyDomain} βρίσκεται ήδη στο Expensify. [Ρίξτε μια ματιά στους χώρους εργασίας στους οποίους μπορείτε να συμμετάσχετε.](${joinWorkspaceLink})`,
-            onboardingJoinWorkspaceEmptyMessage:
-                'Δεν φαίνεται η εταιρεία σας να έχει διαθέσιμους χώρους εργασίας στους οποίους μπορείτε να συμμετάσχετε. Παρακαλούμε επικοινωνήστε με τον διαχειριστή σας και ζητήστε του να σας προσκαλέσει στον χώρο εργασίας του.',
         },
         workspace: {
             title: 'Μείνετε οργανωμένοι με έναν χώρο εργασίας',
@@ -4086,6 +4047,15 @@ ${amount} για ${merchant} - ${date}`,
         unlockAlreadyRequestedTitle: 'Το αίτημα έχει ήδη υποβληθεί',
         unlockAlreadyRequestedDescription:
             'Το αίτημά σας για ξεκλείδωμα αυτού του τραπεζικού λογαριασμού έχει ήδη αποσταλεί. Το Concierge θα επικοινωνήσει μαζί σας αν χρειαστεί οτιδήποτε άλλο.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
+            invalidOption: 'Επιλέξτε μία από τις διαθέσιμες επιλογές',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -9169,11 +9139,6 @@ ${reportName}`,
             emptySubtitle: 'Οι προμηθευτές θα εμφανιστούν εδώ μετά την ολοκλήρωση του συγχρονισμού λογιστικής σας.',
             findVendor: 'Εύρεση προμηθευτή',
             managedInAccountingSoftware: 'Οι προμηθευτές διαχειρίζονται στο',
-            enableVendor: 'Ενεργοποίηση προμηθευτή',
-            enableVendors: 'Ενεργοποίηση προμηθευτών',
-            disableVendor: 'Απενεργοποίηση προμηθευτή',
-            disableVendors: 'Απενεργοποίηση προμηθευτών',
-            updateFailureMessage: 'Προέκυψε σφάλμα κατά την ενημέρωση του προμηθευτή, δοκιμάστε ξανά',
         },
         campfire: {
             campfireSetup: 'Ρύθμιση campfire',
@@ -10439,6 +10404,7 @@ ${reportName}`,
         mergeReports: {
             title: 'Συγχώνευση αναφορών',
             description: 'Επιλέξτε την αναφορά που θέλετε να κρατήσετε. Όλες οι δαπάνες θα μετακινηθούν σε αυτήν και οι άλλες αναφορές θα διαγραφούν.',
+            listPage: {noEligibleReportsFound: 'Δεν βρέθηκαν κατάλληλες αναφορές', noEligibleReportsFoundSubtitle: 'Δεν έχετε καμία αναφορά που να μπορεί να συγχωνευθεί.'},
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
         mySavedSearch: 'Οι δαπάνες μου',
@@ -10481,12 +10447,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: 'Σε εκκρεμότητα',
-            cleared: 'Εκκαθαρισμένο',
-            failed: 'Απέτυχε',
-            never: 'Ποτέ',
-        },
+        status: {pending: 'Σε εκκρεμότητα', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', never: 'Ποτέ', cashBack: 'Επιστροφή μετρητών'},
         failedError: ({link}: {link: string}) => `Θα προσπαθήσουμε ξανά για αυτόν τον διακανονισμό όταν <a href="${link}">ξεκλειδώσετε τον λογαριασμό σας</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Αναγνωριστικό ανάληψης: ${withdrawalID}`,
     },

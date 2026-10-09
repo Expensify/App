@@ -3384,13 +3384,12 @@ ${date} の ${merchant} への ${amount}`,
         errorSelection: '次に進むオプションを選択してください',
         purpose: {
             title: '今日は何をしたいですか？',
-            errorContinue: 'セットアップを続行するには［続行］を押してください',
-            errorBackButton: 'アプリを使い始めるには、セットアップの質問に最後までお答えください',
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: '自分の会社のワークスペースに参加する',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '経費を雇用主に提出する',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'チームの経費を管理する',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '自分のビジネスの経費を管理する',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '個人の支出を整理する',
+            errorContinue: '続行を押してセットアップを完了してください',
+            errorBackButton: 'アプリを使い始めるには、セットアップの質問にすべて回答してください',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '雇用主に経費を提出する',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'チームの経費を管理',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'ビジネスの経費を記録',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '個人の支出を管理',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'その他',
         },
         personalTrackGoal: {
@@ -3448,8 +3447,6 @@ ${date} の ${merchant} への ${amount}`,
             title: '勤務用メールアドレスを追加できませんでした',
             subtitle: (workEmail: string | undefined) =>
                 `${workEmail} を追加できませんでした。後で「設定」からもう一度お試しいただくか、ガイダンスについて Concierge にチャットでお問い合わせください。`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `${workEmail} を追加できませんでした。これらのアカウントを統合するには、${workEmail} としてログインし、「アカウント」＞「セキュリティ」＞「アカウントの統合」に進んで処理を完了してください。`,
             workAccountClosedSubtitle:
                 'このメールアドレスに関連付けられている業務用アカウントは停止されています。再有効化するには会社の管理者にご連絡いただくか、別のメールアドレスでサインアップしてください。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} は既存のExpensifyアカウントのドメイン管理ログインです。`,
@@ -3688,34 +3685,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     これで完了です！
                 `),
             },
-            addWorkEmailTask: {
-                title: '勤務先のメールアドレスを追加してください',
-                description: ({workEmailLink = ''}) =>
-                    Str.dedent(`
-                        1. [勤務先メールを追加](${workEmailLink}) を開きます。  
-                        2. 会社のメールアドレスを入力します。  
-                        3. お送りしたコードを入力します。  
-                        4. 参加するワークスペースを選ぶか、ワークスペースのオーナーにリクエストを送るには *参加をリクエスト* をクリックします。
-                    `),
-            },
-            validateEmailTask: {
-                title: 'メールを確認してください',
-                description: ({validateEmailLink = '', workEmail = ''}) =>
-                    Str.dedent(`
-                        1. [アカウントを認証](${validateEmailLink})を開きます。  
-                        2. ${workEmail} に送信されたコードを入力します。  
-                        3. 参加するワークスペースを選択するか、ワークスペースのオーナーにリクエストを送信するには「参加リクエストを送信」をクリックします。
-                    `),
-            },
-            joinWorkspaceTask: {
-                title: '会社のワークスペースに参加する',
-                description: ({joinWorkspaceLink = ''}) =>
-                    Str.dedent(`
-                        1. [ワークスペースに参加](${joinWorkspaceLink}) を開きます。  
-                        2. 一覧から自分のチームを探します。各チームには、そのオーナー名と参加人数が表示され、多い順に並んでいます。見つからない場合は *Show more* をクリックします。  
-                        3. *Join now* をクリックします。管理者の承認が必要な場合は、*Ask to join* をクリックします。
-                    `),
-            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `[テストドライブ](${testDriveURL})を試す` : '試してみる'),
@@ -3738,13 +3707,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             onboardingChatSplitMessage: '友だちとの割り勘は、メッセージを送るくらい簡単です。やり方はこちら。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
             onboardingTestDriveReceiverMessage: '*3か月無料でご利用いただけます！下から始めましょう。*',
-            onboardingJoinWorkspaceAddWorkEmailMessage:
-                '会社のワークスペースに参加しようとしているため、新しいワークスペースは作成していません。勤務先のメールアドレスを追加してください。参加できる会社のワークスペースを確認します。',
-            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `会社のワークスペースに参加しようとしているようですので、新しいワークスペースは作成していません。メールアドレスを確認していただければ、${companyDomain} のどのワークスペースに参加できるかをお調べします。`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `会社のワークスペースに参加しようとしているようですので、新しくワークスペースは作成していません。${companyDomain} のチームはすでに Expensify を利用中です。[参加できるワークスペースを確認しましょう](${joinWorkspaceLink})`,
-            onboardingJoinWorkspaceEmptyMessage: 'ご利用の会社には参加可能なワークスペースがないようです。管理者に連絡して、ワークスペースに招待してもらってください。',
         },
         workspace: {
             title: 'ワークスペースで整理整頓しよう',
@@ -3984,6 +3946,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         unlockAlreadyRequestedTitle: 'リクエストは既に送信されています',
         unlockAlreadyRequestedDescription: 'この銀行口座のロック解除リクエストは既に送信されています。追加で必要なことがある場合は、Concierge からご連絡します。',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `例：${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
+            invalidOption: '利用可能な選択肢から選んでください',
+            outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
@@ -6819,11 +6790,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             emptySubtitle: '会計システムとの同期が完了すると、ここに取引先が表示されます。',
             findVendor: '取引先を検索',
             managedInAccountingSoftware: '取引先は次の場所で管理されます：',
-            enableVendor: 'ベンダーを有効にする',
-            enableVendors: 'ベンダーを有効にする',
-            disableVendor: '取引先を無効にする',
-            disableVendors: '取引先を無効化',
-            updateFailureMessage: '仕入先の更新中にエラーが発生しました。もう一度お試しください。',
         },
         tags: {
             tagName: 'タグ名',
@@ -10050,7 +10016,11 @@ ${reportName}`,
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
         },
-        mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
+        mergeReports: {
+            title: 'レポートをマージする',
+            description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。',
+            listPage: {noEligibleReportsFound: '対象となるレポートが見つかりませんでした', noEligibleReportsFoundSubtitle: 'マージできるレポートがありません。'},
+        },
         periodSoFar: ({period}: {period: string}) => `これまでの${period}`,
         weekOf: ({date}: {date: string}) => `${date} の週`,
         saveEdits: {
@@ -10086,12 +10056,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: '保留中',
-            cleared: '支払済み',
-            failed: '失敗しました',
-            never: 'なし',
-        },
+        status: {pending: '保留中', cleared: '支払済み', failed: '失敗しました', never: 'なし', cashBack: 'キャッシュバック'},
         failedError: ({link}: {link: string}) => `<a href="${link}">アカウントのロックを解除</a>すると、この精算を再試行します。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date}・出金 ID：${withdrawalID}`,
     },
