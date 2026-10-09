@@ -1,10 +1,10 @@
-import {THIRD_PARTY_CODE_TAG} from '@libs/telemetry/integrations/classCallCheckNoiseFilter';
 import googleTranslateRecursionNoiseFilterIntegration, {isGoogleTranslateRecursionNoise} from '@libs/telemetry/integrations/googleTranslateRecursionNoiseFilter';
 import {googleTranslateRecursionNoiseFilterIntegration as webGoogleTranslateRecursionNoiseFilterIntegration} from '@libs/telemetry/integrations/index.web';
 
-import type {Client, ErrorEvent, Exception, StackFrame} from '@sentry/core';
+import type {ErrorEvent, StackFrame} from '@sentry/core';
 
-const THIRD_PARTY_TAGS: ErrorEvent['tags'] = {[THIRD_PARTY_CODE_TAG]: true};
+import {buildErrorEvent, sentryClientStub, THIRD_PARTY_TAGS} from '../utils/SentryEventTestUtils';
+
 const WEBKIT_MESSAGE = 'Maximum call stack size exceeded.';
 const V8_MESSAGE = 'Maximum call stack size exceeded';
 
@@ -23,12 +23,8 @@ function cycle(filename: string, innermost: Position, other: Position, count: nu
     return Array.from({length: count}, (_, index) => frame(filename, (count - 1 - index) % 2 === 0 ? innermost : other));
 }
 
-function buildEvent(values: Exception[], tags: ErrorEvent['tags'] = THIRD_PARTY_TAGS): ErrorEvent {
-    return {type: undefined, tags, exception: {values}};
-}
-
 function buildStackOverflowEvent(frames: StackFrame[], tags: ErrorEvent['tags'] = THIRD_PARTY_TAGS, value = WEBKIT_MESSAGE): ErrorEvent {
-    return buildEvent([{type: 'RangeError', value, stacktrace: {frames}}], tags);
+    return buildErrorEvent([{type: 'RangeError', value, stacktrace: {frames}}], tags);
 }
 
 /** APP-M6P, Chrome iOS. */
@@ -99,10 +95,10 @@ describe('googleTranslateRecursionNoiseFilter', () => {
 
     it.each([
         ['an untagged event', buildStackOverflowEvent(APP_M6P_FRAMES, {})],
-        ['a different error type', buildEvent([{type: 'TypeError', value: WEBKIT_MESSAGE, stacktrace: {frames: APP_M6P_FRAMES}}])],
+        ['a different error type', buildErrorEvent([{type: 'TypeError', value: WEBKIT_MESSAGE, stacktrace: {frames: APP_M6P_FRAMES}}])],
         [
             'a chained error',
-            buildEvent([
+            buildErrorEvent([
                 {type: 'RangeError', value: WEBKIT_MESSAGE, stacktrace: {frames: APP_M6P_FRAMES}},
                 {type: 'RangeError', value: WEBKIT_MESSAGE},
             ]),
@@ -112,6 +108,8 @@ describe('googleTranslateRecursionNoiseFilter', () => {
         ['APP-ZF, a synthesized frame with no stack', buildStackOverflowEvent([frame('app:///undefined', [192, 70])])],
         ['APP-2NH, a vendor script under its own dotted URL', buildStackOverflowEvent(cycle('app:///10042537-100413459.js', [4541, 17291], [4541, 17291], 50))],
         ['a stack overflow with no frames', buildStackOverflowEvent([])],
+        ['a RangeError that is not a stack overflow', buildStackOverflowEvent(APP_M6P_FRAMES, THIRD_PARTY_TAGS, 'Invalid array length')],
+        ['a wasm frame compiled without a URL, which has no line number', buildStackOverflowEvent([{filename: 'app:///00b2a5aa:wasm-function[38]:0x1b6c'}, ...APP_M6P_FRAMES])],
     ])('keeps %s', (_, event) => {
         // Given an event that misses one condition of the signature
         // When the predicate runs
@@ -121,14 +119,12 @@ describe('googleTranslateRecursionNoiseFilter', () => {
 
     it('drops the noise and passes anything else through as an integration', () => {
         // Given the integration and one matching and one non-matching event
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the filter never reads the client
-        const client = Object.create(null) as Client;
         const kept = buildStackOverflowEvent(APP_M6P_FRAMES, {});
 
         // When each goes through `processEvent`
         // Then the noise is dropped and the other comes back untouched
-        expect(googleTranslateRecursionNoiseFilterIntegration.processEvent?.(buildStackOverflowEvent(APP_M6P_FRAMES), {}, client)).toBeNull();
-        expect(googleTranslateRecursionNoiseFilterIntegration.processEvent?.(kept, {}, client)).toBe(kept);
+        expect(googleTranslateRecursionNoiseFilterIntegration.processEvent?.(buildStackOverflowEvent(APP_M6P_FRAMES), {}, sentryClientStub)).toBeNull();
+        expect(googleTranslateRecursionNoiseFilterIntegration.processEvent?.(kept, {}, sentryClientStub)).toBe(kept);
     });
 
     it('is exported from the web index', () => {
