@@ -128,7 +128,8 @@ function WorkspaceInviteMessageComponent({
 
     const isControl = isControlPolicy(policy);
     const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
-    const shouldShowWorkArrangement = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const shouldShowWorkArrangement =
+        isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     const selectedHasOfficeWorkArrangement = workspaceInviteWorkArrangementDraft ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? true;
     const officeLocations = Object.values(policy?.officeLocations ?? {});
     const defaultOfficeName = officeLocations.find((office) => office.isDefault)?.name;

@@ -143,13 +143,13 @@ async function seedHandOff(overrides: Partial<ApprovalWorkflowOnyx>) {
     });
 }
 
-async function renderAndPressInvite(backTo: Route) {
+async function renderInviteMessage(backTo: Route, policy = buildPolicy()) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <WorkspaceInviteMessageComponent
-                        policy={buildPolicy()}
+                        policy={policy}
                         policyID={POLICY_ID}
                         backTo={backTo}
                         currentUserPersonalDetails={currentUserPersonalDetails}
@@ -159,6 +159,10 @@ async function renderAndPressInvite(backTo: Route) {
         </ComposeProviders>,
     );
     await waitForBatchedUpdatesWithAct();
+}
+
+async function renderAndPressInvite(backTo: Route) {
+    await renderInviteMessage(backTo);
     fireEvent.press(screen.getByText('Invite'));
     await waitForBatchedUpdatesWithAct();
 }
@@ -174,6 +178,7 @@ describe('WorkspaceInviteMessageComponent - "+N more" workflow edit', () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
             await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await Onyx.set(ONYXKEYS.BETAS, []);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy());
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [ALICE_ACCOUNT_ID]: buildPersonalDetails(ALICE_EMAIL, ALICE_ACCOUNT_ID, 'alice'),
@@ -191,6 +196,19 @@ describe('WorkspaceInviteMessageComponent - "+N more" workflow edit', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
+    });
+
+    it('hides the work arrangement row when its beta is disabled', async () => {
+        // Given a home and office workspace where the work arrangement beta is disabled
+        const policy = {
+            ...buildPolicy(),
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, isOfficeWorkArrangement: true},
+        };
+        await renderInviteMessage(DIRECT_EXPENSES_FROM_ROUTE, policy);
+
+        // When the invite confirmation page renders
+        // Then the unavailable work arrangement editor is not shown
+        expect(screen.queryByText('Work arrangement')).not.toBeOnTheScreen();
     });
 
     it('goes back to Workflows and saves the workflow with the invited member on a "+N more" edit', async () => {

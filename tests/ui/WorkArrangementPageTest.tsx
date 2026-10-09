@@ -29,6 +29,8 @@ import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+let mockIsWorkArrangementBetaEnabled = true;
+
 jest.mock('@components/Header', () => {
     const ComposedHeader = jest.fn(({children}: PropsWithChildren) => children);
     const BackButton = jest.fn(() => null);
@@ -45,7 +47,7 @@ jest.mock('@components/Text', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'admin@example.com'})));
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn());
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
-jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
+jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => mockIsWorkArrangementBetaEnabled})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/Policy/DistanceRate', () => ({setEmployeeWorkArrangement: jest.fn()}));
@@ -93,6 +95,7 @@ describe('WorkArrangementPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsWorkArrangementBetaEnabled = true;
         jest.mocked(canMemberWrite).mockReturnValue(true);
         jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
         await act(async () => {
@@ -149,6 +152,17 @@ describe('WorkArrangementPage', () => {
         // Then no update or navigation occurs
         expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
         expect(Navigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('blocks direct access to the work arrangement page when the beta is disabled', () => {
+        // Given the work arrangement route is opened while its beta is disabled
+        mockIsWorkArrangementBetaEnabled = false;
+
+        // When the page checks whether the current user can access it
+        renderPage();
+
+        // Then the route is blocked instead of rendering the arrangement selector
+        expect(mockedSelectionList).not.toHaveBeenCalled();
     });
 
     it('updates the arrangement and returns to member details when a different option is selected', () => {
