@@ -169,8 +169,8 @@ function canPay(
         isPaymentsEnabled &&
         isReportFinished &&
         (reimbursableSpend !== 0 ||
-            hasSettledZeroReimbursableSpend(spendBreakdown, report, transactions) ||
-            (nonReimbursableSpend !== 0 && !policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
+            ((nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, report, transactions)) &&
+                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, transactions))))
     ) {
         return !didExportFail;
     }

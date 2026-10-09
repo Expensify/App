@@ -258,8 +258,8 @@ function isPrimaryPayAction({
         arePaymentsEnabled &&
         isReportFinished &&
         (reimbursableSpend !== 0 ||
-            hasSettledZeroReimbursableSpend(spendBreakdown, report, reportTransactions) ||
-            (nonReimbursableSpend !== 0 && !policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)))
+            ((nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, report, reportTransactions)) &&
+                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions))))
     ) {
         return isSecondaryAction ?? !didExportFail;
     }
