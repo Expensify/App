@@ -3,6 +3,7 @@ import Table, {composeTableListHeader} from '@components/Table';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -84,6 +85,7 @@ export default function WorkspaceMembersTable({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
@@ -271,10 +273,12 @@ export default function WorkspaceMembersTable({
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
 
-        filterConfig.role.options.push({
-            label: translate('workspace.people.guests'),
-            value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
-        });
+        if (isBetaEnabled(CONST.BETAS.GUEST_WORKSPACE_ROLE)) {
+            filterConfig.role.options.push({
+                label: translate('workspace.people.guests'),
+                value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
+            });
+        }
     }
 
     if (isSubmitPolicy(policy)) {

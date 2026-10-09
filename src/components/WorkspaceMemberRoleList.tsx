@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,6 +51,7 @@ function getAssignableWorkspaceMemberRoleItems(
     policy: OnyxEntry<Policy>,
     currentUserLogin: string,
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>,
+    isGuestWorkspaceRoleEnabled = false,
 ): ListItemType[] {
     const workspaceRoles: ListItemType[] = [
         {
@@ -103,15 +105,22 @@ function getAssignableWorkspaceMemberRoleItems(
         },
     ];
 
-    return workspaceRoles.filter((item) => canMemberAssignRole(policy, currentUserLogin, item.value) && (!allowedRoles || allowedRoles.includes(item.value)));
+    // Keep the guest role visible when the member already has it, so an existing guest's role is still displayed while the beta is off.
+    return workspaceRoles.filter(
+        (item) =>
+            (isGuestWorkspaceRoleEnabled || currentRole === CONST.POLICY.ROLE.GUEST || item.value !== CONST.POLICY.ROLE.GUEST) &&
+            canMemberAssignRole(policy, currentUserLogin, item.value) &&
+            (!allowedRoles || allowedRoles.includes(item.value)),
+    );
 }
 
 function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLoading = false, onSelectRole = () => {}, allowedRoles = undefined}: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
 
-    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, allowedRoles);
+    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, allowedRoles, isBetaEnabled(CONST.BETAS.GUEST_WORKSPACE_ROLE));
 
     return (
         <>

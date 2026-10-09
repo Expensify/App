@@ -141,6 +141,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
@@ -705,6 +706,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         if (
+            isBetaEnabled(CONST.BETAS.GUEST_WORKSPACE_ROLE) &&
             hasAtLeastOneNonGuestRole &&
             isControlPolicy(policy) &&
             !hasAtLeastOnePayer &&
