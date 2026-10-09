@@ -1,6 +1,7 @@
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -33,6 +34,7 @@ const draftDelegateSelector = (draft: OnyxEntry<VacationDelegateForm>) => draft?
 function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegatePageProps) {
     const {domainAccountID, accountID} = route.params;
     const {translate} = useLocalize();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: vacationDelegateSelector(accountID),
@@ -75,6 +77,9 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
                     onBackButtonPress={() => Navigation.goBack()}
                     cannotSetDelegateMessage={translate('domain.members.cannotSetVacationDelegateForMember', memberLogin ?? '')}
                     additionalExcludeLogins={memberLogin ? {[memberLogin]: true} : undefined}
+                    // The member can't be their own delegate. The current user is included by default, and that would override the
+                    // member exclusion above when an admin opens their own member page.
+                    includeCurrentUser={memberLogin !== currentUserLogin}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

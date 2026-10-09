@@ -71,10 +71,11 @@ jest.mock('@components/VacationDelegateForm', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{Pressable: typeof ReactNativePressable; Text: typeof ReactNativeText}>('react-native');
 
-    return ({onSubmit, onRemove}: {onSubmit: (delegate: string, clearAfter: string | undefined) => void; onRemove: () => void}) =>
+    return ({onSubmit, onRemove, isLoading}: {onSubmit: (delegate: string, clearAfter: string | undefined) => void; onRemove: () => void; isLoading?: boolean}) =>
         ReactMock.createElement(
             ReactMock.Fragment,
             null,
+            ReactMock.createElement(Text, {testID: 'save-loading'}, String(!!isLoading)),
             ReactMock.createElement(Pressable, {testID: 'select-delegate-a', onPress: () => onSubmit('delegateA@example.com', undefined)}, ReactMock.createElement(Text, null, 'select-a')),
             ReactMock.createElement(Pressable, {testID: 'select-delegate-b', onPress: () => onSubmit('delegateB@example.com', undefined)}, ReactMock.createElement(Text, null, 'select-b')),
             ReactMock.createElement(
@@ -299,6 +300,69 @@ describe('VacationDelegateFormPage', () => {
 
         // Then the generic translation is used instead of a blank or missing prompt
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: TestHelper.translateLocal('statusPage.vacationDelegateError')}));
+    });
+
+    it('keeps Save loading until the error modal is dismissed, then lets it submit again', async () => {
+        // Given a request that fails, and an error modal held open until the test dismisses it
+        apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve({jsonCode: CONST.JSON_CODE.BAD_REQUEST}));
+        let dismissModal: () => void = () => {};
+        mockShowConfirmModal.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    dismissModal = () => resolve({action: 'CONFIRM'});
+                }),
+        );
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the save fails and the error modal shows
+        fireEvent.press(screen.getByTestId('select-delegate-a'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Save keeps spinning while the modal is open, so the modal is the only place the error shows
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId('save-loading')).toHaveTextContent('true');
+
+        // When the modal is dismissed
+        await act(async () => {
+            dismissModal();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then Save stops loading and a new save is sent instead of being ignored as still pending
+        expect(screen.getByTestId('save-loading')).toHaveTextContent('false');
+        fireEvent.press(screen.getByTestId('select-delegate-a'));
+        await waitForBatchedUpdatesWithAct();
+        expect(apiSideEffectSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('queues the save when only the clear after date of the saved delegate changes', async () => {
+        // Given a saved delegate, and a queued write mocked so only what the page sends is under test
+        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS}));
+        // jest.mock's factory functions (unlike jest.spyOn) are not reset by jest.restoreAllMocks() in afterEach, so call counts otherwise leak across tests in this file.
+        jest.mocked(Navigation.goBack).mockClear();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: CREATOR_EMAIL, delegate: DELEGATE_B_EMAIL});
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the same delegate is saved with a new clear after date
+        fireEvent.press(screen.getByTestId('select-delegate-b-with-date'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it goes through the queued write with the policy diff warning overridden, since the delegate was already accepted,
+        // so the change stays optimistic offline instead of failing a one-off request, and the page goes back to Profile
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.SET_VACATION_DELEGATE,
+            expect.objectContaining({vacationDelegateEmail: DELEGATE_B_EMAIL, clearAfter: CLEAR_AFTER, overridePolicyDiffWarning: true}),
+            expect.anything(),
+        );
+        expect(apiSideEffectSpy).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.route);
     });
 
     it('ignores a second row selection while the first request is still pending', async () => {

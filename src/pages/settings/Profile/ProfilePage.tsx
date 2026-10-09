@@ -54,6 +54,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef, ReactNode} from 'react';
@@ -133,6 +134,9 @@ function ProfilePage() {
 
         /** Accessibility label for a row whose `content` is not plain text */
         accessibilityLabel?: string;
+
+        /** Greys the row out while a change to its value is waiting for the network */
+        pendingAction?: PendingAction;
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -180,6 +184,7 @@ function ProfilePage() {
                 Navigation.navigate(vacationDelegateRoute);
             },
             brickRoadIndicator: vacationDelegateBrickRoadIndicator,
+            pendingAction: vacationDelegate?.pendingAction ?? undefined,
             testID: 'vacation-delegate-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.VACATION_DELEGATE,
         },
@@ -325,27 +330,32 @@ function ProfilePage() {
                             {publicOptions.map((detail) => {
                                 const {pageRoute} = detail;
                                 return (
-                                    <MenuItemSectionRoot
+                                    <OfflineWithFeedback
                                         key={detail.testID}
-                                        onPress={detail.onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined)}
-                                        testID={detail?.testID}
-                                        sentryLabel={detail.sentryLabel}
-                                        accessibilityLabel={detail.accessibilityLabel}
+                                        pendingAction={detail.pendingAction}
+                                        shouldHideOnDelete={false}
                                     >
-                                        {detail.content ?? (
-                                            <MenuItemField.Row
-                                                name={detail.description}
-                                                value={detail.title}
-                                            >
-                                                {(!!detail.brickRoadIndicator || !!pageRoute) && (
-                                                    <>
-                                                        {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
-                                                        {!!pageRoute && <MenuItem.Chevron />}
-                                                    </>
-                                                )}
-                                            </MenuItemField.Row>
-                                        )}
-                                    </MenuItemSectionRoot>
+                                        <MenuItemSectionRoot
+                                            onPress={detail.onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined)}
+                                            testID={detail?.testID}
+                                            sentryLabel={detail.sentryLabel}
+                                            accessibilityLabel={detail.accessibilityLabel}
+                                        >
+                                            {detail.content ?? (
+                                                <MenuItemField.Row
+                                                    name={detail.description}
+                                                    value={detail.title}
+                                                >
+                                                    {(!!detail.brickRoadIndicator || !!pageRoute) && (
+                                                        <>
+                                                            {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                                            {!!pageRoute && <MenuItem.Chevron />}
+                                                        </>
+                                                    )}
+                                                </MenuItemField.Row>
+                                            )}
+                                        </MenuItemSectionRoot>
+                                    </OfflineWithFeedback>
                                 );
                             })}
                             <Button

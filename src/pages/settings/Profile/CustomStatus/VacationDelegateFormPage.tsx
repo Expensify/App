@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 function goBackToProfile() {
@@ -45,6 +45,8 @@ function VacationDelegateFormPage() {
     const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
 
     const isSubmittingRef = useRef(false);
+    // Drives the Save spinner and stays on until the error modal is dismissed, so the modal is the only place a save error shows
+    const [isSaving, setIsSaving] = useState(false);
 
     const showErrorModal = async (delegateToRestore?: string, clearAfterToRestore?: string, message?: string) => {
         await showConfirmModal({
@@ -62,12 +64,22 @@ function VacationDelegateFormPage() {
             return;
         }
 
-        isSubmittingRef.current = true;
         const hasUnconfirmedChange = !!vacationDelegate?.pendingAction || !isEmptyObject(vacationDelegate?.errors) || !!vacationDelegate?.policyDiff;
         const currentDelegate = hasUnconfirmedChange ? vacationDelegate?.previousDelegate : vacationDelegate?.delegate;
         const currentClearAfter = hasUnconfirmedChange ? vacationDelegate?.previousClearAfter : vacationDelegate?.clearAfter;
+
+        // Only the clear after date or time changed. The delegate was already accepted, so there's no policy diff to read, and a queued
+        // write keeps the change optimistic offline instead of failing a one-off request.
+        if (delegate === vacationDelegate?.delegate) {
+            setVacationDelegate({creator: currentUserLogin, delegate, clearAfter, currentDelegate, currentClearAfter, shouldOverridePolicyDiffWarning: true});
+            goBackToProfile();
+            return;
+        }
+
+        isSubmittingRef.current = true;
+        setIsSaving(true);
         setVacationDelegate({creator: currentUserLogin, delegate, clearAfter, currentDelegate, currentClearAfter})
-            .then((response) => {
+            .then(async (response) => {
                 if (!navigation.isFocused()) {
                     if (response?.data?.policyDiff) {
                         clearVacationDelegateError(currentDelegate, currentClearAfter);
@@ -83,22 +95,24 @@ function VacationDelegateFormPage() {
                 // The action leaves the failure on the NVP for the profile page's red brick road, but the user is still on this screen,
                 // so report it where they are. Dismissing the modal restores the previous delegate, exactly as dismissing that error would.
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    showErrorModal(currentDelegate, currentClearAfter, response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
+                    // Awaited so the spinner and the hidden inline error last until the modal is dismissed
+                    await showErrorModal(currentDelegate, currentClearAfter, response?.jsonCode === CONST.JSON_CODE.EXP_ERROR ? response.message : undefined);
                     return;
                 }
 
                 goBackToProfile();
             })
-            .catch(() => {
+            .catch(async () => {
                 if (!navigation.isFocused()) {
                     clearVacationDelegateError(currentDelegate, currentClearAfter);
                     return;
                 }
 
-                showErrorModal(currentDelegate, currentClearAfter);
+                await showErrorModal(currentDelegate, currentClearAfter);
             })
             .finally(() => {
                 isSubmittingRef.current = false;
+                setIsSaving(false);
             });
     };
 
@@ -132,8 +146,9 @@ function VacationDelegateFormPage() {
                     onChangeDelegate={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_SELECT)}
                     onSubmit={onSubmit}
                     onRemove={onRemove}
-                    errors={getVacationDelegateErrors(vacationDelegate)}
+                    errors={isSaving ? undefined : getVacationDelegateErrors(vacationDelegate)}
                     pendingAction={vacationDelegate?.pendingAction}
+                    isLoading={isSaving}
                     onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate, vacationDelegate?.previousClearAfter)}
                 />
             )}

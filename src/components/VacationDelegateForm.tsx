@@ -1,4 +1,5 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,6 +32,7 @@ import DatePicker from './DatePicker';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import MenuItemAction from './MenuItem/presets/MenuItemAction';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import TimeModalPicker from './TimeModalPicker';
 import VacationDelegateMenuItem from './VacationDelegateMenuItem';
@@ -69,9 +71,23 @@ type VacationDelegateFormProps = {
 
     /** Dismisses `errors` */
     onCloseError?: () => void;
+
+    /** Whether the save request is still running, which shows the spinner on the Save button */
+    isLoading?: boolean;
 };
 
-function VacationDelegateForm({vacationDelegate, description, timezone: timezoneProp, onChangeDelegate, onSubmit, onRemove, errors, pendingAction, onCloseError}: VacationDelegateFormProps) {
+function VacationDelegateForm({
+    vacationDelegate,
+    description,
+    timezone: timezoneProp,
+    onChangeDelegate,
+    onSubmit,
+    onRemove,
+    errors,
+    pendingAction,
+    onCloseError,
+    isLoading = false,
+}: VacationDelegateFormProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, getLocalDateFromDatetime} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Trashcan']);
@@ -80,6 +96,9 @@ function VacationDelegateForm({vacationDelegate, description, timezone: timezone
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT);
 
     const savedDelegate = getActiveVacationDelegate(vacationDelegate);
+    // Remove reflects the delegate saved when the form opened. Otherwise the optimistic write from this form's own Save
+    // would make the button appear while the request runs and the RHP closes.
+    const savedDelegateOnOpen = useInitialSelection(savedDelegate);
     const savedClearDateTime = savedDelegate ? getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, timezone) : '';
     const savedClearDate = savedDelegate ? getVacationDelegateClearDate(vacationDelegate?.clearAfter, timezone) : '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty draft means no member was picked yet
@@ -122,6 +141,10 @@ function VacationDelegateForm({vacationDelegate, description, timezone: timezone
             submitButtonText={translate('common.save')}
             submitButtonStyles={styles.ph5}
             isSubmitDisabled={!delegate}
+            isLoading={isLoading}
+            // The press spinner only resets when the screen regains focus, which the error modal never takes away, so it would stay on
+            // after a failed save. The page drives the spinner through isLoading instead.
+            shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
@@ -134,39 +157,45 @@ function VacationDelegateForm({vacationDelegate, description, timezone: timezone
                 onCloseError={onCloseError}
                 onPress={onChangeDelegate}
             />
-            <View style={styles.ph5}>
-                {/* The date can only be changed through the picker, so it keeps its icon and has no clear button, as in the mockups.
-                    The earliest day is today in the form's timezone, so it matches the validation even when the device is in another timezone. */}
-                <InputWrapper
-                    InputComponent={DatePicker}
-                    inputID={INPUT_IDS.CLEAR_AFTER_DATE}
-                    label={translate('statusPage.vacationDelegate.clearAfterRecommended')}
-                    defaultValue={savedClearDate}
-                    minDate={getLocalDateFromDatetime(undefined, timezone)}
-                    icon={icons.CalendarSolid}
-                    shouldForceActiveLabel={false}
-                    shouldKeepCalendarIconWhenSelected
-                    shouldHideClearButton
-                    shouldSaveDraft
-                />
-            </View>
-            {/* The time only means something once a day is picked. Until it is changed, the delegate clears at the end of that day. */}
-            {!!clearDate && (
-                <View style={styles.mt2}>
+            {/* The clear after date and time belong to the same pending save as the delegate, so they grey out with it */}
+            <OfflineWithFeedback
+                pendingAction={pendingAction}
+                shouldHideOnDelete={false}
+            >
+                <View style={styles.ph5}>
+                    {/* The date can only be changed through the picker, so it keeps its icon and has no clear button, as in the mockups.
+                        The earliest day is today in the form's timezone, so it matches the validation even when the device is in another timezone. */}
                     <InputWrapper
-                        InputComponent={TimeModalPicker}
-                        inputID={INPUT_IDS.CLEAR_AFTER_TIME}
-                        label={translate('statusPage.time')}
-                        defaultValue={savedClearDateTime || DateUtils.getEndOfToday()}
+                        InputComponent={DatePicker}
+                        inputID={INPUT_IDS.CLEAR_AFTER_DATE}
+                        label={translate('statusPage.vacationDelegate.clearAfterRecommended')}
+                        defaultValue={savedClearDate}
+                        minDate={getLocalDateFromDatetime(undefined, timezone)}
+                        icon={icons.CalendarSolid}
+                        shouldForceActiveLabel={false}
+                        shouldKeepCalendarIconWhenSelected
+                        shouldHideClearButton
                         shouldSaveDraft
                     />
                 </View>
-            )}
-            {/* The bottom margin matches the date input's own, so the remove button below sits the same distance from whichever is last */}
-            {!!formattedClearDateTime && (
-                <Text style={[styles.mh5, styles.textLabelSupporting, styles.mt2, styles.mb2]}>{translate('statusPage.vacationDelegate.willClearOn', formattedClearDateTime)}</Text>
-            )}
-            {!!savedDelegate && (
+                {/* The time only means something once a day is picked. Until it is changed, the delegate clears at the end of that day. */}
+                {!!clearDate && (
+                    <View style={styles.mt2}>
+                        <InputWrapper
+                            InputComponent={TimeModalPicker}
+                            inputID={INPUT_IDS.CLEAR_AFTER_TIME}
+                            label={translate('statusPage.time')}
+                            defaultValue={savedClearDateTime || DateUtils.getEndOfToday()}
+                            shouldSaveDraft
+                        />
+                    </View>
+                )}
+                {/* The bottom margin matches the date input's own, so the remove button below sits the same distance from whichever is last */}
+                {!!formattedClearDateTime && (
+                    <Text style={[styles.mh5, styles.textLabelSupporting, styles.mt2, styles.mb2]}>{translate('statusPage.vacationDelegate.willClearOn', formattedClearDateTime)}</Text>
+                )}
+            </OfflineWithFeedback>
+            {!!savedDelegateOnOpen && !!savedDelegate && (
                 <View style={styles.mt4}>
                     <MenuItemAction
                         title={translate('statusPage.vacationDelegate.removeDelegate')}

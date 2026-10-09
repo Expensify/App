@@ -23,6 +23,7 @@ import Onyx from 'react-native-onyx';
 import type {CurrentUser} from './Policy/Policy';
 
 import {addMembersToWorkspace} from './Policy/Member';
+import {resolveVacationDelegateDeletionConflicts} from './RequestConflictUtils';
 
 type SetVacationDelegateOptions = {
     creator: string;
@@ -181,7 +182,14 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, null, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.DELETE_VACATION_DELEGATE,
+        null,
+        {optimisticData, successData, failureData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveVacationDelegateDeletionConflicts(persistedRequests),
+        },
+    );
 }
 
 function clearVacationDelegateError(previousDelegate?: string, previousClearAfter?: string) {
