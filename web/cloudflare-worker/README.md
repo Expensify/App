@@ -43,11 +43,11 @@ Either build one from the App root:
 npm run build-staging   # or `npm run build` for production
 ```
 
-Or, to skip the build, download a released one into the App root:
+Or, to skip the build, download a released one and extract it in the App root. The archive goes to `/tmp` so it can't be committed:
 
 ```bash
-gh release download <version> --repo Expensify/App --pattern webBuild.tar.gz
-tar -xzf webBuild.tar.gz   # creates dist/
+gh release download <version> --repo Expensify/App --pattern webBuild.tar.gz --dir /tmp --clobber
+rm -rf dist && tar -xzf /tmp/webBuild.tar.gz   # creates dist/
 ```
 
 ### 3. Start the Worker
@@ -57,7 +57,7 @@ npm run dev               # http://localhost:8787 with the staging CSP
 npm run dev:production    # the same, with the production CSP
 ```
 
-`wrangler dev` reloads when `dist/` changes, so you can rebuild or swap builds without restarting it.
+`wrangler dev` reloads when `dist/` changes. After rebuilding or swapping `dist/`, run `npm run prepare-dist` to restore `.assetsignore`, which the web build deletes.
 
 To check the CSP exactly as browsers enforce it in production, serve over HTTPS:
 
