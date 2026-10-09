@@ -35,8 +35,11 @@ type WorkerHarness = {
     cleanup: () => Promise<void>;
 };
 
-function writeFakeWebBuild(assetsDir: string) {
+function writeFakeWebBuild(assetsDir: string, omittedFiles: string[]) {
     for (const [filePath, contents] of Object.entries(FAKE_WEB_BUILD)) {
+        if (omittedFiles.includes(filePath)) {
+            continue;
+        }
         const absolutePath = path.join(assetsDir, filePath);
         mkdirSync(path.dirname(absolutePath), {recursive: true});
         writeFileSync(absolutePath, contents);
@@ -49,10 +52,10 @@ function writeFakeWebBuild(assetsDir: string) {
  * override the assets directory, so this writes a temporary config that changes `main` and `assets.directory`, and
  * copies .assetsignore itself in place of the `build` command.
  */
-function createWorkerHarness(env?: 'test-staging' | 'staging' | 'production'): WorkerHarness {
+function createWorkerHarness(env?: 'test-staging' | 'staging' | 'production', {omittedFiles = []}: {omittedFiles?: string[]} = {}): WorkerHarness {
     const tempDir = mkdtempSync(path.join(tmpdir(), 'new-expensify-worker-'));
     const assetsDir = path.join(tempDir, 'dist');
-    writeFakeWebBuild(assetsDir);
+    writeFakeWebBuild(assetsDir, omittedFiles);
 
     const {rawConfig} = experimental_readRawConfig({config: path.join(WORKER_DIR, 'wrangler.jsonc')});
     const {$schema: _schema, build: _build, ...config} = rawConfig;

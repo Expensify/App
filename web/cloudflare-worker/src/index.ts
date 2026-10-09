@@ -57,10 +57,11 @@ export default {
         const url = new URL(request.url);
         const nonce = generateNonce();
         const isNavigation = request.headers.get('Sec-Fetch-Mode') === 'navigate';
+        const isAASAPath = url.pathname === AASA_PATH || url.pathname === LEGACY_AASA_PATH;
         const assetResponse = await env.ASSETS.fetch(buildAssetRequest(request, url));
 
         // The SPA fallback answers every miss with index.html. A browser asking for a missing chunk needs a real 404.
-        if (!isNavigation && isHTMLResponse(assetResponse) && STATIC_FILE_PATH.test(url.pathname)) {
+        if (isHTMLResponse(assetResponse) && (isAASAPath || (!isNavigation && STATIC_FILE_PATH.test(url.pathname)))) {
             const notFound = new Response('Not Found', {status: 404, headers: {'Content-Type': 'text/plain; charset=utf-8'}});
             setSecurityHeaders(notFound.headers, env.ENVIRONMENT, nonce);
             return notFound;
@@ -69,7 +70,7 @@ export default {
         const response = new Response(assetResponse.body, assetResponse);
         setSecurityHeaders(response.headers, env.ENVIRONMENT, nonce);
 
-        if (url.pathname === AASA_PATH || url.pathname === LEGACY_AASA_PATH) {
+        if (isAASAPath) {
             response.headers.set('Content-Type', 'application/json');
         }
 

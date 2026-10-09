@@ -207,6 +207,30 @@ describe('staging worker', () => {
     });
 });
 
+describe('worker with a build that has no apple-app-site-association file', () => {
+    const {server, cleanup} = createWorkerHarness('staging', {omittedFiles: ['.well-known/apple-app-site-association']});
+
+    before(async () => {
+        await server.listen();
+    });
+
+    after(async () => {
+        await cleanup();
+    });
+
+    test('returns 404 instead of the app shell labelled as JSON', async () => {
+        // Given the file has no extension, so the SPA fallback would otherwise answer a miss with index.html
+        for (const path of ['/.well-known/apple-app-site-association', '/apple-app-site-association']) {
+            // When Apple's CDN fetches it
+            const response = await server.fetch(path);
+
+            // Then it gets a 404, because HTML served as JSON would be read as an invalid association file
+            assert.equal(response.status, 404, path);
+            assert.doesNotMatch(response.headers.get('Content-Type') ?? '', /json|html/, path);
+        }
+    });
+});
+
 describe('test-staging worker', () => {
     const {server, cleanup} = createWorkerHarness('test-staging');
 
