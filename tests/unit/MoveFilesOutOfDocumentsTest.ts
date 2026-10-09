@@ -17,6 +17,11 @@ jest.mock('@libs/Log', () => ({
     default: {info: jest.fn(), warn: jest.fn(), alert: jest.fn()},
 }));
 
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'ios'),
+}));
+
 jest.mock('react-native-fs', () => ({
     DocumentDirectoryPath: '/mock/documents',
     CachesDirectoryPath: '/mock/caches',
@@ -32,6 +37,8 @@ const mockRNFS: {
     moveFile: jest.Mock;
     readDir: jest.Mock;
 } = jest.requireMock('react-native-fs');
+
+const {default: mockGetPlatform}: {default: jest.Mock} = jest.requireMock('@libs/getPlatform');
 
 const OLD_ATTACHMENT_DIR = '/mock/documents/attachments';
 const NEW_ATTACHMENT_DIR = '/mock/caches/attachments';
@@ -49,6 +56,7 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         mockRNFS.unlink.mockImplementation(() => Promise.resolve());
         mockRNFS.moveFile.mockImplementation(() => Promise.resolve());
         mockRNFS.readDir.mockImplementation(() => Promise.resolve([]));
+        mockGetPlatform.mockImplementation(() => CONST.PLATFORM.IOS);
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -155,6 +163,15 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         await MoveFilesOutOfDocuments();
 
         expect(mockRNFS.unlink).toHaveBeenCalledWith(OLD_EXPORT_STAGING_DIR);
+    });
+
+    it('keeps the Android share staging directory, which uses the same path as the old iOS export staging directory', async () => {
+        mockGetPlatform.mockImplementation(() => CONST.PLATFORM.ANDROID);
+        mockRNFS.exists.mockImplementation((existsPath: string) => Promise.resolve(existsPath === OLD_EXPORT_STAGING_DIR));
+
+        await MoveFilesOutOfDocuments();
+
+        expect(mockRNFS.unlink).not.toHaveBeenCalledWith(OLD_EXPORT_STAGING_DIR);
     });
 
     it('does not block startup when the cleanup fails', async () => {
