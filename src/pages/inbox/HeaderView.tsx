@@ -92,6 +92,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useRoute} from '@react-navigation/native';
@@ -110,8 +111,10 @@ type HeaderViewProps = {
 };
 
 function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const parentReportAction = useParentReportAction(report);
+    // The header does not read the chat heartbeat fields (`last*`), so it must not re-render on every message.
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
+    // The header renders the parent message, not its reply counters, which change on every reply in this thread.
+    const parentReportAction = useParentReportAction(report, {shouldIgnoreThreadReplies: true});
 
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -119,9 +122,12 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isInSidePanel = useIsInSidePanel();
     const route = useRoute();
     const openParentReportInCurrentTab = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
+    // Falls back to the report itself when there is no parent, so it needs the same stable projection.
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {
+        selector: getStableReportSelector,
+    });
     const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
-    const grandParentReportAction = useParentReportAction(parentReport);
+    const grandParentReportAction = useParentReportAction(parentReport, {shouldIgnoreThreadReplies: true});
     const policy = usePolicy(report?.policyID);
     const isPaidPolicyAdmin = useIsPaidPolicyAdmin();
     const [personalDetails] = useAllPersonalDetails();
@@ -493,7 +499,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                         />
                                     )}
                                     {!shouldUseNarrowLayout && chatIncludesChronos(report) && <ChronosTimerHeaderButton report={report} />}
-                                    {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
+                                    {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
                                 {shouldShowCloseButton && (
@@ -543,7 +549,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 {!!report && shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && (
                     <View style={[styles.appBG, styles.pl0]}>
                         <View style={[styles.ph5, styles.pb3]}>
-                            <TaskHeaderActionButton report={report} />
+                            <TaskHeaderActionButton reportID={report.reportID} />
                         </View>
                     </View>
                 )}

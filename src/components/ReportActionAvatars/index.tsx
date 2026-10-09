@@ -17,6 +17,7 @@ import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
@@ -125,7 +126,7 @@ function ReportActionAvatars({
 
     // reportID can be an empty string causing Onyx to fetch the whole collection
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`);
+    const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`, {selector: getStableReportSelector});
     // When the search hash changes, report from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to reportProp while the data is being fetched.
     const report = reportFromOnyx ?? reportProp;

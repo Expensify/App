@@ -142,6 +142,24 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+/** Reply counters on a parent action. They change on every reply in its thread, while the parent message itself does not. */
+type ThreadReplyCounterFields = 'childVisibleActionCount' | 'childCommenterCount' | 'childLastVisibleActionCreated' | 'childOldestFourAccountIDs';
+
+type ReportActionWithoutThreadReplyCounters = Omit<ReportAction, ThreadReplyCounterFields>;
+
+/**
+ * Like `getParentReportActionSelector`, but drops the thread reply counters so a thread's own screen (e.g. its header) does
+ * not re-render on every reply it receives. Only use it where none of the counters are read.
+ */
+function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID?: string): ReportActionWithoutThreadReplyCounters | undefined {
+    const parentReportAction = getParentReportActionSelector(parentReportActions, parentReportActionID);
+    if (!parentReportAction) {
+        return undefined;
+    }
+    const {childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs, ...parentReportActionWithoutThreadReplies} = parentReportAction;
+    return parentReportActionWithoutThreadReplies;
+}
+
 export {
     getParentReportActionSelector,
     getLastClosedReportAction,
@@ -151,5 +169,6 @@ export {
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
     transactionThreadReportIDSelector,
+    getParentReportActionWithoutThreadRepliesSelector,
 };
-export type {NewestReportAction};
+export type {NewestReportAction, ReportActionWithoutThreadReplyCounters};
