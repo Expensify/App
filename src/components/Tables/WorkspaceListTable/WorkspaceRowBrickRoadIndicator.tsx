@@ -11,6 +11,7 @@ import {isConnectionInProgress} from '@libs/actions/connections';
 import {
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    isArchivedPolicy,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,
     shouldShowEmployeeListError,
@@ -36,9 +37,10 @@ const createCardFeedErrorsSelector = (workspaceAccountID: number) => (cardFeedEr
     !!cardFeedErrors?.shouldShowRbrForWorkspaceAccountID?.[workspaceAccountID];
 
 const createPolicyErrorsSelector = (connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>) => (policy: OnyxEntry<Policy>) =>
-    getUberConnectionErrorDirectlyFromPolicy(policy) ||
-    shouldShowEmployeeListError(policy) ||
-    getPolicyBrickRoadIndicatorStatus(policy, isConnectionInProgress(connectionSyncProgress, policy)) === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    !isArchivedPolicy(policy) &&
+    (getUberConnectionErrorDirectlyFromPolicy(policy) ||
+        shouldShowEmployeeListError(policy) ||
+        getPolicyBrickRoadIndicatorStatus(policy, isConnectionInProgress(connectionSyncProgress, policy)) === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
 
 /**
  * Error indicator of a workspaces list row. All of its subscriptions are narrow (booleans or a single
