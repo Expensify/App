@@ -4429,6 +4429,10 @@ const CONST = {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
         MAX_RECENT_ATTENDEES: 40,
 
+        // Lets consumers tell a payment failure apart from other errors on a report preview. Numeric so it keeps
+        // sorting below microsecond keys in getLatestErrorMessageField, which picks the highest key.
+        PAY_FAILURE_PREVIEW_ERROR_KEY: 0,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)

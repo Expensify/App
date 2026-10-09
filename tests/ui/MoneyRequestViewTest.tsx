@@ -634,6 +634,35 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows a negative tax amount for a negative expense on an expense report', async () => {
+        // Given a negative expense on an expense report. Expense reports store amounts with the opposite sign,
+        // so a -$9.50 expense with -$0.95 tax is stored as amount 950 and taxAmount 95.
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                amount: 950,
+                taxCode: 'TAX_10',
+                taxAmount: 95,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the tax amount keeps the negative sign instead of being shown as an absolute value
+        await waitFor(() => {
+            expect(screen.getByLabelText('iou.taxAmount, USD-95')).toBeOnTheScreen();
+        });
+    });
+
     it('does NOT append "Converted" to the Tax amount description when the converted tax is zero (tax exempt)', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
