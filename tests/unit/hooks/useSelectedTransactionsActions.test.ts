@@ -32,6 +32,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     removeReportScreen: jest.fn(),
     getActiveRoute: jest.fn(() => '/test'),
+    navigationRef: {getCurrentRoute: jest.fn(() => undefined)},
 }));
 
 jest.mock('@libs/actions/Search', () => ({
@@ -175,6 +176,8 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
         accountID: CURRENT_USER_ACCOUNT_ID,
     })),
 }));
+
+const {HOLD, UNHOLD, MOVE} = CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES;
 
 const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
 
@@ -1038,5 +1041,119 @@ describe('useSelectedTransactionsActions', () => {
             CURRENT_USER_ACCOUNT_ID,
             undefined,
         );
+    });
+
+    it('should resolve IOU actions from the Onyx collection when the paginated report actions miss them', async () => {
+        // Given an expense whose IOU action is in Onyx but outside the paginated report actions passed to the hook
+        const transactionID = '123';
+        const session: Session = {accountID: CURRENT_USER_ACCOUNT_ID};
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        const iouAction: ReportAction = {
+            ...createRandomReportAction(1),
+            reportActionID: 'action1',
+            actorAccountID: CURRENT_USER_ACCOUNT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportID: report.reportID,
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '$1.00 expense', text: '$1.00 expense'}],
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: transactionID,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
+        transaction.managedCard = false;
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[iouAction.reportActionID]: iouAction});
+
+        const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        const canHoldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canHoldUnholdReportAction').mockReturnValue({canHoldRequest: true, canUnholdRequest: false});
+        jest.spyOn(require('@libs/ReportUtils'), 'canUserPerformWriteAction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'isMoneyRequestReport').mockReturnValue(true);
+
+        // When the bulk actions are built
+        const {result} = renderHookWithProvider(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions: [],
+                allTransactionsLength: 1,
+                session,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        // Then Move, Hold and Delete are offered, because each check found the IOU action in the collection
+        await waitFor(() => {
+            const optionValues = result.current.options.map((option) => option.value);
+            expect(optionValues).toEqual(expect.arrayContaining([MOVE, HOLD, CONST.REPORT.SECONDARY_ACTIONS.DELETE]));
+        });
+        expect(canEditFieldSpy).toHaveBeenLastCalledWith(expect.objectContaining({reportAction: expect.objectContaining({reportActionID: 'action1'})}));
+        expect(canHoldSpy).toHaveBeenLastCalledWith(
+            report,
+            expect.objectContaining({reportActionID: 'action1'}),
+            undefined,
+            expect.objectContaining({transactionID}),
+            undefined,
+            CURRENT_USER_ACCOUNT_ID,
+            expect.anything(),
+        );
+    });
+
+    it('should offer Move, Hold and Delete but not Unhold for an expense with no IOU action on a draft report the current user submitted', async () => {
+        // Given an expense with no IOU action anywhere, on an open expense report the current user submitted
+        const transactionID = '123';
+        const session: Session = {accountID: CURRENT_USER_ACCOUNT_ID};
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.ownerAccountID = CURRENT_USER_ACCOUNT_ID;
+        report.managerID = 999;
+        report.stateNum = CONST.REPORT.STATE_NUM.OPEN;
+        report.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
+        transaction.managedCard = false;
+        transaction.receipt = undefined;
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(ONYXKEYS.SESSION, session);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canUserPerformWriteAction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
+
+        // When the bulk actions are built
+        const {result} = renderHookWithProvider(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions: [],
+                allTransactionsLength: 1,
+                session,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        // Then Move, Hold and Delete are offered, because the submitter stands in for the missing action's requester
+        await waitFor(() => {
+            const optionValues = result.current.options.map((option) => option.value);
+            expect(optionValues).toEqual(expect.arrayContaining([MOVE, HOLD, CONST.REPORT.SECONDARY_ACTIONS.DELETE]));
+        });
+
+        // And Unhold is not offered, because it needs the IOU action's transaction thread
+        expect(result.current.options.find((option) => option.value === UNHOLD)).toBeUndefined();
+
+        // And the Move check receives the report, so its permissions don't fall back to an empty report
+        expect(canEditFieldSpy).toHaveBeenLastCalledWith(expect.objectContaining({reportAction: undefined, report}));
     });
 });
