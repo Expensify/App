@@ -59,6 +59,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CONSISTENCY-17](rules/consistency-17-plural-form.md) — Pluralize with PluralForm, not ternaries on a count
 - [CONSISTENCY-18](rules/consistency-18-comment-non-obvious-code.md) — Comment code that is not self-explanatory
 - [CONSISTENCY-19](rules/consistency-19-copy-grammar-and-case.md) — User-facing copy is grammatical and sentence case
+- [CONSISTENCY-20](rules/consistency-20-function-names.md) — Name functions with a verb that says what they do
 
 ### Clean React Patterns
 - [CLEAN-REACT-PATTERNS-0](rules/clean-react-0-compiler.md) — React Compiler compliance
