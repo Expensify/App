@@ -6,6 +6,8 @@ on:
     branches-ignore: [staging, production]
     paths:
       - 'web/cloudflare-worker/**'
+      # The tests check its inline scripts against the CSP hashes.
+      - 'web/index.html'
       - '.nvmrc'
       - '.github/workflows/cloudflareWorkerTests.yml'
 
