@@ -112,7 +112,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             value: searchValue,
             label: translate('common.search'),
             onChangeText: setSearchValue,
-            headerMessage: getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue),
+            headerMessage: getHeaderMessageForNonUserList(translate, searchedReportActions.length > 0, debouncedSearchValue),
         }),
         [debouncedSearchValue, searchValue, searchedReportActions.length, setSearchValue, translate],
     );
