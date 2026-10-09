@@ -3,7 +3,6 @@
  */
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,9 +55,8 @@ function useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles
     const {windowHeight} = useWindowDimensions();
     const {isInLandscapeMode} = useResponsiveLayout();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const {isBetaEnabled} = usePermissions();
 
-    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, selectedRole, policy, currentUserLogin, allowedRoles, isBetaEnabled(CONST.BETAS.GUEST_WORKSPACE_ROLE));
+    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, selectedRole, policy, currentUserLogin, allowedRoles);
     // Padding sits outside the list, matching Spend tag / GroupBy, so it is not clipped into a scrollbar.
     const listHeight = styles.getSelectionListPopoverHeight({
         itemCount: availableRoleItems.length || 1,

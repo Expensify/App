@@ -3,7 +3,6 @@ import Table, {composeTableListHeader} from '@components/Table';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -65,7 +64,6 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
-    GUESTS: 'guests',
     MEMBERS: 'members',
     PAYMENTS_ADMINS: 'paymentsAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
@@ -85,7 +83,6 @@ export default function WorkspaceMembersTable({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
@@ -217,11 +214,6 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
-        const isGuest = item.role === CONST.POLICY.ROLE.GUEST;
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.GUESTS) && isGuest) {
-            return true;
-        }
-
         const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
             return true;
@@ -272,13 +264,6 @@ export default function WorkspaceMembersTable({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
-
-        if (isBetaEnabled(CONST.BETAS.GUEST_WORKSPACE_ROLE)) {
-            filterConfig.role.options.push({
-                label: translate('workspace.people.guests'),
-                value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
-            });
-        }
     }
 
     if (isSubmitPolicy(policy)) {

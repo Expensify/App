@@ -21,7 +21,6 @@ import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -142,7 +141,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
@@ -648,13 +646,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
-        const guestOption = {
-            text: translate('workspace.people.makeGuest', {count: selectedEmployees.length}),
-            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_GUEST,
-            icon: icons.User,
-            shouldSkipFocusRestore: hasSelectedRuleBot,
-            onSelected: () => changeUserRole(CONST.POLICY.ROLE.GUEST),
-        };
         const cardAdminOption = {
             text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
@@ -678,7 +669,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
-        const hasAtLeastOneNonGuestRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.GUEST);
         const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonPeopleAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PEOPLE_ADMIN);
         const hasAtLeastOneNonPaymentsAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PAYMENTS_ADMIN);
@@ -704,17 +694,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.AUDITOR)
         ) {
             options.push(auditorOption);
-        }
-
-        if (
-            isBetaEnabled(CONST.BETAS.GUEST_WORKSPACE_ROLE) &&
-            hasAtLeastOneNonGuestRole &&
-            isControlPolicy(policy) &&
-            !hasAtLeastOnePayer &&
-            canManageSelectedEmployees &&
-            canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.GUEST)
-        ) {
-            options.push(guestOption);
         }
 
         if (hasAtLeastOneNonCardAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
