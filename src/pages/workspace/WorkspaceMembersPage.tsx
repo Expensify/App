@@ -12,6 +12,7 @@ import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useApproveOnlyRoleBlockedModal from '@hooks/useApproveOnlyRoleBlockedModal';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -119,7 +120,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye', 'Checkmark']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const policyMemberEmailsToAccountIDs = useMemo(
         () => getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true),
@@ -141,6 +142,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {showApproveOnlyBlockedModal, showRoleUpdateErrorModal} = useApproveOnlyRoleBlockedModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
@@ -603,6 +605,24 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const accountIDsToUpdate = loginsToUpdate.map((login) => policyMemberEmailsToAccountIDs[login]).filter((id) => id !== undefined);
 
         setSelectedEmployees([]);
+        if (role === CONST.POLICY.ROLE.APPROVE_ONLY) {
+            updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role)
+                .then((response) => {
+                    const blockedReasons = response?.data?.blockedReasons ?? [];
+                    if (blockedReasons.length > 0) {
+                        showApproveOnlyBlockedModal(blockedReasons);
+                        return;
+                    }
+                    // The action already reverted the optimistic role changes on failure, so only surface the error modal here.
+                    if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                        showRoleUpdateErrorModal();
+                    }
+                })
+                .catch(() => {
+                    showRoleUpdateErrorModal();
+                });
+            return;
+        }
         updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role);
     };
 
@@ -655,6 +675,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.GUEST),
         };
+        const approveOnlyOption = {
+            text: translate('workspace.people.makeApproveOnly', {count: selectedEmployees.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_APPROVE_ONLY,
+            icon: icons.Checkmark,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.APPROVE_ONLY),
+        };
         const cardAdminOption = {
             text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
@@ -679,6 +706,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
         const hasAtLeastOneNonGuestRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.GUEST);
+        const hasAtLeastOneNonApproveOnlyRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.APPROVE_ONLY);
         const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonPeopleAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PEOPLE_ADMIN);
         const hasAtLeastOneNonPaymentsAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PAYMENTS_ADMIN);
@@ -714,6 +742,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.GUEST)
         ) {
             options.push(guestOption);
+        }
+
+        if (
+            hasAtLeastOneNonApproveOnlyRole &&
+            isControlPolicy(policy) &&
+            !hasAtLeastOnePayer &&
+            canManageSelectedEmployees &&
+            canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.APPROVE_ONLY)
+        ) {
+            options.push(approveOnlyOption);
         }
 
         if (hasAtLeastOneNonCardAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {

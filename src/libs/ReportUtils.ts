@@ -3127,6 +3127,11 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
         return false;
     }
 
+    // Members without create-expenses permission cannot add expenses to their reports, including tracked ones.
+    if (!!policy?.role && !canRoleCreateExpenses(policy.role)) {
+        return false;
+    }
+
     if (
         isInstantSubmitEnabled(policy) &&
         isSubmitAndClose(policy) &&

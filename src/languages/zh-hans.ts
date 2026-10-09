@@ -6918,6 +6918,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 cannotRemove: '你无法将自己或工作区所有者移除',
                 genericRemove: '移除该工作区成员时出现问题',
             },
+            makeApproveOnly: () => ({
+                one: '设为仅审批',
+                other: '设为仅审批',
+            }),
             addedWithPrimary: '某些成员已通过其主登录名添加。',
             invitedBySecondaryLogin: (secondaryLogin: string) => `由次要登录账号 ${secondaryLogin} 添加。`,
             workspaceMembersCount: (count: number) => `工作区成员总数：${count}`,

@@ -4746,6 +4746,7 @@ const CONST = {
             MAKE_CARD_ADMIN: 'makeCardAdmin',
             MAKE_PEOPLE_ADMIN: 'makePeopleAdmin',
             MAKE_PAYMENTS_ADMIN: 'makePaymentsAdmin',
+            MAKE_APPROVE_ONLY: 'makeApproveOnly',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',

@@ -7571,6 +7571,10 @@ const translations = {
                 cannotRemove: "You can't remove yourself or the workspace owner",
                 genericRemove: 'There was a problem removing that workspace member',
             },
+            makeApproveOnly: () => ({
+                one: 'Make approve only',
+                other: 'Make approve only members',
+            }),
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,

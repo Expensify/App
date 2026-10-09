@@ -7088,6 +7088,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 cannotRemove: '自分自身またはワークスペースのオーナーを削除することはできません',
                 genericRemove: 'そのワークスペースメンバーを削除する際に問題が発生しました',
             },
+            makeApproveOnly: () => ({
+                one: '承認のみに設定',
+                other: '承認のみに設定',
+            }),
             addedWithPrimary: '一部のメンバーは、プライマリーログインで追加されました。',
             invitedBySecondaryLogin: (secondaryLogin: string) => `セカンダリログイン${secondaryLogin}によって追加されました。`,
             workspaceMembersCount: (count: number) => `ワークスペースメンバー合計：${count}`,
