@@ -3414,6 +3414,7 @@ function getBadgeFromIOUReport(
     currentUserLogin: string,
     currentUserAccountID: number,
     iouReportActions: OnyxEntry<ReportActions>,
+    isChatReportArchived: boolean,
     allViolations: OnyxCollection<TransactionViolations> | undefined,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -3423,10 +3424,6 @@ function getBadgeFromIOUReport(
     if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
         return undefined;
     }
-
-    // TODO: https://github.com/Expensify/App/issues/66518
-    // Transitional: resolve the chat report's archived state from the module-level cache until this function threads it down from its callers.
-    const isChatReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
@@ -3489,6 +3486,7 @@ function getIOUReportActionWithBadge(
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<ReportActions>,
     allViolations: OnyxCollection<TransactionViolations> | undefined,
+    isChatReportArchived: boolean,
     allReports?: OnyxCollection<Report>,
     allReportActionsParam?: OnyxCollection<ReportActions>,
 ): {
@@ -3528,7 +3526,18 @@ function getIOUReportActionWithBadge(
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, iouReportActions, allViolations);
+        const badge = getBadgeFromIOUReport(
+            iouReport,
+            chatReport,
+            policy,
+            reportMetadata,
+            invoiceReceiverPolicy,
+            currentUserLogin,
+            currentUserAccountID,
+            iouReportActions,
+            isChatReportArchived,
+            allViolations,
+        );
         if (!badge) {
             continue;
         }
