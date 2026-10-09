@@ -77,8 +77,10 @@ function RilletCardProgramAccountSelector({
                 keyForList: accountItem.code,
                 isSelected: cardProgramAccountCode === accountItem.code,
             })) ?? [];
-    const {filteredData: filteredUnprocessedData, textInputOptions} = useSelectionListSearch(data);
-    const filteredData = sortDefaultToTop(filteredUnprocessedData, (accountItem) => creditCardAccountCode === accountItem.keyForList, styles);
+    // Sort the default account to the top first, then let useSelectionListSearch pin the selected account above it,
+    // so the currently selected account stays at the very top.
+    const sortedData = sortDefaultToTop(data, (accountItem) => creditCardAccountCode === accountItem.keyForList, styles);
+    const {filteredData, textInputOptions} = useSelectionListSearch(sortedData);
 
     const headerContent = (
         <View>
