@@ -1030,6 +1030,44 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
 
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
     });
+
+    it('keeps the plain approval total when the Search footer answers a breakdown on the same snapshot', () => {
+        // Given Home showing the plain awaiting-approval total
+        setupReports([makeReport()]);
+        const plainSnapshot = makeSearchResultsWithCount(1);
+        plainSnapshot.search.total = 900;
+        setupApprovalSnapshot(plainSnapshot);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalTotals.total).toBe(900);
+
+        // When the Search footer, opened from that row, answers non-reimbursable on the snapshot they share
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+        rerender(undefined);
+
+        // Then Home keeps its own total, which is also the one it replays once offline
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+        expect(result.current.approvalTotals.total).toBe(900);
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(900);
+    });
+
+    it('waits for its own total rather than showing a breakdown one it has nothing cached for', () => {
+        // Given Home first seeing the snapshot after the Search footer answered non-reimbursable on it
+        setupReports([makeReport()]);
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then the row loads until Home's own search answers the plain total
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+    });
 });
 
 // isApprovalStale / isPaymentStale — grey only the total a queued change would move
