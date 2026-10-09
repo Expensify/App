@@ -1,4 +1,3 @@
-import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -34,7 +33,7 @@ import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -101,7 +100,6 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     const existingFormValues = useMemo(() => getSpendRuleFormValuesFromCardRule(existingRule), [existingRule]);
 
     const [isErrorVisible, setIsErrorVisible] = useState(false);
-    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
         const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
         return isNewRule || hasNoMerchantRestrictions;
@@ -478,25 +476,14 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                         shouldRenderFooterAboveSubmit
                         footerContent={
                             isNewRule && (
-                                <Button
-                                    size={CONST.BUTTON_SIZE.LARGE}
-                                    style={styles.flex1}
-                                    onPress={() => setIsDescribeRuleModalVisible(true)}
+                                <DescribeRuleButton
+                                    policyID={policyID}
+                                    ruleType={CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DESCRIBE}
-                                >
-                                    <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
-                                </Button>
+                                    onRuleGenerated={applyGeneratedRule}
+                                />
                             )
                         }
-                    />
-                )}
-                {isNewRule && (
-                    <DescribeRuleModal
-                        isVisible={isDescribeRuleModalVisible}
-                        onClose={() => setIsDescribeRuleModalVisible(false)}
-                        policyID={policyID}
-                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND}
-                        onRuleGenerated={applyGeneratedRule}
                     />
                 )}
             </ScreenWrapper>

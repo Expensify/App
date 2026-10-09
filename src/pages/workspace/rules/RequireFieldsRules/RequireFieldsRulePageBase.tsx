@@ -1,4 +1,3 @@
-import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -44,7 +43,7 @@ import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -85,7 +84,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const isEditing = !!categoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
     const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
-    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const canEditCategory = canWriteRules && !isCategoryLocked;
     const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW.path);
 
@@ -450,14 +448,12 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             shouldRenderFooterAboveSubmit
             footerContent={
                 shouldShowDescribeRule && (
-                    <Button
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        style={styles.flex1}
-                        onPress={() => setIsDescribeRuleModalVisible(true)}
+                    <DescribeRuleButton
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DESCRIBE}
-                    >
-                        <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
-                    </Button>
+                        onRuleGenerated={applyGeneratedRule}
+                    />
                 )
             }
         />
@@ -537,15 +533,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                         ))}
                 </ScrollView>
                 {footer}
-                {shouldShowDescribeRule && (
-                    <DescribeRuleModal
-                        isVisible={isDescribeRuleModalVisible}
-                        onClose={() => setIsDescribeRuleModalVisible(false)}
-                        policyID={policyID}
-                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS}
-                        onRuleGenerated={applyGeneratedRule}
-                    />
-                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
