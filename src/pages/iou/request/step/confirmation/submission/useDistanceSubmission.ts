@@ -64,6 +64,7 @@ type UseDistanceSubmissionParams = TransactionTaxValues & {
     distanceDraftData: DistanceDraftData;
     delegateAccountID: number | undefined;
     participantsPolicyTags: ParticipantsPolicyTags;
+    reportTransactions: Transaction[];
 };
 
 /** Hook implementing the distance-request submission path (CreateDistanceRequest) for the expense confirmation screen. */
@@ -99,6 +100,7 @@ function useDistanceSubmission({
     distanceDraftData,
     delegateAccountID,
     participantsPolicyTags,
+    reportTransactions,
 }: UseDistanceSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -145,6 +147,7 @@ function useDistanceSubmission({
             getCurrencyDecimals,
             writeBarrier,
             report,
+            moneyRequestReportTransactions: reportTransactions,
             participants: selectedParticipantsForRequest,
             optimisticChatReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
