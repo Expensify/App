@@ -98,6 +98,7 @@ function InsightsSectionContent() {
                         groupBy={groupBy}
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
+                        shouldShowSinglePointAsBar
                         shouldShowGroupLabels={!isInsightsPageEnabled}
                     />
                 </View>
