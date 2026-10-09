@@ -142,6 +142,31 @@ describe('buildRetryPayload', () => {
         expect(payload?.existingTransactionThreadReportID).toBe(THREAD_REPORT_ID);
     });
 
+    it('reuses the report preview and CREATED action of the first attempt, so the retry does not add a second expense card to the chat', async () => {
+        // Given the first attempt left its preview in the chat and its CREATED action on the IOU report
+        const previewActionID = '4000000000000001';
+        const createdActionID = '3000000000000001';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {
+            [previewActionID]: {
+                reportActionID: previewActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2026-09-01 00:00:00.000',
+                originalMessage: {linkedReportID: IOU_REPORT_ID},
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {
+            [createdActionID]: {reportActionID: createdActionID, actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2026-09-01 00:00:00.000'},
+        });
+        await waitForBatchedUpdates();
+
+        // When the retry payload is rebuilt
+        const payload = buildRetryPayload(buildContext(buildFailedTransaction()), receiptFile);
+
+        // Then it carries both IDs, so the rebuilt report overwrites them instead of creating new ones
+        expect(payload?.optimisticReportPreviewActionID).toBe(previewActionID);
+        expect(payload?.optimisticIOUCreatedReportActionID).toBe(createdActionID);
+    });
+
     it('offers no retry for a distance expense, whose waypoints the transaction alone cannot restore', () => {
         // Given a failed expense with waypoints, which a RequestMoney retry would have to send again
         const context = buildContext(buildFailedTransaction({comment: {waypoints: {waypoint0: {address: 'Berlin'}}}}));
