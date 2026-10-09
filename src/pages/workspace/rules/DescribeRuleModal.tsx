@@ -67,6 +67,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const pendingGenerationIDRef = useRef<string>(undefined);
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
+    const [newRulePromptForm] = useOnyx(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const generatedRuleID = generatedRule?.generationID;
     const generatedRuleState = generatedRule?.state;
@@ -91,6 +92,13 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
         onRuleGenerated(withPolicyCategory(generatedRuleValues ?? {}, policyCategories));
         close();
     }, [close, generatedRuleID, generatedRuleState, generatedRuleValues, onRuleGenerated, policyCategories]);
+
+    useEffect(() => {
+        if (!isVisible || !newRulePromptForm?.isLoading || pendingGenerationIDRef.current) {
+            return;
+        }
+        clearNewRulePrompt();
+    }, [isVisible, newRulePromptForm?.isLoading]);
 
     // Focus only after the open animation, because focusing mid-animation blurs the input on mWeb and native
     useFocusEffect(() => {
