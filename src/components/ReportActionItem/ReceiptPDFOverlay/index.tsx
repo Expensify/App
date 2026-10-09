@@ -19,8 +19,8 @@ import {View} from 'react-native';
 import type ReceiptPDFOverlayProps from './types';
 
 const oversamplePercent = `${CONST.RECEIPT.HOVER_ZOOM_SCALE * 100}%`;
-const oversampleContainerStyle = {
-    position: 'absolute' as const,
+const oversampleContainerStyle: React.CSSProperties = {
+    position: 'absolute',
     top: 0,
     left: 0,
     width: oversamplePercent,
@@ -29,8 +29,8 @@ const oversampleContainerStyle = {
     transformOrigin: 'top left',
 };
 
-const pageContainerStyle = {
-    position: 'absolute' as const,
+const pageContainerStyle: React.CSSProperties = {
+    position: 'absolute',
     top: CONST.RECEIPT.PDF_PAGE_BORDER,
     left: 0,
 };

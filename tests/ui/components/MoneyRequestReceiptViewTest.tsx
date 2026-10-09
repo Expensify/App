@@ -615,7 +615,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {page: 1, pageCount: 3}))).toBeNull();
         });
     });
 

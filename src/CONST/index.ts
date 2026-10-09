@@ -1629,6 +1629,7 @@ const CONST = {
         // react-fast-pdf pads each page by this much. The single-page PDF layer matches it to stay framed the same.
         PDF_PAGE_BORDER: 9,
 
+        // PDF page numbers are 1-indexed. This is the page a receipt opens on, and the page the static badge always shows.
         FIRST_PDF_PAGE: 1,
 
         // Elements with this data attribute pause the hover zoom while the pointer is over them
