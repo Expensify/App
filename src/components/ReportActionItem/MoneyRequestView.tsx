@@ -276,6 +276,7 @@ function MoneyRequestView({
     const restrictedActionPolicyID = useRestrictedActionPolicyID(expensePolicy);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${getNonEmptyStringOnyxID(policyID)}`);
     const targetPolicyID = updatedTransaction?.reportID ? parentReport?.policyID : policyID;
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetPolicyID)}`);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -330,6 +331,7 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
+        convertedTaxAmount: transactionConvertedTaxAmount,
     } = getTransactionDetails(displayTransaction, undefined, undefined, allowNegativeAmount, false) ?? {};
     const transactionAttendees = useAttendees(transaction);
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
@@ -363,12 +365,9 @@ function MoneyRequestView({
     const shouldShowCard = isFromCardImport && cardProgramName;
 
     const taxRates = policy?.taxRates;
-    const formattedTaxAmount =
-        updatedTransaction?.taxAmount !== undefined
-            ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), actualCurrency)
-            : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
+    const formattedTaxAmount = convertToDisplayString(transactionTaxAmount ?? 0, actualCurrency);
     // Skip a zero converted tax (e.g. tax exempt) so we don't render a redundant "Converted 0.00".
-    const formattedConvertedTaxAmount = transaction?.convertedTaxAmount ? convertToDisplayString(Math.abs(transaction.convertedTaxAmount), moneyRequestReport?.currency) : '';
+    const formattedConvertedTaxAmount = transactionConvertedTaxAmount ? convertToDisplayString(transactionConvertedTaxAmount, moneyRequestReport?.currency) : '';
 
     const taxRatesDescription = taxRates?.name;
 
@@ -864,6 +863,8 @@ function MoneyRequestView({
                         isMarkAsCash,
                         routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
                         distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+                        policyVendors,
+                        transactionCurrency: transaction?.currency,
                     });
                 })
                 .join('. ')}.`;
@@ -1704,6 +1705,8 @@ function MoneyRequestView({
                                     connectionLink={connectionLink}
                                     routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
                                     distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
+                                    policyVendors={policyVendors}
+                                    transactionCurrency={transaction?.currency}
                                 />
                             )}
                         </View>
