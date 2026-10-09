@@ -153,6 +153,11 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.STASHED_CREDENTIALS,
     ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+    // Signing out must not erase the record of when we prompted for an app review. nvp_appReview is
+    // server-owned and its lastPrompt is not refreshed on every response, so if this record went away
+    // the next sign-in would re-show the prompt the user already answered - every time, forever.
+    // The record carries the accountID it belongs to, so a different user signing in here ignores it.
+    ONYXKEYS.APP_REVIEW_LAST_PROMPT,
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
