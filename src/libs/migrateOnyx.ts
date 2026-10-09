@@ -4,6 +4,7 @@ import Log from './Log';
 import ConvertGpsPointsTo2DArray from './migrations/ConvertGpsPointsTo2DArray';
 import MoveFilesOutOfDocuments from './migrations/MoveFilesOutOfDocuments';
 import MoveSearchQueryByHashToSnapshots from './migrations/MoveSearchQueryByHashToSnapshots';
+import RenameLegacySageIntacctExportDate from './migrations/RenameLegacySageIntacctExportDate';
 import ReplaceShouldUseStagingServerWithActiveServer from './migrations/ReplaceShouldUseStagingServerWithActiveServer';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 
@@ -24,6 +25,7 @@ export default function () {
             MoveFilesOutOfDocuments,
             ReplaceShouldUseStagingServerWithActiveServer,
             MoveSearchQueryByHashToSnapshots,
+            RenameLegacySageIntacctExportDate,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

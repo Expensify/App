@@ -442,7 +442,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             // Rsbuild's default exclusion, plus the `.br` twins BrotliCompressionPlugin emits below: listing them would
             // double the report with a meaningless "gzipped size" of already-Brotli-compressed bytes.
             printFileSize: {exclude: (asset) => /\.(?:map|LICENSE\.txt|d\.(?:ts|mts|cts)|br)$/.test(asset.name)},
-            // We have to load the whole lottie player to get the player to work in offline mode
             // heic-to library is used sparsely so we load it as a separate chunk to reduce initial bundle size
             // ExpensifyIcons/illustrations chunks are loaded eagerly for offline support
             // Vendor: extract all 3rd party deps (~75% of App) to a separate js file for better caching
@@ -450,11 +449,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 strategy: 'custom',
                 splitChunks: {
                     cacheGroups: {
-                        lottiePlayer: {
-                            test: /[\\/]node_modules[\\/](@dotlottie\/react-player)[\\/]/,
-                            name: 'lottiePlayer',
-                            chunks: 'all',
-                        },
                         heicTo: {
                             test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                             name: 'heicTo',
