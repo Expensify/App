@@ -11332,6 +11332,7 @@ ${reportName}`,
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción',
+        mergedExpenseDeleted: 'combinó gastos y movió uno a Eliminados',
     },
     subscription: {
         authenticatePaymentCard: 'Autenticar tarjeta de pago',

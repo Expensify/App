@@ -11161,6 +11161,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     systemMessage: {
         mergedWithCashTransaction: 'a fait correspondre un reçu à cette transaction',
+        mergedExpenseDeleted: 'a fusionné des dépenses et en a déplacé une vers Supprimées',
     },
     subscription: {
         authenticatePaymentCard: 'Authentifier la carte de paiement',
