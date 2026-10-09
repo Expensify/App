@@ -23,6 +23,7 @@ import {
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getDistanceRateCustomUnitRate,
     getManagerAccountID,
     getReimbursementChoice,
     getSubmitToAccountID,
@@ -96,6 +97,7 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
@@ -148,7 +150,19 @@ function isSplitAction(
 
     const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
 
-    if (!amount && !isExpenseSplit) {
+    // A distance expense on a $0 rate is $0 but still has a distance to split. The rate can belong to a workspace other
+    // than `policy` (e.g. an unreported expense on another workspace's rate); when `policy` doesn't own it, a $0 amount
+    // for a positive distance can only have come from a $0 rate.
+    const distanceCustomUnit = reportTransaction?.comment?.customUnit;
+    const distanceCustomUnitRateID = distanceCustomUnit?.customUnitRateID;
+    const policyDistanceRate = distanceCustomUnitRateID ? getDistanceRateCustomUnitRate(policy, distanceCustomUnitRateID) : undefined;
+    const isZeroRateDistanceExpense =
+        isDistanceRequestTransactionUtils(reportTransaction) &&
+        !!distanceCustomUnit?.quantity &&
+        !!distanceCustomUnitRateID &&
+        (policyDistanceRate ? policyDistanceRate.rate === 0 : !amount);
+
+    if (!amount && !isExpenseSplit && !isZeroRateDistanceExpense) {
         return false;
     }
 

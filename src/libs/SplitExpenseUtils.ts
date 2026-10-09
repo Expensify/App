@@ -119,7 +119,8 @@ function computeSplitSaveErrorMessage({splitExpenses, transactionDetailsAmount, 
         return translate(errorKey, convertToDisplayString(Math.abs(lessThanDifference), currency));
     }
 
-    if (splitExpenses.find((item) => item.amount === 0)) {
+    // A distance split on a $0 rate is always $0, so for distance splits only a split without any distance is invalid
+    if (splitExpenses.find((item) => item.amount === 0 && (!isDistance || !item.customUnit?.quantity))) {
         return translate('iou.splitExpenseZeroAmount');
     }
 

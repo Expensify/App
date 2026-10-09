@@ -244,6 +244,30 @@ describe('computeSplitSaveErrorMessage', () => {
         expect(result).toBe('iou.splitExpenseZeroAmount');
     });
 
+    it('allows $0 distance splits that have a distance, like the splits of a $0 rate expense', () => {
+        const withDistance = (split: SplitExpense, quantity: number): SplitExpense => ({...split, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity}});
+        const result = computeSplitSaveErrorMessage({
+            ...baseParams,
+            transactionDetailsAmount: 0,
+            isDistance: true,
+            splitExpenses: [withDistance(makeSplit(0, 'a'), 6), withDistance(makeSplit(0, 'b'), 4)],
+        });
+        expect(result).toBe('');
+    });
+
+    it('still rejects a $0 distance split without any distance', () => {
+        const result = computeSplitSaveErrorMessage({
+            ...baseParams,
+            transactionDetailsAmount: 0,
+            isDistance: true,
+            splitExpenses: [
+                {...makeSplit(0, 'a'), customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 10}},
+                {...makeSplit(0, 'b'), customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 0}},
+            ],
+        });
+        expect(result).toBe('iou.splitExpenseZeroAmount');
+    });
+
     describe('invalidSplit errors (one split exceeds total)', () => {
         it('returns "greater" error when invalidSplit exists and sum > total', () => {
             const result = computeSplitSaveErrorMessage({

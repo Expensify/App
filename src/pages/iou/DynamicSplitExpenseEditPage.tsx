@@ -285,7 +285,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
     const currentAmount =
-        isDistance && distance && rate
+        isDistance && distance && rate !== undefined
             ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
             : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, translate, false, isManualDistance);
@@ -298,21 +298,23 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     // so that a stale stored merchant (e.g. "Pending..." set before the MAP route was calculated)
     // does not appear in the title. Falls back to the stored merchant otherwise.
     const merchantToDisplay =
-        isDistance && distance && rate && unit
+        isDistance && distance && rate !== undefined && unit
             ? DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, true)
             : (splitExpenseDraftTransactionDetails?.merchant ?? '');
 
     const isP2PRate = currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     const rawPolicyRate = !isP2PRate && currentRateID && effectivePolicy ? getDistanceRateCustomUnitRate(effectivePolicy, currentRateID) : undefined;
     const isRateBroken =
-        isDistance && !isP2PRate && (!rates[currentRateID] || !rate || rawPolicyRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate?.enabled === false);
+        isDistance &&
+        !isP2PRate &&
+        (!rates[currentRateID] || rate === undefined || rawPolicyRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate?.enabled === false);
     const policyWithAvailableRates = effectivePolicy ?? policyForMovingExpenses;
     const hasAvailableEnabledRates = Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0;
 
     // `shouldSelectPolicy` means rates exist across workspaces but none is resolved yet — keep it flagged out-of-policy.
     const isCustomUnitOutOfPolicy = isSelfDMSplit
         ? isRateBroken || (isDistance && isP2PRate && (hasAvailableEnabledRates || shouldSelectPolicy))
-        : !rates[currentRateID] || (isDistance && !rate);
+        : !rates[currentRateID] || (isDistance && rate === undefined);
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {

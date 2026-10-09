@@ -93,6 +93,18 @@ describe('resolveSplitMileageRate', () => {
 
             expect(result.rate).toBe(DELETED_RATE_VALUE);
         });
+
+        it('returns a $0 rate as a real rate instead of reconstructing one from the transaction', () => {
+            const policy = buildPolicyWithRates({
+                [ACTIVE_RATE_ID]: buildRate(ACTIVE_RATE_ID, {rate: 0, name: ACTIVE_RATE_NAME, index: 0}),
+            });
+            const transaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: 0});
+
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined});
+
+            expect(result.rate).toBe(0);
+            expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
+        });
     });
 
     describe('selfDM context (isSelfDMSplit=true)', () => {
@@ -150,6 +162,25 @@ describe('resolveSplitMileageRate', () => {
 
             expect(result.rate).toBe(ACTIVE_RATE_VALUE);
             expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
+        });
+
+        it.each([
+            ['keeps the original rate of a nonzero expense instead of a $0 default rate', -1000, DELETED_RATE_VALUE, DELETED_RATE_ID],
+            ['substitutes a $0 default rate for a $0 expense', 0, 0, ACTIVE_RATE_ID],
+        ])('%s when the original rate is disabled', (_caseName, amount, expectedRate, expectedRateID) => {
+            // Given a self-DM distance expense whose original rate is disabled, on a workspace whose default rate is $0
+            const policy = buildPolicyWithRates({
+                [ACTIVE_RATE_ID]: buildRate(ACTIVE_RATE_ID, {rate: 0, name: ACTIVE_RATE_NAME, index: 0}),
+                [DELETED_RATE_ID]: buildRate(DELETED_RATE_ID, {rate: DELETED_RATE_VALUE, enabled: false, name: 'Deleted Rate', index: 1}),
+            });
+            const transaction = buildDistanceTransaction(DELETED_RATE_ID, {amount});
+
+            // When the split mileage rate is resolved
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true, personalPolicyOutputCurrency: undefined});
+
+            // Then the $0 default rate is only used when it matches the expense's $0 amount
+            expect(result.rate).toBe(expectedRate);
+            expect(result.customUnitRateID).toBe(expectedRateID);
         });
 
         it('returns the base mileage rate for P2P expenses without consulting the workspace fallback', () => {

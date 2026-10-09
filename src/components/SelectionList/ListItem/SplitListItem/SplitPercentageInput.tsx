@@ -30,7 +30,7 @@ function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplit
 
     const inputValue = percentageDraft ?? String(splitItem.percentage ?? 0);
 
-    if (splitItem.isEditable) {
+    if (splitItem.isEditable && splitItem.isAmountEditable !== false) {
         return (
             <PercentageForm
                 onInputChange={(value) => {

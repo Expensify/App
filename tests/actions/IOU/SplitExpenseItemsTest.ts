@@ -1,4 +1,4 @@
-import {getSplitReimbursable, initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
+import {getEvenSplitQuantity, getSplitReimbursable, initSplitExpenseItemData, isUsableSplitRate, updateSplitExpenseDistanceFromAmount} from '@libs/actions/IOU/SplitExpenseItems';
 
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -394,5 +394,62 @@ describe('getSplitReimbursable', () => {
         it('falls through to the parent value when the field is not locked', () => {
             expect(getSplitReimbursable(undefined, true, undefined)).toBe(true);
         });
+    });
+});
+
+describe('isUsableSplitRate', () => {
+    it('accepts a $0 rate and positive rates', () => {
+        expect(isUsableSplitRate(0)).toBe(true);
+        expect(isUsableSplitRate(67)).toBe(true);
+    });
+
+    it('rejects a missing or negative rate', () => {
+        expect(isUsableSplitRate(undefined)).toBe(false);
+        expect(isUsableSplitRate(-1)).toBe(false);
+    });
+});
+
+describe('updateSplitExpenseDistanceFromAmount', () => {
+    const getCurrencySymbol = (currency: string) => (currency === CONST.CURRENCY.USD ? '$' : currency);
+    const customUnit = {
+        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+        customUnitID: 'distance-unit',
+        customUnitRateID: 'rate-1',
+        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        quantity: 12,
+    };
+
+    it('calculates the distance from the amount for a positive rate', () => {
+        const result = updateSplitExpenseDistanceFromAmount(1000, 100, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, customUnit, {currency: CONST.CURRENCY.USD}, getCurrencySymbol);
+
+        expect(result.customUnit?.quantity).toBe(10);
+    });
+
+    it('keeps the current distance for a $0 rate instead of dividing by 0', () => {
+        const result = updateSplitExpenseDistanceFromAmount(0, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, customUnit, {currency: CONST.CURRENCY.USD}, getCurrencySymbol);
+
+        expect(result.customUnit?.quantity).toBe(12);
+        expect(result.merchant).toContain('12.00');
+        expect(result.merchant).toContain('$0.00');
+    });
+
+    it('leaves the split untouched for a negative rate', () => {
+        const result = updateSplitExpenseDistanceFromAmount(1000, -1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, customUnit, {currency: CONST.CURRENCY.USD}, getCurrencySymbol);
+
+        expect(result.customUnit).toBe(customUnit);
+        expect(result.merchant).toBe('');
+    });
+});
+
+describe('getEvenSplitQuantity', () => {
+    it('splits a distance evenly', () => {
+        expect([0, 1].map((index) => getEvenSplitQuantity(201, 2, index, 1))).toEqual([100.5, 100.5]);
+    });
+
+    it('puts the rounding remainder on the given split so the parts add up to the total', () => {
+        const quantities = [0, 1, 2].map((index) => getEvenSplitQuantity(10, 3, index, 0));
+
+        expect(quantities).toEqual([3.34, 3.33, 3.33]);
+        expect(Number(quantities.reduce((sum, quantity) => sum + quantity, 0).toFixed(2))).toBe(10);
     });
 });

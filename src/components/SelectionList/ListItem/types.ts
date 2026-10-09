@@ -291,6 +291,12 @@ type SplitListItemType = ListItem &
         /** Indicates whether a split wasn't approved, paid etc. when report.statusNum < CONST.REPORT.STATUS_NUM.CLOSED */
         isEditable: boolean;
 
+        /**
+         * Whether the split's amount or percentage can be typed in. The split can still be opened to edit its other fields
+         * when this is false, e.g. a split of a $0 rate distance expense is always $0 but its distance can change.
+         */
+        isAmountEditable?: boolean;
+
         /** Current mode for the split editor: amount or percentage */
         mode: ValueOf<typeof CONST.TAB.SPLIT>;
 
