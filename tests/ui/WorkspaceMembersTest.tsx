@@ -9,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as useConfirmModalModule from '@hooks/useConfirmModal';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
@@ -34,6 +35,18 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+
+const hasPendingOpacity = (style: unknown): boolean => {
+    const entries: unknown[] = Array.isArray(style) ? style : [style];
+    return entries.some((entry) => {
+        if (!entry || typeof entry !== 'object' || !('opacity' in entry)) {
+            return false;
+        }
+        const {opacity} = entry;
+        return opacity === 0.5;
+    });
+};
 
 TestHelper.setupGlobalFetchMock();
 
@@ -732,6 +745,196 @@ describe('WorkspaceMembers', () => {
             const ownerLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
             expect(within(ownerRow).getByText(editorLabel)).toBeOnTheScreen();
             expect(within(ownerRow).queryByText(ownerLabel)).not.toBeOnTheScreen();
+
+            unmount();
+        });
+    });
+
+    describe('Approver column', () => {
+        const approverHeaderLabel = () => TestHelper.translateLocal('workflowsPage.approver');
+
+        it("shows each member's first approver, including the admin who approves themselves", async () => {
+            // Given a policy with approvals on and every member (including the admin) submitting to the admin:
+            // the admin's own first approver resolves to themselves, which is what the Workflows tab shows too.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    employeeList: {
+                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: adminEmail},
+                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: adminEmail},
+                        [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(approverHeaderLabel())).toBeOnTheScreen();
+
+            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
+            expect(ownerRow).toBeOnTheScreen();
+
+            const adminRow = screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
+            expect(adminRow).toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('dims a member row while approvals are being turned back on offline', async () => {
+            // Given approvals being re-enabled offline. That rewrites who everyone submits to, but it marks the
+            // policy rather than the employees, so the row has no field of its own to read the change from.
+            const mockedUseNetwork = jest.mocked(useNetwork);
+            mockedUseNetwork.mockReturnValue({isOffline: true});
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    employeeList: {
+                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
+
+            // OfflineWithFeedback dims a wrapper around the row rather than the row node itself.
+            let node: typeof ownerRow | null = ownerRow;
+            let dimmed = false;
+            while (node && !dimmed) {
+                dimmed = hasPendingOpacity(node.props?.style);
+                node = node.parent;
+            }
+            expect(dimmed).toBe(true);
+
+            mockedUseNetwork.mockReturnValue({isOffline: false});
+            unmount();
+        });
+
+        it('hides the column when approvals are turned off', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+            expect(screen.queryByLabelText(approverHeaderLabel())).not.toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('hides the column on narrow layout', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+            });
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+                createMock<ResponsiveLayoutResult>({
+                    isSmallScreenWidth: true,
+                    shouldUseNarrowLayout: true,
+                }),
+            );
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+            expect(screen.queryByLabelText(approverHeaderLabel())).not.toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('hides the column when approvals are on but no member has an approver', async () => {
+            // Given approvals are on while no member submits to anyone, so the derived approver map is empty and the
+            // column would render blank for every row.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+            expect(screen.queryByLabelText(approverHeaderLabel())).not.toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('shows the default approver for a member whose workflow a downgrade stopped enforcing', async () => {
+            // Given a workspace downgraded out of advanced approvals, where the owner still submits to the auditor:
+            // the workflow is gone from the Workflows tab, since a non-advanced mode enforces only its default
+            // workflow, but the owner's `submitsTo` survives the downgrade, so the approver it names is still
+            // derivable here. The owner submits to the default approver like everyone else now, so the admin is the
+            // approver to show. `signInWithTestUser` puts this suite on every beta, and the Workflows tab keeps all
+            // workflows under the multiple-approvers beta, so the beta is cleared to match the tab's own behavior.
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, []);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    approver: adminEmail,
+                    employeeList: {
+                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: auditorEmail},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: adminEmail},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // The auditor submits to the default approver, so their approver shows unchanged.
+            const approverLabel = TestHelper.translateLocal('common.approver');
+            expect(await screen.findByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
+
+            // The owner falls back to the default approver rather than keeping the auditor the downgrade dropped.
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('falls every member back to the default approver when no workflow is the default one', async () => {
+            // Given a downgraded workspace where the admin approves everyone and the auditor approves the admin,
+            // while the default approver is still the owner: neither workflow is the enforced one, so every member
+            // submits to the owner. Betas are cleared for the same reason as the test above.
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, []);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    approver: ownerEmail,
+                    employeeList: {
+                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: auditorEmail},
+                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: adminEmail},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            const approverLabel = TestHelper.translateLocal('common.approver');
+            expect(await screen.findByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
+            expect(screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
+
+            // The owner is the default approver, so they approve their own expenses and show as their own approver.
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
 
             unmount();
         });

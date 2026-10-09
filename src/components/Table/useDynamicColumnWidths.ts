@@ -18,7 +18,28 @@ import type {TableColumn, TableData} from './types';
 import calculateDynamicColumnWidths, {distributeEqualWidths} from './calculateDynamicColumnWidths';
 import getResizableColumnLayout from './columnResize/getResizableColumnLayout';
 
-const {MIN_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
+const {MIN_FREE_TEXT_COLUMN_WIDTH, SCROLLED_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
+
+/** What a single column's sizing bounds are derived from, measured before any of them can be resolved. */
+type ColumnMeasurement = {
+    /** Width the column needs to render its widest cell and its header label in full, including non-text extras. */
+    contentWidth: number;
+
+    /** Width the header label alone needs, so no bound is ever tight enough to truncate it. */
+    headerLabelWidth: number;
+
+    /** Width of the cell's non-text content, e.g. an avatar plus its gap. */
+    extraWidth: number;
+
+    /** Whether the column's values come from a fixed set, so it must always show them in full. */
+    shouldFitContent: boolean;
+
+    /** Bound the column set for itself, which wins over the derived one. */
+    minWidth?: number;
+
+    /** Bound the column set for itself, which wins over the derived one. */
+    maxWidth?: number;
+};
 
 type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends string> = {
     /** Column configuration for the table. */
@@ -134,6 +155,23 @@ function measureHeaderLabelWidth(label: string, sortIconWidth: number, chromeWid
 }
 
 /**
+ * The floor a free-text column is squeezed to, given the width free text may occupy in the current layout. Never
+ * tight enough to truncate the header label, and sits on top of the cell's non-text content so an avatar doesn't eat
+ * into the text budget.
+ */
+function floorFor({contentWidth, headerLabelWidth, extraWidth}: ColumnMeasurement, freeTextWidth: number): number {
+    return Math.max(Math.min(contentWidth, freeTextWidth + extraWidth), headerLabelWidth);
+}
+
+/**
+ * The minimum width a column resolves to: its own explicit `minWidth` if it set one, its full content when it must
+ * never truncate, or the free-text floor otherwise.
+ */
+function minWidthFor(measurement: ColumnMeasurement, freeTextWidth: number): number {
+    return measurement.minWidth ?? (measurement.shouldFitContent ? measurement.contentWidth : floorFor(measurement, freeTextWidth));
+}
+
+/**
  * Resolves the CSS grid tracks for a table whose columns are sized from their content.
  *
  * The tracks have to be identical for the header and every data row, because each row is its own grid: a content-based
@@ -206,7 +244,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         return noDynamicWidths;
     }
 
-    const constraints: DynamicColumnConstraints[] = [];
+    const measurements: ColumnMeasurement[] = [];
 
     for (const column of dynamicColumns) {
         const contentWidth = measureColumnContentWidth(column, data);
@@ -218,25 +256,36 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
             return noDynamicWidths;
         }
 
-        // A column has to fit its header label as well as its cells, so the label is part of what its content needs
-        // rather than a separate floor.
-        const columnContentWidth = Math.max(contentWidth, headerLabelWidth);
-
-        // A column holding a known, short set of values is never squeezed below its content, so it never truncates.
-        // A free-text column is squeezed no further than a readable width, or its content when that is narrower.
-        const readableWidth = MIN_FREE_TEXT_COLUMN_WIDTH + (column.dynamicSizing?.extraWidth ?? 0);
-        const defaultMinWidth = column.dynamicSizing?.shouldFitContent ? columnContentWidth : Math.min(columnContentWidth, readableWidth);
-
-        constraints.push({
-            contentWidth: columnContentWidth,
-            minWidth: column.dynamicSizing?.minWidth ?? defaultMinWidth,
-            // Uncapped by default, so the table scrolls rather than truncating. A cap also can't be derived from the
-            // available width without breaking the sizing: a column capped at its equal share looks like it fits in
-            // one, so the columns would be left equal and the long column would stay truncated. Columns that should
-            // truncate rather than widen the table set `maxWidth` themselves.
-            maxWidth: column.dynamicSizing?.maxWidth ?? Number.POSITIVE_INFINITY,
+        measurements.push({
+            // A column has to fit its header label as well as its cells, so the label is part of what its content
+            // needs rather than a separate floor.
+            contentWidth: Math.max(contentWidth, headerLabelWidth),
+            headerLabelWidth,
+            extraWidth: column.dynamicSizing?.extraWidth ?? 0,
+            shouldFitContent: column.dynamicSizing?.shouldFitContent ?? false,
+            minWidth: column.dynamicSizing?.minWidth,
+            maxWidth: column.dynamicSizing?.maxWidth,
         });
     }
+
+    // Once the squeeze floors themselves overflow the row, the table scrolls, and horizontal room stops being
+    // scarce: squeezing every column to its narrowest then costs readability for nothing. So the floors are raised
+    // to what each column's content actually needs, capped at a readable width. Raising a floor can only keep the
+    // total over the row's width, so this can't flip the layout back into one that fits.
+    // Clamped by `maxWidth` exactly as `calculateDynamicColumnWidths` clamps the minimums it is handed, so a column
+    // that caps itself below its floor can't make this prediction overshoot and raise floors on a table that fits.
+    const willScroll =
+        measurements.reduce((total, measurement) => total + Math.min(minWidthFor(measurement, MIN_FREE_TEXT_COLUMN_WIDTH), measurement.maxWidth ?? Number.POSITIVE_INFINITY), 0) >
+        availableWidth;
+
+    const constraints: DynamicColumnConstraints[] = measurements.map((measurement) => ({
+        contentWidth: measurement.contentWidth,
+        minWidth: minWidthFor(measurement, willScroll ? SCROLLED_FREE_TEXT_COLUMN_WIDTH : MIN_FREE_TEXT_COLUMN_WIDTH),
+        // Uncapped by default, so the table scrolls rather than truncating. A cap also can't be derived from the
+        // available width without breaking the sizing: capping the free-text columns hands everything they give
+        // up to whichever column is left uncapped, which is how `Role` ends up hundreds of pixels wide.
+        maxWidth: measurement.maxWidth ?? Number.POSITIVE_INFINITY,
+    }));
 
     const {widths, shouldScrollHorizontally} = calculateDynamicColumnWidths(constraints, availableWidth);
     // Equal columns are what the static `1fr` tracks already do, but a drag needs px widths to start from.
