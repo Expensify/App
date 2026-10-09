@@ -72,26 +72,21 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
 
     const recoveryCodes = account?.recoveryCodes;
 
-    // On web, Download codes pushes the verify page, so this page stays in the stack under the verify page while 2FA gets enabled.
-    const wasOpenBefore2FAEnabledRef = useRef(false);
     const hasLeftFlowRef = useRef(false);
 
     useEffect(() => {
         // Once 2FA is on, this step has no use. This check comes first because the forced-onboarding handoff resets the account
         // data while this page is still mounted, and the checks below must not start another step from that state.
-        if (is2FAEnabled && wasOpenBefore2FAEnabledRef.current) {
-            if (hasLeftFlowRef.current) {
+        if (is2FAEnabled && !isFocused) {
+            // On web, Download codes pushes the verify page, so this page stays under the verify and success pages. Remove it, so the
+            // stack is the same as on native, where the verify page replaced it. The success page then gets its back path and forward
+            // path from the right URL, and browser Back leaves the flow.
+            const stackRoutes = navigation.getState()?.routes ?? [];
+            const pageIndex = stackRoutes.findIndex((stackRoute) => stackRoute.key === route.key);
+            if (hasLeftFlowRef.current || pageIndex === -1 || pageIndex === stackRoutes.length - 1) {
                 return;
             }
             hasLeftFlowRef.current = true;
-
-            if (isFocused) {
-                Navigation.isNavigationReady().then(() => Navigation.goBack());
-                return;
-            }
-
-            // Remove this page from under the success page. The stack is then the same as on native, where the verify page replaced
-            // this one, so the success page gets its back path and forward path from the right URL, and browser Back leaves the flow.
             navigation.dispatch((state) => {
                 const routes = state.routes.filter((stackRoute) => stackRoute.key !== route.key);
                 return CommonActions.reset({...state, routes, index: routes.length - 1});
@@ -99,8 +94,13 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
             return;
         }
 
-        if (!isLoadingOnyxValue(accountMetadata) && !is2FAEnabled) {
-            wasOpenBefore2FAEnabledRef.current = true;
+        // On top with 2FA on and the setup still in progress, there is nothing to show here, so leave the flow.
+        if (is2FAEnabled && is2FASetupInProgress) {
+            if (!hasLeftFlowRef.current) {
+                hasLeftFlowRef.current = true;
+                Navigation.isNavigationReady().then(() => Navigation.goBack());
+            }
+            return;
         }
 
         if (!isUserValidated) {
