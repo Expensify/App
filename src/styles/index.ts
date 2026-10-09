@@ -1087,7 +1087,7 @@ const staticStyles = (theme: ThemeColors) =>
         defaultBadge: {
             backgroundColor: theme.badgeDefaultBG,
             borderWidth: 1,
-            borderRadius: variables.componentBorderRadius,
+            borderRadius: variables.componentBorderRadiusSmall,
             borderColor: theme.badgeDefaultBG,
             paddingHorizontal: 8,
             minHeight: 24,
@@ -1170,7 +1170,7 @@ const staticStyles = (theme: ThemeColors) =>
         condensedBadge: {
             minHeight: 16,
             paddingHorizontal: 6,
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: variables.componentBorderRadiusSmall,
         },
 
         condensedBadgeText: {
