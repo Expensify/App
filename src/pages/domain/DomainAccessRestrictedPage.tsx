@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import FormHelpMessage from '@components/FormHelpMessage';
+import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
@@ -13,7 +13,6 @@ import useRedirectOnDomainAccessChange from '@hooks/useRedirectOnDomainAccessCha
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRequestAdminshipError, requestDomainAdminship} from '@libs/actions/Domain';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
@@ -69,37 +68,35 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
                         title={translate('domain.accessRestricted.headerTitle')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <ConfirmationPage
-                        illustration={icons.EmptyStateSpyPigeon}
-                        heading={translate('domain.accessRestricted.title')}
-                        innerContainerStyle={styles.p10}
-                        descriptionComponent={
+                    <ConfirmationPage>
+                        <ConfirmationPage.Content
+                            style={styles.p10}
+                            requestErrors={requestError}
+                        >
+                            <ConfirmationPage.Illustration illustration={icons.EmptyStateSpyPigeon} />
+                            <ConfirmationPage.Heading>{translate('domain.accessRestricted.title')}</ConfirmationPage.Heading>
                             <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                                 <RenderHTML html={translate('domain.accessRestricted.description', domainName)} />
                             </View>
-                        }
-                        footerComponent={
-                            !!requestError && (
-                                <FormHelpMessage
-                                    message={getLatestErrorMessage({errors: requestError})}
-                                    style={styles.mb0}
-                                />
-                            )
-                        }
-                        shouldShowSecondaryButton
-                        secondaryButtonText={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.accessRestricted.requestAdminAccess')}
-                        isSecondaryButtonLoading={isRequestPending}
-                        isSecondaryButtonDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}
-                        onSecondaryButtonPress={() => {
-                            if (!currentUserAccountID) {
-                                return;
-                            }
-                            requestDomainAdminship(domainAccountID, currentUserAccountID, false);
-                        }}
-                        shouldShowButton
-                        buttonText={translate('domain.accessRestricted.verifyYourself')}
-                        onButtonPress={() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(domainAccountID))}
-                    />
+                        </ConfirmationPage.Content>
+                        <FixedFooter>
+                            <ConfirmationPage.SecondaryButton
+                                text={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.accessRestricted.requestAdminAccess')}
+                                isLoading={isRequestPending}
+                                isDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}
+                                onPress={() => {
+                                    if (!currentUserAccountID) {
+                                        return;
+                                    }
+                                    requestDomainAdminship(domainAccountID, currentUserAccountID, false);
+                                }}
+                            />
+                            <ConfirmationPage.PrimaryButton
+                                text={translate('domain.accessRestricted.verifyYourself')}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(domainAccountID))}
+                            />
+                        </FixedFooter>
+                    </ConfirmationPage>
                 </ScreenWrapper>
             )}
         </DomainNameOrNotFoundWrapper>

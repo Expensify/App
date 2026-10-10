@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -217,13 +217,11 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     />
                 )}
                 {hasImportError && (
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         heading={translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle')}
                         description={translate('common.genericErrorMessage')}
                         illustration={illustrations.BrokenCompanyCardBankConnection}
                         illustrationStyle={styles.errorStateCardIllustration}
-                        containerStyle={styles.h100}
-                        shouldShowButton
                         buttonText={translate('common.buttonConfirm')}
                         onButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
                     />

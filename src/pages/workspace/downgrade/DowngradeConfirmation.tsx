@@ -1,10 +1,10 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils} from '@libs/PolicyUtils';
 
@@ -23,7 +23,6 @@ type Props = {
 
 function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat']);
     const {login} = useCurrentUserPersonalDetails();
     const selector = useCallback(
@@ -36,15 +35,19 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(adminPolicies, policyID);
 
     return (
-        <ConfirmationPage
-            heading={translate('workspace.downgrade.completed.headline')}
-            description={hasOtherControlWorkspaces ? translate('workspace.downgrade.completed.description') : undefined}
-            illustration={illustrations.MushroomTopHat}
-            shouldShowButton
-            onButtonPress={onConfirmDowngrade}
-            buttonText={translate('workspace.downgrade.completed.gotIt')}
-            containerStyle={styles.h100}
-        />
+        <ConfirmationPage>
+            <ConfirmationPage.Content>
+                <ConfirmationPage.Illustration illustration={illustrations.MushroomTopHat} />
+                <ConfirmationPage.Heading>{translate('workspace.downgrade.completed.headline')}</ConfirmationPage.Heading>
+                {hasOtherControlWorkspaces && <ConfirmationPage.Description>{translate('workspace.downgrade.completed.description')}</ConfirmationPage.Description>}
+            </ConfirmationPage.Content>
+            <FixedFooter>
+                <ConfirmationPage.PrimaryButton
+                    text={translate('workspace.downgrade.completed.gotIt')}
+                    onPress={onConfirmDowngrade}
+                />
+            </FixedFooter>
+        </ConfirmationPage>
     );
 }
 

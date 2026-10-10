@@ -1,4 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -47,11 +48,10 @@ function CardAddedToWalletPage({
                 title={translate('cardPage.cardAddedToWalletPage.title')}
                 onBackButtonPress={goToCardDetails}
             />
-            <ConfirmationPage
-                heading={translate('cardPage.cardAddedToWalletPage.description')}
-                illustration={illustrations.ExpensifyCardAppleWalletIllustration}
-                shouldShowButton
-                descriptionComponent={
+            <ConfirmationPage>
+                <ConfirmationPage.Content>
+                    <ConfirmationPage.Illustration illustration={illustrations.ExpensifyCardAppleWalletIllustration} />
+                    <ConfirmationPage.Heading style={styles.ph8}>{translate('cardPage.cardAddedToWalletPage.description')}</ConfirmationPage.Heading>
                     <View style={[styles.alignItemsCenter, styles.w100, styles.ph8]}>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.mb2]}>{translate('cardPage.cardAddedToWalletPage.firstSupportingText')}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('cardPage.cardAddedToWalletPage.secondSupportingText')}</Text>
@@ -73,11 +73,14 @@ function CardAddedToWalletPage({
                             />
                         </View>
                     </View>
-                }
-                onButtonPress={goToCardDetails}
-                buttonText={translate('cardPage.cardAddedToWalletPage.buttonText')}
-                headingStyle={styles.ph8}
-            />
+                </ConfirmationPage.Content>
+                <FixedFooter>
+                    <ConfirmationPage.PrimaryButton
+                        text={translate('cardPage.cardAddedToWalletPage.buttonText')}
+                        onPress={goToCardDetails}
+                    />
+                </FixedFooter>
+            </ConfirmationPage>
         </ScreenWrapper>
     );
 }
