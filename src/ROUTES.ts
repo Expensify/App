@@ -1287,6 +1287,14 @@ const DYNAMIC_ROUTES = {
         path: 'invite-message',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE, SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM],
     },
+    WORKSPACE_INVITE_WORK_ARRANGEMENT: {
+        path: 'work-arrangement',
+        entryScreens: [
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE,
+            SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
+        ],
+    },
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
         path: 'expenses-from',
         entryScreens: [SCREENS.WORKSPACE.WORKFLOWS, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT],
@@ -3729,6 +3737,14 @@ const ROUTES = {
     WORKSPACE_MEMBER_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/:accountID/work-arrangement',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/work-arrangement` as const,
+    },
+    WORKSPACE_INVITE_MESSAGE: {
+        route: 'workspaces/:policyID/members/invite/invite-message',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/invite/invite-message` as const,
+    },
+    WORKSPACE_INVITE_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/members/invite/invite-message/work-arrangement',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/invite/invite-message/work-arrangement` as const,
     },
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',

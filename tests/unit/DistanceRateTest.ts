@@ -4,6 +4,7 @@ import {deletePolicyDistanceRates, enablePolicyDistanceRates, setEmployeeWorkArr
 import * as API from '@libs/API';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import {isGovernmentRateUnmodified} from '@libs/PolicyDistanceRatesUtils';
+import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -587,6 +588,35 @@ describe('DistanceRate', () => {
             resetQueue();
         });
 
+        it('should preserve a pending invite when changing its work arrangement offline', async () => {
+            // Given a newly invited member whose add action is still pending
+            const policy: Policy = {
+                ...createRandomPolicy(27),
+                employeeList: {
+                    [member1Email]: {
+                        email: member1Email,
+                        hasOfficeWorkArrangement: false,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            };
+            await seedWorkArrangementPolicy(policy);
+
+            pause();
+            // When the member's arrangement is changed before the invite finishes syncing
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
+            await waitForBatchedUpdates();
+
+            // Then the arrangement updates while the invite remains visibly pending
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toMatchObject({
+                hasOfficeWorkArrangement: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            resetQueue();
+        });
+
         it('should do nothing when every member already matches the requested arrangement', async () => {
             // Given all eligible members already have the requested arrangement
             const policy: Policy = {
@@ -619,10 +649,18 @@ describe('DistanceRate', () => {
             await seedWorkArrangementPolicy(policy);
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
-            // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
+            // When the work-arrangement change is queued with the temporary accountID assigned to an offline invite
+            const temporaryAccountID = 999999003;
+            const personalDetailsWithTemporaryAccountID = {
+                ...personalDetails,
+                [temporaryAccountID]: {accountID: temporaryAccountID, login: member1Email, displayName: 'Member One'},
+            };
+            setEmployeeWorkArrangement(policy, [temporaryAccountID], true, personalDetailsWithTemporaryAccountID, translate);
 
-            // Then success updates clear the pending state for both the member and changelog action
+            // Then the request carries the stable login with the temporary accountID so it still applies after an offline invite syncs
+            expect(writeSpy.mock.calls.at(0)?.[1]).toMatchObject({employeeAccountIDList: String(temporaryAccountID), employeeLoginList: member1Email});
+
+            // And success updates clear the pending state for both the member and changelog action
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
             expect(onyxData?.successData?.[0]).toEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -684,6 +722,7 @@ describe('DistanceRate', () => {
             await Onyx.merge(policyKey, {employeeList: {[member1Email]: {hasOfficeWorkArrangement: failureArrangementPatch}}});
             await waitForBatchedUpdates();
             expect((await getPolicyFromOnyx(policy.id)).employeeList?.[member1Email]?.hasOfficeWorkArrangement).toBeUndefined();
+            expect(getEffectiveWorkArrangement((await getPolicyFromOnyx(policy.id)).employeeList?.[member1Email]?.hasOfficeWorkArrangement, false)).toBe(false);
 
             expect(onyxData?.failureData?.[1]).toMatchObject({
                 onyxMethod: Onyx.METHOD.MERGE,

@@ -5,17 +5,17 @@ import {translateLocal} from '../utils/TestHelper';
 describe('WorkArrangementUtils', () => {
     describe('getEffectiveWorkArrangement', () => {
         it.each([
-            {memberArrangement: true, workspaceArrangement: false, expected: true},
-            {memberArrangement: false, workspaceArrangement: true, expected: false},
-            {memberArrangement: undefined, workspaceArrangement: true, expected: true},
+            {memberArrangement: true, workspaceArrangement: false, fallbackArrangement: false, expected: true},
+            {memberArrangement: false, workspaceArrangement: true, fallbackArrangement: false, expected: false},
+            {memberArrangement: undefined, workspaceArrangement: true, fallbackArrangement: false, expected: true},
             {memberArrangement: undefined, workspaceArrangement: false, expected: false},
             {memberArrangement: undefined, workspaceArrangement: undefined, expected: true},
-        ] as const)('uses member arrangement when set and otherwise falls back to the workspace default (%#)', ({memberArrangement, workspaceArrangement, expected}) => {
+            {memberArrangement: undefined, workspaceArrangement: undefined, fallbackArrangement: false, expected: false},
+        ] as const)('uses member arrangement when set, then workspace default, then fallback (%#)', ({memberArrangement, workspaceArrangement, fallbackArrangement, expected}) => {
             // Given a member arrangement and an optional workspace default,
             // When resolving the member's effective work arrangement,
-            // Then the member value takes precedence, and a workspace that stored neither reads as office-based
-            // the way the server reads it.
-            expect(getEffectiveWorkArrangement(memberArrangement, workspaceArrangement)).toBe(expected);
+            // Then explicit member and workspace values take precedence, with an office-based server default unless an explicit fallback is provided.
+            expect(getEffectiveWorkArrangement(memberArrangement, workspaceArrangement, fallbackArrangement)).toBe(expected);
         });
     });
 
