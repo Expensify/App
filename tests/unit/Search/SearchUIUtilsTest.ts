@@ -9015,6 +9015,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     achAccount: {
                         bankAccountID: 1,
                         reimburser: adminEmail,
@@ -9118,6 +9125,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     areWorkflowsEnabled: false,
                     achAccount: {
                         bankAccountID: 1,
@@ -9189,6 +9203,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     areWorkflowsEnabled: true,
                     achAccount: {
                         bankAccountID: 1,
@@ -9817,6 +9838,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     achAccount: {
                         bankAccountID: 1,
                         reimburser: adminEmail,
@@ -9889,6 +9917,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     areExpensifyCardsEnabled: true,
                     areCompanyCardsEnabled: true,
                     achAccount: {
@@ -9962,6 +9997,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                     reimburser: adminEmail,
                     achAccount: {
@@ -10058,6 +10100,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                     achAccount: {
                         bankAccountID: 1,
@@ -10582,6 +10631,7 @@ describe('SearchUIUtils', () => {
                     connections: createMock<Connections>({
                         [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                             verified: false,
+                            options: {config: {exporter: adminEmail}},
                             lastSync: {
                                 errorDate: new Date().toISOString(),
                                 errorMessage: 'Error',
@@ -10599,6 +10649,8 @@ describe('SearchUIUtils', () => {
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.visibility.export).toBe(false);
 
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE]!.verified = true;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE]!.lastSync = {
                 errorDate: '',

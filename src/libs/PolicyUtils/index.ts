@@ -53,7 +53,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {Str} from 'expensify-common';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import {canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
 import {canPolicyAccessFeature, isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
@@ -1963,6 +1963,38 @@ function getValidConnectedIntegration(policy: Policy | undefined, connectionName
     return connectionNames.find((integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration));
 }
 
+/**
+ * The accounting method configured on a connection. Each integration keeps it somewhere different, and a connection
+ * without one reads as accrual, the same default the backend's export rules use.
+ */
+function getIntegrationAccountingMethod(policy: Policy | undefined, connectedIntegration?: ConnectionName): ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD> {
+    const connections = policy?.connections;
+    const accrual = COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
+
+    switch (connectedIntegration) {
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return connections?.netsuite?.options?.config?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return connections?.quickbooksOnline?.config?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return connections?.quickbooksDesktop?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return connections?.xero?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return connections?.intacct?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+            return connections?.rillet?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+            return connections?.dualEntry?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+            return connections?.campfire?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+            return connections?.businessCentral?.config?.export?.accountingMethod ?? accrual;
+        default:
+            return accrual;
+    }
+}
+
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
     if (!isAccountingConnectionName(connectedIntegration)) {
         return false;
@@ -2372,6 +2404,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
         policy?.connections?.campfire?.config?.export?.exporter,
+        policy?.connections?.financialforce?.config?.export?.exporter,
         policy?.connections?.businessCentral?.config?.export?.exporter,
     ];
 }
@@ -2477,6 +2510,7 @@ export {
     shouldShowSyncError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
+    getIntegrationAccountingMethod,
     hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
