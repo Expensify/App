@@ -41,6 +41,9 @@ type UseSubPageProps<TProps extends SubPageProps, TPageName extends string = str
     /** index of the page to start from (used when no subPage param in URL) */
     startFrom?: number;
 
+    /** optional action to restore with the starting page when no subPage param is in the URL */
+    startAction?: 'edit';
+
     /** array of page names to skip */
     skipPages?: TPageName[];
 
