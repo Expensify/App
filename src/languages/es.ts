@@ -7649,7 +7649,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         export: {
             notReadyHeading: 'No está listo para exportar',
             notReadyDescription:
-                'Los borradores o informes de gastos pendientes no se pueden exportar al sistema contabilidad. Por favor, apruebe o pague estos gastos antes de exportarlos.',
+                'Los borradores o informes de gastos pendientes no se pueden exportar al sistema contabilidad.\n\nPor favor, apruebe o pague estos gastos antes de exportarlos.',
         },
         invoices: {
             sendInvoice: 'Enviar factura',

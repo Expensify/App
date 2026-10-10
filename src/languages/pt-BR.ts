@@ -7567,7 +7567,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',
-            notReadyDescription: 'Relatórios de despesas em rascunho ou pendentes não podem ser exportados para o sistema contábil. Aprove ou pague essas despesas antes de exportá-las.',
+            notReadyDescription: 'Relatórios de despesas em rascunho ou pendentes não podem ser exportados para o sistema contábil.\n\nAprove ou pague essas despesas antes de exportá-las.',
         },
         invoices: {
             sendInvoice: 'Enviar fatura',
