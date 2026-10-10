@@ -17,7 +17,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
 import {useSearchQueryContext} from './SearchContext';
-import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
+import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext, SearchSnapshotHashContext} from './SearchContextDefinitions';
 
 type SearchResultsProviderProps = {
     children: React.ReactNode;
@@ -104,9 +104,14 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
         setLastSearchType,
     };
 
+    // The condition useOnyx uses to read a snapshot key from snapshot_<hash>
+    const snapshotHash = !shouldUseLiveData && !!currentSearchHash ? currentSearchHash : undefined;
+
     return (
         <SearchResultsContext value={resultsValue}>
-            <SearchResultsActionsContext value={resultsActionsValue}>{children}</SearchResultsActionsContext>
+            <SearchResultsActionsContext value={resultsActionsValue}>
+                <SearchSnapshotHashContext value={snapshotHash}>{children}</SearchSnapshotHashContext>
+            </SearchResultsActionsContext>
         </SearchResultsContext>
     );
 }
