@@ -1,6 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -252,7 +252,7 @@ function UpdatePersonalBankAccountPage() {
                 shouldShowOfflineIndicator={false}
                 testID={UpdatePersonalBankAccountPage.displayName}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('addPersonalBankAccount.updateSuccessHeader')}
                     onBackButtonPress={exitFlow}
                 />
@@ -276,7 +276,7 @@ function UpdatePersonalBankAccountPage() {
             shouldEnableMaxHeight
             testID={UpdatePersonalBankAccountPage.displayName}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('addPersonalBankAccount.updatePersonalInfo')}
                 onBackButtonPress={handleBackButtonPress}
             />

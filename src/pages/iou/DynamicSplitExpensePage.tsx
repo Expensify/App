@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -639,7 +639,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View style={styles.flex1}>
                     <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={collapsibleHeaderOffset}>
-                        <HeaderWithBackButton
+                        <HeaderWithBackButtonAndTitle
                             title={headerTitle}
                             subtitle={translate('iou.splitExpenseSubtitle', convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency), draftTransaction?.merchant ?? '')}
                             onBackButtonPress={() => Navigation.goBack(backPath)}

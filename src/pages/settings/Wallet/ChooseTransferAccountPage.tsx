@@ -1,5 +1,5 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -125,7 +125,7 @@ function ChooseTransferAccountPage() {
             testID="ChooseTransferAccountPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('chooseTransferAccountPage.chooseAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)}
             />

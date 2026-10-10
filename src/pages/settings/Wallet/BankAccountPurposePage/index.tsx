@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -32,10 +32,9 @@ function BankAccountPurposePage() {
             shouldShowOfflineIndicator={false}
             testID={BankAccountPurposePage.displayName}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('bankAccount.addBankAccount')}
                 onBackButtonPress={handleBackButtonPress}
-                shouldDisplayHelpButton={false}
             />
             {showCountrySelection ? <CountrySelection /> : <BankAccountPurpose showCountrySelectionStep={showCountrySelectionStep} />}
         </ScreenWrapper>

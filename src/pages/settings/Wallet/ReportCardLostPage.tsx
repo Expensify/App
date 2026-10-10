@@ -1,8 +1,9 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -142,11 +143,12 @@ function ReportCardLostPage({
             includeSafeAreaPaddingBottom
             testID="ReportCardLostPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('reportCardLostOrDamaged.screenTitle')}
                 onBackButtonPress={handleBackButtonPress}
-                shouldDisplayHelpButton
-            />
+            >
+                <SidePanelButton />
+            </HeaderWithBackButtonAndTitle>
             <View style={[styles.flex1, styles.justifyContentBetween, styles.pt3, !paddingBottom ? styles.pb5 : null]}>
                 {isReasonConfirmed ? (
                     <>
