@@ -1,4 +1,5 @@
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
+import type {EditRequestField} from '@libs/ReportUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -968,6 +969,117 @@ describe('canEditFieldOfMoneyRequest', () => {
                     transaction: legacyTransaction,
                     reportNameValuePairs: undefined,
                 });
+                expect(canEditDescription).toBe(false);
+            });
+        });
+
+        describe('reported expense with no IOU action', () => {
+            const ACTIONLESS_POLICY_ID = '77';
+            const ACTIONLESS_REPORT_ID = '7777';
+
+            const actionlessPolicy: Policy = {
+                ...createRandomPolicy(Number(ACTIONLESS_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                id: ACTIONLESS_POLICY_ID,
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            const openExpenseReport: Report = {
+                ...createExpenseReport(Number(ACTIONLESS_REPORT_ID)),
+                reportID: ACTIONLESS_REPORT_ID,
+                policyID: ACTIONLESS_POLICY_ID,
+                ownerAccountID: currentUserAccountID,
+                managerID: secondUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const actionlessTransaction = {
+                ...createRandomTransaction(7778),
+                transactionID: '7778',
+                reportID: ACTIONLESS_REPORT_ID,
+                managedCard: false,
+                amount: 75,
+            };
+
+            const setUpReport = async (report: Report, reportPolicy: Policy) => {
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicy.id}`, reportPolicy);
+                await waitForBatchedUpdates();
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should let the submitter edit and move the expense, but not edit reimbursable', async () => {
+                // Given an expense with no IOU action on an open expense report the current user submitted
+                await setUpReport(openExpenseReport, actionlessPolicy);
+
+                // When checking which fields the submitter can edit, without passing the report
+                const canEdit = (fieldToEdit: EditRequestField) =>
+                    canEditFieldOfMoneyRequest({rules: undefined, reportAction: undefined, fieldToEdit, transaction: actionlessTransaction, reportNameValuePairs: undefined});
+
+                // Then the report is found through the transaction, and the submitter stands in for the missing action's requester
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.CATEGORY)).toBe(true);
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.AMOUNT)).toBe(true);
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.REPORT)).toBe(true);
+
+                // And reimbursable stays limited to the action's real requester, admins, and approvers
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)).toBe(false);
+            });
+
+            it('should not let another member edit the expense', async () => {
+                // Given an expense with no IOU action on an open expense report another member submitted
+                await setUpReport({...openExpenseReport, ownerAccountID: secondUserAccountID}, actionlessPolicy);
+
+                // When the current user, who isn't an admin, checks whether they can edit it
+                const canEditCategory = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.CATEGORY,
+                    transaction: actionlessTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then they can't, because the missing action doesn't make them the requester
+                expect(canEditCategory).toBe(false);
+            });
+
+            it('should apply the approved report restrictions when the report is not passed', async () => {
+                // Given an admin and an expense with no IOU action on an approved expense report
+                await setUpReport(
+                    {...openExpenseReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                    {...actionlessPolicy, role: CONST.POLICY.ROLE.ADMIN},
+                );
+
+                // When checking which fields the admin can edit, without passing the report
+                const canEdit = (fieldToEdit: EditRequestField) =>
+                    canEditFieldOfMoneyRequest({rules: undefined, reportAction: undefined, fieldToEdit, transaction: actionlessTransaction, reportNameValuePairs: undefined});
+
+                // Then the coding fields stay editable, and the restricted fields are blocked because the approved report is found through the transaction
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.CATEGORY)).toBe(true);
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.AMOUNT)).toBe(false);
+            });
+
+            it('should not let the expense be edited on an IOU report', async () => {
+                // Given an expense with no IOU action on a submitted IOU report the current user owns
+                await setUpReport(
+                    {...openExpenseReport, type: CONST.REPORT.TYPE.IOU, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                    actionlessPolicy,
+                );
+
+                // When checking whether the owner can edit it
+                const canEditDescription = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
+                    transaction: actionlessTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then they can't, because the submitter only stands in for the requester on expense reports
                 expect(canEditDescription).toBe(false);
             });
         });

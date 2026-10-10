@@ -10,7 +10,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isExpenseReport, isInvoiceReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
@@ -199,14 +199,16 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
         const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
 
-        const transactionsWithActions = transactionIDs.map((transactionID) => ({
-            transactionID,
-            transaction: allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
-            action: iouActions.find((action) => {
-                const IOUTransactionID = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID;
-                return transactionID === IOUTransactionID;
-            }),
-        }));
+        const transactionsWithActions = transactionIDs.map((transactionID) => {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            // Unreported expenses keep their IOU action under the self-DM report rather than under `transaction.reportID`
+            const transactionReportID = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : transaction.reportID;
+            // The actions passed in can be a paginated subset of the collection, so also search the collection. The passed actions still cover gaps, e.g. Search snapshot actions missing from the collection.
+            // Both sources are searched together, so a live action in either one wins over a deleted action in the collection.
+            const collectionActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
+            const action = getIOUActionForTransactionID([...collectionActions, ...iouActions], transactionID, true);
+            return {transactionID, transaction, action};
+        });
         const deletedTransactionIDs: string[] = [];
         const deletedTransactionThreadReportIDs = new Set<string>();
         const {splitTransactionsByOriginalTransactionID, nonSplitTransactions} = transactionsWithActions.reduce(
