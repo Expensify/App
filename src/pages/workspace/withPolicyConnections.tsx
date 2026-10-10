@@ -1,6 +1,7 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import type {ComponentType} from 'react';
 
@@ -35,10 +36,11 @@ function WithPolicyConnectionsImpl<TProps extends WithPolicyConnectionsProps>({W
         isLoadingFetchedFlag: isOnyxDataLoading,
         hasBeenFetched: hasConnectionsDataBeenFetched,
     } = usePolicyConnectionsPrefetch(props.policy, true);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
 
     if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
 
     return (

@@ -17,11 +17,6 @@ type OnboardingTaskLinks = Partial<{
     workspaceConfirmationLink: string;
     testDriveURL: string;
     corporateCardLink: string;
-    companyDomain: string;
-    workEmail: string;
-    workEmailLink: string;
-    validateEmailLink: string;
-    joinWorkspaceLink: string;
 }>;
 
 type OnboardingTask = {
