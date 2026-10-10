@@ -49,6 +49,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@hooks/useNetwork', () => jest.fn());
+jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
 jest.mock('@hooks/useInFlightRequests', () => ({
     ...jest.requireActual<typeof InFlightRequests>('@hooks/useInFlightRequests'),
     useIsReportLoadPending: jest.fn(),
@@ -441,6 +442,50 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(false);
+        });
+    });
+
+    describe('support ticket surveys', () => {
+        const supportTicketReport: OnyxTypes.Report = {
+            ...mockReport,
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        };
+        const closedAction: OnyxTypes.ReportAction = {
+            ...mockReportActions.at(0),
+            reportActionID: 'closed-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+            created: '2026-10-01 10:00:00.000',
+        } as OnyxTypes.ReportAction;
+        const surveyAction: OnyxTypes.ReportAction = {
+            ...mockReportActions.at(1),
+            reportActionID: 'survey-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY,
+            created: '2026-10-01 10:01:00.000',
+            originalMessage: {html: 'How was your support experience?'},
+        } as OnyxTypes.ReportAction;
+
+        it('keeps the survey action in a resolved ticket after it is replaced', () => {
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                report: supportTicketReport,
+                reportActions: [surveyAction, closedAction],
+                sortedAllReportActions: [surveyAction, closedAction],
+            });
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}`) {
+                    return [{reopenedAsReportID: 'replacement-ticket-report'}, {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [supportTicketReport, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+
+            renderReportActionsList();
+
+            expect(getCapturedVisibleActions()).toContain(surveyAction);
         });
     });
 

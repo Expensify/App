@@ -44,17 +44,10 @@ function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProp
     const {translate, localeCompare} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const latestSurvey = getLatestSurveyAfterResolution(reportActions, localeCompare);
     const canRateSurvey = report?.ownerAccountID === currentUserAccountID;
 
-    if (
-        report?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED ||
-        report?.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED ||
-        reportNameValuePairs?.reopenedAsReportID ||
-        latestSurvey?.reportActionID !== action.reportActionID ||
-        !reportID
-    ) {
+    if (report?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || report?.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || latestSurvey?.reportActionID !== action.reportActionID || !reportID) {
         return null;
     }
 
