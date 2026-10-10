@@ -6,6 +6,7 @@ import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
+import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
@@ -263,6 +264,8 @@ type HandleActionButtonPressParams = {
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
+    /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
+    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
@@ -306,6 +309,7 @@ function handleActionButtonPress({
     amountOwed,
     onUndelete,
     onAllHeldExpensesBlock,
+    confirmSubmitReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
     shouldDisableSearchSubmitPress,
@@ -435,38 +439,43 @@ function handleActionButtonPress({
             }
             const policyForSubmit = policy ?? snapshotPolicy;
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
-                openReportSubmitToPopover({
-                    onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
-                        submitMoneyRequestOnSearch(
-                            hash,
-                            [snapshotReport],
-                            [policyForSubmit],
-                            submitterLogin,
-                            getCurrencyDecimals,
-                            rules,
-                            currentSearchKey,
-                            managerEmail,
-                            managerAccountID,
-                            currentUserAccountID,
-                            delegateEmail,
-                        );
-                    },
+                confirmSubmitReportViolations((shouldResolveViolations) => {
+                    openReportSubmitToPopover({
+                        shouldResolveAcknowledgedViolations: shouldResolveViolations,
+                        onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveAcknowledgedViolations) => {
+                            submitMoneyRequestOnSearch({
+                                hash,
+                                reportList: [snapshotReport],
+                                policy: [policyForSubmit],
+                                submitterLogin,
+                                getCurrencyDecimals,
+                                rules,
+                                currentSearchKey,
+                                managerEmail,
+                                managerAccountID,
+                                currentUserAccountID,
+                                delegateEmail,
+                                shouldResolveAcknowledgedViolations,
+                            });
+                        },
+                    });
                 });
                 return;
             }
-            submitMoneyRequestOnSearch(
-                hash,
-                [snapshotReport],
-                [policyForSubmit],
-                submitterLogin,
-                getCurrencyDecimals,
-                rules,
-                currentSearchKey,
-                undefined,
-                undefined,
-                currentUserAccountID,
-                delegateEmail,
-            );
+            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
+                submitMoneyRequestOnSearch({
+                    hash,
+                    reportList: [snapshotReport],
+                    policy: [policyForSubmit],
+                    submitterLogin,
+                    getCurrencyDecimals,
+                    rules,
+                    currentSearchKey,
+                    currentUserAccountID,
+                    delegateEmail,
+                    shouldResolveAcknowledgedViolations,
+                });
+            });
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -1562,21 +1571,35 @@ function clearFooterConversion() {
     Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
 }
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
-function submitMoneyRequestOnSearch(
-    hash: number,
-    reportList: Report[],
-    policy: Policy[],
-    submitterLogin: string | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
-    currentSearchKey?: SearchKey,
-    managerEmail?: string,
-    managerAccountID?: number,
-    currentUserAccountID?: number,
-    delegateEmail?: string,
-) {
+type SubmitMoneyRequestOnSearchParams = {
+    hash: number;
+    reportList: Report[];
+    policy: Policy[];
+    submitterLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
+    currentSearchKey?: SearchKey;
+    managerEmail?: string;
+    managerAccountID?: number;
+    currentUserAccountID?: number;
+    delegateEmail?: string;
+    shouldResolveAcknowledgedViolations?: boolean;
+};
+
+function submitMoneyRequestOnSearch({
+    hash,
+    reportList,
+    policy,
+    submitterLogin,
+    getCurrencyDecimals,
+    rules,
+    currentSearchKey,
+    managerEmail,
+    managerAccountID,
+    currentUserAccountID,
+    delegateEmail,
+    shouldResolveAcknowledgedViolations,
+}: SubmitMoneyRequestOnSearchParams) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
     const isDEWPolicy = hasDynamicExternalWorkflow(firstPolicy);
@@ -1693,6 +1716,7 @@ function submitMoneyRequestOnSearch(
         reportActionID: optimisticSubmittedReportAction.reportActionID,
         ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
+        ...(shouldResolveAcknowledgedViolations ? {shouldResolveAcknowledgedViolations} : {}),
     };
 
     // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.

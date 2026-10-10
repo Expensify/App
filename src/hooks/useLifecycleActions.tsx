@@ -22,16 +22,10 @@ import {
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
-import {
-    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
-    hasOnlyPendingCardTransactions,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
-} from '@libs/TransactionUtils';
+import {hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
-import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,7 +39,7 @@ import React, {useEffect, useRef} from 'react';
 import type {ActionHandledType} from './useHoldMenuSubmit';
 
 import useConfirmModal from './useConfirmModal';
-import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
+import useConfirmSubmitReportViolations from './useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -178,13 +172,19 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+        rules,
+    });
 
-    const handleMarkPendingRTERTransactionsAsCash = () => {
-        markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
-    };
-
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: moneyRequestReport?.reportID,
+        report: moneyRequestReport,
+        policy,
+        shouldShowMarkAsDoneCopy,
+    });
 
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
@@ -266,12 +266,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const confirmApproval = (skipAnimation = false) => {
         onApprove(true, skipAnimation);
     };
-    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report: moneyRequestReport,
-        isTrackIntentUser,
-        rules,
-    });
 
     const handleSubmitReport = (skipAnimation = false) => {
         if (!moneyRequestReport || shouldBlockSubmit) {
@@ -288,9 +282,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             return;
         }
 
-        const doSubmit = () => {
-            if (isSubmitPolicy(policy)) {
+        if (isSubmitPolicy(policy)) {
+            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
                 openReportSubmitToPopover({
+                    shouldResolveAcknowledgedViolations,
                     onSubmitSuccess: () => {
                         if (skipAnimation) {
                             clearSelectedTransactions(true);
@@ -299,8 +294,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         startSubmittingAnimation();
                     },
                 });
-                return;
-            }
+            });
+            return;
+        }
+
+        confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
@@ -311,6 +309,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 isASAPSubmitBetaEnabled,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                shouldResolveAcknowledgedViolations,
                 onSubmitted: () => {
                     if (skipAnimation) {
                         return;
@@ -335,9 +334,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 clearSelectedTransactions(true);
                 onCleanup?.();
             }
-        };
-
-        confirmPendingRTERAndProceed(doSubmit);
+        });
     };
 
     const actions: Record<string, SecondaryActionEntry> = {

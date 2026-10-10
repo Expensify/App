@@ -14,6 +14,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -285,6 +286,12 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         isTrackIntentUser,
         rules,
     });
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: snapshotReport?.reportID ?? reportItem.reportID,
+        report: parentReport ?? snapshotReport,
+        policy: parentPolicy,
+        shouldShowMarkAsDoneCopy,
+    });
 
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
@@ -335,6 +342,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            confirmSubmitReportViolations,
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,

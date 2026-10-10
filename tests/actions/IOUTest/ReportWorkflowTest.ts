@@ -2759,7 +2759,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal, undefined);
+            submitMoneyRequestOnSearch({hash: 1, reportList: [report], policy: [policy], submitterLogin: submitterEmail, getCurrencyDecimals: getCurrencyDecimalsLocal, rules: undefined});
 
             // The client route isn't reliable here, so we let the server route the report by the live workflow.
             const [, parameters] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -2806,7 +2806,15 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [policy],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                managerEmail: chosenManagerEmail,
+            });
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'SubmitReport',
@@ -2867,7 +2875,15 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal, undefined, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [policy],
+                submitterLogin: submitterEmail,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                managerEmail: chosenManagerEmail,
+            });
 
             const [, parameters] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             expect(parameters.managerEmail).toBe(chosenManagerEmail);
@@ -2920,7 +2936,15 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [policy],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                managerEmail: chosenManagerEmail,
+            });
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'SubmitReport',
@@ -2951,7 +2975,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal, undefined);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [createRandomPolicy(1)],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+            });
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -2968,7 +2999,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal, undefined);
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [createRandomPolicy(1)],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+            });
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -2990,7 +3028,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined);
+            submitMoneyRequestOnSearch({hash: 1, reportList: [report], policy: [policy], submitterLogin: undefined, getCurrencyDecimals: getCurrencyDecimalsLocal, rules: undefined});
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             expect(typeof parameters.reportActionID).toBe('string');
