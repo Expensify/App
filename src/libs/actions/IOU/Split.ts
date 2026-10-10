@@ -223,6 +223,20 @@ type StartSplitBilActionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
+type StartedSplitBill = {
+    /** The group chat or workspace chat the split action was added to */
+    chatReportID: string;
+
+    /** The optimistic split action, needed to complete the split with CompleteSplitBill */
+    reportAction: OnyxTypes.ReportAction;
+
+    /** The optimistic split transaction, carrying the `splits` sent to StartSplitBill */
+    transaction: OnyxTypes.Transaction;
+
+    /** Settles once StartSplitBill is queued, so a CompleteSplitBill for this split can only be queued behind it */
+    writePromise: Promise<unknown>;
+};
+
 type CompleteSplitBillActionParams = {
     chatReportID: string;
     reportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -533,7 +547,7 @@ function startSplitBill({
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
-}: StartSplitBilActionParams) {
+}: StartSplitBilActionParams): StartedSplitBill {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(
@@ -892,13 +906,20 @@ function startSplitBill({
         playSound(SOUNDS.DONE);
     }
 
-    API.writeWhenReady(
+    const writePromise = API.writeWhenReady(
         WRITE_COMMANDS.START_SPLIT_BILL,
         parameters,
         {optimisticData, successData, failureData},
         resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
         {onWriteStarted: () => notifyNewAction(splitChatReport.reportID, undefined, true)},
     );
+
+    return {
+        chatReportID: splitChatReport.reportID,
+        reportAction: splitIOUReportAction as OnyxTypes.ReportAction,
+        transaction: {...splitTransaction, comment: {...splitTransaction.comment, splits}},
+        writePromise,
+    };
 }
 
 /** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.

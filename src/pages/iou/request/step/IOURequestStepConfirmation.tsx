@@ -275,15 +275,11 @@ function IOURequestStepConfirmationContent({
     // The user can fill in the amount, merchant and date on the Scan tab instead of waiting for SmartScan, so the Scan
     // confirmation reveals those fields behind "Show more" as well. This only applies to a scan being created: a
     // tracked expense being moved already carries real values, and its emptiness
-    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Splits are
-    // excluded too because StartSplitBill takes no amount/merchant/date (the details are filled in once the receipt
-    // has been scanned), and so are test receipts, whose values are fixed.
+    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Test receipts
+    // are excluded too, since their values are fixed. A split scan takes the entered values through CompleteSplitBill
+    // right after StartSplitBill, see useExpenseSubmission.
     const canEnterScanFieldsManually =
-        requestType === CONST.IOU.REQUEST_TYPE.SCAN &&
-        !isMovingTransactionFromTrackExpense &&
-        iouType !== CONST.IOU.TYPE.SPLIT &&
-        !transaction?.receipt?.isTestReceipt &&
-        !transaction?.receipt?.isTestDriveReceipt;
+        requestType === CONST.IOU.REQUEST_TYPE.SCAN && !isMovingTransactionFromTrackExpense && !transaction?.receipt?.isTestReceipt && !transaction?.receipt?.isTestDriveReceipt;
 
     // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
     const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually))?.transactionID;
