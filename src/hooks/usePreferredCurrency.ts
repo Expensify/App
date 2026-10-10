@@ -29,9 +29,8 @@ function usePreferredCurrency(): PreferredCurrency {
         return paymentCardCurrency;
     }
 
-    const currentUserLocalCurrency = (currentUserPersonalDetail?.localCurrencyCode ?? CONST.PAYMENT_CARD_CURRENCY.USD) as PreferredCurrency;
-
-    return Object.values(CONST.PAYMENT_CARD_CURRENCY).includes(currentUserLocalCurrency) ? currentUserLocalCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
+    const currentUserLocalCurrency = currentUserPersonalDetail?.localCurrencyCode;
+    return Object.values(CONST.PAYMENT_CARD_CURRENCY).find((currency) => currency === currentUserLocalCurrency) ?? CONST.PAYMENT_CARD_CURRENCY.USD;
 }
 
 export default usePreferredCurrency;

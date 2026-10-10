@@ -7,7 +7,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
+import type {VideoThumbnail} from 'expo-video';
 
 import {Str} from 'expensify-common';
 import {useEvent} from 'expo';
@@ -54,7 +54,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
     const [thumbnail, setThumbnail] = useState<VideoThumbnail | null>(null);
     const videoPlayer = useVideoPlayer(isVideo ? source : null);
 
-    const {videoSource} = useEvent(videoPlayer, 'sourceLoad', {videoSource: null} as SourceLoadEventPayload);
+    const videoSource = useEvent(videoPlayer, 'sourceLoad', null)?.videoSource;
 
     useEffect(() => {
         if (!videoSource) {

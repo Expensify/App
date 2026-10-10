@@ -2,6 +2,16 @@ import {renderHook} from '@testing-library/react-native';
 
 import useChartLabelFormats from '@components/Charts/hooks/useChartLabelFormats';
 import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import type * as ChartUtils from '@components/Charts/utils';
+
+import type {SkTypeface, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
+import createMock from '../../../utils/createMock';
+
+jest.mock('@components/Charts/utils', () => {
+    const actual = jest.requireActual<typeof ChartUtils>('@components/Charts/utils');
+    return {...actual, canFontRenderText: (text: string | undefined) => text !== '€'};
+});
 
 let mockNumberFormat = (n: number, options?: Intl.NumberFormatOptions) => n.toLocaleString('en-US', options);
 
@@ -21,6 +31,22 @@ beforeEach(() => {
 });
 
 describe('useChartLabelFormats', () => {
+    it('uses an object fallback but omits an unsupported plain-string unit', () => {
+        // Given a simulated glyph check that rejects the symbol, and equivalent object and string units
+        const typeface = createMock<SkTypeface>({getGlyphIDs: (text: string) => [...text].map((char) => (char === '€' ? 0 : 1))});
+        const fontManager = createMock<SkTypefaceFontProvider>({matchFamilyStyle: () => typeface});
+
+        // When the production hook formats both unit categories
+        const objectFormat = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '€', fallback: 'EUR'}, unitPosition: 'right', fontManager}));
+        const stringFormat = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: '€', unitPosition: 'right', fontManager}));
+
+        // Then only the object can supply a fallback; position and compact formatting survive
+        expect(objectFormat.result.current.formatValue(100)).toBe('100 EUR');
+        expect(objectFormat.result.current.formatCompactValue(100000)).toBe('100k EUR');
+        expect(stringFormat.result.current.formatValue(100)).toBe('100');
+        expect(stringFormat.result.current.formatLabel(1)).toBe('Feb');
+    });
+
     it('formats with single-char unit without separator', () => {
         const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '$', fallback: 'USD'}, unitPosition: 'left'}));
 
