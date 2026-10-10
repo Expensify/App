@@ -134,3 +134,15 @@
 - Upstream PR/issue: https://github.com/necolas/react-native-web/issues/2817
 - E/App issue: https://github.com/Expensify/App/issues/73782
 - PR introducing patch: https://github.com/Expensify/App/pull/76332
+
+### [react-native-web+0.21.2+013+fix-select-responder-termination.patch](react-native-web+0.21.2+013+fix-select-responder-termination.patch)
+
+- Reason:
+  
+    ```
+    Fixes premature termination of active gesture responders when a 'select' event is dispatched with a collapsed selection (e.g. caret repositioning or programmatic cursor movement in TextInput). Previously, any 'select' event unconditionally returned true in hasValidSelection(), terminating active responders even when no text range was selected. This patch checks target.selectionStart and target.selectionEnd so only non-collapsed text selections terminate the active responder, while failing open safely if selection coordinates cannot be determined.
+    ```
+  
+- Upstream PR/issue: https://github.com/necolas/react-native-web/pull/2891
+- E/App issue: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/103460
