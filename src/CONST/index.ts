@@ -2342,6 +2342,7 @@ const CONST = {
         BREADCRUMB_CATEGORY_MFA: 'mfa',
         BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
         BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
+        BREADCRUMB_CATEGORY_SAML_AUTH_SESSION: 'saml.auth_session',
         BREADCRUMB_CATEGORY_BOOTSPLASH_FLOW: 'bootsplash.flow',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
@@ -2369,6 +2370,7 @@ const CONST = {
             MFA_SCENARIO: 'mfa_scenario',
             MFA_ERROR_REASON: 'mfa_error_reason',
             BUILD_TYPE: 'build_type',
+            TEST_CRASH: 'test_crash',
         },
         EXPENSE_ERROR_TYPE: {
             REPORT_CREATION_FAILED: 'report_creation_failed',

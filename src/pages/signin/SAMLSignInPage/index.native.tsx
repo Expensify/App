@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useAppState from '@hooks/useAppState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -18,12 +19,36 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type {SeverityLevel} from '@sentry/react-native';
 import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
+import type {AppStateStatus} from 'react-native';
 
+import * as Sentry from '@sentry/react-native';
 import {dismissAuthSession, openAuthSessionAsync} from 'expo-web-browser';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import handleSAMLLoginError from './handleSAMLLoginError';
+
+type AuthSessionDismissReason = 'exit' | 'unmount';
+type ExitSAMLFlowReason = 'cancel' | 'error' | 'back';
+
+/**
+ * Sentry breadcrumbs around the in-app auth session. The SSO sheet crashes inside its own dismissal after a long
+ * background (Sentry APP-2SC), and these crumbs record the order of cancel / goBack / dismiss and how long the app was
+ * backgrounded.
+ */
+function addBreadcrumb(message: string, data?: Record<string, string | number | boolean | undefined>, level: SeverityLevel = 'info'): void {
+    Sentry.addBreadcrumb({
+        message: `[SAML auth session] ${message}`,
+        category: CONST.TELEMETRY.BREADCRUMB_CATEGORY_SAML_AUTH_SESSION,
+        level,
+        data,
+    });
+}
+
+function msSince(startedAt: number | null): number | undefined {
+    return startedAt === null ? undefined : Date.now() - startedAt;
+}
 
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
@@ -35,37 +60,62 @@ function SAMLSignInPage() {
     const hasOpenedAuthSession = useRef(false);
     const isAuthSessionOpen = useRef(false);
     const hasExitedSAMLFlow = useRef(false);
+    const authSessionOpenedAt = useRef<number | null>(null);
+    const backgroundedAt = useRef<number | null>(null);
+    const lastBackgroundMs = useRef<number | undefined>(undefined);
+
+    useAppState({
+        onAppStateChange: (nextAppState: AppStateStatus) => {
+            if (nextAppState === 'background') {
+                backgroundedAt.current = Date.now();
+                addBreadcrumb('background', {authSessionOpen: isAuthSessionOpen.current});
+                return;
+            }
+            if (nextAppState !== 'active' || backgroundedAt.current === null) {
+                return;
+            }
+            lastBackgroundMs.current = Date.now() - backgroundedAt.current;
+            backgroundedAt.current = null;
+            addBreadcrumb('foreground', {elapsedMs: lastBackgroundMs.current, authSessionOpen: isAuthSessionOpen.current});
+        },
+    });
 
     // An in-app browser left open blocks the next sign-in attempt from opening one, and only iOS can close it.
-    const dismissOpenAuthSession = () => {
+    const dismissOpenAuthSession = (reason: AuthSessionDismissReason) => {
         if (!isAuthSessionOpen.current || getPlatform() !== CONST.PLATFORM.IOS) {
             return false;
         }
         isAuthSessionOpen.current = false;
+        addBreadcrumb('dismiss', {reason, openForMs: msSince(authSessionOpenedAt.current)});
         dismissAuthSession();
         return true;
     };
 
-    const handleExitSAMLFlow = useCallback(() => {
-        // Closing a stuck in-app browser settles its promise, which lands here a second time.
-        if (hasExitedSAMLFlow.current) {
-            return;
-        }
-        hasExitedSAMLFlow.current = true;
-        dismissOpenAuthSession();
+    const handleExitSAMLFlow = useCallback(
+        (reason: ExitSAMLFlowReason) => {
+            // Closing a stuck in-app browser settles its promise, which lands here a second time.
+            if (hasExitedSAMLFlow.current) {
+                return;
+            }
+            hasExitedSAMLFlow.current = true;
+            dismissOpenAuthSession('exit');
 
-        // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
-        setIsAuthenticatingWithShortLivedToken(false);
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
-            clearSignInData();
-        });
-    }, [dismissOpenAuthSession]);
+            // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
+            setIsAuthenticatingWithShortLivedToken(false);
+            Navigation.isNavigationReady().then(() => {
+                addBreadcrumb('goBack', {reason, openForMs: msSince(authSessionOpenedAt.current), lastBackgroundMs: lastBackgroundMs.current});
+                Navigation.goBack();
+                clearSignInData();
+            });
+        },
+        [dismissOpenAuthSession],
+    );
 
     useEffect(
         () => () => {
             // Leaving the page must not leave the in-app browser open, or the next sign-in attempt cannot open one.
-            if (!dismissOpenAuthSession()) {
+            addBreadcrumb('unmount', {authSessionOpen: isAuthSessionOpen.current});
+            if (!dismissOpenAuthSession('unmount')) {
                 return;
             }
             hasExitedSAMLFlow.current = true;
@@ -142,24 +192,30 @@ function SAMLSignInPage() {
         // success; the cancel/error/failure paths reset it via handleExitSAMLFlow and handleNavigationStateChange.
         setIsAuthenticatingWithShortLivedToken(true);
         isAuthSessionOpen.current = true;
+        authSessionOpenedAt.current = Date.now();
+        // A background that ended before the sheet opened says nothing about the sheet, so it must not leak into the result/goBack crumbs.
+        lastBackgroundMs.current = undefined;
+        addBreadcrumb('open');
         openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL)
             .then((response: WebBrowserAuthSessionResult) => {
                 isAuthSessionOpen.current = false;
+                addBreadcrumb('result', {type: response.type, openForMs: msSince(authSessionOpenedAt.current), lastBackgroundMs: lastBackgroundMs.current});
                 if (response.type !== 'success') {
                     // The auth session closed without handing a callback URL back to the app (e.g. the in-app browser
                     // was dismissed/cancelled, or the redirect to the custom scheme never fired). Log the result type so
                     // we can distinguish "browser never returned a success result" from "returned but had no token"
                     // (which is already logged in handleNavigationStateChange) when debugging SAML sign-in loops.
                     Log.hmmm('SAMLSignInPage - Auth session closed without a successful result', {type: response.type});
-                    handleExitSAMLFlow();
+                    handleExitSAMLFlow('cancel');
                     return;
                 }
                 handleNavigationStateChange(response.url);
             })
-            .catch((error) => {
+            .catch((error: unknown) => {
                 isAuthSessionOpen.current = false;
+                addBreadcrumb('error', {message: error instanceof Error ? error.message : String(error), openForMs: msSince(authSessionOpenedAt.current)}, 'warning');
                 Log.hmmm('SAML sign in failed', {error});
-                handleExitSAMLFlow();
+                handleExitSAMLFlow('error');
             });
     }, [SAMLUrl, handleNavigationStateChange, handleExitSAMLFlow]);
 
@@ -202,7 +258,7 @@ function SAMLSignInPage() {
             {showNavigation && (
                 <HeaderWithBackButton
                     title=""
-                    onBackButtonPress={handleExitSAMLFlow}
+                    onBackButtonPress={() => handleExitSAMLFlow('back')}
                 />
             )}
             <FullPageOfflineBlockingView>
