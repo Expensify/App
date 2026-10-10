@@ -88,7 +88,12 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                     <View>
                         <OfflineWithFeedback
                             errors={settlementAccountErrors}
-                            onClose={() => programKey && clearSettlementAccountError(defaultFundID, programKey)}
+                            onClose={() => {
+                                if (!programKey) {
+                                    return;
+                                }
+                                clearSettlementAccountError(defaultFundID, programKey);
+                            }}
                             errorRowStyles={styles.mh5}
                         >
                             <MenuItemField

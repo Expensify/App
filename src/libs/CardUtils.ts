@@ -1941,7 +1941,9 @@ function getSettlementAccountErrors(cardSettings: OnyxEntry<ExpensifyCardSetting
     if (!programErrors) {
         return undefined;
     }
-    return getLatestError({...programErrors, ...cardSettings?.errorFields?.paymentBankAccountID});
+    // The backend message lives in the root field, the program one is the App's generic fallback
+    const rootErrors = cardSettings?.errorFields?.paymentBankAccountID;
+    return isEmptyObject(rootErrors) ? getLatestError(programErrors) : getLatestError(rootErrors);
 }
 
 /** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */

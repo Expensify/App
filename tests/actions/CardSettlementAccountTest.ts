@@ -24,8 +24,8 @@ const travelErrorMessage = 'Travel Billing settlement account could not be updat
 const backendErrorKey = 1785286226370099;
 const backendErrorMessage = "We couldn't verify the balance for this account because its Plaid connection is broken. Reconnect it in Account > Wallet, then try again.";
 
-function selectNewSettlementAccount(shouldClearSettlementAccountError?: boolean) {
-    updateSettlementAccount(domainName, workspaceAccountID, 'policyID', programKey, newSettlementBankAccountID, currentSettlementBankAccountID, shouldClearSettlementAccountError);
+function selectNewSettlementAccount(isTravelSettlementAccountPending?: boolean) {
+    updateSettlementAccount(domainName, workspaceAccountID, 'policyID', programKey, newSettlementBankAccountID, currentSettlementBankAccountID, isTravelSettlementAccountPending);
 }
 
 // What a failed Travel Billing settlement change leaves behind until the admin dismisses it
@@ -115,8 +115,8 @@ describe('actions/Card', () => {
             // Given a Travel Billing settlement failure the admin has not dismissed yet
             await mergePendingTravelBillingError();
 
-            // When the admin changes the card settlement account, which the page does without clearing the shared field while Travel is pending
-            selectNewSettlementAccount(false);
+            // When the admin changes the card settlement account while Travel is pending
+            selectNewSettlementAccount(true);
             await waitForBatchedUpdates();
 
             // Then the Travel Billing error and its pending state survive, so the admin can still dismiss it and roll the Travel account back
@@ -131,7 +131,7 @@ describe('actions/Card', () => {
 
             // When a card settlement change then fails with the backend error
             failWithBackendError();
-            selectNewSettlementAccount(false);
+            selectNewSettlementAccount(true);
             await waitForBatchedUpdates();
 
             // Then the card settings page still shows the card error instead of hiding it behind the Travel pending state
@@ -158,7 +158,7 @@ describe('actions/Card', () => {
             // Given a card settlement failure while a Travel Billing error is pending
             await mergePendingTravelBillingError();
             failWithBackendError();
-            selectNewSettlementAccount(false);
+            selectNewSettlementAccount(true);
             await waitForBatchedUpdates();
 
             // When the admin dismisses the card error

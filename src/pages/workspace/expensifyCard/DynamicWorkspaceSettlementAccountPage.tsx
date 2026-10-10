@@ -134,8 +134,9 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
             Log.alert('[WorkspaceSettlementAccountPage] handleSelectAccount called without a detected card program key');
             return;
         }
-        // A pending field means a Travel Billing error owns the shared root field, so keep it for its rollback
-        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID, !cardSettings?.pendingFields?.paymentBankAccountID);
+        // Only Travel Billing sets this root pending field, its error must survive for its rollback
+        const isTravelSettlementAccountPending = !!cardSettings?.pendingFields?.paymentBankAccountID;
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID, isTravelSettlementAccountPending);
         Navigation.goBack();
     };
 

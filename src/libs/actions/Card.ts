@@ -763,7 +763,7 @@ function updateSettlementAccount(
     programKey: CardProgramKey,
     settlementBankAccountID?: number,
     currentSettlementBankAccountID?: number,
-    shouldClearSettlementAccountError = true,
+    isTravelSettlementAccountPending = false,
 ) {
     if (!settlementBankAccountID) {
         return;
@@ -773,7 +773,7 @@ function updateSettlementAccount(
         [programKey]: {paymentBankAccountID: settlementBankAccountID, errorFields: {paymentBankAccountID: null}},
         isLoading: true,
         // The backend writes its error to this root field, which Travel Billing shares, so leave it alone while Travel's error is pending
-        ...(shouldClearSettlementAccountError && {errorFields: {paymentBankAccountID: null}}),
+        ...(!isTravelSettlementAccountPending && {errorFields: {paymentBankAccountID: null}}),
     };
 
     // Clears a marker left by an earlier queued change that failed after this one's optimistic clear
@@ -781,10 +781,9 @@ function updateSettlementAccount(
 
     const failureValue = {
         // Kept under the program so it marks a card failure without touching the root field Travel Billing reads
-        // Key 0 sorts below the backend's error, so this generic copy only shows when the backend sends none
         [programKey]: {
             paymentBankAccountID: currentSettlementBankAccountID,
-            errorFields: {paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0)},
+            errorFields: {paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
         },
         isLoading: false,
     };
