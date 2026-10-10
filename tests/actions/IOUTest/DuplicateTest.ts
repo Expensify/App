@@ -39,7 +39,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, getRequiredWriteCall} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -1295,8 +1295,9 @@ describe('actions/Duplicate', () => {
             );
 
             // Then: Verify the full transaction objects were not spread into the API payload
-            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('transaction');
-            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('transactionList');
+            const [, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(parameters).not.toHaveProperty('transaction');
+            expect(parameters).not.toHaveProperty('transactionList');
         });
 
         it('should return early when transactionID is undefined', async () => {
