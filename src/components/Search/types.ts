@@ -429,8 +429,6 @@ type SearchQueryJSON = {
     similarSearchHash: number;
     flatFilters: QueryFilters;
     isViewExplicitlySet?: boolean;
-    /** Filters generated for a specific group that must keep exact-match semantics when sent to the backend. */
-    exactMatchFilterKeys?: SearchFilterKey[];
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
