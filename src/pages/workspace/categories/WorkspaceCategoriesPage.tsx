@@ -42,14 +42,23 @@ import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUti
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
+import {hasEnabledOptions, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import {close} from '@userActions/Modal';
-import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+import {
+    clearCategoryErrors,
+    deleteWorkspaceCategories,
+    downloadCategoriesCSV,
+    openPolicyCategoriesPage,
+    setPolicyAutoCategorizeNewExpenses,
+    setPolicyShowCategoryGLCodes,
+    setWorkspaceCategoryEnabled,
+} from '@userActions/Policy/Category';
+import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -324,10 +333,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         isVendorMatchingBetaEnabled,
     ]);
 
-    const navigateToCategoriesSettings = useCallback(() => {
-        Navigation.navigate(buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
-    }, [buildDynamicRoute, isQuickSettingsFlow]);
-
     const navigateToCreateCategoryPage = () => {
         Navigation.navigate(buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
     };
@@ -351,6 +356,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const hasVisibleCategories = categoryRows.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const hasEnabledCategories = hasEnabledOptions(policyCategories);
 
     const policyHasAccountingConnections = hasAccountingConnections(policy);
 
@@ -379,13 +385,48 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        // The other settings moved to Rules, so this is only worth showing for the GL codes toggle.
+        // The former Settings page's toggles are surfaced directly in this menu. Selecting a toggle row (click or Enter)
+        // flips it; the Switch is a display-only indicator and the menu stays open on select.
         if (canWriteCategories) {
             menuItems.push({
-                icon: icons.Gear,
-                text: translate('common.settings'),
-                onSelected: navigateToCategoriesSettings,
+                text: translate('workspace.categories.autoCategorizeNewExpenses'),
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+                shouldCloseModalOnSelect: false,
+                onSelected: () => setPolicyAutoCategorizeNewExpenses(policyId, !(policy?.autoCategorizeNewExpenses ?? true)),
+                numberOfLinesTitle: 0,
+                shouldIgnoreCompactStyle: true,
+                innerContainerStyle: styles.alignItemsCenter,
+                titleStyle: [styles.textLabel, styles.fontWeightNormal],
+                pendingAction: policy?.pendingFields?.autoCategorizeNewExpenses,
+                errors: policy?.errorFields?.autoCategorizeNewExpenses,
+                onCloseError: () => clearPolicyErrorField(policyId, 'autoCategorizeNewExpenses'),
+                switchProps: {
+                    isOn: policy?.autoCategorizeNewExpenses ?? true,
+                    accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
+                    onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value),
+                    disabled: !policy?.areCategoriesEnabled || !hasEnabledCategories,
+                },
+            });
+        }
+        if (canWriteCategories && !!policy?.glCodes) {
+            menuItems.push({
+                text: translate('workspace.categories.showCategoryGLCodes'),
+                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+                shouldCloseModalOnSelect: false,
+                onSelected: () => setPolicyShowCategoryGLCodes(policyId, !(policy?.showCategoryGLCodes ?? false)),
+                numberOfLinesTitle: 0,
+                shouldIgnoreCompactStyle: true,
+                innerContainerStyle: styles.alignItemsCenter,
+                titleStyle: [styles.textLabel, styles.fontWeightNormal],
+                pendingAction: policy?.pendingFields?.showCategoryGLCodes,
+                errors: policy?.errorFields?.showCategoryGLCodes,
+                onCloseError: () => clearPolicyErrorField(policyId, 'showCategoryGLCodes'),
+                switchProps: {
+                    isOn: policy?.showCategoryGLCodes ?? false,
+                    accessibilityLabel: translate('workspace.categories.showCategoryGLCodes'),
+                    onToggle: (value: boolean) => setPolicyShowCategoryGLCodes(policyId, value),
+                    disabled: !policy?.areCategoriesEnabled,
+                },
             });
         }
         if (canWriteCategories && !policyHasAccountingConnections) {
@@ -394,6 +435,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: navigateToImportSpreadsheet,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+                // Group the toggle rows apart from the spreadsheet actions.
+                addSeparatorBefore: true,
             });
         }
         if (hasVisibleCategories) {
@@ -423,16 +466,26 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [
         showOfflineModal,
         icons.Download,
-        icons.Gear,
         icons.Table,
         translate,
         canWriteCategories,
-        navigateToCategoriesSettings,
+        policy?.glCodes,
+        policy?.showCategoryGLCodes,
+        policy?.autoCategorizeNewExpenses,
+        policy?.areCategoriesEnabled,
+        policy?.pendingFields?.showCategoryGLCodes,
+        policy?.errorFields?.showCategoryGLCodes,
+        policy?.pendingFields?.autoCategorizeNewExpenses,
+        policy?.errorFields?.autoCategorizeNewExpenses,
+        hasEnabledCategories,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,
         isOffline,
         policyId,
+        styles.alignItemsCenter,
+        styles.textLabel,
+        styles.fontWeightNormal,
     ]);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
