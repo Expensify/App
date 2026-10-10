@@ -89,6 +89,7 @@ function DynamicNewAgentPage({route}: DynamicNewAgentPageProps) {
     const hasTemplates = templates.length > 0;
     const shouldShowLoadingIndicator = isLoading && !hasTemplates && !isOffline;
     const shouldShowEmptyState = !hasTemplates && (!isLoading || isOffline);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_NEW.path);
 
     useEffect(() => {
         if (isOffline) {
@@ -186,7 +187,7 @@ function DynamicNewAgentPage({route}: DynamicNewAgentPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('newAgentPage.title')}
-                onBackButtonPress={() => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_NEW.path))}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             {body}
         </ScreenWrapper>

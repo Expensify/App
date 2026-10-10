@@ -235,10 +235,11 @@ EditAgentAvatarContent.displayName = 'EditAgentAvatarContent';
 
 function DynamicEditAgentAvatarPage({route}: DynamicEditAgentAvatarPageProps) {
     const {accountID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path);
     return (
         <EditAgentAvatarContent
             accountID={accountID}
-            fallbackRoute={useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path)}
+            fallbackRoute={backPath}
         />
     );
 }

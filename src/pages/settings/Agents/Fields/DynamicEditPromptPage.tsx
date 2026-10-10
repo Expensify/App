@@ -53,6 +53,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
     const formRef = useRef<FormRef>(null);
     const promptTopOffsetRef = useRef(0);
     const scrollToInput = () => scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> = {};
@@ -64,7 +65,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>) => {
         updateAgentPrompt(accountID, values[INPUT_IDS.PROMPT].trim(), agentPrompt?.prompt ?? '');
-        Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path));
+        Navigation.goBack(backPath);
     };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, (e) => {
@@ -96,7 +97,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('editAgentPromptPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path))}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider

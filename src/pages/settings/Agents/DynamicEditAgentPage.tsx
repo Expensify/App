@@ -57,9 +57,10 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
     const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowNotFoundPage = isLoadingApp === false && isOnyxLoaded && !agent && !personalDetails;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT.path);
 
     const agentLogin = personalDetails?.login ?? '';
-    const handleBackPress = () => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT.path));
+    const handleBackPress = () => Navigation.goBack(backPath);
     const handleEditAvatarPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.getRoute(accountID)), {skipMatchingFullScreenRoute: true});
     const handleEditNamePress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute(accountID)), {skipMatchingFullScreenRoute: true});
     const handleEditPromptPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute(accountID)), {skipMatchingFullScreenRoute: true});

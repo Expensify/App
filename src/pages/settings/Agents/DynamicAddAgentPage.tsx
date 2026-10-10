@@ -82,6 +82,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasSubmittedRef = useRef(false);
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_ADD.path);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {
@@ -208,7 +209,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('addAgentPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(useDynamicBackPath(DYNAMIC_ROUTES.AGENT_ADD.path))}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
