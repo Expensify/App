@@ -1807,6 +1807,178 @@ describe('TransactionUtils', () => {
                 },
             },
         };
+        const historicalTransaction = generateTransaction({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            amount: 1934,
+            modifiedAmount: -1734,
+            currency: 'TJS',
+            modifiedCurrency: '',
+            merchant: '19.34 mi @ TJS1.00 / mi',
+            modifiedMerchant: '17.34 mi @ TJS1.00 / mi',
+            comment: {
+                customUnit: {
+                    customUnitRateID: 'rate1',
+                    quantity: 19.34,
+                    reimbursableDistance: 17.34,
+                    commuterExclusion: 2,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            },
+        });
+        const changedRatePolicy: Policy = {
+            ...policyWithDistanceRate,
+            customUnits: {
+                distance: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID: 'distance',
+                    rates: {rate1: {customUnitRateID: 'rate1', currency: 'TJS', rate: 200}},
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                },
+            },
+        };
+
+        it('uses the saved full-route values after the workspace rate changes', () => {
+            // Given a personal distance expense saved at TJS 1/mi before its workspace rate changed to TJS 2/mi
+            // When the display transaction is built from its saved full-route fields
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction: historicalTransaction,
+                isPolicyExpenseChat: false,
+                policy: changedRatePolicy,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the original rate and full amount remain visible
+            expect(displayTransaction?.amount).toBe(-1934);
+            expect(displayTransaction?.merchant).toBe('19.34 mi @ TJS1.00 / mi');
+            expect(displayTransaction?.modifiedAmount).toBeUndefined();
+        });
+
+        it('preserves a manual amount when restoring the saved full route', () => {
+            // Given a manually edited amount on a distance expense with full-route base fields
+            const transaction = {...historicalTransaction, modifiedAmount: -5000};
+
+            // When the workspace rate has changed but the expense is displayed in a personal report
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: changedRatePolicy,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the edited amount and original route are both retained
+            expect(displayTransaction?.amount).toBe(-5000);
+            expect(displayTransaction?.merchant).toBe('19.34 mi @ TJS1.00 / mi');
+        });
+
+        it('does not reprice reduced-only values when the saved rate differs from the workspace rate', () => {
+            // Given a moved expense whose base fields also contain commuter-reduced values from TJS 1/mi
+            const transaction = {...historicalTransaction, amount: 1734, merchant: '17.34 mi @ TJS1.00 / mi'};
+
+            // When its selected rate ID now points to TJS 2/mi
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: changedRatePolicy,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the helper does not invent a new amount from the updated rate
+            expect(displayTransaction).toBe(transaction);
+        });
+
+        it('preserves a manual amount when only reduced values were saved', () => {
+            // Given a distance expense with a manually edited amount and no saved full-route base fields
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                modifiedAmount: -5000,
+                currency: CONST.CURRENCY.USD,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            // When the unchanged workspace rate verifies the saved merchant and base amount
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithDistanceRate,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the manual amount remains while the merchant returns to the full route
+            expect(displayTransaction?.amount).toBe(-5000);
+            expect(displayTransaction?.merchant).toBe('6.46 mi @ $0.76 / mi');
+        });
+
+        it('does not infer a new currency from an unchanged dollar symbol', () => {
+            // Given a reduced-only USD expense whose selected rate now belongs to CAD
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                currency: CONST.CURRENCY.USD,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+            const policyWithChangedCurrency: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.CAD, rate: 76}},
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+
+            // When the rate's symbol cannot prove which currency was originally used
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithChangedCurrency,
+                translate,
+                getCurrencySymbol: () => '$',
+            });
+
+            // Then the transaction remains in its saved currency
+            expect(displayTransaction).toBe(transaction);
+        });
+
+        it('keeps commuter values unchanged for a workspace expense after its rate changes', () => {
+            // Given the same transaction still on its workspace expense report
+            // When its personal-only display normalization is requested
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction: historicalTransaction,
+                isPolicyExpenseChat: true,
+                policy: changedRatePolicy,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the workspace commuter exclusion remains untouched
+            expect(displayTransaction).toBe(historicalTransaction);
+        });
 
         it('rebuilds full-route amount and merchant for personal distance expenses with commuter metadata', () => {
             const transaction = generateTransaction({

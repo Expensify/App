@@ -48,6 +48,7 @@ const disabledProperties = [
     'walletTermsErrors',
     'personalDetails',
     'chatReport',
+    'displayTransaction',
 ].reduce<Record<string, {table: {disable: boolean}}>>((disabledArgTypes, property) => {
     // eslint-disable-next-line no-param-reassign
     disabledArgTypes[property] = {
@@ -136,7 +137,10 @@ function Template(props: TransactionPreviewContentProps) {
         <ThemeProvider theme={CONST.THEME.LIGHT}>
             <ThemeStylesProvider>
                 <View style={{flexDirection: 'row'}}>
-                    <TransactionPreviewContent {...props} />
+                    <TransactionPreviewContent
+                        {...props}
+                        displayTransaction={props.transaction}
+                    />
                 </View>
             </ThemeStylesProvider>
         </ThemeProvider>

@@ -9,6 +9,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {isTravelCardTransaction} from '@libs/CardUtils';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -26,6 +27,7 @@ import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
@@ -178,6 +180,41 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         return transaction;
     }
 
+    const modifiedAmount = hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : undefined;
+    const storedUnit = customUnit?.distanceUnit;
+    const reducedDistance = customUnit?.reimbursableDistance;
+    if (
+        storedUnit &&
+        typeof reducedDistance === 'number' &&
+        reducedDistance >= 0 &&
+        reducedDistance < fullDistance &&
+        (!transaction.modifiedCurrency || transaction.modifiedCurrency === transaction.currency)
+    ) {
+        const fullMerchantPrefix = `${fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `;
+        const reducedMerchantPrefix = `${reducedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `;
+        const fullRateText = transaction.merchant?.startsWith(fullMerchantPrefix) ? transaction.merchant.slice(fullMerchantPrefix.length) : undefined;
+        const reducedRateText = transaction.modifiedMerchant?.startsWith(reducedMerchantPrefix) ? transaction.modifiedMerchant.slice(reducedMerchantPrefix.length) : undefined;
+        if (fullRateText && fullRateText === reducedRateText && Number.isFinite(transaction.amount) && (modifiedAmount === undefined || Number.isFinite(modifiedAmount))) {
+            const roundedFullDistance = Number(fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+            const roundedReducedDistance = Number(reducedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+            if (roundedFullDistance > 0) {
+                const lowerRate = Math.max(0, (Math.abs(transaction.amount) - 0.5) / roundedFullDistance);
+                const upperRate = (Math.abs(transaction.amount) + 0.5) / roundedFullDistance;
+                const calculatedReducedAmount = Math.round(roundedReducedDistance * lowerRate);
+                const isCalculatedAmount =
+                    modifiedAmount === undefined || (calculatedReducedAmount === Math.round(roundedReducedDistance * upperRate) && calculatedReducedAmount === Math.abs(modifiedAmount));
+                const amountToDisplay = isCalculatedAmount ? Math.abs(transaction.amount) : Math.abs(modifiedAmount ?? transaction.amount);
+                return {
+                    ...transaction,
+                    amount: (modifiedAmount ?? transaction.amount) < 0 ? -amountToDisplay : amountToDisplay,
+                    convertedAmount: undefined,
+                    modifiedAmount: undefined,
+                    modifiedMerchant: undefined,
+                };
+            }
+        }
+    }
+
     const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
     const rate = mileageRate?.rate;
     const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
@@ -186,10 +223,52 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     }
 
     const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(fullDistance, unit);
-    const fullDistanceAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, rate);
-    const storedAmount = hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : (transaction.amount ?? 0);
-    const normalizedAmount = storedAmount < 0 ? -fullDistanceAmount : fullDistanceAmount;
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(customUnit, unit);
+    const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData?.reimbursableDistance ?? fullDistance, unit);
+    const reducedAmount = DistanceRequestUtils.getDistanceRequestAmount(reducedDistanceInMeters, unit, rate);
     const currency = mileageRate?.currency ?? getCurrency(transaction);
+    const storedReducedMerchant = transaction.modifiedMerchant ?? transaction.merchant;
+    const getDisplayCurrencySymbol = (currencyCode: string) => getCurrencySymbol(currencyCode) ?? getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), currencyCode);
+    const savedCurrency = getCurrency(transaction);
+    if (currency !== savedCurrency && getDisplayCurrencySymbol(currency) === getDisplayCurrencySymbol(savedCurrency)) {
+        return transaction;
+    }
+    const merchantAtCurrentRate = getDistanceMerchantForTransaction({
+        transaction,
+        distanceInMeters: fullDistanceInMeters,
+        unit,
+        rate,
+        currency,
+        translate,
+        getCurrencySymbol: getDisplayCurrencySymbol,
+        commuterExclusionData,
+    });
+    const getEnglishCurrencySymbol = (currencyCode: string) => getLocalizedCurrencySymbol(CONST.LOCALES.EN, currencyCode);
+    const merchantWithEnglishSymbol = getDistanceMerchantForTransaction({
+        transaction,
+        distanceInMeters: fullDistanceInMeters,
+        unit,
+        rate,
+        currency,
+        translate,
+        getCurrencySymbol: getEnglishCurrencySymbol,
+        commuterExclusionData,
+    });
+    const merchantMatchesCurrentRate = storedReducedMerchant === merchantAtCurrentRate || storedReducedMerchant === merchantWithEnglishSymbol;
+    const storedAmount = modifiedAmount ?? transaction.amount;
+    if (
+        !commuterExclusionData ||
+        !merchantMatchesCurrentRate ||
+        !Number.isFinite(storedAmount) ||
+        (Math.abs(storedAmount) !== reducedAmount && Math.abs(transaction.amount) !== reducedAmount)
+    ) {
+        return transaction;
+    }
+
+    const fullDistanceAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, rate);
+    const isManuallyModified = Math.abs(storedAmount) !== reducedAmount;
+    const normalizedAmount = isManuallyModified ? storedAmount : storedAmount < 0 ? -fullDistanceAmount : fullDistanceAmount;
+    const merchantCurrencySymbol = storedReducedMerchant === merchantAtCurrentRate ? getDisplayCurrencySymbol : getEnglishCurrencySymbol;
     const normalizedMerchant = getDistanceMerchantForTransaction({
         transaction,
         distanceInMeters: fullDistanceInMeters,
@@ -197,7 +276,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         rate,
         currency,
         translate,
-        getCurrencySymbol,
+        getCurrencySymbol: merchantCurrencySymbol,
     });
 
     return {
