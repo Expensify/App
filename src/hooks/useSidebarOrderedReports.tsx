@@ -1,4 +1,5 @@
 import {setInboxTab} from '@libs/actions/User';
+import getReportAttributesUpdates from '@libs/getReportAttributesUpdates';
 import Log from '@libs/Log';
 import SidebarUtils from '@libs/SidebarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -7,7 +8,6 @@ import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
@@ -118,6 +118,7 @@ function SidebarOrderedReportsContextProvider({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const prevReportAttributes = usePrevious(reportAttributes);
+    const reportAttributesUpdates = useMemo(() => getReportAttributesUpdates(reportAttributes, prevReportAttributes), [reportAttributes, prevReportAttributes]);
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -154,6 +155,11 @@ function SidebarOrderedReportsContextProvider({
         if (reportNameValuePairsUpdates) {
             for (const key of Object.keys(reportNameValuePairsUpdates ?? {}).map((reportKey) => reportKey.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT))) {
                 reportsToUpdate.add(key);
+            }
+        }
+        if (reportAttributesUpdates) {
+            for (const reportID of reportAttributesUpdates) {
+                reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             }
         }
         if (transactionsUpdates) {
@@ -198,6 +204,7 @@ function SidebarOrderedReportsContextProvider({
     }, [
         reportUpdates,
         reportNameValuePairsUpdates,
+        reportAttributesUpdates,
         transactionsUpdates,
         transactionViolationsUpdates,
         reportsDraftsUpdates,
@@ -220,30 +227,9 @@ function SidebarOrderedReportsContextProvider({
         const updatedReports = getUpdatedReports();
         const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
 
-        // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
-        // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
-        // reports, recheck only the already-displayed reports with the new reportAttributes.
+        // When a dependency changes but no report-specific keys were updated, getUpdatedReports() returns [].
+        // Rather than falling through to a full scan of all reports, recheck only the already-displayed reports.
         let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
-
-        // A report can be filtered out before its derived attributes are ready (e.g. a new DM that arrives before its
-        // expense preview). It is then not displayed, so the fallback above never rechecks it. Also recheck reports whose
-        // visibility-related attributes changed. Compare fields, not references: derived writes recreate every entry,
-        // so a reference diff would bring back a full scan. Skip the first hydration for the same reason.
-        if (hasCachedReports && reportAttributes !== prevReportAttributes && !isEmptyObject(prevReportAttributes)) {
-            const reportsToUpdate = new Set(effectiveUpdatedReports);
-            for (const [reportID, attributes] of Object.entries(reportAttributes ?? {})) {
-                const prevAttributes = prevReportAttributes[reportID];
-                if (
-                    !prevAttributes ||
-                    attributes.requiresAttention !== prevAttributes.requiresAttention ||
-                    attributes.isEmpty !== prevAttributes.isEmpty ||
-                    attributes.brickRoadStatus !== prevAttributes.brickRoadStatus
-                ) {
-                    reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-                }
-            }
-            effectiveUpdatedReports = Array.from(reportsToUpdate);
-        }
 
         // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
         // getUpdatedReports() returns no report keys. Re-evaluate all reports so domain rooms previously
@@ -304,7 +290,6 @@ function SidebarOrderedReportsContextProvider({
         transactionViolations,
         reportNameValuePairs,
         reportAttributes,
-        prevReportAttributes,
         reportsDrafts,
         isOffline,
         clearCacheDummyCounter,

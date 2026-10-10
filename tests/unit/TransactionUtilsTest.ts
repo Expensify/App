@@ -293,6 +293,23 @@ describe('TransactionUtils', () => {
                 expect(result).toEqual(expectedResult);
             });
         });
+
+        describe('when posted date has value with format YYYYMMddHHmmss', () => {
+            // Given a card transaction whose posted value has a time suffix, as some card feeds (e.g. Amex) send it
+            const transaction = generateTransaction({
+                posted: '20261002153000',
+            });
+
+            it('returns the posted date with the correct format YYYY-MM-dd', () => {
+                const expectedResult = '2026-10-02';
+
+                // When the posted date is formatted for the expense view
+                const result = TransactionUtils.getFormattedPostedDate(transaction);
+
+                // Then the date is still parsed, so the expense shows "Date • Posted" instead of plain "Date"
+                expect(result).toEqual(expectedResult);
+            });
+        });
     });
 
     describe('getIsFromGlobalCreate', () => {
@@ -430,6 +447,86 @@ describe('TransactionUtils', () => {
                 expect(categoryTaxAmount).toBe(undefined);
                 expect(categoryTaxValue).toBe(undefined);
             });
+        });
+    });
+
+    describe('getDefaultTaxCode for distance requests', () => {
+        const RATE_ID = 'rate_1';
+
+        const buildDistancePolicy = ({
+            rateTaxCode,
+            isRateTaxDisabled = false,
+            isDefaultTaxDisabled = false,
+        }: {
+            rateTaxCode: string;
+            isRateTaxDisabled?: boolean;
+            isDefaultTaxDisabled?: boolean;
+        }) =>
+            ({
+                ...createRandomPolicy(0),
+                taxRates: {
+                    ...CONST.DEFAULT_TAX,
+                    taxes: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        id_TAX_EXEMPT: {name: 'Tax exempt', value: '0%', isDisabled: isDefaultTaxDisabled},
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        id_TAX_RATE_1: {name: 'Tax Rate 1', value: '5%', isDisabled: isRateTaxDisabled},
+                    },
+                },
+                customUnits: {
+                    distance: {
+                        customUnitID: 'distance',
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
+                        rates: {
+                            [RATE_ID]: {customUnitRateID: RATE_ID, name: 'Custom rate', rate: 100, enabled: true, attributes: {taxRateExternalID: rateTaxCode, taxClaimablePercentage: 1}},
+                        },
+                    },
+                },
+            }) as Policy;
+
+        const distanceTransaction: Transaction = {
+            ...generateTransaction(),
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: RATE_ID}},
+        };
+
+        it("returns the distance rate's tax code while it is enabled", () => {
+            // Given a distance rate whose reclaimable tax rate is still enabled
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1'});
+
+            // When resolving the default tax code for a distance expense on that rate
+            // Then the rate's own tax code is used
+            expect(TransactionUtils.getDefaultTaxCode(policy, distanceTransaction)).toBe('id_TAX_RATE_1');
+        });
+
+        it("falls back to the policy default when the distance rate's tax rate was disabled", () => {
+            // Given a distance rate that still points at a tax rate the admin has since disabled
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1', isRateTaxDisabled: true});
+
+            // When resolving the default tax code for a distance expense on that rate
+            // Then the disabled code is skipped so the split/save request isn't rejected, and the policy default is used
+            expect(TransactionUtils.getDefaultTaxCode(policy, distanceTransaction)).toBe('id_TAX_EXEMPT');
+        });
+
+        it('returns undefined when both the distance rate tax and the policy default are disabled', () => {
+            // Given a disabled distance rate tax and a disabled policy default
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1', isRateTaxDisabled: true, isDefaultTaxDisabled: true});
+
+            // When resolving the default tax code for a distance expense on that rate
+            // Then no tax code is returned, because none of them can be picked
+            expect(TransactionUtils.getDefaultTaxCode(policy, distanceTransaction)).toBeUndefined();
+        });
+
+        it('makes getDistanceRateTaxUpdates drop the disabled tax rate', () => {
+            // Given a distance rate that still points at a disabled tax rate
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1', isRateTaxDisabled: true});
+
+            // When computing the tax updates for that distance rate
+            const {taxCode} = TransactionUtils.getDistanceRateTaxUpdates(policy, distanceTransaction, RATE_ID, getCurrencyDecimalsLocal);
+
+            // Then the disabled tax code is not used
+            expect(taxCode).toBe('id_TAX_EXEMPT');
         });
     });
 
@@ -4038,6 +4135,41 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getConvertedTaxAmount', () => {
+        it('should return the absolute converted tax amount if the transaction is not from an expense report', () => {
+            // Given an IOU transaction whose converted tax is stored as a negative value
+            const transaction = generateTransaction({convertedTaxAmount: -100});
+
+            // When we read the converted tax amount for a non-expense report
+            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, false);
+
+            // Then it is returned unsigned, because IOU requests cannot have negative values
+            expect(convertedTaxAmount).toBe(100);
+        });
+
+        it('should return the opposite sign if the transaction is from an expense report', () => {
+            // Given an expense-report transaction whose converted tax is stored with the opposite sign of what we display
+            const transaction = generateTransaction({convertedTaxAmount: 182});
+
+            // When we read the converted tax amount for an expense report
+            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, true);
+
+            // Then the sign is flipped back, so a refund's tax displays as negative
+            expect(convertedTaxAmount).toBe(-182);
+        });
+
+        it('should return 0 instead of -0 when there is no converted tax amount', () => {
+            // Given an expense-report transaction with no converted tax
+            const transaction = generateTransaction({convertedTaxAmount: 0});
+
+            // When we read the converted tax amount
+            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, true);
+
+            // Then we get 0 rather than -0, so we never render "-0.00"
+            expect(Object.is(convertedTaxAmount, 0)).toBe(true);
+        });
+    });
+
     describe('hasTaxRateWithMatchingValue', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
@@ -6404,6 +6536,33 @@ describe('getSelectedRouteDistance', () => {
         const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {selectedRouteKey: 'route1'}, routes});
         expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
         expect(TransactionUtils.getSelectedRouteDistance(undefined)).toBeUndefined();
+    });
+
+    it('returns the route distance a reused route was taken with, since it is not routed again', () => {
+        // Given a draft seeded from a reused route, which carries the route distance of the expense it was reused from
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, isReusedRoute: true, comment: {customUnit: {routeDistanceMeters: 1500}}});
+
+        // When getting the distance to send for the selected route
+        // Then it is the reused route's, so the backend takes the same route alternative
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+    });
+
+    it('selects the alternative a reused route was taken with when its routes are fetched', () => {
+        // Given a reused route draft whose routes were fetched anyway, with the source expense on the longer alternative
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, isReusedRoute: true, comment: {customUnit: {routeDistanceMeters: 1500}}, routes});
+
+        // When getting the distance to send for the selected route
+        // Then it is the alternative closest to the reused route's distance, not the primary route
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+    });
+
+    it('ignores the stored route distance of an expense that was not reused', () => {
+        // Given a saved expense being moved, which carries its route distance but has no routes and wasn't reused
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {customUnit: {routeDistanceMeters: 1500}}});
+
+        // When getting the distance to send for the selected route
+        // Then there is none, as before, so moving the expense doesn't change how its route is picked
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
     });
 });
 
