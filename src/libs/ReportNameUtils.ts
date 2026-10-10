@@ -226,20 +226,21 @@ function getLocalizedSupportTicketReportName(
     personalDetailsList: PersonalDetailsList | undefined,
     dateFnsLocale: DateFnsLocale | undefined,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     const customer = temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: report.ownerAccountID ? personalDetailsList?.[report.ownerAccountID] : undefined,
         defaultValue: '',
         shouldFallbackToHidden: false,
         translate,
-        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        formatPhoneNumber,
     });
     const supportRep = temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: report.managerID ? personalDetailsList?.[report.managerID] : undefined,
         defaultValue: '',
         shouldFallbackToHidden: false,
         translate,
-        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        formatPhoneNumber,
     });
 
     if (!report.created || !customer || !supportRep) {
@@ -1284,7 +1285,7 @@ function computeReportName({
     }
 
     if (isSupportTicket(report)) {
-        return getLocalizedSupportTicketReportName(report, personalDetailsList, dateFnsLocale, translate);
+        return getLocalizedSupportTicketReportName(report, personalDetailsList, dateFnsLocale, translate, formatPhoneNumber);
     }
 
     const privateIsArchivedValue = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;

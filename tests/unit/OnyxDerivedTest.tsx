@@ -337,12 +337,14 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                 ],
                 {},
             );
             const reportAttributesComputedValue = reportAttributes.compute(
                 [
                     reports,
+                    undefined,
                     undefined,
                     undefined,
                     undefined,

@@ -869,14 +869,14 @@ describe('reportAttributes compute — policy change code flow', () => {
             // Given a first compute that saw the card's live fraud pointing at the fraud report
             const liveFraudCardList: CardList = {[CARD_ID]: cardWithFraud};
             const initialArgs = buildArgs(policies, cardReports);
-            initialArgs[15] = liveFraudCardList;
+            initialArgs[16] = liveFraudCardList;
             config.compute(initialArgs, {currentValue: undefined, sourceValues: undefined});
             generateReportAttributes.mockClear();
 
             // When the backend clears possibleFraud, which also drops the card's fraudAlertReportID
             const clearedFraudCardList: CardList = {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
             const args = buildArgs(policies, cardReports);
-            args[15] = clearedFraudCardList;
+            args[16] = clearedFraudCardList;
             config.compute(args, {
                 currentValue: seededValue,
                 triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST]),
@@ -892,7 +892,7 @@ describe('reportAttributes compute — policy change code flow', () => {
 
             // Given a first compute that saw the card's live fraud pointing at the fraud report
             const initialArgs = buildArgs(policies, cardReports);
-            initialArgs[15] = {[CARD_ID]: cardWithFraud};
+            initialArgs[16] = {[CARD_ID]: cardWithFraud};
             config.compute(initialArgs, {currentValue: undefined, sourceValues: undefined});
             generateReportAttributes.mockClear();
 
@@ -918,8 +918,8 @@ describe('reportAttributes compute — policy change code flow', () => {
 
             // Given REPORT_ATTRIBUTES restored from disk with a fraud alert green dot no card points at anymore, and an approval green dot
             const args = buildArgs(policies, cardReports);
-            args[3] = cardReportActions;
-            args[15] = cardList;
+            args[4] = cardReportActions;
+            args[16] = cardList;
 
             // When the first compute after app start runs without source values
             const result = config.compute(args, {currentValue: seededValue, sourceValues: undefined});
@@ -943,7 +943,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             // Given a stored fraud alert report with a stale name that the card's live fraud points at
             const args = buildArgs(policies, cardReports);
             args[1] = CONST.LOCALES.ES;
-            args[15] = {[CARD_ID]: cardWithFraud};
+            args[16] = {[CARD_ID]: cardWithFraud};
 
             // When a full recompute runs in the same compute as the card change
             const result = config.compute(args, {currentValue: seededValue, triggeredKeys: new Set<OnyxKey>([triggeredKey, ONYXKEYS.CARD_LIST])});
@@ -961,13 +961,13 @@ describe('reportAttributes compute — policy change code flow', () => {
             const childFraudReport = {...fraudChatReport, chatReportID: OTHER_REPORT_ID};
             const reportsWithParent: OnyxCollection<Report> = {...cardReports, [`${ONYXKEYS.COLLECTION.REPORT}${FRAUD_REPORT_ID}`]: childFraudReport};
             const initialArgs = buildArgs(policies, reportsWithParent);
-            initialArgs[15] = {[CARD_ID]: cardWithFraud};
+            initialArgs[16] = {[CARD_ID]: cardWithFraud};
             config.compute(initialArgs, {currentValue: undefined, sourceValues: undefined});
             generateReportAttributes.mockClear();
 
             // When the backend clears possibleFraud on the card
             const args = buildArgs(policies, reportsWithParent);
-            args[15] = {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
+            args[16] = {[CARD_ID]: createRandomExpensifyCard(CARD_ID, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
             config.compute(args, {currentValue: seededValue, triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST])});
 
             // Then only the fraud report is recomputed, since the fraud alert dot doesn't feed the parent chat
