@@ -21,7 +21,6 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
-import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
@@ -64,20 +63,6 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
 
-// These are the child screens opened from the embedded confirmation fields. Browser history restores them with a
-// RESET after a refresh, but moving between them and the form is still internal navigation within the same draft.
-const EMBEDDED_CONFIRMATION_INTERNAL_SCREENS = new Set<string>([
-    SCREENS.MONEY_REQUEST.CREATE,
-    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY,
-    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE,
-    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE,
-    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION,
-    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT,
-    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG,
-    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT,
-    SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE,
-]);
-
 function isNavigationStatePayload(payload: unknown): payload is NavigationState {
     return !!payload && typeof payload === 'object' && 'routes' in payload && Array.isArray(payload.routes);
 }
@@ -93,6 +78,16 @@ function getTransactionIDFromRouteParams(params: unknown): string | undefined {
 
     // `getActionFromState()` nests a child screen's route parameters under `params.params` in a RESET payload.
     return 'params' in params ? getTransactionIDFromRouteParams(params.params) : undefined;
+}
+
+function navigationStateContainsCreateDraft(state: NavigationState, activeTransactionID: string | undefined): boolean {
+    return state.routes.some((route) => {
+        if (route.name === SCREENS.MONEY_REQUEST.CREATE && getTransactionIDFromRouteParams(route.params) === activeTransactionID) {
+            return true;
+        }
+
+        return !!route.state && isNavigationStatePayload(route.state) && navigationStateContainsCreateDraft(route.state, activeTransactionID);
+    });
 }
 
 function IOURequestStartPage({
@@ -285,15 +280,13 @@ function IOURequestStartPage({
 
     const shouldPromptForEmbeddedNavigationAction = useCallback(
         (action: NavigationAction) => {
-            // After a refresh, browser Back and Forward restore the form or an inline field page as a RESET. It is
-            // still internal navigation when the reset's destination belongs to this same draft.
+            // After a refresh, browser Back and Forward restore the navigator state as a RESET. It is still internal
+            // navigation when the restored state contains the current draft's Create route.
             if (action.type !== 'RESET' || !isNavigationStatePayload(action.payload)) {
                 return true;
             }
 
-            const destinationRoute = findFocusedRouteWithOnyxTabGuard(action.payload);
-            const isInternalDestination = EMBEDDED_CONFIRMATION_INTERNAL_SCREENS.has(destinationRoute?.name ?? '');
-            return !isInternalDestination || getTransactionIDFromRouteParams(destinationRoute?.params) !== route.params.transactionID;
+            return !navigationStateContainsCreateDraft(action.payload, route.params.transactionID);
         },
         [route.params.transactionID],
     );

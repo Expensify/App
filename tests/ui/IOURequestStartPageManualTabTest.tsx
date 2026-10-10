@@ -310,7 +310,7 @@ describe('IOURequestStartPage manual tab content', () => {
         expect(mockGetHasUnsavedChanges?.()).toBe(true);
     });
 
-    it('allows browser Back and Forward resets between the form and an inline field page for the same dirty draft', async () => {
+    it('allows browser Back and Forward resets within the same dirty draft', async () => {
         await renderStartPage({
             iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
             transactionDraft: {isAmountSet: true, amount: 1200},
@@ -332,29 +332,69 @@ describe('IOURequestStartPage manual tab content', () => {
             payload: {
                 routes: [
                     {
-                        name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY,
-                        params: {transactionID: TRANSACTION_ID},
+                        name: SCREENS.MONEY_REQUEST.CREATE,
+                        params: {params: {transactionID: TRANSACTION_ID}},
+                        state: {
+                            routes: [
+                                {
+                                    name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY,
+                                    params: {transactionID: TRANSACTION_ID},
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        } as NavigationAction;
+        const attendeesReset = {
+            type: 'RESET',
+            payload: {
+                routes: [
+                    {
+                        name: SCREENS.MONEY_REQUEST.CREATE,
+                        params: {params: {transactionID: TRANSACTION_ID}},
+                        state: {
+                            routes: [
+                                {
+                                    name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES,
+                                    params: {transactionID: TRANSACTION_ID},
+                                },
+                            ],
+                        },
                     },
                 ],
             },
         } as NavigationAction;
 
-        // After refresh, browser Back restores the Create route and browser Forward restores Category.
+        // After refresh, browser Back restores the Create route and browser Forward restores a child route inside it.
         expect(mockShouldPromptForNavigationAction?.(formReset)).toBe(false);
         expect(mockShouldPromptForNavigationAction?.(categoryReset)).toBe(false);
+        expect(mockShouldPromptForNavigationAction?.(attendeesReset)).toBe(false);
 
         const otherDraftCategoryReset = {
             ...categoryReset,
             payload: {
                 routes: [
                     {
-                        name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY,
-                        params: {transactionID: 'other-transaction'},
+                        name: SCREENS.MONEY_REQUEST.CREATE,
+                        params: {params: {transactionID: 'other-transaction'}},
                     },
                 ],
             },
         } as NavigationAction;
         expect(mockShouldPromptForNavigationAction?.(otherDraftCategoryReset)).toBe(true);
+
+        const fullExitReset = {
+            type: 'RESET',
+            payload: {
+                routes: [
+                    {
+                        name: SCREENS.REPORT,
+                    },
+                ],
+            },
+        } as NavigationAction;
+        expect(mockShouldPromptForNavigationAction?.(fullExitReset)).toBe(true);
     });
 
     it('keeps the discard guard clean on pay flow mount when pre-populated with an initial amount, but triggers when amount changes', async () => {
