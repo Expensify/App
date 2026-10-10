@@ -22,7 +22,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
+import {isCashBackWithdrawalGroup, isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -282,11 +282,17 @@ function TransactionGroupListItemImpl({
         });
     };
 
+    const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
+
     const onPress = (event?: ModifiedMouseEvent) => {
         if (shouldSuppressCopyableTextRowPress()) {
             return;
         }
 
+        // A cash back row has no children to drill into.
+        if (isCashBackWithdrawal) {
+            return;
+        }
         const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
         if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
             onSelectRow(item, transactionPreviewData, event);
@@ -313,6 +319,9 @@ function TransactionGroupListItemImpl({
     };
 
     const onExpandIconPress = () => {
+        if (isCashBackWithdrawal) {
+            return;
+        }
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
             // onPress handles handleToggle() for us, so we return early to avoid calling it twice
@@ -360,7 +369,7 @@ function TransactionGroupListItemImpl({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onExpandIconPress}
+                    onDownArrowClick={isCashBackWithdrawal ? undefined : onExpandIconPress}
                     isExpanded={isExpanded}
                 />
             ),
@@ -559,12 +568,22 @@ function TransactionGroupListItemImpl({
                 disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
-                role={CONST.ROLE.BUTTON}
+                role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}
                 isNested
-                shouldAllowTextSelection
-                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                shouldAllowTextSelection={!isCashBackWithdrawal}
+                interactive={!isCashBackWithdrawal}
+                focusable={!isCashBackWithdrawal}
+                pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
+                hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                dataSet={{
+                    ...(isCashBackWithdrawal ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : COPYABLE_ROW_DATA_SET),
+                    [CONST.INNER_BOX_SHADOW_ELEMENT]: true,
+                }}
                 onMouseDown={(e) => {
+                    if (isCashBackWithdrawal) {
+                        e.preventDefault();
+                        return;
+                    }
                     const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
                     if (isCopyableTarget) {
                         return;
@@ -572,6 +591,9 @@ function TransactionGroupListItemImpl({
                     e.preventDefault();
                 }}
                 onTouchStart={(event) => {
+                    if (isCashBackWithdrawal) {
+                        return;
+                    }
                     markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
                 }}
                 id={item.keyForList ?? ''}
@@ -601,7 +623,7 @@ function TransactionGroupListItemImpl({
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
                             expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
-                            shouldShowToggleButton={isLargeScreenWidth}
+                            shouldShowToggleButton={isLargeScreenWidth && !isCashBackWithdrawal}
                             borderBottomStyle={isLargeScreenWidth ? styles.borderNone : isItemSelected && {borderColor: theme.buttonHoveredBG}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >

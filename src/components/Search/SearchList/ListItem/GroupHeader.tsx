@@ -24,8 +24,10 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout, isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -180,6 +182,7 @@ function GroupHeader({
     const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
+    const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
     // The same derivation the narrow layout reads, so the two cannot disagree about what a group's checkbox shows.
     const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: groupItem.transactions});
@@ -260,6 +263,7 @@ function GroupHeader({
                     <WithdrawalIDListItemHeader
                         withdrawalID={groupItem}
                         {...commonProps}
+                        onDownArrowClick={isCashBackWithdrawal ? undefined : commonProps.onDownArrowClick}
                     />
                 );
             case CONST.SEARCH.GROUP_BY.CATEGORY:
@@ -376,7 +380,7 @@ function GroupHeader({
         if (isExpenseReportType) {
             onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
-        if (!isExpenseReportType) {
+        if (!isExpenseReportType && !isCashBackWithdrawal) {
             onToggle();
         }
     };
@@ -397,12 +401,22 @@ function GroupHeader({
                 disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
-                role={CONST.ROLE.BUTTON}
+                role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}
                 isNested
-                shouldAllowTextSelection
-                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                shouldAllowTextSelection={!isCashBackWithdrawal}
+                interactive={!isCashBackWithdrawal}
+                focusable={!isCashBackWithdrawal}
+                pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
+                hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                dataSet={{
+                    ...(isCashBackWithdrawal ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : COPYABLE_ROW_DATA_SET),
+                    [CONST.INNER_BOX_SHADOW_ELEMENT]: true,
+                }}
                 onMouseDown={(e) => {
+                    if (isCashBackWithdrawal) {
+                        e.preventDefault();
+                        return;
+                    }
                     const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
                     if (isCopyableTarget) {
                         return;
@@ -410,6 +424,9 @@ function GroupHeader({
                     e.preventDefault();
                 }}
                 onTouchStart={(event) => {
+                    if (isCashBackWithdrawal) {
+                        return;
+                    }
                     markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
                 }}
                 id={item.keyForList ?? ''}
@@ -440,29 +457,35 @@ function GroupHeader({
                     <View style={styles.flex1}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.tableRowHeight]}>
                             <View style={styles.flex1}>{renderHeader(hovered)}</View>
-                            {isLargeScreenWidth && (
-                                <PressableWithFeedback
-                                    onPress={() => {
-                                        if (isEmpty && !shouldDisplayEmptyView) {
-                                            handlePress();
-                                            return;
-                                        }
-                                        onToggle();
-                                    }}
-                                    style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
-                                    accessibilityRole={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
-                                >
-                                    {({hovered: arrowHovered}) => (
-                                        <Icon
-                                            src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
-                                            fill={theme.icon}
-                                            additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
-                                        />
-                                    )}
-                                </PressableWithFeedback>
-                            )}
+                            {isLargeScreenWidth &&
+                                (isCashBackWithdrawal ? (
+                                    // Reserves the toggle's footprint so the Total column stays aligned with the settlement rows.
+                                    <View style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}>
+                                        <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
+                                    </View>
+                                ) : (
+                                    <PressableWithFeedback
+                                        onPress={() => {
+                                            if (isEmpty && !shouldDisplayEmptyView) {
+                                                handlePress();
+                                                return;
+                                            }
+                                            onToggle();
+                                        }}
+                                        style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}
+                                        accessibilityRole={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
+                                    >
+                                        {({hovered: arrowHovered}) => (
+                                            <Icon
+                                                src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
+                                                fill={theme.icon}
+                                                additionalStyles={!arrowHovered && styles.opacitySemiTransparent}
+                                            />
+                                        )}
+                                    </PressableWithFeedback>
+                                ))}
                         </View>
                         {isLargeScreenWidth && subHeaderColumns.length > 0 && (
                             <Animated.View style={subHeaderAnimatedStyle}>
