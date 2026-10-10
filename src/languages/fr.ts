@@ -4055,6 +4055,7 @@ ${amount} pour ${merchant} - ${date}`,
             formLabel: 'Voir le PDF',
         },
         attachmentNotFound: 'Pièce jointe introuvable',
+        loadTimedOut: 'Cette image met trop de temps à se charger.',
         retry: 'Réessayer',
     },
     messages: {

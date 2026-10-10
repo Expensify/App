@@ -3959,6 +3959,7 @@ ${amount} para ${merchant} - ${date}`,
             formLabel: 'Ver PDF',
         },
         attachmentNotFound: 'Archivo adjunto no encontrado',
+        loadTimedOut: 'Esta imagen está tardando demasiado en cargarse.',
         retry: 'Reintentar',
     },
     messages: {

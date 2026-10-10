@@ -4,11 +4,13 @@ import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from
 import type {Attachment} from '@components/Attachments/types';
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import ImageLoadTimeoutNotice from '@components/ImageLoadTimeoutNotice';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 
 import useCanvasSize from '@hooks/useCanvasSize';
+import useImageLoadStall from '@hooks/useImageLoadStall';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +29,8 @@ import {useSharedValue} from 'react-native-reanimated';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const FALLBACK_OFFSET = 2;
+
+const LOADING_CONTEXT = {context: 'Lightbox'};
 
 const cachedImageDimensions = new Map<string, Dimensions | undefined>();
 
@@ -144,6 +148,9 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadFailed, setHasLoadFailed] = useState(false);
+    const [hasLoadTimedOut, setHasLoadTimedOut] = useState(false);
+    const [reloadKey, setReloadKey] = useState(0);
 
     const isFallbackVisible = !hasSiblingCarouselItems ? !isLightboxVisible : !(isActive && isLightboxVisible && isLightboxImageLoaded);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
@@ -197,6 +204,27 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
+    const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed && !hasLoadTimedOut;
+
+    const handleError = () => {
+        setHasLoadFailed(true);
+        setHasLoadTimedOut(false);
+        onError?.();
+    };
+
+    /** The transport went silent, so stop the spinner and offer a retry while the image stays mounted. */
+    const handleLoadTimeout = () => {
+        setHasLoadTimedOut(true);
+        setIsLoading(false);
+    };
+
+    const retryLoad = () => {
+        setHasLoadTimedOut(false);
+        setIsLoading(true);
+        setReloadKey((key) => key + 1);
+    };
+
+    const reportLoadActivity = useImageLoadStall(!isOffline && shouldShowLoadingIndicator, handleLoadTimeout);
 
     return (
         <View
@@ -224,14 +252,17 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                             >
                                 {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                                 <Image
+                                    key={reloadKey}
                                     source={{uri}}
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     priority={imagePriority}
-                                    onError={onError}
+                                    onError={handleError}
+                                    onProgress={reportLoadActivity}
                                     onLoad={(e) => {
                                         updateContentSize(e);
                                         setLightboxImageLoaded(true);
+                                        setHasLoadTimedOut(false);
                                     }}
                                     waitForSession={() => {
                                         // only active lightbox should call this function
@@ -240,6 +271,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                         }
                                         setContentSize(cachedImageDimensions.get(uri));
                                         setLightboxImageLoaded(false);
+                                        setHasLoadFailed(false);
                                     }}
                                     onLoadEnd={() => {
                                         setIsLoading(false);
@@ -268,12 +300,14 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {!isImageLoaded && !shouldShowOfflineIndicator && (
+                    {shouldShowLoadingIndicator && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
+                            extraLoadingContext={LOADING_CONTEXT}
                         />
                     )}
+                    {hasLoadTimedOut && !isOffline && <ImageLoadTimeoutNotice onRetry={retryLoad} />}
                     {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
                 </>
             )}

@@ -3995,6 +3995,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             formLabel: 'PDFを表示',
         },
         attachmentNotFound: '添付ファイルが見つかりません',
+        loadTimedOut: 'この画像の読み込みに時間がかかりすぎています。',
         retry: '再試行',
     },
     messages: {
