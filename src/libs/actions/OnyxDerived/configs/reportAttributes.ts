@@ -773,9 +773,20 @@ export default createOnyxDerivedValueConfig({
             childReportIDs.push(report.reportID);
             childReportIDsByChat.set(report.chatReportID, childReportIDs);
 
+            // If this is an IOU report and its calculated attributes have an error,
+            // then we need to mark its parent chat report.
+            // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
+            // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
+            // we still need to propagate the error up so the parent shows the indicator.
+            const attributes = reportAttributes[report.reportID];
+            if (!attributes?.needsParentChatErrorPropagation && attributes?.brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+                continue;
+            }
+
             // When the child IOU's parent action in the chat is deleted (e.g. another user deleted the request
             // while an optimistic pay was queued offline), the chat has no actionable surface for the error.
             // Skip propagation so the parent DM row doesn't show a stale "Fix" for a request that no longer exists.
+            // Checked only for children with an error, as it is the costly part of this loop over every report.
             const parentReportAction = report.parentReportActionID
                 ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
                 : undefined;
@@ -783,17 +794,9 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            // If this is an IOU report and its calculated attributes have an error,
-            // then we need to mark its parent chat report.
-            // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
-            // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
-            // we still need to propagate the error up so the parent shows the indicator.
-            const attributes = reportAttributes[report.reportID];
-            if (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
-                erroredChildReportIDs.push(report.reportID);
-                erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
-            }
+            const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
+            erroredChildReportIDs.push(report.reportID);
+            erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
         }
 
         // Apply the error status to the parent chat reports.
