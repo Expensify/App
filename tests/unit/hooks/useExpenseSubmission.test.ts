@@ -319,13 +319,25 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
 
             it('submits `scanready` once a field is cleared again, even while the cached receipt still says OPEN', async () => {
-                // Given a scan whose merchant the user cleared after having filled all three fields
-                await submit(buildScanParams({isAmountSet: true, isMerchantSet: false, isCreatedSet: true}, CONST.IOU.RECEIPT_STATE.OPEN));
+                // Given a scan whose date the user cleared after having filled all three fields
+                await submit(buildScanParams({isAmountSet: true, isMerchantSet: true, isCreatedSet: false}, CONST.IOU.RECEIPT_STATE.OPEN));
 
                 // Then SmartScan is asked to read the receipt so the cleared field still gets filled in
                 expect(mockRequestMoneyAction).toHaveBeenCalledWith(
                     expect.objectContaining({
                         transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.SCAN_READY}),
+                    }),
+                );
+            });
+
+            it('submits `open` for a P2P scan with the amount and date entered but no merchant', async () => {
+                // Given a P2P scan (not a workspace chat) whose merchant the user left blank (#101147)
+                await submit(buildScanParams({isAmountSet: true, isMerchantSet: false, isCreatedSet: true}, CONST.IOU.RECEIPT_STATE.SCAN_READY));
+
+                // Then the merchant isn't required, so SmartScan is told to leave the entered values alone
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.OPEN}),
                     }),
                 );
             });

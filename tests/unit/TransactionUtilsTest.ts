@@ -6277,6 +6277,18 @@ describe('hasAllManuallyEnteredScanFields', () => {
         expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, ...values}))).toBe(false);
         expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, ...values}))).toBe(false);
     });
+
+    it('does not need the merchant when the destination does not require one', () => {
+        // Given a Scan draft with the amount and date entered but no merchant
+        const transaction = generateScanDraft({isAmountSet: true, isCreatedSet: true});
+
+        // When it goes to a P2P chat or self DM, where the manual flow doesn't require a merchant either
+        const result = TransactionUtils.hasAllManuallyEnteredScanFields(transaction, false);
+
+        // Then it counts as complete, so it is submitted as entered instead of being scanned over
+        expect(result).toBe(true);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(transaction, true)).toBe(false);
+    });
 });
 
 describe('isFailedScanAmountPlaceholder for zero-amount Scans', () => {
@@ -6368,6 +6380,29 @@ describe('hasAnyManuallyEnteredScanField / isPartiallyEnteredScanExpense', () =>
     it('holds no surface to the rule unless it actually offers the three fields', () => {
         // Splits, moved tracked expenses and test receipts carry the same flags without ever having shown them.
         expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft({isAmountSet: true}), false)).toBe(false);
+    });
+
+    it('does not block a P2P Scan whose merchant is left blank', () => {
+        // Given a Scan draft with the amount and date entered but no merchant (#101147)
+        const transaction = generateScanDraft({isAmountSet: true, isCreatedSet: true});
+
+        // When the destination doesn't require a merchant
+        const result = TransactionUtils.isPartiallyEnteredScanExpense(transaction, true, false);
+
+        // Then the expense isn't partially filled, while a workspace chat still requires the merchant
+        expect(result).toBe(false);
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(transaction, true, true)).toBe(true);
+    });
+
+    it('still requires the amount and date of a P2P Scan once one field is entered', () => {
+        // Given a Scan draft with only the merchant entered
+        const transaction = generateScanDraft({isMerchantSet: true});
+
+        // When the destination doesn't require a merchant
+        const result = TransactionUtils.isPartiallyEnteredScanExpense(transaction, true, false);
+
+        // Then the amount and date are still all-or-nothing
+        expect(result).toBe(true);
     });
 });
 
