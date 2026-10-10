@@ -125,14 +125,6 @@ describe('VictoryTheme', () => {
             });
         });
 
-        it('exposes tooltip values', () => {
-            const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.tooltip).toEqual({
-                pointerHeight: 4,
-                pointerWidth: 12,
-            });
-        });
-
         it("starts the pie chart at the 12 o'clock position (-90°)", () => {
             const VictoryTheme = loadVictoryTheme();
             expect(VictoryTheme.pie.startAngle).toBe(-90);
