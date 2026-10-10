@@ -530,6 +530,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Nie udało się załadować wykresu. Odśwież stronę i spróbuj ponownie.',
         apiKey: 'Klucz API',
         exportsTo: 'Eksporty do',
+        shareReport: 'Udostępnij raport',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',

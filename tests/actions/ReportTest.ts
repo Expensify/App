@@ -6077,6 +6077,19 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('shareReport', () => {
+        it('sends the recipient and the permissions the API expects', () => {
+            // Given a recipient entered as a phone number
+            const phoneNumber = '+15005550006';
+
+            // When the report is shared with them
+            Report.shareReport('1', phoneNumber);
+
+            // Then the request names them by their SMS login and gives read and write access
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SHARE_REPORT, {reportID: '1', shareToEmail: `${phoneNumber}${CONST.SMS.DOMAIN}`, permissions: 'read, write'});
+        });
+    });
+
     describe('openReport with introSelected', () => {
         it('should call OpenReport API with introSelected parameter', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();

@@ -1697,6 +1697,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]: DYNAMIC_ROUTES.REPORT_DETAILS.path,
                         [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path,
                         [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: DYNAMIC_ROUTES.REPORT_DETAILS_EXPORT.path,
+                        [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_REPORT]: DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_REPORT.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE]: {

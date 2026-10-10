@@ -150,6 +150,7 @@ describe('getSecondaryAction', () => {
         const result = [
             CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            CONST.REPORT.SECONDARY_ACTIONS.SHARE,
             CONST.REPORT.SECONDARY_ACTIONS.PRINT,
             CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
         ];

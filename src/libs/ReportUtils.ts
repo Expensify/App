@@ -13918,6 +13918,16 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
+/**
+ * Whether the current user can email the report to someone. The submitter, the approver and workspace admins can once the report is submitted.
+ */
+function canShareReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean {
+    if (!isExpenseReport(report) || isOpenReport(report)) {
+        return false;
+    }
+    return isCurrentUserSubmitter(report, currentUserAccountID) || report?.managerID === currentUserAccountID || isPolicyAdmin(policy);
+}
+
 function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return '';
@@ -15316,6 +15326,7 @@ export {
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
     canBeExported,
+    canShareReport,
     isExported,
     hasExpensifyGuidesEmails,
     hasExportError,

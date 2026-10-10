@@ -528,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Λήψη αποδείξεων',
         }),
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
+        shareReport: 'Κοινοποιήστε την αναφορά',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',

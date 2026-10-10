@@ -506,6 +506,7 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Details_Root',
         DYNAMIC_SHARE_CODE: 'Dynamic_Report_Details_Share_Code',
         DYNAMIC_EXPORT: 'Dynamic_Report_Details_Export',
+        DYNAMIC_SHARE_REPORT: 'Dynamic_Report_Details_Share_Report',
     },
 
     REPORT_CHANGE_WORKSPACE: {

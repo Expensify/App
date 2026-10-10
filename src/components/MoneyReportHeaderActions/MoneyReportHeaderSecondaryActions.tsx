@@ -35,6 +35,7 @@ import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShareActions from '@hooks/useShareActions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -388,6 +389,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         onPDFModalOpen: openPDFDownload,
     });
 
+    const shareActions = useShareActions({reportID, policy});
+
     // Compute list of applicable secondary action keys
     const secondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
@@ -425,6 +428,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             },
         },
         ...exportActionEntries,
+        ...shareActions,
         ...lifecycleActionEntries,
         ...expenseActions,
         ...holdRejectActions,

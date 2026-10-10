@@ -528,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Das Diagramm konnte nicht geladen werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.',
         apiKey: 'API-Schlüssel',
         exportsTo: 'Exportiert nach',
+        shareReport: 'Bericht teilen',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
