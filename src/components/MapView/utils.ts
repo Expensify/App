@@ -1,4 +1,57 @@
+import {LOCALES} from '@src/CONST/LOCALES';
+import type {Locale} from '@src/CONST/LOCALES';
+
 import type {AlternateDirection, Coordinate} from './MapViewTypes';
+
+/** App locales whose value isn't already the BCP-47 code Mapbox expects for label localization. */
+const LOCALE_TO_MAPBOX_LANGUAGE: Partial<Record<Locale, string>> = {
+    [LOCALES.PT_BR]: 'pt',
+    [LOCALES.ZH_HANS]: 'zh-Hans',
+};
+
+/**
+ * Languages the native Mapbox Maps SDKs can localize labels to, i.e. the Mapbox Streets v8 `name_*` fields.
+ * Unlike mapbox-gl on web, the native SDKs reject any other language: iOS throws and Android logs a warning on every map load.
+ */
+const NATIVE_MAPBOX_SUPPORTED_LANGUAGES = new Set(['ar', 'en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'vi', 'zh-Hans', 'zh-Hant']);
+
+/**
+ * Maps an app locale to the BCP-47 language code Mapbox uses to localize map labels.
+ * Most app locales are already valid Mapbox codes, so only a couple need remapping.
+ * On web, unsupported codes fall back to each label's local language on the Mapbox side.
+ */
+function getMapboxLanguage(locale: Locale | undefined): string | undefined {
+    if (!locale) {
+        return undefined;
+    }
+    return LOCALE_TO_MAPBOX_LANGUAGE[locale] ?? locale;
+}
+
+/**
+ * Maps an app locale to the language the native Mapbox SDKs localize labels to, or undefined when they can't.
+ * Leaving the language unset keeps the style's default labels instead of raising a native error.
+ */
+function getNativeMapboxLanguage(locale: Locale | undefined): string | undefined {
+    const language = getMapboxLanguage(locale);
+    return language && NATIVE_MAPBOX_SUPPORTED_LANGUAGES.has(language) ? language : undefined;
+}
+
+/** A worldview is an ISO 3166-1 alpha-2 country code, so anything that isn't two letters can't be one. */
+const ISO_ALPHA_2_COUNTRY = /^[A-Z]{2}$/;
+
+/**
+ * Maps the user's country to the Mapbox worldview used to draw disputed borders.
+ * Mapbox only defines a worldview for the handful of countries that dispute borders and falls back to the
+ * style's default for every other country code, so the country is passed straight through rather than
+ * matched against a list that would go stale as Mapbox adds worldviews. Anything that isn't a country code
+ * is dropped, because Mapbox raises an error for codes it can't parse.
+ */
+function getMapboxWorldview(country: string | undefined): string | undefined {
+    if (!country || !ISO_ALPHA_2_COUNTRY.test(country)) {
+        return undefined;
+    }
+    return country;
+}
 
 /** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
 type LngLatLiteral = {lng: number; lat: number};
@@ -249,4 +302,7 @@ export default {
     isSingleSegmentRoute,
     convertSegmentedRouteToSingleSegmentRoute,
     getCoordinatesFromAllDirections,
+    getMapboxLanguage,
+    getNativeMapboxLanguage,
+    getMapboxWorldview,
 };
