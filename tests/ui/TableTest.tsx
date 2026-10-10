@@ -621,6 +621,43 @@ describe('Table', () => {
             expect(screen.getByTestId('row-5')).toBeTruthy();
         });
 
+        it('should preserve all datasets on rows that allow text selection', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    shouldAllowTextSelection
+                    dataSet={{customMarker: true}}
+                >
+                    <Text>{item.name}</Text>
+                </Table.Row>
+            );
+
+            // Given a table row with a caller dataset that allows text selection
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 1)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the rendered host row is inspected
+            const row = getHostTableRows().find((candidate) => candidate.props.accessibilityLabel === mockData.at(0)?.name);
+
+            // Then the caller, table-row, and copyable-row datasets are all present
+            expect(row?.props.dataSet).toEqual({
+                customMarker: true,
+                tableRow: true,
+                [CONST.COPYABLE_ROW_ELEMENT]: true,
+            });
+        });
+
         it('should render column headers when Header component is used', () => {
             const props = createDefaultProps();
             render(

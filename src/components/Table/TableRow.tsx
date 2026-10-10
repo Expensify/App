@@ -141,7 +141,7 @@ export default function TableRow({
     // the static ones. They're only ever set on wide web layouts.
     const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
-    const rowDataSet = shouldAllowTextSelection ? {...dataSet, ...COPYABLE_ROW_DATA_SET} : dataSet;
+    const rowDataSet = {...dataSet, ...TABLE_ROW_DATA_SET, ...(shouldAllowTextSelection ? COPYABLE_ROW_DATA_SET : {})};
 
     const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
@@ -349,7 +349,6 @@ export default function TableRow({
                 onHoverIn={enableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-                dataSet={TABLE_ROW_DATA_SET}
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     captureEditingOnMouseDown();
