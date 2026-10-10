@@ -92,6 +92,7 @@ function AmountField({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const transactionForHandlers = transactionSlice as OnyxEntry<OnyxTypes.Transaction>;
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;
@@ -221,7 +222,7 @@ function AmountField({
 
             setDraftSplitTransaction(
                 transactionID,
-                splitDraftTransaction,
+                splitDraftTransaction ?? transaction,
                 {
                     amount: updatedAmount,
                     currency: updatedCurrency,

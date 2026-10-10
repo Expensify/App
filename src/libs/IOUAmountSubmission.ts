@@ -675,7 +675,13 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
     if (isSplitBill) {
-        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount}, getCurrencyDecimals, getCurrencySymbol);
+        setDraftSplitTransaction(
+            transactionID,
+            splitDraftTransaction ?? transaction,
+            {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount},
+            getCurrencyDecimals,
+            getCurrencySymbol,
+        );
         navigateBack();
         return;
     }

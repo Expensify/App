@@ -162,7 +162,7 @@ function DynamicIOURequestStepCategoryCreate({
         };
 
         if (isEditingSplit && transaction) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, getCurrencyDecimals, getCurrencySymbol, policy);
+            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction ?? transaction, {category: categoryName}, getCurrencyDecimals, getCurrencySymbol, policy);
         } else if (isEditing && report) {
             updateMoneyRequestCategory({
                 isVendorMatchingBetaEnabled,

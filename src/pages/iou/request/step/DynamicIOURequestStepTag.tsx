@@ -176,7 +176,7 @@ function DynamicIOURequestStepTag({
         });
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {tag: updatedTag}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, splitDraftTransaction ?? transaction, {tag: updatedTag}, getCurrencyDecimals, getCurrencySymbol);
             saveAndNavigateBack();
             return;
         }
