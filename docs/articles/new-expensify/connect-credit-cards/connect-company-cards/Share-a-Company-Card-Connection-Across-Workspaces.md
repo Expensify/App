@@ -42,7 +42,7 @@ To share a company card connection, you must:
 3. Select **Company cards**.
 4. Select **Add cards** to set up your first connection.
     - If you don't see **Add cards**, select your existing company card connection.
-5. Under **From other workspaces**, choose a company card connection to add to the workspace.
+5. Under **From other workspaces**, choose a company card connection, then select **Save** to add it to the workspace.
 
 ![Company cards page with from other workspaces highlighted]({{site.url}}/assets/images/company-cards-share-feeds.png){:width="100%"}
 
