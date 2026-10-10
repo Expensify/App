@@ -6,24 +6,18 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 type DatePickerBaseProps = ForwardedFSClassProps & {
-    /**
-     * The datepicker supports any value that `new Date()` can parse.
-     * `onInputChange` would always be called with a Date (or null)
-     */
+    /** The selected date as a `yyyy-MM-dd` string, read with DateUtils.parseCalendarDate. `onInputChange` is called with the picked date in the same format. */
     value?: string;
 
-    /**
-     * The datepicker supports any defaultValue that `new Date()` can parse.
-     * `onInputChange` would always be called with a Date (or null)
-     */
+    /** The date to start with when there is no value, in the same format as `value`. */
     defaultValue?: string;
 
     inputID: string;
 
-    /** A minimum date of calendar to select */
+    /** A minimum date (oldest) allowed to select. The calendar can't move to a month before it. */
     minDate?: Date;
 
-    /** A maximum date of calendar to select */
+    /** A maximum date (latest) allowed to select. The calendar can't move to a month after it. */
     maxDate?: Date;
 
     /** A function that is passed by FormWrapper */
@@ -85,25 +79,22 @@ type DateInputWithPickerProps = DatePickerBaseProps &
     };
 
 type DatePickerProps = {
-    /**
-     * The datepicker supports any value that `new Date()` can parse.
-     * `onInputChange` would always be called with a Date (or null)
-     */
+    /** The selected date as a `yyyy-MM-dd` string, read with DateUtils.parseCalendarDate. `onInputChange` is called with the picked date in the same format. */
     value?: string;
 
-    /**
-     * The datepicker supports any defaultValue that `new Date()` can parse.
-     * `onInputChange` would always be called with a Date (or null)
-     */
+    /** The date to start with when there is no value, in the same format as `value`. */
     defaultValue?: string;
 
     inputID: string;
 
-    /** A minimum date of calendar to select */
+    /** A minimum date (oldest) allowed to select. The calendar can't move to a month before it. */
     minDate?: Date;
 
-    /** A maximum date of calendar to select */
+    /** A maximum date (latest) allowed to select. The calendar can't move to a month after it. */
     maxDate?: Date;
+
+    /** Whether a day between minDate and maxDate can be selected. Unlike the bounds, it doesn't limit which months and years can be shown. */
+    isDateSelectable?: (date: Date) => boolean;
 
     /** A function that is passed by FormWrapper */
     onInputChange?: (value: string) => void;
