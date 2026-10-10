@@ -54,7 +54,8 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.agents.title');
 
-    const newAgentButton = (
+    // The new agent functionality will be added after CreateCompanyAgent is exposed
+    const newAgentButton = true ? null : (
         <Button
             variant="success"
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()), {skipMatchingFullScreenRoute: true})}
@@ -128,7 +129,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 headerContent={headerContent}
             >
-                {(policyID?: string) => (
+                {() => (
                     <AgentsTable
                         ref={tableRef}
                         agents={agents}
