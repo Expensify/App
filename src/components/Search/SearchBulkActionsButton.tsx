@@ -10,7 +10,6 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -89,10 +88,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        isPdfModalVisible,
-        setIsPdfModalVisible,
-        pdfReportID,
-        handlePdfModalHide,
         isExpensifyCardStatementPDFModalVisible,
         setIsExpensifyCardStatementPDFModalVisible,
         expensifyCardStatementPDFParams,
@@ -127,7 +122,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
     const popoverUseScrollView = shouldPopoverUseScrollView(dropdownButtonsOptions);
     const {selectedItemsCount, excludedItemsCount} = useMemo(() => {
-        const getItemsCount = (transactionsToCount: typeof selectedTransactions) => {
+        const getItemsCount = (transactionsToCount: typeof selectedTransactions, cashBackCount: number) => {
             if (isExpenseReportType) {
                 const reportIDs = new Set(
                     Object.values(transactionsToCount)
@@ -139,16 +134,17 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
             return Object.keys(transactionsToCount).reduce((count, key) => {
                 if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                    const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
-                    return count + (group?.count ?? 0);
+                    const group = searchData?.[key as keyof typeof searchData] as {count?: number; isCashBack?: boolean} | undefined;
+                    return count + (group?.isCashBack ? cashBackCount : (group?.count ?? 0));
                 }
                 return count + 1;
             }, 0);
         };
 
         return {
-            selectedItemsCount: getItemsCount(selectedTransactions),
-            excludedItemsCount: getItemsCount(excludedTransactions),
+            selectedItemsCount: getItemsCount(selectedTransactions, 1),
+            // Excluded items come off the server count, which only sums expenses, so a cash back row takes nothing off.
+            excludedItemsCount: getItemsCount(excludedTransactions, 0),
         };
     }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
 
@@ -294,14 +290,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 isVisible={isDownloadErrorModalVisible}
                 onClose={handleDownloadErrorModalClose}
             />
-            {!!pdfReportID && (
-                <ReportPDFDownloadModal
-                    reportID={pdfReportID}
-                    isVisible={isPdfModalVisible}
-                    onClose={() => setIsPdfModalVisible(false)}
-                    onModalHide={handlePdfModalHide}
-                />
-            )}
             {!!expensifyCardStatementPDFParams && (
                 <ExpensifyCardStatementPDFDownloadModal
                     statementParams={expensifyCardStatementPDFParams}

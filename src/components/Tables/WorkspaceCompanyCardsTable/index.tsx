@@ -248,6 +248,8 @@ function WorkspaceCompanyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
+                // Padding and border sit inside the track. Once a long name sets the column width, that chrome has to be measured or the name clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceCompanyCardTableItemData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
@@ -498,6 +500,7 @@ function WorkspaceCompanyCardsTable({
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
             shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_COMPANY_CARDS}
             initialSortColumn="member"
             selectionEnabled={showTableControls}
             selectedKeys={validSelectedCardKeys}
