@@ -207,6 +207,92 @@ describe('OnyxUpdatesTest', () => {
         expect(lastUpdateID).toBe(20);
     });
 
+    it('applies an opted-in scan replacement immediately and retires its preview after success cleanup', async () => {
+        // Given a scan has its own temporary report and preview, while the server selected a different report
+        const chatReportID = '100';
+        const optimisticReportID = '200';
+        const actualReportID = '300';
+        const transactionID = '400';
+        const previewActionID = '500';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {reportID: optimisticReportID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            [previewActionID]: {reportActionID: previewActionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        });
+
+        // When the successful scan response arrives before the remaining uploads finish
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 0,
+            lastUpdateID: 20,
+            request: {
+                command: WRITE_COMMANDS.REQUEST_MONEY,
+                shouldApplyScanResponseImmediately: true,
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, iouReportID: optimisticReportID, chatReportID, reportPreviewReportActionID: previewActionID},
+                successData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, value: {[previewActionID]: {pendingAction: null}}}],
+            },
+            response: {
+                jsonCode: 200,
+                onyxData: [
+                    {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, value: {preexistingReportID: actualReportID}},
+                    {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${actualReportID}`, value: {reportID: actualReportID}},
+                    {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, value: {reportID: actualReportID}},
+                ],
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // Then the receipt has moved and cleanup is already complete, without flushing the write queue
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`))?.reportID).toBe(actualReportID);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`)).toBeFalsy();
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`))?.[previewActionID]).toBeFalsy();
+        expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(20);
+
+        // When the remaining queue is flushed, then pending cleanup cannot recreate the deleted preview
+        await flushQueue();
+        await waitForBatchedUpdates();
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`))?.[previewActionID]).toBeFalsy();
+    });
+
+    it('settles an old scan replacement without reverting newer live receipt state', async () => {
+        // Given a live update completed the receipt before an older RequestMoney response was applied
+        const optimisticReportID = '200';
+        const actualReportID = '300';
+        const transactionID = '400';
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 30);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+            reportID: actualReportID,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, {reportID: optimisticReportID});
+        await waitForBatchedUpdates();
+
+        // When the older opted-in response still contains necessary report-replacement information
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {
+                command: WRITE_COMMANDS.REQUEST_MONEY,
+                shouldApplyScanResponseImmediately: true,
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE, iouReportID: optimisticReportID, chatReportID: '100', reportPreviewReportActionID: '500'},
+                successData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, value: {pendingAction: null}}],
+            },
+            response: {
+                jsonCode: 200,
+                onyxData: [
+                    {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, value: {preexistingReportID: actualReportID}},
+                    {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, value: {receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_READY}}},
+                ],
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // Then replacement cleanup completes but the receipt and update watermark never move backwards
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`)).toBeFalsy();
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`))?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
+        expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
+    });
+
     it('does not advance lastUpdateID for WRITE requests when the deferred flush fails', async () => {
         // Given the client is caught up to update 10
         await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
