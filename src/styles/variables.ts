@@ -578,4 +578,5 @@ export default {
     editableCellEditButtonWidth: 28 + 4,
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
+    pieChartLegendMargin: 32,
 } as const;

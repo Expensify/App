@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {useIsInsideChartReveal, useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -30,8 +31,6 @@ type SkiaWebChartProps<TProps> = {
 
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
-
-    /** Identifies the loading skeleton span for telemetry. */
 };
 
 type ChartUnavailableProps = {
@@ -50,6 +49,9 @@ function ChartUnavailable({description = 'common.webGLNotSupported'}: ChartUnava
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['MonitorSyncNo']);
+
+    // This state never loads, and Skia draws none of it, so an enclosing ChartReveal shows it at once
+    useReportChartLoading(false, false);
 
     return (
         <View style={styles.chartWebFallback}>
@@ -97,9 +99,9 @@ const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) 
 function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElement | null>(null);
+    const isInsideChartReveal = useIsInsideChartReveal();
 
-    // Probe once per mount (not per render) so re-rendering doesn't repeatedly create WebGL contexts,
-    // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
+    // Probed on each mount, so a fresh chart re-checks capability instead of trusting a stale session-wide result.
     const [isSupported] = useState(() => isSkiaWebSupported());
 
     // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
@@ -111,7 +113,7 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
         return <ChartUnavailable />;
     }
 
-    const fallback = (
+    const fallback = isInsideChartReveal ? null : (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator size="large" />
         </View>

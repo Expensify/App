@@ -10,6 +10,7 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -21,7 +22,15 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {
+    CHART_CONTENT_MIN_HEIGHT,
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    LABEL_ROTATIONS,
+    SIN_45,
+    X_AXIS_LABEL_MIN_HEIGHT,
+} from '@components/Charts/VictoryTheme';
 
 const LINE_HEIGHT = 16;
 
@@ -637,7 +646,6 @@ describe('rotatedLabelYOffset', () => {
     });
 });
 
-// Bar chart domain padding constants, mirrored from BarChartContent.
 const BAR_PAD_TOP = 32;
 const BAR_PAD_BOTTOM = 1;
 
@@ -748,6 +756,54 @@ describe('getBarLayout', () => {
         // When computing the bar layout
         // Then barWidth is 0 so victory-native sizes the bars itself, and the domain gives each bar a slot centered on its x value
         expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, 2.5]});
+    });
+});
+
+describe('getCartesianChartHeight', () => {
+    const ROTATED_LABEL_HEIGHT = 120;
+
+    it('should give the loading box and a chart with one line of labels the same height', () => {
+        // Given the loading box, which has no labels to measure, and a loaded chart whose labels fit on one line
+        const loadingHeight = getCartesianChartHeight();
+
+        // When the loaded chart sizes its box from the measured label strip
+        const loadedHeight = getCartesianChartHeight(X_AXIS_LABEL_MIN_HEIGHT - 1);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadedHeight).toBe(loadingHeight);
+    });
+
+    it('should grow the box when rotated labels need more room than one line', () => {
+        // Given labels rotated so their strip is taller than one line of text
+        // When the chart sizes its box
+        const height = getCartesianChartHeight(ROTATED_LABEL_HEIGHT);
+
+        // Then the box makes room for the whole strip, since clipping the labels would be worse than a jump
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.axis.xAxisLabelGap + ROTATED_LABEL_HEIGHT);
+    });
+});
+
+describe('getCartesianPlotBounds', () => {
+    const LABEL_GAP = VictoryTheme.axis.labelGap;
+    const PADDING_LEFT = VictoryTheme.axis.padding.left;
+
+    it('reserves the right gutter for labels and the left base padding', () => {
+        // Given a 300px container with a 30px right gutter
+        // When computing the plot bounds
+        // Then the plot spans from the left padding to the label gap before the gutter, where victory-native puts it,
+        // so labels laid out before the chart mounts line up with the plot it draws
+        expect(getCartesianPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30 - LABEL_GAP, width: 300 - 30 - LABEL_GAP - PADDING_LEFT});
+    });
+
+    it('clamps to a zero-width plot when the container is too small for the gutters', () => {
+        // Given a container narrower than the right gutter itself
+        // When computing the plot bounds
+        // Then the plot collapses to zero width at the left padding, because a negative width would break the bar and
+        // label layouts that are sized from it
+        const bounds = getCartesianPlotBounds(10, 30);
+        expect(bounds.left).toBe(PADDING_LEFT);
+        expect(bounds.right).toBe(PADDING_LEFT);
+        expect(bounds.width).toBe(0);
     });
 });
 

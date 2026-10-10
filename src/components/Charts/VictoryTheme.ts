@@ -2,6 +2,7 @@
  * Centralized styles and layout constants for the chart components.
  */
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 
 import {CHART_FONT_FAMILY_NAMES} from './utils/chartFontConstants';
 
@@ -94,6 +95,11 @@ const VictoryTheme = {
 /** Minimum height for the chart content area (bars, Y-axis, grid lines) */
 const CHART_CONTENT_MIN_HEIGHT = 250;
 
+/** ExpensifyNeue's ascent plus descent over its em, 950 + 230 of 1000 units, which is the line height Skia reports for label text. */
+const LABEL_LINE_HEIGHT_RATIO = 1.18;
+
+const X_AXIS_LABEL_MIN_HEIGHT = Math.ceil(variables.iconSizeExtraSmall * LABEL_LINE_HEIGHT_RATIO);
+
 /** Pixel height of the y-scale output range inside CartesianChart (content height minus base axis padding). */
 const CHART_Y_SCALE_HEIGHT = CHART_CONTENT_MIN_HEIGHT - VictoryTheme.axis.padding.top - VictoryTheme.axis.padding.bottom;
 
@@ -133,6 +139,7 @@ const GLYPH_PADDING = 4;
 export {
     CHART_CONTENT_MIN_HEIGHT,
     CHART_Y_SCALE_HEIGHT,
+    X_AXIS_LABEL_MIN_HEIGHT,
     LABEL_ROTATIONS,
     SIN_45,
     LABEL_PADDING,
