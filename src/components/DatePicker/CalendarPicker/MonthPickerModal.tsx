@@ -23,10 +23,10 @@ type MonthPickerModalProps = {
     /** The month (0-indexed) the calendar shows, which the list marks as selected */
     currentMonth: number;
 
-    /** The first month (0-indexed) of the shown year that can be picked; earlier months are greyed out */
+    /** The first month (0-indexed) of the shown year that can be picked. Earlier months are greyed out. */
     minMonth: number;
 
-    /** The last month (0-indexed) of the shown year that can be picked; later months are greyed out */
+    /** The last month (0-indexed) of the shown year that can be picked. Later months are greyed out. */
     maxMonth: number;
 
     onMonthChange?: (month: number) => void;
