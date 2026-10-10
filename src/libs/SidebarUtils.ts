@@ -828,9 +828,8 @@ function getOptionData({
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;
-    // When the only message of a report is deleted lastVisibleActionCreated is not reset leading to wrongly
-    // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.isEmpty) && !!report.lastActorAccountID;
+    // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted is already excluded here.
+    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.isEmpty);
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -982,13 +981,8 @@ function getOptionData({
  * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
  */
 function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
-    // The `lastActorAccountID` guard matches getOptionData: it keeps chats whose only visible message was
-    // deleted out of the Unread tab even though isUnread() can still be true (lastVisibleActionCreated isn't reset).
-    return (
-        isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) &&
-        !!report.lastActorAccountID &&
-        getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
-    );
+    // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted never reaches this tab.
+    return isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
 }
 
 /** Whether a report belongs in the "To-do" Inbox tab: it has an outstanding GBR (requiresAttention) or RBR (errors). */
