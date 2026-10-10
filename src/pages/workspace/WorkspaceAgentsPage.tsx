@@ -52,7 +52,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
 
-    useWorkspaceDocumentTitle(policy?.name, 'workspace.agents.title');
+    useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
 
     // The new agent functionality will be added after CreateCompanyAgent is exposed
     const newAgentButton = true ? null : (
@@ -94,7 +94,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
             {shouldDisplayButtonsInSeparateLine && <View style={[pageGutter, styles.pb3]}>{headerButtons}</View>}
             {hasAgents && (
                 <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
-                    <RenderHTML html={translate('workspace.agents.subtitle')} />
+                    <RenderHTML html={translate('agentsPage.subtitle')} />
                 </View>
             )}
         </>
@@ -120,7 +120,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
         >
             <WorkspacePageWithSections
                 shouldUseScrollView
-                headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.agents.title')}
+                headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 addBottomSafeAreaPadding

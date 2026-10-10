@@ -5131,10 +5131,6 @@ const translations = {
             title: "You've created a workspace for your client!",
             description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
         },
-        agents: {
-            title: 'Agents',
-            subtitle: `<muted-text>Agents handle your workflows for you, so you get hours back in your day. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Learn more</a>.</muted-text>`,
-        },
         mcp: {
             connectors: 'Connectors',
             connectorsSubtitle: 'Connect an AI assistant to your Expensify account.',

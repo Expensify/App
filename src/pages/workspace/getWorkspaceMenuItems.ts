@@ -237,7 +237,7 @@ function getWorkspaceMenuItems({
     if (isGroupPolicy(policy) && isCompanyAgentsBetaEnabled) {
         const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
         items.splice(membersItemIndex + 1, 0, {
-            translationKey: 'workspace.agents.title',
+            translationKey: 'agentsPage.title',
             icon: icons.Bot,
             getRoute: () => ROUTES.WORKSPACE_AGENTS.getRoute(policyID),
             screenName: SCREENS.WORKSPACE.AGENTS,
