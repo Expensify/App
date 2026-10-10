@@ -27,6 +27,14 @@ on:
         description: Force a full native build, bypassing Rock remote cache
         type: string
         default: 'false'
+      run-pgo:
+        description: Train and use a native PGO profile for a Release build
+        type: boolean
+        default: false
+      benchmark-pgo:
+        description: Benchmark paired local builds after the PGO Release build
+        type: boolean
+        default: false
       download-dsyms:
         description: Download the prebuilt react-native dSYMs so Sentry can symbolicate its native frames. Off by default - it adds two large downloads per build.
         type: boolean
@@ -52,7 +60,7 @@ on:
 jobs:
   build:
     name: Build iOS HybridApp
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: ${{ inputs.run-pgo && 'pgo-ios' || 'blacksmith-12vcpu-macos-latest' }}
     env:
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
       RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS: ${{ inputs.download-dsyms && '1' || '0' }}
@@ -63,6 +71,12 @@ jobs:
       DSYM_FILENAME: ${{ steps.set-ipa-filename.outputs.DSYM_FILENAME }}
       SOURCEMAP_FILENAME: main.jsbundle.map
     steps:
+      - name: Validate PGO build inputs
+        if: ${{ (inputs.run-pgo && inputs.variant != 'Release') || (inputs.benchmark-pgo && !inputs.run-pgo) }}
+        run: |
+          echo '::error::PGO training requires a Release build, and benchmarking requires PGO training.'
+          exit 1
+
       - name: Checkout
         # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -118,6 +132,7 @@ jobs:
         run: bundle install
 
       - name: Resolve react-native artifact version
+        if: ${{ inputs.variant != 'Release' }}
         id: resolve-rn-artifacts
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -131,6 +146,7 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Cache react-native artifacts
+        if: ${{ inputs.variant != 'Release' }}
         # v5.0.1
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
@@ -138,6 +154,7 @@ jobs:
           key: ${{ runner.os }}-rn-artifacts-react-hybrid-${{ steps.resolve-rn-artifacts.outputs.VERSION }}-dsyms-${{ inputs.download-dsyms }}
 
       - name: Cache Pod dependencies
+        if: ${{ inputs.variant != 'Release' }}
         # v5.0.1
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         id: pods-cache
@@ -151,7 +168,7 @@ jobs:
 
       - name: Install cocoapods
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
-        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
+        if: ${{ inputs.variant != 'Release' && (steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true') }}
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -241,6 +258,48 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Train iOS PGO on the signed-in physical device
+        if: ${{ inputs.run-pgo }}
+        env:
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+          SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD: 'true'
+        run: |
+          set -euo pipefail
+          : "${PGO_IOS_DEVICE_ID:?Set PGO_IOS_DEVICE_ID on the device runner}"
+          : "${IOS_DEVELOPMENT_TEAM:?Install development signing and set IOS_DEVELOPMENT_TEAM on the runner}"
+          : "${PGO_JOURNEY_FIXTURE:?Set PGO_JOURNEY_FIXTURE to an owner-approved heavy-account fixture}"
+          test -s "$PGO_JOURNEY_FIXTURE"
+          command -v agent-device
+          test "$(agent-device --version)" = '0.20.6'
+          ./node_modules/.bin/bun scripts/pgo/pgo.ts ios build-instrumented --device "$PGO_IOS_DEVICE_ID"
+          ./node_modules/.bin/bun scripts/pgo/pgo.ts ios verify-instrumented --device "$PGO_IOS_DEVICE_ID"
+          ./node_modules/.bin/bun scripts/pgo/pgo.ts ios install-instrumented --device "$PGO_IOS_DEVICE_ID"
+          batch_id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          ./node_modules/.bin/bun scripts/pgo/journey.ts ios --fixture "$PGO_JOURNEY_FIXTURE" --device "$PGO_IOS_DEVICE_ID" --preflight --batch-id "${batch_id}-preflight"
+          ./node_modules/.bin/bun scripts/pgo/journey.ts ios --fixture "$PGO_JOURNEY_FIXTURE" --device "$PGO_IOS_DEVICE_ID" --runs 3 --collect --batch-id "$batch_id"
+
+      - name: Validate iOS training profile
+        id: preparePgo
+        if: ${{ inputs.run-pgo }}
+        run: ./node_modules/.bin/bun scripts/pgo/ciProfile.ts prepare ios "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+      - name: Prepare source pods for the optimized archive
+        if: ${{ inputs.run-pgo }}
+        run: |
+          set -euo pipefail
+          profile="${GITHUB_WORKSPACE}/.pgo/ios/arm64/newdot.profdata"
+          {
+            echo 'BUILD_RN_FROM_SOURCE=1'
+            echo 'RCT_USE_RN_DEP=0'
+            echo 'RCT_USE_PREBUILT_RNCORE=0'
+            echo 'RCT_BUILD_HERMES_FROM_SOURCE=true'
+            echo 'EXPENSIFY_PGO_MODE=use'
+            echo "EXPENSIFY_PGO_PROFILE=$profile"
+          } >> "$GITHUB_ENV"
+          cd Mobile-Expensify/iOS
+          BUILD_RN_FROM_SOURCE=1 RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 RCT_BUILD_HERMES_FROM_SOURCE=true EXPENSIFY_PGO_MODE=use EXPENSIFY_PGO_PROFILE="$profile" bundle exec pod install --silent
+          rm -rf Pods/hermes-engine/build
+
       - name: Prepare provisioning profiles JSON
         id: prepare-profiles
         run: |
@@ -257,7 +316,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
-          FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
+          FORCE_NATIVE_BUILD: ${{ inputs.run-pgo && format('{0}-{1}', github.run_id, github.run_attempt) || inputs.force-native-build == 'true' && github.run_id || '' }}
+          PGO_PROFILE_SHA256: ${{ steps.preparePgo.outputs.PROFILE_SHA256 }}
         with:
           destination: device
           re-sign: true
@@ -268,6 +328,7 @@ jobs:
           provisioning-profiles: ${{ steps.prepare-profiles.outputs.PROFILES }}
           comment-bot: false
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
+          rock-build-extra-params: ${{ inputs.run-pgo && format('--local --extra-params "-xcconfig {0}/.pgo/ios/arm64/release.xcconfig"', github.workspace) || '' }}
 
       - name: Set artifact URL output
         id: set-artifact-url
@@ -293,6 +354,18 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}iosBuild-artifact
           path: .rock/cache/ios/export/*.ipa
+
+      - name: Seal iOS PGO release proof
+        if: ${{ inputs.run-pgo }}
+        run: ./node_modules/.bin/bun scripts/pgo/ciProfile.ts seal ios "$(jq -r .version package.json)" ".rock/cache/ios/export/${{ steps.set-ipa-filename.outputs.IPA_FILENAME }}" pgo-proof-ios.json
+
+      - name: Upload iOS PGO release proof
+        if: ${{ inputs.run-pgo }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ${{ inputs.artifact-prefix }}pgo-proof-ios
+          path: pgo-proof-ios.json
+          if-no-files-found: error
 
       - name: Zip dSYMs from xcarchive
         id: zip-dsyms
@@ -332,3 +405,31 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}ios-sourcemap-artifact
           path: Mobile-Expensify/main.jsbundle.map
+
+      - name: Benchmark paired iOS PGO builds
+        if: ${{ inputs.benchmark-pgo }}
+        env:
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+          SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD: 'true'
+        run: |
+          set -euo pipefail
+          scripts/pgo/pgo.ts ios build-release --device "$PGO_IOS_DEVICE_ID"
+          scripts/pgo/pgo.ts ios build-optimized --device "$PGO_IOS_DEVICE_ID" --profile "${{ steps.preparePgo.outputs.PROFILE_PATH }}"
+          for order in release-first optimized-first; do
+            batch="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${order}"
+            scripts/pgo/pgo.ts ios benchmark-journey 10 30 --device "$PGO_IOS_DEVICE_ID" --fixture "$PGO_JOURNEY_FIXTURE" --benchmark-order "$order" --benchmark-batch "$batch"
+            scripts/pgo/pgo.ts ios benchmark-heavy-journey 10 30 --device "$PGO_IOS_DEVICE_ID" --fixture "$PGO_JOURNEY_FIXTURE" --benchmark-order "$order" --benchmark-batch "$batch"
+          done
+          for manifest in .pgo/ios/benchmarks/*/"${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"-*/run.json; do
+            jq '{platform, runs, order, scenario, sourceRevision, mobileRevision, artifactSHA256}' "$manifest" > "${manifest%.json}-proof.json"
+          done
+
+      - name: Upload iOS PGO benchmark samples
+        if: ${{ inputs.benchmark-pgo }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ${{ inputs.artifact-prefix }}pgo-benchmarks-ios
+          path: |
+            .pgo/ios/benchmarks/*/${{ github.run_id }}-${{ github.run_attempt }}-*/*.csv
+            .pgo/ios/benchmarks/*/${{ github.run_id }}-${{ github.run_attempt }}-*/run-proof.json
+          if-no-files-found: error
