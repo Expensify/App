@@ -230,11 +230,11 @@ function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTra
 /**
  * The group rows a selection covers in full.
  *
- * A group is fully selected when the number of selected children matches the group's remaining transaction
- * count. Snapshot `count` is not decremented for pending-delete children, so `isEntireGroupSelected` (stamped
- * after subtracting those children) is what covers a second-batch delete of the rest. Clicking the group
- * checkbox is not enough on its own: a `limit:` smaller than that count leaves children unloaded, so delete
- * cannot remove the whole group. An empty group row is still selected under its own group key.
+ * A group is fully selected when its rows carry `isEntireGroupSelected`, which the stamp sets after subtracting
+ * pending-delete children, since snapshot `count` is not decremented for them. Rows never stamped fall back to
+ * the number of selected children matching the group's count. Clicking the group checkbox is not enough on its
+ * own: a `limit:` smaller than that count leaves children unloaded, so delete cannot remove the whole group.
+ * An empty group row is still selected under its own group key.
  */
 function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, searchData?: SearchResultDataType): SearchGroupKey[] {
     const selectedCountByGroupKey = new Map<SearchGroupKey, {selectedCount: number; isEntireGroupSelected: boolean; isStamped: boolean}>();

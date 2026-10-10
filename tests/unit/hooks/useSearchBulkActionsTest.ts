@@ -698,6 +698,20 @@ describe('useSearchBulkActions - a group checked through its header while its ro
         expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
     });
 
+    it('offers the row actions for a wholly selected group whose rows a refresh kept off the page', async () => {
+        // Given the group's two rows checked through its header and wholly selected, one of them kept off the page by a refresh that brought back only the first
+        mockSelectedTransactions = {
+            tx1: {...mockSelectedTransactions.tx1, isEntireGroupSelected: true},
+            tx2: {...mockSelectedTransactions.tx2, isEntireGroupSelected: true, isKeptOffPage: true},
+        };
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(2);
+
+        // Then Hold is still offered, since the kept row still names its expense; only the count and the total are taken from the server
+        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+    });
+
     it('offers the row actions once every row of the group is loaded', async () => {
         // Given the same two rows checked through the header, which are now the whole group
 

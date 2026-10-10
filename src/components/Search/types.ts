@@ -108,7 +108,7 @@ type SelectedTransactionInfo = {
     /** Whether the transaction was selected through its group header */
     isSelectedViaGroup?: boolean;
 
-    /** Whether every transaction in the group is selected. False when a `limit:` left some of the group unloaded. */
+    /** Whether every transaction in the group is selected. Only a fully loaded group earns it, and a partly loaded one can only keep it. */
     isEntireGroupSelected?: boolean;
 
     /** The group's count when the selection last covered all of it, so a rise past it means a new expense joined */

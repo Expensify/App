@@ -41,7 +41,7 @@ import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from '
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
 import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
-import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
+import {getRowsCheckedInExcludedGroups, mergeRowsForCountAndTotal} from './selectionBuilders';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -143,7 +143,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         };
 
         return {
-            selectedItemsCount: getItemsCount(mergeRowsIntoPartlyLoadedGroups(selectedTransactions, searchData, areAllMatchingItemsSelected), 1),
+            selectedItemsCount: getItemsCount(mergeRowsForCountAndTotal(selectedTransactions, searchData, areAllMatchingItemsSelected), 1),
             // Excluded items come off the server count, which only sums expenses, so a cash back row takes nothing off.
             excludedItemsCount: getItemsCount(excludedTransactions, 0) - getItemsCount(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions), 0),
         };

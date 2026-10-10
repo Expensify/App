@@ -1,5 +1,5 @@
 import type {TransactionGroupListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import {mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, stampGroupCoverageFlags} from '@components/Search/selectionBuilders';
+import {mapEmptyReportToSelectedEntry, mergeRowsForCountAndTotal, mergeRowsIntoPartlyLoadedGroups, stampGroupCoverageFlags} from '@components/Search/selectionBuilders';
 import type {SelectedTransactions} from '@components/Search/types';
 
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
@@ -63,6 +63,8 @@ describe('selectionBuilders', () => {
 
     describe('stampGroupCoverageFlags', () => {
         it('covers the remaining children when snapshot count still includes pending-delete rows', () => {
+            // Given a group whose snapshot count of three still includes a loaded row being deleted, with its other two rows selected
+            // When its coverage is stamped
             const selected = stampGroupCoverageFlags({
                 selectedTransactions: buildSelection({
                     txn1: {groupKey},
@@ -73,11 +75,14 @@ describe('selectionBuilders', () => {
                 loadedRows: [buildTransactionRow(1, 'txn1'), buildTransactionRow(2, 'txn2'), buildTransactionRow(3, 'txn3', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
             });
 
+            // Then the group is wholly selected, since the row being deleted is no longer one the selection has to hold
             expect(selected.txn1.isEntireGroupSelected).toBe(true);
             expect(selected.txn2.isEntireGroupSelected).toBe(true);
         });
 
         it('does not cover a truncated limit selection as the whole group', () => {
+            // Given two loaded rows of a five-expense group, both checked through its header
+            // When its coverage is stamped
             const selected = stampGroupCoverageFlags({
                 selectedTransactions: buildSelection({
                     txn1: {isSelectedViaGroup: true, groupKey},
@@ -88,6 +93,7 @@ describe('selectionBuilders', () => {
                 loadedRows: [buildTransactionRow(1, 'txn1'), buildTransactionRow(2, 'txn2')],
             });
 
+            // Then the group is not wholly selected, so delete cannot take three rows it never loaded, while the header claim stays for export
             expect(selected.txn1.isEntireGroupSelected).toBe(false);
             expect(selected.txn1.isSelectedViaGroup).toBe(true);
         });
@@ -198,7 +204,7 @@ describe('selectionBuilders', () => {
             const selection = buildSelection({
                 txn1: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10},
                 txn2: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10},
-                txn3: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10},
+                txn3: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10, isKeptOffPage: true},
             });
 
             // When the rows are merged into the groups they stand for
@@ -225,7 +231,7 @@ describe('selectionBuilders', () => {
             expect(Object.keys(merged)).toEqual([groupKey]);
         });
 
-        it('puts one entry for the whole group in place of rows that cover it when some are kept off the page, so its total is the server one', () => {
+        it('counts a wholly selected group holding rows kept off the page by the server total, but leaves its rows for the actions', () => {
             // Given a wholly selected three-expense group whose third row a refresh kept off the page at its old amount, while the server's total for the group has since moved to 500
             const searchData = buildDayGroupData([[groupKey, {count: 3, total: 500}]]);
             const selection = buildSelection({
@@ -234,12 +240,31 @@ describe('selectionBuilders', () => {
                 txn3: {groupKey, isEntireGroupSelected: true, displayAmount: 100, isKeptOffPage: true},
             });
 
+            // When the rows are merged for the count and total, and for the bulk actions
+            const mergedForTotal = mergeRowsForCountAndTotal(selection, searchData, false);
+            const mergedForActions = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
+
+            // Then the total is the server's 500 rather than the 300 the rows add up to, while the actions keep the rows, which still name every expense, so Delete or Hold stay on offer
+            expect(Object.keys(mergedForTotal)).toEqual([groupKey]);
+            expect(mergedForTotal[groupKey]).toEqual(expect.objectContaining({displayAmount: 500}));
+            expect(mergedForActions).toBe(selection);
+        });
+
+        it('leaves loaded rows that outnumber the count alone, since the count is only behind an expense that moved in', () => {
+            // Given four loaded rows of a group each checked on its own, which covered it, one of them just moved in while the group's count still reads three
+            const searchData = buildDayGroupData([[groupKey, {count: 3, total: 30}]]);
+            const selection = buildSelection({
+                txn1: {groupKey, isEntireGroupSelected: true},
+                txn2: {groupKey, isEntireGroupSelected: true},
+                txn3: {groupKey, isEntireGroupSelected: true},
+                txn4: {groupKey, isEntireGroupSelected: true},
+            });
+
             // When the rows are merged into the groups they stand for
             const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
 
-            // Then the group appears once with the server's total, rather than the 300 its rows would add up to
-            expect(Object.keys(merged)).toEqual([groupKey]);
-            expect(merged[groupKey]).toEqual(expect.objectContaining({displayAmount: 500}));
+            // Then nothing changes, since only a row kept off the page can have left unseen, so the row actions stay on offer
+            expect(merged).toBe(selection);
         });
 
         it('puts one entry for the whole group in place of rows checked one by one that outnumber it, once they covered the group', () => {
@@ -248,7 +273,7 @@ describe('selectionBuilders', () => {
             const selection = buildSelection({
                 txn1: {groupKey, isEntireGroupSelected: true, displayAmount: 10},
                 txn2: {groupKey, isEntireGroupSelected: true, displayAmount: 10},
-                txn3: {groupKey, isEntireGroupSelected: true, displayAmount: 10},
+                txn3: {groupKey, isEntireGroupSelected: true, displayAmount: 10, isKeptOffPage: true},
             });
 
             // When the rows are merged into the groups they stand for

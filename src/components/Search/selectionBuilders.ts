@@ -98,9 +98,8 @@ function getWholeGroupCoverage({selectedTransactions, groupKey, groupCount, load
 
 /**
  * Sets `isEntireGroupSelected`, with the count it holds at, on every row of the group.
- * A `limit:` that leaves children unloaded must not look like a whole-group selection, because delete only
- * removes the loaded rows. `isSelectedViaGroup` is left alone so export can still treat a group-row click as a
- * group export.
+ * A `limit:` that leaves children unloaded must not make a group look whole, so a partly loaded group is whole only while it keeps coverage it had.
+ * `isSelectedViaGroup` is left alone so export can still treat a group-row click as a group export.
  */
 function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedRows, priorCoveredGroupCount}: StampGroupCoverageFlagsParams): SelectedTransactions {
     if (!groupKey) {
@@ -114,7 +113,7 @@ function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, lo
         if (key !== groupKey && transaction.groupKey !== groupKey) {
             continue;
         }
-        nextSelectedTransactions[key] = {...transaction, groupKey, isEntireGroupSelected, ...(isEntireGroupSelected ? {coveredGroupCount} : {})};
+        nextSelectedTransactions[key] = {...transaction, groupKey, isEntireGroupSelected, coveredGroupCount};
     }
 
     return nextSelectedTransactions;
@@ -340,15 +339,11 @@ function getSelectedRowKeysByGroupKey(selectedTransactions: SelectedTransactions
     return rowKeysByGroupKey;
 }
 
-/**
- * A header check stands for every row of the group, as an export reads it, so until the stamp finds the group wholly selected, one entry for the whole group replaces its rows.
- * So does a wholly selected group whose rows outnumber its count, since some left it unseen, or that holds rows kept off the page, whose amounts may be out of date.
- * Under Select all every action sends the query, so nothing is merged.
- */
-function mergeRowsIntoPartlyLoadedGroups(
+function mergeRowsIntoGroupEntries(
     selectedTransactions: SelectedTransactions,
     searchData: SearchResultDataType | undefined,
     areAllMatchingItemsSelected: boolean,
+    shouldFoldRowsKeptOffPage: boolean,
 ): SelectedTransactions {
     if (areAllMatchingItemsSelected) {
         return selectedTransactions;
@@ -367,8 +362,9 @@ function mergeRowsIntoPartlyLoadedGroups(
         const isWhollySelected = rowKeys.some((key) => !!selectedTransactions[key].isEntireGroupSelected);
         const isStamped = rowKeys.some((key) => selectedTransactions[key].isEntireGroupSelected !== undefined);
         const isClaimStillLoading = claimedRowCount > 0 && !isWhollySelected && (isStamped || claimedRowCount < groupCount);
-        const hasRowsThatLeft = (claimedRowCount > 0 || isWhollySelected) && rowKeys.length > groupCount;
-        const hasRowsKeptOffPage = isWhollySelected && rowKeys.some((key) => !!selectedTransactions[key].isKeptOffPage);
+        const hasKeptRow = rowKeys.some((key) => !!selectedTransactions[key].isKeptOffPage);
+        const hasRowsThatLeft = (claimedRowCount > 0 || isWhollySelected) && hasKeptRow && rowKeys.length > groupCount;
+        const hasRowsKeptOffPage = shouldFoldRowsKeptOffPage && isWhollySelected && hasKeptRow;
         if (isClaimStillLoading || hasRowsThatLeft || hasRowsKeptOffPage) {
             partlyLoadedGroups.set(groupKey, group);
         }
@@ -396,6 +392,23 @@ function mergeRowsIntoPartlyLoadedGroups(
         });
     }
     return merged;
+}
+
+/**
+ * A header check stands for every row of the group, as an export reads it, so until the stamp finds the group wholly selected, one entry for the whole group replaces its rows.
+ * So does a wholly selected group whose rows outnumber its count, since some left it unseen. Under Select all every action sends the query, so nothing is merged.
+ */
+function mergeRowsIntoPartlyLoadedGroups(
+    selectedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+    areAllMatchingItemsSelected: boolean,
+): SelectedTransactions {
+    return mergeRowsIntoGroupEntries(selectedTransactions, searchData, areAllMatchingItemsSelected, false);
+}
+
+/** The same for a count or a total, which also take a wholly selected group from the server while it holds rows kept off the page, since their amounts date from when they last loaded. */
+function mergeRowsForCountAndTotal(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined, areAllMatchingItemsSelected: boolean): SelectedTransactions {
+    return mergeRowsIntoGroupEntries(selectedTransactions, searchData, areAllMatchingItemsSelected, true);
 }
 
 type PrepareTransactionsListParams = {
@@ -871,9 +884,9 @@ function applyShiftRangeBatchToSelection(
     }
 
     // Delete takes a whole group on this flag, so each group the range wrote under is recounted, keeping the coverage it had while its rows only left it.
-    selectedRowKeysByGroupKey ??= getSelectedRowKeysByGroupKey(selection);
     const coverageByGroupKey = new Map<string, number | undefined>();
     for (const [groupKey, loadedRows] of touchedGroups) {
+        selectedRowKeysByGroupKey ??= getSelectedRowKeysByGroupKey(selection);
         const priorCoveredGroupCount = getCoveredGroupCount(selection, selectedRowKeysByGroupKey.get(groupKey) ?? []);
         coverageByGroupKey.set(groupKey, getWholeGroupCoverage({selectedTransactions: updated, groupKey, groupCount: lookups.getGroupCount(groupKey), loadedRows, priorCoveredGroupCount}));
     }
@@ -885,14 +898,10 @@ function applyShiftRangeBatchToSelection(
         }
         const coveredGroupCount = coverageByGroupKey.get(groupKey);
         const isEntireGroupSelected = coveredGroupCount !== undefined;
-        const isUnchanged =
-            transaction.groupKey === groupKey &&
-            transaction.isEntireGroupSelected === isEntireGroupSelected &&
-            (!isEntireGroupSelected || transaction.coveredGroupCount === coveredGroupCount);
-        if (isUnchanged) {
+        if (transaction.groupKey === groupKey && transaction.isEntireGroupSelected === isEntireGroupSelected && transaction.coveredGroupCount === coveredGroupCount) {
             continue;
         }
-        updated[key] = {...transaction, groupKey, isEntireGroupSelected, ...(isEntireGroupSelected ? {coveredGroupCount} : {})};
+        updated[key] = {...transaction, groupKey, isEntireGroupSelected, coveredGroupCount};
         hasWritten = true;
     }
 
@@ -919,5 +928,6 @@ export {
     getRemainingSearchGroupCount,
     getRowsCheckedInExcludedGroups,
     mergeRowsIntoPartlyLoadedGroups,
+    mergeRowsForCountAndTotal,
     stampGroupCoverageFlags,
 };

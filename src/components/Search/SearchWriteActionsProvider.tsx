@@ -274,9 +274,9 @@ function useReconcileSelectionWithData({
                 const loadedSelectableCount = transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length;
                 const remainingGroupCount = getRemainingSearchGroupCount(groupCount, transactionGroup.transactions.length, loadedSelectableCount) ?? 0;
                 const hasUnloadedRows = remainingGroupCount > loadedSelectableCount;
-                // Once a claim covers every row, a row or count that arrives later is a new expense, so it stays unchecked and the group becomes a partial selection.
+                // Once a claim covers every row, a later row or count is a new expense, which stays unchecked and ends the claim.
                 const hasClaimCoveredGroup = !!groupClaim?.isEntireGroupSelected;
-                // Kept rows can be stale, so growth is measured against the count the group was covered at rather than against the rows still claiming it.
+                // Kept rows can be stale, so growth is measured from the count the group was covered at, not from its claimed rows.
                 const priorCoveredGroupCount = reportKey ? getCoveredGroupCount(selectedTransactions, selectedRowKeysByGroupKey.get(reportKey) ?? []) : undefined;
                 const hasGroupOutgrownClaim =
                     remainingGroupCount > (priorCoveredGroupCount ?? groupClaim?.rowCount ?? 0) ||
