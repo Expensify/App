@@ -239,6 +239,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.path,
                         [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.route,
                             exact: true,

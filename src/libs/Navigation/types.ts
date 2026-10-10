@@ -208,6 +208,7 @@ type SettingsNavigatorParamList = {
         action?: 'edit';
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: undefined;
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };

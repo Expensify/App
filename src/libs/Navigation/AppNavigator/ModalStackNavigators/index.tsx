@@ -478,6 +478,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransactionsImportedPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/Wallet/EnablePayments').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/shared/WalletConfirmValidateCodePage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: () =>
+        require<ReactComponentModule>('../../../../pages/EnablePayments/shared/WalletConfirmValidateCodePage').default,
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UnshareBankAccount/UnshareBankAccount').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage').default,
