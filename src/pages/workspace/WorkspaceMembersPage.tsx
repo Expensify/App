@@ -30,6 +30,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -130,14 +131,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {pageGutter} = useLayoutSpacing();
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
-    const getWorkspaceMembers = () => {
-        if (!canMemberRead(policy, currentUserPersonalDetails.login ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS)) {
-            return;
-        }
-        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
-        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
-    };
-    const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
+    const {isOffline} = useNetwork();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -220,11 +214,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             memberName: formatPhoneNumber(getPersonalDetailsByID(firstSelectedEmployeeAccountID, personalDetails)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails, outstandingReportsForPolicy, privateIsArchivedMap]);
-
-    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
-    useEffect(() => {
-        getWorkspaceMembersEvent();
-    }, []);
 
     /**
      * Open the modal to invite a user
@@ -376,45 +365,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
-    const filteredMembers = useMemo(() => {
-        const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-        const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
-
-        for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
-            // Inviting a secondary login leaves an empty employeeList entry: the backend nulls that key, then
-            // successData merges {pendingAction: null} back onto it. Skip it so it doesn't render as a second
-            // member. A real member whose personal details haven't loaded still has a role and stays visible.
-            if (isEmptyValueObject(policyEmployee) || isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                continue;
-            }
-
-            // The accountID normally comes from the personal-details join. When a member's personal details
-            // haven't loaded (e.g. the backend under-returns them), that join is empty, so we fall back to a
-            // generated accountID. This keeps the rendered count in sync with employeeList and matches OldDot,
-            // which shows every member rather than silently dropping the ones without loaded details.
-            const accountID = policyMemberEmailsToAccountIDs[email] ? Number(policyMemberEmailsToAccountIDs[email]) : generateAccountID(email);
-
-            // Render a fallback identity (email as display name) when personal details are missing so the member
-            // is still shown instead of being dropped from the list.
-            const details =
-                personalDetails?.[accountID] ??
-                ({
-                    accountID,
-                    login: email,
-                    displayName: formatPhoneNumber(email),
-                } as PersonalDetails);
-
-            // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
-            // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
-            // see random people added to their policy, but guides having access to the policies help set them up.
-            if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
-                continue;
-            }
-
-            result.push({email, policyEmployee, accountID, details});
-        }
-        return result;
-    }, [policy?.employeeList, policyMemberEmailsToAccountIDs, isOffline, personalDetails, policyOwner, currentUserLogin, formatPhoneNumber]);
+    const filteredMembers = useWorkspaceMembers(policy);
 
     const hasAnyCustomField1 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeeUserID), [filteredMembers]);
     const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
