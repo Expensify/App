@@ -48,15 +48,17 @@ function ReuseRouteThumbnail({transactionID, receiptSource, routeKey}: ReuseRout
     const source = cachedSource ?? receiptSource;
 
     const handleLoad = useCallback(() => {
-        if (source) {
-            setCachedRouteThumbnail(routeKey, source);
+        if (!source) {
+            return;
         }
+        setCachedRouteThumbnail(routeKey, source);
     }, [routeKey, source]);
 
     const handleLoadFailure = useCallback(() => {
-        if (source) {
-            setFailedSource(source);
+        if (!source) {
+            return;
         }
+        setFailedSource(source);
     }, [source]);
 
     if (!source || failedSource === source) {

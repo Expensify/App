@@ -95,18 +95,19 @@ describe('ReusableDistanceRoutesUtils', () => {
         it('matches keys when coordinates are strings versus numbers', () => {
             // Given a route with numeric coordinates and another with string coordinates
             const routeNumeric = createRoute('1', ['A', 'B']);
-            const routeString: ReusableDistanceRoute = {
+            const routeString = {
                 ...routeNumeric,
                 transactionID: '2',
                 waypoints: {
-                    waypoint0: {...routeNumeric.waypoints.waypoint0, lat: '37.7' as unknown as number, lng: '-122.4' as unknown as number},
-                    waypoint1: {...routeNumeric.waypoints.waypoint1, lat: '38.7' as unknown as number, lng: '-123.4' as unknown as number},
+                    waypoint0: {...routeNumeric.waypoints.waypoint0, lat: '37.7', lng: '-122.4'},
+                    waypoint1: {...routeNumeric.waypoints.waypoint1, lat: '38.7', lng: '-123.4'},
                 },
             };
 
             // When getting route keys for both
             const numericKey = getRouteKey(routeNumeric);
-            const stringKey = getRouteKey(routeString);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture verifies string coordinate runtime handling
+            const stringKey = getRouteKey(routeString as unknown as ReusableDistanceRoute);
 
             // Then both keys match
             expect(stringKey).toBe(numericKey);
