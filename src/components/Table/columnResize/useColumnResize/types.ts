@@ -7,6 +7,9 @@ type UseColumnResizeParams = {
     /** Keys of the columns whose right edge the user can drag. */
     resizableColumnKeys: string[];
 
+    /** Every column's width with one column resized, which a drag paints so the columns to its right absorb it. */
+    getResizedColumnWidths: (columnKey: string, width: number) => Record<string, number>;
+
     /** Each column's resolved width, which a drag starts from. A new object means React rendered new widths. */
     resolvedColumnWidths: Record<string, number>;
 

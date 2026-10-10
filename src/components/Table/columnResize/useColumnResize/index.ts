@@ -1,6 +1,6 @@
 /**
- * Web column resizing: dragging a column's right edge sets its width. Widths live in CSS custom properties so React
- * doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
+ * Web column resizing: dragging a column's right edge sets its width, absorbed by the columns to its right. Widths live in
+ * CSS custom properties so React doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
  */
 import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColumnWidth';
 
@@ -42,7 +42,14 @@ type Drag = {
     startWidth: number;
 };
 
-function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnWidths, dragMinWidths, columnGap}: UseColumnResizeParams): ColumnResizeController | undefined {
+function useColumnResize({
+    columnResizingID,
+    resizableColumnKeys,
+    getResizedColumnWidths,
+    resolvedColumnWidths,
+    dragMinWidths,
+    columnGap,
+}: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
     const dragRef = useRef<Drag | null>(null);
     const {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths} = useLiveColumnWidths({resolvedColumnWidths, dragRef});
@@ -66,6 +73,7 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
             return;
         }
 
+        // Only the dragged column is stored. The resolver re-derives the absorbers, and storing them would mark them as user-sized.
         setTableColumnWidth(columnResizingID, drag.columnKey, width);
     };
 
@@ -101,7 +109,11 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         // The line rides the handle, so it follows the clamped width, not the pointer.
-        writeColumnWidth(drag.columnKey, getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.columnKey]));
+        const width = getDraggedColumnWidth(drag.startWidth, drag.startClientX, event.clientX, dragMinWidths?.[drag.columnKey]);
+
+        for (const [columnKey, resizedWidth] of Object.entries(getResizedColumnWidths(drag.columnKey, width))) {
+            writeColumnWidth(columnKey, resizedWidth);
+        }
     };
 
     const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {

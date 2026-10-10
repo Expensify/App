@@ -289,6 +289,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         scrollWidth: dynamicScrollWidth,
         rowWidth: dynamicRowWidth,
         resizableColumnKeys,
+        getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
     } = useDynamicColumnWidths<DataType, ColumnKey>({
@@ -305,6 +306,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     const columnResize = useColumnResize({
         columnResizingID: isColumnResizingEnabled ? columnResizingID : undefined,
         resizableColumnKeys,
+        getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
         columnGap: styles.gap3.gap,
