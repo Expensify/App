@@ -22,6 +22,7 @@ type MockButtonProps = {
 const mockBulkActionBar = jest.fn<null, [MockBulkActionBarProps]>(() => null);
 const mockButtonWithDropdownMenu = jest.fn<null, [MockButtonProps]>(() => null);
 let mockExcludedTransactions: SelectedTransactions = {};
+let mockSearchData: Record<string, unknown> = {};
 let mockSearchCount: number | undefined;
 let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
@@ -29,7 +30,6 @@ let mockIsOffline = false;
 let mockSelectedTransactions: SelectedTransactions = {tx1: makeTransaction()};
 let mockAreAllMatchingItemsSelected = true;
 let mockShouldUseNarrowLayout = false;
-let mockSearchData: Record<string, unknown> = {};
 
 jest.mock('@components/BulkActionBar', () => ({
     __esModule: true,
@@ -157,6 +157,8 @@ describe('SearchBulkActionsButton all-matching count', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockExcludedTransactions = {};
+        mockSelectedTransactions = {tx1: makeTransaction()};
+        mockSearchData = {};
         mockSearchCount = undefined;
         mockSearchReportCount = undefined;
         mockSearchIsLoading = false;
@@ -164,7 +166,6 @@ describe('SearchBulkActionsButton all-matching count', () => {
         mockSelectedTransactions = {tx1: makeTransaction()};
         mockAreAllMatchingItemsSelected = true;
         mockShouldUseNarrowLayout = false;
-        mockSearchData = {};
     });
 
     it('shows the all-matching label and keeps loading while the server count is missing', () => {
@@ -319,5 +320,76 @@ describe('SearchBulkActionsButton all-matching count', () => {
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
         expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: false});
+    });
+});
+
+describe('SearchBulkActionsButton group selection label', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockExcludedTransactions = {};
+        mockSelectedTransactions = {};
+        mockSearchData = {};
+        mockSearchCount = undefined;
+        mockSearchIsLoading = false;
+        mockIsOffline = false;
+        mockAreAllMatchingItemsSelected = false;
+        mockShouldUseNarrowLayout = false;
+    });
+
+    const selectGroups = (...keys: string[]) => {
+        mockSelectedTransactions = Object.fromEntries(keys.map((key) => [key, makeTransaction()]));
+    };
+
+    it('counts the expenses a selected settlement group holds', () => {
+        // Given a selected settlement that holds 12 expenses
+        mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cleared`]: {count: 12}};
+        selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cleared`);
+
+        // When the selection count renders
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then the count reflects the expenses inside the settlement
+        expect(getBarProps().selectedCount).toBe(12);
+    });
+
+    it('counts a selected cash back group as one item even though it holds no expenses', () => {
+        // Given a selected cash back row, which holds no expenses
+        mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true}};
+        selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cashBack`);
+
+        // When the selection count renders
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then it still counts as one selected item, so the header never says 0 selected
+        expect(getBarProps().selectedCount).toBe(1);
+    });
+
+    it('keeps the all-matching count when the cash back row is unchecked after selecting all', () => {
+        // Given every match is selected and the cash back row is then unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockSearchCount = 50;
+        mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true}};
+        mockExcludedTransactions = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: makeTransaction()};
+
+        // When the selection count renders
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then nothing is taken off the server count, because that count only sums expenses and the credit holds none
+        expect(getBarProps().selectedCount).toBe(50);
+    });
+
+    it('adds the cash back row to the expenses of the settlements selected alongside it', () => {
+        // Given a cash back row selected alongside a settlement of 12 expenses
+        mockSearchData = {
+            [`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true},
+            [`${CONST.SEARCH.GROUP_PREFIX}cleared`]: {count: 12},
+        };
+        selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cashBack`, `${CONST.SEARCH.GROUP_PREFIX}cleared`);
+
+        // When the selection count renders
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then the cash back row adds one to the settlement's expenses
+        expect(getBarProps().selectedCount).toBe(13);
     });
 });

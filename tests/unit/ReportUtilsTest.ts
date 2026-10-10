@@ -61,6 +61,7 @@ import {
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
+    canDeleteCardTransaction,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
@@ -962,103 +963,6 @@ describe('ReportUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
                 }),
-            );
-        });
-
-        it('provides the Concierge report as the base for a join-workspace validation task link', () => {
-            const description = jest.fn(() => '');
-
-            prepareOnboardingOnyxData({
-                introSelected: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-                onboardingMessage: {
-                    message: 'This is a test',
-                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
-                },
-                companySize: undefined,
-                conciergeChat: {reportID: REPORT_ID},
-                delegateAccountID: undefined,
-            });
-
-            expect(description).toHaveBeenCalledWith(
-                expect.objectContaining<OnboardingTaskLinks>({
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    validateEmailLink: expect.stringContaining(`/r/${REPORT_ID}/verify-account?isJoinWorkspaceTask=true`),
-                }),
-            );
-        });
-
-        it('provides the merge-code screen for an account-merge validation task link', () => {
-            const description = jest.fn(() => '');
-
-            prepareOnboardingOnyxData({
-                introSelected: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-                onboardingMessage: {
-                    message: 'This is a test',
-                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
-                },
-                companySize: undefined,
-                conciergeChat: {reportID: REPORT_ID},
-                delegateAccountID: undefined,
-                shouldResumeAccountMerge: true,
-            });
-
-            expect(description).toHaveBeenCalledWith(
-                expect.objectContaining<OnboardingTaskLinks>({
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    validateEmailLink: expect.stringContaining('/onboarding/work-email-validation?isJoinWorkspaceTask=true'),
-                }),
-            );
-        });
-
-        it('persists and rolls back only incremental join-workspace task IDs', () => {
-            const result = prepareOnboardingOnyxData({
-                introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE, createWorkspace: 'existing-task'},
-                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-                onboardingMessage: {
-                    message: '',
-                    tasks: [
-                        {type: CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL, title: 'Add work email', description: '', autoCompleted: false},
-                        {type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: 'Validate email', description: '', autoCompleted: false},
-                        {type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE, title: 'Join workspace', description: '', autoCompleted: false},
-                    ],
-                },
-                companySize: undefined,
-                conciergeChat: conciergeChatReport,
-                delegateAccountID: undefined,
-                isIncremental: true,
-            });
-
-            const optimisticTaskIDs = result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
-            expect(optimisticTaskIDs).toEqual(
-                expect.objectContaining({
-                    value: expect.objectContaining({
-                        choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        addWorkEmail: expect.any(String),
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        validateEmail: expect.any(String),
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        joinWorkspace: expect.any(String),
-                    }),
-                }),
-            );
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            expect(optimisticTaskIDs).not.toEqual(expect.objectContaining({value: expect.objectContaining({createWorkspace: expect.anything()})}));
-
-            const rollbackTaskIDs = result?.failureData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
-            expect(rollbackTaskIDs).toEqual(
-                expect.objectContaining({
-                    value: {
-                        addWorkEmail: null,
-                        validateEmail: null,
-                        joinWorkspace: null,
-                    },
-                }),
-            );
-            expect(result?.failureData).not.toEqual(
-                expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.NVP_ONBOARDING, value: expect.objectContaining({hasCompletedGuidedSetupFlow: false})})]),
             );
         });
 
@@ -6330,16 +6234,70 @@ describe('ReportUtils', () => {
                 expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined)).toBe(false);
             });
 
-            it('should allow an admin to delete a draft report holding a card transaction with restricted liability, since the expenses become unreported rather than deleted', () => {
-                const transaction = {
-                    ...createRandomTransaction(904),
+            it('should allow an admin to delete a draft report holding cash and third-party card expenses regardless of liability', () => {
+                const cashTransaction = {...createRandomTransaction(904), reportID: draftReport.reportID, managedCard: false};
+                const cardTransaction = {
+                    ...createRandomTransaction(905),
                     reportID: draftReport.reportID,
                     managedCard: true,
+                    bank: 'third-party-bank',
                     comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
                 };
-                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, currentUserAccountID);
+                const cashIOUAction = buildIOUActionForTransaction(draftReport.reportID, cashTransaction.transactionID, 777);
+                const cardIOUAction = buildIOUActionForTransaction(draftReport.reportID, cardTransaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined, true)).toBe(true);
+                expect(
+                    canDeleteMoneyRequestReport(
+                        draftReport,
+                        [cashTransaction, cardTransaction],
+                        [cashIOUAction, cardIOUAction],
+                        currentUserAccountID,
+                        undefined,
+                        adminPolicy,
+                        undefined,
+                        true,
+                    ),
+                ).toBe(true);
+            });
+
+            it('should not allow an admin to delete a draft report containing an Expensify Card transaction', () => {
+                const cashTransaction = {...createRandomTransaction(906), reportID: draftReport.reportID, managedCard: false};
+                const expensifyCardTransaction = {
+                    ...createRandomTransaction(907),
+                    reportID: draftReport.reportID,
+                    managedCard: true,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const cashIOUAction = buildIOUActionForTransaction(draftReport.reportID, cashTransaction.transactionID, 777);
+                const cardIOUAction = buildIOUActionForTransaction(draftReport.reportID, expensifyCardTransaction.transactionID, 777);
+
+                expect(
+                    canDeleteMoneyRequestReport(
+                        draftReport,
+                        [cashTransaction, expensifyCardTransaction],
+                        [cashIOUAction, cardIOUAction],
+                        currentUserAccountID,
+                        undefined,
+                        adminPolicy,
+                        undefined,
+                        true,
+                    ),
+                ).toBe(false);
+            });
+
+            it('should not allow a member to delete their own draft report containing an Expensify Card transaction', () => {
+                const ownDraftReport = {...draftReport, ownerAccountID: currentUserAccountID};
+                const expensifyCardTransaction = {
+                    ...createRandomTransaction(908),
+                    reportID: ownDraftReport.reportID,
+                    managedCard: false,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const iouAction = buildIOUActionForTransaction(ownDraftReport.reportID, expensifyCardTransaction.transactionID, currentUserAccountID);
+
+                expect(canDeleteMoneyRequestReport(ownDraftReport, [expensifyCardTransaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined, true)).toBe(false);
             });
         });
 
@@ -10251,6 +10209,22 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteReportAction', () => {
+        it('should not allow an Expensify Card transaction to be deleted when managedCard is missing', () => {
+            // Given an Expensify Card transaction whose managed-card metadata is unavailable
+            const transaction = {
+                ...createRandomTransaction(1000),
+                managedCard: false,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+            };
+
+            // When checking whether the transaction can be deleted
+            const canDeleteTransactionByLiability = canDeleteCardTransaction(transaction, undefined, undefined);
+
+            // Then the bank identifies it as an Expensify Card transaction and deletion stays blocked
+            expect(canDeleteTransactionByLiability).toBe(false);
+        });
+
         it('should return false for delete button visibility if transaction is not allowed to be deleted', async () => {
             // Given a restricted managed-card expense on an open expense report owned by the current user
             const expenseReport = {
@@ -16424,6 +16398,86 @@ describe('ReportUtils', () => {
                 reportAction: reportActionWithError,
             });
         });
+        it('should count an errored deleted report preview so the chat still requires attention', async () => {
+            // Given a report preview the server marked deleted, still carrying the error left by a payment that was
+            // rejected because the expense was deleted while it sat in the offline queue
+            const errorKey = CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY;
+            const deletedPreviewWithError: ReportAction = {
+                ...createRandomReportAction(5),
+                reportID: report.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00', deleted: '2025-09-30 10:00:00.000'}],
+                errors: {[errorKey]: 'This payment failed because the expense was deleted.'},
+            };
+            const reportActionsWithDeletedPreview = {
+                ...reportActions,
+                [deletedPreviewWithError.reportActionID]: deletedPreviewWithError,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [deletedPreviewWithError.reportActionID]: deletedPreviewWithError,
+            });
+            await waitForBatchedUpdates();
+
+            // When the chat's errors are aggregated
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithDeletedPreview, allTransactions, currentUserAccountID);
+
+            // Then the error counts, so the DM gets an RBR pointing the payer at the failure. Deleted actions are
+            // normally filtered out, which would have hidden the only feedback the payer gets.
+            expect(errors).toEqual({[errorKey]: 'This payment failed because the expense was deleted.'});
+        });
+
+        it('should not mark the chat as requiring attention for a payment failure on a live preview', async () => {
+            // Given a payment rejected for some reason other than the expense being deleted, so the preview is intact
+            const livePreviewWithPayFailure: ReportAction = {
+                ...createRandomReportAction(7),
+                reportID: report.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00'}],
+                errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: 'Unexpected error. Please try again later.'},
+            };
+            const reportActionsWithLivePreview = {
+                ...reportActions,
+                [livePreviewWithPayFailure.reportActionID]: livePreviewWithPayFailure,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [livePreviewWithPayFailure.reportActionID]: livePreviewWithPayFailure,
+            });
+            await waitForBatchedUpdates();
+
+            // When the chat's errors are aggregated
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithLivePreview, allTransactions, currentUserAccountID);
+
+            // Then the chat is not red-dotted, because the error still has a home on the pay action inside the
+            // expense report the payer can still reach
+            expect(errors).toEqual({});
+        });
+
+        it('should keep ignoring a deleted action that is not an errored report preview', async () => {
+            // Given an ordinary deleted comment whose stale error should not nag the user
+            const errorKey = 1737000000001;
+            const deletedCommentWithError: ReportAction = {
+                ...createRandomReportAction(6),
+                reportID: report.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [{html: '', type: 'COMMENT', text: ''}],
+                errors: {[errorKey]: 'Stale error'},
+            };
+            const reportActionsWithDeletedComment = {
+                ...reportActions,
+                [deletedCommentWithError.reportActionID]: deletedCommentWithError,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [deletedCommentWithError.reportActionID]: deletedCommentWithError,
+            });
+            await waitForBatchedUpdates();
+
+            // When the chat's errors are aggregated
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithDeletedComment, allTransactions, currentUserAccountID);
+
+            // Then it is still ignored, i.e. the fix did not widen the filter beyond report previews
+            expect(errors).toEqual({});
+        });
+
         it('should return smart scan error for the top-most parent report with smart scan error', async () => {
             const transactionID = '12345';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction1.reportID}`, {

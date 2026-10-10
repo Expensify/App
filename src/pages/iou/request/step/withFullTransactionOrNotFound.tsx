@@ -118,7 +118,7 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
                 <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         ) : (
-            <FullScreenLoadingIndicator shouldUseGoBackButton />
+            <FullScreenLoadingIndicator />
         );
     }
     return (
