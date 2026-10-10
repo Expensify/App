@@ -45,8 +45,9 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: () => ({shouldUseNarrowLayout: false}),
 }));
 
+const mockCreateNewReport = jest.fn<{reportID: string}, unknown[]>(() => ({reportID: 'report-1'}));
 jest.mock('@libs/actions/Report', () => ({
-    createNewReport: jest.fn(() => ({reportID: 'report-1'})),
+    createNewReport: (...args: unknown[]) => mockCreateNewReport(...args),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -63,22 +64,6 @@ jest.mock('@libs/Navigation/helpers/getCreateReportRoute', () => ({
     getReportsRootRoute: () => 'reports',
     navigateToCreateReportWorkspaceSelection: jest.fn(),
 }));
-
-jest.mock('@libs/PolicyUtils', () => {
-    const CONSTANTS = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
-
-    return {
-        getDefaultChatEnabledPolicy: jest.fn((policies: Policy[]) => policies.at(0)),
-        getGroupPoliciesWhereReportCanBeCreated: jest.fn((policies: Record<string, Policy> | undefined) =>
-            Object.values(policies ?? {}).filter(
-                (policy): policy is Policy =>
-                    !!policy &&
-                    !policy.isJoinRequestPending &&
-                    (policy.type === CONSTANTS.POLICY.TYPE.TEAM || policy.type === CONSTANTS.POLICY.TYPE.CORPORATE || policy.type === CONSTANTS.POLICY.TYPE.SUBMIT),
-            ),
-        ),
-    };
-});
 
 jest.mock('@navigation/helpers/isOnSearchMoneyRequestReportPage', () => ({
     __esModule: true,
@@ -102,20 +87,7 @@ function makePolicy(id: string, type: Policy['type']): Policy {
 }
 
 function setupUseOnyx() {
-    const personalPolicy = makePolicy('personal-1', CONST.POLICY.TYPE.PERSONAL);
-    const groupPolicy = makePolicy('team-1', CONST.POLICY.TYPE.TEAM);
-    const submitPolicy = makePolicy('submit-1', CONST.POLICY.TYPE.SUBMIT);
     const values = new Map<string, unknown>([
-        [ONYXKEYS.NVP_ACTIVE_POLICY_ID, personalPolicy.id],
-        [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy],
-        [
-            ONYXKEYS.COLLECTION.POLICY,
-            {
-                [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
-                [`${ONYXKEYS.COLLECTION.POLICY}${groupPolicy.id}`]: groupPolicy,
-                [`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy,
-            },
-        ],
         [ONYXKEYS.SESSION, {accountID: 1, email: 'user@test.com'}],
         [ONYXKEYS.BETAS, []],
         [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {}],
@@ -134,14 +106,31 @@ describe('CreateReportMenuItem', () => {
         setupUseOnyx();
     });
 
-    it('passes only report-creation workspaces to useCreateReport', () => {
+    it('lets useCreateReport resolve the workspace instead of handing it a pre-filtered list', () => {
+        // Given the FAB item renders for a user with several report-eligible workspaces
         render(<CreateReportMenuItem />);
 
+        // When it wires up useCreateReport
         const params = mockUseCreateReport.mock.calls.at(0)?.at(0);
-        expect(params?.groupPoliciesWithChatEnabled).toHaveLength(2);
-        expect(params?.groupPoliciesWithChatEnabled).toEqual([
-            expect.objectContaining({id: 'team-1', type: CONST.POLICY.TYPE.TEAM}),
-            expect.objectContaining({id: 'submit-1', type: CONST.POLICY.TYPE.SUBMIT}),
-        ]);
+
+        // Then it passes no candidate list, so a truncated or unfiltered list can never decide the default (the old `.slice(0, 2)` bug)
+        expect(Object.keys(params ?? {}).sort()).toEqual(['onCreateReport', 'onNavigateToWorkspaceSelection', 'shouldHandleNavigationBack']);
+        expect(params?.shouldHandleNavigationBack).toBe(false);
+    });
+
+    it.each([
+        ['the active workspace', 'team-1'],
+        ['the domain preferred workspace', 'corporate-1'],
+    ])('creates the report on %s that useCreateReport resolved', (_description, policyID) => {
+        // Given the FAB item is rendered and useCreateReport has resolved a workspace
+        render(<CreateReportMenuItem />);
+        const policy = makePolicy(policyID, CONST.POLICY.TYPE.TEAM);
+
+        // When useCreateReport asks the item to create the report
+        mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport(policy, false);
+
+        // Then the report is created on exactly that workspace, not on one the item looked up itself
+        expect(mockCreateNewReport).toHaveBeenCalledTimes(1);
+        expect(mockCreateNewReport.mock.calls.at(0)?.at(3)).toBe(policy);
     });
 });
