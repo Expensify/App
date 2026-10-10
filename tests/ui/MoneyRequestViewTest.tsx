@@ -5,6 +5,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
@@ -12,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {PartialDeep} from 'type-fest';
 
 import escapeRegExp from 'lodash/escapeRegExp';
@@ -22,6 +25,46 @@ import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+type MockMenuItemWithTopDescriptionProps = {
+    description?: string;
+    title?: string;
+    interactive?: boolean;
+    descriptionTextStyle?: StyleProp<TextStyle>;
+    errorText?: string;
+    brickRoadIndicator?: string;
+};
+
+const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive, errorText, brickRoadIndicator}: MockMenuItemWithTopDescriptionProps) => {
+    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
+
+    return (
+        <>
+            <RN.View testID={`menu-item-${description}`}>
+                <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
+            </RN.View>
+            {title !== undefined && (
+                <RN.View testID={`menu-item-title-${description}`}>
+                    <RN.Text>{title}</RN.Text>
+                </RN.View>
+            )}
+            {errorText !== undefined && (
+                <RN.View testID={`menu-item-error-${description}`}>
+                    <RN.Text>{errorText}</RN.Text>
+                </RN.View>
+            )}
+            {brickRoadIndicator !== undefined && (
+                <RN.View testID={`menu-item-indicator-${description}`}>
+                    <RN.Text>{brickRoadIndicator}</RN.Text>
+                </RN.View>
+            )}
+        </>
+    );
+});
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    isHybridApp: jest.fn(() => false),
+}));
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -58,19 +101,7 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 // Title lives in a sibling element so existing toHaveTextContent('editable'|'readonly') assertions on
 // the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
-        <>
-            <RN.View testID={`menu-item-${description}`}>
-                <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
-            </RN.View>
-            {title !== undefined && (
-                <RN.View testID={`menu-item-title-${description}`}>
-                    <RN.Text>{title}</RN.Text>
-                </RN.View>
-            )}
-        </>
-    );
+    return (props: MockMenuItemWithTopDescriptionProps) => mockMenuItemWithTopDescription(props);
 });
 
 // Mock the legacy MenuItem (used for some fields like billable), but keep the real compound parts the migrated rows render with
@@ -107,11 +138,23 @@ const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
 const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+let renderedThemeStyles: ReturnType<typeof useThemeStyles> | undefined;
+
+function ThemeStylesObserver() {
+    const styles = useThemeStyles();
+
+    React.useEffect(() => {
+        renderedThemeStyles = styles;
+    }, [styles]);
+
+    return null;
+}
 
 const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>, readonly = false) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                <ThemeStylesObserver />
                 <MoneyRequestView
                     transactionThreadReport={threadReport}
                     parentReportID={expenseReportID}
@@ -144,6 +187,7 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             await Onyx.clear();
         });
+        mockMenuItemWithTopDescription.mockClear();
     });
 
     const setupTestData = async (isSettledReport = false) => {
@@ -251,6 +295,69 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
             expect(screen.getByTestId('menu-item-Location')).toBeOnTheScreen();
+        });
+    });
+
+    it('preserves word wrapping when expense detail labels are made non-selectable', async () => {
+        // Given an expense with all labels affected by the non-selectable text styling
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        const longTagName = 'LongTagNameWithoutSpaces';
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                [longTagName]: {name: longTagName, orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport, {areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then each affected description keeps both breakWord and userSelectNone
+        await waitFor(() => {
+            const renderedRows = mockMenuItemWithTopDescription.mock.calls.map(([props]) => props);
+            const affectedRows = [
+                renderedRows.find(({description}) => description === longTagName),
+                renderedRows.find(({description}) => description?.startsWith('iou.amount')),
+                renderedRows.find(({description}) => description === 'common.description'),
+                renderedRows.find(({description}) => description === 'common.merchant'),
+                renderedRows.find(({description}) => description === 'common.report'),
+            ];
+
+            expect(affectedRows).not.toContain(undefined);
+            for (const row of affectedRows) {
+                expect(row?.descriptionTextStyle).toEqual([renderedThemeStyles?.breakWord, renderedThemeStyles?.userSelectNone]);
+            }
+        });
+    });
+
+    it('marks selectable toggle labels for multi-field copying', async () => {
+        // Given an expense that displays the Reimbursable and Billable toggles
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both selectable labels carry the marker used by the multi-field selection scraper
+        await waitFor(() => {
+            const toggleLabels = [screen.getByText(/reimbursable$/i, {includeHiddenElements: true}), screen.getByText('common.billable', {includeHiddenElements: true})];
+
+            for (const toggleLabel of toggleLabels) {
+                expect(toggleLabel).toHaveProp('dataSet', expect.objectContaining({[CONST.COPYABLE_TEXT_ELEMENT]: true}));
+                expect(toggleLabel).not.toHaveProp('dataSet', expect.objectContaining({[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}));
+            }
         });
     });
 

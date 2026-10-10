@@ -61,6 +61,7 @@ export default function WorkspaceMembersTableRow({
     return (
         <Table.Row
             interactive
+            shouldAllowTextSelection
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
@@ -78,24 +79,31 @@ export default function WorkspaceMembersTableRow({
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <AccountAvatar
-                            size={avatarSize}
-                            accountID={item.accountID}
-                            accountEmail={item.login}
-                            fallbackDisplayName={item.name ?? item.email}
-                        />
+                        <View
+                            style={styles.userSelectNone}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        >
+                            <AccountAvatar
+                                size={avatarSize}
+                                accountID={item.accountID}
+                                accountEmail={item.login}
+                                fallbackDisplayName={item.name ?? item.email}
+                            />
+                        </View>
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={item.name}
                                 style={[styles.optionDisplayName, styles.pre]}
                                 numberOfLines={1}
+                                isCopyable
                             />
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={memberSubtitle}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 numberOfLines={1}
+                                isCopyable
                             />
                         </View>
                     </View>
@@ -111,6 +119,7 @@ export default function WorkspaceMembersTableRow({
                                     numberOfLines={1}
                                     text={item.employeeUserID}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                    isCopyable
                                 />
                             )}
                         </View>
@@ -127,6 +136,7 @@ export default function WorkspaceMembersTableRow({
                                     numberOfLines={1}
                                     text={item.employeePayrollID}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                    isCopyable
                                 />
                             )}
                         </View>

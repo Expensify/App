@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resolveReportFieldValue} from '@libs/Formula';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,12 +39,14 @@ import {
     shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
+import {COPYABLE_ROW_CONTINUATION_DATA_SET} from '@libs/SelectionScraper';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 
 import {fontScale} from '@styles/typography';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,6 +105,7 @@ function MoneyReportView({
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldUseCopyableRowContinuation = getPlatform(true) === CONST.PLATFORM.WEB;
     const isSettled = isSettledReportUtils(report?.reportID);
     const isTotalUpdated = hasUpdatedTotal(report, policy) && !isTotalPending;
 
@@ -174,51 +178,62 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {shouldDisplayReportFields &&
-                            (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
-                            sortedPolicyReportFields.map((reportField) => {
-                                if (shouldHideSingleReportField(reportField)) {
-                                    return null;
-                                }
+                        {shouldDisplayReportFields && (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
+                            <View
+                                style={styles.dContents}
+                                dataSet={shouldUseCopyableRowContinuation ? COPYABLE_ROW_CONTINUATION_DATA_SET : undefined}
+                            >
+                                {sortedPolicyReportFields.map((reportField) => {
+                                    if (shouldHideSingleReportField(reportField)) {
+                                        return null;
+                                    }
 
-                                const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules);
-                                const fieldKey = getReportFieldKey(reportField.fieldID);
+                                    const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
+                                    const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules);
+                                    const fieldKey = getReportFieldKey(reportField.fieldID);
+                                    const reportFieldCopyValue = fieldValue || undefined;
 
-                                const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);
-                                const violationTranslation = getFieldViolationTranslation(reportField, violation);
+                                    const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);
+                                    const violationTranslation = getFieldViolationTranslation(reportField, violation);
 
-                                return (
-                                    <OfflineWithFeedback
-                                        // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-                                        pendingAction={pendingAction ? undefined : report?.pendingFields?.[fieldKey as keyof typeof report.pendingFields]}
-                                        errors={report?.errorFields?.[fieldKey]}
-                                        errorRowStyles={styles.ph5}
-                                        key={`menuItem-${fieldKey}`}
-                                        onClose={() => clearReportFieldKeyErrors(report?.reportID, fieldKey)}
-                                    >
-                                        <MenuItemWithTopDescription
-                                            description={Str.UCFirst(reportField.name)}
-                                            title={fieldValue}
-                                            onPress={() => {
-                                                if (!report?.policyID) {
-                                                    return;
-                                                }
+                                    return (
+                                        <OfflineWithFeedback
+                                            // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+                                            pendingAction={pendingAction ? undefined : report?.pendingFields?.[fieldKey as keyof typeof report.pendingFields]}
+                                            errors={report?.errorFields?.[fieldKey]}
+                                            errorRowStyles={styles.ph5}
+                                            key={`menuItem-${fieldKey}`}
+                                            onClose={() => clearReportFieldKeyErrors(report?.reportID, fieldKey)}
+                                        >
+                                            <MenuItemWithTopDescription
+                                                description={Str.UCFirst(reportField.name)}
+                                                descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
+                                                title={fieldValue}
+                                                onPress={() => {
+                                                    if (!report?.policyID) {
+                                                        return;
+                                                    }
 
-                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, reportField.fieldID)));
-                                            }}
-                                            shouldShowRightIcon={!isFieldDisabled}
-                                            wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                                            shouldGreyOutWhenDisabled={false}
-                                            numberOfLinesTitle={0}
-                                            interactive={!isFieldDisabled}
-                                            titleWithTooltips={[]}
-                                            brickRoadIndicator={violation ? 'error' : undefined}
-                                            errorText={violationTranslation}
-                                        />
-                                    </OfflineWithFeedback>
-                                );
-                            })}
+                                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, reportField.fieldID)));
+                                                }}
+                                                shouldShowRightIcon={!isFieldDisabled}
+                                                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                                                shouldGreyOutWhenDisabled={false}
+                                                numberOfLinesTitle={0}
+                                                interactive={!isFieldDisabled}
+                                                titleWithTooltips={[]}
+                                                brickRoadIndicator={violation ? 'error' : undefined}
+                                                errorText={violationTranslation}
+                                                errorTextStyle={styles.userSelectNone}
+                                                copyValue={reportFieldCopyValue}
+                                                copyable={isFieldDisabled && !!reportFieldCopyValue}
+                                                isTitleSelectable={!!reportFieldCopyValue}
+                                            />
+                                        </OfflineWithFeedback>
+                                    );
+                                })}
+                            </View>
+                        )}
                         {shouldShowTotalRow && (
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                                 <View style={[styles.flex1, styles.justifyContentCenter]}>

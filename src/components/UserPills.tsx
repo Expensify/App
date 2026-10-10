@@ -24,6 +24,7 @@ type UserPillData = {
 type UserPillsProps = {
     users: UserPillData[];
     maxVisible?: number;
+    isCopyable?: boolean;
 } & (
     | {onShowAllPress?: undefined; showAllSentryLabel?: undefined}
     | {
@@ -36,7 +37,7 @@ type UserPillsProps = {
 
 const DEFAULT_MAX_VISIBLE = 6;
 
-function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress, showAllSentryLabel}: UserPillsProps) {
+function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress, showAllSentryLabel, isCopyable = false}: UserPillsProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 
@@ -62,6 +63,7 @@ function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress, sho
                         displayName={user.displayName}
                         accountID={user.accountID}
                         email={user.email}
+                        isCopyable={isCopyable}
                     />
                 );
             })}

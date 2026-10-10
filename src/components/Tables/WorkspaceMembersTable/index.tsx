@@ -2,6 +2,7 @@ import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemI
 import Table, {composeTableListHeader} from '@components/Table';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
 
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -84,6 +85,7 @@ export default function WorkspaceMembersTable({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [

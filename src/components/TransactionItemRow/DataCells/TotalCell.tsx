@@ -147,6 +147,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
             shouldShowTooltip={shouldShowTooltip}
             text={amountToDisplay}
             style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink1, styles.textAlignRight]}
+            isCopyable
         />
     );
 

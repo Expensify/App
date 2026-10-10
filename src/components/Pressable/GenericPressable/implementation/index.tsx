@@ -2,6 +2,8 @@ import type PressableProps from '@components/Pressable/GenericPressable/types';
 
 import mergeRefs from '@libs/mergeRefs';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef} from 'react';
 import type {Role, View} from 'react-native';
 
@@ -11,6 +13,10 @@ import GenericPressable from './BaseGenericPressable';
 
 function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
+    const role = (props.accessibilityRole ?? props.role) as Role;
+    // React Native Web maps role="button" to a native <button>. Safari clears the native text range
+    // before the click handler can suppress row navigation, so render a div and restore the ARIA role.
+    const shouldRenderAsNonNativeButton = props.shouldAllowTextSelection && role === CONST.ROLE.BUTTON;
 
     // react-native-web's Pressable always sets aria-disabled from its own `disabled` prop,
     // overriding any explicit aria-disabled we pass. We pass fullDisabled (not isDisabled) to
@@ -28,7 +34,10 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
         } else {
             el.removeAttribute('aria-disabled');
         }
-    }, [isAriaDisabled]);
+        if (shouldRenderAsNonNativeButton) {
+            el.setAttribute('role', role);
+        }
+    }, [isAriaDisabled, role, shouldRenderAsNonNativeButton]);
 
     return (
         <GenericPressable
@@ -37,7 +46,8 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             // change native accessibility props to web accessibility props
             focusable={focusable}
             tabIndex={(props.tabIndex ?? (!accessible || !focusable)) ? -1 : 0}
-            role={(props.accessibilityRole ?? props.role) as Role}
+            accessibilityRole={shouldRenderAsNonNativeButton ? undefined : props.accessibilityRole}
+            role={shouldRenderAsNonNativeButton ? undefined : role}
             id={props.id}
             aria-label={props.accessibilityLabel}
             aria-labelledby={props.accessibilityLabelledBy}
@@ -47,7 +57,12 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             aria-valuetext={props.accessibilityValue?.text}
             // Note: data-tag="pressable" is also used by Sentry's INP instrumentation patch to detect pressable containers
             // and shorten interaction selectors. See patches/sentry-core/ before removing or renaming it.
-            dataSet={{tag: 'pressable', ...(props.noDragArea && {dragArea: false}), ...(sentryLabel && {sentryLabel}), ...props.dataSet}}
+            dataSet={{
+                tag: 'pressable',
+                ...(props.noDragArea && {dragArea: false}),
+                ...(sentryLabel && {sentryLabel}),
+                ...props.dataSet,
+            }}
         />
     );
 }

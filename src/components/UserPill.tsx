@@ -2,6 +2,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -22,9 +23,10 @@ type UserPillProps = {
     accountID?: number;
     email?: string;
     style?: StyleProp<ViewStyle>;
+    isCopyable?: boolean;
 };
 
-function UserPill({avatar, displayName, accountID, email, style}: UserPillProps) {
+function UserPill({avatar, displayName, accountID, email, style, isCopyable = false}: UserPillProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {formatPhoneNumber} = useLocalize();
@@ -42,14 +44,21 @@ function UserPill({avatar, displayName, accountID, email, style}: UserPillProps)
             }}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.userPill, shouldUseNarrowLayout && styles.mw100, style]}>
-                <UserAvatar
-                    source={avatar}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
-                    accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
-                />
+                <View
+                    style={isCopyable && styles.userSelectNone}
+                    dataSet={isCopyable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
+                >
+                    <UserAvatar
+                        source={avatar}
+                        size={CONST.AVATAR_SIZE.XXX_SMALL}
+                        accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
+                    />
+                </View>
                 <Text
                     style={styles.userPillText}
                     numberOfLines={1}
+                    selectable={isCopyable || undefined}
+                    dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
                 >
                     {formattedDisplayName}
                 </Text>

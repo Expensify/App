@@ -14,6 +14,7 @@ import {isChatThread} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -61,7 +62,18 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
 
     return (
         threadMessages.count > 0 && (
-            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(iconSize), containerStyles]}>
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.alignItemsCenter,
+                    styles.justifyContentCenter,
+                    styles.textAlignCenter,
+                    styles.userSelectNone,
+                    StyleUtils.getWidthAndHeightStyle(iconSize),
+                    containerStyles,
+                ]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
                 <Icon
                     src={icons.ChatBubbleCounter}
                     additionalStyles={[styles.pAbsolute]}
