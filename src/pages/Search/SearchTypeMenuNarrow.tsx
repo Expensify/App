@@ -10,6 +10,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -61,6 +62,7 @@ type SearchTypeMenuNarrowContentProps = {
 
 function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchTypeMenuNarrowContentProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
 
     return (
         <View
@@ -69,6 +71,7 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
         >
             <TabSelectorContextProvider activeTabKey={activeTabKey}>
                 <TabSelectorBase
+                    contentContainerStyles={pageGutter}
                     tabs={tabs}
                     activeTabKey={activeTabKey}
                     onActiveTabPress={onActiveTabPress}

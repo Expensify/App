@@ -1197,8 +1197,8 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
 }
 
 /** Returns a compact day label, e.g. "Sep 15, ’26". */
-function getShortFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(parse(day, 'yyyy-MM-dd', new Date()), 'MMM d, ’yy', {locale: dateFnsLocale});
+function getShortFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    return format(parse(day, 'yyyy-MM-dd', new Date()), shouldShowYear ? 'MMM d, ’yy' : 'MMM d', {locale: dateFnsLocale});
 }
 
 /** Returns a month label, e.g. "September 2025". */
@@ -1207,8 +1207,8 @@ function getFormattedMonthForSearch(year: number, month: number, dateFnsLocale: 
 }
 
 /** Returns a compact month label, e.g. "Sep ’25". */
-function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(year, month - 1, 1), 'LLL ’yy', {locale: dateFnsLocale});
+function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    return format(new Date(year, month - 1, 1), shouldShowYear ? 'LLL ’yy' : 'LLL', {locale: dateFnsLocale});
 }
 
 /**
@@ -1227,13 +1227,14 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, date
 }
 
 /** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
-function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined): string {
+function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
     if (!isSameYear(start, end)) {
         return `${format(start, 'MMM d, ’yy', {locale: dateFnsLocale})} - ${format(end, 'MMM d, ’yy', {locale: dateFnsLocale})}`;
     }
-    const formattedEnd = isSameMonth(start, end) ? format(end, 'd, ’yy', {locale: dateFnsLocale}) : format(end, 'MMM d, ’yy', {locale: dateFnsLocale});
+    const yearSuffix = shouldShowYear ? ', ’yy' : '';
+    const formattedEnd = format(end, isSameMonth(start, end) ? `d${yearSuffix}` : `MMM d${yearSuffix}`, {locale: dateFnsLocale});
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${formattedEnd}`;
 }
 
@@ -1274,12 +1275,12 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
 /**
  * Returns a compact quarter label, e.g. "Q3 ’25".
  */
-function getShortFormattedQuarterForSearch(year: number, quarter: number, dateFnsLocale: DateFnsLocale | undefined): string {
+function getShortFormattedQuarterForSearch(year: number, quarter: number, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
     // Same reasoning as `getFormattedQuarterForSearch`. The quarter label has to come from `QQQ` rather than a
     // hand-built `Q${quarter}`, because every locale names quarters differently and `Intl.DateTimeFormat` has no
     // quarter option to fall back on.
     const quarterStart = set(new Date(), {year, month: (quarter - 1) * 3, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
-    return format(quarterStart, `QQQ ’yy`, {locale: dateFnsLocale});
+    return format(quarterStart, shouldShowYear ? 'QQQ ’yy' : 'QQQ', {locale: dateFnsLocale});
 }
 
 function getNextNthOfMonth(nth: number) {
