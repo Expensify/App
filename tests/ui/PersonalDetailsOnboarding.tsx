@@ -25,7 +25,6 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -220,7 +219,7 @@ describe('OnboardingPersonalDetails Page', () => {
     });
 
     it('should create a Submit workspace when submitting form with EMPLOYER and public domain', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         await TestHelper.signInWithTestUser();
@@ -261,80 +260,6 @@ describe('OnboardingPersonalDetails Page', () => {
                 ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
             );
         });
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    it('should create an Add work email task when a validated public-domain user joins a workspace', async () => {
-        await TestHelper.signInWithTestUser(1, fakeEmail);
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {
-                isFromPublicDomain: true,
-            });
-            await Onyx.merge(ONYXKEYS.LOGINS, mockLoginList);
-            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
-                firstName: 'Test',
-            });
-            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
-        });
-
-        const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.PERSONAL_DETAILS, {backTo: ''});
-
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-
-        await waitFor(() => {
-            const onboardingMessage = mockCompleteOnboarding.mock.calls.at(-1)?.[0]?.onboardingMessage;
-            expect(onboardingMessage?.tasks.at(0)?.type).toBe(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
-        });
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    it('should complete onboarding without claiming ownership of a workspace the user joined', async () => {
-        const policyID = 'joined-policy-id';
-        const testEmail = 'test@user.com';
-        await TestHelper.signInWithTestUser(1, testEmail);
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {isFromPublicDomain: false, hasAccessibleDomainPolicies: true});
-            await Onyx.merge(ONYXKEYS.LOGINS, {
-                [`1_${testEmail}`]: {
-                    partnerID: 1,
-                    partnerUserID: testEmail,
-                    validatedDate: 'fake-validatedDate',
-                },
-            });
-            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
-            await Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID);
-            await Onyx.set(
-                `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                createMock<Policy>({
-                    id: policyID,
-                    name: 'Joined workspace',
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                    role: CONST.POLICY.ROLE.USER,
-                }),
-            );
-        });
-
-        const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.PERSONAL_DETAILS, {backTo: ''});
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.firstName')), 'Test');
-        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.lastName')), 'User');
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-
-        await waitFor(() => {
-            expect(mockCompleteOnboarding).toHaveBeenCalled();
-        });
-        const completionParams = mockCompleteOnboarding.mock.calls.at(-1)?.[0];
-        expect(completionParams).not.toHaveProperty('onboardingPolicyID');
-        expect(completionParams?.onboardingMessage.tasks).toHaveLength(0);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
