@@ -12,7 +12,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Agent} from '@src/types/onyx';
 import {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useEffect, useRef, useState} from 'react';
 import {usePrevious} from 'victory-native';
@@ -27,7 +30,7 @@ import useRuleBotGuardModal from './useRuleBotGuardModal';
 import useSearchBackPress from './useSearchBackPress';
 import useSwitchToDelegator from './useSwitchToDelegator';
 
-const handleErrorClose = (pendingAction: PendingAction | null | undefined, accountID: number) => {
+function handleErrorClose(pendingAction: PendingAction | null | undefined, accountID: number): void {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         clearAgentError(accountID);
     } else if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -35,16 +38,32 @@ const handleErrorClose = (pendingAction: PendingAction | null | undefined, accou
     } else {
         clearAgentUpdateError(accountID);
     }
+}
+
+function ownedAgentsSelector(agents: OnyxCollection<Agent>, ownerAccountID?: number): OnyxCollection<Agent> {
+    if (!ownerAccountID) {
+        return agents;
+    }
+    return Object.fromEntries(
+        Object.entries(agents ?? {}).filter(([key, agent]) => {
+            return agent?.ownerAccountID === ownerAccountID;
+        }),
+    );
+}
+
+type UseAgentsParams = {
+    /** If provided, filter agents by owner account ID */
+    ownerAccountID?: number;
 };
 
-function useAgents() {
+function useAgents({ownerAccountID}: UseAgentsParams) {
     useEffect(() => {
         openAgentsPage();
     }, []);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
+    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: (data) => ownedAgentsSelector(data, ownerAccountID)});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetailsList = usePersonalDetails();
     const chatWithAgent = useChatWithAgent();
@@ -53,7 +72,7 @@ function useAgents() {
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
 
-    const agents: AgentRowData[] = Object.entries(agentPrompts ?? {}).flatMap(([key, agentPrompt]) => {
+    const agents: AgentRowData[] = Object.entries(allAgents ?? {}).flatMap(([key, agentPrompt]) => {
         const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));
         const details = personalDetailsList?.[accountID];
         if (!details) {
