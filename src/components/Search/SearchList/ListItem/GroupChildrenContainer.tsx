@@ -1,3 +1,5 @@
+import {getSearchGroupCount} from '@components/Search/selectionBuilders';
+
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -39,7 +41,7 @@ function GroupChildrenContainer({
     const hasBorder = !isFirstItem;
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, isExpanded && hasBorder, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
-    const {isSelectAllChecked} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: item.transactions});
+    const {isSelectAllChecked} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: item.transactions, groupCount: getSearchGroupCount(item)});
 
     // Only the rows this container holds decide its background, so a group still waiting for its first page is not painted as selected.
     const isSelected = !!item.isSelected || (item.transactions.length > 0 && isSelectAllChecked);

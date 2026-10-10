@@ -17,6 +17,8 @@ import Onyx from 'react-native-onyx';
 
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
+import {makeSettlementGroup} from '../../utils/ExpensifyCardStatementTestUtils';
+
 jest.mock('@libs/actions/Export', () => ({
     exportReportsToPDF: jest.fn(() => 'mock-pdf-export-id'),
     exportReceiptsToZip: jest.fn(() => 'mock-receipts-export-id'),
@@ -369,23 +371,55 @@ describe('useSearchBulkActions - Download receipts', () => {
             expect(exportReceiptsToZip).toHaveBeenCalledWith({transactionIDs: expect.arrayContaining(['tx1', 'tx2'])});
         });
 
-        it('drops group_ selection keys and only sends real transaction IDs', async () => {
+        it('hides the option next to a group checked while collapsed, since the download would leave out its expenses', async () => {
+            // Given an expense with a receipt checked next to a group checked while collapsed, whose expenses are not loaded
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
             mockSelectedTransactions = {
                 [groupKey]: makeSelectedTransaction({reportID: undefined}),
                 tx1: makeSelectedTransaction(),
             };
 
+            // When the bulk actions are built
             const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseQueryJSON}));
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+            });
 
+            // Then Download receipts is not offered, since the zip can only take loaded expenses and would leave the group out
+            expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeUndefined();
+        });
+
+        it('drops a cash back row from the IDs it sends, since that row holds no expenses', async () => {
+            // Given an expense with a receipt checked next to a cash back row, which selecting the page checks under its own key
+            const cashBackKey = `${CONST.SEARCH.GROUP_PREFIX}cashBack` as const;
+            mockSelectedTransactions = {
+                [cashBackKey]: makeSelectedTransaction({reportID: undefined}),
+                tx1: makeSelectedTransaction(),
+            };
+            mockCurrentSearchResults = {
+                data: {[cashBackKey]: makeSettlementGroup({count: 0, total: -2500, isCashBack: true})},
+                search: {
+                    offset: 0,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    hash: 12345,
+                    hasMoreResults: false,
+                    hasResults: true,
+                    isLoading: false,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                },
+            };
+
+            // When Download receipts is chosen
+            const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseQueryJSON}));
             await waitFor(() => {
                 expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeDefined();
             });
-
             await act(async () => {
                 await getDownloadReceiptsOption(result.current.headerButtonsOptions)?.onSelected?.();
             });
 
+            // Then only the expense is sent, since the cash back row leaves out no expense and is not one itself
             expect(exportReceiptsToZip).toHaveBeenCalledTimes(1);
             expect(exportReceiptsToZip).toHaveBeenCalledWith({transactionIDs: ['tx1']});
         });

@@ -10,7 +10,7 @@ import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTe
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {ReportAction, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -121,9 +121,10 @@ jest.mock('@hooks/useConfirmModal', () => ({
     default: () => ({showConfirmModal: jest.fn()}),
 }));
 
+let mockEnabledBetas: string[] = [];
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
+    default: () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.includes(beta), isBetaEnabledOrUnknown: (beta: string) => mockEnabledBetas.includes(beta)}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -623,5 +624,187 @@ describe('useSearchBulkActions - CSV export flow', () => {
                 }),
             );
         });
+    });
+});
+
+describe('useSearchBulkActions - a group checked through its header while its rows load', () => {
+    const groupKey = `${CONST.SEARCH.GROUP_PREFIX}acme`;
+
+    function buildUnreportedExpense(transactionID: string): Transaction {
+        return {...createRandomTransaction(0), transactionID, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+    }
+
+    function checkOnItsOwn(transactionID: string) {
+        mockSelectedTransactions[transactionID] = makeSelectedTransaction({transaction: buildUnreportedExpense(transactionID), reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+    }
+
+    function checkOnItsOwnWithReceipt(transactionID: string) {
+        const transaction = {...buildUnreportedExpense(transactionID), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
+        mockSelectedTransactions[transactionID] = makeSelectedTransaction({transaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+    }
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockAreAllMatchingItemsSelected = false;
+        mockExcludedTransactions = {};
+        mockSelectedReports = [];
+        mockEnabledBetas = [CONST.BETAS.BULK_EDIT];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({canHold: true, groupKey, isSelectedViaGroup: true, transaction: buildUnreportedExpense('tx1'), reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+            tx2: makeSelectedTransaction({canHold: true, groupKey, isSelectedViaGroup: true, transaction: buildUnreportedExpense('tx2'), reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+        };
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
+        await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+    });
+
+    afterEach(async () => {
+        mockEnabledBetas = [];
+        await Onyx.clear();
+    });
+
+    function renderWithGroupCount(count: number) {
+        const loadedExpenses = Object.fromEntries(
+            Object.values(mockSelectedTransactions).flatMap(({transaction}) => (transaction ? [[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]] : [])),
+        );
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {...loadedExpenses, [groupKey]: {count, total: 12990, currency: CONST.CURRENCY.USD, merchant: 'Acme'}},
+        };
+        return renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+    }
+
+    async function getOfferedActions(count: number) {
+        const {result} = renderWithGroupCount(count);
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+        return result.current.headerButtonsOptions.map((option) => option.value);
+    }
+
+    it('offers only the actions that cover the whole group, as for a group checked while collapsed', async () => {
+        // Given two loaded rows of a 692-expense group, both of which could be held, checked through the group's header
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(692);
+
+        // Then Hold is not offered, since it would hold two expenses under a selection that reads 692, while Export, which covers the group, still is
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    });
+
+    it('offers the row actions for a wholly selected group whose rows a refresh kept off the page', async () => {
+        // Given the group's two rows checked through its header and wholly selected, one of them kept off the page by a refresh that brought back only the first
+        mockSelectedTransactions = {
+            tx1: {...mockSelectedTransactions.tx1, isEntireGroupSelected: true},
+            tx2: {...mockSelectedTransactions.tx2, isEntireGroupSelected: true, isKeptOffPage: true},
+        };
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(2);
+
+        // Then Hold is still offered, since the kept row still names its expense; only the count and the total are taken from the server
+        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+    });
+
+    it('offers the row actions once every row of the group is loaded', async () => {
+        // Given the same two rows checked through the header, which are now the whole group
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(2);
+
+        // Then Hold is offered, since holding the loaded rows holds the whole group
+        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+    });
+
+    it('does not offer Edit multiple for expenses checked next to a group that is still loading', async () => {
+        // Given two expenses checked on their own, which could be edited together, next to a 692-expense group checked through its header
+        checkOnItsOwn('tx3');
+        checkOnItsOwn('tx4');
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(692);
+
+        // Then Edit multiple is not offered, since it would edit the two expenses and none of the group's
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.EDIT);
+    });
+
+    it('offers Edit multiple for the same selection once every row of the group is loaded', async () => {
+        // Given the same two expenses next to the group, whose two checked rows are now the whole group
+        checkOnItsOwn('tx3');
+        checkOnItsOwn('tx4');
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(2);
+
+        // Then Edit multiple is offered, since it edits every checked expense, the group's included
+        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.EDIT);
+    });
+
+    it('does not offer Merge for an expense checked next to a group that is still loading', async () => {
+        // Given one expense checked on its own next to a 692-expense group checked through its header
+        checkOnItsOwn('tx3');
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(692);
+
+        // Then Merge is not offered, since it would merge the one expense as if nothing else were checked
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.MERGE);
+    });
+
+    it('does not offer Download receipts for an expense checked next to a group that is still loading', async () => {
+        // Given one expense with a receipt checked on its own next to a 692-expense group checked through its header
+        checkOnItsOwnWithReceipt('tx3');
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(692);
+
+        // Then Download receipts is not offered, since it would download the one receipt and none of the group's
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS);
+    });
+
+    it('offers Download receipts for the same selection once every row of the group is loaded', async () => {
+        // Given the same expense next to the group, whose two checked rows are now the whole group
+        checkOnItsOwnWithReceipt('tx3');
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(2);
+
+        // Then Download receipts is offered, since it reads every checked expense, the group's included
+        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS);
+    });
+
+    it('offers Move under Select all next to a group that is still loading, since the move is sent as the query', async () => {
+        // Given every matching expense selected, with two movable rows of one submitter loaded from a 692-expense group checked through its header
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = Object.fromEntries(
+            Object.entries(mockSelectedTransactions).map(([key, entry]) => [key, {...entry, canChangeReport: true, ownerAccountID: CURRENT_USER_ACCOUNT_ID}]),
+        );
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(692);
+
+        // Then Move is offered, since the query it sends reaches the rows not loaded
+        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT);
+    });
+
+    it('keeps the selection it acts on the same across renders while a group is still loading, so nothing derived from it is rebuilt', async () => {
+        // Given two loaded rows of a 692-expense group checked through its header
+        const {result, rerender} = renderWithGroupCount(692);
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+        const {selectedTransactionReportIDs} = result.current;
+
+        // When the hook renders again with nothing changed
+        rerender({});
+
+        // Then what it derives from the selection is the same, since the group entry is not built again
+        expect(result.current.selectedTransactionReportIDs).toBe(selectedTransactionReportIDs);
     });
 });
