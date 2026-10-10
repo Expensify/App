@@ -25,7 +25,7 @@ type UseContactImportResult = {
     contacts: Array<SearchOption<PersonalDetails>>;
     contactPermissionState: PermissionStatus;
     importAndSaveContacts: () => void;
-    pickContact: () => Promise<Array<SearchOption<PersonalDetails>>>;
+    pickContact: () => void;
     setContactPermissionState: React.Dispatch<React.SetStateAction<PermissionStatus>>;
 };
 
@@ -50,15 +50,16 @@ function useContactImport(): UseContactImportResult {
     }, [localeCompare, formatPhoneNumber, countryCode, loginList]);
 
     // Opens the system contact picker and adds the picked contacts to the list, replacing any earlier copy of the same login
-    const pickContact = () =>
+    const pickContact = () => {
         pickContacts().then((deviceContacts) => {
             const pickedContacts = getContactsExtended(deviceContacts, localeCompare, formatPhoneNumber, countryCode, loginList);
-            if (pickedContacts.length) {
-                const pickedLogins = new Set(pickedContacts.map((contact) => contact.login));
-                setContacts((previousContacts) => [...previousContacts.filter((contact) => !pickedLogins.has(contact.login)), ...pickedContacts]);
+            if (!pickedContacts.length) {
+                return;
             }
-            return pickedContacts;
+            const pickedLogins = new Set(pickedContacts.map((contact) => contact.login));
+            setContacts((previousContacts) => [...previousContacts.filter((contact) => !pickedLogins.has(contact.login)), ...pickedContacts]);
         });
+    };
 
     useContactPermissions({
         importAndSaveContacts,

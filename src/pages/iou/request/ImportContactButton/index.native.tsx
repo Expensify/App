@@ -14,7 +14,7 @@ type ImportContactButtonProps = {
     inputHelperText?: string;
     isInSearch?: boolean;
 
-    /** Called when the link is pressed. Opens the app's settings so the contact permission can be granted by default */
+    /** Called when the link is pressed. Defaults to opening the app's settings */
     onPress?: () => void;
 };
 

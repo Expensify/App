@@ -38,12 +38,7 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
               contactOptions: contacts,
               showImportUI: showImportContacts,
               importContacts: importAndSaveContacts,
-              // Like the bulk import, the picked contact is only added to the list
-              pickContact: canPickContacts
-                  ? () => {
-                        pickContact();
-                    }
-                  : undefined,
+              pickContact: canPickContacts ? pickContact : undefined,
               setContactPermissionState,
           }
         : undefined;
