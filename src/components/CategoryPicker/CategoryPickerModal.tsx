@@ -5,6 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -70,6 +71,7 @@ function CategoryPickerModal({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isKeyboardActive} = useKeyboardState();
+    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
@@ -79,8 +81,8 @@ function CategoryPickerModal({
     const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
 
-    // A bottom sheet is sized by the screen, so the content estimate only applies to the pop-over.
-    const resolvedHeight = shouldFitContentHeight && !isSmallScreenWidth ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
+    const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
+    const resolvedHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight + bottomSafeAreaPadding) : popoverHeight;
     const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
 
     const handleCategorySelect = (item: ListItem) => {
@@ -110,13 +112,12 @@ function CategoryPickerModal({
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
+            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
                 <CategoryPicker
                     onRenderedRowCountChange={setRenderedRowCount}
                     selectedCategory={selectedCategory}
                     policyID={policyID}
                     onSubmit={handleCategorySelect}
-                    addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
                 />
             </View>
