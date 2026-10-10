@@ -76,6 +76,18 @@ jobs:
           if grep -qE '^docs/.*\.(md|csv)$' "$RUNNER_TEMP/changed-files.txt"; then
             echo "docs=true" >> "$GITHUB_OUTPUT"
           fi
+
+          # MelvinBot's auto-drafted docs PRs without the "HelpDot: Needs changes" label (the assignee commented /ready
+          # and no size rule matched) get the summary review only. Labeled PRs and every other docs PR get the summary
+          # plus inline comments. Labels are read live, not from the event payload, so "@claude review" re-runs match.
+          PR_META=$(gh pr view "$PR_NUMBER" --json author,title,labels)
+          IS_MELVIN_DOCS_PR=$(jq -r '(.author.login | ascii_downcase | ltrimstr("app/")) == "melvinbot" and (.title | contains("Docs updates for E/A#"))' <<< "$PR_META")
+          HAS_NEEDS_CHANGES=$(jq -r '[.labels[].name] | index("HelpDot: Needs changes") != null' <<< "$PR_META")
+          if [[ "$IS_MELVIN_DOCS_PR" == "true" && "$HAS_NEEDS_CHANGES" != "true" ]]; then
+            echo "docs_mode=summary-only" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_mode=full" >> "$GITHUB_OUTPUT"
+          fi
       - name: Mark review as in progress
         if: steps.skip.outputs.skip != 'true'
         env:
@@ -118,11 +130,12 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: '*'
-          prompt: '/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}'
+          prompt: '/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }} MODE: ${{ steps.filter.outputs.docs_mode }}'
+          # In summary-only mode the inline comment tool isn't passed, so inline comments can't be posted at all.
           claude_args: |
             --model claude-opus-4-8
             --effort high
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)${{ steps.filter.outputs.docs_mode == 'full' && ',mcp__github_inline_comment__create_inline_comment' || '' }}"
 
       - name: Record review completion
         if: steps.code-review.outcome == 'success' || steps.docs-review.outcome == 'success'
