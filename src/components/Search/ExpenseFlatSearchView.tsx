@@ -1,6 +1,6 @@
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
-import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 
 import CONST from '@src/CONST';
 
@@ -62,8 +62,8 @@ function ExpenseFlatSearchView({
     containerStyle,
 }: ExpenseFlatSearchViewProps) {
     const {type} = queryJSON;
-    // Normalize keyboard-copied expense rows so their grid cells paste as one space-separated row.
-    useCopySelectionHelper();
+    // Normalize copied expense rows so their grid cells paste as one space-separated row.
+    useCopySelectionEvent();
 
     const {
         isOffline,
