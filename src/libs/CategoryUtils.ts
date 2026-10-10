@@ -129,6 +129,13 @@ function isCategoryDescriptionRequired(policyCategories: PolicyCategories | unde
     return !!policyCategories[category]?.areCommentsRequired;
 }
 
+function getCategoryDescriptionHint(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): string {
+    if (!policyCategories || !category || !areRulesEnabled) {
+        return '';
+    }
+    return policyCategories[category]?.commentHint ?? '';
+}
+
 function getCategoryGLCode(policyCategories: PolicyCategories | undefined, category: string | undefined): string {
     if (!policyCategories || !category) {
         return '';
@@ -293,6 +300,7 @@ export {
     getEnabledCategoriesCount,
     isCategoryMissing,
     isCategoryDescriptionRequired,
+    getCategoryDescriptionHint,
     getCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,

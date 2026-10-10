@@ -3,10 +3,11 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
+import * as useConfirmModalModule from '@hooks/useConfirmModal';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -30,6 +31,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -331,6 +333,40 @@ describe('WorkspaceMemberDetailsPage', () => {
         });
         expect(screen.getAllByText('Primary User').length).toBeGreaterThan(0);
         expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should reassign the submitters of a removed approver whose personal details are missing', async () => {
+        // Given an approver with no personal details loaded, who a member submits to, opened through the route
+        // accountID derived from their login
+        const approverWithoutDetails = 'nodetails@example.com';
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [approverWithoutDetails]: {email: approverWithoutDetails, role: CONST.POLICY.ROLE.USER},
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: approverWithoutDetails},
+                },
+            });
+        });
+
+        // The admin confirms the removal prompt
+        const showConfirmModal = jest.fn(() => Promise.resolve({action: ModalActions.CONFIRM}));
+        jest.spyOn(useConfirmModalModule, 'default').mockReturnValue(createMock<ReturnType<typeof useConfirmModalModule.default>>({showConfirmModal}));
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(generateAccountID(approverWithoutDetails))});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin removes that approver
+        fireEvent.press(await screen.findByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle')));
+        await waitForBatchedUpdatesWithAct();
+        expect(showConfirmModal).toHaveBeenCalledTimes(1);
+
+        // Then the member's `submitsTo` is cleared so the backend sends them to the default approver, instead of
+        // being left submitting to someone no longer on the workspace
+        const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+        expect(updatedPolicy?.employeeList?.[invitedEmail]?.submitsTo).toBe('');
 
         unmount();
         await waitForBatchedUpdatesWithAct();

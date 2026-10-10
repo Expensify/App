@@ -389,7 +389,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 state: getOnboardingAdaptedState(onboardingNavigator.state),
             };
 
-            return getRoutesWithIndex([getDefaultFullScreenRoute(focusedRoute), adaptedOnboardingNavigator]);
+            return getRoutesWithIndex([getTabNavigatorState({name: SCREENS.HOME}), adaptedOnboardingNavigator]);
         }
 
         const isRightModalNavigator = currentState.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
