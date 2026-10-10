@@ -119,7 +119,6 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
             shouldBeBlocked={!isCompanyAgentsBetaEnabled}
         >
             <WorkspacePageWithSections
-                shouldUseScrollView
                 headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
@@ -129,16 +128,14 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 headerContent={headerContent}
             >
-                {() => (
-                    <AgentsTable
-                        ref={tableRef}
-                        agents={agents}
-                        headerComponent={agentsTableHeaderComponent}
-                        canSelectAgents
-                        selectedKeys={selectedAgentKeys}
-                        onRowSelectionChange={setSelectedAgents}
-                    />
-                )}
+                <AgentsTable
+                    ref={tableRef}
+                    agents={agents}
+                    headerComponent={agentsTableHeaderComponent}
+                    canSelectAgents
+                    selectedKeys={selectedAgentKeys}
+                    onRowSelectionChange={setSelectedAgents}
+                />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
