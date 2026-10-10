@@ -1,0 +1,339 @@
+#!/usr/bin/env bun
+
+// cspell:ignore profraw Profdata profdata
+
+import type {TupleToUnion} from 'type-fest';
+
+import CLI from 'expensify-common/CLI';
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+
+import type {BenchmarkStats} from '../lib/benchmarkStatistics';
+import type {NativeAppBenchmarkAdapter, PlatformName} from '../lib/nativeAppBenchmark';
+import type {BenchmarkOrder} from './journeyBenchmark';
+import type {BenchmarkKind, PlatformAdapter} from './shared';
+
+import {benchmarkStartups as runBenchmarkStartups} from '../lib/benchmarkAppStartup';
+import {benchmarkMetrics, readBenchmarkSamples} from '../lib/benchmarkStatistics';
+import {PLATFORM_NAMES, createNativeAppBenchmarkAdapter} from '../lib/nativeAppBenchmark';
+import {capture, fail, findFiles, parseChoice, parsePositiveInteger, requirePositiveInteger, rootDirectory, run} from '../lib/scriptUtils';
+import createAndroidPgoAdapter from './android';
+import createIOSPgoAdapter from './ios';
+import {benchmarkHeavyJourneyAll, benchmarkJourneyAll} from './journeyBenchmark';
+import {parseJourneyFixture} from './journeyConfig';
+import {STARTUP_SPAN_NAME} from './shared';
+
+const DEFAULT_STARTUP_RUNS = 10;
+const DEFAULT_STARTUP_WAIT_SECONDS = 30;
+const BENCHMARK_ORDERS = ['release-first', 'optimized-first'] as const;
+const WORKFLOW_COMMANDS = [
+    'build-release',
+    'build-instrumented',
+    'build-optimized',
+    'verify-instrumented',
+    'install-release',
+    'install-instrumented',
+    'install-optimized',
+    'record-startups',
+    'benchmark-release',
+    'benchmark-optimized',
+    'benchmark',
+    'compare-benchmarks',
+    'benchmark-journey',
+    'benchmark-heavy-journey',
+    'dump',
+    'pull',
+    'merge',
+] as const;
+
+type WorkflowCommand = TupleToUnion<typeof WORKFLOW_COMMANDS>;
+
+async function main(): Promise<void> {
+    // The CLI framework requires kebab-case named argument keys, which the naming-convention rule cannot express.
+    /* eslint-disable @typescript-eslint/naming-convention */
+    const cli = new CLI({
+        positionalArgs: [
+            {
+                name: 'platform',
+                description: `Native platform to target (${PLATFORM_NAMES.join(', ')})`,
+                parse: (value): PlatformName => parseChoice(value, PLATFORM_NAMES, 'Platform'),
+            },
+            {
+                name: 'workflow',
+                description: `PGO workflow to run (${WORKFLOW_COMMANDS.join(', ')})`,
+                parse: (value): WorkflowCommand => parseChoice(value, WORKFLOW_COMMANDS, 'Workflow'),
+            },
+            {
+                name: 'runs',
+                description: 'Number of measured startup or journey runs',
+                default: DEFAULT_STARTUP_RUNS,
+                parse: (value) => parsePositiveInteger(value, 'Run count'),
+            },
+            {
+                name: 'timeout',
+                description: `Seconds to wait for the ${STARTUP_SPAN_NAME} or journey benchmark spans`,
+                default: DEFAULT_STARTUP_WAIT_SECONDS,
+                parse: (value) => parsePositiveInteger(value, 'Span timeout'),
+            },
+        ],
+        namedArgs: {
+            'app-id': {
+                description: 'Application ID or bundle identifier; defaults to the bootstrapped release identifier',
+                required: false,
+            },
+            device: {
+                description: 'Device identifier to use (adb serial on Android; CoreDevice identifier, UDID, serial number, or device name on iOS)',
+                required: false,
+            },
+            fixture: {
+                description: 'Approved account fixture for journey benchmarks',
+                required: false,
+            },
+            'benchmark-order': {
+                description: 'Journey phase order; alternate it across paired batches to check build-order drift',
+                required: false,
+            },
+            profile: {
+                description: 'Immutable merged profile to use when building the optimized app',
+                required: false,
+            },
+        },
+    });
+    /* eslint-enable @typescript-eslint/naming-convention */
+
+    const {platform: platformName, workflow, runs, timeout} = cli.positionalArgs;
+    await runWorkflow(
+        parseChoice(String(platformName), PLATFORM_NAMES, 'Platform'),
+        parseChoice(String(workflow), WORKFLOW_COMMANDS, 'Workflow'),
+        requirePositiveInteger(Number(runs), 'Run count'),
+        requirePositiveInteger(Number(timeout), 'Span timeout'),
+        cli.namedArgs['app-id'],
+        cli.namedArgs.device,
+        cli.namedArgs.fixture,
+        cli.namedArgs.profile,
+        cli.namedArgs['benchmark-order'],
+    );
+}
+
+async function runWorkflow(
+    platformName: PlatformName,
+    workflow: WorkflowCommand,
+    runs: number,
+    timeoutSeconds: number,
+    appID?: string,
+    deviceIdentifier?: string,
+    fixturePath?: string,
+    profilePath?: string,
+    benchmarkOrder?: string,
+): Promise<void> {
+    const adapter = getAdapter(platformName, appID, deviceIdentifier);
+
+    switch (workflow) {
+        case 'build-release':
+            adapter.build('release');
+            return;
+        case 'build-instrumented':
+            adapter.build('instrumented');
+            return;
+        case 'build-optimized':
+            adapter.build('optimized', profilePath ? resolve(profilePath) : undefined);
+            return;
+        case 'verify-instrumented':
+            adapter.verifyInstrumentation();
+            return;
+        case 'install-release':
+            adapter.install('release');
+            return;
+        case 'install-instrumented':
+            adapter.install('instrumented');
+            return;
+        case 'install-optimized':
+            adapter.install('optimized');
+            return;
+        case 'record-startups':
+            await recordStartups(adapter, await createBenchmarkAdapter(adapter, deviceIdentifier), runs, timeoutSeconds);
+            return;
+        case 'benchmark-release':
+            adapter.install('release');
+            await benchmarkBuild(adapter, await createBenchmarkAdapter(adapter, deviceIdentifier), 'release', runs, timeoutSeconds);
+            return;
+        case 'benchmark-optimized':
+            adapter.install('optimized');
+            await benchmarkBuild(adapter, await createBenchmarkAdapter(adapter, deviceIdentifier), 'optimized', runs, timeoutSeconds);
+            return;
+        case 'benchmark':
+            await benchmarkAll(adapter, await createBenchmarkAdapter(adapter, deviceIdentifier), runs, timeoutSeconds);
+            return;
+        case 'compare-benchmarks':
+            await compareBenchmarks(adapter);
+            return;
+        case 'benchmark-journey': {
+            const benchmarkAdapter = await createBenchmarkAdapter(adapter, deviceIdentifier);
+            await benchmarkJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder));
+            return;
+        }
+        case 'benchmark-heavy-journey': {
+            const benchmarkAdapter = await createBenchmarkAdapter(adapter, deviceIdentifier);
+            await benchmarkHeavyJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder));
+            return;
+        }
+        case 'dump':
+            await adapter.dumpProfiles();
+            return;
+        case 'pull':
+            adapter.pullProfiles();
+            return;
+        case 'merge':
+            mergeProfiles(adapter);
+            return;
+        default:
+            fail('Unsupported workflow.');
+    }
+}
+
+function readBenchmarkOrder(value?: string): BenchmarkOrder {
+    return value ? parseChoice(value, BENCHMARK_ORDERS, 'Journey benchmark order') : 'release-first';
+}
+
+function readJourneyFixture(fixturePath?: string): ReturnType<typeof parseJourneyFixture> {
+    if (!fixturePath) {
+        fail('Journey benchmarks require --fixture with the approved signed-in account.');
+    }
+    const input: unknown = JSON.parse(readFileSync(resolve(fixturePath), 'utf8'));
+    return parseJourneyFixture(input);
+}
+
+function mergeProfiles(adapter: PlatformAdapter): void {
+    mkdirSync(adapter.profileDirectory, {recursive: true});
+    const profiles = findFiles(adapter.rawProfileDirectory, '.profraw');
+    if (profiles.length === 0) {
+        fail('No .profraw files found. Run dump and pull first.');
+    }
+
+    const llvmProfdata = adapter.llvmTool('llvm-profdata');
+    run(llvmProfdata, ['merge', `--output=${adapter.mergedProfilePath}`, ...profiles]);
+    if (adapter.profileFormat) {
+        writeFileSync(`${adapter.mergedProfilePath}.format`, `${adapter.profileFormat}\n`);
+    }
+    const profileReport = capture(llvmProfdata, ['show', '--all-functions', adapter.mergedProfilePath]);
+    writeFileSync(`${adapter.mergedProfilePath}.txt`, profileReport);
+    console.log(`Merged PGO profile: ${adapter.mergedProfilePath}`);
+}
+
+async function measureStartup(adapter: NativeAppBenchmarkAdapter, waitTimeSeconds: number): Promise<number> {
+    await adapter.prepareStartup('process');
+    const events = await adapter.launchAndCollect({spanNames: [STARTUP_SPAN_NAME], waitTimeSeconds, waitUntilSpan: STARTUP_SPAN_NAME});
+    const duration = events.find((event) => event.span === STARTUP_SPAN_NAME)?.durationMs;
+    if (duration === undefined) {
+        fail(`The ${STARTUP_SPAN_NAME} benchmark span did not complete. Rebuild the app through this PGO tool before collecting a profile.`);
+    }
+    return duration;
+}
+
+async function recordStartups(adapter: PlatformAdapter, benchmarkAdapter: NativeAppBenchmarkAdapter, runs: number, waitTimeSeconds: number): Promise<void> {
+    if (adapter.name === 'ios') {
+        console.log('Launching the instrumented iOS app once so its PGO notification handlers are active.');
+        await measureStartup(benchmarkAdapter, waitTimeSeconds);
+    } else {
+        await benchmarkAdapter.prepareStartup('process');
+    }
+    await adapter.clearDeviceProfiles();
+    for (let runNumber = 1; runNumber <= runs; runNumber += 1) {
+        console.log(`Recording cold-process startup ${runNumber}/${runs}.`);
+        const duration = await measureStartup(benchmarkAdapter, waitTimeSeconds);
+        console.log(`${STARTUP_SPAN_NAME}=${duration}ms`);
+        await adapter.dumpProfiles();
+    }
+
+    adapter.pullProfiles();
+    mergeProfiles(adapter);
+}
+
+async function benchmarkBuild(adapter: PlatformAdapter, benchmarkAdapter: NativeAppBenchmarkAdapter, kind: BenchmarkKind, runs: number, waitTimeSeconds: number): Promise<void> {
+    mkdirSync(adapter.benchmarkDirectory, {recursive: true});
+    await runBenchmarkStartups(benchmarkAdapter, {
+        mode: 'process',
+        spanNames: [STARTUP_SPAN_NAME],
+        runs,
+        waitTimeSeconds,
+        waitUntilSpan: STARTUP_SPAN_NAME,
+        outputPath: adapter.benchmarkPaths[kind],
+    });
+}
+
+async function benchmarkAll(adapter: PlatformAdapter, benchmarkAdapter: NativeAppBenchmarkAdapter, runs: number, waitTimeSeconds: number): Promise<void> {
+    console.log('=== Benchmark phase 1/2: Release ===');
+    console.log(`Installing release artifact: ${adapter.artifactPaths.release}`);
+    adapter.install('release');
+    await benchmarkBuild(adapter, benchmarkAdapter, 'release', runs, waitTimeSeconds);
+
+    console.log('=== Benchmark phase 2/2: PGO optimized ===');
+    await benchmarkAdapter.prepareStartup('process');
+    console.log(`Installing PGO optimized artifact: ${adapter.artifactPaths.optimized}`);
+    adapter.install('optimized');
+    await benchmarkBuild(adapter, benchmarkAdapter, 'optimized', runs, waitTimeSeconds);
+
+    console.log('=== Benchmark comparison ===');
+    await compareBenchmarks(adapter);
+}
+
+function percentageImprovement(releaseValue: number, optimizedValue: number): number {
+    return ((releaseValue - optimizedValue) / releaseValue) * 100;
+}
+
+async function compareBenchmarks(adapter: PlatformAdapter): Promise<void> {
+    const releasePath = adapter.benchmarkPaths.release;
+    const optimizedPath = adapter.benchmarkPaths.optimized;
+    if (!existsSync(releasePath) || !existsSync(optimizedPath)) {
+        fail('Missing benchmark data. Run benchmark-release and benchmark-optimized first.');
+    }
+
+    const [releaseSamples, optimizedSamples] = await Promise.all([readBenchmarkSamples(releasePath), readBenchmarkSamples(optimizedPath)]);
+    const release = benchmarkMetrics(releaseSamples, [STARTUP_SPAN_NAME])[STARTUP_SPAN_NAME]?.stats;
+    const optimized = benchmarkMetrics(optimizedSamples, [STARTUP_SPAN_NAME])[STARTUP_SPAN_NAME]?.stats;
+    if (!release || !optimized) {
+        fail(`No ${STARTUP_SPAN_NAME} benchmark samples were found.`);
+    }
+    const numericColumns: Array<keyof Omit<BenchmarkStats, 'runs'>> = ['average', 'p50', 'p75', 'p90', 'p95', 'p99', 'min', 'max'];
+    const improvements = numericColumns.map((key) => percentageImprovement(release[key], optimized[key]));
+
+    const formatLabel = (value: string) => value.padEnd(18);
+    const formatCount = (value: string) => value.padStart(5);
+    const formatMetric = (value: string) => value.padStart(10);
+    const row = (label: string, count: string, values: string[]) => [formatLabel(label), formatCount(count), ...values.map(formatMetric)].join(' ');
+    const statsRow = (label: string, stats: BenchmarkStats) =>
+        row(
+            label,
+            String(stats.runs),
+            [stats.average, stats.p50, stats.p75, stats.p90, stats.p95, stats.p99, stats.min, stats.max].map((value) => value.toFixed(2)),
+        );
+
+    console.log('Positive percentages are faster; negative percentages are regressions.');
+    console.log(row('Build', 'Runs', ['Average', 'P50', 'P75', 'P90', 'P95', 'P99', 'Min', 'Max']));
+    console.log(statsRow('Release', release));
+    console.log(statsRow('PGO optimized', optimized));
+    console.log(
+        row(
+            'PGO improvement',
+            '-',
+            improvements.map((improvement) => `${improvement.toFixed(2)}%`),
+        ),
+    );
+}
+
+function getAdapter(platformName: PlatformName, appID?: string, deviceIdentifier?: string): PlatformAdapter {
+    return platformName === 'android' ? createAndroidPgoAdapter(appID, deviceIdentifier) : createIOSPgoAdapter(appID, deviceIdentifier);
+}
+
+async function createBenchmarkAdapter(adapter: PlatformAdapter, deviceIdentifier?: string): Promise<NativeAppBenchmarkAdapter> {
+    return createNativeAppBenchmarkAdapter({platform: adapter.name, rootDirectory, appID: adapter.appID(), deviceIdentifier});
+}
+
+if (import.meta.main) {
+    main().catch((error: unknown) => {
+        console.error(error instanceof Error ? error.message : error);
+        process.exitCode = 1;
+    });
+}
+
+export default percentageImprovement;
