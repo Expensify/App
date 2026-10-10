@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
+import {useIsInsideChartReveal, useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -31,9 +31,6 @@ type SkiaWebChartProps<TProps> = {
 
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
-
-    /** Off under a ChartReveal, whose spinner already covers the chart engine download. */
-    shouldShowLoadingSpinner?: boolean;
 };
 
 type ChartUnavailableProps = {
@@ -99,12 +96,12 @@ const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) 
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
 // interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
-function SkiaWebChart<TProps extends object>({getComponent, componentProps, shouldShowLoadingSpinner = true}: SkiaWebChartProps<TProps>) {
+function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElement | null>(null);
+    const isInsideChartReveal = useIsInsideChartReveal();
 
-    // Probe once per mount (not per render) so re-rendering doesn't repeatedly create WebGL contexts,
-    // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
+    // Probed on each mount, so a fresh chart re-checks capability instead of trusting a stale session-wide result.
     const [isSupported] = useState(() => isSkiaWebSupported());
 
     // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
@@ -116,11 +113,11 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps, shou
         return <ChartUnavailable />;
     }
 
-    const fallback = shouldShowLoadingSpinner ? (
+    const fallback = isInsideChartReveal ? null : (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator size="large" />
         </View>
-    ) : null;
+    );
 
     return (
         <View

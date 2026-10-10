@@ -19,7 +19,6 @@ function LineChart(props: LineChartProps) {
                 <SkiaWebChart
                     getComponent={getLineChartContent}
                     componentProps={{...props, chartWidth}}
-                    shouldShowLoadingSpinner={false}
                 />
             )}
         </ChartFrame>

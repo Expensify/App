@@ -68,7 +68,6 @@ describe('SkiaWebChart', () => {
                 <SkiaWebChart
                     getComponent={getComponent}
                     componentProps={{}}
-                    shouldShowLoadingSpinner={false}
                 />
             </ChartReveal>,
         );

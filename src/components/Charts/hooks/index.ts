@@ -9,3 +9,5 @@ export {default as useChartLabelFormats} from './useChartLabelFormats';
 export {default as useDynamicYDomain} from './useDynamicYDomain';
 export {default as useTooltipData} from './useTooltipData';
 export {default as useLabelHitTesting} from './useLabelHitTesting';
+export {default as useReadyCartesianCanvas} from './useReadyCartesianCanvas';
+export type {CartesianCanvasInputs} from './useReadyCartesianCanvas';

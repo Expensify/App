@@ -19,7 +19,6 @@ function BarChart(props: BarChartProps) {
                 <SkiaWebChart
                     getComponent={getBarChartContent}
                     componentProps={{...props, chartWidth}}
-                    shouldShowLoadingSpinner={false}
                 />
             )}
         </ChartFrame>

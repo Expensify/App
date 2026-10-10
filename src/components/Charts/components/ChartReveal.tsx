@@ -22,15 +22,19 @@ type ChartLoadState = {
     isDrawnBySkia: boolean;
 };
 
-const ChartLoadingContext = createContext<(loadState: ChartLoadState) => void>(() => {});
+const ChartLoadingContext = createContext<((loadState: ChartLoadState) => void) | null>(null);
 
 function useReportChartLoading(isLoading: boolean, isDrawnBySkia = true) {
     const setLoadState = useContext(ChartLoadingContext);
 
     // Before paint, so no frame shows the chart and the in-flow spinner stacked, or neither of them
     useLayoutEffect(() => {
-        setLoadState({isLoading, isDrawnBySkia});
+        setLoadState?.({isLoading, isDrawnBySkia});
     }, [setLoadState, isLoading, isDrawnBySkia]);
+}
+
+function useIsInsideChartReveal() {
+    return useContext(ChartLoadingContext) !== null;
 }
 
 type ChartRevealProps = {
@@ -49,6 +53,7 @@ function ChartReveal({loadingHeight, children}: ChartRevealProps) {
     const opacity = useSharedValue(0);
     const fadeStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));
 
+    // Adjusted during render, not in the effect below, so the spinner changes in the same commit as what the chart reports
     if (isLoading && isRevealed) {
         setIsRevealed(false);
     }
@@ -99,4 +104,4 @@ function ChartReveal({loadingHeight, children}: ChartRevealProps) {
 }
 
 export default ChartReveal;
-export {HOLD_FRAMES, useReportChartLoading};
+export {HOLD_FRAMES, useIsInsideChartReveal, useReportChartLoading};

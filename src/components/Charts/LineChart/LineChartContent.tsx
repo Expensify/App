@@ -1,20 +1,19 @@
 import ActivePointIndicator from '@components/Charts/components/ActivePointIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
-import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
-import type {HitTestArgs} from '@components/Charts/hooks';
+import type {CartesianCanvasInputs, HitTestArgs} from '@components/Charts/hooks';
 import {
     ChartFontsProvider,
-    useChartFontManager,
     useChartInteractions,
     useChartLabelFormats,
     useChartLabelLayout,
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
+    useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import {getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import {getCartesianChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
@@ -26,7 +25,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import {DashPathEffect} from '@shopify/react-native-skia';
@@ -45,10 +43,7 @@ type LineChartContentProps = LineChartProps & {
     chartWidth: number | null;
 };
 
-type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & {
-    chartWidth: number;
-    fontManager: SkTypefaceFontProvider;
-};
+type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & CartesianCanvasInputs;
 
 function LineChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, chartWidth, fontManager}: LineChartCanvasProps) {
     const theme = useTheme();
@@ -330,21 +325,16 @@ function LineChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onPointPr
 }
 
 function LineChartContentBody({isLoading = false, chartWidth, ...canvasProps}: LineChartContentProps) {
-    const fontManager = useChartFontManager();
+    const readyCanvas = useReadyCartesianCanvas(isLoading, chartWidth);
 
-    // Until the width is measured there is no canvas for Skia to draw, so the reveal must not start counting frames yet
-    const isChartLoading = isLoading || !fontManager || chartWidth === null;
-    useReportChartLoading(isChartLoading);
-
-    if (isChartLoading) {
+    if (!readyCanvas) {
         return null;
     }
 
     return (
         <LineChartCanvas
             {...canvasProps}
-            chartWidth={chartWidth}
-            fontManager={fontManager}
+            {...readyCanvas}
         />
     );
 }

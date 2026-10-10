@@ -19,7 +19,6 @@ function PieChart(props: PieChartProps) {
                 <SkiaWebChart
                     getComponent={getPieChartContent}
                     componentProps={{...props, chartWidth}}
-                    shouldShowLoadingSpinner={false}
                 />
             )}
         </ChartFrame>
