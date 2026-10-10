@@ -163,6 +163,23 @@ describe('selectionBuilders', () => {
             expect(merged).toBe(selection);
         });
 
+        it('puts one entry for the whole group in place of rows that outnumber it, since some of them left the group unseen', () => {
+            // Given three rows of a group checked whole through its header, kept after one of them was deleted elsewhere and the group's count fell to two
+            const searchData = buildDayGroupData([[groupKey, {count: 2, total: 20}]]);
+            const selection = buildSelection({
+                txn1: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10},
+                txn2: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10},
+                txn3: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10},
+            });
+
+            // When the rows are merged into the groups they stand for
+            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
+
+            // Then the group appears once with the server's count and total, so the deleted expense is neither counted nor sent to an action
+            expect(Object.keys(merged)).toEqual([groupKey]);
+            expect(merged[groupKey]).toEqual(expect.objectContaining({displayAmount: 20}));
+        });
+
         it('leaves the selection alone under Select all, where the query already covers the rows not loaded', () => {
             // Given two loaded rows of a 692-expense group checked through its header, with every matching expense selected
             const searchData = buildDayGroupData([[groupKey, {count: 692, total: 12990}]]);

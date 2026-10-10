@@ -376,6 +376,19 @@ function useReconcileSelectionWithData({
                         loadedChildrenCount: transactionGroup.transactions.length,
                         loadedSelectableCount,
                     });
+                    // A wholly selected group whose rows now outnumber its count lost a row off the page that this refresh cannot name, so it stays wholly selected rather than reading that row as a gap new expenses then fill.
+                    const wasGroupWhollySelected = (selectedRowKeysByGroupKey.get(reportKey) ?? []).some((key) => !!selectedTransactions[key]?.isEntireGroupSelected);
+                    if (wasGroupWhollySelected && groupCount !== undefined) {
+                        const groupRowKeys = Object.keys(stampedSelection).filter((key) => key !== reportKey && stampedSelection[key].groupKey === reportKey);
+                        const areLoadedRowsSelected = transactionGroup.transactions.every(
+                            (transaction) => isTransactionPendingDelete(transaction) || !!stampedSelection[transaction.keyForList ?? transaction.transactionID],
+                        );
+                        if (groupRowKeys.length > remainingGroupCount && areLoadedRowsSelected) {
+                            for (const key of groupRowKeys) {
+                                stampedSelection[key] = {...stampedSelection[key], isEntireGroupSelected: true};
+                            }
+                        }
+                    }
                     for (const [key, entry] of Object.entries(stampedSelection)) {
                         newTransactionList[key] = entry;
                     }

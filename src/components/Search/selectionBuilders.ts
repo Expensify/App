@@ -328,7 +328,8 @@ function mergeRowsIntoPartlyLoadedGroups(
     for (const [groupKey, {rowCount, isEntireGroupSelected}] of getGroupClaims(selectedTransactions)) {
         const group = searchData?.[groupKey];
         const groupCount = getSearchGroupCount(group);
-        if (group && groupCount !== undefined && !isEntireGroupSelected && rowCount < groupCount) {
+        // A claim holding more rows than its group has kept rows that left the group unseen, so the group's own count and total are the ones to trust.
+        if (group && groupCount !== undefined && (rowCount > groupCount || (!isEntireGroupSelected && rowCount < groupCount))) {
             partlyLoadedGroups.set(groupKey, group);
         }
     }
