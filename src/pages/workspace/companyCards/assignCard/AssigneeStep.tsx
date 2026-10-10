@@ -14,6 +14,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftInviteAccountID} from '@libs/actions/Card';
@@ -59,6 +60,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const policy = usePolicy(policyID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -328,6 +330,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     disableMaintainingScrollPosition
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                     footerContent={
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.next')}

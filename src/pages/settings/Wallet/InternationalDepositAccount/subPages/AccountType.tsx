@@ -1,3 +1,4 @@
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -64,9 +65,11 @@ function AccountType({isEditing, onNext, fieldsMap}: CustomSubPageProps) {
             ref={formRef}
             isSubmitButtonVisible={!isEditing}
         >
-            <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountTypeStepHeader')}</Text>
-            </View>
+            <CollapsibleHeaderOnKeyboardGroupMember>
+                <View style={styles.ph5}>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountTypeStepHeader')}</Text>
+                </View>
+            </CollapsibleHeaderOnKeyboardGroupMember>
             <InputWrapper
                 InputComponent={ValuePicker}
                 inputID={fieldData.id}
