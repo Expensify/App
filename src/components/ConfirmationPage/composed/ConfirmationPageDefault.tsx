@@ -14,8 +14,13 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 type ConfirmationPageProps = {
+    /** Illustration shown at the top: a Lottie animation or a static icon. Defaults to the fireworks animation */
     illustration?: DotLottieAnimation | IconAsset;
+
+    /** Heading text displayed below the illustration */
     heading: string;
+
+    /** Description text displayed below the heading */
     description: string;
 
     /** The text for the button label */
@@ -33,11 +38,22 @@ type ConfirmationPageProps = {
     /** Errors rendered as a message inside the footer, above the button */
     requestErrors?: Errors | null;
 
+    /** Additional style for the outermost container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Additional style for the centered container wrapping the illustration, heading and description */
     innerContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Additional style for the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
+
+    /** Additional style for the heading text */
     headingStyle?: StyleProp<TextStyle>;
+
+    /** Additional style for the description text */
     descriptionStyle?: StyleProp<TextStyle>;
+
+    /** Additional style for the footer containing the button */
     footerStyle?: StyleProp<ViewStyle>;
 };
 
