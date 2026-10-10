@@ -4564,6 +4564,10 @@ const CONST = {
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,
+        POSITION: {
+            TOP: 'top',
+            BOTTOM_RIGHT: 'bottomRight',
+        },
     },
 
     LOCALES,

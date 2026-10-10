@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
+import Growl from '@libs/Growl';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDisplayAmount, isInvoiceReport, isSettled, shouldEnableNegative} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isExpenseUnreported, isFailedScanAmountPlaceholder, isScanning} from '@libs/TransactionUtils';
@@ -88,6 +89,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
             ? (value) => {
                   const normalizedValue = getNormalizedValue(value, isNegative);
                   if (normalizedValue === undefined) {
+                      Growl.error(translate('iou.error.invalidAmount'), {position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
                       return;
                   }
                   onSave(normalizedValue);
