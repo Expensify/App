@@ -59,7 +59,7 @@ type DynamicIOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNa
 
 function DynamicIOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, upgradeBackTo},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, upgradeBackTo, shouldReturnToConfirmation},
     },
 }: DynamicIOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -111,6 +111,7 @@ function DynamicIOURequestStepUpgrade({
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
@@ -174,6 +175,7 @@ function DynamicIOURequestStepUpgrade({
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
                 rules,
+                cardList,
                 selfDMReportActions,
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
@@ -255,6 +257,9 @@ function DynamicIOURequestStepUpgrade({
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.goBack();
+                if (shouldReturnToConfirmation) {
+                    break;
+                }
                 navigateWithMicrotask(
                     upgradeBackTo ?? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID})),
                 );
@@ -267,6 +272,7 @@ function DynamicIOURequestStepUpgrade({
         isVendorMatchingBetaEnabled,
         action,
         upgradeBackTo,
+        shouldReturnToConfirmation,
         navigateWithMicrotask,
         reportID,
         shouldSubmitExpense,
@@ -294,6 +300,7 @@ function DynamicIOURequestStepUpgrade({
         getCurrencyDecimals,
         getCurrencySymbol,
         rules,
+        cardList,
         areAllMatchingItemsSelected,
         currentSearchQueryJSON,
         excludedTransactions,

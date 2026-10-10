@@ -1958,6 +1958,49 @@ describe('OptionsListUtils', () => {
 
             expect(hasMore).toBe(false);
         });
+
+        it('should return the self DM when searching "me"', () => {
+            // Given options with a self DM, whose title and login don't contain "me"
+            const optionsWithSelfDM = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                REPORTS_WITH_SELF_DM,
+                undefined,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                },
+                undefined,
+            );
+
+            // When we call getValidOptions with includeSelfDM and the localized word the current user uses to refer to themselves,
+            // without includeCurrentUser, like New chat does
+            const {options: results} = getValidOptions(
+                {reports: optionsWithSelfDM.reports, personalDetails: optionsWithSelfDM.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    getReportByID: getReportByIDFromOnyx,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    includeSelfDM: true,
+                    searchString: 'me',
+                },
+                translateLocal,
+                undefined,
+            );
+
+            // Then the self DM should be returned, because it is the only row that represents the current user
+            expect(results.recentReports.some((option) => option.isSelfDM)).toBe(true);
+        });
     });
 
     describe('getValidOptions() with lazy contact options', () => {
@@ -5666,6 +5709,64 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
         });
 
+        it('should return the self DM when searching "me"', () => {
+            // Given a set of options with a self DM, whose title and login don't contain "me"
+            const optionsWithSelfDM = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                REPORTS_WITH_SELF_DM,
+                undefined,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                undefined,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                },
+                undefined,
+            );
+            const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
+                rules: undefined,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                translate: translateLocal,
+                options: optionsWithSelfDM,
+                draftComments: {},
+                loginList,
+                isDefaultRoomsBetaEnabled: true,
+                policyCollection: allPolicies,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+            });
+
+            // When we call filterAndOrderOptions with the localized word the current user uses to refer to themselves
+            const filteredOptions = filterAndOrderOptions({
+                options,
+                searchInputValue: 'me',
+                countryCode: COUNTRY_CODE,
+                loginList,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: PERSONAL_DETAILS,
+                config: {
+                    dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    convertToDisplayString,
+                },
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID,
+            });
+
+            // Then the self DM should be returned so the current user can find their own chat
+            expect(filteredOptions.recentReports.some((option) => option.isSelfDM)).toBe(true);
+        });
+
         it('should return the same matches for normalized multi-word queries with extra spaces', () => {
             const {options} = getSearchOptions({
                 getReportByID: getReportByIDFromOnyx,
@@ -6892,7 +6993,7 @@ describe('OptionsListUtils', () => {
         it('should return the report when there are no search terms', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and no search terms
-            const result = filterSelfDMChat(REPORT, []);
+            const result = filterSelfDMChat(REPORT, [], translateLocal);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -6901,7 +7002,7 @@ describe('OptionsListUtils', () => {
         it('should return undefined, when the search term does not match the report', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and a search term that does not match the report
-            const result = filterSelfDMChat(REPORT, ['XYZ']);
+            const result = filterSelfDMChat(REPORT, ['XYZ'], translateLocal);
 
             // Then the returned value should be undefined
             expect(result).toBeUndefined();
@@ -6910,7 +7011,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by text', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and search term that matches the report
-            const result = filterSelfDMChat(REPORT, ['Google']);
+            const result = filterSelfDMChat(REPORT, ['Google'], translateLocal);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -6919,7 +7020,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by exact text', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and multiple search terms that match the report's exact name
-            const result = filterSelfDMChat(REPORT, ['Google', 'Workspace']);
+            const result = filterSelfDMChat(REPORT, ['Google', 'Workspace'], translateLocal);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -6928,7 +7029,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by login', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and a search term that matches the report's login
-            const result = filterSelfDMChat({...REPORT, login: LOGIN}, ['john']);
+            const result = filterSelfDMChat({...REPORT, login: LOGIN}, ['john'], translateLocal);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -6937,7 +7038,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by exact login', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and multiple search terms that match the report's exact login
-            const result = filterSelfDMChat({...REPORT, login: LOGIN}, [LOGIN]);
+            const result = filterSelfDMChat({...REPORT, login: LOGIN}, [LOGIN], translateLocal);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -6946,7 +7047,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by alternate text', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and a search term that matches the report's alternate text
-            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['William']);
+            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['William'], translateLocal);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -6955,7 +7056,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by exact alternate text', () => {
             // Given a report object that is a thread
             // When we call filterSelfDMChat with the report and multiple search terms that match the report's exact alternate text
-            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['John', 'William', 'Doe']);
+            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['John', 'William', 'Doe'], translateLocal);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -6964,7 +7065,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by alternate text if it is not a thread', () => {
             // Given a report object that is not a thread
             // When we call filterSelfDMChat with the report and a search term that matches the report's alternate text
-            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: false}, ['William']);
+            const result = filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: false}, ['William'], translateLocal);
 
             // Then the returned value should be undefined
             expect(result?.reportID).toBeUndefined();
@@ -6973,7 +7074,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by subtitle', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and a search term that matches the report's subtitle
-            const result = filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software']);
+            const result = filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software'], translateLocal);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -6982,7 +7083,7 @@ describe('OptionsListUtils', () => {
         it('should filter report by exact subtitle', () => {
             // Given a report object
             // When we call filterSelfDMChat with the report and multiple search terms that match the report's exact subtitle
-            const result = filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software', 'Engineer']);
+            const result = filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software', 'Engineer'], translateLocal);
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
@@ -6999,6 +7100,7 @@ describe('OptionsListUtils', () => {
                     isChatRoom: false,
                 },
                 ['Software'],
+                translateLocal,
             );
 
             // Then the returned value should be undefined
@@ -7016,10 +7118,33 @@ describe('OptionsListUtils', () => {
                     isChatRoom: true,
                 },
                 ['Software'],
+                translateLocal,
             );
 
             // Then the returned value should be the same as the input
             expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it.each(['me', 'you'])('should filter the self DM by the localized "%s"', (searchTerm) => {
+            // Given a self DM whose title and login don't contain the search term
+            const selfDM = {...REPORT, text: 'Test User', login: 'test@test.com', isPolicyExpenseChat: false, isSelfDM: true};
+
+            // When we call filterSelfDMChat with the localized word the current user uses to refer to themselves
+            const result = filterSelfDMChat(selfDM, [searchTerm], translateLocal);
+
+            // Then the self DM should be returned so the current user can find their own chat
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should not filter a non-self DM report by "me"', () => {
+            // Given a report that is not a self DM and whose title and login don't contain "me"
+            const report = {...REPORT, text: 'Test User', login: 'test@test.com', isPolicyExpenseChat: false};
+
+            // When we call filterSelfDMChat with "me"
+            const result = filterSelfDMChat(report, ['me'], translateLocal);
+
+            // Then the report should not be returned, because only the self DM belongs to the current user
+            expect(result).toBeUndefined();
         });
     });
 
@@ -7032,7 +7157,7 @@ describe('OptionsListUtils', () => {
             // cspell:disable-next-line
             const searchTerms = ['Alex Timon Dartagnan Zoe'];
             // When we call filterReports with the report and search terms
-            const filteredReports = filterReports(reports, searchTerms);
+            const filteredReports = filterReports(reports, searchTerms, translateLocal);
 
             // Then the returned value should match the search term
             expect(filteredReports).toEqual(reports);
@@ -7059,7 +7184,7 @@ describe('OptionsListUtils', () => {
             const report: OptionData = {text: reportText, reportID: 'normalized', keyForList: 'normalized'};
 
             // When the report is filtered with the normalized search value
-            const filteredReports = filterReports([report], [searchText]);
+            const filteredReports = filterReports([report], [searchText], translateLocal);
 
             // Then the report should remain in the results
             expect(filteredReports).toEqual([report]);
@@ -7073,7 +7198,7 @@ describe('OptionsListUtils', () => {
                 keyForList: 'email',
             };
 
-            const filteredReports = filterReports([report], ['testuser@example.com']);
+            const filteredReports = filterReports([report], ['testuser@example.com'], translateLocal);
 
             expect(filteredReports).toEqual([report]);
         });
@@ -7086,7 +7211,7 @@ describe('OptionsListUtils', () => {
                 keyForList: 'phone',
             };
 
-            const filteredReports = filterReports([report], [getSearchValueForPhoneOrEmail('+1 (234) 567-8901', COUNTRY_CODE)]);
+            const filteredReports = filterReports([report], [getSearchValueForPhoneOrEmail('+1 (234) 567-8901', COUNTRY_CODE)], translateLocal);
 
             expect(filteredReports).toEqual([report]);
         });
@@ -7104,7 +7229,7 @@ describe('OptionsListUtils', () => {
         it('matches an email query against an email address', () => {
             // Given a report with a matching email address
             // When the query is an email search
-            const doesMatch = doesReportMatchSearchTerms(report, ['person@']);
+            const doesMatch = doesReportMatchSearchTerms(report, ['person@'], translateLocal);
 
             // Then the report matches
             expect(doesMatch).toBe(true);
@@ -7120,7 +7245,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When the query uses the same accented name in uppercase
-            const doesMatch = doesReportMatchSearchTerms(groupReport, ['JOSÉ']);
+            const doesMatch = doesReportMatchSearchTerms(groupReport, ['JOSÉ'], translateLocal);
 
             // Then the group report matches
             expect(doesMatch).toBe(true);
@@ -7142,9 +7267,24 @@ describe('OptionsListUtils', () => {
             };
 
             // When the query uses that participant name
-            const doesMatch = doesReportMatchSearchTerms(groupReport, [displayName]);
+            const doesMatch = doesReportMatchSearchTerms(groupReport, [displayName], translateLocal);
 
             // Then the group report matches
+            expect(doesMatch).toBe(true);
+        });
+
+        it.each(['Me', 'You'])('matches the self DM when searching the localized "%s"', (searchTerm) => {
+            // Given a self DM whose title and login don't contain the search term
+            const selfDMReport: SearchOption<Report> = {
+                ...report,
+                isSelfDM: true,
+                item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.SELF_DM},
+            };
+
+            // When the query is the localized word the current user uses to refer to themselves
+            const doesMatch = doesReportMatchSearchTerms(selfDMReport, [searchTerm], translateLocal);
+
+            // Then the self DM matches, so it shows up in pickers like New chat
             expect(doesMatch).toBe(true);
         });
     });
@@ -7936,6 +8076,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with isSelfDM and alternateText set
@@ -7968,6 +8109,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with invoice room text and alternateText
@@ -8002,6 +8144,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with unknownUserDetails data
@@ -8035,6 +8178,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return an option with workspace name
@@ -8076,6 +8220,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should use the custom personalDetails parameter
@@ -8105,6 +8250,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should not throw and return a valid option
@@ -8129,6 +8275,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then it should return a valid option (createOption handles undefined)
@@ -8317,6 +8464,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe('Test Workspace');
@@ -8359,6 +8507,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: ownerAccountID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
@@ -8424,6 +8573,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe('Test Workspace with Submit');
@@ -8458,6 +8608,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -8510,6 +8661,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // The option.isSelfDM is set by createOption based on the report type
@@ -8556,6 +8708,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isInvoiceRoom).toBe(true);
@@ -8609,6 +8762,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.text).toBe(POLICY.name);
@@ -8663,6 +8817,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -8693,6 +8848,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBeFalsy();
@@ -8720,6 +8876,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBe(true);
@@ -8751,6 +8908,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isDisabled).toBeFalsy();
@@ -8785,6 +8943,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8820,6 +8979,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8852,6 +9012,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8888,6 +9049,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8924,6 +9086,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -8958,6 +9121,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option.isSelected).toBe(true);
@@ -8990,6 +9154,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9023,6 +9188,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9070,6 +9236,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9143,6 +9310,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9179,6 +9347,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9212,6 +9381,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9273,6 +9443,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9306,6 +9477,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9336,6 +9508,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9384,6 +9557,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(option).toBeDefined();
@@ -9415,6 +9589,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             const optionWithoutConcierge = getReportOption({
                 participant,
@@ -9427,6 +9602,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Both should produce the same result since the IDs don't match
@@ -10974,6 +11150,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             // Then the option should be created successfully using the reports collection
@@ -11059,6 +11236,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions: undefined,
                 conciergeReportID: report.reportID,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(conciergeOption.subtitle).toBe(translateLocal('reportActionsView.conciergeSupport'));
 
@@ -11074,6 +11252,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions: undefined,
                 conciergeReportID: 'a-different-report-id',
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(regularOption.subtitle).not.toBe(translateLocal('reportActionsView.conciergeSupport'));
         });
@@ -11106,6 +11285,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -11141,6 +11321,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -11175,6 +11356,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -11209,6 +11391,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -11245,6 +11428,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 config,
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(result).toBeDefined();
@@ -11284,6 +11468,7 @@ describe('OptionsListUtils', () => {
                 policy: POLICY,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             const personalDetailsOption = createOptionFromReport({
                 dateFnsLocale: undefined,
@@ -11297,6 +11482,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 config: {showPersonalDetails: true},
+                pendingDeleteMemberAccountIDs: undefined,
             });
 
             expect(roomOption.text).toBe('#admins');
@@ -11347,6 +11533,7 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     config: {showChatPreviewLine: true},
                     convertToDisplayString,
+                    pendingDeleteMemberAccountIDs: undefined,
                 };
             };
 
@@ -12126,6 +12313,7 @@ describe('OptionsListUtils', () => {
                 policy: POLICY,
                 sortedActions,
                 conciergeReportID: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
@@ -12159,6 +12347,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 rules: undefined,
+                pendingDeleteMemberAccountIDs: undefined,
             });
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
@@ -13072,6 +13261,42 @@ describe('OptionsListUtils', () => {
             // The non-search path caches its result, so the pending deletions have to be part of the cache inputs.
             expect(buildGroupChatOption(undefined, false)?.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
             expect(buildGroupChatOption({[GROUP_CHAT_REPORT_ID]: ['4']}, false)?.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
+        });
+    });
+
+    describe('single report options with members pending removal', () => {
+        it('leaves the members pending removal out of the group chat icon', () => {
+            // Given a group chat with no custom name, so its avatar label is built from the participants,
+            // and one of those members is pending removal
+            const groupChatReport: Report = {
+                reportID: '9002',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                reportName: '',
+                participants: {
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            // When the option is built with that member passed as pending removal
+            const option = createOptionFromReport({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                report: groupChatReport,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                rules: undefined,
+                policy: undefined,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                pendingDeleteMemberAccountIDs: ['4'],
+            });
+
+            // Then the avatar label names only the members that are staying
+            expect(option.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
         });
     });
 });

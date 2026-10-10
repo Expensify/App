@@ -248,6 +248,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
+    [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: undefined;
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: undefined;
@@ -260,6 +263,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+        subPage?: string;
+        action?: 'edit';
+    };
+    [SCREENS.SETTINGS.COLLECT_DEPOSIT_ACCOUNT]: {
         subPage?: string;
         action?: 'edit';
     };
@@ -344,6 +351,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: {
+        isForcedToChangeCurrency?: boolean;
+        shouldStartExpensifyCardEnrollment?: boolean;
+    };
+    [SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY]: {
+        policyID: string;
+        currencyCode: string;
         isForcedToChangeCurrency?: boolean;
         shouldStartExpensifyCardEnrollment?: boolean;
     };
@@ -680,6 +693,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.EARLY_RENEWAL]: undefined;
+    [SCREENS.SETTINGS.EMAIL_ISSUE]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED]: undefined;
@@ -811,7 +826,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES_UNIT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATES_WORK_ARRANGEMENT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: {
@@ -1371,6 +1392,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_BILL_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_FX_EXPENSE_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
         policyID: string;
     };
@@ -1542,6 +1566,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
         reconciliationAccountSettingsType?: ValueOf<typeof RECONCILIATION_ACCOUNT_SETTINGS_TYPE>;
+        fundID?: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_SELECT_FEED]: {
+        policyID: string;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
+        fundID?: string;
     };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
@@ -1652,6 +1682,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
         policyID: string;
+        fundID?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: {
         policyID: string;
@@ -2372,8 +2403,12 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+
         /** Whether to limit the destination list to workspaces only (e.g. "Submit to my employer" on the Submit plan) */
         isWorkspacesOnly?: string;
+
+        /** Whether owned workspace chats should be left out of the picker (sent as the string 'true' when on) */
+        shouldExcludeWorkspaces?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: {
         action: IOUAction;
@@ -2401,6 +2436,12 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportActionID?: string;
+        reportID: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: {
@@ -2622,6 +2663,7 @@ type MoneyRequestNavigatorParamList = {
         upgradeBackTo?: Routes;
         upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
         shouldSubmitExpense?: boolean;
+        shouldReturnToConfirmation?: boolean;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: {
         action: IOUAction;
@@ -2826,6 +2868,12 @@ type ReimbursementAccountNavigatorParamList = {
     };
     [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
         policyID?: string;
+        // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
+        backTo?: Routes;
+        /** Option picked before validation */
+        setupType?: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
+        /** Whether to start the non-USD flow after validation */
+        isNonUSDSetup?: string;
     };
 };
 
@@ -2968,7 +3016,6 @@ type WorkspacesDomainModalNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.WORKSPACES_ADD_DOMAIN]: undefined;
-    [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: undefined;
     [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
         domainAccountID: number;
     };
