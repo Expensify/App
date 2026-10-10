@@ -948,6 +948,7 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
         POLICY_VENDORS: 'policyVendors_',
+        POLICY_MEMBER_BANK_ACCOUNTS: 'policyMemberBankAccounts_',
         POLICY_RECENTLY_USED_TAGS: 'nvp_recentlyUsedTags_',
         POLICY_RECENTLY_USED_DESTINATIONS: 'nvp_recentlyUsedDestinations_',
         // Whether the policy's connection data was attempted to be fetched in
@@ -1589,6 +1590,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagLists;
     [ONYXKEYS.COLLECTION.POLICY_VENDORS]: OnyxTypes.PolicyVendors;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS]: OnyxTypes.PolicyMemberBankAccounts;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED]: boolean;

@@ -158,6 +158,7 @@ import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
+import type PolicyMemberBankAccounts from './PolicyMemberBankAccounts';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
@@ -346,6 +347,7 @@ export type {
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
+    PolicyMemberBankAccounts,
     PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
