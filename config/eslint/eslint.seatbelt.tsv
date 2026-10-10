@@ -602,7 +602,6 @@
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/IOU/PerDiem.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/Receipt.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	3
