@@ -99,6 +99,9 @@ type UseParticipantSectionParams = {
     /** Whether the expense is a time expense, whose participant row can never be edited. */
     isTimeRequest: boolean;
 
+    /** Allows Share Submit to edit its participant without marking the transaction as originating from Global Create. */
+    shouldAllowParticipantEdit?: boolean;
+
     /** Hide the "To:" section, for an expense added directly to the current report. */
     shouldHideToSection: boolean;
 

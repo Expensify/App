@@ -66,6 +66,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -96,7 +97,8 @@ function SubmitDetailsPage({
     const draftReportID = unknownUserDetails ? unknownUserDetails.reportID : routeReportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftReportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const [transaction, transactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const isLoadingTransaction = isLoadingOnyxValue(transactionMetadata);
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionReport?.reportID)}`);
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
@@ -195,6 +197,10 @@ function SubmitDetailsPage({
     const enteredCurrencyRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
+        if (isLoadingTransaction) {
+            return;
+        }
+
         if (transaction?.isAmountSet && transaction.currency) {
             enteredCurrencyRef.current = transaction.currency;
         }
@@ -227,6 +233,7 @@ function SubmitDetailsPage({
         enteredDate,
         transaction?.isAmountSet,
         transaction?.currency,
+        isLoadingTransaction,
     ]);
 
     // Use the branch-aware values computed above: for a share that needs conversion (e.g. HEIC), these resolve to the
@@ -239,11 +246,11 @@ function SubmitDetailsPage({
 
     // Seed the draft so isScanRequest() returns true (enables compact mode + receipt rendering).
     useEffect(() => {
-        if (!sharedFileSource) {
+        if (isLoadingTransaction || !sharedFileSource || transaction?.receipt?.source) {
             return;
         }
         setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, sharedFileSource, sharedFileName, true, sharedFileType);
-    }, [sharedFileSource, sharedFileName, sharedFileType]);
+    }, [isLoadingTransaction, sharedFileSource, sharedFileName, sharedFileType, transaction?.receipt?.source]);
 
     // Prefer the draft receipt (reflects Replace/Crop) for both display and upload — keeps them in sync.
     const currentReceiptSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : sharedFileSource;
@@ -349,7 +356,7 @@ function SubmitDetailsPage({
 
     // Single entry point for the pending-navigation reveal — the ref guard makes it safe to call from either
     // path below, so whichever fires first wins and the other becomes a no-op.
-    const revealPendingNavigation = (reportID: string) => {
+    const revealPendingNavigation = useCallback((reportID: string) => {
         if (hasStartedPendingNavigation.current) {
             return;
         }
@@ -359,7 +366,7 @@ function SubmitDetailsPage({
                 setIsConfirming(false);
             },
         });
-    };
+    }, []);
 
     // Once the optimistically created destination report lands in Onyx, reveal it directly over the modal —
     // navigating before it exists would dismiss to the inbox and flash it while the report screen mounts.
@@ -705,8 +712,11 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
-                        onOpenParticipantPicker={() => {}}
+                        shouldAllowParticipantEdit={iouType === CONST.IOU.TYPE.SUBMIT}
+                        onOpenParticipantPicker={() => {
+                            cleanupPreMount();
+                            Navigation.goBack();
+                        }}
                         iouType={iouType}
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}
