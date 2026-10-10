@@ -5642,12 +5642,13 @@ function getTransactionDetails(
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
     const isFromExpenseReport = isTransactionFromExpenseReport(report, policy);
+    const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat, dateFnsLocale),
-        amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
+        amount: getTransactionAmount(transaction, isFromExpenseReport, isFromTrackedExpense, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, reportOwnerAsAttendee),
-        taxAmount: getTaxAmount(transaction, isFromExpenseReport),
+        taxAmount: getTaxAmount(transaction, isFromExpenseReport, isFromTrackedExpense),
         taxCode: getTaxCode(transaction),
         taxValue: transaction.taxValue,
         currency: getCurrency(transaction),
@@ -5664,8 +5665,8 @@ function getTransactionDetails(
         cardName: getCardName(transaction),
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
-        convertedAmount: getConvertedAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
-        convertedTaxAmount: getConvertedTaxAmount(transaction, isFromExpenseReport),
+        convertedAmount: getConvertedAmount(transaction, isFromExpenseReport, isFromTrackedExpense, allowNegativeAmount, disableOppositeConversion),
+        convertedTaxAmount: getConvertedTaxAmount(transaction, isFromExpenseReport, isFromTrackedExpense),
         postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isDistanceRequest(transaction) && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
@@ -14841,6 +14842,8 @@ function getTransactionSortValue(
     policyCategories?: PolicyCategories,
     policyTagLists?: PolicyTagLists,
 ): string | number | undefined {
+    const isFromTrackedExpense = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
     switch (key) {
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
             return getTransactionCreated(transaction);
@@ -14860,7 +14863,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE:
             return getTagGLCode(policyTagLists, getTag(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-            return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+            return getTransactionAmount(transaction, isExpenseReport(report), isFromTrackedExpense);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
             return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -14878,7 +14881,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
             return transaction.taxCode ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-            return getTaxAmount(transaction, isExpenseReport(report));
+            return getTaxAmount(transaction, isExpenseReport(report), isFromTrackedExpense);
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
             return getTaxName(policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
@@ -14892,7 +14895,7 @@ function getTransactionSortValue(
             if (!attendeesCount) {
                 return 0;
             }
-            const totalAmount = getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+            const totalAmount = getTransactionAmount(transaction, isExpenseReport(report), isFromTrackedExpense);
             return totalAmount / attendeesCount;
         }
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
