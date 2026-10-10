@@ -18,7 +18,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SearchColumnType, SearchFilterKey, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {ASTNode, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
 import Navigation from '@navigation/Navigation';
@@ -5186,7 +5186,7 @@ describe('SearchUIUtils', () => {
             expect(emptyMerchantItem?.transactionsQueryJSON).toBeDefined();
             // The query should use 'none' (MERCHANT_EMPTY_VALUE) instead of empty string
             expect(emptyMerchantItem?.transactionsQueryJSON?.inputQuery).toContain(CONST.SEARCH.MERCHANT_EMPTY_VALUE);
-            expect(emptyMerchantItem?.transactionsQueryJSON?.exactMatchFilterKeys).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+            expect(emptyMerchantItem?.transactionsQueryJSON?.inputQuery).toContain(`merchant=${CONST.SEARCH.MERCHANT_EMPTY_VALUE}`);
         });
 
         it('should treat DEFAULT_MERCHANT "Expense" as empty merchant and display "No merchant"', () => {
@@ -8055,6 +8055,96 @@ describe('SearchUIUtils', () => {
                 expect(nestedTransaction?.submitted).toBe(submittedAt);
                 expect(nestedTransaction?.approved).toBe(approvedAt);
             });
+        });
+    });
+
+    describe('Merchant group exact match', () => {
+        function findFilterNode(node: ASTNode | null | undefined, key: string): ASTNode | undefined {
+            if (!node) {
+                return undefined;
+            }
+            if (node.left === key) {
+                return node;
+            }
+            const leftMatch = typeof node.left === 'object' ? findFilterNode(node.left, key) : undefined;
+            if (leftMatch) {
+                return leftMatch;
+            }
+            return typeof node.right === 'object' && !Array.isArray(node.right) ? findFilterNode(node.right, key) : undefined;
+        }
+
+        function getMerchantNode(queryJSON: SearchQueryJSON): ASTNode | undefined {
+            return findFilterNode(queryJSON.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+        }
+
+        function getMerchantDrillDownQuery(merchant: string): SearchQueryJSON | undefined {
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: {
+                        personalDetailsList: {},
+                        [`${CONST.SEARCH.GROUP_PREFIX}777777777` as const]: {merchant, count: 1, currency: 'USD', total: 10},
+                    },
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                    queryJSON: buildSearchQueryJSON('type:expense groupBy:merchant'),
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionMerchantGroupListItemType,
+            );
+            return result.at(0)?.transactionsQueryJSON;
+        }
+
+        it('should send an exact merchant match when drilling down into a merchant group', () => {
+            // Given a merchant group "Amazon", where a contains match would also load "Amazon Marketplace" expenses
+            // When the sections build the drill-down query for that group
+            const drillDownQueryJSON = getMerchantDrillDownQuery('Amazon');
+            if (!drillDownQueryJSON) {
+                throw new Error('Expected the merchant drill-down query to be defined');
+            }
+
+            // Then the query uses the exact `merchant=` syntax and the backend receives it unchanged as `eq`,
+            // so only the group's own expenses load
+            expect(drillDownQueryJSON.inputQuery).toContain('merchant=Amazon');
+            expect(SearchQueryUtils.serializeQueryJSONForBackend(drillDownQueryJSON)).toBe(JSON.stringify(drillDownQueryJSON));
+            const merchantNode = getMerchantNode(drillDownQueryJSON);
+            expect(merchantNode?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(merchantNode?.right).toBe('Amazon');
+        });
+
+        it.each(['merchant:Amazon', 'merchant*:Amazon'])('should give the merchant drill-down query a different hash than the same search with %s', (containsFilter) => {
+            // Given the drill-down query of the "Amazon" group and the same search with a contains merchant filter
+            const drillDownQueryJSON = getMerchantDrillDownQuery('Amazon');
+            const containsQueryJSON = buildSearchQueryJSON(drillDownQueryJSON?.inputQuery.replace('merchant=Amazon', containsFilter) ?? '');
+
+            // When the two queries are compared
+            // Then their hashes differ, because `merchant=` already makes the query string differ, so the snapshots never share results
+            expect(containsQueryJSON?.inputQuery).toContain(containsFilter);
+            expect(drillDownQueryJSON?.hash).not.toBe(containsQueryJSON?.hash);
+            expect(drillDownQueryJSON?.recentSearchHash).not.toBe(containsQueryJSON?.recentSearchHash);
+        });
+
+        it('should give each selected merchant group a merchant filter entry with its own value', () => {
+            // Given the "Amazon" group and the "No merchant" group of a merchant-grouped search
+            const groups = [{merchant: 'Amazon'}, {merchant: ''}];
+
+            // When the export builds the filter entry for each selected group
+            const selectedGroupEntries = groups.map((group) => SearchUIUtils.getSelectedGroupFilterEntry(CONST.SEARCH.GROUP_BY.MERCHANT, group));
+
+            // Then each entry filters on merchant with the group's own value, and the empty merchant maps to `none`,
+            // so the export can match each group exactly. The hook test checks that the backend gets `eq`.
+            expect(selectedGroupEntries).toEqual([
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
+            ]);
         });
     });
 
@@ -14547,6 +14637,21 @@ describe('SearchUIUtils', () => {
 
             expect(result).toBe(translateLocal('common.read'));
         });
+
+        test.each([
+            [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, 'search.filters.merchant.equalTo'],
+            [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, 'search.filters.merchant.contains'],
+            [undefined, 'search.filters.merchant.contains'],
+        ] as const)('includes the %s match type in a Merchant filter label', (merchantOperator, translationKey) => {
+            // Given a Merchant filter with an exact, contains, or missing operator
+            const form = {[FILTER_KEYS.MERCHANT]: 'I', [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator};
+
+            // When the filter label is built
+            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            // Then the match type is part of the translated label, so a missing operator reads as contains
+            expect(result).toBe(translateLocal(translationKey, 'I'));
+        });
     });
 
     describe('filterValidHasValues', () => {
@@ -15154,6 +15259,14 @@ describe('hasFilterContentValuesChanged', () => {
             read: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'b'}],
             // A text content offers no options, so the search type is nothing to it.
             ignored: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', type: CONST.SEARCH.DATA_TYPES.INVOICE}],
+        },
+        {
+            kind: 'merchant, reading its match type',
+            filterKey: SYNTAX_FILTER_KEYS.MERCHANT,
+            read: [
+                {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS},
+                {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO},
+            ],
         },
         {
             kind: 'amount',
