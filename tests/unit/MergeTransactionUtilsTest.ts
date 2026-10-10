@@ -1211,6 +1211,52 @@ describe('MergeTransactionUtils', () => {
             });
         });
 
+        it('should calculate a negative tax when the selected amount is negative', () => {
+            // Given a transaction stored with the opposite sign of its displayed amount, as expense report transactions are
+            const transaction = {
+                ...createRandomTransaction(0),
+                currency: CONST.CURRENCY.USD,
+                amount: 1000,
+            };
+            const mergeTransaction = {...createRandomMergeTransaction(0), taxValue: '10%'};
+
+            // When the user selects its displayed amount of -1000
+            const result = getMergeFieldUpdatedValues({
+                transaction,
+                field: 'amount',
+                fieldValue: -1000,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                mergeTransaction,
+                destinationPolicy: undefined,
+            });
+
+            // Then the tax is negative too, so the merged expense shows a negative tax amount offline
+            expect(result.taxAmount).toBe(-91);
+        });
+
+        it('should calculate a positive tax when the selected amount is positive', () => {
+            // Given a transaction stored with the opposite sign of its displayed amount, as expense report transactions are
+            const transaction = {
+                ...createRandomTransaction(0),
+                currency: CONST.CURRENCY.USD,
+                amount: -1000,
+            };
+            const mergeTransaction = {...createRandomMergeTransaction(0), taxValue: '10%'};
+
+            // When the user selects its displayed amount of 1000
+            const result = getMergeFieldUpdatedValues({
+                transaction,
+                field: 'amount',
+                fieldValue: 1000,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                mergeTransaction,
+                destinationPolicy: undefined,
+            });
+
+            // Then the tax is positive too, so the merged expense shows a positive tax amount offline
+            expect(result.taxAmount).toBe(91);
+        });
+
         it('should include reportName when field is reportID', () => {
             // Given a transaction with a reportID and reportName
             const transaction = {
