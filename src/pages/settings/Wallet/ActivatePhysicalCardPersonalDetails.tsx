@@ -18,15 +18,7 @@ import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-import {
-    getCountryZipRegexDetails,
-    getFieldRequiredErrors,
-    isValidPastDate,
-    isValidPhoneNumber,
-    isValidZipCodeForCountry,
-    meetsMaximumAgeRequirement,
-    meetsMinimumAgeRequirement,
-} from '@libs/ValidationUtils';
+import {getAddressFieldErrors, getFieldRequiredErrors, isValidPastDate, isValidPhoneNumber, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
 
 import {getSubPageValues} from '@pages/MissingPersonalDetails/utils';
 
@@ -87,16 +79,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
         if (values.phoneNumber && !isValidPhoneNumber(appendCountryCode(values.phoneNumber, countryCode))) {
             errors.phoneNumber = translate('common.error.phoneNumber');
         }
-        for (const addressInputID of [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY] as const) {
-            const addressPart = values[addressInputID] ?? '';
-            if (addressPart.length > CONST.FORM_CHARACTER_LIMIT) {
-                errors[addressInputID] = translate('common.error.characterLimitExceedCounter', addressPart.length, CONST.FORM_CHARACTER_LIMIT);
-            }
-        }
-        if (values.zipPostCode && !isValidZipCodeForCountry(values.zipPostCode, values.country)) {
-            errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(values.country)?.samples);
-        }
-        return errors;
+        return {...errors, ...getAddressFieldErrors(values, translate)};
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {

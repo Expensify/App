@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openIssueNewCardShippingAddressStep, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-import {getCountryZipRegexDetails, getFieldRequiredErrors, isValidLegalName, isValidZipCodeForCountry} from '@libs/ValidationUtils';
+import {getAddressFieldErrors, getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,16 +72,7 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                 errors[nameInputID] = translate('common.error.characterLimitExceedCounter', name.length, CONST.LEGAL_NAME.MAX_LENGTH);
             }
         }
-        for (const addressInputID of [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY] as const) {
-            const addressPart = values[addressInputID] ?? '';
-            if (addressPart.length > CONST.FORM_CHARACTER_LIMIT) {
-                errors[addressInputID] = translate('common.error.characterLimitExceedCounter', addressPart.length, CONST.FORM_CHARACTER_LIMIT);
-            }
-        }
-        if (values.zipPostCode && !isValidZipCodeForCountry(values.zipPostCode, values.country)) {
-            errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(values.country)?.samples);
-        }
-        return errors;
+        return {...errors, ...getAddressFieldErrors(values, translate)};
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
