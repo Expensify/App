@@ -35,7 +35,6 @@ function FailedToLockAccountPage() {
                     descriptionStyle={styles.colorMuted}
                     buttonText={translate('failedToLockAccountPage.chatWithConcierge')}
                     onButtonPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
-                    containerStyle={styles.h100}
                 />
             </ScrollView>
         </ScreenWrapper>

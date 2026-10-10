@@ -222,7 +222,6 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                         description={translate('common.genericErrorMessage')}
                         illustration={illustrations.BrokenCompanyCardBankConnection}
                         illustrationStyle={styles.errorStateCardIllustration}
-                        containerStyle={styles.h100}
                         buttonText={translate('common.buttonConfirm')}
                         onButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
                     />

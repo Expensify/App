@@ -72,7 +72,7 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
     }, [isCategorizing, isReporting, translate]);
 
     return (
-        <ConfirmationPage style={styles.h100}>
+        <ConfirmationPage>
             <ConfirmationPage.Content>
                 <ConfirmationPage.Illustration />
                 <ConfirmationPage.Heading>{heading}</ConfirmationPage.Heading>

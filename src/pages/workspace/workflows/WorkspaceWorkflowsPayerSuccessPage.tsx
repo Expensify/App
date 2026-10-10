@@ -45,7 +45,6 @@ function WorkspaceWorkflowsPayerSuccessPage() {
                 illustrationStyle={styles.successBankSharedCardIllustration}
                 onButtonPress={onButtonPress}
                 buttonText={translate('common.buttonConfirm')}
-                containerStyle={styles.h100}
             />
         </ScrollView>
     );

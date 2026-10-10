@@ -88,7 +88,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed, errorMessage
     };
 
     return (
-        <ConfirmationPage style={styles.h100}>
+        <ConfirmationPage>
             <ConfirmationPage.Content>
                 <ConfirmationPage.Illustration
                     illustration={illustrations.BrokenCompanyCardBankConnection}

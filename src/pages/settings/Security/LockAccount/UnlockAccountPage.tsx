@@ -42,7 +42,6 @@ function UnlockAccountPage() {
                         requestUnlockAccount(currentUserPersonalDetails.accountID);
                         Navigation.navigate(ROUTES.CONCIERGE);
                     }}
-                    containerStyle={styles.h100}
                 />
             </ScrollView>
         </ScreenWrapper>

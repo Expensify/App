@@ -18,7 +18,6 @@ function SuccessStep({onNext}: SubPageProps) {
                 description={translate('addPersonalBankAccountPage.successMessage')}
                 buttonText={translate('common.continue')}
                 onButtonPress={() => onNext(true)}
-                containerStyle={styles.h100}
             />
         </ScrollView>
     );

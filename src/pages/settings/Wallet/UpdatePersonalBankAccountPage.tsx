@@ -262,7 +262,6 @@ function UpdatePersonalBankAccountPage() {
                         description={translate('addPersonalBankAccount.updateSuccessMessage')}
                         buttonText={translate('common.continue')}
                         onButtonPress={exitFlow}
-                        containerStyle={styles.h100}
                     />
                 </ScrollView>
             </ScreenWrapper>

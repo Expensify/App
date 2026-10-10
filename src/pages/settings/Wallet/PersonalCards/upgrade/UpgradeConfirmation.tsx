@@ -29,7 +29,7 @@ function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard:
     }, [updateSubscriptionLink]);
 
     return (
-        <ConfirmationPage style={styles.h100}>
+        <ConfirmationPage>
             <ConfirmationPage.Content>
                 <ConfirmationPage.Illustration />
                 <ConfirmationPage.Heading>{translate('personalCard.newWorkspace')}</ConfirmationPage.Heading>

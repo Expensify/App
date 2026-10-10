@@ -37,7 +37,6 @@ function SuccessStep() {
                         description={translate('personalCard.personalCardAddedDescription')}
                         buttonText={translate('common.continue')}
                         onButtonPress={exitFlow}
-                        containerStyle={styles.h100}
                     />
                 </ScrollView>
             </FullPageNotFoundView>
