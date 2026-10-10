@@ -112,27 +112,12 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
     return `${resolvedSource}.1024.jpg`;
 }
 
-/**
- * Builds the raw image URL for the source expense receipt (fallback when .1024.jpg is not ready).
- */
-function getRawRouteThumbnailSource(receiptSource: string | undefined): string | undefined {
-    if (!receiptSource) {
-        return undefined;
-    }
-    const resolvedSource = tryResolveUrlFromApiRoot(receiptSource);
-    if (resolvedSource.toLowerCase().endsWith('.pdf')) {
-        return undefined;
-    }
-    return resolvedSource;
-}
-
 export {
     clearRouteThumbnailCache,
     filterRoutes,
     formatLastUsed,
     getCachedRouteThumbnail,
     getOrderedWaypoints,
-    getRawRouteThumbnailSource,
     getRouteEndpoints,
     getRouteKey,
     getRouteThumbnailSource,

@@ -10,21 +10,13 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {
-    formatLastUsed,
-    getCachedRouteThumbnail,
-    getRawRouteThumbnailSource,
-    getRouteEndpoints,
-    getRouteKey,
-    getRouteThumbnailSource,
-    setCachedRouteThumbnail,
-} from '@libs/ReusableDistanceRoutesUtils';
+import {formatLastUsed, getCachedRouteThumbnail, getRouteEndpoints, getRouteKey, getRouteThumbnailSource, setCachedRouteThumbnail} from '@libs/ReusableDistanceRoutesUtils';
 
 import variables from '@styles/variables';
 
 import type {ReusableDistanceRoute} from '@src/types/onyx';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
 type ReuseRouteListItemData = ListItem & {
@@ -38,7 +30,6 @@ function isReuseRouteListItemData(item: ListItem): item is ReuseRouteListItemDat
 type ReuseRouteThumbnailProps = {
     transactionID: string;
     receiptSource?: string;
-    rawReceiptSource?: string;
     routeKey: string;
 };
 
@@ -47,60 +38,28 @@ type ReuseRouteThumbnailProps = {
  * distance expenses is the stored map image of the route. It is centered and cropped to
  * fill the card area.
  */
-function ReuseRouteThumbnail({transactionID, receiptSource, rawReceiptSource, routeKey}: ReuseRouteThumbnailProps) {
+function ReuseRouteThumbnail({transactionID, receiptSource, routeKey}: ReuseRouteThumbnailProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
+    const [failedSource, setFailedSource] = useState<string | null>(null);
+
     const cachedSource = getCachedRouteThumbnail(routeKey);
-    const [currentSource, setCurrentSource] = useState<string | undefined>(cachedSource ?? receiptSource ?? rawReceiptSource);
-    const previousRouteKeyRef = useRef(routeKey);
-
-    useEffect(() => {
-        if (previousRouteKeyRef.current !== routeKey) {
-            previousRouteKeyRef.current = routeKey;
-            const nextSource = getCachedRouteThumbnail(routeKey) ?? receiptSource ?? rawReceiptSource;
-            setCurrentSource(nextSource);
-            return;
-        }
-
-        if (!currentSource) {
-            const nextSource = getCachedRouteThumbnail(routeKey) ?? receiptSource ?? rawReceiptSource;
-            if (nextSource) {
-                setCurrentSource(nextSource);
-            }
-            return;
-        }
-
-        const cached = getCachedRouteThumbnail(routeKey);
-        if (!cached && currentSource) {
-            setCachedRouteThumbnail(routeKey, currentSource);
-        }
-    }, [currentSource, routeKey, receiptSource, rawReceiptSource]);
+    const source = cachedSource ?? receiptSource;
 
     const handleLoad = useCallback(() => {
-        if (currentSource) {
-            setCachedRouteThumbnail(routeKey, currentSource);
+        if (source) {
+            setCachedRouteThumbnail(routeKey, source);
         }
-    }, [currentSource, routeKey]);
+    }, [routeKey, source]);
 
     const handleLoadFailure = useCallback(() => {
-        const cached = getCachedRouteThumbnail(routeKey);
-        if (cached && currentSource !== cached) {
-            setCurrentSource(cached);
-            return;
+        if (source) {
+            setFailedSource(source);
         }
-        if (receiptSource && currentSource !== receiptSource) {
-            setCurrentSource(receiptSource);
-            return;
-        }
-        if (rawReceiptSource && currentSource !== rawReceiptSource) {
-            setCurrentSource(rawReceiptSource);
-            return;
-        }
-        setCurrentSource(undefined);
-    }, [currentSource, routeKey, receiptSource, rawReceiptSource]);
+    }, [source]);
 
-    if (!currentSource) {
+    if (!source || failedSource === source) {
         return (
             <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <Icon
@@ -115,7 +74,7 @@ function ReuseRouteThumbnail({transactionID, receiptSource, rawReceiptSource, ro
 
     return (
         <ReceiptImage
-            source={currentSource}
+            source={source}
             transactionID={transactionID}
             shouldUseThumbnailImage
             shouldUseInitialObjectPosition
@@ -146,7 +105,6 @@ function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVis
     const routeKey = getRouteKey(item.route);
     const {start, end} = getRouteEndpoints(item.route);
     const thumbnailSource = getRouteThumbnailSource(item.route.receiptSource);
-    const rawReceiptSource = getRawRouteThumbnailSource(item.route.receiptSource);
 
     return (
         <SelectableListItem
@@ -166,7 +124,6 @@ function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVis
                     <ReuseRouteThumbnail
                         transactionID={item.route.transactionID}
                         receiptSource={thumbnailSource}
-                        rawReceiptSource={rawReceiptSource}
                         routeKey={routeKey}
                     />
                 </View>

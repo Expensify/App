@@ -6,7 +6,6 @@ import {
     filterRoutes,
     getCachedRouteThumbnail,
     getOrderedWaypoints,
-    getRawRouteThumbnailSource,
     getRouteEndpoints,
     getRouteKey,
     getRouteThumbnailSource,
@@ -133,7 +132,7 @@ describe('ReusableDistanceRoutesUtils', () => {
         });
     });
 
-    describe('getRouteThumbnailSource and getRawRouteThumbnailSource', () => {
+    describe('getRouteThumbnailSource', () => {
         it('appends 1024.jpg suffix for image receipts', () => {
             // Given an image receipt URL
             const receiptSource = 'https://expensify.com/receipts/w_test.png';
@@ -143,17 +142,6 @@ describe('ReusableDistanceRoutesUtils', () => {
 
             // Then .1024.jpg is appended
             expect(thumbnail).toBe('https://expensify.com/receipts/w_test.png.1024.jpg');
-        });
-
-        it('returns raw source without thumbnail suffix', () => {
-            // Given an image receipt URL
-            const receiptSource = 'https://expensify.com/receipts/w_test.png';
-
-            // When getting the raw thumbnail source
-            const raw = getRawRouteThumbnailSource(receiptSource);
-
-            // Then raw source matches without .1024.jpg
-            expect(raw).toBe('https://expensify.com/receipts/w_test.png');
         });
     });
 
