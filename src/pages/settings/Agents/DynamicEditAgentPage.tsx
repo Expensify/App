@@ -61,9 +61,9 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
 
     const agentLogin = personalDetails?.login ?? '';
     const handleBackPress = () => Navigation.goBack(backPath);
-    const handleEditAvatarPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.getRoute(accountID)), {skipMatchingFullScreenRoute: true});
-    const handleEditNamePress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute(accountID)), {skipMatchingFullScreenRoute: true});
-    const handleEditPromptPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute(accountID)), {skipMatchingFullScreenRoute: true});
+    const handleEditAvatarPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.getRoute()), {skipMatchingFullScreenRoute: true});
+    const handleEditNamePress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute()), {skipMatchingFullScreenRoute: true});
+    const handleEditPromptPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute()), {skipMatchingFullScreenRoute: true});
     const handleDeletePress = async () => {
         const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(accountID, allPolicies);
         if (ruleBotEnforcedPolicy) {
