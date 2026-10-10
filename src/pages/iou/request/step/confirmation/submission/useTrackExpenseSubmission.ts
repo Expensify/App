@@ -39,6 +39,7 @@ import type {SubmitWithGpsPoint} from './useGpsCapture';
 import type {TransactionTaxValues} from './utils/getTransactionTaxValues';
 
 import getCurrentReceiptState from './utils/getCurrentReceiptState';
+import hasManualMapDistanceOverride from './utils/hasManualMapDistanceOverride';
 import logSubmittedReceiptMilestone from './utils/logSubmittedReceiptMilestone';
 import performPostBatchCleanup from './utils/performPostBatchCleanup';
 
@@ -189,7 +190,10 @@ function useTrackExpenseSubmission({
 
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
-            const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
+            const itemDistance =
+                isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest || hasManualMapDistanceOverride(item)
+                    ? (item.comment?.customUnit?.quantity ?? undefined)
+                    : undefined;
             const itemDistanceUnit = item.comment?.customUnit?.distanceUnit;
             const originalItemDistance =
                 isModifiedGPSDistanceRequest && gpsDraftDetails?.distanceInMeters && itemDistanceUnit

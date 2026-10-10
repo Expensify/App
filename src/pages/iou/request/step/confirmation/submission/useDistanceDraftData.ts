@@ -7,6 +7,8 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import hasManualMapDistanceOverride from './utils/hasManualMapDistanceOverride';
+
 type UseDistanceDraftDataParams = {
     transaction: OnyxEntry<Transaction>;
     isGPSDistanceRequest: boolean;
@@ -19,7 +21,10 @@ function useDistanceDraftData({transaction, isGPSDistanceRequest, isManualDistan
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
 
-    const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
+    const transactionDistance =
+        isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest || hasManualMapDistanceOverride(transaction)
+            ? (transaction?.comment?.customUnit?.quantity ?? undefined)
+            : undefined;
     const transactionDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
     const isModifiedGPSDistanceRequest = isGPSDistanceRequest && gpsDraftDetails?.modifiedDistance != null;
     const originalTransactionDistance =
