@@ -207,6 +207,36 @@ describe('ReportNameUtils', () => {
         });
     });
 
+    describe('computeReportName - support tickets', () => {
+        test('uses the support rep login when their display name is unavailable', () => {
+            const supportTicket = createMock<Report>({
+                reportID: 'supportTicketReportID',
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: 1,
+                managerID: 2,
+                created: '2026-09-30 00:00:00.000',
+            });
+            const personalDetailsWithoutSupportRepName = {...participantsPersonalDetails};
+            personalDetailsWithoutSupportRepName[2] = {
+                accountID: 2,
+                login: 'support.rep@expensify.com',
+            };
+
+            const name = computeReportName(
+                supportTicket,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                personalDetailsWithoutSupportRepName,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+
+            expect(name).toBe('Support ticket, Sep 30, 2026: Ragnar Lothbrok and support.rep@expensify.com');
+        });
+    });
+
     describe('computeReportName - Admin room', () => {
         test('Active admin room', () => {
             const report = createAdminRoom(10);

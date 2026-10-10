@@ -26,6 +26,7 @@ import {interpolate} from 'react-native-reanimated';
 
 import type {ThemeColors} from './theme/types';
 
+import layoutSpacing, {menuItemHorizontalPadding} from './layoutSpacing';
 import colors from './theme/colors';
 import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
 import addOutlineWidth from './utils/addOutlineWidth';
@@ -38,6 +39,7 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
+import tooltipPlatformStyle from './utils/generators/TooltipStyleUtils/tooltipPlatformStyles';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -109,6 +111,11 @@ const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, padding
     paddingVertical,
     gap: 4,
     flex: 1,
+});
+
+// Negative margins let a widget header button overflow the header instead of growing it, so all card headers keep the same height
+const getWidgetHeaderButtonOverflowStyle = (buttonSize: number): ViewStyle => ({
+    marginVertical: (variables.widgetHeaderTitleLineHeight - buttonSize) / 2,
 });
 
 type WebViewStyle = {
@@ -1314,26 +1321,18 @@ const staticStyles = (theme: ThemeColors) =>
          * visually aligned with their editable cells.
          */
         editableCellHeader: {
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            paddingHorizontal: 4,
-        },
-
-        /**
-         * Cancels editableCell's horizontal chrome so the value lines up with a
-         * sibling that has no edit padding, such as a card title under a cardholder name.
-         */
-        editableCellFlushWithSibling: {
-            marginHorizontal: -(variables.editableCellChromeWidth / 2),
+            paddingHorizontal: variables.editableCellPadding,
         },
 
         editableCell: {
             width: '100%',
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            padding: 4,
+            padding: variables.editableCellPadding,
             height: 'auto',
             minHeight: variables.editableCellHeight,
             overflow: 'hidden',
@@ -1353,16 +1352,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         editableCellEditButtonContainerLeft: {
-            left: 4,
+            left: variables.editableCellPadding,
         },
 
         editableCellEditButtonContainerRight: {
-            right: 4,
+            right: variables.editableCellPadding,
         },
 
         editableCellEditButton: {
-            width: 28,
-            height: 28,
+            width: variables.editableCellEditButtonSize,
+            height: variables.editableCellEditButtonSize,
             borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.buttonDefaultBG,
             justifyContent: 'center',
@@ -2072,7 +2071,7 @@ const staticStyles = (theme: ThemeColors) =>
         popoverMenuItem: {
             flexDirection: 'row',
             borderRadius: 0,
-            paddingHorizontal: 20,
+            paddingHorizontal: menuItemHorizontalPadding,
             paddingVertical: 12,
             justifyContent: 'space-between',
             width: '100%',
@@ -2790,6 +2789,10 @@ const staticStyles = (theme: ThemeColors) =>
         tableBorder: {
             borderWidth: 1,
             borderColor: 'transparent',
+        },
+
+        tableColumnResizeIndicator: {
+            backgroundColor: theme.iconMenu,
         },
 
         tableRowHeightCompact: {
@@ -3704,6 +3707,7 @@ const staticStyles = (theme: ThemeColors) =>
         // "View" action rendered as a Medium Link Button on the growl's inverse-colored surface.
         growlNotificationActionText: {
             color: theme.linkReversed,
+            textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
         },
 
         growlNotificationActionHovered: {
@@ -4171,6 +4175,39 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
         },
 
+        reuseRouteCard: {
+            ...spacing.mh5,
+            ...spacing.mb3,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.cardBG,
+        },
+
+        reuseRouteThumbnailWrapper: {
+            ...spacing.p1,
+        },
+
+        reuseRouteThumbnail: {
+            width: '100%',
+            aspectRatio: 1.84,
+            borderRadius: 12,
+            overflow: 'hidden',
+            backgroundColor: theme.border,
+        },
+
+        // Floats above the map thumbnail so the date stays readable over the map image.
+        reuseRouteLastUsedBadge: {
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            marginLeft: 0,
+            backgroundColor: colors.productDark400,
+            borderColor: colors.productDark400,
+        },
+
+        reuseRouteLastUsedBadgeText: {
+            color: colors.productDark900,
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,
@@ -4261,7 +4298,7 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'left',
             overflow: 'hidden',
             marginBottom: 20,
-            marginHorizontal: variables.sectionMargin,
+            marginHorizontal: layoutSpacing.pageGutter.wide,
         },
 
         widgetContainer: {
@@ -4272,6 +4309,42 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetItemButton: {
             minWidth: variables.widgetItemButtonMinWidth,
+        },
+
+        earlyRenewalOfferBackground: {
+            position: 'absolute',
+            top: variables.contentHeaderHeight + variables.earlyRenewalOfferBackgroundOffsetTop,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            overflow: 'hidden',
+        },
+
+        earlyRenewalOfferOption: {
+            flex: 1,
+            alignItems: 'center',
+            gap: 8,
+            paddingTop: 32,
+            paddingBottom: 28,
+            paddingHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.highlightBG,
+        },
+
+        earlyRenewalOfferOptionSelected: {
+            backgroundColor: theme.trialBannerBackgroundColor,
+        },
+
+        earlyRenewalOfferOptionRadio: {
+            position: 'absolute',
+            top: 16,
+            left: 16,
+        },
+
+        earlyRenewalOfferOptionBadge: {
+            position: 'absolute',
+            top: 12,
+            right: 12,
         },
 
         gettingStartedRowIconContainer: {
@@ -4291,25 +4364,8 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
-        widgetHeaderMenuButton: {
-            width: variables.componentSizeNormal,
-            height: variables.componentSizeNormal,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: variables.buttonBorderRadius,
-        },
-
         widgetHeaderMenuButtonHovered: {
             backgroundColor: theme.hoverComponentBG,
-        },
-
-        widgetHeaderMenuButtonWrapper: {
-            // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
-            // vertical footprint to the title line-height so every card header keeps the same height. The matching
-            // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
-            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
         },
 
         widgetItemSubtitle: {
@@ -4372,7 +4428,6 @@ const staticStyles = (theme: ThemeColors) =>
         homePageContentContainer: {
             flexGrow: 1,
             paddingTop: 0,
-            paddingHorizontal: 20,
             paddingBottom: 20,
         },
 
@@ -5681,7 +5736,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchFiltersResetButton: {
+        searchFiltersBarButton: {
             flexDirection: 'row',
             gap: 4,
             alignItems: 'center',
@@ -5786,7 +5841,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         workspaceSection: {
-            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+            maxWidth: variables.workspaceSectionMaxWidth + layoutSpacing.pageGutter.wide * 2,
         },
 
         workspaceSectionMobile: {
@@ -6815,26 +6870,31 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.textStrong,
             color: theme.text,
         },
-        chartTooltipWrapper: {
-            alignItems: 'center',
-        },
         chartTooltipBox: {
-            backgroundColor: theme.heading,
-            borderRadius: variables.componentBorderRadiusSmall,
-            paddingVertical: 4,
-            paddingHorizontal: 8,
+            backgroundColor: theme.appBG,
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            boxShadow: theme.shadow,
+            padding: 12,
+            rowGap: 8,
+        },
+        chartTooltipLayer: {
+            ...tooltipPlatformStyle,
+            zIndex: variables.tooltipZIndex,
+        },
+        chartTooltipOrigin: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+        chartTooltipTitle: {
+            ...textVariants.labelStrong,
+            color: theme.text,
         },
         chartTooltipText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
-            whiteSpace: 'nowrap',
-        },
-        chartTooltipPointer: {
-            width: 0,
-            height: 0,
-            backgroundColor: theme.transparent,
-            borderStyle: 'solid',
+            ...textVariants.label,
+            color: theme.text,
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
@@ -6874,7 +6934,18 @@ const staticStyles = (theme: ThemeColors) =>
             height: 12,
         },
         chartInlineTable: {
-            marginTop: 20,
+            marginTop: 32,
+            rowGap: 24,
+        },
+        chartInlineTableDot: {
+            borderRadius: '50%',
+            width: 16,
+            height: 16,
+            margin: 2,
+        },
+        chartInlineTableAvatarBorder: {
+            borderWidth: 2,
+            borderRadius: '50%',
         },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
@@ -7486,13 +7557,27 @@ const plainStyles = (theme: ThemeColors) =>
 
         getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
 
-        getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
+        getWidgetHeaderButtonOverflowStyle,
+
+        // Negative right margin matches the vertical ones so the icon's spacing to the card edge equals its top spacing
+        getWidgetHeaderMenuButtonStyle: (buttonSize: number) =>
+            ({
+                width: buttonSize,
+                height: buttonSize,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: variables.buttonBorderRadius,
+                ...getWidgetHeaderButtonOverflowStyle(buttonSize),
+                marginRight: (variables.widgetHeaderTitleLineHeight - buttonSize) / 2,
+            }) satisfies ViewStyle,
+
+        getWidgetContainerHeaderStyle: (cardPadding: number) =>
             ({
                 flexDirection: 'row',
                 alignItems: 'center',
                 marginBottom: 20,
-                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
-                marginTop: shouldUseNarrowLayout ? 20 : 32,
+                marginHorizontal: cardPadding,
+                marginTop: cardPadding,
             }) satisfies ViewStyle,
 
         // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
@@ -7541,7 +7626,7 @@ const plainStyles = (theme: ThemeColors) =>
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: 20,
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',
@@ -7557,12 +7642,13 @@ const plainStyles = (theme: ThemeColors) =>
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        insightsDashboardLayout: {
-            width: '100%',
-            maxWidth: variables.centeredContentMaxWidth,
-            alignSelf: 'center',
-            gap: variables.insightsCardGap,
-        } satisfies ViewStyle,
+        insightsDashboardLayout: (shouldUseNarrowLayout: boolean) =>
+            ({
+                width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
 
         insightsDashboardScrollView: {
             ...scrollbarGutterStable,
@@ -7573,15 +7659,17 @@ const plainStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        insightsChartGrid: {
-            flexDirection: 'row',
-            alignItems: 'flex-start',
-            gap: variables.insightsCardGap,
-        } satisfies ViewStyle,
+        insightsChartGrid: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
 
-        insightsChartColumn: {
-            gap: variables.insightsCardGap,
-        } satisfies ViewStyle,
+        insightsChartColumn: (shouldUseNarrowLayout: boolean) =>
+            ({
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,
