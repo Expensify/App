@@ -346,6 +346,37 @@ describe('actions/PolicyMember', () => {
             });
         });
 
+        it('sets the payment card form loading state while requesting an SCA authentication link', async () => {
+            // Given a workspace owner change that needs a billing card added first
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeCard = {
+                cardNumber: '1234567890123456',
+                cardYear: '2023',
+                cardMonth: '05',
+                cardCVV: '123',
+                addressName: 'John Doe',
+                addressZip: '12345',
+                currency: CONST.PAYMENT_CARD_CURRENCY.GBP,
+            };
+
+            // When the card is submitted and the request is still in flight
+            mockFetch?.pause?.();
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, 1, 'fake@gmail.com', fakeCard);
+            await waitForBatchedUpdates();
+
+            // Then the form is loading, so the user sees a spinner and can't send the card a second time while waiting for the 3DS link
+            const optimisticFormState = await getOnyxValue(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+            expect(optimisticFormState?.isLoading).toBe(true);
+
+            // When the response arrives
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the form stops loading, so the spinner never outlives the request
+            const settledFormState = await getOnyxValue(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+            expect(settledFormState?.isLoading).toBe(false);
+        });
+
         it('should set owner and ownerAccountID from explicit parameters on success', async () => {
             const fakePolicy: PolicyType = createRandomPolicy(0);
             const fakeEmail = 'newowner@gmail.com';
