@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,13 +34,12 @@ import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
-    isControlPolicy,
     isSubmitPolicy,
+    shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
-import {filterRulesForPolicy} from '@libs/WorkflowUtils';
 
 import variables from '@styles/variables';
 
@@ -51,11 +51,10 @@ import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
-import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
@@ -87,6 +86,7 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name;
 
     const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
@@ -100,9 +100,6 @@ function WorkspaceInviteMessageComponent({
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     // Only used when this page finishes a "+N more" workflow edit, which has no edit page behind it to save the workflow.
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID), [policyID]);
-    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
-    const {isBetaEnabled} = usePermissions();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -126,8 +123,10 @@ function WorkspaceInviteMessageComponent({
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
-    const isControl = isControlPolicy(policy);
-    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    // `approvalMode` can drift from the actual workflow structure because it is updated optimistically.
+    // Dynamic external workflows that hide people also have no selectable approver.
+    const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy);
+    const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldShowWorkArrangement =
         isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     const selectedHasOfficeWorkArrangement = workspaceInviteWorkArrangementDraft ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? true;

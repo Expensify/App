@@ -1,4 +1,5 @@
 import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -23,7 +24,6 @@ function ValidateCodeActionContent({
     descriptionPrimary,
     descriptionSecondary,
     onClose,
-    shouldShowCloseButton = false,
     validateError,
     validatePendingAction,
     validateCodeActionErrorField,
@@ -76,20 +76,18 @@ function ValidateCodeActionContent({
             offlineIndicatorStyle={themeStyles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <Header>
-                {!shouldShowCloseButton && <Header.BackButton onPress={hide} />}
-                <Header.Title title={title} />
-                <Header.Right>
-                    {threeDotsMenuItems.length > 0 && (
-                        <Header.ThreeDotsMenu
-                            items={threeDotsMenuItems}
-                            onIconPress={onThreeDotsButtonPress}
-                            shouldOverlay
-                        />
-                    )}
-                    {shouldShowCloseButton && <Header.CloseButton onPress={hide} />}
-                </Header.Right>
-            </Header>
+            <HeaderWithBackButtonAndTitle
+                title={title}
+                onBackButtonPress={hide}
+            >
+                {threeDotsMenuItems.length > 0 && (
+                    <Header.ThreeDotsMenu
+                        items={threeDotsMenuItems}
+                        onIconPress={onThreeDotsButtonPress}
+                        shouldOverlay
+                    />
+                )}
+            </HeaderWithBackButtonAndTitle>
 
             <ScrollView
                 style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}
