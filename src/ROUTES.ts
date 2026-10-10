@@ -2470,10 +2470,14 @@ const ROUTES = {
     },
     SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
         route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
-        getRoute: (subPage?: string, action?: 'edit') => {
-            const subPagePart = subPage ? `/${subPage}` : '';
-            const actionPart = action ? `/${action}` : '';
-            return `settings/wallet/collect-deposit-account${subPagePart}${actionPart}` as const;
+        getRoute: (backTo?: string, subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
+                return getUrlWithBackToParam('settings/wallet/collect-deposit-account', backTo);
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
+            return getUrlWithBackToParam(`settings/wallet/collect-deposit-account/${subPage}${action ? `/${action}` : ''}`, backTo);
         },
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: {

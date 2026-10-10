@@ -12,13 +12,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {getBankAccountFields, hasLocalBankAccountFields} from '@libs/BankAccountFields';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {useRoute} from '@react-navigation/native';
 import {createIsInternationalCountrySelector} from '@selectors/Policy';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -44,6 +48,8 @@ function CollectDepositAccount() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isLoadingCountries = useLoadDepositAccountSetup();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.COLLECT_DEPOSIT_ACCOUNT>>();
+    const backTo = route.params?.backTo;
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM_DRAFT);
 
     const formValues = draftValues ?? {};
@@ -55,18 +61,18 @@ function CollectDepositAccount() {
 
     const goBack = () => {
         clearDraftValues(ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET);
     };
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
         pages,
         startFrom: STEP_INDEXES.COUNTRY_SELECTOR,
         onFinished: goBack,
-        buildRoute: (pageName, action) => ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute(pageName, action),
+        buildRoute: (pageName, action) => ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute(backTo, pageName, action),
     });
 
     const goBackToConfirmPage = () => {
-        Navigation.goBack(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute(PAGE_NAME.CONFIRM, undefined));
+        Navigation.goBack(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute(backTo, PAGE_NAME.CONFIRM, undefined));
     };
 
     const handleNextPage = () => {
