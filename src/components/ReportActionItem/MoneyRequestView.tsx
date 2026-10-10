@@ -377,7 +377,9 @@ function MoneyRequestView({
     const shouldShowCard = isFromCardImport && cardProgramName;
 
     const taxRates = policy?.taxRates;
-    const formattedTaxAmount = convertToDisplayString(transactionTaxAmount ?? 0, actualCurrency);
+    // Use the updated transaction tax amount in merge flow to have correct positive/negative sign
+    const actualTaxAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.taxAmount : transactionTaxAmount;
+    const formattedTaxAmount = convertToDisplayString(actualTaxAmount ?? 0, actualCurrency);
     // Skip a zero converted tax (e.g. tax exempt) so we don't render a redundant "Converted 0.00".
     const formattedConvertedTaxAmount = transactionConvertedTaxAmount ? convertToDisplayString(transactionConvertedTaxAmount, moneyRequestReport?.currency) : '';
 
