@@ -888,6 +888,65 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
                 mockFetch?.resume?.();
             });
+            it('records the caller’s bank account details on an expense payment instead of reading cached accounts', async () => {
+                // Given an expense report and an account whose cached number differs from the caller’s snapshot.
+                const bankAccountID = 999;
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US, accountData: {accountNumber: 'XXXX1111'}}});
+                const chatReport = {
+                    ...createRandomReport(0, undefined),
+                    lastReadTime: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
+                };
+                const iouReport = {
+                    ...createRandomReport(1, undefined),
+                    chatType: undefined,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    total: 10,
+                };
+                mockFetch?.pause?.();
+
+                // When paying with the account provided by the caller.
+                payMoneyRequest({
+                    bankAccountList: {[bankAccountID]: {bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US, accountData: {accountNumber: 'XXXX9876'}}},
+                    methodID: bankAccountID,
+                    isASAPSubmitBetaEnabled: false,
+                    conciergeChat: undefined,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    chatReport,
+                    iouReport,
+                    introSelected: undefined,
+                    currentUserAccountID: CARLOS_ACCOUNT_ID,
+                    currentUserLogin: CARLOS_EMAIL,
+                    isSelfTourViewed: false,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    chatReportActions: undefined,
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                });
+
+                await waitForBatchedUpdates();
+
+                const payReportAction = await new Promise<ReportAction | undefined>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                        callback: (reportActions) => {
+                            Onyx.disconnect(connection);
+                            resolve(Object.values(reportActions ?? {}).pop());
+                        },
+                    });
+                });
+
+                // Then the action records the selected account and its current number for every viewer.
+                expect(payReportAction && isMoneyRequestAction(payReportAction) ? getOriginalMessage(payReportAction) : undefined).toEqual(
+                    expect.objectContaining({bankAccountID, accountNumber: 'XXXX9876'}),
+                );
+
+                mockFetch?.resume?.();
+            });
         });
 
         it('calls notifyNewAction for the top most report', () => {

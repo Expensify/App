@@ -619,6 +619,17 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     return canPayOnPolicy && currentUserLogin === reimburserEmail;
 }
 
+/**
+ * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
+ * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos), which stay payer-only.
+ */
+function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
+    const isReimbursementConfigured =
+        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    return isGroupPolicy(policy) && isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+}
+
 /** Check if the passed employee holds an active Expensify Card on the policy, as reported by the backend in the policy's employeeList */
 function hasActiveExpensifyCard(policy: OnyxEntry<Policy>, employeeLogin: string) {
     const primaryLogin = policy?.primaryLoginsInvited?.[employeeLogin];
@@ -2499,6 +2510,7 @@ export {
     isPolicyMember,
     isMemberInHomeAndOfficeWorkspace,
     isPolicyPayer,
+    canAdminPayReport,
     getReimburserEmail,
     getOwnerChangePayerSuccessData,
     arePaymentsEnabled,
