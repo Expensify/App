@@ -2,7 +2,7 @@ import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {PolicyTagLists, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -79,6 +79,8 @@ const baseParams = {
     isTrackIntentUser: false,
     formatPhoneNumber,
     rules: undefined,
+    parentChatReportActions: undefined,
+    participantChatReportActions: undefined,
 } as const;
 
 describe('getMoneyRequestInformation', () => {
@@ -358,6 +360,156 @@ describe('getMoneyRequestInformation', () => {
             const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
 
             expect(result.iouReport.reportID).not.toBe(SUBMITTED_REPORT_ID);
+        });
+    });
+
+    describe('report preview action from the threaded chat report actions', () => {
+        const EXPENSE_REPORT_ID = 'expense-report-with-preview';
+        const PREVIEW_ACTION_ID = 'report-preview-action-1';
+        const DM_REPORT_ID = 'report-dm-1';
+        const IOU_REPORT_ID = 'iou-report-with-preview';
+
+        // The preview actions below are only ever supplied through the params and deliberately never written to Onyx,
+        // so the deprecated getAllReportActionsFromIOU fallback inside getReportPreviewReportAction cannot be their source.
+        const buildReportPreviewAction = (linkedReportID: string) =>
+            ({
+                reportActionID: PREVIEW_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-01-02 00:00:00',
+                message: [{type: 'COMMENT', html: '', text: ''}],
+                originalMessage: {linkedReportID},
+            }) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>;
+
+        beforeEach(async () => {
+            // `canAddTransaction` requires the submitter to own the report and the policy to be a group policy.
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentChatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {
+                reportID: EXPENSE_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: POLICY_ID,
+                chatReportID: CHAT_REPORT_ID,
+                ownerAccountID: PAYEE_ACCOUNT_ID,
+                managerID: PAYEE_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: 'USD',
+                total: 0,
+                created: '2024-01-02',
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('reuses the existing report preview action supplied via parentChatReportActions when the parent chat report is used', () => {
+            // Given an existing expense report on the parent chat and a REPORT_PREVIEW action linked to it that is
+            // supplied only through the parentChatReportActions param.
+            const parentChatReportActions = {[PREVIEW_ACTION_ID]: buildReportPreviewAction(EXPENSE_REPORT_ID)};
+
+            // When a new expense is added to that existing report.
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, moneyRequestReportID: EXPENSE_REPORT_ID, parentChatReportActions});
+
+            // Then the supplied preview action is found and updated in place instead of a new optimistic
+            // REPORT_PREVIEW action being built, proving the threaded data is used over the deprecated fallback.
+            expect(result.chatReport.reportID).toBe(CHAT_REPORT_ID);
+            expect(result.iouReport.reportID).toBe(EXPENSE_REPORT_ID);
+            expect(result.reportPreviewAction.reportActionID).toBe(PREVIEW_ACTION_ID);
+        });
+
+        it('ignores participantChatReportActions when the parent chat report is used', () => {
+            // Given the parent chat report is kept as the chat report, its own actions are empty, and a matching
+            // REPORT_PREVIEW action exists only in participantChatReportActions, which belong to a different chat.
+            const participantChatReportActions = {[PREVIEW_ACTION_ID]: buildReportPreviewAction(EXPENSE_REPORT_ID)};
+
+            // When a new expense is added to the existing report.
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                moneyRequestReportID: EXPENSE_REPORT_ID,
+                parentChatReportActions: {},
+                participantChatReportActions,
+            });
+
+            // Then a new optimistic preview action is built, because only the actions of the chat report that was
+            // actually resolved may be searched. Mixing in another chat's actions would attach the expense to the wrong preview.
+            expect(result.chatReport.reportID).toBe(CHAT_REPORT_ID);
+            expect(result.reportPreviewAction.reportActionID).not.toBe(PREVIEW_ACTION_ID);
+        });
+
+        it('reuses the report preview action supplied via participantChatReportActions when the policy expense chat comes from the participant', () => {
+            // Given no parent chat report (the flow starts from the global create menu), so the policy expense chat is
+            // looked up by participant.reportID, and a REPORT_PREVIEW action supplied only through participantChatReportActions.
+            const participantChatReportActions = {[PREVIEW_ACTION_ID]: buildReportPreviewAction(EXPENSE_REPORT_ID)};
+
+            // When a new expense is added to the existing report.
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                parentChatReport: undefined,
+                moneyRequestReportID: EXPENSE_REPORT_ID,
+                participantChatReportActions,
+            });
+
+            // Then the participant's chat is used and its preview action is reused, since without a parent chat
+            // report the participant's chat actions are the only place the existing preview can come from.
+            expect(result.chatReport.reportID).toBe(CHAT_REPORT_ID);
+            expect(result.reportPreviewAction.reportActionID).toBe(PREVIEW_ACTION_ID);
+        });
+
+        it('reuses the report preview action supplied via participantChatReportActions when the chat is found by participants', async () => {
+            // Given an existing 1:1 chat between the payee and the payer with an open IOU report, no parent chat report,
+            // and a REPORT_PREVIEW action for that IOU report supplied only through participantChatReportActions.
+            const participants = {
+                [PAYEE_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [PAYER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${DM_REPORT_ID}`, {reportID: DM_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, participants});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, {
+                reportID: IOU_REPORT_ID,
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID: DM_REPORT_ID,
+                ownerAccountID: PAYEE_ACCOUNT_ID,
+                managerID: PAYER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: 'USD',
+                total: 0,
+                participants,
+            });
+            await waitForBatchedUpdates();
+            const participantChatReportActions = {[PREVIEW_ACTION_ID]: buildReportPreviewAction(IOU_REPORT_ID)};
+
+            // When a new expense is submitted to the payer on that IOU report.
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                parentChatReport: undefined,
+                participantParams: {
+                    payeeAccountID: PAYEE_ACCOUNT_ID,
+                    payeeEmail: 'payee@example.com',
+                    participant: {accountID: PAYER_ACCOUNT_ID, login: 'payer@example.com'},
+                },
+                moneyRequestReportID: IOU_REPORT_ID,
+                participantChatReportActions,
+            });
+
+            // Then the 1:1 chat found by getChatByParticipants is used and its preview action is reused, so callers
+            // only need to pass that single chat's actions instead of the whole report actions collection.
+            expect(result.chatReport.reportID).toBe(DM_REPORT_ID);
+            expect(result.iouReport.reportID).toBe(IOU_REPORT_ID);
+            expect(result.reportPreviewAction.reportActionID).toBe(PREVIEW_ACTION_ID);
+        });
+
+        it('builds a new optimistic report preview action when no chat report actions are passed', () => {
+            // Given the same existing expense report but undefined parentChatReportActions and participantChatReportActions,
+            // and no report actions in Onyx, so neither the params nor the deprecated fallback can find an existing preview action.
+            // When a new expense is added to that existing report.
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, moneyRequestReportID: EXPENSE_REPORT_ID});
+
+            // Then a brand-new optimistic preview action is generated, confirming the reuse in the tests above
+            // really came from the threaded chat report actions rather than some other source.
+            expect(result.iouReport.reportID).toBe(EXPENSE_REPORT_ID);
+            expect(result.reportPreviewAction.reportActionID).not.toBe(PREVIEW_ACTION_ID);
         });
     });
 

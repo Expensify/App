@@ -2282,6 +2282,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
+            parentChatReportActions: undefined,
+            participantChatReportActions: undefined,
         });
 
         onyxData = moneyRequestOnyxData;
