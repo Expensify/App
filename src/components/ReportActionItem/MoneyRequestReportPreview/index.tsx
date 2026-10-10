@@ -1,8 +1,10 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
+import {clearPendingRHPWidth} from '@components/WideRHPContextProvider/pendingRHPWidths';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsScreenVisible from '@hooks/useIsScreenVisible';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -37,7 +39,7 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
+import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionsSelector} from '@src/selectors/ReportMetaData';
 import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
@@ -78,7 +80,7 @@ function MoneyRequestReportPreview({
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -210,26 +212,22 @@ function MoneyRequestReportPreview({
     const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {
         selector: hasOnceLoadedReportActionsSelector,
     });
-    const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
-        selector: pendingNewTransactionIDsSelector,
+    const [pendingNewTransactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
+        selector: pendingNewTransactionsSelector,
     });
     const isFocused = useIsFocused();
-    // Transactions arrive in batches and `useNewTransactions` would diff each batch as newly added expenses.
-    // Withhold the list until every transaction the report claims has arrived.
-    const expectedTransactionCount = iouReport?.transactionCount ?? 0;
-    const isDeliveryComplete = allReportTransactions.length >= expectedTransactionCount;
-    // Adding an expense raises `transactionCount` the moment it happens, before its transaction reaches Onyx.
-    // That would briefly make the check above false again and discard the list we compare against, so once
-    // every expected transaction has arrived we keep comparing from then on.
-    const [hasCompletedDelivery, setHasCompletedDelivery] = useState(false);
-    if (isDeliveryComplete && !hasCompletedDelivery) {
-        setHasCompletedDelivery(true);
-    }
-    const transactionsForDiff = isDeliveryComplete || hasCompletedDelivery ? transactions : undefined;
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactionsForDiff, pendingNewTransactionIDs, chatReportID, isFocused);
-    // Don't surface the highlight while the preview is covered — it'd animate the one-shot off-screen and be missed.
-    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
-    const newTransactionIDs = new Set(isReportVisible ? newTransactions.map((transaction) => transaction.transactionID) : []);
+    const isReportVisible = useIsScreenVisible();
+    const newTransactions = useNewTransactions({
+        hasOnceLoadedReportActions,
+        transactions,
+        arrivedTransactionCount: allReportTransactions.length,
+        expectedTransactionCount: iouReport?.transactionCount ?? 0,
+        transactionsReportID: iouReportID,
+        pendingNewTransactions,
+        railReportID: chatReportID,
+        isReportVisible,
+    });
+    const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
@@ -314,9 +312,9 @@ function MoneyRequestReportPreview({
                 const seeded = setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
                 markReportRHPWidth(childReportID, 'wide');
                 const release = () => {
-                    unmarkReportRHPWidth(childReportID);
-                    // Only clears if the report still carries our hint, so it can't undo one set by the report itself.
-                    unmarkReportRHPWidth(iouReportID, 'super-wide');
+                    // Drops the widths this press left, so a later visit to either report isn't widened by them.
+                    clearPendingRHPWidth(childReportID);
+                    clearPendingRHPWidth(iouReportID);
                     seeded.then(() => {
                         if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
                             return;
@@ -341,7 +339,7 @@ function MoneyRequestReportPreview({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
             });
         },
-        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, transactions],
+        [isSmallScreenWidth, iouReportID, markReportRHPWidth, transactions],
     );
 
     const openTransactionFromPreview = useCallback(

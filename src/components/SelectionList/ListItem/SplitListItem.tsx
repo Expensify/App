@@ -57,6 +57,7 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
     // Animated highlight style for selected item
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item.isSelected ?? false,
+        highlightKey: item.keyForList,
         isSelected: item.isSelected,
         skipInitialFade: true,
         itemEnterDelay: 0,

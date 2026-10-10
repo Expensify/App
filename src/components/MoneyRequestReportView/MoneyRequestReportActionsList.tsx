@@ -1,4 +1,5 @@
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import useIsScreenVisible from '@hooks/useIsScreenVisible';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
@@ -38,12 +39,12 @@ import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsList
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
+import {pendingNewTransactionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -81,10 +82,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    // The table is visible whenever it's wide, or — on narrow — only when focused (the RHP has closed).
-    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const isReportVisible = useIsScreenVisible();
     const shouldReserveBulkActionBarSpace = useShouldShowReportBulkActionBar();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -103,15 +102,24 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
-    const {reportActions, reportTransactions, transactions, hasPendingDeletionTransaction, reportTransactionIDs, reportActionIDs} = useMoneyRequestReportData(
+    const {reportActions, reportTransactions, transactions, arrivedTransactionCount, hasPendingDeletionTransaction, reportTransactionIDs, reportActionIDs} = useMoneyRequestReportData(
         reportIDFromRoute,
         unfilteredReportActions,
         isOffline,
     );
-    const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
-        selector: pendingNewTransactionIDsSelector,
+    const [pendingNewTransactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+        selector: pendingNewTransactionsSelector,
     });
-    const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isFocused);
+    const newTransactions = useNewTransactions({
+        hasOnceLoadedReportActions: reportLoadingState?.hasOnceLoadedReportActions,
+        transactions: reportTransactions,
+        arrivedTransactionCount,
+        expectedTransactionCount: report?.transactionCount ?? 0,
+        transactionsReportID: reportIDFromRoute,
+        pendingNewTransactions,
+        railReportID: reportIDFromRoute,
+        isReportVisible,
+    });
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
     const isInitialReportLoadPending = !isOffline && isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions;
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
@@ -323,7 +331,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         onLayout={onLayout}
                         transactions={transactions}
                         newTransactions={newTransactions}
-                        isReportVisible={isReportVisible}
                         hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                         reportActions={reportActions}
                         policy={policy}

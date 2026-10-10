@@ -3874,12 +3874,16 @@ describe('actions/Duplicate', () => {
             const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
-            const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
+            const iouReportIDs = new Set(requestMoneyCalls.map((call) => String(call[1].iouReportID)));
             expect(iouReportIDs.size).toBe(1);
 
             // Then the expense-added growl is signaled
             expect(signalExpenseAddedGrowl).toHaveBeenCalledTimes(1);
             expect(jest.mocked(signalExpenseAddedGrowl).mock.calls.at(0)?.at(1)).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+
+            // And no copy is flagged as new, since every copy lands on a report this action created, though the later ones look like an insertion by count
+            const [copyReportID] = [...iouReportIDs];
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${copyReportID}`))?.pendingNewTransactionIDs).toBeUndefined();
         });
 
         it('should not defer auto submit or signal the growl outside Spend when the last selected expense is unreported', async () => {

@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
     default: () => ({
-        didScreenTransitionEnd: true, // or false, depending on your desired behavior
+        didScreenTransitionEnd: true,
     }),
 }));
 
