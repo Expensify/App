@@ -243,11 +243,15 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             continue;
         }
 
-        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
-
-        if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            availableMembers.push(member);
+        // A member that is pending deletion keeps a stale submitsTo until the backend confirms the removal.
+        // Skip them entirely so they can't create a workflow they will never be a member of, or mark their
+        // stale approver as used. See https://github.com/Expensify/App/issues/99357
+        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
         }
+
+        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
+        availableMembers.push(member);
 
         // A member who submits to someone no longer on the workspace is still shown under that approver, flagged,
         // so the admin can see the broken workflow and fix it instead of it being hidden.
@@ -297,26 +301,16 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
                 }
             }
 
-            // Only set ADD/UPDATE pending actions on the workflow, not DELETE
-            // When a member is being deleted from the workspace, their DELETE pending action
-            // should not affect the workflow's display state
-            const workflowPendingAction = pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? pendingAction : undefined;
-
             approvalWorkflows[effectiveSubmitsTo] = {
                 members: [],
                 approvers,
                 isDefault: defaultApprover === effectiveSubmitsTo,
-                pendingAction: workflowPendingAction,
+                pendingAction,
             };
         }
 
-        if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            approvalWorkflows[effectiveSubmitsTo].members.push(member);
-        }
-        // Only propagate ADD/UPDATE pending actions to the workflow, not DELETE
-        // When a member is being deleted from the workspace, their DELETE pending action
-        // should not affect the workflow's display state (e.g., strikethrough styling)
-        if (pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        approvalWorkflows[effectiveSubmitsTo].members.push(member);
+        if (pendingAction) {
             approvalWorkflows[effectiveSubmitsTo].pendingAction = pendingAction;
         }
     }
@@ -1670,11 +1664,14 @@ function convertApprovalWorkflowRulesToWorkflows({
             continue;
         }
 
-        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
-
-        if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            availableMembers.push(member);
+        // Same reasoning as in convertPolicyEmployeesToApprovalWorkflows: a member pending deletion keeps a
+        // stale submitsTo, so grouping them would build a workflow with no members.
+        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
         }
+
+        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
+        availableMembers.push(member);
 
         // Mirrors the legacy builder: a submitter whose approver is no longer on the workspace is still shown, flagged.
         const hasInitialRule = !!resolveFirstApprover(email, rules, {});
@@ -1726,22 +1723,19 @@ function convertApprovalWorkflowRulesToWorkflows({
         const existingGroup = groupedByWorkflowKey.get(workflowKey);
 
         if (existingGroup) {
-            if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                existingGroup.members.push(member);
-            }
-            if (pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            existingGroup.members.push(member);
+            if (pendingAction) {
                 existingGroup.pendingAction = pendingAction;
             }
             continue;
         }
 
-        const workflowPendingAction = pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? pendingAction : undefined;
         groupedByWorkflowKey.set(workflowKey, {
             chain,
-            members: pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? [member] : [],
+            members: [member],
             isDefault: isDefaultWorkflowChain,
             hasRuleBasedChain,
-            pendingAction: workflowPendingAction,
+            pendingAction,
         });
     }
 
