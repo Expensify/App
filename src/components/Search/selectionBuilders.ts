@@ -10,6 +10,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePa
 import type {SearchGroupBase, SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {deepEqual} from 'fast-equals';
 
@@ -237,15 +238,26 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
     ];
 }
 
+type BuildGroupSelectedEntryParams = {
+    /** The group's total, which the selection's total adds up */
+    amount: number;
+
+    /** The group's total as the footer shows it */
+    displayAmount: number;
+
+    currency: string;
+
+    action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+
+    /** Set only for a report row, since a group of expenses is not a report */
+    reportID: string | undefined;
+
+    /** Set only for a report row, and a placeholder policy stands in otherwise */
+    policyID: string | undefined;
+};
+
 /** The entry of a group selected under its own key, which stands for every row in it. */
-function buildGroupSelectedEntry({
-    amount,
-    displayAmount,
-    currency,
-    action,
-    reportID,
-    policyID,
-}: Pick<SelectedTransactionInfo, 'amount' | 'displayAmount' | 'currency' | 'action' | 'reportID' | 'policyID'>): SelectedTransactionInfo {
+function buildGroupSelectedEntry({amount, displayAmount, currency, action, reportID, policyID}: BuildGroupSelectedEntryParams): SelectedTransactionInfo {
     return {
         isFromOneTransactionReport: false,
         isSelected: true,
