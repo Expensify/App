@@ -26,7 +26,7 @@ type UseScrollToNewTransactionParams = {
 };
 
 /**
- * Scrolls a new transaction into view once. The rows are virtualized and a row outside the window never mounts, so the list scrolls
+ * Scrolls a new transaction into view once while it stays new. The rows are virtualized and a row outside the window never mounts, so the list scrolls
  * to it by index or layout instead. Skipped when the row is already on screen, and held until the report can be seen.
  */
 function useScrollToNewTransaction({
@@ -47,6 +47,10 @@ function useScrollToNewTransaction({
     const newTransactionTableIndex = newTransactionID ? transactionListItems.findIndex((item) => item.type === 'transaction' && item.transaction.transactionID === newTransactionID) : -1;
 
     useEffect(() => {
+        // A transaction that is no longer new can only become new again by leaving the report and coming back, which earns another scroll.
+        if (scrolledToNewTransactionIDRef.current !== newTransactionID) {
+            scrolledToNewTransactionIDRef.current = undefined;
+        }
         if (!isScreenVisible || newTransactionTableIndex < 0 || scrolledToNewTransactionIDRef.current === newTransactionID) {
             return;
         }

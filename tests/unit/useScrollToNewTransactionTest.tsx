@@ -33,17 +33,22 @@ function Report({isInitiallyVisible, children}: {isInitiallyVisible: boolean; ch
     return <ScreenVisibilityProvider isVisible={isVisible}>{children}</ScreenVisibilityProvider>;
 }
 
+type ReportRows = {
+    newTransactionID: string | undefined;
+    transactionListItems: TransactionListItemData[];
+};
+
 function renderScrollToNewTransaction({isReportVisible = true, shouldInlineTransactions = true}: {isReportVisible?: boolean; shouldInlineTransactions?: boolean} = {}) {
     const wrapper = ({children}: {children: ReactNode}) => <Report isInitiallyVisible={isReportVisible}>{children}</Report>;
     const listRef = createMock<NonNullable<FlatListRefType>>({current: {scrollToIndex, scrollToOffset}});
     const tableRef: RefObject<ExternalScrollFlashListTableHandle | null> = {current: {getRowPageOffset: () => NEW_ROW_PAGE_OFFSET}};
     const viewableItemsRef: RefObject<ViewToken[]> = {current: []};
     const scrollOffsetStore = createScrollOffsetStore();
-    renderHook(
-        () =>
+    return renderHook<void, ReportRows>(
+        ({newTransactionID, transactionListItems}) =>
             useScrollToNewTransaction({
-                newTransactionID: NEW_TRANSACTION_ID,
-                transactionListItems: TRANSACTION_LIST_ITEMS,
+                newTransactionID,
+                transactionListItems,
                 shouldInlineTransactions,
                 listRef,
                 tableRef,
@@ -51,7 +56,7 @@ function renderScrollToNewTransaction({isReportVisible = true, shouldInlineTrans
                 scrollOffsetStore,
                 viewportHeight: VIEWPORT_HEIGHT,
             }),
-        {wrapper},
+        {wrapper, initialProps: {newTransactionID: NEW_TRANSACTION_ID, transactionListItems: TRANSACTION_LIST_ITEMS}},
     );
 }
 
@@ -125,6 +130,20 @@ describe('useScrollToNewTransaction', () => {
 
         // Then the list is not scrolled back to that row
         expect(scrolledIndexes()).toEqual([NEW_TRANSACTION_INDEX]);
+    });
+
+    it('scrolls again to a transaction that left the report and came back', () => {
+        // Given a report that has scrolled to its new transaction, and the transaction then moved to another report
+        const {rerender} = renderScrollToNewTransaction();
+        waitForNextFrame();
+        rerender({newTransactionID: undefined, transactionListItems: TRANSACTION_LIST_ITEMS.slice(0, NEW_TRANSACTION_INDEX)});
+
+        // When the same transaction is moved back into the report and is new again
+        rerender({newTransactionID: NEW_TRANSACTION_ID, transactionListItems: TRANSACTION_LIST_ITEMS});
+        waitForNextFrame();
+
+        // Then the list scrolls to it again, because the user may have scrolled away since the first time
+        expect(scrolledIndexes()).toEqual([NEW_TRANSACTION_INDEX, NEW_TRANSACTION_INDEX]);
     });
 
     it('scrolls the page to a new row of a nested table once the report is uncovered', () => {
