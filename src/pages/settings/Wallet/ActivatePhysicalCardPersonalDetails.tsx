@@ -20,7 +20,7 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
 import {getAddressFieldErrors, getFieldRequiredErrors, isValidPastDate, isValidPhoneNumber, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
 
-import {getSubPageValues} from '@pages/MissingPersonalDetails/utils';
+import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,7 +50,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
-    const personalDetailsValues = getSubPageValues(privatePersonalDetails, undefined);
+    const personalDetailsValues = getNormalizedSubPageValues(privatePersonalDetails);
     const shippingAddress = card.nameValuePairs?.shippingAddress;
 
     // The address the admin shipped the card to is prefilled until the cardholder has a home address of their own
