@@ -106,6 +106,11 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             currency,
         };
 
+        // The shipping name, address and phone number were entered for the previous cardholder
+        if (data.assigneeEmail !== issueNewCard?.data?.assigneeEmail) {
+            data.shippingAddress = null;
+        }
+
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(currentAssigneeFirstName)) {
             // If the card title is the default card title, update it with the new assignee's name
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -123,6 +128,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                     currency,
                     invitingMemberEmail: assignee?.login ?? '',
                     invitingMemberAccountID: assignee?.accountID ?? undefined,
+                    shippingAddress: data.shippingAddress,
                 },
                 policyID,
             });

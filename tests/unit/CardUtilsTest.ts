@@ -99,6 +99,8 @@ import {
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
+    shouldShowPhoneNumberStep,
+    shouldShowShippingAddressStep,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
     toMonthlySettlementDate,
@@ -120,6 +122,7 @@ import type {
     Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
+import type {IssueNewCard} from '@src/types/onyx/Card';
 import type {CardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
@@ -4894,6 +4897,70 @@ describe('formatMaskedCardName', () => {
 
     it('returns non-commercial card names unchanged', () => {
         expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
+    });
+});
+
+describe('shouldShowShippingAddressStep', () => {
+    it('shows the step for a physical card on the US program', () => {
+        // Given a physical card issued in USD, so it ships on the US program
+        const data = {cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL, currency: CONST.CURRENCY.USD};
+
+        // Then the admin can enter where the card ships
+        expect(shouldShowShippingAddressStep(data)).toBe(true);
+    });
+
+    it('hides the step for virtual cards and UK/EU cards', () => {
+        // Given a virtual card, which never ships, and a UK/EU card, which needs a PIN before it ships
+        const virtualCard = {cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL, currency: CONST.CURRENCY.USD};
+        const ukEuCard = {cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL, currency: CONST.CURRENCY.GBP};
+
+        // Then neither gets the shipping address step
+        expect(shouldShowShippingAddressStep(virtualCard)).toBe(false);
+        expect(shouldShowShippingAddressStep(ukEuCard)).toBe(false);
+    });
+});
+
+describe('shouldShowPhoneNumberStep', () => {
+    const issueNewCard: IssueNewCard = {
+        currentStep: CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS,
+        isEditing: false,
+        isChangeAssigneeDisabled: false,
+        hasAssigneePhoneNumber: false,
+        data: {
+            assigneeEmail: 'zany@example.com',
+            invitingMemberEmail: '',
+            invitingMemberAccountID: 0,
+            cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL,
+            limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+            limit: 200000,
+            cardTitle: "Zany's card",
+            currency: CONST.CURRENCY.USD,
+            shippingAddress: {
+                legalFirstName: 'Zany',
+                legalLastName: 'Smith',
+                addressStreet: '224 Main Street',
+                addressCity: 'San Francisco',
+                addressState: 'CA',
+                addressZip: '94123',
+                addressCountry: CONST.COUNTRY.US,
+            },
+        },
+    };
+
+    it('asks for a phone number when the admin entered the address and the cardholder has none', () => {
+        // Given the admin entered an address for a cardholder without a phone number
+        // Then the admin is asked for one, since the shipping label needs it
+        expect(shouldShowPhoneNumberStep(issueNewCard)).toBe(true);
+    });
+
+    it('skips the phone number when the cardholder has one or is prompted for the address', () => {
+        // Given a cardholder who already has a phone number, and one who will be prompted for their own details
+        const cardholderWithPhoneNumber = {...issueNewCard, hasAssigneePhoneNumber: true};
+        const promptedCardholder = {...issueNewCard, data: {...issueNewCard.data, shippingAddress: null}};
+
+        // Then neither needs the admin to enter a phone number
+        expect(shouldShowPhoneNumberStep(cardholderWithPhoneNumber)).toBe(false);
+        expect(shouldShowPhoneNumberStep(promptedCardholder)).toBe(false);
     });
 });
 

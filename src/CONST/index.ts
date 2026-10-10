@@ -5422,9 +5422,15 @@ const CONST = {
             CARD_TYPE: 'CardType',
             LIMIT_TYPE: 'LimitType',
             CARD_NAME: 'CardName',
+            SHIPPING_ADDRESS: 'ShippingAddress',
+            PHONE_NUMBER: 'PhoneNumber',
             CONFIRMATION: 'Confirmation',
             INVITE_NEW_MEMBER: 'InviteNewMember',
             SPEND_RULES: 'SpendRules',
+        },
+        SHIPPING_ADDRESS_OPTION: {
+            PROMPT_CARDHOLDER: 'promptCardholder',
+            ENTER_ADDRESS: 'enterAddress',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',

@@ -27,7 +27,7 @@ import type {
     Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {CardLimitType, UnassignedCard} from '@src/types/onyx/Card';
+import type {CardLimitType, IssueNewCard, IssueNewCardData, UnassignedCard} from '@src/types/onyx/Card';
 import type {
     BankName,
     CardFeed,
@@ -1397,6 +1397,16 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+/** Admins can enter where a physical card ships only on the US program, since UK/EU cards need a PIN first */
+function shouldShowShippingAddressStep(data: Partial<IssueNewCardData> | undefined): boolean {
+    return data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL && data?.currency === CONST.CURRENCY.USD;
+}
+
+/** The admin enters a phone number for the shipping label when they entered the address and the cardholder has no phone number */
+function shouldShowPhoneNumberStep(issueNewCard: OnyxEntry<IssueNewCard>): boolean {
+    return shouldShowShippingAddressStep(issueNewCard?.data) && !!issueNewCard?.data?.shippingAddress && issueNewCard?.hasAssigneePhoneNumber !== true;
+}
+
 /** The reason a proposed card name is invalid. Callers translate it via `getCardNameErrorMessage`. */
 type CardNameError = typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
@@ -2603,6 +2613,8 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    shouldShowShippingAddressStep,
+    shouldShowPhoneNumberStep,
     getCardNameError,
     getCardNameErrorMessage,
     getExpensifyCardLimitError,

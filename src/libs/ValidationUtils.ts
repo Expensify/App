@@ -234,6 +234,29 @@ function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): bool
     return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
 }
 
+type AddressFieldValues = {
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    zipPostCode?: string;
+    country?: Country | '';
+};
+
+/** Length and zip format errors for the inputs rendered by AddressFields */
+function getAddressFieldErrors(values: AddressFieldValues, translate: LocalizedTranslate) {
+    const errors: Partial<Record<'addressLine1' | 'addressLine2' | 'city' | 'zipPostCode', string>> = {};
+    for (const addressInputID of ['addressLine1', 'addressLine2', 'city'] as const) {
+        const addressPart = values[addressInputID] ?? '';
+        if (addressPart.length > CONST.FORM_CHARACTER_LIMIT) {
+            errors[addressInputID] = translate('common.error.characterLimitExceedCounter', addressPart.length, CONST.FORM_CHARACTER_LIMIT);
+        }
+    }
+    if (values.zipPostCode && !isValidZipCodeForCountry(values.zipPostCode, values.country)) {
+        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', getCountryZipRegexDetails(values.country)?.samples);
+    }
+    return errors;
+}
+
 function isValidPaymentZipCode(zipCode: string): boolean {
     return CONST.REGEX.ALPHANUMERIC_WITH_SPACE_AND_HYPHEN.test(zipCode);
 }
@@ -875,6 +898,7 @@ export {
     isValidZipCode,
     getCountryZipRegexDetails,
     isValidZipCodeForCountry,
+    getAddressFieldErrors,
     isValidPaymentZipCode,
     isRequiredFulfilled,
     getFieldRequiredErrors,
