@@ -743,11 +743,100 @@ describe('TransactionInlineEdit', () => {
         });
 
         it('clears the merchant instead of discarding the edit', () => {
-            // isValidMerchant only allows an empty merchant on an unreported expense, which it can only
-            // tell from the transaction. Without one the edit was dropped before any API call.
-            editTransactionMerchantInline(buildParams(), '');
+            // Given an unreported expense, where an empty merchant is a real clear rather than a required-field failure
+            // When the merchant is cleared
+            const rejection = editTransactionMerchantInline(buildParams(), '');
 
+            // Then the edit is saved as the partial merchant, so there is no error to toast
+            expect(rejection).toBeUndefined();
             expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({value: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT}));
+        });
+
+        it('rejects an empty merchant on an expense report without saving', () => {
+            // Given a reported expense, where clearing the merchant is not allowed the way it is for an unreported expense
+            const expenseReport: Report = {reportID: 'expense-report-1', type: CONST.REPORT.TYPE.EXPENSE};
+            const reportedTransaction: Transaction = {...snapshotTransaction, reportID: expenseReport.reportID};
+            const parentReportAction = {
+                reportActionID: '999',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2026-08-12',
+            } as ReportAction;
+
+            // When the merchant is cleared to whitespace
+            const rejection = editTransactionMerchantInline({...buildParams(), parentReport: expenseReport, transaction: reportedTransaction, parentReportAction}, '   ');
+
+            // Then the edit is dropped before any write, including the transaction thread that building params would create
+            expect(rejection).toEqual(['common.error.fieldRequired']);
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+            expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+        });
+
+        it('rejects a placeholder merchant without saving', () => {
+            // Given the seeded "(none)" placeholder, which is not a merchant the user actually entered
+            // When that placeholder is saved from the table
+            const rejection = editTransactionMerchantInline(buildParams(), CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+
+            // Then the edit is dropped, because saving the placeholder would look like a successful clear
+            expect(rejection).toEqual(['iou.error.invalidMerchant']);
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
+        it('rejects a merchant past the byte limit without saving', () => {
+            // Given a merchant longer than the form allows, measured in bytes the same way the merchant step does
+            const tooLongMerchant = 'a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES + 1);
+
+            // When that merchant is saved from the table
+            const rejection = editTransactionMerchantInline(buildParams(), tooLongMerchant);
+
+            // Then the edit is dropped so the cell can revert instead of storing a value the form would refuse
+            expect(rejection).toEqual(['common.error.characterLimitExceedCounter', tooLongMerchant.length, CONST.MERCHANT_NAME_MAX_BYTES]);
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
+        it('rejects a merchant that contains an HTML tag without saving', () => {
+            // Given a merchant the form would reject for HTML, which inline edit never sees because it skips FormProvider
+            // When that merchant is saved from the table
+            const rejection = editTransactionMerchantInline(buildParams(), '<script>x</script>');
+
+            // Then the edit is dropped with the same invalid character failure the form shows
+            expect(rejection).toEqual(['common.error.invalidCharacter']);
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
+        it('rejects a zero amount on an invoice without saving', () => {
+            // Given an invoice, where a zero amount is invalid even though an unreported expense can store one
+            const invoiceReport: Report = {reportID: 'invoice-report-1', type: CONST.REPORT.TYPE.INVOICE};
+
+            // When the amount is set to zero
+            const rejection = editTransactionAmountInline({...buildParams(), parentReport: invoiceReport}, 0);
+
+            // Then the edit is dropped so the previous amount stays in place
+            expect(rejection).toEqual(['iou.error.invalidAmount']);
+            expect(updateMoneyRequestAmountAndCurrency).not.toHaveBeenCalled();
+        });
+
+        it('rejects a description past the character limit without saving', () => {
+            // Given a description longer than the description step allows
+            const tooLongDescription = 'a'.repeat(CONST.DESCRIPTION_LIMIT + 1);
+
+            // When that description is saved from the table
+            const rejection = editTransactionDescriptionInline(buildParams(), tooLongDescription);
+
+            // Then the edit is dropped so the cell reverts instead of storing text the description step would refuse
+            expect(rejection).toEqual(['common.error.characterLimitExceedCounter', tooLongDescription.length, CONST.DESCRIPTION_LIMIT]);
+            expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
+        });
+
+        it('rejects a description that contains an HTML tag without saving', () => {
+            // Given a description that is also past the length limit, so both failures apply at once
+            const taggedDescription = `<b>${'a'.repeat(CONST.DESCRIPTION_LIMIT)}</b>`;
+
+            // When that description is saved from the table
+            const rejection = editTransactionDescriptionInline(buildParams(), taggedDescription);
+
+            // Then HTML wins, matching FormProvider, which replaces the length error when a tag is present
+            expect(rejection).toEqual(['common.error.invalidCharacter']);
+            expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
         });
 
         describe('transaction thread creation', () => {

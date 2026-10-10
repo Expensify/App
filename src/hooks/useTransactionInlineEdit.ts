@@ -1,6 +1,6 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
-import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
+import type {InlineEditError, TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
     editTransactionCategoryInline,
@@ -11,6 +11,7 @@ import {
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Growl from '@libs/Growl';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
@@ -36,6 +37,7 @@ import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import {useLiveDuplicateTransactionsAndViolations} from './useDuplicateTransactionsAndViolations';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -85,6 +87,7 @@ type UseTransactionInlineEditReturn = {
 };
 
 function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
+    const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -232,16 +235,29 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         };
     };
 
+    const showRejectionIfAny = (error: InlineEditError | undefined) => {
+        if (!error) {
+            return;
+        }
+
+        const bottomRight = {position: CONST.GROWL.POSITION.BOTTOM_RIGHT};
+        if (error[0] === 'common.error.characterLimitExceedCounter') {
+            Growl.error(translate(error[0], error[1], error[2]), bottomRight);
+            return;
+        }
+        Growl.error(translate(error[0]), bottomRight);
+    };
+
     const onEditDate = (newDate: string) => {
         editTransactionDateInline(getEditParams(), newDate, personalPolicy?.outputCurrency);
     };
 
     const onEditMerchant = (newMerchant: string) => {
-        editTransactionMerchantInline(getEditParams(), newMerchant);
+        showRejectionIfAny(editTransactionMerchantInline(getEditParams(), newMerchant));
     };
 
     const onEditDescription = (newDescription: string) => {
-        editTransactionDescriptionInline(getEditParams(), newDescription);
+        showRejectionIfAny(editTransactionDescriptionInline(getEditParams(), newDescription));
     };
 
     const onEditCategory = (newCategory: string) => {
@@ -249,7 +265,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     };
 
     const onEditAmount = (newAmount: number) => {
-        editTransactionAmountInline(getEditParams(), newAmount);
+        showRejectionIfAny(editTransactionAmountInline(getEditParams(), newAmount));
     };
 
     const onEditTag = (newTag: string) => {
