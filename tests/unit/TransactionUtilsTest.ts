@@ -1576,6 +1576,25 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxAmount).toBe(-50);
         });
 
+        it('should store an edited tax amount with the opposite sign for an unreported expense', () => {
+            // Given an unreported expense, which stores its amounts with the opposite sign like expense report expenses
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: -10000, taxAmount: -476});
+
+            // When the user edits the tax amount from the self DM, where isFromExpenseReport is false
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {taxAmount: 300},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the tax amount is stored with the opposite sign, so it reads back as the positive value the user entered
+            expect(updatedTransaction.taxAmount).toBe(-300);
+            expect(TransactionUtils.getTaxAmount(updatedTransaction, false, true)).toBe(300);
+        });
+
         it('should not update taxValue when taxCode is not in transactionChanges', () => {
             const transaction = generateTransaction({taxValue: '10%'});
 
