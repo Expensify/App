@@ -7,7 +7,7 @@ import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttac
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -57,16 +57,12 @@ function AttachmentModalBaseContent({
     reportID,
     isWorkspaceAvatar = false,
     headerTitle,
-    threeDotsMenuItems: threeDotsMenuItemsProp,
+    getThreeDotsMenuItems,
     isLoading = false,
     shouldShowNotFoundPage = false,
     shouldShowCarousel = true,
     shouldDisableSendButton = false,
-    shouldDisplayHelpButton = false,
     shouldMinimizeMenuButton = true,
-    shouldShowRotateButton = false,
-    onRotateButtonPress,
-    isRotating = false,
     submitRef,
     onDownloadAttachment,
     shouldAllowDownloadOutsideReportContext = false,
@@ -151,11 +147,6 @@ function AttachmentModalBaseContent({
             setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
         },
         [onCarouselAttachmentChange, setFile],
-    );
-
-    const threeDotsMenuItems = useMemo(
-        () => (typeof threeDotsMenuItemsProp === 'function' ? threeDotsMenuItemsProp({file: fileToDisplay, source, isLocalSource}) : (threeDotsMenuItemsProp ?? [])),
-        [fileToDisplay, isLocalSource, source, threeDotsMenuItemsProp],
     );
 
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = useState(true);
@@ -335,33 +326,41 @@ function AttachmentModalBaseContent({
         transaction,
         type,
     ]);
+    const threeDotsMenuItems = getThreeDotsMenuItems?.({file: fileToDisplay, source, isLocalSource}) ?? [];
+    const singleThreeDotsMenuItem = threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? threeDotsMenuItems.at(0) : undefined;
 
     return (
         <GestureHandlerRootView style={styles.flex1}>
-            <HeaderWithBackButton
-                shouldMinimizeMenuButton={shouldMinimizeMenuButton}
-                title={headerTitle ?? translate('common.attachment')}
-                shouldShowBorderBottom
-                shouldShowDownloadButton={shouldShowDownloadButton}
-                shouldShowRotateButton={shouldShowRotateButton}
-                onRotateButtonPress={onRotateButtonPress}
-                isRotating={isRotating}
-                shouldDisplayHelpButton={shouldDisplayHelpButton}
-                onDownloadButtonPress={() => onDownloadAttachment?.({file: fileToDisplay, source})}
-                shouldShowCloseButton={!shouldUseNarrowLayout}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={onClose}
-                onCloseButtonPress={onClose}
-                shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
-                threeDotsMenuItems={threeDotsMenuItems}
-                threeDotsAnchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
-                shouldSetModalVisibility={false}
-                shouldOverlayDots
-                subTitleLink={currentAttachmentLink ?? ''}
-            />
+            <Header style={styles.borderBottom}>
+                {shouldUseNarrowLayout && <Header.BackButton onPress={onClose} />}
+                <Header.Title
+                    title={headerTitle ?? translate('common.attachment')}
+                    subtitleLink={currentAttachmentLink ?? ''}
+                />
+                <Header.Right>
+                    {shouldShowDownloadButton && <Header.DownloadButton onPress={() => onDownloadAttachment?.({file: fileToDisplay, source})} />}
+                    {!!threeDotsMenuItems.length &&
+                        (singleThreeDotsMenuItem ? (
+                            <Header.IconButton
+                                tooltipText={singleThreeDotsMenuItem.text ?? ''}
+                                onPress={singleThreeDotsMenuItem.onSelected}
+                                iconSrc={singleThreeDotsMenuItem.icon}
+                                sentryLabel={singleThreeDotsMenuItem.sentryLabel}
+                            />
+                        ) : (
+                            <Header.ThreeDotsMenu
+                                items={threeDotsMenuItems}
+                                shouldOverlay
+                                shouldSetModalVisibility={false}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                }}
+                            />
+                        ))}
+                    {!shouldUseNarrowLayout && <Header.CloseButton onPress={onClose} />}
+                </Header.Right>
+            </Header>
             <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
                 {isLoading && (
                     <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>

@@ -1,5 +1,5 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -170,7 +170,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             shouldEnableMaxHeight
             testID="MissingPersonalDetailsContent"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={headerTitle ?? translate(isVirtualCard ? 'workspace.expensifyCard.addPersonalDetails' : 'workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
