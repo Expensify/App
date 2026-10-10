@@ -1,10 +1,8 @@
-import AddressSearch from '@components/AddressSearch';
-import CountrySelector from '@components/CountrySelector';
+import AddressFields from '@components/AddressFields';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
@@ -199,81 +197,14 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                         autoComplete="family-name"
                                     />
                                     <View style={styles.formSpaceVertical} />
-                                    <InputWrapper
-                                        InputComponent={AddressSearch}
-                                        inputID={INPUT_IDS.ADDRESS_LINE_1}
-                                        label={translate('common.addressLine', 1)}
-                                        defaultValue={street1}
-                                        renamedInputKeys={{
-                                            street: INPUT_IDS.ADDRESS_LINE_1,
-                                            street2: INPUT_IDS.ADDRESS_LINE_2,
-                                            city: INPUT_IDS.CITY,
-                                            state: INPUT_IDS.STATE,
-                                            zipCode: INPUT_IDS.ZIP_POST_CODE,
-                                            country: INPUT_IDS.COUNTRY,
-                                        }}
-                                        autoComplete="address-line1"
-                                    />
-                                    <View style={styles.formSpaceVertical} />
-                                    <InputWrapper
-                                        InputComponent={TextInput}
-                                        inputID={INPUT_IDS.ADDRESS_LINE_2}
-                                        label={translate('common.addressLine', 2)}
-                                        aria-label={translate('common.addressLine', 2)}
-                                        role={CONST.ROLE.PRESENTATION}
-                                        defaultValue={street2}
-                                        spellCheck={false}
-                                        autoComplete="address-line2"
-                                    />
-                                    <View style={styles.formSpaceVertical} />
-                                    <View style={styles.mhn5}>
-                                        <InputWrapper
-                                            InputComponent={CountrySelector}
-                                            inputID={INPUT_IDS.COUNTRY}
-                                            defaultValue={shippingAddress?.addressCountry ?? CONST.COUNTRY.US}
-                                        />
-                                    </View>
-                                    <View style={styles.formSpaceVertical} />
-                                    {inputValues.country === CONST.COUNTRY.US ? (
-                                        <View style={styles.mhn5}>
-                                            <InputWrapper
-                                                InputComponent={StateSelector}
-                                                inputID={INPUT_IDS.STATE}
-                                                defaultValue={shippingAddress?.addressState}
-                                            />
-                                        </View>
-                                    ) : (
-                                        <InputWrapper
-                                            InputComponent={TextInput}
-                                            inputID={INPUT_IDS.STATE}
-                                            label={translate('common.stateOrProvince')}
-                                            aria-label={translate('common.stateOrProvince')}
-                                            role={CONST.ROLE.PRESENTATION}
-                                            defaultValue={shippingAddress?.addressState}
-                                            spellCheck={false}
-                                        />
-                                    )}
-                                    <View style={styles.formSpaceVertical} />
-                                    <InputWrapper
-                                        InputComponent={TextInput}
-                                        inputID={INPUT_IDS.CITY}
-                                        label={translate('common.city')}
-                                        aria-label={translate('common.city')}
-                                        role={CONST.ROLE.PRESENTATION}
-                                        defaultValue={shippingAddress?.addressCity}
-                                        spellCheck={false}
-                                    />
-                                    <View style={styles.formSpaceVertical} />
-                                    <InputWrapper
-                                        InputComponent={TextInput}
-                                        inputID={INPUT_IDS.ZIP_POST_CODE}
-                                        label={translate('common.zipPostCode')}
-                                        aria-label={translate('common.zipPostCode')}
-                                        role={CONST.ROLE.PRESENTATION}
-                                        autoCapitalize="characters"
-                                        defaultValue={shippingAddress?.addressZip}
-                                        hint={translate('common.zipCodeExampleFormat', getCountryZipRegexDetails(inputValues.country)?.samples ?? '')}
-                                        autoComplete="postal-code"
+                                    <AddressFields
+                                        street1={street1}
+                                        street2={street2}
+                                        city={shippingAddress?.addressCity}
+                                        state={shippingAddress?.addressState}
+                                        zip={shippingAddress?.addressZip}
+                                        defaultCountry={shippingAddress?.addressCountry ?? CONST.COUNTRY.US}
+                                        country={inputValues.country}
                                     />
                                 </View>
                             )}
