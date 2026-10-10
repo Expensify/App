@@ -1987,7 +1987,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 API.writeWhenReady(
                     WRITE_COMMANDS.REQUEST_MONEY,
                     parameters,
-                    onyxData,
+                    {
+                        ...onyxData,
+                        shouldApplyScanResponseImmediately: isASAPSubmitBetaEnabled && transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN && !moneyRequestReportID,
+                    },
                     resolveWriteBarrier({writeBarrier, isRetry: requestMoneyInformation.isRetry, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`}),
                     {onWriteStarted: notifyRequestAction},
                 );
