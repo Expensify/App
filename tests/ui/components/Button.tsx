@@ -1,5 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {StartWithLoading} from '@hooks/usePressLoading';
+
 import HapticFeedback from '@libs/HapticFeedback';
 
 import colors from '@styles/theme/colors';
@@ -8,7 +10,7 @@ import variables from '@styles/variables';
 
 import type {ButtonProps} from '@src/components/Button';
 import Button from '@src/components/Button';
-import {useButtonContext} from '@src/components/Button/context';
+import {useButtonState} from '@src/components/Button/context';
 import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
@@ -16,6 +18,8 @@ import type {ComponentRef} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ActivityIndicator as RNActivityIndicator, StyleSheet, Text, View} from 'react-native';
+
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/HapticFeedback', () => ({
     press: jest.fn(),
@@ -27,11 +31,11 @@ jest.mock('@libs/HapticFeedback', () => ({
 const LABEL = 'test-button';
 
 /**
- * Reads ButtonContext and exposes each value as a testID'd Text node so that
+ * Reads ButtonState context and exposes each value as a testID'd Text node so that
  * assertions can verify exactly what Button propagates to its children.
  */
 function ContextReadout() {
-    const {variant, size, isHovered, isDisabled, isLoading} = useButtonContext();
+    const {variant, size, isHovered, isDisabled, isLoading} = useButtonState();
     return (
         <View>
             <Text testID="ctx-variant">{variant ?? 'none'}</Text>
@@ -111,12 +115,12 @@ describe('Button', () => {
         });
     });
 
-    // ── ButtonContext ───────────────────────────────────────────────────────────
+    // ── ButtonStateContext ──────────────────────────────────────────────────────
     //
-    // Button/Button is the sole owner of ButtonContext. These tests verify
+    // Button/Button is the sole owner of ButtonStateContext. These tests verify
     // that every prop the context exposes reaches children correctly.
 
-    describe('ButtonContext', () => {
+    describe('ButtonStateContext', () => {
         it('provides sensible defaults: size=medium, no variant, not loading, not disabled, not hovered', () => {
             // Given a Button with no extra props
             renderButton();
@@ -188,6 +192,57 @@ describe('Button', () => {
 
             // Then onPress is called exactly once
             expect(onPress).toHaveBeenCalledTimes(1);
+        });
+
+        it('passes startWithLoading to onPress as the second argument', async () => {
+            // Given a handler that wraps its own work in the startWithLoading it receives, as SearchEditMultiplePage.save does
+            const work = jest.fn();
+            const onPressWithLoading = jest.fn((event?: unknown, startWithLoading?: StartWithLoading) => startWithLoading?.(work));
+            const renderResult = renderButton({onPress: onPressWithLoading});
+
+            // When the button is pressed
+            fireEvent.press(getButton());
+
+            // Then onPress received a function, and calling it shows the spinner before the work runs
+            expect(onPressWithLoading.mock.calls.at(0)?.at(1)).toEqual(expect.any(Function));
+            expect(renderResult.UNSAFE_queryByType(RNActivityIndicator)).not.toBeNull();
+            expect(work).not.toHaveBeenCalled();
+
+            // And the work runs once the deferred macrotask fires
+            await waitForBatchedUpdatesWithAct();
+            expect(work).toHaveBeenCalledTimes(1);
+        });
+
+        it('shows the spinner before onPress runs when shouldShowLoadingImmediatelyOnPress is set', async () => {
+            // Given a Button that should paint its spinner ahead of a possibly JS-blocking handler
+            const renderResult = renderButton({onPress, shouldShowLoadingImmediatelyOnPress: true});
+
+            // When the button is pressed
+            fireEvent.press(getButton());
+
+            // Then the spinner is already visible and onPress has not run yet
+            expect(renderResult.UNSAFE_queryByType(RNActivityIndicator)).not.toBeNull();
+            expect(screen.getByTestId('ctx-isLoading')).toHaveTextContent('true');
+            expect(onPress).not.toHaveBeenCalled();
+
+            // When the deferred macrotask fires and the handler settles
+            await waitForBatchedUpdatesWithAct();
+
+            // Then onPress ran once, and with no external isLoading to hand over to the spinner is gone again
+            expect(onPress).toHaveBeenCalledTimes(1);
+            expect(renderResult.UNSAFE_queryByType(RNActivityIndicator)).toBeNull();
+        });
+
+        it('does not show the spinner on press by default', () => {
+            // Given a Button with the immediate spinner left off
+            const renderResult = renderButton({onPress});
+
+            // When the button is pressed
+            fireEvent.press(getButton());
+
+            // Then onPress runs right away and no spinner appears on its own
+            expect(onPress).toHaveBeenCalledTimes(1);
+            expect(renderResult.UNSAFE_queryByType(RNActivityIndicator)).toBeNull();
         });
 
         it('calls onPressIn when the button press begins', () => {

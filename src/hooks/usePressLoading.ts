@@ -1,60 +1,86 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {useCallback, useState} from 'react';
+import {NavigationContext} from '@react-navigation/core';
+import {useContext, useEffect, useRef, useState} from 'react';
 
 type UsePressLoadingOptions = {
-    /** External loading flag (e.g. driven by Onyx) */
+    /** External loading flag (e.g. driven by Onyx). Leave it undefined when there is none. */
     isLoading?: boolean;
     /** Reset the pressed state when the screen regains navigation focus. Defaults to true. */
     resetOnFocus?: boolean;
 };
 
+/**
+ * Paints the loading state, then runs `runAfterPaint` one macrotask later, so a JS-blocking handler still gives
+ * immediate feedback. Return the promise it gives back, so a throwing handler rejects up the chain.
+ */
+type StartWithLoading = (runAfterPaint: () => void | Promise<void>) => Promise<void>;
+
 type UsePressLoadingReturn = {
     /** True while the button press is pending or the external loading flag is set, so the spinner stays visible. */
     isLoading: boolean;
     /** Call instead of a bare press handler to show the spinner immediately on press. */
-    startWithLoading: (runAfterPaint: () => void) => Promise<void>;
+    startWithLoading: StartWithLoading;
 };
 
 /**
  * Shows a spinner the moment a button is pressed, so the interaction feels responsive and the INP metric improves.
  *
- * On many submit buttons nothing visible happens for a while after the press, because the handler runs a
- * Onyx update that forces many components on the page to re-render before the new state appears.
- * This hook shows the loading and lets React paint it first, then runs the real work, so the user gets immediate
- * feedback instead of an unresponsive button. When a loading state already exists, pass it in as isLoading so the
- * spinner is guaranteed to render before the heavy work starts.
+ * Submit handlers often run an Onyx update that re-renders the whole page before anything appears, leaving the button
+ * dead in the meantime. This paints the spinner first, then runs the real work. Pass any loading state that already
+ * exists as isLoading, so the spinner is guaranteed to render before the heavy work starts.
  */
-function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
+function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
     const [isPressed, setIsPressed] = useState(false);
+    // The press in flight, set synchronously so a second press before React commits isPressed is ignored
+    const activePressRef = useRef<symbol | null>(null);
+    const navigationContext = useContext(NavigationContext);
 
-    // Resetting here hands the loading state over from the local press flag to the external isLoading once it turns true.
+    // Hands the loading state over from the pressed flag to the external isLoading once it turns true
     if (isPressed && isLoading) {
         setIsPressed(false);
     }
+
+    const release = (press: symbol, shouldClear: boolean) => {
+        if (activePressRef.current !== press) {
+            return;
+        }
+        activePressRef.current = null;
+        if (shouldClear) {
+            setIsPressed(false);
+        }
+    };
+
     // Defer the work by one macrotask so React can commit isPressed and paint the spinner before the consumer code that may block the JS thread runs.
-    const startWithLoading = async (runAfterPaint: () => void) => {
+    const startWithLoading: StartWithLoading = async (runAfterPaint) => {
+        if (activePressRef.current) {
+            return;
+        }
+        const press = Symbol('press');
+        activePressRef.current = press;
         setIsPressed(true);
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
         });
         try {
-            runAfterPaint();
+            await runAfterPaint();
         } catch (error) {
-            setIsPressed(false);
+            release(press, true);
             throw error;
         }
+        release(press, isLoading === undefined && (navigationContext?.isFocused() ?? true));
     };
 
-    useFocusEffect(
-        useCallback(() => {
-            if (!resetOnFocus) {
-                return;
-            }
+    useEffect(() => {
+        if (!resetOnFocus || !isPressed || !navigationContext) {
+            return;
+        }
+        return navigationContext.addListener('focus', () => {
+            activePressRef.current = null;
             setIsPressed(false);
-        }, [resetOnFocus]),
-    );
+        });
+    }, [resetOnFocus, isPressed, navigationContext]);
 
-    return {isLoading: isPressed || isLoading, startWithLoading};
+    return {isLoading: isPressed || !!isLoading, startWithLoading};
 }
 
 export default usePressLoading;
+export type {StartWithLoading};

@@ -52,7 +52,7 @@ function TermsStep(props: TermsStepProps) {
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!walletTerms?.isLoading});
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: walletTerms?.isLoading});
     const shouldShowError = error && (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement);
     const errorMessage = shouldShowError ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
