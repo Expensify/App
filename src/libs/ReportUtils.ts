@@ -5174,12 +5174,13 @@ function getReasonAndReportActionThatRequiresAttention({
         };
     }
 
-    // An unread mention falls back to a green dot linked to the oldest unread mention. It stays above the invoice room
+    // An unread mention falls back to a Mention badge linked to the oldest unread mention. It stays above the invoice room
     // branch, which can return null.
     if (isUnreadWithMention(optionOrReport)) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION,
             reportAction: getOldestUnreadMentionReportAction(optionOrReport, reportActions, currentUserLogin, currentUserAccountID),
+            actionBadge: CONST.REPORT.ACTION_BADGE.MENTION,
         };
     }
 
