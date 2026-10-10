@@ -9,21 +9,59 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
+import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import type {State} from '@libs/Navigation/types';
 import {expensifyLoginsSelector, getContactMethodsOptions} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+
+// The dynamic back path can point at Settings after the contact-method verification steps, even when Select Cards remains in the workspace stack.
+function getCardFeedSelectorInStack(state?: State): Route | undefined {
+    if (!state) {
+        return undefined;
+    }
+
+    for (let index = state.index ?? state.routes.length - 1; index >= 0; index--) {
+        const route = state.routes[index];
+        const nestedSelector = getCardFeedSelectorInStack(route.state as State | undefined);
+        if (nestedSelector) {
+            return nestedSelector;
+        }
+
+        const previousRoute = state.routes[index - 1];
+        const policyID = route.params && 'policyID' in route.params ? route.params.policyID : undefined;
+        const previousPolicyID = previousRoute?.params && 'policyID' in previousRoute.params ? previousRoute.params.policyID : undefined;
+        if (typeof policyID !== 'string' || policyID !== previousPolicyID) {
+            continue;
+        }
+
+        if (route.name === SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL && previousRoute.name === SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED) {
+            return ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID);
+        }
+        if (route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL && previousRoute.name === SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED) {
+            return createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        }
+    }
+
+    return undefined;
+}
 
 function DynamicContactMethodsPage() {
     const styles = useThemeStyles();
@@ -36,6 +74,13 @@ function DynamicContactMethodsPage() {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    // Strip the `contact-methods` suffix off the current URL so the back button returns to wherever this list was launched from
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHODS.path);
+    const repeatedContactMethodsSuffix = findAllMatchingDynamicSuffixes(backPath).find((match) => match.pattern === DYNAMIC_ROUTES.CONTACT_METHODS.path);
+    // Remove duplicate Contact Methods route when returning from a nested contact-method screen
+    const backTo = repeatedContactMethodsSuffix
+        ? getPathWithoutDynamicSuffix(repeatedContactMethodsSuffix.pathUsedForMatching, repeatedContactMethodsSuffix.actualSuffix, repeatedContactMethodsSuffix.pattern) || ROUTES.HOME
+        : backPath;
 
     const options = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [translate, formatPhoneNumber, loginList, session?.email]);
 
@@ -63,7 +108,7 @@ function DynamicContactMethodsPage() {
         >
             <HeaderWithBackButton
                 title={translate('contacts.contactMethods')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(getCardFeedSelectorInStack(navigationRef.getRootState()) ?? backTo)}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>

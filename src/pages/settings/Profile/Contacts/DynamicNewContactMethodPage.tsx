@@ -113,8 +113,8 @@ function DynamicNewContactMethodPage() {
     );
 
     const onBackButtonPress = useCallback(() => {
-        Navigation.goBack(listPath);
-    }, [listPath]);
+        Navigation.goBack();
+    }, []);
 
     // Guards against firing twice: once this screen is replaced, useDynamicBackPath (reactive to
     // navigation state) recomputes listPath against the NEW screen, so a second effect run would
