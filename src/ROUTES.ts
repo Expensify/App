@@ -2141,7 +2141,7 @@ const DYNAMIC_ROUTES = {
     AGENT_EDIT_PROMPT: {
         path: 'prompt',
         getRoute: () => `prompt` as const,
-        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT, SCREENS.DYNAMIC_PROFILE],
     },
     AGENT_EDIT_AVATAR: {
         path: 'avatar',
