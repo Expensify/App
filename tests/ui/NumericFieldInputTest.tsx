@@ -2,13 +2,14 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import NumericField from '@components/NumericField';
+import NumericField, {useNumericFieldActions} from '@components/NumericField';
 import type {NumericFieldRef, NumericTextInputProps} from '@components/NumericField';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
+import {Pressable} from 'react-native';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -33,13 +34,25 @@ type RootProps = {
     ref?: React.Ref<NumericFieldRef>;
 };
 
-function renderTextInput(inputProps: Partial<NumericTextInputProps> = {}, rootProps: RootProps = {}) {
+function renderTextInput(inputProps: Partial<NumericTextInputProps> = {}, rootProps: RootProps = {}, children?: React.ReactNode) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <NumericField {...rootProps}>
                 <NumericField.TextInput {...inputProps} />
+                {children}
             </NumericField>
         </ComposeProviders>,
+    );
+}
+
+function ToggleSignButton() {
+    const {toggleSign} = useNumericFieldActions();
+    return (
+        <Pressable
+            accessibilityRole="button"
+            testID="toggle-sign-button"
+            onPress={toggleSign}
+        />
     );
 }
 
@@ -425,5 +438,193 @@ describe('NumericField.TextInput', () => {
 
         // Then the selection collapses onto its end
         expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 3, end: 3});
+    });
+
+    it('preserves a negative decimal that already has a leading zero', async () => {
+        const onInputChange = jest.fn();
+
+        // Given an empty field that accepts negative decimals
+        renderTextInput({testID: INPUT_TEST_ID}, {decimals: 2, allowNegative: true, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user types a negative decimal with its leading zero
+        fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '-0.5');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the value is kept as typed, because it is already canonical
+        expect(onInputChange).toHaveBeenLastCalledWith('-0.5');
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('-0.5');
+    });
+
+    // Quirk locked in on purpose: `addLeadingZero('-.', true)` prepends `-0` to the whole string (`-0-.`) instead of
+    // inserting the zero after the sign, so a negative value starting with the separator fails validation.
+    it.each([
+        ['-.', true],
+        ['-.5', true],
+    ])('rejects %s when allowNegative is %s', async (typedText, allowNegative) => {
+        const onInputChange = jest.fn();
+
+        // Given an empty field that accepts two decimal places
+        renderTextInput({testID: INPUT_TEST_ID}, {decimals: 2, allowNegative, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user types a negative value that starts with the decimal separator
+        fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), typedText);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the edit is rejected and the field stays empty
+        expect(onInputChange).not.toHaveBeenCalled();
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('');
+    });
+
+    it('does not count the minus sign toward maxLength', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a negative-capable field limited to two integer digits and displaying "12"
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '12', decimals: 2, maxLength: 2, allowNegative: true, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user makes the value negative
+        fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '-12');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the edit is committed, because the sign is not a digit
+        expect(onInputChange).toHaveBeenLastCalledWith('-12');
+    });
+
+    it('keeps the sign when stripping decimals from a negative value', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a negative-capable field displaying "-1.5"
+        const {rerender} = renderTextInput({testID: INPUT_TEST_ID}, {value: '-1.5', decimals: 2, allowNegative: true, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the accepted number of decimals drops to zero
+        rerender(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <NumericField
+                    value="-1.5"
+                    decimals={0}
+                    allowNegative
+                    onInputChange={onInputChange}
+                >
+                    <NumericField.TextInput testID={INPUT_TEST_ID} />
+                </NumericField>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the decimals are removed and the amount stays negative
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('-1');
+        expect(onInputChange).toHaveBeenLastCalledWith('-1');
+    });
+
+    // Quirk locked in on purpose: `stripDecimalsFromAmount` drops every decimal instead of truncating to the new precision.
+    it('strips every decimal when the accepted decimals drop to a non-zero precision', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a field displaying "1.55" with two accepted decimal places
+        const {rerender} = renderTextInput({testID: INPUT_TEST_ID}, {value: '1.55', decimals: 2, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the accepted number of decimals drops to one
+        rerender(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <NumericField
+                    value="1.55"
+                    decimals={1}
+                    onInputChange={onInputChange}
+                >
+                    <NumericField.TextInput testID={INPUT_TEST_ID} />
+                </NumericField>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the whole fraction is removed rather than only the extra digit
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('1');
+        expect(onInputChange).toHaveBeenLastCalledWith('1');
+    });
+
+    it('places the caret after the sign when toggling an empty value, so the next digit becomes a negative amount', async () => {
+        const onInputChange = jest.fn();
+
+        // Given an empty negative-capable field
+        renderTextInput({testID: INPUT_TEST_ID}, {decimals: 2, allowNegative: true, onInputChange}, <ToggleSignButton />);
+        await waitForBatchedUpdatesWithAct();
+        const input = screen.getByTestId(INPUT_TEST_ID);
+
+        // When the sign is toggled
+        fireEvent.press(screen.getByTestId('toggle-sign-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a lone minus is reported and the caret sits after it
+        expect(onInputChange).toHaveBeenLastCalledWith('-');
+        expect(input.props.selection).toEqual({start: 1, end: 1});
+
+        // When a digit is typed at the caret
+        fireEvent.changeText(input, '-5');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the digit joins the negative value
+        expect(onInputChange).toHaveBeenLastCalledWith('-5');
+        expect(input).toHaveDisplayValue('-5');
+    });
+
+    it('keeps the caret after the digits when toggling a non-empty value, so further typing appends', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a negative-capable field displaying "5" with the caret at the end
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '5', decimals: 2, allowNegative: true, onInputChange}, <ToggleSignButton />);
+        await waitForBatchedUpdatesWithAct();
+        const input = screen.getByTestId(INPUT_TEST_ID);
+
+        // When the sign is toggled
+        fireEvent.press(screen.getByTestId('toggle-sign-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the caret shifts by the added sign and stays after the digits
+        expect(onInputChange).toHaveBeenLastCalledWith('-5');
+        expect(input.props.selection).toEqual({start: 2, end: 2});
+
+        // When another digit is typed at the caret
+        fireEvent.changeText(input, '-50');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is appended to the negative value
+        expect(onInputChange).toHaveBeenLastCalledWith('-50');
+        expect(input).toHaveDisplayValue('-50');
+    });
+
+    it('moves the caret back by one when the sign is removed', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a negative-capable field displaying "-5" with the caret at the end
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '-5', decimals: 2, allowNegative: true, onInputChange}, <ToggleSignButton />);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the sign is toggled off
+        fireEvent.press(screen.getByTestId('toggle-sign-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the caret follows the shorter text and stays after the digit
+        expect(onInputChange).toHaveBeenLastCalledWith('5');
+        expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 1, end: 1});
+    });
+
+    it('moves the caret after a digit inserted in the middle of the value', async () => {
+        // Given a field displaying "1234" with the caret after "12"
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '1234', decimals: 2});
+        await waitForBatchedUpdatesWithAct();
+        const input = screen.getByTestId(INPUT_TEST_ID);
+        fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 2, end: 2}}});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a digit is typed at the caret
+        fireEvent.changeText(input, '12934');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the caret follows the inserted digit instead of jumping to the end
+        expect(input.props.selection).toEqual({start: 3, end: 3});
     });
 });
