@@ -286,7 +286,7 @@ function DynamicAddAgentPage({route}: DynamicAddAgentPageProps) {
     const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
 
     if (isLoadingOnyxValue(templateMetadata)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

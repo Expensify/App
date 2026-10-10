@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
+import useHasApprovalWorkflowWithNonMemberApprover from '@hooks/useHasApprovalWorkflowWithNonMemberApprover';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -93,6 +94,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policyID);
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
+    const hasApprovalWorkflowWithNonMemberApprover = useHasApprovalWorkflowWithNonMemberApprover(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Building',
         'CalendarSolid',
@@ -190,6 +192,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
         shouldShowRBR,
+        hasApprovalWorkflowWithNonMemberApprover,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         isCompanyAgentsBetaEnabled: isBetaEnabled(CONST.BETAS.COMPANY_AGENTS),
