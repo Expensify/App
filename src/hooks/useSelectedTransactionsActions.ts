@@ -182,7 +182,8 @@ function useSelectedTransactionsActions({
         // Unreported expenses keep their IOU action under the self-DM report rather than under `transaction.reportID`
         const transactionReportID = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : transaction.reportID;
         const transactionReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
-        return getIOUActionForTransactionID(transactionReportActions, transactionID, true) ?? getIOUActionForTransactionID(reportActions, transactionID);
+        // Search both sources together, so a live action in either one wins over a deleted action in the collection
+        return getIOUActionForTransactionID([...transactionReportActions, ...reportActions], transactionID, true);
     };
 
     const {translate, localeCompare} = useLocalize();
@@ -610,7 +611,8 @@ function useSelectedTransactionsActions({
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsList.every((transaction) => {
             const action = getTransactionIOUAction(transaction, transaction.transactionID);
 
-            // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide
+            // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide.
+            // Passing no report actions is safe: they only decide ownership on unreported and IOU reports, which then fail closed, while expense reports check the submitter.
             if (!action) {
                 return !!report && typeof session?.accountID === 'number' && canDeleteMoneyRequestReport(report, [transaction], [], session.accountID, rules, policy, cardList);
             }

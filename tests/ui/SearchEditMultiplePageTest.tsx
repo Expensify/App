@@ -172,4 +172,18 @@ describe('SearchEditMultiplePage', () => {
 
         expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
+
+    it('keeps Merchant editable when a selected expense on the open report has no IOU action', async () => {
+        // Given an expense with no IOU action on an open report the current user submitted
+        const actionlessTransactionID = 'actionlessTransaction';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${actionlessTransactionID}`, buildTransaction(actionlessTransactionID, OPEN_REPORT_ID));
+        await selectTransactions([OPEN_TRANSACTION_ID, actionlessTransactionID]);
+
+        // When the Edit multiple page is opened for the selection
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Merchant stays editable, because the report's submitter stands in for the missing action's requester
+        expect(screen.getByLabelText(/^Merchant/).props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+    });
 });

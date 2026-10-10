@@ -1,4 +1,5 @@
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
+import type {EditRequestField} from '@libs/ReportUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -6,8 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
-
-import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -1019,7 +1018,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await setUpReport(openExpenseReport, actionlessPolicy);
 
                 // When checking which fields the submitter can edit, without passing the report
-                const canEdit = (fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) =>
+                const canEdit = (fieldToEdit: EditRequestField) =>
                     canEditFieldOfMoneyRequest({rules: undefined, reportAction: undefined, fieldToEdit, transaction: actionlessTransaction, reportNameValuePairs: undefined});
 
                 // Then the report is found through the transaction, and the submitter stands in for the missing action's requester
@@ -1056,7 +1055,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 );
 
                 // When checking which fields the admin can edit, without passing the report
-                const canEdit = (fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) =>
+                const canEdit = (fieldToEdit: EditRequestField) =>
                     canEditFieldOfMoneyRequest({rules: undefined, reportAction: undefined, fieldToEdit, transaction: actionlessTransaction, reportNameValuePairs: undefined});
 
                 // Then the coding fields stay editable, and the restricted fields are blocked because the approved report is found through the transaction

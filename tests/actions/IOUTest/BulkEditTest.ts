@@ -2,6 +2,7 @@ import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkE
 
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
+import {WRITE_COMMANDS} from '@src/libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -545,6 +546,76 @@ describe('actions/IOU/BulkEdit', () => {
             expect(updates.merchant).toBe('New merchant');
 
             writeSpy.mockRestore();
+        });
+
+        it('saves changes for a reported expense with no IOU action on a report the current user submitted', async () => {
+            // Given an expense with no IOU action anywhere, on an open expense report the current user submitted, in a workspace where they aren't an admin
+            const transactionID = 'transaction-actionless';
+            const expenseReportID = 'expense-actionless';
+            const policy: Policy = {...createRandomPolicy(11, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.USER};
+            const expenseReport: Report = {
+                ...createRandomReport(11, undefined),
+                reportID: expenseReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: 999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(11),
+                transactionID,
+                reportID: expenseReportID,
+                transactionThreadReportID: undefined,
+                amount: -500,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Old merchant',
+                managedCard: false,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // canEditFieldOfMoneyRequest is not mocked, so this goes through the same per-field permission check as the real save
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // When the merchant is bulk edited
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {merchant: 'New merchant'},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            // Then UpdateMoneyRequest is sent with the new merchant, so Edit multiple doesn't silently save nothing for this expense
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, expect.objectContaining({transactionID}), expect.anything());
+            expect(getBulkEditUpdates(writeSpy).merchant).toBe('New merchant');
+
+            writeSpy.mockRestore();
+            await Onyx.clear();
         });
 
         it('does not add violations for unreported expenses during bulk edit', async () => {
