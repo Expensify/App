@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
 
@@ -51,7 +51,7 @@ function OnfidoStep() {
 
     return (
         <>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('onfidoStep.verifyIdentity')}
                 onBackButtonPress={goToPreviousStep}
             />

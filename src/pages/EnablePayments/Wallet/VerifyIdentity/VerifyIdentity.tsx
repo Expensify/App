@@ -1,7 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import Onfido from '@components/Onfido';
@@ -60,7 +60,7 @@ function VerifyIdentity() {
 
     return (
         <ScreenWrapper testID="VerifyIdentity">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('onfidoStep.verifyIdentity')}
                 onBackButtonPress={goBack}
             />

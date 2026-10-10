@@ -2,7 +2,7 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -133,7 +133,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                 keyboardAvoidingViewBehavior="height"
                 testID="AdditionalDetailsStep"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('additionalDetailsStep.headerTitle')}
                     onBackButtonPress={() => setAdditionalDetailsQuestions(null)}
                 />
@@ -147,7 +147,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
 
     return (
         <>
-            <HeaderWithBackButton title={translate('additionalDetailsStep.headerTitle')} />
+            <HeaderWithBackButtonAndTitle title={translate('additionalDetailsStep.headerTitle')} />
             <View style={[styles.flex1]}>
                 <View style={[styles.ph5]}>
                     <Text style={styles.mb3}>{translate('additionalDetailsStep.helpText')}</Text>
