@@ -2246,7 +2246,6 @@ function getActions(
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
-    // We're not supporting approve partial amount on search page now
     if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
