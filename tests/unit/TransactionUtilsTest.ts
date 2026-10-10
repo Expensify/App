@@ -4135,6 +4135,30 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getTaxAmount', () => {
+        it('should return the absolute tax amount if the transaction is neither from an expense report nor unreported', () => {
+            // Given an IOU transaction whose tax is stored as a negative value
+            const transaction = generateTransaction({taxAmount: -100});
+
+            // When we read the tax amount
+            const taxAmount = TransactionUtils.getTaxAmount(transaction, false, false);
+
+            // Then it is returned unsigned, because IOU requests cannot have negative values
+            expect(taxAmount).toBe(100);
+        });
+
+        it('should return the opposite sign if the transaction is unreported', () => {
+            // Given an unreported transaction, which stores its tax with the opposite sign like an expense report transaction
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, taxAmount: 95});
+
+            // When we read the tax amount for a tracked expense that isn't on an expense report
+            const taxAmount = TransactionUtils.getTaxAmount(transaction, false, true);
+
+            // Then the sign is flipped back, so a negative unreported expense keeps its negative tax
+            expect(taxAmount).toBe(-95);
+        });
+    });
+
     describe('getConvertedTaxAmount', () => {
         it('should return the absolute converted tax amount if the transaction is not from an expense report', () => {
             // Given an IOU transaction whose converted tax is stored as a negative value
@@ -4155,6 +4179,17 @@ describe('TransactionUtils', () => {
             const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, true);
 
             // Then the sign is flipped back, so a refund's tax displays as negative
+            expect(convertedTaxAmount).toBe(-182);
+        });
+
+        it('should return the opposite sign if the transaction is unreported', () => {
+            // Given an unreported transaction, which stores its converted tax with the opposite sign like an expense report transaction
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, convertedTaxAmount: 182});
+
+            // When we read the converted tax amount for a tracked expense that isn't on an expense report
+            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, false, true);
+
+            // Then the sign is flipped back, so a negative unreported expense keeps its negative tax
             expect(convertedTaxAmount).toBe(-182);
         });
 
