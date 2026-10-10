@@ -1,5 +1,6 @@
+import {VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import {getCartesianPlotBounds} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import type {ChartBounds} from 'victory-native';
 
@@ -8,7 +9,9 @@ import {CartesianChart} from 'victory-native';
 
 const CHART_WIDTH = 400;
 
-const CHART_PADDING_RIGHT = 41;
+const Y_AXIS_LABEL_WIDTH = 37;
+
+const CHART_PADDING_RIGHT = Y_AXIS_LABEL_WIDTH + GLYPH_PADDING;
 
 const DATA = [
     {x: 0, y: 120},
@@ -25,7 +28,7 @@ const chartElement = (
         xKey="x"
         yKeys={['y']}
         padding={{...VictoryTheme.axis.padding, right: CHART_PADDING_RIGHT}}
-        domainPadding={{top: 16, bottom: 16, left: 8, right: 8}}
+        domainPadding={VERTICAL_BAR_DOMAIN_PADDING}
         xAxis={{
             tickCount: DATA.length,
             lineWidth: VictoryTheme.axis.xLineWidth,

@@ -34,6 +34,7 @@ function useReportChartLoading(isLoading: boolean, isDrawnBySkia = true) {
 }
 
 type ChartRevealProps = {
+    /** Must match the loaded chart's height, or the card jumps at the reveal. */
     loadingHeight: number;
 
     /** Must report through `useReportChartLoading`, or the spinner never goes away. */

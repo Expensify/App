@@ -446,9 +446,8 @@ function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; g
 }
 
 /**
- * Horizontal plot bounds of a cartesian chart with its y axis on the right, for a container width, mirroring
- * victory-native's layout. Deriving them from the width (not post-mount) lets the line and vertical bar charts lay
- * out their labels before they mount.
+ * Horizontal plot bounds of a cartesian chart with its y axis on the right, mirroring victory-native's layout,
+ * so labels can be laid out from the width before the chart mounts.
  */
 function getCartesianPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
     const left = VictoryTheme.axis.padding.left;

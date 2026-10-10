@@ -2,11 +2,12 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartReveal, {HOLD_FRAMES, useReportChartLoading} from '@components/Charts/components/ChartReveal';
+import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 import Text from '@components/Text';
 
 import React from 'react';
 
-const LOADING_HEIGHT = 289;
+const LOADING_HEIGHT = getCartesianChartHeight();
 
 let pendingFrames = new Map<number, FrameRequestCallback>();
 let lastFrameID = 0;
@@ -132,5 +133,38 @@ describe('ChartReveal', () => {
         // Then the remounted chart is covered again, because Skia has to draw it from scratch
         expect(screen.getByText('chart')).toBeTruthy();
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
+    });
+
+    it('should restart the hold when a chart reloads before its hold ends', () => {
+        // Given a chart partway through its hold
+        const {rerender} = render(renderChart(false));
+        runFrames(HOLD_FRAMES - 2);
+
+        // When it loads again and its new data arrives
+        rerender(renderChart(true));
+        rerender(renderChart(false));
+        runFrames(HOLD_FRAMES - 1);
+
+        // Then it is still covered one frame short of a full hold, because the frames counted before the reload
+        // belonged to a chart Skia no longer shows
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
+
+        // When the last frame of the new hold passes
+        runFrames(1);
+
+        // Then the spinner goes away, since the new hold has outlasted Skia's first draw of the remounted chart
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+    });
+
+    it('should stop counting frames when the chart unmounts during its hold', () => {
+        // Given a chart partway through its hold
+        const {unmount} = render(renderChart(false));
+        runFrames(1);
+
+        // When it unmounts, as it does when the user leaves the page
+        unmount();
+
+        // Then no frame is left waiting to reveal it, since that would update a component that is gone
+        expect(pendingFrames.size).toBe(0);
     });
 });

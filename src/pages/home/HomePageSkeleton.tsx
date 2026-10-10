@@ -6,7 +6,6 @@ import SkeletonTextLine, {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLi
 import WidgetContainer from '@components/WidgetContainer';
 
 import useContainerWidth from '@hooks/useContainerWidth';
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +19,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import {ICON_SLOT_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} from './common/widgetSkeletonRow';
+import useInsightChartPaddingStyle from './InsightsSection/useInsightChartPaddingStyle';
 
 // The stacked pair of text lines the two-bar rows stand in for: a merchant line over a muted label line.
 const FIRST_LINE_HEIGHT = lineHeightScale.text;
@@ -49,7 +49,7 @@ type SkeletonRowArgs = {
 };
 
 type TrailingSkeletonRowArgs = SkeletonRowArgs & {
-    /** Measured width of the card's row area */
+    /** Measured width of the card's row area, which the trailing bars are right-aligned against */
     width: number;
 };
 
@@ -165,6 +165,7 @@ function HomePageSkeletonTableCard() {
                 itemViewHeight={rowHeight}
                 // The default `mr5` on each row would shrink the SVG below the card width and pull the right-aligned bars inward.
                 itemViewStyle={styles.mr0}
+                // The rows this stands in for are separated.
                 itemContainerStyle={styles.borderBottom}
                 renderSkeletonItem={({itemIndex}) => renderIconTwoBarWithTrailingRow({itemIndex, width: containerWidth, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
                 onLayout={onLayout}
@@ -177,12 +178,11 @@ function HomePageSkeletonTableCard() {
 function HomePageSkeletonSpinnerCard() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const chartPaddingStyle = useInsightChartPaddingStyle();
 
     return (
         <HomePageSkeletonCard hasBottomPadding={false}>
-            <View style={[cardPaddingHorizontal, cardPaddingBottom, !shouldUseNarrowLayout && styles.pt3]}>
+            <View style={chartPaddingStyle}>
                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

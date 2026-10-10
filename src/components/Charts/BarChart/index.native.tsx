@@ -1,6 +1,5 @@
-import ChartWidthBox from '@components/Charts/ChartWidthBox';
-import ChartReveal from '@components/Charts/components/ChartReveal';
-import {getBarChartLoadingHeight} from '@components/Charts/utils/chartHeights';
+import ChartFrame from '@components/Charts/components/ChartFrame';
+import {getBarChartHeight} from '@components/Charts/utils/chartHeights';
 
 import React from 'react';
 
@@ -9,21 +8,19 @@ import type BarChartProps from './types';
 import BarChartContent from './BarChartContent';
 
 function BarChart(props: BarChartProps) {
-    if (!props.isLoading && props.data.length === 0) {
-        return null;
-    }
-
     return (
-        <ChartWidthBox>
+        <ChartFrame
+            isLoading={props.isLoading}
+            hasData={props.data.length > 0}
+            loadingHeight={getBarChartHeight(props.shouldShowLabels)}
+        >
             {(chartWidth) => (
-                <ChartReveal loadingHeight={getBarChartLoadingHeight(props.shouldShowLabels)}>
-                    <BarChartContent
-                        {...props}
-                        chartWidth={chartWidth}
-                    />
-                </ChartReveal>
+                <BarChartContent
+                    {...props}
+                    chartWidth={chartWidth}
+                />
             )}
-        </ChartWidthBox>
+        </ChartFrame>
     );
 }
 

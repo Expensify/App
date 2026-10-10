@@ -62,7 +62,7 @@ describe('cartesian plot bounds', () => {
     });
 
     test('should predict the plot bounds victory-native reports', () => {
-        // Given a real chart laid out the way the line and vertical bar charts are, drawn headless by the probe
+        // Given a real chart laid out the way the vertical bar chart is, whose padding and axes the line chart shares, drawn headless by the probe
         // When its reported plot bounds are compared with the ones predicted from its width
         // Then they match, so a victory-native upgrade that moves the plot fails here instead of misplacing labels
         expect(probeOutput.predicted).toEqual(probeOutput.reported);

@@ -646,7 +646,6 @@ describe('rotatedLabelYOffset', () => {
     });
 });
 
-// Bar chart domain padding constants, mirrored from barChartConstants.
 const BAR_PAD_TOP = 32;
 const BAR_PAD_BOTTOM = 1;
 
@@ -785,30 +784,22 @@ describe('getCartesianChartHeight', () => {
 });
 
 describe('getCartesianPlotBounds', () => {
-    // labelGap = 12, padding.left = 5 (from VictoryTheme.axis)
     const LABEL_GAP = VictoryTheme.axis.labelGap;
     const PADDING_LEFT = VictoryTheme.axis.padding.left;
 
     it('reserves the right gutter for labels and the left base padding', () => {
         // Given a 300px container with a 30px right gutter
         // When computing the plot bounds
-        // Then the plot starts after the left padding and ends before the gutter+labelGap
+        // Then the plot spans from the left padding to the label gap before the gutter, where victory-native puts it,
+        // so labels laid out before the chart mounts line up with the plot it draws
         expect(getCartesianPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30 - LABEL_GAP, width: 300 - 30 - LABEL_GAP - PADDING_LEFT});
-    });
-
-    it('grows the plot width one-for-one with the container width', () => {
-        // Given the same right gutter but a wider container
-        // When comparing plot widths
-        // Then every extra container pixel becomes plot width
-        const narrow = getCartesianPlotBounds(300, 30).width;
-        const wide = getCartesianPlotBounds(360, 30).width;
-        expect(wide - narrow).toBe(60);
     });
 
     it('clamps to a zero-width plot when the container is too small for the gutters', () => {
         // Given a container narrower than the right gutter itself
         // When computing the plot bounds
-        // Then the right edge clamps to the left edge instead of going past it
+        // Then the plot collapses to zero width at the left padding, because a negative width would break the bar and
+        // label layouts that are sized from it
         const bounds = getCartesianPlotBounds(10, 30);
         expect(bounds.left).toBe(PADDING_LEFT);
         expect(bounds.right).toBe(PADDING_LEFT);

@@ -1,5 +1,4 @@
-import ChartWidthBox from '@components/Charts/ChartWidthBox';
-import ChartReveal from '@components/Charts/components/ChartReveal';
+import ChartFrame from '@components/Charts/components/ChartFrame';
 import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 
 import React from 'react';
@@ -9,21 +8,19 @@ import type {LineChartProps} from './LineChartContent';
 import LineChartContent from './LineChartContent';
 
 function LineChart(props: LineChartProps) {
-    if (!props.isLoading && props.data.length === 0) {
-        return null;
-    }
-
     return (
-        <ChartWidthBox>
+        <ChartFrame
+            isLoading={props.isLoading}
+            hasData={props.data.length > 0}
+            loadingHeight={getCartesianChartHeight()}
+        >
             {(chartWidth) => (
-                <ChartReveal loadingHeight={getCartesianChartHeight()}>
-                    <LineChartContent
-                        {...props}
-                        chartWidth={chartWidth}
-                    />
-                </ChartReveal>
+                <LineChartContent
+                    {...props}
+                    chartWidth={chartWidth}
+                />
             )}
-        </ChartWidthBox>
+        </ChartFrame>
     );
 }
 

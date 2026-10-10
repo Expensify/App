@@ -6,7 +6,8 @@ import type {ReactNode} from 'react';
 import {View} from 'react-native';
 
 type ChartWidthBoxProps = {
-    children: (chartWidth: number) => ReactNode;
+    /** Receives the card's width, or null until the card has been measured. */
+    children: (chartWidth: number | null) => ReactNode;
 };
 
 /** On web the chart component mounts only once the chart engine has downloaded, so measuring here keeps the width across that mount. */
@@ -19,7 +20,7 @@ function ChartWidthBox({children}: ChartWidthBoxProps) {
             style={styles.w100}
             onLayout={onLayout}
         >
-            {children(containerWidth)}
+            {children(containerWidth > 0 ? containerWidth : null)}
         </View>
     );
 }

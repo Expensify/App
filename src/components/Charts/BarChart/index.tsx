@@ -1,30 +1,28 @@
-import ChartWidthBox from '@components/Charts/ChartWidthBox';
-import ChartReveal from '@components/Charts/components/ChartReveal';
+import ChartFrame from '@components/Charts/components/ChartFrame';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
-import {getBarChartLoadingHeight} from '@components/Charts/utils/chartHeights';
+import {getBarChartHeight} from '@components/Charts/utils/chartHeights';
 
 import React from 'react';
 
 import type BarChartProps from './types';
 
 const getBarChartContent = () => import('./BarChartContent');
-function BarChart(props: BarChartProps) {
-    if (!props.isLoading && props.data.length === 0) {
-        return null;
-    }
 
+function BarChart(props: BarChartProps) {
     return (
-        <ChartWidthBox>
+        <ChartFrame
+            isLoading={props.isLoading}
+            hasData={props.data.length > 0}
+            loadingHeight={getBarChartHeight(props.shouldShowLabels)}
+        >
             {(chartWidth) => (
-                <ChartReveal loadingHeight={getBarChartLoadingHeight(props.shouldShowLabels)}>
-                    <SkiaWebChart
-                        getComponent={getBarChartContent}
-                        componentProps={{...props, chartWidth}}
-                        shouldShowLoadingSpinner={false}
-                    />
-                </ChartReveal>
+                <SkiaWebChart
+                    getComponent={getBarChartContent}
+                    componentProps={{...props, chartWidth}}
+                    shouldShowLoadingSpinner={false}
+                />
             )}
-        </ChartWidthBox>
+        </ChartFrame>
     );
 }
 

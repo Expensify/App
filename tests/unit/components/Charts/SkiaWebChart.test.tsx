@@ -4,6 +4,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ChartReveal from '@components/Charts/components/ChartReveal';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
 import isSkiaWebSupported from '@components/Charts/SkiaWebChart/isSkiaWebSupported';
+import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 
 import * as Sentry from '@sentry/react-native';
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
@@ -29,7 +30,7 @@ jest.mock('@components/Icon', () => ({
     default: () => null,
 }));
 
-const CHART_LOADING_HEIGHT = 289;
+const CHART_LOADING_HEIGHT = getCartesianChartHeight();
 
 const mockIsSkiaWebSupported = jest.mocked(isSkiaWebSupported);
 const mockWithSkiaWeb = jest.mocked(WithSkiaWeb);

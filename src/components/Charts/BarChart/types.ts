@@ -7,9 +7,10 @@ type BarChartProps = CartesianChartProps & {
     shouldShowLabels?: boolean;
 };
 
-type BarChartBodyProps = BarChartProps & {
-    chartWidth: number;
+type BarChartContentProps = BarChartProps & {
+    /** Null until the card has been measured. */
+    chartWidth: number | null;
 };
 
 export default BarChartProps;
-export type {BarChartBodyProps};
+export type {BarChartContentProps};

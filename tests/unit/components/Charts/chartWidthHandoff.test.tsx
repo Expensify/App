@@ -102,7 +102,7 @@ describe('chart width handoff', () => {
         expect(PolarChart).toHaveBeenCalledWith(expect.objectContaining({explicitSize: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}), undefined);
     });
 
-    it('should hand the pie chart no size before a width has been measured', () => {
+    it('should keep the pie chart under the spinner until a width has been measured', () => {
         // Given a pie chart whose box has not reported a layout yet
         // When it renders with its data
         render(
@@ -112,7 +112,9 @@ describe('chart width handoff', () => {
             />,
         );
 
-        // Then the chart is left to measure itself rather than being pinned to a zero width
-        expect(PolarChart).toHaveBeenCalledWith(expect.objectContaining({explicitSize: undefined}), undefined);
+        // Then the chart waits for the width instead of measuring itself, because the reveal counts its held frames
+        // from the render the chart reports ready in, and a chart that measures itself draws later than that
+        expect(PolarChart).not.toHaveBeenCalled();
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
     });
 });

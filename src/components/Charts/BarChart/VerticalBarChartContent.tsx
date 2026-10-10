@@ -15,8 +15,8 @@ import {
     useLabelHitTesting,
 } from '@components/Charts/hooks';
 import {getBarLayout, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
-import {getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
+import {getBarChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -24,19 +24,25 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {Bar, CartesianChart} from 'victory-native';
 
-import type {BarChartBodyProps} from './types';
+import type BarChartProps from './types';
+import type {BarChartContentProps} from './types';
 
-function VerticalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, chartWidth}: BarChartBodyProps) {
+type VerticalBarChartCanvasProps = Omit<BarChartProps, 'isLoading'> & {
+    chartWidth: number;
+    fontManager: SkTypefaceFontProvider;
+};
+
+function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, chartWidth, fontManager}: VerticalBarChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const fontManager = useChartFontManager();
 
     const chartData = data.map((point, index) => ({
         x: index,
@@ -80,7 +86,7 @@ function VerticalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxisU
         tickSpacing: shouldShowLabels && plotBounds.width > 0 ? barLayout.barWidth + barLayout.gap : 0,
         labelAreaWidth: plotBounds.width,
         firstTickLeftSpace: plotBounds.left + barLayout.edgeSpace,
-        lastTickRightSpace: chartWidth > 0 ? chartWidth - plotBounds.right + barLayout.edgeSpace : 0,
+        lastTickRightSpace: chartWidth - plotBounds.right + barLayout.edgeSpace,
     });
 
     const barHitHalfWidth = useSharedValue(0);
@@ -159,7 +165,7 @@ function VerticalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxisU
     };
 
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-        if (!fontManager || xAxisLabelHeight === undefined) {
+        if (xAxisLabelHeight === undefined) {
             return null;
         }
 
@@ -199,16 +205,8 @@ function VerticalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxisU
     };
 
     const labelSpace = shouldShowLabels ? getXAxisLabelSpace(xAxisLabelHeight) : 0;
-    const chartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
-    const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
+    const chartHeight = getBarChartHeight(shouldShowLabels, xAxisLabelHeight);
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: chartPaddingRight};
-
-    const isChartLoading = isLoading || !fontManager;
-    useReportChartLoading(isChartLoading);
-
-    if (isChartLoading) {
-        return null;
-    }
 
     return (
         <GestureDetector
@@ -216,49 +214,47 @@ function VerticalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxisU
             touchAction="pan-y"
         >
             <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
-                {!!chartSize && (
-                    <CartesianChart
-                        explicitSize={chartSize}
-                        xKey="x"
-                        padding={chartPadding}
-                        yKeys={['y']}
-                        domain={{x: barLayout.xDomain}}
-                        domainPadding={VERTICAL_BAR_DOMAIN_PADDING}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        onScaleChange={handleScaleChange}
-                        renderOutside={renderOutside}
-                        xAxis={{
-                            tickCount: data.length,
-                            lineWidth: VictoryTheme.axis.xLineWidth,
-                            // "outset" makes victory-native reserve 2 * yAxis.labelOffset below the plot for labels it
-                            // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
-                            labelPosition: 'inset',
-                        }}
-                        yAxis={[
-                            {
-                                tickCount: VictoryTheme.axis.tickCount,
-                                axisSide: 'right',
-                                lineWidth: 0,
-                                labelOffset: VictoryTheme.axis.labelGap,
-                                domain: yAxisDomain,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {({points, chartBounds, yScale, yTicks}) => (
-                            <>
-                                <ChartGridLines
-                                    yTicks={yTicks}
-                                    yScale={yScale}
-                                    chartBounds={chartBounds}
-                                    color={theme.border}
-                                />
-                                {points.y.map((point) => renderBar(point, chartBounds))}
-                            </>
-                        )}
-                    </CartesianChart>
-                )}
+                <CartesianChart
+                    explicitSize={{width: chartWidth, height: chartHeight}}
+                    xKey="x"
+                    padding={chartPadding}
+                    yKeys={['y']}
+                    domain={{x: barLayout.xDomain}}
+                    domainPadding={VERTICAL_BAR_DOMAIN_PADDING}
+                    onChartBoundsChange={handleChartBoundsChange}
+                    onScaleChange={handleScaleChange}
+                    renderOutside={renderOutside}
+                    xAxis={{
+                        tickCount: data.length,
+                        lineWidth: VictoryTheme.axis.xLineWidth,
+                        // "outset" makes victory-native reserve 2 * yAxis.labelOffset below the plot for labels it
+                        // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
+                        labelPosition: 'inset',
+                    }}
+                    yAxis={[
+                        {
+                            tickCount: VictoryTheme.axis.tickCount,
+                            axisSide: 'right',
+                            lineWidth: 0,
+                            labelOffset: VictoryTheme.axis.labelGap,
+                            domain: yAxisDomain,
+                        },
+                    ]}
+                    frame={{lineWidth: 0}}
+                    data={chartData}
+                >
+                    {({points, chartBounds, yScale, yTicks}) => (
+                        <>
+                            <ChartGridLines
+                                yTicks={yTicks}
+                                yScale={yScale}
+                                chartBounds={chartBounds}
+                                color={theme.border}
+                            />
+                            {points.y.map((point) => renderBar(point, chartBounds))}
+                        </>
+                    )}
+                </CartesianChart>
                 <ChartTooltipLayer
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
@@ -269,6 +265,26 @@ function VerticalBarChartContentBody({data, isLoading = false, yAxisUnit, yAxisU
                 />
             </Animated.View>
         </GestureDetector>
+    );
+}
+
+function VerticalBarChartContentBody({isLoading = false, chartWidth, ...canvasProps}: BarChartContentProps) {
+    const fontManager = useChartFontManager();
+
+    // Until the width is measured there is no canvas for Skia to draw, so the reveal must not start counting frames yet
+    const isChartLoading = isLoading || !fontManager || chartWidth === null;
+    useReportChartLoading(isChartLoading);
+
+    if (isChartLoading) {
+        return null;
+    }
+
+    return (
+        <VerticalBarChartCanvas
+            {...canvasProps}
+            chartWidth={chartWidth}
+            fontManager={fontManager}
+        />
     );
 }
 
