@@ -1989,8 +1989,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     parameters,
                     {
                         ...onyxData,
-                        shouldApplyScanResponseImmediately:
-                            isASAPSubmitBetaEnabled && transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN && !moneyRequestReportID && action !== CONST.IOU.ACTION.SUBMIT,
+                        shouldApplyScanResponseImmediately: isASAPSubmitBetaEnabled && transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN && !moneyRequestReportID,
                     },
                     resolveWriteBarrier({writeBarrier, isRetry: requestMoneyInformation.isRetry, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`}),
                     {onWriteStarted: notifyRequestAction},
