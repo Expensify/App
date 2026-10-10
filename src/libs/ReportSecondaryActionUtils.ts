@@ -18,7 +18,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
-import {isSingleTransactionReport} from './MoneyRequestReportUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canMemberWrite,
@@ -1206,11 +1205,6 @@ function getSecondaryReportActions({
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
-    }
-
-    // Reports with more than one expense always use the table view, so the switch only applies to single-expense reports
-    if (isSingleTransactionReport(report, reportTransactions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);

@@ -12,7 +12,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
-import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import toggleEmojiReaction from '@userActions/EmojiReactions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';

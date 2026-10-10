@@ -110,6 +110,10 @@ const createQBOPolicy = (role: Policy['role'], autoSyncEnabled: boolean, exporte
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/policyType'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/permissions'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
@@ -166,86 +170,6 @@ describe('getSecondaryAction', () => {
                 cardList: undefined,
             }),
         ).toEqual(result);
-    });
-
-    it('includes TOGGLE_SINGLE_EXPENSE_VIEW right before VIEW_DETAILS on a report with one expense', () => {
-        // Given a report that holds exactly one expense
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [transaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then the option to switch views is offered, just before "View details"
-        const toggleIndex = result.indexOf(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-        expect(toggleIndex).toBeGreaterThan(-1);
-        expect(result.at(toggleIndex + 1)).toBe(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a report with more than one expense', () => {
-        // Given a report with two expenses, which always uses the table view
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const firstTransaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-        const secondTransaction = createMock<Transaction>({transactionID: '2', reportID: REPORT_ID});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [firstTransaction, secondTransaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on an empty report', () => {
-        // Given a report with no expenses
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
     });
 
     it('includes DOWNLOAD_RECEIPTS when at least one transaction has a receipt', () => {
