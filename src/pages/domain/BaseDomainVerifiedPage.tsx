@@ -1,6 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -63,7 +63,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
             testID="BaseDomainVerifiedPage"
             shouldShowOfflineIndicator={false}
         >
-            <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
+            <HeaderWithBackButtonAndTitle title={translate('domain.domainVerified.title')} />
             <ConfirmationPage
                 illustration={LottieAnimations.Fireworks}
                 heading={translate('domain.domainVerified.header')}
