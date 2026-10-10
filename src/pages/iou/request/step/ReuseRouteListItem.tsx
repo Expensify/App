@@ -10,13 +10,21 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatLastUsed, getCachedRouteThumbnail, getRouteEndpoints, getRouteKey, getRouteThumbnailSource, setCachedRouteThumbnail} from '@libs/ReusableDistanceRoutesUtils';
+import {
+    formatLastUsed,
+    getCachedRouteThumbnail,
+    getRawRouteThumbnailSource,
+    getRouteEndpoints,
+    getRouteKey,
+    getRouteThumbnailSource,
+    setCachedRouteThumbnail,
+} from '@libs/ReusableDistanceRoutesUtils';
 
 import variables from '@styles/variables';
 
 import type {ReusableDistanceRoute} from '@src/types/onyx';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type ReuseRouteListItemData = ListItem & {
@@ -30,6 +38,7 @@ function isReuseRouteListItemData(item: ListItem): item is ReuseRouteListItemDat
 type ReuseRouteThumbnailProps = {
     transactionID: string;
     receiptSource?: string;
+    rawReceiptSource?: string;
     routeKey: string;
 };
 
@@ -38,30 +47,58 @@ type ReuseRouteThumbnailProps = {
  * distance expenses is the stored map image of the route. It is centered and cropped to
  * fill the card area.
  */
-function ReuseRouteThumbnail({transactionID, receiptSource, routeKey}: ReuseRouteThumbnailProps) {
+function ReuseRouteThumbnail({transactionID, receiptSource, rawReceiptSource, routeKey}: ReuseRouteThumbnailProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const cachedSource = getCachedRouteThumbnail(routeKey);
-    const [currentSource, setCurrentSource] = useState(receiptSource ?? cachedSource);
+    const [currentSource, setCurrentSource] = useState<string | undefined>(cachedSource ?? receiptSource ?? rawReceiptSource);
+    const previousRouteKeyRef = useRef(routeKey);
 
     useEffect(() => {
-        const nextSource = receiptSource ?? getCachedRouteThumbnail(routeKey);
-        setCurrentSource(nextSource);
-    }, [receiptSource, routeKey]);
+        if (previousRouteKeyRef.current !== routeKey) {
+            previousRouteKeyRef.current = routeKey;
+            const nextSource = getCachedRouteThumbnail(routeKey) ?? receiptSource ?? rawReceiptSource;
+            setCurrentSource(nextSource);
+            return;
+        }
+
+        if (!currentSource) {
+            const nextSource = getCachedRouteThumbnail(routeKey) ?? receiptSource ?? rawReceiptSource;
+            if (nextSource) {
+                setCurrentSource(nextSource);
+            }
+            return;
+        }
+
+        const cached = getCachedRouteThumbnail(routeKey);
+        if (!cached && currentSource) {
+            setCachedRouteThumbnail(routeKey, currentSource);
+        }
+    }, [currentSource, routeKey, receiptSource, rawReceiptSource]);
 
     const handleLoad = useCallback(() => {
-        if (receiptSource) {
-            setCachedRouteThumbnail(routeKey, receiptSource);
-        }
-    }, [receiptSource, routeKey]);
-
-    const handleLoadFailure = useCallback(() => {
-        const fallbackSource = getCachedRouteThumbnail(routeKey);
-        if (fallbackSource && currentSource !== fallbackSource) {
-            setCurrentSource(fallbackSource);
+        if (currentSource) {
+            setCachedRouteThumbnail(routeKey, currentSource);
         }
     }, [currentSource, routeKey]);
+
+    const handleLoadFailure = useCallback(() => {
+        const cached = getCachedRouteThumbnail(routeKey);
+        if (cached && currentSource !== cached) {
+            setCurrentSource(cached);
+            return;
+        }
+        if (receiptSource && currentSource !== receiptSource) {
+            setCurrentSource(receiptSource);
+            return;
+        }
+        if (rawReceiptSource && currentSource !== rawReceiptSource) {
+            setCurrentSource(rawReceiptSource);
+            return;
+        }
+        setCurrentSource(undefined);
+    }, [currentSource, routeKey, receiptSource, rawReceiptSource]);
 
     if (!currentSource) {
         return (
@@ -109,6 +146,7 @@ function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVis
     const routeKey = getRouteKey(item.route);
     const {start, end} = getRouteEndpoints(item.route);
     const thumbnailSource = getRouteThumbnailSource(item.route.receiptSource);
+    const rawReceiptSource = getRawRouteThumbnailSource(item.route.receiptSource);
 
     return (
         <SelectableListItem
@@ -128,6 +166,7 @@ function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVis
                     <ReuseRouteThumbnail
                         transactionID={item.route.transactionID}
                         receiptSource={thumbnailSource}
+                        rawReceiptSource={rawReceiptSource}
                         routeKey={routeKey}
                     />
                 </View>

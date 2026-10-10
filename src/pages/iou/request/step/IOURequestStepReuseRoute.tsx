@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {filterRoutes, getRouteEndpoints, getRouteKey} from '@libs/ReusableDistanceRoutesUtils';
+import {filterRoutes, getRouteEndpoints, getRouteKey, getRouteThumbnailSource, setCachedRouteThumbnailIfEmpty} from '@libs/ReusableDistanceRoutesUtils';
 import {getRateID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -87,6 +87,22 @@ function IOURequestStepReuseRoute({
             };
         }, []),
     );
+
+    useEffect(() => {
+        if (!reusableDistanceRoutes?.length) {
+            return;
+        }
+        for (const route of reusableDistanceRoutes) {
+            const key = getRouteKey(route);
+            if (!key || !route.receiptSource) {
+                continue;
+            }
+            const thumbnail = getRouteThumbnailSource(route.receiptSource);
+            if (thumbnail) {
+                setCachedRouteThumbnailIfEmpty(key, thumbnail);
+            }
+        }
+    }, [reusableDistanceRoutes]);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const customUnitRateID = getRateID(transaction);

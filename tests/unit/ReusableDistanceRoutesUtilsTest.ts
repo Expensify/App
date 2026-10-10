@@ -6,9 +6,12 @@ import {
     filterRoutes,
     getCachedRouteThumbnail,
     getOrderedWaypoints,
+    getRawRouteThumbnailSource,
     getRouteEndpoints,
     getRouteKey,
+    getRouteThumbnailSource,
     setCachedRouteThumbnail,
+    setCachedRouteThumbnailIfEmpty,
 } from '../../src/libs/ReusableDistanceRoutesUtils';
 
 const createRoute = (transactionID: string, addresses: string[]): ReusableDistanceRoute => ({
@@ -90,6 +93,26 @@ describe('ReusableDistanceRoutesUtils', () => {
             expect(key1).toBe(key2);
         });
 
+        it('matches keys when coordinates are strings versus numbers', () => {
+            // Given a route with numeric coordinates and another with string coordinates
+            const routeNumeric = createRoute('1', ['A', 'B']);
+            const routeString: ReusableDistanceRoute = {
+                ...routeNumeric,
+                transactionID: '2',
+                waypoints: {
+                    waypoint0: {...routeNumeric.waypoints.waypoint0, lat: '37.7' as unknown as number, lng: '-122.4' as unknown as number},
+                    waypoint1: {...routeNumeric.waypoints.waypoint1, lat: '38.7' as unknown as number, lng: '-123.4' as unknown as number},
+                },
+            };
+
+            // When getting route keys for both
+            const numericKey = getRouteKey(routeNumeric);
+            const stringKey = getRouteKey(routeString);
+
+            // Then both keys match
+            expect(stringKey).toBe(numericKey);
+        });
+
         it('falls back to address when coordinates are missing', () => {
             // Given a route whose waypoints lack lat/lng coordinates
             const route: ReusableDistanceRoute = {
@@ -110,6 +133,30 @@ describe('ReusableDistanceRoutesUtils', () => {
         });
     });
 
+    describe('getRouteThumbnailSource and getRawRouteThumbnailSource', () => {
+        it('appends 1024.jpg suffix for image receipts', () => {
+            // Given an image receipt URL
+            const receiptSource = 'https://expensify.com/receipts/w_test.png';
+
+            // When getting the thumbnail source
+            const thumbnail = getRouteThumbnailSource(receiptSource);
+
+            // Then .1024.jpg is appended
+            expect(thumbnail).toBe('https://expensify.com/receipts/w_test.png.1024.jpg');
+        });
+
+        it('returns raw source without thumbnail suffix', () => {
+            // Given an image receipt URL
+            const receiptSource = 'https://expensify.com/receipts/w_test.png';
+
+            // When getting the raw thumbnail source
+            const raw = getRawRouteThumbnailSource(receiptSource);
+
+            // Then raw source matches without .1024.jpg
+            expect(raw).toBe('https://expensify.com/receipts/w_test.png');
+        });
+    });
+
     describe('routeThumbnailCache', () => {
         beforeEach(() => {
             clearRouteThumbnailCache();
@@ -125,6 +172,20 @@ describe('ReusableDistanceRoutesUtils', () => {
 
             // Then the cached source is retrievable
             expect(getCachedRouteThumbnail(routeKey)).toBe(thumbnailSource);
+        });
+
+        it('does not overwrite existing cache when using setCachedRouteThumbnailIfEmpty', () => {
+            // Given an existing cached thumbnail
+            const routeKey = 'route-key';
+            const initialSource = 'https://expensify.com/receipts/w_first.png.1024.jpg';
+            const newSource = 'https://expensify.com/receipts/w_second.png.1024.jpg';
+            setCachedRouteThumbnail(routeKey, initialSource);
+
+            // When attempting to set if empty
+            setCachedRouteThumbnailIfEmpty(routeKey, newSource);
+
+            // Then the initial source is preserved
+            expect(getCachedRouteThumbnail(routeKey)).toBe(initialSource);
         });
 
         it('clears the thumbnail cache', () => {

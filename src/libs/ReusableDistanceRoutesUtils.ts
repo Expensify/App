@@ -64,8 +64,10 @@ function getRouteKey(route: ReusableDistanceRoute): string {
     const orderedWaypoints = getOrderedWaypoints(route);
     return orderedWaypoints
         .map((waypoint) => {
-            if (typeof waypoint.lat === 'number' && typeof waypoint.lng === 'number') {
-                return `${Math.round(waypoint.lat * 1e5)},${Math.round(waypoint.lng * 1e5)}`;
+            const lat = typeof waypoint.lat === 'number' ? waypoint.lat : Number(waypoint.lat);
+            const lng = typeof waypoint.lng === 'number' ? waypoint.lng : Number(waypoint.lng);
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                return `${Math.round(lat * 1e5)},${Math.round(lng * 1e5)}`;
             }
             return waypoint.address ?? '';
         })
@@ -79,6 +81,16 @@ function getCachedRouteThumbnail(routeKey: string): string | undefined {
 }
 
 function setCachedRouteThumbnail(routeKey: string, thumbnailSource: string) {
+    if (!routeKey || !thumbnailSource) {
+        return;
+    }
+    routeThumbnailCache.set(routeKey, thumbnailSource);
+}
+
+function setCachedRouteThumbnailIfEmpty(routeKey: string, thumbnailSource: string) {
+    if (!routeKey || !thumbnailSource || routeThumbnailCache.has(routeKey)) {
+        return;
+    }
     routeThumbnailCache.set(routeKey, thumbnailSource);
 }
 
@@ -100,15 +112,31 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
     return `${resolvedSource}.1024.jpg`;
 }
 
+/**
+ * Builds the raw image URL for the source expense receipt (fallback when .1024.jpg is not ready).
+ */
+function getRawRouteThumbnailSource(receiptSource: string | undefined): string | undefined {
+    if (!receiptSource) {
+        return undefined;
+    }
+    const resolvedSource = tryResolveUrlFromApiRoot(receiptSource);
+    if (resolvedSource.toLowerCase().endsWith('.pdf')) {
+        return undefined;
+    }
+    return resolvedSource;
+}
+
 export {
     clearRouteThumbnailCache,
     filterRoutes,
     formatLastUsed,
     getCachedRouteThumbnail,
     getOrderedWaypoints,
+    getRawRouteThumbnailSource,
     getRouteEndpoints,
     getRouteKey,
     getRouteThumbnailSource,
     normalizeRouteWaypoints,
     setCachedRouteThumbnail,
+    setCachedRouteThumbnailIfEmpty,
 };
