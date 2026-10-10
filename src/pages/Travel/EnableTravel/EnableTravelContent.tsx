@@ -1,5 +1,5 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -173,7 +173,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
             shouldEnableMaxHeight
             testID="EnableTravelContent"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('travel.bookTravel')}
                 onBackButtonPress={handleBackButtonPress}
             />
