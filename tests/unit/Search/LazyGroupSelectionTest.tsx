@@ -3070,6 +3070,9 @@ describe('Lazily loaded group selection', () => {
                 pagingGroup = {...pagingGroup, count: 3};
                 await loadRows(rerender, [firstRow, newRow]);
                 expect(result.current.selectedTransactions[newRow.keyForList]).toBeUndefined();
+
+                // And the group stops reading as whole, even though its kept rows, the deleted one among them, add up to the new count, so a bulk delete cannot hide the unchecked expense with it
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(false);
             });
 
             it('takes the rows a refresh left out with the group when its header is unchecked', async () => {
