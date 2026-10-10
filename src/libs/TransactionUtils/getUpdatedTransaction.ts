@@ -381,7 +381,7 @@ function getUpdatedTransaction({
     }
 
     if (Object.hasOwn(transactionChanges, 'taxAmount') && typeof transactionChanges.taxAmount === 'number') {
-        updatedTransaction.taxAmount = isFromExpenseReport ? -transactionChanges.taxAmount : transactionChanges.taxAmount;
+        updatedTransaction.taxAmount = isFromExpenseReport || isUnReportedExpense ? -transactionChanges.taxAmount : transactionChanges.taxAmount;
     }
 
     if (Object.hasOwn(transactionChanges, 'taxCode') && typeof transactionChanges.taxCode === 'string') {
