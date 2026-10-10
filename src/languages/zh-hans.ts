@@ -5941,6 +5941,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncReimbursedReports: '同步已报销报表',
             syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
             billPaymentAccount: {label: '账单付款账户', description: '选择从哪里支付账单，我们会在 DualEntry 中创建该付款。'},
+            fxExpenseAccount: {label: 'DualEntry 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 DualEntry 中将该成本作为一条日记账分录记入此科目。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
             syncTravelInvoicingSettlements: '同步旅行开票结算',
