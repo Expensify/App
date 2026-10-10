@@ -155,6 +155,15 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
 }
 
+function getMemberLoginByOptimisticAccountID(policy: OnyxEntry<Policy>, accountID: number) {
+    const matchesOptimisticAccountID = (login: string) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
+    const primaryLoginOfInvitedSecondary = Object.entries(policy?.primaryLoginsInvited ?? {}).find(([secondaryLogin]) => matchesOptimisticAccountID(secondaryLogin))?.[1];
+    if (primaryLoginOfInvitedSecondary) {
+        return primaryLoginOfInvitedSecondary;
+    }
+    return Object.keys(policy?.employeeList ?? {}).find(matchesOptimisticAccountID) ?? '';
+}
+
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
@@ -2490,6 +2499,7 @@ export {
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
+    getMemberLoginByOptimisticAccountID,
     hasEligibleBankAccountShareRecipient,
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
