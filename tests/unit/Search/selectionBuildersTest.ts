@@ -7,6 +7,7 @@ import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchDayGroup, SearchResultDataType} from '@src/types/onyx/SearchResults';
 
+import {buildTransactionRow} from '../../utils/collections/searchListItems';
 import createMock from '../../utils/createMock';
 
 const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}42`;
@@ -69,8 +70,7 @@ describe('selectionBuilders', () => {
                 }),
                 groupKey,
                 groupCount: 3,
-                loadedChildrenCount: 3,
-                loadedSelectableCount: 2,
+                loadedRows: [buildTransactionRow(1, 'txn1'), buildTransactionRow(2, 'txn2'), buildTransactionRow(3, 'txn3', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
             });
 
             expect(selected.txn1.isEntireGroupSelected).toBe(true);
@@ -85,12 +85,26 @@ describe('selectionBuilders', () => {
                 }),
                 groupKey,
                 groupCount: 5,
-                loadedChildrenCount: 2,
-                loadedSelectableCount: 2,
+                loadedRows: [buildTransactionRow(1, 'txn1'), buildTransactionRow(2, 'txn2')],
             });
 
             expect(selected.txn1.isEntireGroupSelected).toBe(false);
             expect(selected.txn1.isSelectedViaGroup).toBe(true);
+        });
+
+        it('does not cover the group while a loaded row is unchecked, even when rows kept off the page make up the count', () => {
+            // Given a group of two whose one loaded row was just unchecked, with two rows a refresh kept off the page, one of them deleted elsewhere
+            const selection = buildSelection({
+                txn2: {groupKey},
+                txn3: {groupKey},
+            });
+
+            // When its coverage is stamped
+            const selected = stampGroupCoverageFlags({selectedTransactions: selection, groupKey, groupCount: 2, loadedRows: [buildTransactionRow(1, 'txn1')]});
+
+            // Then the group is not wholly selected, so a bulk delete takes only the checked rows and leaves the unchecked one on screen
+            expect(selected.txn2.isEntireGroupSelected).toBe(false);
+            expect(selected.txn3.isEntireGroupSelected).toBe(false);
         });
     });
 

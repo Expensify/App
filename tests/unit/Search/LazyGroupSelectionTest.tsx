@@ -3075,6 +3075,31 @@ describe('Lazily loaded group selection', () => {
                 expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(false);
             });
 
+            it('stops reading a group as whole once its loaded row is unchecked, though the rows kept off the page make up the count', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group of three checked from its header, one of whose expenses was deleted elsewhere, refreshed to a count of two with only its first row on the page
+                await act(async () => {
+                    result.current.toggle(pagingGroup, [...firstPage, laterRow]);
+                    await waitForBatchedUpdatesWithAct();
+                });
+                pagingGroup = {...pagingGroup, count: 2};
+                await loadRows(rerender, [firstRow]);
+
+                // When that loaded row is unchecked
+                await act(async () => {
+                    result.current.toggle(firstRow);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // Then the two kept rows, the deleted one among them, no longer stand for the whole group, so a bulk delete leaves the unchecked row on screen
+                expect(result.current.selectedTransactions[firstRow.keyForList]).toBeUndefined();
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(false);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isEntireGroupSelected).toBe(false);
+            });
+
             it('takes the rows a refresh left out with the group when its header is unchecked', async () => {
                 pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
                 const {result, rerender} = renderSelection(PagingWrapper);

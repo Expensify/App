@@ -237,7 +237,7 @@ function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTra
  * cannot remove the whole group. An empty group row is still selected under its own group key.
  */
 function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, searchData?: SearchResultDataType): SearchGroupKey[] {
-    const selectedCountByGroupKey = new Map<SearchGroupKey, {selectedCount: number; isEntireGroupSelected: boolean}>();
+    const selectedCountByGroupKey = new Map<SearchGroupKey, {selectedCount: number; isEntireGroupSelected: boolean; isStamped: boolean}>();
     const groupKeys = new Set<SearchGroupKey>();
 
     for (const [key, transaction] of Object.entries(selectedTransactions)) {
@@ -248,16 +248,18 @@ function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, search
         if (!transaction.groupKey || !isGroupEntry(transaction.groupKey)) {
             continue;
         }
-        const current = selectedCountByGroupKey.get(transaction.groupKey) ?? {selectedCount: 0, isEntireGroupSelected: false};
+        const current = selectedCountByGroupKey.get(transaction.groupKey) ?? {selectedCount: 0, isEntireGroupSelected: false, isStamped: false};
         current.selectedCount += 1;
         current.isEntireGroupSelected = current.isEntireGroupSelected || !!transaction.isEntireGroupSelected;
+        current.isStamped = current.isStamped || transaction.isEntireGroupSelected !== undefined;
         selectedCountByGroupKey.set(transaction.groupKey, current);
     }
 
-    for (const [groupKey, {selectedCount, isEntireGroupSelected}] of selectedCountByGroupKey) {
+    for (const [groupKey, {selectedCount, isEntireGroupSelected, isStamped}] of selectedCountByGroupKey) {
         const groupCount = getSearchGroupCountByKey(searchData, groupKey);
         if (groupCount !== undefined) {
-            if (isEntireGroupSelected || selectedCount === groupCount) {
+            // A stamp has already weighed the loaded rows against rows a refresh kept that may since have left the group, so the count decides only for rows never stamped.
+            if (isEntireGroupSelected || (!isStamped && selectedCount === groupCount)) {
                 groupKeys.add(groupKey);
             }
             continue;

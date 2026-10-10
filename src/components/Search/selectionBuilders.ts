@@ -62,12 +62,18 @@ function isSelectionCoveringEntireGroup(groupCount: number | undefined, selected
     return selectedCount === groupCount;
 }
 
+/** Rows a refresh kept off the page can be stale and make up the count on their own, so a group with an unchecked loaded row is never wholly selected. */
+function areLoadedRowsSelected(selectedTransactions: SelectedTransactions, loadedRows: TransactionListItemType[]): boolean {
+    return loadedRows.every((row) => isTransactionPendingDelete(row) || !!selectedTransactions[row.keyForList ?? row.transactionID]);
+}
+
 type StampGroupCoverageFlagsParams = {
     selectedTransactions: SelectedTransactions;
     groupKey: string | undefined;
     groupCount: number | undefined;
-    loadedChildrenCount: number;
-    loadedSelectableCount: number;
+
+    /** The group's rows as loaded, including any being deleted */
+    loadedRows: TransactionListItemType[];
 };
 
 /**
@@ -76,7 +82,7 @@ type StampGroupCoverageFlagsParams = {
  * removes the loaded rows. `isSelectedViaGroup` is left alone so export can still treat a group-row click as a
  * group export.
  */
-function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedChildrenCount, loadedSelectableCount}: StampGroupCoverageFlagsParams): SelectedTransactions {
+function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedRows}: StampGroupCoverageFlagsParams): SelectedTransactions {
     if (!groupKey) {
         return selectedTransactions;
     }
@@ -90,8 +96,9 @@ function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, lo
         selectedCount += 1;
     }
 
-    const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedChildrenCount, loadedSelectableCount);
-    const isEntireGroupSelected = isSelectionCoveringEntireGroup(remainingGroupCount, selectedCount, loadedSelectableCount);
+    const loadedSelectableCount = loadedRows.filter((row) => !isTransactionPendingDelete(row)).length;
+    const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedRows.length, loadedSelectableCount);
+    const isEntireGroupSelected = areLoadedRowsSelected(nextSelectedTransactions, loadedRows) && isSelectionCoveringEntireGroup(remainingGroupCount, selectedCount, loadedSelectableCount);
     for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
         if (key !== groupKey && transaction.groupKey !== groupKey) {
             continue;
@@ -843,7 +850,10 @@ function applyShiftRangeBatchToSelection(
     for (const [groupKey, loadedRows] of touchedGroups) {
         const loadedSelectableCount = loadedRows.filter((child) => !isTransactionPendingDelete(child)).length;
         const remainingGroupCount = getRemainingSearchGroupCount(lookups.getGroupCount(groupKey), loadedRows.length, loadedSelectableCount);
-        coverageByGroupKey.set(groupKey, isSelectionCoveringEntireGroup(remainingGroupCount, selectedCountByGroupKey.get(groupKey) ?? 0, loadedSelectableCount));
+        coverageByGroupKey.set(
+            groupKey,
+            areLoadedRowsSelected(updated, loadedRows) && isSelectionCoveringEntireGroup(remainingGroupCount, selectedCountByGroupKey.get(groupKey) ?? 0, loadedSelectableCount),
+        );
     }
 
     for (const [key, transaction] of Object.entries(updated)) {
@@ -860,6 +870,7 @@ function applyShiftRangeBatchToSelection(
 }
 
 export {
+    areLoadedRowsSelected,
     mapTransactionItemToSelectedEntry,
     mapEmptyReportToSelectedEntry,
     prepareTransactionsList,

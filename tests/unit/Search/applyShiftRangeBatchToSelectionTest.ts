@@ -79,6 +79,24 @@ describe('applyShiftRangeBatchToSelection', () => {
         expect(Object.keys(updated)).toEqual(['t1']);
     });
 
+    it('does not count a group as wholly selected once a range gives back its loaded row, though rows kept off the page make up the count', () => {
+        // Given a two-expense group whose one loaded row is selected along with two rows a refresh kept off the page, one of them deleted elsewhere
+        const loaded = makeChild(1, 'c1');
+        const selection: SelectedTransactions = {
+            c1: {...buildEntry(loaded)[1], groupKey: 'groupA'},
+            c2: {...buildEntry(makeChild(2, 'c2'))[1], groupKey: 'groupA'},
+            c3: {...buildEntry(makeChild(3, 'c3'))[1], groupKey: 'groupA'},
+        };
+        const lookups = {...lookupsFor(new Map([['c1', 'groupA']]), new Map([['groupA', [loaded]]])), getGroupCount: () => 2};
+
+        // When a range gives back the loaded row
+        const updated = applyShiftRangeBatchToSelection(batchOf([], [loaded]), selection, false, lookups);
+
+        // Then the kept rows no longer stand for the whole group, so a bulk delete leaves the unchecked row on screen
+        expect(updated.c2?.isEntireGroupSelected).toBe(false);
+        expect(updated.c3?.isEntireGroupSelected).toBe(false);
+    });
+
     it('gives back the rows a refresh left off the page along with the group a range no longer covers', () => {
         // Given a group a range selected whole, with one loaded row and one row a refresh left off the loaded page, both standing for the group
         const loaded = makeChild(1, 'c1');

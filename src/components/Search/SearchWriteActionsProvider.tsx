@@ -41,6 +41,7 @@ import {SearchRowSelectionActionsContext, SearchShiftRangeGroupsContext} from '.
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
     applyShiftRangeBatchToSelection,
+    areLoadedRowsSelected,
     buildShiftRangeSource,
     getGroupClaims,
     getRemainingSearchGroupCount,
@@ -373,23 +374,19 @@ function useReconcileSelectionWithData({
                         selectedTransactions: newTransactionList,
                         groupKey: reportKey,
                         groupCount,
-                        loadedChildrenCount: transactionGroup.transactions.length,
-                        loadedSelectableCount,
+                        loadedRows: transactionGroup.transactions,
                     });
-                    // Kept rows can be stale, so an unchecked loaded row rules out whole-group selection, and a group that was wholly selected and only lost rows stays so.
-                    const loadedRowListKeys = transactionGroup.transactions.map((transaction) => transaction.keyForList ?? transaction.transactionID);
-                    const groupRowKeys = [...new Set([...loadedRowListKeys, ...(selectedRowKeysByGroupKey.get(reportKey) ?? [])])].filter(
-                        (key) => key !== reportKey && stampedSelection[key]?.groupKey === reportKey,
-                    );
-                    const areLoadedRowsSelected = transactionGroup.transactions.every(
-                        (transaction) => isTransactionPendingDelete(transaction) || !!stampedSelection[transaction.keyForList ?? transaction.transactionID],
-                    );
+                    // A wholly selected group whose kept rows now outnumber its count lost a row this refresh cannot name, so it stays wholly selected while every loaded row is still checked.
                     const wasGroupWhollySelected = (selectedRowKeysByGroupKey.get(reportKey) ?? []).some((key) => !!selectedTransactions[key]?.isEntireGroupSelected);
-                    const hasWhollySelectedGroupShrunk = wasGroupWhollySelected && groupCount !== undefined && groupRowKeys.length > remainingGroupCount;
-                    for (const key of groupRowKeys) {
-                        const isEntireGroupSelected = areLoadedRowsSelected && (!!stampedSelection[key].isEntireGroupSelected || hasWhollySelectedGroupShrunk);
-                        if (stampedSelection[key].isEntireGroupSelected !== isEntireGroupSelected) {
-                            stampedSelection[key] = {...stampedSelection[key], isEntireGroupSelected};
+                    if (wasGroupWhollySelected && groupCount !== undefined && areLoadedRowsSelected(stampedSelection, transactionGroup.transactions)) {
+                        const loadedRowListKeys = transactionGroup.transactions.map((transaction) => transaction.keyForList ?? transaction.transactionID);
+                        const groupRowKeys = [...new Set([...loadedRowListKeys, ...(selectedRowKeysByGroupKey.get(reportKey) ?? [])])].filter(
+                            (key) => key !== reportKey && stampedSelection[key]?.groupKey === reportKey,
+                        );
+                        if (groupRowKeys.length > remainingGroupCount) {
+                            for (const key of groupRowKeys) {
+                                stampedSelection[key] = {...stampedSelection[key], isEntireGroupSelected: true};
+                            }
                         }
                     }
                     for (const [key, entry] of Object.entries(stampedSelection)) {
@@ -831,8 +828,7 @@ function SearchWriteActionsProvider({
                         selectedTransactions: updatedTransactions,
                         groupKey,
                         groupCount: getSearchGroupCount(parentGroup) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
-                        loadedChildrenCount: loadedChildren.length,
-                        loadedSelectableCount: loadedChildren.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
+                        loadedRows: loadedChildren,
                     });
                 }
 
@@ -923,8 +919,7 @@ function SearchWriteActionsProvider({
                     },
                     groupKey,
                     groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
-                    loadedChildrenCount: groupTransactions.length,
-                    loadedSelectableCount: selectableTransactions.length,
+                    loadedRows: groupTransactions,
                 });
                 // A report row's own selection is derived from `selectedReports`, so this one commit has to re-derive it.
             },
@@ -965,8 +960,7 @@ function SearchWriteActionsProvider({
                                 selectedTransactions: Object.fromEntries(entries),
                                 groupKey: item.keyForList,
                                 groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList),
-                                loadedChildrenCount: item.transactions.length,
-                                loadedSelectableCount: selectableTransactions.length,
+                                loadedRows: item.transactions,
                             }),
                         );
                     });
