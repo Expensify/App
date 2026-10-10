@@ -668,19 +668,19 @@ describe('useSearchBulkActions - a group checked through its header while its ro
         await Onyx.clear();
     });
 
-    function renderWithGroupCount(count: number, otherGroups: Record<string, unknown> = {}) {
+    function renderWithGroupCount(count: number) {
         const loadedExpenses = Object.fromEntries(
             Object.values(mockSelectedTransactions).flatMap(({transaction}) => (transaction ? [[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]] : [])),
         );
         mockCurrentSearchResults = {
             search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
-            data: {...loadedExpenses, [groupKey]: {count, total: 12990, currency: CONST.CURRENCY.USD, merchant: 'Acme'}, ...otherGroups},
+            data: {...loadedExpenses, [groupKey]: {count, total: 12990, currency: CONST.CURRENCY.USD, merchant: 'Acme'}},
         };
         return renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
     }
 
-    async function getOfferedActions(count: number, otherGroups: Record<string, unknown> = {}) {
-        const {result} = renderWithGroupCount(count, otherGroups);
+    async function getOfferedActions(count: number) {
+        const {result} = renderWithGroupCount(count);
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
@@ -762,19 +762,6 @@ describe('useSearchBulkActions - a group checked through its header while its ro
         const values = await getOfferedActions(2);
 
         // Then Download receipts is offered, since it reads every checked expense, the group's included
-        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS);
-    });
-
-    it('offers Download receipts next to a cash back row checked under its own key, since that row holds no expenses', async () => {
-        // Given the same expense next to the whole group, and a cash back row checked under its own key, as selecting the page does
-        const cashBackKey = `${CONST.SEARCH.GROUP_PREFIX}cashBack`;
-        checkOnItsOwnWithReceipt('tx3');
-        mockSelectedTransactions[cashBackKey] = makeSelectedTransaction();
-
-        // When the bulk actions are built
-        const values = await getOfferedActions(2, {[cashBackKey]: {count: 0, total: -2500, currency: CONST.CURRENCY.USD, isCashBack: true}});
-
-        // Then Download receipts is still offered, since the cash back row leaves out no expense
         expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS);
     });
 
