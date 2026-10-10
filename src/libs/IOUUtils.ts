@@ -407,6 +407,7 @@ function navigateToConfirmationPage(
     shouldNavigateToSubmit = false,
     reportIDParam: string | undefined = undefined,
     fromManualDistanceRequest = false,
+    backTo?: string,
 ) {
     endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
     startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT, {
@@ -416,7 +417,7 @@ function navigateToConfirmationPage(
     });
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport, undefined, backTo));
             break;
         case CONST.IOU.TYPE.CREATE:
             Navigation.navigate(
@@ -427,14 +428,16 @@ function navigateToConfirmationPage(
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     reportIDParam || reportID,
                     backToReport,
+                    undefined,
+                    backTo,
                 ),
             );
             break;
         case CONST.IOU.TYPE.SEND:
             if (fromManualDistanceRequest) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport, undefined, backTo));
             } else {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID, undefined, undefined, backTo));
             }
             break;
         default:
@@ -446,6 +449,8 @@ function navigateToConfirmationPage(
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     reportIDParam || reportID,
                     backToReport,
+                    undefined,
+                    backTo,
                 ),
             );
     }

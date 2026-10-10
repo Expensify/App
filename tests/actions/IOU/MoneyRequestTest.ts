@@ -1268,6 +1268,70 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should pass confirmationBackTo to navigateToConfirmationPage when provided', async () => {
+            // Given confirmationBackTo route for distance navigation
+            const confirmationBackTo = 'test-confirmation-back-to';
+
+            // When distance navigation handles the request
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                confirmationBackTo,
+                shouldSkipConfirmation: false,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then it should pass confirmationBackTo to navigate to confirmation page
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    CONST.IOU.TYPE.SUBMIT,
+                    baseParams.transactionID,
+                    baseParams.reportID,
+                    baseParams.backToReport,
+                    undefined,
+                    confirmationBackTo,
+                ),
+            );
+        });
+
+        it('should pass backToReport to navigateToConfirmationPage when provided', async () => {
+            // Given backToReport parameter for distance navigation
+            const backToReport = 'test-back-to-report';
+
+            // When distance navigation handles the request
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                backToReport,
+                shouldSkipConfirmation: false,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then it should pass backToReport to navigate to confirmation page
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    CONST.IOU.TYPE.SUBMIT,
+                    baseParams.transactionID,
+                    baseParams.reportID,
+                    backToReport,
+                    undefined,
+                    undefined,
+                ),
+            );
+        });
+
         it('should navigate to confirmation page for CREATE flow from global menu', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 

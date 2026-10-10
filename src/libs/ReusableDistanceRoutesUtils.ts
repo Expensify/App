@@ -58,6 +58,47 @@ function formatLastUsed(inserted: string): string {
 }
 
 /**
+ * Generates a stable key for a route based on its ordered waypoint coordinates or addresses.
+ */
+function getRouteKey(route: ReusableDistanceRoute): string {
+    const orderedWaypoints = getOrderedWaypoints(route);
+    return orderedWaypoints
+        .map((waypoint) => {
+            const lat = typeof waypoint.lat === 'number' ? waypoint.lat : Number(waypoint.lat);
+            const lng = typeof waypoint.lng === 'number' ? waypoint.lng : Number(waypoint.lng);
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                return `${Math.round(lat * 1e5)},${Math.round(lng * 1e5)}`;
+            }
+            return waypoint.address ?? '';
+        })
+        .join(';');
+}
+
+const routeThumbnailCache = new Map<string, string>();
+
+function getCachedRouteThumbnail(routeKey: string): string | undefined {
+    return routeThumbnailCache.get(routeKey);
+}
+
+function setCachedRouteThumbnail(routeKey: string, thumbnailSource: string) {
+    if (!routeKey || !thumbnailSource) {
+        return;
+    }
+    routeThumbnailCache.set(routeKey, thumbnailSource);
+}
+
+function setCachedRouteThumbnailIfEmpty(routeKey: string, thumbnailSource: string) {
+    if (!routeKey || !thumbnailSource || routeThumbnailCache.has(routeKey)) {
+        return;
+    }
+    routeThumbnailCache.set(routeKey, thumbnailSource);
+}
+
+function clearRouteThumbnailCache() {
+    routeThumbnailCache.clear();
+}
+
+/**
  * Builds the large thumbnail URL for the source expense receipt.
  */
 function getRouteThumbnailSource(receiptSource: string | undefined): string | undefined {
@@ -71,4 +112,16 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
     return `${resolvedSource}.1024.jpg`;
 }
 
-export {getOrderedWaypoints, getRouteEndpoints, filterRoutes, formatLastUsed, getRouteThumbnailSource, normalizeRouteWaypoints};
+export {
+    clearRouteThumbnailCache,
+    filterRoutes,
+    formatLastUsed,
+    getCachedRouteThumbnail,
+    getOrderedWaypoints,
+    getRouteEndpoints,
+    getRouteKey,
+    getRouteThumbnailSource,
+    normalizeRouteWaypoints,
+    setCachedRouteThumbnail,
+    setCachedRouteThumbnailIfEmpty,
+};

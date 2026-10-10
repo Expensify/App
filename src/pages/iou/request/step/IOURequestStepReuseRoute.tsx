@@ -21,11 +21,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {filterRoutes, getRouteEndpoints} from '@libs/ReusableDistanceRoutesUtils';
+import {filterRoutes, getRouteEndpoints, getRouteKey, getRouteThumbnailSource, setCachedRouteThumbnailIfEmpty} from '@libs/ReusableDistanceRoutesUtils';
 import {getRateID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReusableDistanceRoute} from '@src/types/onyx';
 
@@ -50,7 +51,7 @@ type IOURequestStepReuseRouteProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepReuseRoute({
     report,
     route: {
-        params: {action, iouType, transactionID, reportID},
+        params: {action, iouType, transactionID, reportID, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -86,6 +87,22 @@ function IOURequestStepReuseRoute({
             };
         }, []),
     );
+
+    useEffect(() => {
+        if (!reusableDistanceRoutes?.length) {
+            return;
+        }
+        for (const route of reusableDistanceRoutes) {
+            const key = getRouteKey(route);
+            if (!key || !route.receiptSource) {
+                continue;
+            }
+            const thumbnail = getRouteThumbnailSource(route.receiptSource);
+            if (thumbnail) {
+                setCachedRouteThumbnailIfEmpty(key, thumbnail);
+            }
+        }
+    }, [reusableDistanceRoutes]);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const customUnitRateID = getRateID(transaction);
@@ -125,7 +142,8 @@ function IOURequestStepReuseRoute({
         currentUserAccountID: currentUserPersonalDetails.accountID,
         currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo: undefined,
-        backToReport: undefined,
+        backToReport,
+        confirmationBackTo: ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID, backToReport),
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,
@@ -165,7 +183,7 @@ function IOURequestStepReuseRoute({
     const data: ReuseRouteListItemData[] = filteredRoutes.map((route) => ({
         route,
         text: getRouteEndpoints(route).start,
-        keyForList: route.transactionID,
+        keyForList: getRouteKey(route) || route.transactionID,
         shouldHideSelectionButton: true,
     }));
 
@@ -181,31 +199,26 @@ function IOURequestStepReuseRoute({
             testID="IOURequestStepReuseRoute"
             includeSafeAreaPaddingBottom
         >
-            {({didScreenTransitionEnd}) => {
-                if (!didScreenTransitionEnd) {
-                    return null;
-                }
-                return (
-                    <>
-                        <Text style={[styles.ph5, styles.pb2, styles.textSupporting]}>{translate('distance.choosePreviousRoute')}</Text>
-                        <SelectionList
-                            data={data}
-                            onSelectRow={selectRoute}
-                            textInputOptions={{
-                                label: translate('distance.findARoute'),
-                                value: searchValue,
-                                onChangeText: setSearchValue,
-                                headerMessage,
-                            }}
-                            ListItem={ReuseRouteListItem}
-                            shouldShowLoadingPlaceholder={!!isLoadingReusableDistanceRoutes && routes.length === 0}
-                            customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
-                            shouldShowListEmptyContent={false}
-                            shouldSingleExecuteRowSelect
-                        />
-                    </>
-                );
-            }}
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <Text style={[styles.ph5, styles.pb2, styles.textSupporting]}>{translate('distance.choosePreviousRoute')}</Text>
+                    <SelectionList
+                        data={data}
+                        onSelectRow={selectRoute}
+                        textInputOptions={{
+                            label: translate('distance.findARoute'),
+                            value: searchValue,
+                            onChangeText: setSearchValue,
+                            headerMessage,
+                        }}
+                        ListItem={ReuseRouteListItem}
+                        shouldShowLoadingPlaceholder={!didScreenTransitionEnd || (!!isLoadingReusableDistanceRoutes && routes.length === 0)}
+                        customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
+                        shouldShowListEmptyContent={false}
+                        shouldSingleExecuteRowSelect
+                    />
+                </>
+            )}
         </StepScreenWrapper>
     );
 }
