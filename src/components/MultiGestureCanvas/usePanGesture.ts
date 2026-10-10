@@ -1,10 +1,12 @@
 import {isMobile} from '@libs/Browser';
 
-import type {LegacyPanGesture} from 'react-native-gesture-handler';
+import type {PanGesture, PanGestureConfig} from 'react-native-gesture-handler';
 
 import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
-import {Gesture} from 'react-native-gesture-handler';
+// Aliased because this hook has the same name. The worklets Babel plugin only turns the callbacks of a Gesture Handler
+// hook into worklets automatically when the hook is called by its own name, so every callback below is marked with 'worklet'.
+import {GestureStateManager, usePanGesture as useGestureHandlerPanGesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -36,7 +38,10 @@ type UsePanGestureProps = Pick<
     | 'shouldDisableSwipeDownToClose'
     | 'onSwipeDown'
     | 'isSwipingDownToClose'
->;
+> & {
+    /** Gestures outside of the canvas (e.g. the pager) that can run simultaneously with the pan */
+    simultaneousWith: PanGestureConfig['simultaneousWith'];
+};
 
 const usePanGesture = ({
     canvasSize,
@@ -52,7 +57,8 @@ const usePanGesture = ({
     isSwipingDownToClose,
     shouldDisableSwipeDownToClose,
     onSwipeDown,
-}: UsePanGestureProps): LegacyPanGesture => {
+    simultaneousWith,
+}: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.get(), [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.get(), [contentSize.height]);
@@ -181,16 +187,21 @@ const usePanGesture = ({
         panVelocityY.set(0);
     }, [getBounds, isSwipingDownToClose, offsetX, offsetY, onSwipeDown, panTranslateX, panTranslateY, panVelocityX, panVelocityY, shouldDisableSwipeDownToClose, zoomScale]);
 
-    const panGesture = Gesture.Pan()
-        .manualActivation(true)
-        .averageTouches(true)
-        .onTouchesUp(() => {
+    const panGesture = useGestureHandlerPanGesture({
+        manualActivation: true,
+        averageTouches: true,
+        simultaneousWith,
+        onTouchesUp: () => {
+            'worklet';
+
             previousTouch.set(null);
-        })
-        .onTouchesMove((evt, state) => {
+        },
+        onTouchesMove: (evt) => {
+            'worklet';
+
             // We only allow panning when the content is zoomed in
             if (zoomScale.get() > 1 && !shouldDisableTransformationGestures.get()) {
-                state.activate();
+                GestureStateManager.activate(evt.handlerTag);
             }
 
             // TODO: this needs tuning to work properly
@@ -200,7 +211,7 @@ const usePanGesture = ({
                 const velocityY = (evt.allTouches.at(0)?.y ?? 0) - previousTouchValue.y;
 
                 if (Math.abs(velocityY) > velocityX && velocityY > 20) {
-                    state.activate();
+                    GestureStateManager.activate(evt.handlerTag);
 
                     isSwipingDownToClose.set(true);
                     previousTouch.set(null);
@@ -215,11 +226,15 @@ const usePanGesture = ({
                     y: evt.allTouches.at(0)?.y ?? 0,
                 });
             }
-        })
-        .onStart(() => {
+        },
+        onActivate: () => {
+            'worklet';
+
             stopAnimation();
-        })
-        .onChange((evt) => {
+        },
+        onUpdate: (evt) => {
+            'worklet';
+
             // Since we're running both pinch and pan gesture handlers simultaneously,
             // we need to make sure that we don't pan when we pinch since we track it as pinch focal gesture.
             if (evt.numberOfPointers > 1) {
@@ -238,8 +253,10 @@ const usePanGesture = ({
             if (enableSwipeDownToClose.get() || isSwipingDownToClose.get()) {
                 panTranslateY.set((value) => value + evt.changeY);
             }
-        })
-        .onEnd(() => {
+        },
+        onDeactivate: () => {
+            'worklet';
+
             // Add pan translation to total offset and reset gesture variables
             offsetX.set((value) => value + panTranslateX.get());
             offsetY.set((value) => value + panTranslateY.get());
@@ -255,7 +272,8 @@ const usePanGesture = ({
             }
 
             finishPanGesture();
-        });
+        },
+    });
 
     return panGesture;
 };

@@ -132,7 +132,7 @@ function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanv
                     canvasSize={canvasSize}
                     contentSize={canvasSize}
                     zoomRange={PDF_ZOOM_RANGE}
-                    pagerRef={state?.pagerRef}
+                    pagerGesture={state?.pagerGesture}
                     isUsedInCarousel={!!state?.pagerRef}
                     shouldDisableTransformationGestures={state?.isPagerScrolling ?? isPagerScrollingFallback}
                     isTransformGestureActive={isTransformGestureActive}
