@@ -182,6 +182,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                 {shouldAttemptPDFLoad && (
                     <PDF
                         fitPolicy={0}
+                        enableDoubleTapZoom
                         trustAllCerts={false}
                         renderActivityIndicator={() => <LoadingIndicator style={loadingIndicatorStyles} />}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}
