@@ -241,7 +241,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_CONFIRMATION: {
         path: 'workspace/confirmation',
-        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.SETTINGS.ROOT],
+        entryScreens: ['*'],
     },
     WORKSPACE_CONFIRMATION_CURRENCY: {
         path: 'currency',
