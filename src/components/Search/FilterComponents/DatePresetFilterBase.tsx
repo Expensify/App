@@ -129,8 +129,7 @@ function DatePresetFilterBase({
     const {translate, dateFnsLocale} = useLocalize();
 
     const shouldShowHorizontalRule = !!presets?.length;
-    const isCustomDayOnly = allowedCustomDateModifiers.length === 1 && allowedCustomDateModifiers.at(0) === CONST.SEARCH.DATE_MODIFIERS.ON;
-    const customDateTitle = translate(isCustomDayOnly ? 'search.filters.date.customDay' : 'search.filters.date.customDate');
+    const customDateTitle = translate('search.filters.date.customDate');
     const customRangeTitle = translate('search.filters.date.customRange');
     const normalizedDefaultDateValues = useMemo(() => normalizeDateValues(defaultDateValues), [defaultDateValues]);
 

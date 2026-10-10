@@ -173,6 +173,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
     const headerMessage = getHeaderMessage(
+        translate,
         personalDetails.length + recentReports.length !== 0,
         !!userToInvite,
         debouncedSearchTerm.trim(),
