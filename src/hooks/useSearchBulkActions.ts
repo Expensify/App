@@ -2668,7 +2668,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return buildResult(deletedTransactionOptions);
         }
 
-        // A group entry stands for expenses that are not loaded, so Edit multiple and Merge, which act only on the expenses they can read, would leave the group out.
+        // A group entry stands for expenses that are not loaded, so Edit multiple, Merge and Download receipts, which act only on the expenses they can read, would leave the group out.
         const hasGroupEntrySelected = selectedTransactionsKeys.some(isGroupEntry);
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
@@ -2996,7 +2996,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const selected = selectedTransactions[key];
             return hasReceiptTransactionUtils(selected?.transaction) && !isDeletedTransaction(selected ?? {});
         });
-        if (isExpenseSearch && transactionIDs.length > 0) {
+        if (isExpenseSearch && !hasGroupEntrySelected && transactionIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
                 text: translate('common.downloadReceipt', {count: transactionIDs.length}),

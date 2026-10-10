@@ -638,6 +638,11 @@ describe('useSearchBulkActions - a group checked through its header while its ro
         mockSelectedTransactions[transactionID] = makeSelectedTransaction({transaction: buildUnreportedExpense(transactionID), reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
     }
 
+    function checkOnItsOwnWithReceipt(transactionID: string) {
+        const transaction = {...buildUnreportedExpense(transactionID), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
+        mockSelectedTransactions[transactionID] = makeSelectedTransaction({transaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+    }
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -736,6 +741,28 @@ describe('useSearchBulkActions - a group checked through its header while its ro
 
         // Then Merge is not offered, since it would merge the one expense as if nothing else were checked
         expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.MERGE);
+    });
+
+    it('does not offer Download receipts for an expense checked next to a group that is still loading', async () => {
+        // Given one expense with a receipt checked on its own next to a 692-expense group checked through its header
+        checkOnItsOwnWithReceipt('tx3');
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(692);
+
+        // Then Download receipts is not offered, since it would download the one receipt and none of the group's
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS);
+    });
+
+    it('offers Download receipts for the same selection once every row of the group is loaded', async () => {
+        // Given the same expense next to the group, whose two checked rows are now the whole group
+        checkOnItsOwnWithReceipt('tx3');
+
+        // When the bulk actions are built
+        const values = await getOfferedActions(2);
+
+        // Then Download receipts is offered, since it reads every checked expense, the group's included
+        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS);
     });
 
     it('offers Move under Select all next to a group that is still loading, since the move is sent as the query', async () => {
