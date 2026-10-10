@@ -10,12 +10,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -34,12 +35,16 @@ function ConciergePage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    // Onboarding opens on top of this page for a new account, and the redirect below dismisses the top modal, so it
+    // would close onboarding before it is finished. The link is opened once onboarding completes instead.
+    const isWaitingForOnboarding = !CONFIG.SKIP_ONBOARDING && hasCompletedGuidedSetupFlow === false;
 
     useFocusEffect(
         useCallback(() => {
             if (session && 'authToken' in session) {
                 Navigation.isNavigationReady().then(() => {
-                    if (isUnmounted.current || isLoadingReportData === undefined || !!isLoadingReportData) {
+                    if (isUnmounted.current || isLoadingReportData === undefined || !!isLoadingReportData || isWaitingForOnboarding) {
                         return;
                     }
 
@@ -56,7 +61,7 @@ function ConciergePage() {
             } else {
                 Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, conciergePersonalDetails]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, conciergePersonalDetails, isWaitingForOnboarding]),
     );
 
     useEffect(() => {
