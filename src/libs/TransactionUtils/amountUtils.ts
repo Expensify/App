@@ -23,10 +23,11 @@ function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>, isRe
             !!transaction?.pendingFields?.merchant ||
             !!transaction?.pendingFields?.created ||
             !!transaction?.pendingFields?.currency);
+    const isFailedOrDeletedReceipt = [CONST.IOU.RECEIPT_STATE.SCAN_FAILED, CONST.IOU.RECEIPT_STATE.DELETED].some((state) => state === transaction?.receipt?.state);
     return (
         !isReportSettled &&
         transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN &&
-        (transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED || isOpenWithUnconfirmedAmount) &&
+        (isFailedOrDeletedReceipt || isOpenWithUnconfirmedAmount) &&
         (transaction?.amount === 0 || transaction?.amount === undefined) &&
         !hasValidModifiedAmount(transaction) &&
         !transaction?.isAmountSet
