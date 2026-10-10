@@ -444,13 +444,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </View>
                         )}
                         {shouldShowSpendRulesSummary && (
-                            <MenuItemWithTopDescription
-                                interactive={false}
-                                description={translate('cardPage.spendRules')}
-                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                titleComponent={spendRulesTitleComponent}
-                                accessibilityLabel={spendRulesSummary.join('. ')}
-                            />
+                            <MenuItem.Root accessibilityLabel={spendRulesSummary.join('. ')}>
+                                <MenuItem.Row>
+                                    <MenuItemField.Content name={translate('cardPage.spendRules')}>{spendRulesTitleComponent}</MenuItemField.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         )}
                         <MenuItem.Root>
                             <MenuItemField.Row

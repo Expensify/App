@@ -99,11 +99,8 @@ function asReportOnyxResult(report: Report | undefined): UseOnyxResult<Report> {
     return [report, loadedReportMetadata];
 }
 
-function wireReportOnyx(moneyReport: Report | undefined, chatReport: Report | undefined, hookReportID: string | undefined, singleExpenseReportView?: string): void {
+function wireReportOnyx(moneyReport: Report | undefined, chatReport: Report | undefined, hookReportID: string | undefined): void {
     mockUseOnyx.mockImplementation((key: OnyxKey) => {
-        if (key === ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW) {
-            return [singleExpenseReportView, loadedReportMetadata];
-        }
         const moneyReportKey = collectionReportKey(hookReportID);
         if (key === moneyReportKey) {
             return asReportOnyxResult(moneyReport);
@@ -209,38 +206,6 @@ describe('useTransactionThreadReportID', () => {
         expect(result.current.transactionThreadReportID).toBe(THREAD_REPORT_ID);
         expect(result.current.effectiveTransactionThreadReportID).toBe(THREAD_REPORT_ID);
         expect(result.current.reportActions?.map((a) => a.reportActionID)).toEqual(['iou-created-1']);
-    });
-
-    it('returns no effective thread when the user views single-expense reports in the table view', () => {
-        // Given a single-expense report and a user who picked the table view, where the thread's actions aren't shown
-        const moneyReport = makeExpenseReportWithChat();
-
-        wireReportOnyx(moneyReport, makeDMChatReport(), MONEY_REPORT_ID, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
-        const iouCreate = makeIOUCreatedAction({childReportID: THREAD_REPORT_ID});
-        mockUsePaginatedReportActions.mockReturnValue({
-            reportActions: [iouCreate],
-            linkedAction: undefined,
-            oldestUnreadReportAction: undefined,
-            sortedAllReportActions: [iouCreate],
-            hasOlderActions: false,
-            hasNewerActions: false,
-            report: moneyReport,
-        });
-        mockUseReportTransactionsCollection.mockReturnValue(
-            transactionsRecordForReport([
-                createMock<Transaction>({
-                    transactionID: 'txn-1',
-                    reportID: MONEY_REPORT_ID,
-                }),
-            ]),
-        );
-
-        // When the hook resolves the thread
-        const {result} = renderHook(() => useTransactionThreadReportID(MONEY_REPORT_ID));
-
-        // Then the thread is still found, but comments target the report so they show up in the table view
-        expect(result.current.transactionThreadReportID).toBe(THREAD_REPORT_ID);
-        expect(result.current.effectiveTransactionThreadReportID).toBeUndefined();
     });
 
     it('uses CONST.FAKE_REPORT_ID when no childReportID is set on the lone IOU request action', () => {
