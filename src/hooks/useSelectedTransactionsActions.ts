@@ -177,13 +177,20 @@ function useSelectedTransactionsActions({
 
     const hasTransactionsFromMultipleOwners = hasUnknownOwner ? knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1 : knownOwnerIDs.size > 1;
 
-    // The `reportActions` prop is the paginated chain, so it can miss IOU actions that are already in Onyx. Check the full collection first.
+    // The `reportActions` prop is the paginated chain, so it can miss IOU actions that are already in Onyx. Also search the full collection.
+    // Build each report's combined list once per render, because this is called inside several loops over the selected transactions.
+    const combinedReportActionsByReportID = new Map<string | undefined, ReportAction[]>();
     const getTransactionIOUAction = (transaction: Transaction | undefined, transactionID: string) => {
         // Unreported expenses keep their IOU action under the self-DM report rather than under `transaction.reportID`
         const transactionReportID = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : transaction.reportID;
-        const transactionReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
-        // Search both sources together, so a live action in either one wins over a deleted action in the collection
-        return getIOUActionForTransactionID([...transactionReportActions, ...reportActions], transactionID, true);
+        let combinedReportActions = combinedReportActionsByReportID.get(transactionReportID);
+        if (!combinedReportActions) {
+            const transactionReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
+            // Search both sources together, so a live action in either one wins over a deleted action in the collection
+            combinedReportActions = [...transactionReportActions, ...reportActions];
+            combinedReportActionsByReportID.set(transactionReportID, combinedReportActions);
+        }
+        return getIOUActionForTransactionID(combinedReportActions, transactionID, true);
     };
 
     const {translate, localeCompare} = useLocalize();

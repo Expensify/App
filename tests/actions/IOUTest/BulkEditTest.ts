@@ -589,33 +589,36 @@ describe('actions/IOU/BulkEdit', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            // When the merchant is bulk edited
-            updateMultipleMoneyRequests({
-                isVendorMatchingBetaEnabled: false,
-                personalDetailsList: undefined,
-                transactionIDs: [transactionID],
-                changes: {merchant: 'New merchant'},
-                policy,
-                reports,
-                transactions,
-                reportActions: {},
-                policyCategories: undefined,
-                policyTags: {},
-                violations: undefined,
-                hash: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                delegateAccountID: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-                rules: undefined,
-            });
+            // Clean up in `finally` so a failed assertion doesn't leave the session, report and policy in Onyx for the next test
+            try {
+                // When the merchant is bulk edited
+                updateMultipleMoneyRequests({
+                    isVendorMatchingBetaEnabled: false,
+                    personalDetailsList: undefined,
+                    transactionIDs: [transactionID],
+                    changes: {merchant: 'New merchant'},
+                    policy,
+                    reports,
+                    transactions,
+                    reportActions: {},
+                    policyCategories: undefined,
+                    policyTags: {},
+                    violations: undefined,
+                    hash: undefined,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    delegateAccountID: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                    rules: undefined,
+                });
 
-            // Then UpdateMoneyRequest is sent with the new merchant, so Edit multiple doesn't silently save nothing for this expense
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, expect.objectContaining({transactionID}), expect.anything());
-            expect(getBulkEditUpdates(writeSpy).merchant).toBe('New merchant');
-
-            writeSpy.mockRestore();
-            await Onyx.clear();
+                // Then UpdateMoneyRequest is sent with the new merchant, so Edit multiple doesn't silently save nothing for this expense
+                expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, expect.objectContaining({transactionID}), expect.anything());
+                expect(getBulkEditUpdates(writeSpy).merchant).toBe('New merchant');
+            } finally {
+                writeSpy.mockRestore();
+                await Onyx.clear();
+            }
         });
 
         it('does not add violations for unreported expenses during bulk edit', async () => {
