@@ -1,6 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
@@ -102,7 +102,7 @@ function SearchAdvancedFiltersContentBase() {
                             // In landscape mode we want to show as much of the selection list as possible for filters that use it
                             alwaysCollapseHeaderOnKeyboard={isFilterWithSelectionList}
                         >
-                            <HeaderWithBackButton
+                            <HeaderWithBackButtonAndTitle
                                 title={translate(getFilterViewLabelKey(validFilterKey, currentValues?.type))}
                                 onBackButtonPress={goBack}
                             />
