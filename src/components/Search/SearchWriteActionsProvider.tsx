@@ -217,12 +217,12 @@ function useReconcileSelectionWithData({
                       .filter((reportID): reportID is string => !!reportID)
                 : [],
         );
-        // A group's claim is read over the whole selection rather than its loaded rows, since a refresh can bring back rows the claimed ones are not among.
-        const groupClaims = getGroupClaims(selectedTransactions);
-        const selectedRowKeysByGroupKey = getSelectedRowKeysByGroupKey(selectedTransactions);
-        // Read before any group is processed, so a row that moved to a group further down is not kept in, and counted for, the group it left.
-        const loadedRowKeys = getLoadedGroupRowKeys(filteredData);
         if (areItemsGrouped) {
+            // A group's claim is read over the whole selection rather than its loaded rows, since a refresh can bring back rows the claimed ones are not among.
+            const groupClaims = getGroupClaims(selectedTransactions);
+            const selectedRowKeysByGroupKey = getSelectedRowKeysByGroupKey(selectedTransactions);
+            // Read before any group is processed, so a row that moved to a group further down is not kept in, and counted for, the group it left.
+            const loadedRowKeys = getLoadedGroupRowKeys(filteredData);
             for (const transactionGroup of filteredData) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     continue;

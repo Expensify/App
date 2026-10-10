@@ -79,6 +79,24 @@ describe('applyShiftRangeBatchToSelection', () => {
         expect(Object.keys(updated)).toEqual(['t1']);
     });
 
+    it('gives back the rows a refresh left off the page along with the group a range no longer covers', () => {
+        // Given a group a range selected whole, with one loaded row and one row a refresh left off the loaded page, both standing for the group
+        const loaded = makeChild(1, 'c1');
+        const leftOut = makeChild(2, 'c2');
+        const group = makeGroup('groupA', [loaded]);
+        const selection: SelectedTransactions = {
+            c1: {...buildEntry(loaded)[1], groupKey: 'groupA', isSelectedViaGroup: true},
+            c2: {...buildEntry(leftOut)[1], groupKey: 'groupA', isSelectedViaGroup: true},
+        };
+        const lookups = lookupsFor(new Map([['c1', 'groupA']]), new Map([['groupA', [loaded]]]));
+
+        // When the range shrinks and gives the group back
+        const updated = applyShiftRangeBatchToSelection(batchOf([], [group]), selection, false, lookups);
+
+        // Then both rows go, as when the group's header is unchecked, so the row left off the page cannot check the group again
+        expect(updated).toEqual({});
+    });
+
     it('returns the map it was given when the batch writes nothing, so the commit bails on identity', () => {
         // Given a row already selected exactly as the range would write it
         const first = makeChild(1, 't1');

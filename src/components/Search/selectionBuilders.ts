@@ -752,6 +752,7 @@ function applyShiftRangeBatchToSelection(
         hasWritten = true;
     };
 
+    let selectedRowKeysByGroupKey: Map<string, string[]> | undefined;
     const removeRow = (row: SearchListItem) => {
         if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
             if (row.keyForList) {
@@ -766,9 +767,13 @@ function applyShiftRangeBatchToSelection(
             return;
         }
         if (isTransactionGroupListItemType(row)) {
-            // A group can hold an entry under its own key as well as under its children's.
+            // A group can hold an entry under its own key as well as under its children's, including children a refresh left off the loaded page.
             if (row.keyForList) {
                 dropKey(row.keyForList);
+                selectedRowKeysByGroupKey ??= getSelectedRowKeysByGroupKey(selection);
+                for (const key of selectedRowKeysByGroupKey.get(row.keyForList) ?? []) {
+                    dropKey(key);
+                }
             }
             for (const child of row.transactions ?? []) {
                 if (child.keyForList) {

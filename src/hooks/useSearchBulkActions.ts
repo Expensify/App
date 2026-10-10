@@ -2668,8 +2668,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return buildResult(deletedTransactionOptions);
         }
 
-        // A group entry stands for expenses that are not loaded, so Edit multiple, Merge and Download receipts, which act only on the expenses they can read, would leave the group out.
-        const hasGroupEntrySelected = selectedTransactionsKeys.some(isGroupEntry);
+        // Edit multiple, Merge and Download receipts act only on loaded expenses, so they would leave out a group entry's unloaded ones, though not a cash back row's, since it holds none.
+        const hasGroupEntrySelected = selectedTransactionsKeys.some((key) => {
+            if (!isGroupEntry(key)) {
+                return false;
+            }
+            const group = currentSearchResults?.data?.[key];
+            return !group || !('isCashBack' in group) || !group.isCashBack;
+        });
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
             .filter((transaction): transaction is Transaction => !!transaction);
