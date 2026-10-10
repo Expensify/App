@@ -78,6 +78,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
+import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -348,6 +349,12 @@ type OpenReportActionParams = {
     isFromDeepLink?: boolean;
 
     isNewThread?: boolean;
+
+    /**
+     * Remove the optimistically created report if the create fails, rather than leaving a `createChat` error on it.
+     * Set it for reports the app creates on the user's behalf, where a "Fix" badge is not actionable.
+     */
+    shouldRemoveOptimisticReportOnFailure?: boolean;
 
     /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
     transaction?: Transaction;
@@ -1696,6 +1703,7 @@ function openReport(params: OpenReportActionParams) {
         isFromDeepLink = false,
         personalDetails,
         isNewThread = false,
+        shouldRemoveOptimisticReportOnFailure = false,
         transaction,
         transactionViolations,
         parentReportID,
@@ -1720,6 +1728,10 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
+
+    // `failureData` runs after the response's own `onyxData`, so nulling these keys also clears what the server wrote.
+    const shouldRollBackOptimisticReport = isCreatingNewReport && shouldRemoveOptimisticReportOnFailure;
+
     let shouldClearManualUnreadMarker = false;
     if (!shouldKeepManualUnreadMarker) {
         // True only on a genuine return trip: `flagReportNavigatedAway` sets it on blur/unmount, so it is false on the
@@ -1830,7 +1842,7 @@ function openReport(params: OpenReportActionParams) {
         },
     ];
 
-    if (isNewThread) {
+    if (isNewThread && !shouldRollBackOptimisticReport) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1951,6 +1963,15 @@ function openReport(params: OpenReportActionParams) {
                 },
             },
         });
+
+        // The preview action exists only to point at the thread, so it goes too, or its `childReportID` dangles.
+        if (shouldRollBackOptimisticReport) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+                value: {[iouReportActionID]: null},
+            });
+        }
 
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
 
@@ -2080,7 +2101,7 @@ function openReport(params: OpenReportActionParams) {
             failureData.push(PersonalDetailsUtils.buildPersonalDetailsUpdate(settledPersonalDetails));
         }
 
-        if (!isNewThread) {
+        if (!isNewThread && !shouldRollBackOptimisticReport) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2092,11 +2113,34 @@ function openReport(params: OpenReportActionParams) {
             });
         }
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-        });
+        if (shouldRollBackOptimisticReport) {
+            // `SidebarUtils` force-displays any report carrying errors, so keeping this one leaves a dead LHN row.
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: null,
+                },
+                {
+                    // Remove only the action we created. Nulling the whole key would take anything the user queued in
+                    // the thread with it, e.g. a comment written while offline.
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    value: {[optimisticCreatedAction.reportActionID]: null},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: null,
+                },
+            );
+        } else {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+            });
+        }
 
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
@@ -2111,7 +2155,8 @@ function openReport(params: OpenReportActionParams) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childType: ''}},
+                // The thread is rolled back, so the parent action must not keep pointing at it.
+                value: {[parentReportActionID]: shouldRollBackOptimisticReport ? {childReportID: null, childType: ''} : {childType: ''}},
             });
         }
     }
@@ -2524,6 +2569,8 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         personalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
+        // The app creates this thread, not the user, so a "Fix" row on it is not actionable. Roll it back instead.
+        shouldRemoveOptimisticReportOnFailure: true,
         transaction,
         transactionViolations,
         parentReportID: selfDMReportID,
@@ -6151,10 +6198,6 @@ type CompleteOnboardingProps = {
     selfDMReport?: OnyxEntry<Report>;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;
-    /** The domain of the user's company, used by the join-workspace onboarding tasks. */
-    companyDomain?: string;
-    /** The user's work email, used by the join-workspace onboarding tasks. */
-    workEmail?: string;
     /** The account ID of the current user, used to build the onboarding Onyx data. */
     currentUserAccountID: number;
     /** AccountID of the delegate acting on behalf of the current user */
@@ -6184,8 +6227,6 @@ async function completeOnboarding({
     adminsChatReport,
     selfDMReport,
     shouldSkipConciergeOnboarding,
-    companyDomain,
-    workEmail,
     currentUserAccountID,
     delegateAccountID,
 }: CompleteOnboardingProps) {
@@ -6205,8 +6246,6 @@ async function completeOnboarding({
         adminsChatReport,
         selfDMReport,
         shouldSkipConciergeOnboarding,
-        companyDomain,
-        workEmail,
         currentUserAccountID,
         delegateAccountID,
     });
@@ -6241,11 +6280,20 @@ async function completeOnboarding({
         await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP);
 
         if (!isOfflineNetwork()) {
+            // Pop onboarding nested stack after waiting so the modal doesn't rewind to step 1
+            // during the wait. Must run before the API call so useLinking processes each step
+            // pop before the optimistic data unmounts the modal.
+            resetOnboardingStackToRoot();
+
             // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
             return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
         }
     }
+
+    // Pop onboarding nested stack just before the API write so useLinking removes browser
+    // history entries for each step before the optimistic data unmounts the modal.
+    resetOnboardingStackToRoot();
 
     // API calls are not chained in this case
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -8916,6 +8964,8 @@ function mergeReports({
                 pendingFields: {
                     preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
+                errors: null,
+                errorFields: null,
             },
         });
 
@@ -8976,7 +9026,7 @@ function mergeReports({
     const failureData = [...moveFailureData, ...deleteFailureData];
 
     if (hash) {
-        const optimisticSnapshotData: SearchResultDataType = {};
+        const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
         const failureSnapshotData: SearchResultDataType = {};
         for (const transaction of transactionsToMove) {
             optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
@@ -8992,7 +9042,8 @@ function mergeReports({
                 optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {
                     ...sourceReport,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                };
+                    errors: null,
+                } as NullishDeep<Report>;
 
                 failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {...sourceReport, pendingAction: sourceReport.pendingAction ?? null};
             }

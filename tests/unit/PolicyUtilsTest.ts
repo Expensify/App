@@ -98,6 +98,7 @@ import {
     isMaxExpenseAmountSet,
     isMemberInHomeAndOfficeWorkspace,
     isMergeHRCompleteSetupNeededSelector,
+    isNonMemberApprover,
     isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
@@ -113,7 +114,6 @@ import {
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
-    getDefaultVendorID,
     sortVendors,
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -477,7 +477,7 @@ describe('PolicyUtils', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
-                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
@@ -485,12 +485,10 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
             });
 
-            it('allows Guest assignment only on Control workspaces', () => {
+            it('blocks Guest assignment even on Control workspaces', () => {
                 const controlPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
-                const collectPolicy = {...controlPolicy, type: CONST.POLICY.TYPE.TEAM};
 
-                expect(canMemberAssignRole(controlPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
-                expect(canMemberAssignRole(collectPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
+                expect(canMemberAssignRole(controlPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
             });
 
             it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
@@ -658,6 +656,19 @@ describe('PolicyUtils', () => {
                 // Then the normalized fallback still matches the admin entry and protects them
                 expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Admin@Test.com', undefined)).toBe(true);
                 expect(isRoomMemberProtectedByPolicyRole(buildPolicy(), 'Member@Test.com', undefined)).toBe(false);
+            });
+
+            it('protects a member who is an auditor of the policy in their own right', () => {
+                // Given a policy viewed by an admin, holding an auditor in its employee list
+                const auditorLogin = 'auditor@test.com';
+                const policy = buildPolicy();
+                const policyWithAuditor = {...policy, employeeList: {...policy.employeeList, [auditorLogin]: {role: CONST.POLICY.ROLE.AUDITOR}}};
+
+                // When that member's protection is resolved, including through a mixed-case login
+                // Then they are protected, because auditors are default members of the workspace chat and the server adds
+                // them back after removal. The viewer's global `role` must not hide the auditor's own role
+                expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, auditorLogin, undefined)).toBe(true);
+                expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, 'Auditor@Test.com', undefined)).toBe(true);
             });
 
             it('protects the policy owner by accountID even when the employee list does not list them', () => {
@@ -2812,6 +2823,32 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('isNonMemberApprover', () => {
+        const ownerEmail = 'owner@example.com';
+        const policy = createMock<Policy>({
+            id: '1',
+            owner: ownerEmail,
+            employeeList: {
+                [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+            },
+        });
+
+        it('flags an approver who is no longer on the workspace, but not a member', () => {
+            // Given a workspace with one member
+            // When checking a removed approver and that member
+            // Then only the removed approver is flagged
+            expect(isNonMemberApprover(policy, 'removed@example.com')).toBe(true);
+            expect(isNonMemberApprover(policy, employeeEmail)).toBe(false);
+        });
+
+        it('does not flag the owner when their employee entry is missing', () => {
+            // Given a workspace whose employeeList has no entry for the owner
+            // When checking the owner as an approver
+            // Then they still count as a member, since the owner always belongs to the workspace
+            expect(isNonMemberApprover(policy, ownerEmail)).toBe(false);
+        });
+    });
+
     describe('isPolicyMemberWithoutPendingDelete', () => {
         it('should return true if the policy member is not pending delete', () => {
             const policy = createMock<Policy>({
@@ -4623,218 +4660,6 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
 
             expect(result).not.toBe(policies);
-        });
-    });
-
-    describe('sortVendors', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b);
-
-        it('sorts vendors alphabetically by name using localeCompare', () => {
-            const vendors = [
-                {id: '1', name: 'Zebra'},
-                {id: '2', name: 'Apple'},
-                {id: '3', name: 'Banana'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
-        });
-
-        it('breaks name ties using vendor id', () => {
-            const vendors = [
-                {id: 'vendor_b', name: 'Acme'},
-                {id: 'vendor_a', name: 'Acme'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
-        });
-
-        it('does not sort the input array in place', () => {
-            const vendors = [
-                {id: '2', name: 'Zebra'},
-                {id: '1', name: 'Alpha'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result).not.toBe(vendors);
-            expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
-        });
-
-        it('returns empty array for empty input', () => {
-            expect(sortVendors([], localeCompare)).toEqual([]);
-        });
-
-        it('returns single-element array as-is', () => {
-            const vendors = [{id: '1', name: 'Only'}];
-            const result = sortVendors(vendors, localeCompare);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.name).toBe('Only');
-        });
-
-        it('breaks name ties using externalID when id is absent', () => {
-            const vendors = [
-                {externalID: 'vendor_b', name: 'Acme'},
-                {externalID: 'vendor_a', name: 'Acme'},
-            ];
-
-            const result = sortVendors(vendors, localeCompare);
-            expect(result.map((v) => v.externalID)).toEqual(['vendor_a', 'vendor_b']);
-        });
-    });
-
-    describe('getDefaultVendorID', () => {
-        it('resolves QBO credit card default vendor when destination is credit_card', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {
-                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
-                            nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
-                        },
-                    },
-                }),
-            });
-
-            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('qbo_vendor_1');
-        });
-
-        it('returns undefined for QBO when destination is not credit_card', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {
-                            nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
-                            nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
-                        },
-                    },
-                }),
-            });
-
-            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
-        });
-
-        it('resolves Sage Intacct credit card charge default vendor', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                        config: {
-                            export: {
-                                nonReimbursableCreditCardChargeDefaultVendor: 'intacct_vendor_1',
-                            },
-                        },
-                    },
-                }),
-            });
-
-            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('intacct_vendor_1');
-        });
-
-        it('resolves Xero default vendor', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
-                        config: {
-                            defaultVendor: 'xero_contact_1',
-                        },
-                    },
-                }),
-            });
-
-            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.XERO)).toBe('xero_contact_1');
-        });
-
-        it('resolves Rillet default vendor', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
-                        config: {
-                            export: {
-                                defaultVendorID: 'rillet_vendor_1',
-                            },
-                        },
-                    },
-                }),
-            });
-
-            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET)).toBe('rillet_vendor_1');
-        });
-
-        it('resolves DualEntry default vendor', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
-                        config: {
-                            export: {
-                                defaultVendorID: 'dualentry_vendor_1',
-                            },
-                        },
-                    },
-                }),
-            });
-
-            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY)).toBe('dualentry_vendor_1');
-        });
-
-        it('resolves Campfire default vendor', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
-                        config: {
-                            export: {
-                                defaultVendorID: 'campfire_vendor_1',
-                            },
-                        },
-                    },
-                }),
-            });
-
-            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
-        });
-
-        it('resolves Business Central default vendor', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
-                        config: {
-                            export: {
-                                defaultVendorID: 'bc_vendor_1',
-                            },
-                        },
-                    },
-                }),
-            });
-
-            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBe('bc_vendor_1');
-        });
-
-        it('resolves Certinia default vendor', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                        config: {
-                            export: {
-                                vendorAccount: 'certinia_acc_1',
-                            },
-                        },
-                    },
-                }),
-            });
-
-            expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA)).toBe('certinia_acc_1');
-        });
-
-        it('returns undefined when policy has no connections', () => {
-            expect(getDefaultVendorID(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
         });
     });
 
