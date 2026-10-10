@@ -272,10 +272,11 @@ function useSearchBulkActionsWithDuplicate({queryJSON}: {queryJSON: SearchQueryJ
  */
 function useSearchBulkActionsWithDuplicateReport({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const actions = useSearchBulkActions({queryJSON});
-    const {setDuplicateReportHandler, allReports} = actions;
+    const {setDuplicateReportHandler, allReports, allTransactions} = actions;
     const handleDuplicateReport = useBulkDuplicateReportAction({
         selectedReports: mockSelectedReports,
         allReports,
+        allTransactions,
         searchData: undefined,
     });
     useEffect(() => {
