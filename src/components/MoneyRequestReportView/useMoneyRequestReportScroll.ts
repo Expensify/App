@@ -154,17 +154,6 @@ function useMoneyRequestReportScroll({
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // A single jump from far above can land short of the bottom while rows render, so keep re-pinning on every content size change for a while
-    const startStickToBottom = () => {
-        stickToBottomRef.current = true;
-        if (stickToBottomTimeoutRef.current) {
-            clearTimeout(stickToBottomTimeoutRef.current);
-        }
-        stickToBottomTimeoutRef.current = setTimeout(() => {
-            stickToBottomRef.current = false;
-        }, STICK_TO_BOTTOM_DURATION_MS);
-    };
-
     // Set when the user taps "Latest messages", cleared once the scroll reaches the bottom or the user scrolls away
     const pendingMarkAsReadRef = useRef(false);
 
@@ -250,7 +239,6 @@ function useMoneyRequestReportScroll({
                     }
                     ownActionScrollTimeoutRef.current = setTimeout(() => {
                         ownActionScrollTimeoutRef.current = null;
-                        startStickToBottom();
                         scrollToBottom();
                     }, DELAY_FOR_SCROLLING_TO_END);
                 } else {
@@ -291,14 +279,20 @@ function useMoneyRequestReportScroll({
         }
         pendingScrollTimeoutRef.current = setTimeout(() => {
             pendingScrollTimeoutRef.current = null;
-            startStickToBottom();
             scrollToBottom();
         }, DELAY_FOR_SCROLLING_TO_END);
-    }, [visibleReportActions, scrollToBottom, startStickToBottom]);
+    }, [visibleReportActions, scrollToBottom]);
 
     const scrollToLatestMessages = () => {
         setIsFloatingMessageCounterVisible(false);
-        startStickToBottom();
+
+        stickToBottomRef.current = true;
+        if (stickToBottomTimeoutRef.current) {
+            clearTimeout(stickToBottomTimeoutRef.current);
+        }
+        stickToBottomTimeoutRef.current = setTimeout(() => {
+            stickToBottomRef.current = false;
+        }, STICK_TO_BOTTOM_DURATION_MS);
 
         if (!hasNewestReportAction) {
             openReport({

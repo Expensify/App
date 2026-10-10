@@ -425,10 +425,25 @@ describe('useReportActionsScroll', () => {
             mockIsScrollToBottomEnabled = true;
 
             const {result} = await renderScroll();
+            // Ignore the flush the effect already made on mount, so only the layout-driven call is measured.
+            jest.clearAllMocks();
             act(() => {
                 result.current.flushPendingScrollToBottom();
             });
 
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+            expect(mockSetIsScrollToBottomEnabled).toHaveBeenCalledWith(false);
+            expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);
+        });
+
+        it('flushes a pending scroll-to-bottom without waiting for a list layout event', async () => {
+            // Given the live-tail hook asked for a scroll to bottom, as it does after the user sends a comment
+            mockIsScrollToBottomEnabled = true;
+
+            // When the hook renders and no list onLayout follows, because a new comment changes content size, not layout size
+            await renderScroll();
+
+            // Then the pending scroll is still flushed once, and the request is cleared
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockSetIsScrollToBottomEnabled).toHaveBeenCalledWith(false);
             expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);

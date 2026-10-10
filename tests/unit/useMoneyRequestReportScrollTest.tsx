@@ -543,46 +543,6 @@ describe('useMoneyRequestReportScroll', () => {
             // Then the deferred jump fires for the action the first pass could not find
             expect(mockScrollToIndex).toHaveBeenCalledWith(LAST_ITEM_INDEX, {animated: false, viewPosition: 1});
         });
-
-        it('should keep re-pinning the list to the bottom while content settles after the user sends a comment', async () => {
-            // Given a list scrolled to the top and a comment the user just sent
-            const {result} = await renderScroll();
-            applyLayoutAndScroll(result, BOTTOM_OFFSET_AT_TOP);
-            notifyNewAction(true, makeAction('1'));
-            act(() => {
-                jest.advanceTimersByTime(100);
-            });
-            mockScrollToIndex.mockClear();
-
-            // When rows between the top and the newest message render and grow the list
-            act(() => {
-                result.current.onListContentSizeChange(0, LIST_CONTENT_HEIGHT + 500);
-            });
-
-            // Then the list is pinned back to the last item, because a single jump from far above can land short of it
-            expect(mockScrollToIndex).toHaveBeenCalledWith(LAST_ITEM_INDEX, {animated: false, viewPosition: 1});
-        });
-
-        it('should keep re-pinning the list after a deferred jump for a comment that landed late', async () => {
-            // Given a comment the user sent that only shows up in the rendered list after the event
-            const {result, rerender} = await renderScroll({visibleReportActions: [makeAction('1')]});
-            applyLayoutAndScroll(result, BOTTOM_OFFSET_AT_TOP);
-            notifyNewAction(true, makeAction('2'));
-            rerender(buildParams({visibleReportActions: [makeAction('1'), makeAction('2')], reportActionsLength: 2, lastAction: makeAction('2')}));
-            await waitForBatchedUpdatesWithAct();
-            act(() => {
-                jest.advanceTimersByTime(100);
-            });
-            mockScrollToIndex.mockClear();
-
-            // When the content height changes while the list settles
-            act(() => {
-                result.current.onListContentSizeChange(0, LIST_CONTENT_HEIGHT + 500);
-            });
-
-            // Then the deferred jump is also kept at the bottom
-            expect(mockScrollToIndex).toHaveBeenCalledWith(LAST_ITEM_INDEX, {animated: false, viewPosition: 1});
-        });
     });
 
     describe('AgentZero thinking indicator', () => {

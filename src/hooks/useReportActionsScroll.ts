@@ -412,6 +412,18 @@ function useReportActionsScroll({
         completeLiveTailPruneAfterScrollToBottom();
     };
 
+    const flushPendingScrollToBottomFromEffect = useEffectEvent(() => flushPendingScrollToBottom());
+
+    // The list's onLayout is not enough to flush a pending scroll: a new comment changes the content size, not the
+    // layout size, so onLayout may never fire. Flush on the next frame so this effect doesn't chain a synchronous setState.
+    useEffect(() => {
+        if (!isScrollToBottomEnabled) {
+            return;
+        }
+        const frame = requestAnimationFrame(() => flushPendingScrollToBottomFromEffect());
+        return () => cancelAnimationFrame(frame);
+    }, [isScrollToBottomEnabled]);
+
     // Data is ready at the moment FlashList finishes its first render.
     const onLoad = () => {
         if (shouldDisablePillTracking) {

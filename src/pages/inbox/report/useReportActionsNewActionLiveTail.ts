@@ -111,8 +111,12 @@ function useReportActionsNewActionLiveTail({
                     return;
                 }
 
+                // An unread marker only needs openReport when the newest actions are not loaded yet. When they are, they are
+                // just off-screen, so scroll to them directly instead of waiting on a network round trip.
                 const shouldJumpToLiveTail =
-                    !isOffline && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (hasNewerActions || !!linkedReportActionID || unreadMarkerReportActionID);
+                    !isOffline &&
+                    action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+                    (hasNewerActions || !!linkedReportActionID || (!!unreadMarkerReportActionID && !hasNewestReportAction));
 
                 if (shouldJumpToLiveTail) {
                     if (liveTailJumpRef.current.stage === 'idle') {
