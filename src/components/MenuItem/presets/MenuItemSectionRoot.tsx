@@ -1,8 +1,7 @@
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
 
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 
 import type {RefObject} from 'react';
 
@@ -16,13 +15,12 @@ type MenuItemSectionRootProps = MenuItemRootProps & {
 
 /** A `MenuItem.Root` that spans the full width of a `Section`, ignoring the section's own horizontal padding */
 function MenuItemSectionRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, ref}: MenuItemSectionRootProps) {
-    const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardEdgeToEdge, cardMenuItemInset} = useLayoutSpacing();
 
     return (
         <View
             ref={ref}
-            style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+            style={cardEdgeToEdge}
         >
             <MenuItemRoot
                 onPress={onPress}
@@ -31,7 +29,7 @@ function MenuItemSectionRoot({children, onPress, isDisabled = false, sentryLabel
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
             >
-                <View style={!shouldUseNarrowLayout && styles.ph3}>{children}</View>
+                <View style={cardMenuItemInset}>{children}</View>
             </MenuItemRoot>
         </View>
     );

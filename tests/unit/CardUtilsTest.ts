@@ -9,6 +9,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
+    canResolveTransactionCard,
     checkIfNewFeedConnected,
     doesCardFeedExist,
     feedHasCards,
@@ -70,6 +71,7 @@ import {
     getYearFromExpirationDateString,
     hasActiveExpensifyCard,
     hasAssignedCardMatching,
+    hasCardConnectionIssue,
     hasCardPendingDigitalWalletApproval,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
@@ -77,6 +79,7 @@ import {
     shouldShowExpensifyCardFixedLimitType,
     isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
+    isCardConnectionBroken,
     isCardFrozen,
     isLastScrapePastDismissThreshold,
     isCSVFeedOrExpensifyCard,
@@ -92,7 +95,6 @@ import {
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
-    isPersonalCardBrokenConnection,
     isTravelCardTransaction,
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
@@ -117,6 +119,7 @@ import type {
     ExpensifyCardSettings,
     PersonalDetailsList,
     Policy,
+    Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {IssueNewCard} from '@src/types/onyx/Card';
@@ -610,6 +613,17 @@ describe('CardUtils', () => {
         it('Should return true for the custom amex feed with a number', () => {
             const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2` as const;
             const isCustomFeed = isCustomFeedCardUtils(customFeed);
+            expect(isCustomFeed).toBe(true);
+        });
+
+        it('Should return true for the mock commercial feed', () => {
+            // Given a mock commercial feed.
+            const customFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK;
+
+            // When checking whether it is a custom feed.
+            const isCustomFeed = isCustomFeedCardUtils(customFeed);
+
+            // Then it is treated as a custom feed.
             expect(isCustomFeed).toBe(true);
         });
 
@@ -2063,6 +2077,19 @@ describe('CardUtils', () => {
             const feedType = getFeedType('vcf', companyCardsCustomVisaFeedSettingsWithNumbers);
             expect(feedType).toBe('vcf2');
         });
+
+        it('should number mock commercial feeds', () => {
+            // Given an existing numbered mock commercial feed.
+            const cardFeeds = createMock<CombinedCardFeeds>({
+                [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK}1`]: {},
+            });
+
+            // When finding the next feed type.
+            const feedType = getFeedType(CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK, cardFeeds);
+
+            // Then the next number is returned.
+            expect(feedType).toBe(`${CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK}2`);
+        });
     });
 
     describe('getCSVFeedType', () => {
@@ -2480,6 +2507,20 @@ describe('CardUtils', () => {
             expect(getCardNameError('')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
             expect(getCardNameError('   ')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
             expect(getCardNameError('\u200B')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+        });
+
+        it('flags an HTML-like name the Name page already rejects', () => {
+            // Given a card the admin is renaming from the table
+            // When the new name is an HTML-like token such as </>
+            // Then the name is invalid, because the Name page blocks it and the table must not save it
+            expect(getCardNameError('</>')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('allows a whitelisted angle-bracket token', () => {
+            // Given a card the admin is renaming
+            // When the new name is a harmless token the Name page already allows, such as <>
+            // Then the name is valid, so the table and the Name page stay in agreement
+            expect(getCardNameError('<>')).toBeUndefined();
         });
 
         it('measures length after sanitizing so padding does not count', () => {
@@ -3472,6 +3513,14 @@ describe('CardUtils', () => {
         it('excludes a card for which isCardConnectionBroken(card) === true', () => {
             const cardList = createMock<CardList>({
                 50: makeCompanyCard({cardID: 50, lastScrapeResult: 403}),
+            });
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
+        // The wallet reports a 434 card as Inactive, so counting it as spendable here would contradict that.
+        it('excludes a card reporting an actionable scrape status the broken check ignores', () => {
+            const cardList = createMock<CardList>({
+                51: makeCompanyCard({cardID: 51, lastScrapeResult: 434}),
             });
             expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
         });
@@ -4732,21 +4781,39 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('isPersonalCardBrokenConnection', () => {
-        it('returns true for account-not-found, which is actionable for personal cards but ignored for company feed health', () => {
-            const card: Card = {...createRandomCard(1), lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS};
-
-            expect(isPersonalCardBrokenConnection(card)).toBe(true);
+    describe('hasCardConnectionIssue', () => {
+        it('returns true for a scrape status that is not ignored', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
         });
 
-        it('returns false while a personal-card sync is pending', () => {
-            const card: Card = {
-                ...createRandomCard(1),
-                lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS,
-                pendingFields: {lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-            };
+        // 434 is an ignored status, so isCardConnectionBroken is false for it even though the bank changed the account
+        // number and the user has to act.
+        it('returns true for an actionable ignored scrape status', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: {connectionError: 'The account number appears to have changed at the bank.'}};
+            expect(isCardConnectionBroken(card)).toBe(false);
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
 
-            expect(isPersonalCardBrokenConnection(card)).toBe(false);
+        // Dismissing the row error clears card.errors, so keying off it would flip a still-broken card to Active.
+        it('stays true for an actionable ignored scrape status after its errors are dismissed', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        it('returns false for an ignored scrape status that needs no action', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 530, errors: {someError: 'Transient server error'}};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false for a successful scrape', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 200, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false while a scrape is pending', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, pendingFields: {lastScrape: 'update'}, errors: {connectionError: 'Broken'}};
+            expect(hasCardConnectionIssue(card)).toBe(false);
         });
     });
 
@@ -5671,5 +5738,81 @@ describe('getWalletProviderNameKey', () => {
     it('capitalizes only the generic key, since the brand names already read correctly at the start of a sentence', () => {
         expect(getWalletProviderNameKey(undefined, true)).toBe('digitalWalletCapitalized');
         expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, true)).toBe('appleWallet');
+    });
+});
+
+describe('canResolveTransactionCard', () => {
+    const cardID = 4242;
+    const visibleCards: CardList = {[cardID]: createMock<Card>({cardID})};
+
+    function buildCardTransaction(values: Partial<Transaction>): Transaction {
+        return createMock<Transaction>({managedCard: true, cardID, ...values});
+    }
+
+    it('accepts a managed card expense whose card the mover can see', () => {
+        // Given a card the mover can see, so it is their own or on a feed they administer
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it can
+        expect(canResolve).toBe(true);
+    });
+
+    it('rejects a managed card expense on a feed the mover does not administer', () => {
+        // Given a card absent from the mover's list. This is the regression in #101767, where the card sat on the
+        // submitter's own workspace feed and only the draft report was shared
+        const transaction = buildCardTransaction({cardID: 9999});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it cannot, so "Auto report" stays hidden rather than failing the whole batch
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects an expense that is not on a managed card', () => {
+        // Given an expense with no managed card, such as a manually created one
+        const transaction = buildCardTransaction({managedCard: false});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it cannot, having no card to resolve through
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects a managed card expense that carries no card ID', () => {
+        // Given a cardID that never reached the search snapshot, leaving nothing to look up
+        const transaction = buildCardTransaction({cardID: undefined});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it cannot: an unverifiable card fails closed
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects every expense once a complete list turns out to hold no cards', () => {
+        // Given a complete list that is empty, so the mover owns no card and administers no feed
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, undefined, true);
+
+        // Then it cannot, keeping the option hidden rather than offering a move that would fail
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects a card the list has not finished loading, even one it already holds', () => {
+        // Given a list Search has not finished fetching, so it cannot vouch for any card yet
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, false);
+
+        // Then it cannot, since a move the backend refuses costs the whole batch
+        expect(canResolve).toBe(false);
     });
 });

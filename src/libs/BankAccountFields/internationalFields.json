@@ -1,0 +1,276 @@
+{
+    "default": {
+        "countryISO": "default",
+        "countryName": "Default",
+        "currenciesFields": {
+            "default": {
+                "routingNumber": {
+                    "label": "SWIFT BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{2,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "IRC",
+                    "validator": ".*",
+                    "placeholder": "Optional",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "MX": {
+        "countryISO": "MX",
+        "countryName": "Mexico",
+        "currenciesFields": {
+            "default": {
+                "routingNumber": {
+                    "label": "SWIFT BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "CLABE",
+                    "validator": "[0-9]{18,28}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "CA": {
+        "countryISO": "CA",
+        "countryName": "Canada",
+        "currenciesFields": {
+            "default": {
+                "routingNumber": {
+                    "label": "SWIFT BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{7,}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Transit Number",
+                    "validator": "[0-9]{5,9}",
+                    "placeholder": "4 digit Institution Number + 5 digit Branch Number",
+                    "errorMessage": ""
+                },
+                "governmentID": {
+                    "label": "Intermediary Bank SWIFT BIC Code",
+                    "validator": ".*",
+                    "placeholder": "(optional)",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "AU": {
+        "countryISO": "AU",
+        "countryName": "Australia",
+        "currenciesFields": {
+            "default": {
+                "routingNumber": {
+                    "label": "BSB Number",
+                    "validator": "[0-9]{3}-[0-9]{3}",
+                    "placeholder": "6 digits, xxx-xxx",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{5,9}",
+                    "placeholder": "Between 5 and 9 digits",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "BIC/SWIFT Code",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "Between 8 and 11 characters",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "US": {
+        "countryISO": "US",
+        "countryName": "United States",
+        "currenciesFields": {
+            "USD": {
+                "routingNumber": {
+                    "label": "Routing Number",
+                    "validator": "[0-9]{9}",
+                    "placeholder": "9 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[A-Za-z0-9 -]+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "companyName": {
+                    "label": "Company Name",
+                    "validator": ".*",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressZipCode": {
+                    "label": "Zip Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressState": {
+                    "label": "State",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "companyPhone": {
+                    "label": "Phone Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "BIC/SWIFT Code",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "Between 8 and 11 characters",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    }
+}
