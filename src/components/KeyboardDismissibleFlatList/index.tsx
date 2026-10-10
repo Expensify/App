@@ -8,10 +8,10 @@ import {useAnimatedScrollHandler, useComposedEventHandler} from 'react-native-re
 
 import {useKeyboardDismissibleFlatListActions} from './KeyboardDismissibleFlatListContext';
 
-function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, inverted, ref, ...restProps}: AnimatedFlatListWithCellRendererProps<T>) {
+function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ref, ...restProps}: AnimatedFlatListWithCellRendererProps<T>) {
     const {onScroll: onScrollHandleKeyboard} = useKeyboardDismissibleFlatListActions();
 
-    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted});
+    const emitComposerScrollEvents = useEmitComposerScrollEvents();
 
     const additionalOnScroll = useAnimatedScrollHandler({
         onScroll: emitComposerScrollEvents,

@@ -101,7 +101,9 @@ function ThumbnailImage({
     const failedToLoad = failedLoadKey !== null && failedLoadKey.url === previewSourceURL && failedLoadKey.isOffline === isOffline;
 
     const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
-    const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
+    const [measuredDimensions, setMeasuredDimensions] = useState<{url: string | ImageSourcePropType; width: number; height: number} | null>(null);
+    const imageDimensions =
+        measuredDimensions?.url === previewSourceURL ? measuredDimensions : {width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight};
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);
     const StyleUtils = useStyleUtils();
 
@@ -114,7 +116,7 @@ function ThumbnailImage({
             thumbnailDimensionsCache.set(previewSourceURL, {width, height});
         }
 
-        setImageDimensions({width, height});
+        setMeasuredDimensions({url: previewSourceURL, width, height});
     };
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];

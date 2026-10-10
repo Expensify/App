@@ -16,6 +16,8 @@ const NAVIGATOR_KEY = 'test-navigator-key';
 const mockSetParams = jest.fn();
 const mockCleanStaleBackToParam = jest.fn();
 const mockIsNavigationReady = jest.fn(() => Promise.resolve());
+const mockChildrenMount = jest.fn();
+const mockChildrenUnmount = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -43,7 +45,7 @@ jest.mock('@react-navigation/native', () => {
         useRoute: () => ({
             key: ROUTE_KEY,
             name: 'Report',
-            params: mockRouteParams,
+            params: {...mockRouteParams},
         }),
         useNavigation: () => ({
             getState: () => ({key: NAVIGATOR_KEY}),
@@ -83,23 +85,33 @@ jest.mock('@libs/ReportUtils', () => ({
 type UseOnyxReturn = [unknown, {status: string}];
 let mockLinkedAction: ReportAction | null | undefined;
 let mockIsLoadingInitialReportActions: boolean;
+let mockOnyxVersion = 0;
+const mockOnyxListeners = new Set<() => void>();
 
-jest.mock('@hooks/useOnyx', () => ({
-    __esModule: true,
-    default: (key: string): UseOnyxReturn => {
-        if (key.startsWith('reportActions_')) {
-            return [mockLinkedAction, {status: 'loaded'}];
-        }
-        if (key.startsWith('reportLoadingState_')) {
-            return [mockIsLoadingInitialReportActions, {status: 'loaded'}];
-        }
-        if (key.startsWith('report_')) {
-            return [{reportID: '12345', type: 'chat'}, {status: 'loaded'}];
-        }
-        // DERIVED.VISIBLE_REPORT_ACTIONS
-        return [undefined, {status: 'loaded'}];
-    },
-}));
+jest.mock('@hooks/useOnyx', () => {
+    const {useSyncExternalStore} = jest.requireActual<typeof React>('react');
+    const subscribe = (listener: () => void) => {
+        mockOnyxListeners.add(listener);
+        return () => mockOnyxListeners.delete(listener);
+    };
+    return {
+        __esModule: true,
+        default: function useMockOnyx(key: string): UseOnyxReturn {
+            useSyncExternalStore(subscribe, () => mockOnyxVersion);
+            if (key.startsWith('reportActions_')) {
+                return [mockLinkedAction, {status: 'loaded'}];
+            }
+            if (key.startsWith('reportLoadingState_')) {
+                return [mockIsLoadingInitialReportActions, {status: 'loaded'}];
+            }
+            if (key.startsWith('report_')) {
+                return [{reportID: '12345', type: 'chat'}, {status: 'loaded'}];
+            }
+            // DERIVED.VISIBLE_REPORT_ACTIONS
+            return [undefined, {status: 'loaded'}];
+        },
+    };
+});
 
 function createReportAction(overrides: Partial<ReportAction> = {}): ReportAction {
     return {
@@ -114,6 +126,10 @@ function createReportAction(overrides: Partial<ReportAction> = {}): ReportAction
 }
 
 function TestChildren() {
+    React.useEffect(() => {
+        mockChildrenMount();
+        return () => mockChildrenUnmount();
+    }, []);
     return <View testID="test-children" />;
 }
 
@@ -122,11 +138,36 @@ describe('LinkedActionNotFoundGuard', () => {
         mockSetParams.mockClear();
         mockCleanStaleBackToParam.mockClear();
         mockIsNavigationReady.mockClear();
+        mockChildrenMount.mockClear();
+        mockChildrenUnmount.mockClear();
         mockRouteParams.reportID = REPORT_ID;
         mockRouteParams.reportActionID = REPORT_ACTION_ID;
         mockLinkedAction = createReportAction();
         mockIsLoadingInitialReportActions = false;
         mockIsReportActionVisible = true;
+    });
+
+    it('preserves the report content when a link is cleared or a different link is opened', () => {
+        // Given a linked report has mounted its list and composer.
+        const view = render(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        // When sending clears the link, and the reader subsequently opens another link.
+        for (const reportActionID of ['', 'another-action', undefined, REPORT_ACTION_ID]) {
+            mockRouteParams.reportActionID = reportActionID;
+            view.rerender(
+                <LinkedActionNotFoundGuard>
+                    <TestChildren />
+                </LinkedActionNotFoundGuard>,
+            );
+
+            // Then the report keeps its mounted list, editor, and keyboard state.
+            expect(mockChildrenMount).toHaveBeenCalledTimes(1);
+            expect(mockChildrenUnmount).not.toHaveBeenCalled();
+        }
     });
 
     it('renders children when linked action exists', () => {
@@ -165,6 +206,7 @@ describe('LinkedActionNotFoundGuard', () => {
 
         act(() => {
             mockIsReportActionVisible = false;
+            notifyMockOnyxChanges();
         });
 
         rerender(
@@ -191,6 +233,7 @@ describe('LinkedActionNotFoundGuard', () => {
         // Now remove the action (simulating REPORT_PREVIEW being nulled when moving IOU to workspace)
         act(() => {
             mockLinkedAction = null;
+            notifyMockOnyxChanges();
         });
 
         rerender(
@@ -229,6 +272,7 @@ describe('LinkedActionNotFoundGuard', () => {
         // Remove the action
         act(() => {
             mockLinkedAction = null;
+            notifyMockOnyxChanges();
         });
 
         rerender(
@@ -266,6 +310,7 @@ describe('LinkedActionNotFoundGuard', () => {
         act(() => {
             mockLinkedAction = null;
             mockIsLoadingInitialReportActions = true;
+            notifyMockOnyxChanges();
         });
 
         rerender(
@@ -278,3 +323,10 @@ describe('LinkedActionNotFoundGuard', () => {
         expect(mockSetParams).not.toHaveBeenCalled();
     });
 });
+
+function notifyMockOnyxChanges() {
+    mockOnyxVersion += 1;
+    for (const listener of mockOnyxListeners) {
+        listener();
+    }
+}

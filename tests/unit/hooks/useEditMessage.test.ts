@@ -21,7 +21,7 @@ jest.mock('@libs/actions/Report', () => {
     return {
         ...actual,
         editReportComment: jest.fn(),
-        clearReportActionDrafts: jest.fn(),
+        clearAllReportActionDrafts: jest.fn(),
     };
 });
 
@@ -58,10 +58,10 @@ jest.mock('@hooks/useReportIsArchived', () => ({
     default: () => false,
 }));
 
-const mockScrollToIndex = jest.fn();
+const mockScrollToBottom = jest.fn();
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
-    default: () => ({scrollToIndex: mockScrollToIndex}),
+    default: () => ({scrollToBottom: mockScrollToBottom}),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -90,8 +90,18 @@ function makeDebouncedValidator({flushResult}: {flushResult: boolean}): Debounce
 }
 
 describe('useEditMessage', () => {
+    let pendingAnimationFrame: FrameRequestCallback | undefined;
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(() => {
+        pendingAnimationFrame = undefined;
+        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            pendingAnimationFrame = callback;
+            return 1;
+        });
     });
 
     afterEach(async () => {
@@ -99,7 +109,12 @@ describe('useEditMessage', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
+
+    function finishActionLayout() {
+        act(() => pendingAnimationFrame?.(0));
+    }
 
     function renderUseEditMessage(overrides?: Partial<HookProps>) {
         const report = LHNTestUtils.getFakeReport();
@@ -144,7 +159,7 @@ describe('useEditMessage', () => {
         expect(args?.[1]?.reportActionID).toBe(props.reportAction?.reportActionID);
     });
 
-    it('scrolls to index zero after deleting the newest message draft without a list-specific callback', () => {
+    it('scrolls to the bottom after deleting the newest message draft without a list-specific callback', () => {
         const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
 
         act(() => {
@@ -154,7 +169,9 @@ describe('useEditMessage', () => {
             mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
         });
 
-        expect(mockScrollToIndex).toHaveBeenCalledWith(0);
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
+        finishActionLayout();
+        expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 
     it('uses the list-specific scroll after deleting the newest message draft', () => {
@@ -168,8 +185,24 @@ describe('useEditMessage', () => {
             mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
         });
 
+        expect(scrollToLastMessage).not.toHaveBeenCalled();
+        finishActionLayout();
         expect(scrollToLastMessage).toHaveBeenCalledTimes(1);
-        expect(mockScrollToIndex).not.toHaveBeenCalled();
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
+    });
+
+    it('scrolls to the final saved action after the editor layout has been replaced', () => {
+        // Given a draft on the newest action.
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
+
+        // When the edit is submitted, its optimistic update is queued before layout settles.
+        act(() => hook.result.current.publishDraft('Updated message'));
+        expect(mockEditReportComment).toHaveBeenCalledTimes(1);
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
+
+        // Then scrolling runs after the restored action row gets a layout frame.
+        finishActionLayout();
+        expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 
     it('does not scroll after deleting a non-newest message draft', () => {
@@ -181,6 +214,6 @@ describe('useEditMessage', () => {
         });
 
         expect(scrollToLastMessage).not.toHaveBeenCalled();
-        expect(mockScrollToIndex).not.toHaveBeenCalled();
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
     });
 });

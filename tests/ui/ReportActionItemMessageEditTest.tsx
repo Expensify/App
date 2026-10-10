@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -219,14 +219,17 @@ describe('ReportActionCompose Integration Tests', () => {
             expect(videoAttributeCache?.[videoSource]).toContain('data-expensify-width');
         });
 
-        it('should use the list-specific scroll after saving the newest message', () => {
+        it('should use the list-specific scroll after saving the newest message', async () => {
+            // Given the newest message is being edited in a report list
             const scrollToNewestAction = jest.fn();
             renderReportActionItemMessageEdit(undefined, {index: 9, isNewest: true, scrollToNewestAction});
 
+            // When the edit is saved and the restored message row has time to lay out
             fireEvent.changeText(screen.getByTestId('composer'), 'Edited message');
             fireEvent.press(screen.getByLabelText('common.saveChanges'));
 
-            expect(scrollToNewestAction).toHaveBeenCalledTimes(1);
+            // Then the list scrolls to the newest action after the scheduled frame
+            await waitFor(() => expect(scrollToNewestAction).toHaveBeenCalledTimes(1));
         });
 
         it('should not scroll after saving a non-newest message at index zero', () => {
