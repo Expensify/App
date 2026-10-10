@@ -41,8 +41,8 @@ import {SearchRowSelectionActionsContext, SearchShiftRangeGroupsContext} from '.
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
     applyShiftRangeBatchToSelection,
-    areLoadedRowsSelected,
     buildShiftRangeSource,
+    getCoveredGroupCount,
     getGroupClaims,
     getRemainingSearchGroupCount,
     getSearchGroupCount,
@@ -276,9 +276,11 @@ function useReconcileSelectionWithData({
                 const hasUnloadedRows = remainingGroupCount > loadedSelectableCount;
                 // Once a claim covers every row, a row or count that arrives later is a new expense, so it stays unchecked and the group becomes a partial selection.
                 const hasClaimCoveredGroup = !!groupClaim?.isEntireGroupSelected;
-                const claimedRowCount = groupClaim?.rowCount ?? 0;
+                // Kept rows can be stale, so growth is measured against the count the group was covered at rather than against the rows still claiming it.
+                const priorCoveredGroupCount = reportKey ? getCoveredGroupCount(selectedTransactions, selectedRowKeysByGroupKey.get(reportKey) ?? []) : undefined;
                 const hasGroupOutgrownClaim =
-                    remainingGroupCount > claimedRowCount || transactionGroup.transactions.some((transaction) => !isTransactionPendingDelete(transaction) && !getRowSelection(transaction));
+                    remainingGroupCount > (priorCoveredGroupCount ?? groupClaim?.rowCount ?? 0) ||
+                    transactionGroup.transactions.some((transaction) => !isTransactionPendingDelete(transaction) && !getRowSelection(transaction));
                 const isClaimEnding = hasClaimCoveredGroup && hasGroupOutgrownClaim;
                 // A group checked through its header stands for every row in it, loaded or not, so the rows it is written out into and the rows that load later keep that claim.
                 const isWritingOutGroupSelection = !isExpenseReportType && (wasReportSelected || (!!groupClaim && !hasClaimCoveredGroup));
@@ -353,7 +355,7 @@ function useReconcileSelectionWithData({
                     for (const key of selectedRowKeysByGroupKey.get(reportKey) ?? []) {
                         const selection = selectedTransactions[key];
                         if (selection && !loadedRowKeys.has(key)) {
-                            newTransactionList[key] = isClaimEnding ? {...selection, isSelectedViaGroup: false} : selection;
+                            newTransactionList[key] = {...selection, isKeptOffPage: true, ...(isClaimEnding ? {isSelectedViaGroup: false} : {})};
                         }
                     }
                 }
@@ -375,20 +377,8 @@ function useReconcileSelectionWithData({
                         groupKey: reportKey,
                         groupCount,
                         loadedRows: transactionGroup.transactions,
+                        priorCoveredGroupCount,
                     });
-                    // A wholly selected group whose kept rows now outnumber its count lost a row this refresh cannot name, so it stays wholly selected while every loaded row is still checked.
-                    const wasGroupWhollySelected = (selectedRowKeysByGroupKey.get(reportKey) ?? []).some((key) => !!selectedTransactions[key]?.isEntireGroupSelected);
-                    if (wasGroupWhollySelected && groupCount !== undefined && areLoadedRowsSelected(stampedSelection, transactionGroup.transactions)) {
-                        const loadedRowListKeys = transactionGroup.transactions.map((transaction) => transaction.keyForList ?? transaction.transactionID);
-                        const groupRowKeys = [...new Set([...loadedRowListKeys, ...(selectedRowKeysByGroupKey.get(reportKey) ?? [])])].filter(
-                            (key) => key !== reportKey && stampedSelection[key]?.groupKey === reportKey,
-                        );
-                        if (groupRowKeys.length > remainingGroupCount) {
-                            for (const key of groupRowKeys) {
-                                stampedSelection[key] = {...stampedSelection[key], isEntireGroupSelected: true};
-                            }
-                        }
-                    }
                     for (const [key, entry] of Object.entries(stampedSelection)) {
                         newTransactionList[key] = entry;
                     }

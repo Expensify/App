@@ -49,23 +49,19 @@ function getRemainingSearchGroupCount(groupCount: number | undefined, loadedChil
     return Math.max(groupCount - pendingDeleteLoadedCount, 0);
 }
 
-/**
- * A group is fully selected only when every remaining transaction it contains is selected. If the group count
- * is unknown (expense-report rows), the loaded selectable children are treated as the whole group.
- */
-function isSelectionCoveringEntireGroup(groupCount: number | undefined, selectedCount: number, loadedSelectableCount: number): boolean {
-    if (selectedCount <= 0) {
-        return false;
-    }
-    if (groupCount === undefined) {
-        return loadedSelectableCount > 0 && selectedCount === loadedSelectableCount;
-    }
-    return selectedCount === groupCount;
-}
-
-/** Rows a refresh kept off the page can be stale and make up the count on their own, so a group with an unchecked loaded row is never wholly selected. */
 function areLoadedRowsSelected(selectedTransactions: SelectedTransactions, loadedRows: TransactionListItemType[]): boolean {
     return loadedRows.every((row) => isTransactionPendingDelete(row) || !!selectedTransactions[row.keyForList ?? row.transactionID]);
+}
+
+/** The count recorded on a group's rows when its selection last covered it, or undefined when it does not. */
+function getCoveredGroupCount(selectedTransactions: SelectedTransactions, rowKeys: string[]): number | undefined {
+    for (const key of rowKeys) {
+        const entry = selectedTransactions[key];
+        if (entry?.isEntireGroupSelected && entry.coveredGroupCount !== undefined) {
+            return entry.coveredGroupCount;
+        }
+    }
+    return undefined;
 }
 
 type StampGroupCoverageFlagsParams = {
@@ -75,36 +71,50 @@ type StampGroupCoverageFlagsParams = {
 
     /** The group's rows as loaded, including any being deleted */
     loadedRows: TransactionListItemType[];
+
+    /** The count the group was covered at before this change, which lets a partly loaded group keep its coverage while rows only leave it */
+    priorCoveredGroupCount?: number;
 };
 
 /**
- * Sets `isEntireGroupSelected` from whether the selection covers the group's remaining transaction count.
+ * The count a group is wholly selected at, or undefined. Kept rows can be stale, so only a fully loaded group with every row checked earns it, and a partly loaded one
+ * keeps it only while every loaded row stays checked and its count has not risen. With no rows loaded, the selected rows are counted instead.
+ */
+function getWholeGroupCoverage({selectedTransactions, groupKey, groupCount, loadedRows, priorCoveredGroupCount}: StampGroupCoverageFlagsParams): number | undefined {
+    if (loadedRows.length === 0) {
+        const selectedRowCount = Object.entries(selectedTransactions).filter(([key, transaction]) => key !== groupKey && transaction.groupKey === groupKey).length;
+        return selectedRowCount > 0 && selectedRowCount === groupCount ? groupCount : undefined;
+    }
+    const loadedSelectableCount = loadedRows.filter((row) => !isTransactionPendingDelete(row)).length;
+    if (loadedSelectableCount === 0 || !areLoadedRowsSelected(selectedTransactions, loadedRows)) {
+        return undefined;
+    }
+    const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedRows.length, loadedSelectableCount);
+    if (remainingGroupCount === undefined || loadedSelectableCount >= remainingGroupCount) {
+        return loadedSelectableCount;
+    }
+    return priorCoveredGroupCount !== undefined && remainingGroupCount <= priorCoveredGroupCount ? remainingGroupCount : undefined;
+}
+
+/**
+ * Sets `isEntireGroupSelected`, with the count it holds at, on every row of the group.
  * A `limit:` that leaves children unloaded must not look like a whole-group selection, because delete only
  * removes the loaded rows. `isSelectedViaGroup` is left alone so export can still treat a group-row click as a
  * group export.
  */
-function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedRows}: StampGroupCoverageFlagsParams): SelectedTransactions {
+function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedRows, priorCoveredGroupCount}: StampGroupCoverageFlagsParams): SelectedTransactions {
     if (!groupKey) {
         return selectedTransactions;
     }
 
+    const coveredGroupCount = getWholeGroupCoverage({selectedTransactions, groupKey, groupCount, loadedRows, priorCoveredGroupCount});
+    const isEntireGroupSelected = coveredGroupCount !== undefined;
     const nextSelectedTransactions = {...selectedTransactions};
-    let selectedCount = 0;
-    for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
-        if (key === groupKey || transaction.groupKey !== groupKey) {
-            continue;
-        }
-        selectedCount += 1;
-    }
-
-    const loadedSelectableCount = loadedRows.filter((row) => !isTransactionPendingDelete(row)).length;
-    const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedRows.length, loadedSelectableCount);
-    const isEntireGroupSelected = areLoadedRowsSelected(nextSelectedTransactions, loadedRows) && isSelectionCoveringEntireGroup(remainingGroupCount, selectedCount, loadedSelectableCount);
     for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
         if (key !== groupKey && transaction.groupKey !== groupKey) {
             continue;
         }
-        nextSelectedTransactions[key] = {...transaction, groupKey, isEntireGroupSelected};
+        nextSelectedTransactions[key] = {...transaction, groupKey, isEntireGroupSelected, ...(isEntireGroupSelected ? {coveredGroupCount} : {})};
     }
 
     return nextSelectedTransactions;
@@ -331,9 +341,9 @@ function getSelectedRowKeysByGroupKey(selectedTransactions: SelectedTransactions
 }
 
 /**
- * A row checked through its group header stands for every row of the group, loaded or not, which is how an export reads it.
- * While some of a group's rows are not loaded, this puts one entry for the whole group in place of those rows, so a count, a total or a bulk action covers what an export would.
- * Under Select all every action sends the query, which already covers the rows not loaded, so nothing is merged.
+ * A header check stands for every row of the group, as an export reads it, so until the stamp finds the group wholly selected, one entry for the whole group replaces its rows.
+ * So does a wholly selected group whose rows outnumber its count, since some left it unseen, or that holds rows kept off the page, whose amounts may be out of date.
+ * Under Select all every action sends the query, so nothing is merged.
  */
 function mergeRowsIntoPartlyLoadedGroups(
     selectedTransactions: SelectedTransactions,
@@ -344,11 +354,22 @@ function mergeRowsIntoPartlyLoadedGroups(
         return selectedTransactions;
     }
     const partlyLoadedGroups = new Map<SearchGroupKey, SearchGroupBase>();
-    for (const [groupKey, {rowCount, isEntireGroupSelected}] of getGroupClaims(selectedTransactions)) {
+    for (const [groupKey, rowKeys] of getSelectedRowKeysByGroupKey(selectedTransactions)) {
+        if (!isGroupEntry(groupKey)) {
+            continue;
+        }
         const group = searchData?.[groupKey];
         const groupCount = getSearchGroupCount(group);
-        // A claim holding more rows than its group has kept rows that left the group unseen, so the group's own count and total are the ones to trust.
-        if (group && groupCount !== undefined && (rowCount > groupCount || (!isEntireGroupSelected && rowCount < groupCount))) {
+        if (!group || groupCount === undefined) {
+            continue;
+        }
+        const claimedRowCount = rowKeys.filter((key) => getClaimedGroupKey(selectedTransactions[key]) === groupKey).length;
+        const isWhollySelected = rowKeys.some((key) => !!selectedTransactions[key].isEntireGroupSelected);
+        const isStamped = rowKeys.some((key) => selectedTransactions[key].isEntireGroupSelected !== undefined);
+        const isClaimStillLoading = claimedRowCount > 0 && !isWhollySelected && (isStamped || claimedRowCount < groupCount);
+        const hasRowsThatLeft = (claimedRowCount > 0 || isWhollySelected) && rowKeys.length > groupCount;
+        const hasRowsKeptOffPage = isWhollySelected && rowKeys.some((key) => !!selectedTransactions[key].isKeptOffPage);
+        if (isClaimStillLoading || hasRowsThatLeft || hasRowsKeptOffPage) {
             partlyLoadedGroups.set(groupKey, group);
         }
     }
@@ -765,7 +786,7 @@ function applyShiftRangeBatchToSelection(
         }
         const entry = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey || isAlreadySelectedViaGroup} : info;
         // Re-covering a row is not a write, and coverage is recounted after the batch, so it is left out of the comparison.
-        if (deepEqual({...updated[key], isEntireGroupSelected: undefined}, {...entry, isEntireGroupSelected: undefined})) {
+        if (deepEqual({...updated[key], isEntireGroupSelected: undefined, coveredGroupCount: undefined}, {...entry, isEntireGroupSelected: undefined, coveredGroupCount: undefined})) {
             return;
         }
         updated[key] = entry;
@@ -849,32 +870,29 @@ function applyShiftRangeBatchToSelection(
         }
     }
 
-    // Delete takes a whole group on this flag, so each group the range wrote under is recounted, in one pass over the selection rather than one per group.
-    const selectedCountByGroupKey = new Map<string, number>();
-    for (const [key, transaction] of Object.entries(updated)) {
-        if (key === transaction.groupKey || !transaction.groupKey || !touchedGroups.has(transaction.groupKey)) {
-            continue;
-        }
-        selectedCountByGroupKey.set(transaction.groupKey, (selectedCountByGroupKey.get(transaction.groupKey) ?? 0) + 1);
-    }
-
-    const coverageByGroupKey = new Map<string, boolean>();
+    // Delete takes a whole group on this flag, so each group the range wrote under is recounted, keeping the coverage it had while its rows only left it.
+    selectedRowKeysByGroupKey ??= getSelectedRowKeysByGroupKey(selection);
+    const coverageByGroupKey = new Map<string, number | undefined>();
     for (const [groupKey, loadedRows] of touchedGroups) {
-        const loadedSelectableCount = loadedRows.filter((child) => !isTransactionPendingDelete(child)).length;
-        const remainingGroupCount = getRemainingSearchGroupCount(lookups.getGroupCount(groupKey), loadedRows.length, loadedSelectableCount);
-        coverageByGroupKey.set(
-            groupKey,
-            areLoadedRowsSelected(updated, loadedRows) && isSelectionCoveringEntireGroup(remainingGroupCount, selectedCountByGroupKey.get(groupKey) ?? 0, loadedSelectableCount),
-        );
+        const priorCoveredGroupCount = getCoveredGroupCount(selection, selectedRowKeysByGroupKey.get(groupKey) ?? []);
+        coverageByGroupKey.set(groupKey, getWholeGroupCoverage({selectedTransactions: updated, groupKey, groupCount: lookups.getGroupCount(groupKey), loadedRows, priorCoveredGroupCount}));
     }
 
     for (const [key, transaction] of Object.entries(updated)) {
         const groupKey = touchedGroups.has(key) ? key : transaction.groupKey;
-        const isEntireGroupSelected = groupKey ? coverageByGroupKey.get(groupKey) : undefined;
-        if (isEntireGroupSelected === undefined || !groupKey || (transaction.groupKey === groupKey && transaction.isEntireGroupSelected === isEntireGroupSelected)) {
+        if (!groupKey || !coverageByGroupKey.has(groupKey)) {
             continue;
         }
-        updated[key] = {...transaction, groupKey, isEntireGroupSelected};
+        const coveredGroupCount = coverageByGroupKey.get(groupKey);
+        const isEntireGroupSelected = coveredGroupCount !== undefined;
+        const isUnchanged =
+            transaction.groupKey === groupKey &&
+            transaction.isEntireGroupSelected === isEntireGroupSelected &&
+            (!isEntireGroupSelected || transaction.coveredGroupCount === coveredGroupCount);
+        if (isUnchanged) {
+            continue;
+        }
+        updated[key] = {...transaction, groupKey, isEntireGroupSelected, ...(isEntireGroupSelected ? {coveredGroupCount} : {})};
         hasWritten = true;
     }
 
@@ -882,7 +900,7 @@ function applyShiftRangeBatchToSelection(
 }
 
 export {
-    areLoadedRowsSelected,
+    getCoveredGroupCount,
     mapTransactionItemToSelectedEntry,
     mapEmptyReportToSelectedEntry,
     prepareTransactionsList,

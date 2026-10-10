@@ -2967,12 +2967,14 @@ describe('Lazily loaded group selection', () => {
                 // When it is refreshed from its first page, as reopening it or returning from the details pane does, and only that page comes back
                 await loadRows(rerender, firstPage);
 
-                // Then its rows still stand for the whole group, so an export keeps covering the row the refresh did not bring back
+                // Then its rows still stand for the whole group, so an export keeps covering the row the refresh did not bring back, and that row is marked as kept off the page
                 expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(true);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isKeptOffPage).toBe(true);
 
-                // And that row is checked again once its page returns
+                // And that row is checked again once its page returns, rebuilt from the loaded row so the mark goes
                 await loadRows(rerender, [...firstPage, laterRow]);
                 expect(result.current.selectedTransactions[laterRow.keyForList]?.isSelected).toBe(true);
+                expect(result.current.selectedTransactions[laterRow.keyForList]?.isKeptOffPage).toBeUndefined();
             });
 
             it('leaves a new expense unchecked when it lands in a group checked whole after a refresh brought back only its first page', async () => {
@@ -3073,6 +3075,29 @@ describe('Lazily loaded group selection', () => {
 
                 // And the group stops reading as whole, even though its kept rows, the deleted one among them, add up to the new count, so a bulk delete cannot hide the unchecked expense with it
                 expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(false);
+            });
+
+            it('stops reading a group as whole once its count rises past the count it shrank to, though the rows kept off the page make up the new count', async () => {
+                pagingGroup = {...buildCategoryGroup(groupKey, [...firstPage, laterRow]), count: 3};
+                const {result, rerender} = renderSelection(PagingWrapper);
+                const [firstRow, secondRow] = firstPage;
+
+                // Given a group of three checked from its header, one of whose expenses was deleted elsewhere, refreshed to a count of two with only its first row on the page
+                await act(async () => {
+                    result.current.toggle(pagingGroup, [...firstPage, laterRow]);
+                    await waitForBatchedUpdatesWithAct();
+                });
+                pagingGroup = {...pagingGroup, count: 2};
+                await loadRows(rerender, [firstRow]);
+
+                // When a new expense brings the count back to three on a page that has not loaded
+                pagingGroup = {...pagingGroup, count: 3};
+                await loadRows(rerender, [firstRow]);
+
+                // Then the group no longer reads as whole and its header claim ends, so a bulk delete cannot hide the new expense nobody checked
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(false);
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(false);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(false);
             });
 
             it('stops reading a group as whole once its loaded row is unchecked, though the rows kept off the page make up the count', async () => {

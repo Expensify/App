@@ -110,6 +110,12 @@ type SelectedTransactionInfo = {
 
     /** Whether every transaction in the group is selected. False when a `limit:` left some of the group unloaded. */
     isEntireGroupSelected?: boolean;
+
+    /** The group's count when the selection last covered all of it, so a rise past it means a new expense joined */
+    coveredGroupCount?: number;
+
+    /** Set on a row a refresh left off its group's loaded page and kept selected, whose amount and flags date from when it last loaded */
+    isKeptOffPage?: boolean;
 };
 
 /** Model of selected transactions */
