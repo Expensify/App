@@ -41,6 +41,7 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
@@ -59,6 +60,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import containsHtmlTag from './containsHtmlTag';
 import DateUtils from './DateUtils';
+import {getLatestError} from './ErrorUtils';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {hasInProgressVBBA} from './ReimbursementAccountUtils';
 import StringUtils from './StringUtils';
@@ -1930,6 +1932,20 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
     );
 }
 
+/**
+ * Error to show under the Expensify Card settlement account, or undefined when no card settlement change failed.
+ * Only a card failure sets the program error, while the root one also holds the backend message and Travel Billing errors.
+ */
+function getSettlementAccountErrors(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey: CardProgramKey | undefined): Errors | undefined {
+    const programErrors = programKey ? cardSettings?.[programKey]?.errorFields?.paymentBankAccountID : undefined;
+    if (!programErrors) {
+        return undefined;
+    }
+    // The backend message lives in the root field, the program one is the App's generic fallback
+    const rootErrors = cardSettings?.errorFields?.paymentBankAccountID;
+    return isEmptyObject(rootErrors) ? getLatestError(programErrors) : getLatestError(rootErrors);
+}
+
 /** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
 const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
 
@@ -2631,6 +2647,7 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
+    getSettlementAccountErrors,
     getCardProgramKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
