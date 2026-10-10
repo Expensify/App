@@ -36,6 +36,10 @@ type Response<TKey extends OnyxKey> = {
 
     reportID?: string;
 
+    /** Transaction thread and action returned when a money request is edited */
+    transactionThreadReportID?: number | string;
+    modifiedExpenseReportAction?: Record<string, unknown> | null;
+
     /**
      * Whether the sequential queue should not send any requests to the server.
      * Used when there's a gap between client and server updates.

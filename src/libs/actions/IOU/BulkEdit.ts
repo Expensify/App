@@ -43,6 +43,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {BulkEditActionContext} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
@@ -87,6 +88,7 @@ type BulkEditWriteOnyxData = {
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
         >
     >;
+    bulkEditActionContext?: BulkEditActionContext;
 };
 
 /** Returns a copy of the transaction without the attendee fields. Onyx MERGE leaves the absent keys untouched. */
@@ -102,6 +104,7 @@ function mergeBulkEditOnyxData(first: BulkEditWriteOnyxData, second: BulkEditWri
         optimisticData: [...first.optimisticData, ...second.optimisticData],
         successData: [...first.successData, ...second.successData],
         failureData: [...first.failureData, ...second.failureData],
+        bulkEditActionContext: first.bulkEditActionContext ?? second.bulkEditActionContext,
     };
 }
 
@@ -892,6 +895,15 @@ function updateMultipleMoneyRequests({
             optimisticData: [...optimisticData, ...snapshotOptimisticData],
             successData: [...successData, ...snapshotSuccessData],
             failureData: [...failureData, ...snapshotFailureData],
+            ...(transactionThreadReportID && {
+                bulkEditActionContext: {
+                    actionID: modifiedExpenseReportActionID,
+                    threadReportID: transactionThreadReportID,
+                    parentReportID: iouReport?.reportID,
+                    parentActionID: reportAction?.reportActionID,
+                    isOptimisticThread: didCreateThreadInThisIteration || transactionThread?.ownerAccountID === CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+                },
+            }),
         };
         const attendeesOnyxData: BulkEditWriteOnyxData = {
             optimisticData: attendeesOptimisticData,

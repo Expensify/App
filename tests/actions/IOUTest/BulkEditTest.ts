@@ -19,6 +19,8 @@ import {getCurrencyDecimalsLocal, getCurrencySymbolLocal, getRequiredOnyxUpdates
 import {isObject, parseJSONRecord} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({isHybridApp: () => false}));
+
 const RORY_ACCOUNT_ID = 3;
 
 function isPartialReport(value: unknown): value is Partial<Report> {
@@ -2261,7 +2263,7 @@ describe('actions/IOU/BulkEdit', () => {
             });
 
             expect(writeSpy).toHaveBeenCalled();
-            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
 
             // An optimistic thread report should be created via SET
@@ -2274,6 +2276,12 @@ describe('actions/IOU/BulkEdit', () => {
                 throw new Error('Expected an optimistic thread report SET update');
             }
             const optimisticThreadReportID = String(optimisticReportSet.key).replace(ONYXKEYS.COLLECTION.REPORT, '');
+            expect(onyxData.bulkEditActionContext).toMatchObject({
+                actionID: parameters.reportActionID,
+                threadReportID: optimisticThreadReportID,
+                parentReportID: iouReportID,
+                isOptimisticThread: true,
+            });
 
             // The transaction optimistic data should link back to the new thread via transactionThreadReportID
             const transactionMerge = optimisticData.find((entry) => isObject(entry) && entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -2297,6 +2305,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportID: childReportID,
                 parentReportID: iouReportID,
                 policyID: policy.id,
+                ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             };
             const transactionThread: Report = {
                 ...createRandomReport(22, undefined),
@@ -2373,6 +2382,7 @@ describe('actions/IOU/BulkEdit', () => {
             expect(writeSpy).toHaveBeenCalled();
             const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
+            expect(onyxData.bulkEditActionContext).toMatchObject({threadReportID: childReportID, isOptimisticThread: true});
 
             // No optimistic thread report should be created — the existing thread from childReportID should be used
             const optimisticReportSet = optimisticData.find(
@@ -3090,6 +3100,17 @@ describe('actions/IOU/BulkEdit', () => {
                 transactionID,
                 reportID: iouReportID,
                 attendees: JSON.stringify([{avatarUrl: '', displayName: 'Alice', email: 'alice@example.com'}]),
+            });
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(isObject(onyxData.bulkEditActionContext)).toBe(true);
+            if (!isObject(onyxData.bulkEditActionContext)) {
+                throw new Error('Missing bulk edit action context');
+            }
+            expect(typeof onyxData.bulkEditActionContext.actionID).toBe('string');
+            expect(typeof onyxData.bulkEditActionContext.threadReportID).toBe('string');
+            expect(onyxData.bulkEditActionContext).toMatchObject({
+                parentReportID: iouReportID,
+                isOptimisticThread: true,
             });
 
             writeSpy.mockRestore();
