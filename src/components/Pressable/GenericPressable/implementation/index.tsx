@@ -3,7 +3,7 @@ import type PressableProps from '@components/Pressable/GenericPressable/types';
 import mergeRefs from '@libs/mergeRefs';
 
 import type {ComponentRef} from 'react';
-import type {Role, View} from 'react-native';
+import type {View} from 'react-native';
 
 import React, {useLayoutEffect, useRef} from 'react';
 
@@ -11,6 +11,10 @@ import GenericPressable from './BaseGenericPressable';
 
 function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
+    let role = props.role;
+    if (props.accessibilityRole) {
+        role = props.accessibilityRole === 'link' ? 'link' : undefined;
+    }
 
     // react-native-web's Pressable always sets aria-disabled from its own `disabled` prop,
     // overriding any explicit aria-disabled we pass. We pass fullDisabled (not isDisabled) to
@@ -19,8 +23,8 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` is intentional so that falsy values like empty string or 0 are treated as not-disabled
     const isAriaDisabled = props.fullDisabled || props.disabled || props.accessibilityState?.disabled;
     useLayoutEffect(() => {
-        const el = internalRef.current as unknown as HTMLElement | null;
-        if (!el) {
+        const el = internalRef.current;
+        if (typeof HTMLElement === 'undefined' || !(el instanceof HTMLElement)) {
             return;
         }
         if (isAriaDisabled) {
@@ -37,7 +41,8 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             // change native accessibility props to web accessibility props
             focusable={focusable}
             tabIndex={(props.tabIndex ?? (!accessible || !focusable)) ? -1 : 0}
-            role={(props.accessibilityRole ?? props.role) as Role}
+            // Keep link for BaseGenericPressable's Enter handler; React Native Web converts other accessibility roles.
+            role={role}
             id={props.id}
             aria-label={props.accessibilityLabel}
             aria-labelledby={props.accessibilityLabelledBy}
