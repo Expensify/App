@@ -20,6 +20,7 @@ import type * as UrlType from '@libs/Url';
 import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
+import ReportActionItemParentAction from '@pages/inbox/report/ReportActionItemParentAction';
 
 import colors from '@styles/theme/colors';
 
@@ -3634,6 +3635,74 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        const PARENT_REPORT_ID = 'parentChatReport';
+        const THREAD_REPORT_ID = 'threadReport';
+
+        async function setUpThreadOffConciergeComment(conciergeAction: ReportAction, threadReportNameValuePairs?: Record<string, unknown>) {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, {reportID: PARENT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {[conciergeAction.reportActionID]: conciergeAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`, {
+                    reportID: THREAD_REPORT_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: PARENT_REPORT_ID,
+                    parentReportActionID: conciergeAction.reportActionID,
+                });
+                if (threadReportNameValuePairs) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${THREAD_REPORT_ID}`, threadReportNameValuePairs);
+                }
+            });
+        }
+
+        function renderThreadParentAction(conciergeActionID: string) {
+            const threadReport = {
+                reportID: THREAD_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: PARENT_REPORT_ID,
+                parentReportActionID: conciergeActionID,
+            } as Report;
+            return render(
+                <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItemParentAction
+                                reportID={THREAD_REPORT_ID}
+                                report={threadReport}
+                                action={createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {})}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                shouldDisplayReplyDivider={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+        }
+
+        it('offers the prompt on the message a thread hangs off once the rating is taken back', async () => {
+            // The backend keeps its feedback marker on the thread after the reaction is removed, so the marker must not decide this message
+            const conciergeAction = createConciergeComment();
+            await setUpThreadOffConciergeComment(conciergeAction, {conciergeFeedbackForReportActionID: conciergeAction.reportActionID});
+
+            renderThreadParentAction(conciergeAction.reportActionID);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
+        });
+
+        it('keeps the prompt off the message a thread hangs off while the rating is still there', async () => {
+            const conciergeAction = createConciergeComment();
+            await setUpThreadOffConciergeComment(conciergeAction, {conciergeFeedbackForReportActionID: conciergeAction.reportActionID});
+            await reactWithThumbsUp(conciergeAction, DateUtils.getDBTime());
+
+            renderThreadParentAction(conciergeAction.reportActionID);
+            await waitForBatchedUpdatesWithAct();
+
             expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
         });
 
