@@ -224,7 +224,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
     }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod, icons.Trashcan]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(listPath)} />;
     }
 
     if (!contactMethod || !loginData) {
