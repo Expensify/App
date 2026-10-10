@@ -145,7 +145,6 @@ function StatusClearAfterPage() {
                     title={customStatusDate}
                     description={translate('statusPage.date')}
                     shouldShowRightIcon
-                    containerStyle={styles.pr2}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE)}
                     errorText={customDateError}
                     titleStyle={styles.flex1}
@@ -155,7 +154,6 @@ function StatusClearAfterPage() {
                     title={customStatusTime}
                     description={translate('statusPage.time')}
                     shouldShowRightIcon
-                    containerStyle={styles.pr2}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
                     errorText={customTimeError}
                     titleStyle={styles.flex1}
@@ -163,7 +161,7 @@ function StatusClearAfterPage() {
                 />
             </>
         );
-    }, [translate, styles.pr2, styles.flex1, draftPeriod, customStatusDate, customStatusTime, redBrickDateIndicator, redBrickTimeIndicator, customDateError, customTimeError]);
+    }, [translate, styles.flex1, draftPeriod, customStatusDate, customStatusTime, redBrickDateIndicator, redBrickTimeIndicator, customDateError, customTimeError]);
 
     const saveAndGoBack = useCallback(() => {
         if (!draftPeriod) {
