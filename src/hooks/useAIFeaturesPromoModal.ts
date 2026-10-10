@@ -40,6 +40,7 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
     const [onboarding, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
 
     const isWaitingForProtectedRoutes = useRef(false);
+    const dismissedAIPromoAccountID = useRef<number | undefined>(undefined);
 
     const hasBeenAddedToNudgeMigration = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
     const isMigrationModalDismissed = isProductTrainingElementDismissed(CONST.MIGRATED_USER_WELCOME_MODAL, dismissedProductTraining);
@@ -51,8 +52,11 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
         if (!isAIPromoModalDismissed) {
             return;
         }
+        // A reset can finish before OpenApp restores training data. Keep this account's dismissal
+        // for the mounted session so the temporary missing NVP cannot make it eligible again.
+        dismissedAIPromoAccountID.current = session?.accountID;
         hasRedirectedToAIFeaturesPromoModal = false;
-    }, [isAIPromoModalDismissed]);
+    }, [isAIPromoModalDismissed, session?.accountID]);
 
     useEffect(() => {
         if (!isMigrationModalPending) {
@@ -82,16 +86,29 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
         !observedActiveOnboardingThisSession;
 
     useEffect(() => {
-        if (!isEligible || isWaitingForProtectedRoutes.current) {
+        const hasDismissedAIPromoForSession = () => session?.accountID !== undefined && dismissedAIPromoAccountID.current === session.accountID;
+        if (!isEligible || hasDismissedAIPromoForSession() || isWaitingForProtectedRoutes.current) {
             return;
         }
         isWaitingForProtectedRoutes.current = true;
+        let isCancelled = false;
         // Defer until any in-flight navigation transition (splash → home, etc.) has fully settled
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
                 Navigation.waitForProtectedRoutes().then(() => {
+                    // The transition may have finished before a reset or dismissal cancelled this effect.
+                    // Its protected-routes promise must not navigate using eligibility from before that change.
+                    if (isCancelled) {
+                        return;
+                    }
                     isWaitingForProtectedRoutes.current = false;
-                    if (hasRedirectedToAIFeaturesPromoModal || observedActiveMigrationModalThisSession || observedActiveOnboardingThisSession || isAIPromoModalDismissed) {
+                    if (
+                        hasRedirectedToAIFeaturesPromoModal ||
+                        observedActiveMigrationModalThisSession ||
+                        observedActiveOnboardingThisSession ||
+                        isAIPromoModalDismissed ||
+                        hasDismissedAIPromoForSession()
+                    ) {
                         return;
                     }
                     const lastRoute = navigationRef.getRootState?.()?.routes.at(-1)?.name;
@@ -107,10 +124,11 @@ function useAIFeaturesPromoModal(session: OnyxEntry<Session>) {
         });
 
         return () => {
+            isCancelled = true;
             handle.cancel();
             isWaitingForProtectedRoutes.current = false;
         };
-    }, [isEligible, isAIPromoModalDismissed]);
+    }, [isEligible, isAIPromoModalDismissed, session?.accountID]);
 }
 
 export default useAIFeaturesPromoModal;
