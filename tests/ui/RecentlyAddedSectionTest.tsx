@@ -431,6 +431,45 @@ describe('RecentlyAddedSection', () => {
             });
         });
 
+        it('seeds a pending-delete expense without a descriptor so the carousel follows its live transaction', async () => {
+            // Given an expense deleted offline, which stays in the list with strikethrough
+            setWideLayout();
+            const pendingDeleteRow = {...ROW_1, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [pendingDeleteRow, ROW_2], isAwaitingFirstResult: false});
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user opens the expense next to it
+            fireEvent.press(screen.getByTestId('recentlyAddedRow-t2'));
+            await waitForBatchedUpdatesWithAct();
+
+            const seededIDs = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            const seededDescriptors = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            // Then the deleted expense keeps its ID, so the carousel can bring it back if the delete rolls back,
+            // but gets no descriptor, so nothing keeps it in the arrows once the delete syncs and its live copy is gone
+            expect(seededIDs).toEqual([ROW_1.transactionID, ROW_2.transactionID]);
+            expect(seededDescriptors).not.toHaveProperty(ROW_1.transactionID);
+            expect(seededDescriptors).toHaveProperty(ROW_2.transactionID);
+        });
+
         it('resolves only the tapped expense and creates no threads for siblings (lazy carousel)', async () => {
             setWideLayout();
             const parentReportID = 'report_multi_lazy';

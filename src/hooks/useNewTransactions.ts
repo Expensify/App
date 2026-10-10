@@ -81,7 +81,7 @@ function useNewTransactions({
         if (hasSettledAfterInitialLoad !== !!hasOnceLoadedReportActions) {
             setHasSettledAfterInitialLoad(!!hasOnceLoadedReportActions);
         }
-    } else if (trackedTransactionIDs !== baselineSourceIDs && !hasSameTransactionIDs) {
+    } else if ((trackedTransactionIDs !== undefined || baselineSourceIDs !== undefined) && !hasSameTransactionIDs) {
         let addedIDs = EMPTY_TRANSACTION_IDS;
         if (baselineSourceIDs !== undefined && trackedTransactionIDs !== undefined && trackedTransactionIDs.length > baselineSourceIDs.length) {
             if (!hasSettledAfterInitialLoad) {

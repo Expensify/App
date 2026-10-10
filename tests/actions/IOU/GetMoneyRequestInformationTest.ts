@@ -1,4 +1,5 @@
 import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -266,16 +267,25 @@ describe('getMoneyRequestInformation', () => {
                 ...(pendingAction && {pendingAction}),
             });
 
-        it('does NOT flag the first transaction of a report (no stale flag to re-highlight the original on a later add)', () => {
-            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
-            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
-            const newTxID = result.transaction.transactionID;
+        /** Every flag the updates write to this report's rail, whatever its key, so a "not flagged" check can't miss a key it didn't spell out. */
+        const getRailFlagKeys = (updates: ReadonlyArray<{key: string; value?: unknown}> | undefined, moneyRequestReportID: string) =>
+            (updates ?? []).flatMap((update) => {
+                const value: unknown = update.value;
+                if (update.key !== `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}` || !isRecord(value) || !isRecord(value.pendingNewTransactionIDs)) {
+                    return [];
+                }
+                return Object.entries(value.pendingNewTransactionIDs)
+                    .filter(([, isFlagged]) => !!isFlagged)
+                    .map(([flagKey]) => flagKey);
+            });
 
-            expect(result.onyxData.optimisticData ?? []).not.toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
-                ]),
-            );
+        it('does NOT flag the first transaction of a report (no stale flag to re-highlight the original on a later add)', () => {
+            // Given no report to add to, so the request creates one
+            // When its first expense is added
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            // Then the new report's rail stays empty, since a flag on its first row would re-highlight that row on a later add
+            expect(getRailFlagKeys(result.onyxData.optimisticData, result.iouReport.reportID)).toEqual([]);
         });
 
         it('flags the transaction when the target report already holds a transaction', () => {
@@ -322,15 +332,15 @@ describe('getMoneyRequestInformation', () => {
             const second = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID, 1));
 
             // Then neither is flagged: both are the report's initial contents
-            expect(first.onyxData.optimisticData ?? []).not.toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, first.transaction.transactionID)]));
-            expect(second.onyxData.optimisticData ?? []).not.toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, second.transaction.transactionID)]));
+            expect(getRailFlagKeys(first.onyxData.optimisticData, moneyRequestReportID)).toEqual([]);
+            expect(getRailFlagKeys(second.onyxData.optimisticData, moneyRequestReportID)).toEqual([]);
         });
 
         it('flags an expense added in a later run, since by then the rows already there are ones the user could have seen', async () => {
             // Given a report filled by an earlier action, whose row has since reached the transaction cache
             const moneyRequestReportID = 'iou-report-rail-later-run';
             const first = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID, 0));
-            expect(first.onyxData.optimisticData ?? []).not.toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, first.transaction.transactionID)]));
+            expect(getRailFlagKeys(first.onyxData.optimisticData, moneyRequestReportID)).toEqual([]);
             await setReportTransaction(first.transaction.transactionID, moneyRequestReportID);
             await waitForBatchedUpdates();
 
@@ -366,18 +376,10 @@ describe('getMoneyRequestInformation', () => {
 
             // When a request is built that reuses that expense rather than creating one
             const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID, existingTransactionID});
-            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
 
             // Then it is not flagged, since it adds no row to the report
             expect(result.transaction.transactionID).toBe(existingTransactionID);
-            expect(result.onyxData.optimisticData ?? []).not.toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        key: expectedKey,
-                        value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${existingTransactionID}:${FLAGGED_AT}`]: true})}),
-                    }),
-                ]),
-            );
+            expect(getRailFlagKeys(result.onyxData.optimisticData, moneyRequestReportID)).toEqual([]);
         });
 
         it('still flags the rows a run inserts when its first entry is one the report already holds, as a split in place is', async () => {
@@ -399,7 +401,7 @@ describe('getMoneyRequestInformation', () => {
             const inserted = addToReport(moneyRequestReportID, buildExistingIOUReport(moneyRequestReportID));
 
             // Then only the inserted row is flagged: a call that inserts nothing must not decide for the action
-            expect(reused.onyxData.optimisticData ?? []).not.toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, reusedTransactionID)]));
+            expect(getRailFlagKeys(reused.onyxData.optimisticData, moneyRequestReportID)).toEqual([]);
             expect(inserted.onyxData.optimisticData ?? []).toEqual(expect.arrayContaining([flagFor(moneyRequestReportID, inserted.transaction.transactionID)]));
         });
 
@@ -452,15 +454,9 @@ describe('getMoneyRequestInformation', () => {
 
             // When an expense is added to it
             const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
-            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
-            const newTxID = result.transaction.transactionID;
 
             // Then it is not flagged: with its only row being deleted, the new expense is the report's first
-            expect(result.onyxData.optimisticData ?? []).not.toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
-                ]),
-            );
+            expect(getRailFlagKeys(result.onyxData.optimisticData, moneyRequestReportID)).toEqual([]);
         });
     });
 

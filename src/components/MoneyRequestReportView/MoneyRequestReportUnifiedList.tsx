@@ -3,6 +3,8 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
+
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
@@ -272,6 +274,22 @@ function MoneyRequestReportUnifiedList({
         });
         return () => cancelAnimationFrame(rafId);
     }, [linkedReportActionID, initialScrollIndex, listRef]);
+
+    // This list owns the report-action-ID-to-data-index mapping, so it resolves the scroll request against its own rows —
+    // same request the inbox `ReportActionsList` handles for the non-money-request view.
+    useScrollToEditingReportAction({
+        visibleReportActions,
+        scrollToIndex: (index) => {
+            const dataIndex = index + reportActionIndexOffset;
+
+            // Already on screen, so its editor has mounted and taken focus — scrolling would only yank the user.
+            if (viewableItemsRef.current.some((token) => token.index === dataIndex)) {
+                return;
+            }
+
+            listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5});
+        },
+    });
 
     useScrollToNewTransaction({
         newTransactionID,

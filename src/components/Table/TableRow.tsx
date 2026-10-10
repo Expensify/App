@@ -7,8 +7,10 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,6 +27,7 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import {rendersColumnHeader} from './buildTableListData';
+import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext, useTableRowSemanticID} from './TableContext';
@@ -79,6 +82,8 @@ export default function TableRow({
 }: TableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -94,6 +99,7 @@ export default function TableRow({
         dynamicGridTemplateColumns,
         listProps,
         shouldFooterRenderAsLastRow,
+        rowWidth,
     } = useTableContext();
     const semanticRowID = useTableRowSemanticID();
 
@@ -167,7 +173,9 @@ export default function TableRow({
     }
 
     const tableRowPressableStyles = [
-        styles.mh5,
+        pageGutterMargin,
+        // The list sizes rows from a measurement, so without this the background wouldn't follow a drag.
+        !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
         isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
         styles.userSelectNone,
         !isFirstRow && styles.borderTop,
@@ -326,6 +334,7 @@ export default function TableRow({
                 onHoverIn={enableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
+                dataSet={TABLE_ROW_DATA_SET}
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     captureEditingOnMouseDown();

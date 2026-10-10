@@ -946,6 +946,9 @@ function completeSplitBill({
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
+                // The user filled the fields in by hand, so the receipt is no longer scanned. Mirror what the server returns
+                // so the split details page renders the manual layout while offline instead of waiting for the response.
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
             },
         },
         {

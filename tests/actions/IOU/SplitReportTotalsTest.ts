@@ -1,10 +1,12 @@
 import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -90,6 +92,10 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/policyType'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/permissions'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -761,7 +767,7 @@ describe('actions/IOU', () => {
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
-                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, amount: 1000, created: '2024-01-01'}],
                     splitExpensesTotal: 1000,
                 },
             });
@@ -788,8 +794,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'new-tx-1', reportID: 'other-report-1', statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-2', reportID: 'other-report-2', statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-1', reportID: 'other-report-1', amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: 'other-report-2', amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
@@ -820,8 +826,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
@@ -835,6 +841,10 @@ describe('actions/IOU', () => {
             // the expense report's list, so nothing would consume or clear them - they would instead highlight stale rows
             // the next time the user opened that report from the Inbox.
             expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
+
+            // Then the user stays on Search: the super-wide RHP is popped instead of dismissing to the expense report
+            expect(jest.mocked(Navigation.navigateBackToLastSuperWideRHPScreen)).toHaveBeenCalled();
+            expect(jest.mocked(Navigation.dismissModalWithReport)).not.toHaveBeenCalled();
         });
 
         it('writes pendingNewTransactionIDs into report metadata when splitting from the expense report', async () => {
@@ -853,9 +863,9 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'existing-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-3', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-4', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'existing-tx-2', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-3', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-4', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1500,
                 },
@@ -886,7 +896,7 @@ describe('actions/IOU', () => {
                 transactionData: {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
-                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, amount: 1000, created: '2024-01-01'}],
                     splitExpensesTotal: 1000,
                 },
             });
@@ -908,8 +918,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'new-search-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-search-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-search-tx-1', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-search-tx-2', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
@@ -933,8 +943,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'new-inbox-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-inbox-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-inbox-tx-1', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-inbox-tx-2', reportID: EXPENSE_REPORT_ID, amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
@@ -966,8 +976,8 @@ describe('actions/IOU', () => {
                     reportID: EXPENSE_REPORT_ID,
                     originalTransactionID: ORIGINAL_TX_ID,
                     splitExpenses: [
-                        {transactionID: 'moved-tx-1', reportID: 'other-report-1', statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'moved-tx-2', reportID: 'other-report-2', statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'moved-tx-1', reportID: 'other-report-1', amount: 500, created: '2024-01-01'},
+                        {transactionID: 'moved-tx-2', reportID: 'other-report-2', amount: 500, created: '2024-01-01'},
                     ],
                     splitExpensesTotal: 1000,
                 },
