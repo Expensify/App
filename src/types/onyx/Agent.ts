@@ -1,7 +1,7 @@
 import type {Errors, OnyxValueWithOfflineFeedback} from './OnyxCommon';
 
-/** Model of an agent's prompt data stored as a shared NVP */
-type AgentPrompt = OnyxValueWithOfflineFeedback<{
+/** Agent model */
+type Agent = OnyxValueWithOfflineFeedback<{
     /** The system prompt defining the agent's behavior */
     prompt: string;
 
@@ -18,4 +18,4 @@ type AgentPrompt = OnyxValueWithOfflineFeedback<{
     avatarErrors?: Errors | null;
 }>;
 
-export default AgentPrompt;
+export default Agent;

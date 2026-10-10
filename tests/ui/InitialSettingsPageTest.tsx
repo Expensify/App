@@ -330,7 +330,7 @@ describe('InitialSettingsPage - agent account', () => {
                     errorFields: {revoke: {error: 'Unable to revoke device'}},
                 },
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 nameErrors: {error: 'Agent name error'},
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);

@@ -171,8 +171,8 @@ describe('AgentsPage', () => {
     it('shows agent list when agents exist in Onyx', () => {
         const TEST_ACCOUNT_ID = 12345;
         mockUseOnyx.mockImplementation((key) => {
-            if (key === ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT) {
-                return [{[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`]: {prompt: 'Test prompt'}}, {status: 'loaded'}];
+            if (key === ONYXKEYS.COLLECTION.AGENT) {
+                return [{[`${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`]: {prompt: 'Test prompt'}}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -194,8 +194,8 @@ describe('AgentsPage', () => {
     it('excludes agents whose personal details are missing from the list', () => {
         const TEST_ACCOUNT_ID = 12345;
         mockUseOnyx.mockImplementation((key) => {
-            if (key === ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT) {
-                return [{[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`]: {prompt: 'Test prompt'}}, {status: 'loaded'}];
+            if (key === ONYXKEYS.COLLECTION.AGENT) {
+                return [{[`${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`]: {prompt: 'Test prompt'}}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });

@@ -124,7 +124,7 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
                 remapReportParticipants(optimisticAccountID, realAccountID);
 
                 Onyx.update([buildPersonalDetailsUpdate({[optimisticAccountID]: null})]);
-                Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, null);
                 Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: null});
             },
         });

@@ -161,7 +161,7 @@ describe('DynamicEditAgentPage', () => {
             if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
                 return [{displayName: 'Default Agent'}, {status: 'loaded'}];
             }
-            if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT)) {
+            if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.AGENT)) {
                 return [{prompt: 'Default prompt'}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
@@ -188,7 +188,7 @@ describe('DynamicEditAgentPage', () => {
 
     it('renders prompt from agent Onyx key', () => {
         mockUseOnyx.mockImplementation((key) => {
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
+            if (key === `${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`) {
                 return [{prompt: 'Reject all gambling expenses.'}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
@@ -241,7 +241,7 @@ describe('DynamicEditAgentPage', () => {
 
     it('shows error text when agent has nameErrors', () => {
         mockUseOnyx.mockImplementation((key) => {
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
+            if (key === `${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`) {
                 return [{prompt: 'Some prompt', nameErrors: {someKey: 'agentsPage.error.updateName'}}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
@@ -259,7 +259,7 @@ describe('DynamicEditAgentPage', () => {
 
     it('shows error text when agent has promptErrors', () => {
         mockUseOnyx.mockImplementation((key) => {
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
+            if (key === `${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`) {
                 return [{prompt: 'Some prompt', promptErrors: {someKey: 'agentsPage.error.updatePrompt'}}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];

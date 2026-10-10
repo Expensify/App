@@ -44,7 +44,7 @@ function useAgents() {
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetailsList = usePersonalDetails();
     const chatWithAgent = useChatWithAgent();
@@ -54,7 +54,7 @@ function useAgents() {
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
 
     const agents: AgentRowData[] = Object.entries(agentPrompts ?? {}).flatMap(([key, agentPrompt]) => {
-        const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
+        const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));
         const details = personalDetailsList?.[accountID];
         if (!details) {
             return [];

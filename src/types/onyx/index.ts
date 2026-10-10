@@ -4,8 +4,8 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
-import type AgentPrompt from './AgentPrompt';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
@@ -512,7 +512,7 @@ export type {
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
     AgentNewAvatarDraft,
-    AgentPrompt,
+    Agent,
     SuggestedAgentRule,
     SuggestedAgent,
 };
