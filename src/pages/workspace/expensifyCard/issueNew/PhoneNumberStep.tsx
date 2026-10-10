@@ -10,8 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
-import {getFieldRequiredErrors, isValidPhoneNumber} from '@libs/ValidationUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import {setIssueNewCardStepAndData} from '@userActions/Card';
 
@@ -35,14 +35,16 @@ function PhoneNumberStep({policyID, stepNames, startStepIndex}: PhoneNumberStepP
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const isEditing = issueNewCard?.isEditing;
     const shippingAddress = issueNewCard?.data?.shippingAddress;
 
+    // A number without a country code belongs to the country the card ships to, not the admin's
+    const parseShippingPhoneNumber = (phoneNumber: string) => parsePhoneNumber(phoneNumber, {regionCode: shippingAddress?.addressCountry});
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.PHONE_NUMBER], translate);
-        if (values.phoneNumber && !isValidPhoneNumber(appendCountryCode(values.phoneNumber, countryCode))) {
+        if (values.phoneNumber && !parseShippingPhoneNumber(values.phoneNumber).possible) {
             errors.phoneNumber = translate('common.error.phoneNumber');
         }
         return errors;
@@ -55,7 +57,7 @@ function PhoneNumberStep({policyID, stepNames, startStepIndex}: PhoneNumberStepP
         KeyboardUtils.dismiss().then(() => {
             setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
-                data: {shippingAddress: {...shippingAddress, phoneNumber: formatE164PhoneNumber(values.phoneNumber, countryCode) ?? ''}},
+                data: {shippingAddress: {...shippingAddress, phoneNumber: parseShippingPhoneNumber(values.phoneNumber).number?.e164 ?? ''}},
                 isEditing: false,
                 policyID,
             });
