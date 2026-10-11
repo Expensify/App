@@ -95,26 +95,24 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
                                 <InputWrapper
                                     InputComponent={TextInput}
                                     inputID={INPUT_IDS.FIRST_NAME}
-                                    name="fname"
                                     label={translate('common.firstName')}
                                     aria-label={translate('common.firstName')}
                                     role={CONST.ROLE.PRESENTATION}
                                     spellCheck={false}
                                     autoCapitalize="words"
-                                    autoComplete="given-name"
+                                    autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                                 />
                             </View>
                             <View>
                                 <InputWrapper
                                     InputComponent={TextInput}
                                     inputID={INPUT_IDS.LAST_NAME}
-                                    name="lname"
                                     label={translate('common.lastName')}
                                     aria-label={translate('common.lastName')}
                                     role={CONST.ROLE.PRESENTATION}
                                     spellCheck={false}
                                     autoCapitalize="words"
-                                    autoComplete="family-name"
+                                    autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                                 />
                             </View>
                         </FormProvider>
