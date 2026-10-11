@@ -725,7 +725,19 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined, {});
+        expect(unholdRequest).toHaveBeenCalledWith({
+            transactionID,
+            transaction,
+            reportID: 'child123',
+            policy: undefined,
+            isOffline: false,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            transactionViolations: undefined,
+            isTrackIntentUser: false,
+            delegateAccountID: undefined,
+            rules: {},
+        });
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -779,7 +791,19 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined, {});
+        expect(unholdRequest).toHaveBeenCalledWith({
+            transactionID,
+            transaction,
+            reportID: 'child123',
+            policy: undefined,
+            isOffline: true,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            transactionViolations: undefined,
+            isTrackIntentUser: false,
+            delegateAccountID: undefined,
+            rules: {},
+        });
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
