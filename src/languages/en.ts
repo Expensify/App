@@ -652,13 +652,9 @@ const translations = {
         errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment. Please try another file.',
         errorWhileConvertingHeic: "We couldn't process this image. Please try again, or upload the photo in a different format.",
         takePhoto: 'Take photo',
-        // @context Button on the camera review screen that discards the photo just taken and returns to the camera to take another one.
         retake: 'Retake',
-        // @context Button on the camera review screen that confirms the photo just taken.
         usePhoto: 'Use photo',
-        // @context Screen reader label for the photo shown on the camera review screen, before the user chooses Retake or Use photo.
         capturedPhotoPreview: 'Photo preview',
-        // @context Screen reader announcement after the shutter is pressed. "Retake" and "Use photo" are the names of the two buttons on the review screen.
         photoTakenAnnouncement: 'Photo taken. Choose Retake or Use photo.',
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose file',
