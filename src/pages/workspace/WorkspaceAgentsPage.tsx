@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import RenderHTML from '@components/RenderHTML';
 import AgentsTable from '@components/Tables/AgentsTable';
 
@@ -23,16 +23,16 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import DeepValueOf from '@src/types/utils/DeepValueOf';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
+import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceAgentsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.AGENTS>;
 function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
@@ -56,15 +56,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
 
     // The new agent functionality will be added after CreateCompanyAgent is exposed
-    const newAgentButton = true ? null : (
-        <Button
-            variant="success"
-            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()), {skipMatchingFullScreenRoute: true})}
-        >
-            <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
-        </Button>
-    );
+    const newAgentButton = null;
 
     const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
         {

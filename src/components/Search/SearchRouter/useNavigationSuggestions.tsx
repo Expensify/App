@@ -314,6 +314,7 @@ function buildWorkspaceNavigationItems({
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
                 isVendorMatchingBetaEnabled,
                 isRecruitingBetaEnabled,
+                isCompanyAgentsBetaEnabled,
                 convertToDisplayString,
             });
 

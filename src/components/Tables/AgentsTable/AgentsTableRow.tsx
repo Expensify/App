@@ -4,6 +4,7 @@ import Icon from '@components/Icon';
 import type {TableRow} from '@components/Table';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import WorkspaceMemberRoleCell from '@components/Tables/WorkspaceMembersTable/WorkspaceMemberRoleCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -19,8 +20,6 @@ import {View} from 'react-native';
 
 import type {AgentRowData} from '.';
 
-import WorkspaceMemberRoleCell from '../WorkspaceMembersTable/WorkspaceMemberRoleCell';
-
 type AgentsTableRowProps = {
     /** Data about the agent (wrapped by the table, so it also carries row state such as `selected`) */
     item: TableRow<AgentRowData>;
@@ -32,7 +31,7 @@ type AgentsTableRowProps = {
     shouldShowRoleColumn?: boolean;
 };
 
-export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowRoleColumn}: AgentsTableRowProps) {
+export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowRoleColumn = false}: AgentsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();

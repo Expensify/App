@@ -14,6 +14,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const workspaceMembers = useWorkspaceMembers(policy);
+    const policyRoles = Object.values(CONST.POLICY.ROLE);
 
     const {agents, ...rest} = useAgents();
     const workspaceAgents = agents.flatMap((agent) => {
@@ -23,7 +24,8 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
         if (!isAgentOwnedByWorkspace && !isAgentMemberOfWorkspace) {
             return [];
         }
-        agent.role = agentMembership?.policyEmployee.role as ValueOf<typeof CONST.POLICY.ROLE>;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        agent.role = policyRoles.find((policyRole) => policyRole === agentMembership?.policyEmployee.role);
         return [agent];
     });
 
@@ -48,7 +50,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
             accountID,
             displayName: details.displayName ?? details.login ?? '',
             login: details.login ?? '',
-            role: policyEmployee.role as ValueOf<typeof CONST.POLICY.ROLE>,
+            role: policyRoles.find((policyRole) => policyRole === policyEmployee.role),
             pendingAction,
             disabled: isPendingDeletion,
             isSelectionDisabled: true,

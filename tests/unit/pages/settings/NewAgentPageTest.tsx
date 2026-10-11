@@ -13,7 +13,7 @@ import NewAgentPage from '@pages/settings/Agents/DynamicNewAgentPage';
 
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, setNewAgentTemplate} from '@userActions/Agent';
 
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type SuggestedAgent from '@src/types/onyx/SuggestedAgent';
 

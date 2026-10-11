@@ -1,7 +1,7 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {TableHandle} from '@components/Table';
-import {AgentRowData, AgentsTableColumnKey} from '@components/Tables/AgentsTable';
+import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/AgentsTable';
 
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent, openAgentsPage} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import {useEffect, useRef, useState} from 'react';
 

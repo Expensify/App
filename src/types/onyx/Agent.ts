@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 
 import type {Errors, OnyxValueWithOfflineFeedback} from './OnyxCommon';
 
+/** The agent owner account type */
 type AgentOwnerType = ValueOf<typeof CONST.AGENTS.OWNER_TYPE>;
 
 /** Agent model */

@@ -25,7 +25,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, setNewAgentTemplate, getAgentTemplates} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type SuggestedAgent from '@src/types/onyx/SuggestedAgent';
 

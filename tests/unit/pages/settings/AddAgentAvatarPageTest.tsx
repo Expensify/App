@@ -9,7 +9,7 @@ import AddAgentAvatarPage from '@pages/settings/Agents/Fields/DynamicAddAgentAva
 import type {OnSaveParams} from '@pages/settings/Agents/Fields/DynamicEditAgentAvatarPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
