@@ -4,7 +4,6 @@ import {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import RenderHTML from '@components/RenderHTML';
 import AgentsTable from '@components/Tables/AgentsTable';
 
-import useAgents from '@hooks/useAgents';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -28,7 +27,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -39,7 +38,6 @@ type WorkspaceAgentsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigator
 function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const policy = usePolicy(route.params.policyID);
     const policyID = policy?.id;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -50,7 +48,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
-    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgents({ownerAccountID: workspaceAccountID});
+    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useWorkspaceAgents(policy);
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;

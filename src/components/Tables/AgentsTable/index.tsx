@@ -13,6 +13,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AgentOwnerType} from '@src/types/onyx/Agent';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -28,6 +29,8 @@ type AgentRowData = TableData & {
     accountID: number;
     displayName: string;
     login: string;
+    ownerAccountID?: number;
+    ownerType?: AgentOwnerType;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;

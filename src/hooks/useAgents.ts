@@ -40,30 +40,14 @@ function handleErrorClose(pendingAction: PendingAction | null | undefined, accou
     }
 }
 
-function ownedAgentsSelector(agents: OnyxCollection<Agent>, ownerAccountID?: number): OnyxCollection<Agent> {
-    if (!ownerAccountID) {
-        return agents;
-    }
-    return Object.fromEntries(
-        Object.entries(agents ?? {}).filter(([key, agent]) => {
-            return agent?.ownerAccountID === ownerAccountID;
-        }),
-    );
-}
-
-type UseAgentsParams = {
-    /** If provided, filter agents by owner account ID */
-    ownerAccountID?: number;
-};
-
-function useAgents({ownerAccountID}: UseAgentsParams) {
+function useAgents() {
     useEffect(() => {
         openAgentsPage();
     }, []);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: (data) => ownedAgentsSelector(data, ownerAccountID)});
+    const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetailsList = usePersonalDetails();
     const chatWithAgent = useChatWithAgent();
@@ -72,13 +56,16 @@ function useAgents({ownerAccountID}: UseAgentsParams) {
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
 
-    const agents: AgentRowData[] = Object.entries(allAgents ?? {}).flatMap(([key, agentPrompt]) => {
+    const agents: AgentRowData[] = Object.entries(allAgents ?? {}).flatMap(([key, agent]) => {
+        if (!agent) {
+            return [];
+        }
         const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));
         const details = personalDetailsList?.[accountID];
         if (!details) {
             return [];
         }
-        const pendingAction = agentPrompt?.pendingAction;
+        const pendingAction = agent.pendingAction;
         const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
         if (!isOffline && isPendingDeletion) {
@@ -86,10 +73,10 @@ function useAgents({ownerAccountID}: UseAgentsParams) {
         }
 
         const mergedErrors = {
-            ...getLatestError(agentPrompt?.errors ?? undefined),
-            ...getLatestError(agentPrompt?.nameErrors ?? undefined),
-            ...getLatestError(agentPrompt?.promptErrors ?? undefined),
-            ...getLatestError(agentPrompt?.avatarErrors ?? undefined),
+            ...getLatestError(agent.errors ?? undefined),
+            ...getLatestError(agent.nameErrors ?? undefined),
+            ...getLatestError(agent.promptErrors ?? undefined),
+            ...getLatestError(agent.avatarErrors ?? undefined),
         };
         const rowErrors = getLatestError(mergedErrors);
 
@@ -99,6 +86,8 @@ function useAgents({ownerAccountID}: UseAgentsParams) {
                 accountID,
                 displayName: details.displayName ?? details.login ?? '',
                 login: details.login ?? '',
+                ownerAccountID: agent.ownerAccountID,
+                ownerType: agent.ownerType,
                 pendingAction,
                 errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
                 disabled: isPendingDeletion,

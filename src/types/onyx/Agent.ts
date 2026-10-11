@@ -30,4 +30,5 @@ type Agent = OnyxValueWithOfflineFeedback<{
     avatarErrors?: Errors | null;
 }>;
 
+export type {AgentOwnerType};
 export default Agent;
