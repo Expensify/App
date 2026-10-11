@@ -2928,7 +2928,7 @@ PODS:
     - React-Core
   - RNFS (2.20.0):
     - React-Core
-  - RNGestureHandler (2.32.0):
+  - RNGestureHandler (3.3.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2950,6 +2950,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
+    - RNWorklets (>= 0.8.0)
     - Yoga
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
@@ -3028,7 +3029,12 @@ PODS:
     - ReactNativeDependencies
     - Turf
     - Yoga
-  - RNNitroSQLite (9.6.0):
+  - RNNitroSQLite (9.8.3):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
     - hermes-engine
     - NitroModules
     - RCTRequired
@@ -4101,12 +4107,12 @@ SPEC CHECKSUMS:
   RNFBAnalytics: 2f451df50833a890974d55a93557da878a85b29e
   RNFBApp: db9c2e6d36fe579ab19b82c0a4a417ff7569db7e
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
-  RNGestureHandler: 7b07d9192bc65c6883fb37fdecc05dc6b61c814f
+  RNGestureHandler: 85e32defcf23dd3b023356355c5c1dd1d9d51bde
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
   RNLiveMarkdown: f4c383d846d5d756f42bdf6006e85d5baf0ebfc8
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
   rnmapbox-maps: 54eb40428a4fd89f484a492fc7186bc1c1eea9ce
-  RNNitroSQLite: e354c4a31133050e6bbde1c136b8ac4857830236
+  RNNitroSQLite: c986393b7cb0e5e4587d0c9f7108e56ee8db9627
   RNPermissions: 32bd3b977f28442af0900b102f4458f0f9f9b77c
   RNReactNativeHapticFeedback: 6c8677db48f62a635e6a2065f5d2bd02498d7a73
   RNReanimated: f093c30aa11e45a8044dcc19417f44cffa1c4e1d

@@ -6,12 +6,14 @@ import useLocalize from '@hooks/useLocalize';
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
+import {getDateFilterRange} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -20,10 +22,11 @@ import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQu
 import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
+import getInProgressBucketLabel from './getInProgressBucketLabel';
 import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
-    queryJSON: Readonly<SearchQueryJSON>;
+    queryJSON: Readonly<SearchQueryJSON> | undefined;
 
     /** The view type (bar, etc.) */
     view: ChartView;
@@ -36,8 +39,8 @@ type SearchChartViewProps = {
 
     isLoading?: boolean;
 
-    /** Color every bar is drawn in. Only a bar chart reads it. */
-    color?: string;
+    /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
+    shouldShowGroupLabels?: boolean;
 
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
@@ -50,19 +53,28 @@ type SearchChartViewProps = {
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, renderDetails, chartContainerStyle}: SearchChartViewProps) {
-    const {preferredLocale} = useLocalize();
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowGroupLabels = true, renderDetails, chartContainerStyle}: SearchChartViewProps) {
+    const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, color});
+    const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const rows = buildChartSeries({
+        data,
+        view,
+        getLabel,
+        getShortLabel,
+        getCurrencyDecimals,
+        getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
+    });
     const points = rows.map((row) => row.point);
 
     const handleItemPress = (index: number) => {
         const item = rows.at(index)?.item;
-        if (!item) {
+        if (!item || !queryJSON) {
             return;
         }
 
@@ -91,7 +103,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
                 onBarPress={(dataPoint, index) => handleItemPress(index)}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
-                color={color}
+                shouldShowLabels={shouldShowGroupLabels}
             />
         ),
         [CONST.SEARCH.VIEW.LINE]: (
@@ -110,7 +122,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
                 onSlicePress={(dataPoint, index) => handleItemPress(index)}
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
-                shouldShowLegend={!renderDetails}
+                shouldShowLegend={shouldShowGroupLabels}
             />
         ),
     };

@@ -116,6 +116,7 @@ function renderTable(cards: WorkspaceExpensifyCardTableRowData[], shouldShowExpo
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <WorkspaceExpensifyCardsTable
                 policyID="policy123"
+                policy={undefined}
                 cards={cards}
                 selectionEnabled={false}
                 selectedKeys={[]}

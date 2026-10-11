@@ -5,7 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getVisibleReportActionErrors, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -347,7 +348,8 @@ function useReportActionsScroll({
         return () => clearTimeout(timer);
     }, [actionIdToHighlight]);
 
-    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
+    // Only errors the user can actually see should pull the list down to them.
+    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => !isEmptyValueObject(getVisibleReportActionErrors(action)));
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
     // Scroll to the bottom when a new errored action appears, so the user sees the failed money request. Re-checked
@@ -399,7 +401,8 @@ function useReportActionsScroll({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
-        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        // `animated` is explicit because native defaults to an instant jump, which would teleport the list and lose the user's place.
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
     };
 
     const flushPendingScrollToBottom = () => {

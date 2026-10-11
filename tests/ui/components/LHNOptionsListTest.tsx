@@ -1,5 +1,6 @@
 import {act, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 
+import UserAvatar from '@components/Avatar/UserAvatar';
 import ComposeProviders from '@components/ComposeProviders';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import type {LHNOptionsListProps} from '@components/LHNOptionsList/types';
@@ -474,10 +475,10 @@ describe('LHNOptionsList', () => {
     });
 
     describe('Task report avatar rendering', () => {
-        it('should render a subscript avatar for a workspace task report (owner + workspace)', async () => {
+        it('should render a single avatar for a workspace task report (owner only)', async () => {
             // Given a task report inside a workspace (chatType policyExpenseChat).
-            // shouldReportShowSubscript returns true, and workspace tasks are excluded
-            // from taskSuppression. The icons show subscript (Large User + Small Workspace).
+            // A task always shows its owner alone, like the task header, even when it
+            // was assigned in a workspace chat.
             const policyID = 'taskTestPolicy';
             const parentReportID = 'taskParentReport';
             const reportID = 'taskTestReport';
@@ -531,10 +532,86 @@ describe('LHNOptionsList', () => {
             // When the LHNOptionsList renders the task report
             render(getLHNOptionsListElement({data: [taskReport]}));
 
-            // Then it should render a subscript avatar (Large User + Small Workspace)
+            // Then it should render the owner alone, without the workspace subscript
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.getByTestId('SingleAvatar')).toBeTruthy();
             });
+            expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+        });
+
+        it('should render the copilot avatar for a workspace task a copilot created, even without chatReportID', async () => {
+            // Given a workspace task created offline by a copilot: an optimistic task has no chatReportID
+            // and links to its chat only through parentReportID, where the action carries the copilot.
+            const policyID = 'copilotTaskPolicy';
+            const parentReportID = 'copilotTaskParentReport';
+            const parentActionID = 'copilotTaskParentAction';
+            const reportID = 'copilotTaskReport';
+            const ownerAccountID = 1;
+            const copilotAccountID = 3;
+
+            const policy = createMock<Policy>({
+                id: policyID,
+                name: 'Copilot Task Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+            });
+
+            const parentReport: Report = {
+                reportID: parentReportID,
+                reportName: 'Workspace Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const parentAction: ReportAction = {
+                reportActionID: parentActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-01-01 00:00:00',
+                actorAccountID: ownerAccountID,
+                delegateAccountID: copilotAccountID,
+                message: [{type: 'COMMENT', text: 'task'}],
+            };
+
+            const taskReport: Report = {
+                reportID,
+                reportName: 'Copilot Task',
+                type: CONST.REPORT.TYPE.TASK,
+                policyID,
+                parentReportID,
+                parentReportActionID: parentActionID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, taskReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentActionID]: parentAction,
+                });
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ownerAccountID]: {accountID: ownerAccountID, login: 'owner@test.com', displayName: 'Owner', avatar: 'owner-avatar'},
+                    [copilotAccountID]: {accountID: copilotAccountID, login: 'copilot@test.com', displayName: 'Copilot', avatar: 'copilot-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the task report
+            render(getLHNOptionsListElement({data: [taskReport]}));
+
+            // Then the row shows the copilot alone, badged as acting for the owner, like the task header
+            await waitFor(() => {
+                expect(screen.getByTestId('SingleAvatar')).toBeTruthy();
+            });
+            const avatar = screen.UNSAFE_getByType(UserAvatar);
+            expect(avatar.props.accountID).toBe(copilotAccountID);
+            expect(avatar.props.source).toBe('copilot-avatar');
         });
     });
 

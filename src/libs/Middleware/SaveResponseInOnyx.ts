@@ -25,7 +25,7 @@ const requestsToIgnoreLastUpdateID = new Set<string>([
 
 // These requests already bring the client up to date (or end the session), so they never need a full ReconnectApp to cover a gap in update IDs.
 // This is separate from requestsToIgnoreLastUpdateID because requests like DeleteMoneyRequest skip the OnyxUpdates flow but still move lastUpdateID forward.
-const requestsExemptFromFullReconnect =new Set<string>([
+const requestsExemptFromFullReconnect = new Set<string>([
     WRITE_COMMANDS.OPEN_APP,
     SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
     SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES,
@@ -33,7 +33,7 @@ const requestsExemptFromFullReconnect =new Set<string>([
 ]);
 
 // A request belongs here when its successData/finallyData is what unblocks authentication, because parking that leaves the client unable to reauthenticate.
-const requestsToApplyWithoutAdvancingLastUpdateID = new Set<string>([READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]);
+const requestsToApplyWithoutAdvancingLastUpdateID = new Set<string>([SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]);
 
 const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: OnyxRequest<TKey>) =>
     requestResponse.then((response = {}) => {
