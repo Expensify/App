@@ -3,16 +3,25 @@
  * Table pages call these instead of the canonical Policy/Card actions so sanitization
  * and no-op checks stay in one place. Persistence and rollback stay in those actions.
  */
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type PolicyData from '@hooks/usePolicyData/types';
 
-import {getCardNameError, getExpensifyCardLimitError, getExpensifyCardNewAvailableSpend, shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
-import {getCategoryNameError, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {
+    getCardNameError,
+    getCardNameErrorMessage,
+    getExpensifyCardLimitError,
+    getExpensifyCardLimitErrorMessage,
+    getExpensifyCardNewAvailableSpend,
+    shouldShowExpensifyCardFixedLimitType,
+} from '@libs/CardUtils';
+import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {getDistanceRateNameError, getDistanceRateValueError} from '@libs/PolicyDistanceRatesUtils';
-import {getPerDiemAmountError, getPerDiemNameError} from '@libs/PolicyPerDiemUtils';
+import {getDistanceRateNameError, getDistanceRateNameErrorMessage, getDistanceRateValueError} from '@libs/PolicyDistanceRatesUtils';
+import {getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
-import {getTagNameError} from '@libs/TagUtils';
+import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
 import {updateExpensifyCardLimit, updateExpensifyCardLimitType} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
@@ -32,54 +41,100 @@ import {updateWorkspaceMembersRole} from './Member';
 import {editPerDiemRateAmount, editPerDiemRateDestination, editPerDiemRateSubrate} from './PerDiem';
 import {renamePolicyTag} from './Tag';
 
-function renameCategoryInline(policyData: PolicyData, currentName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): void {
+function renameCategoryInline(
+    translate: LocalizedTranslate,
+    policyData: PolicyData,
+    currentName: string,
+    newName: string,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getDecodedCategoryName(currentName);
 
-    if (sanitized === currentDisplayName || getCategoryNameError(policyData.categories, newName, currentDisplayName)) {
+    if (sanitized === currentDisplayName) {
         return;
+    }
+
+    const categoryError = getCategoryNameError(policyData.categories, newName, currentDisplayName);
+    if (categoryError) {
+        return getCategoryNameErrorMessage(translate, categoryError, newName);
     }
 
     renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled);
 }
 
-function renameTagInline(policyData: PolicyData, oldName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): void {
+function renameTagInline(translate: LocalizedTranslate, policyData: PolicyData, oldName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getCleanedTagName(oldName);
     const {tags} = getTagList(policyData.tags, 0);
 
-    if (sanitized === currentDisplayName || getTagNameError(tags, newName, currentDisplayName)) {
+    if (sanitized === currentDisplayName) {
         return;
+    }
+
+    const tagError = getTagNameError(tags, newName, currentDisplayName);
+    if (tagError) {
+        return getTagNameErrorMessage(translate, tagError, newName);
     }
 
     renamePolicyTag(policyData, {oldName, newName: sanitized}, 0, isVendorMatchingBetaEnabled);
 }
 
-function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: string, newName: string, bankName: CompanyCardFeedWithNumber, displayedName: string, storedName?: string): void {
+function renameCompanyCardInline(
+    translate: LocalizedTranslate,
+    domainOrWorkspaceAccountID: number,
+    cardID: string,
+    newName: string,
+    bankName: CompanyCardFeedWithNumber,
+    displayedName: string,
+    storedName?: string,
+): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (sanitized === displayedName || getCardNameError(newName)) {
+    if (sanitized === displayedName) {
         return;
+    }
+
+    const cardNameError = getCardNameError(newName);
+    if (cardNameError) {
+        return getCardNameErrorMessage(translate, cardNameError, newName);
     }
 
     updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, storedName);
 }
 
-function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): void {
+function renameDistanceRateInline(translate: LocalizedTranslate, policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentName = rate.name ?? '';
     const existingRateNames = Object.values(customUnit.rates ?? {}).map((existingRate) => existingRate.name ?? '');
 
-    if (sanitized === currentName || getDistanceRateNameError(existingRateNames, newName, currentName)) {
+    if (sanitized === currentName) {
         return;
+    }
+
+    const nameError = getDistanceRateNameError(existingRateNames, newName, currentName);
+    if (nameError) {
+        return getDistanceRateNameErrorMessage(translate, nameError, newName);
     }
 
     updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: sanitized}]);
 }
 
-function updateDistanceRateValueInline(policyID: string, customUnit: CustomUnit, rate: Rate, newRate: string, toLocaleDigit: (arg: string) => string): void {
-    if (getDistanceRateValueError(newRate, toLocaleDigit)) {
-        return;
+function updateDistanceRateValueInline(
+    translate: LocalizedTranslate,
+    policyID: string,
+    customUnit: CustomUnit,
+    rate: Rate,
+    newRate: string,
+    toLocaleDigit: (arg: string) => string,
+): string | undefined {
+    const rateError = getDistanceRateValueError(newRate, toLocaleDigit);
+    if (rateError) {
+        // validateRateValue owns this copy and has no shared message helper.
+        if (rateError === CONST.INPUT_VALIDATION_ERRORS.TOO_LOW) {
+            return translate('common.error.lowRateError');
+        }
+        return translate('common.error.invalidRateError');
     }
 
     const currentRateValue = (parseFloat((rate.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
@@ -133,6 +188,15 @@ function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Ca
  * Cents to persist from an inline dollar-string edit, or undefined when the value is invalid or unchanged.
  * The table page uses this to skip the confirm modal; the write path uses the same result so both stay in sync.
  */
+/** User-facing message for an invalid Expensify card limit, or undefined when the limit can be saved. */
+function getExpensifyCardLimitInlineEditError(translate: LocalizedTranslate, newLimit: string): string | undefined {
+    const limitError = getExpensifyCardLimitError(newLimit);
+    if (!limitError) {
+        return;
+    }
+    return getExpensifyCardLimitErrorMessage(translate, limitError);
+}
+
 function getExpensifyCardLimitInlineUpdate(card: Card, newLimit: string): number | undefined {
     if (getExpensifyCardLimitError(newLimit)) {
         return;
@@ -166,21 +230,46 @@ function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, 
     );
 }
 
-function renamePerDiemDestinationInline(policyID: string, rateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
+function renamePerDiemDestinationInline(
+    translate: LocalizedTranslate,
+    policyID: string,
+    rateID: string,
+    customUnit: CustomUnit | undefined,
+    currentName: string,
+    newName: string,
+): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (sanitized === currentName || getPerDiemNameError(newName)) {
+    if (sanitized === currentName) {
         return;
+    }
+
+    const nameError = getPerDiemNameError(newName);
+    if (nameError) {
+        return getPerDiemNameErrorMessage(translate, nameError, newName);
     }
 
     editPerDiemRateDestination(policyID, rateID, customUnit, sanitized);
 }
 
-function renamePerDiemSubrateInline(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
+function renamePerDiemSubrateInline(
+    translate: LocalizedTranslate,
+    policyID: string,
+    rateID: string,
+    subRateID: string,
+    customUnit: CustomUnit | undefined,
+    currentName: string,
+    newName: string,
+): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (sanitized === currentName || getPerDiemNameError(newName)) {
+    if (sanitized === currentName) {
         return;
+    }
+
+    const nameError = getPerDiemNameError(newName);
+    if (nameError) {
+        return getPerDiemNameErrorMessage(translate, nameError, newName);
     }
 
     editPerDiemRateSubrate(policyID, rateID, subRateID, customUnit, sanitized);
@@ -189,9 +278,18 @@ function renamePerDiemSubrateInline(policyID: string, rateID: string, subRateID:
 /**
  * Updates a per diem amount from an inline table edit. `newAmount` is the frontend dollar string.
  */
-function updatePerDiemAmountInline(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, currentRate: number, newAmount: string): void {
-    if (getPerDiemAmountError(newAmount)) {
-        return;
+function updatePerDiemAmountInline(
+    translate: LocalizedTranslate,
+    policyID: string,
+    rateID: string,
+    subRateID: string,
+    customUnit: CustomUnit | undefined,
+    currentRate: number,
+    newAmount: string,
+): string | undefined {
+    const amountError = getPerDiemAmountError(newAmount);
+    if (amountError) {
+        return getPerDiemAmountErrorMessage(translate, amountError);
     }
 
     const backendAmount = convertToBackendAmount(Number(newAmount));
@@ -210,6 +308,7 @@ export {
     updateDistanceRateValueInline,
     updateMemberRoleInline,
     canUpdateExpensifyCardLimitTypeInline,
+    getExpensifyCardLimitInlineEditError,
     getExpensifyCardLimitInlineUpdate,
     updateExpensifyCardLimitTypeInline,
     updateExpensifyCardLimitInline,

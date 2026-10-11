@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {isCategoryMissing} from '@libs/CategoryUtils';
@@ -20,7 +22,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
-import {getMerchantError} from '@libs/ValidationUtils';
+import {getMerchantError, getMerchantErrorMessage} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,14 +64,6 @@ import {
     updateMoneyRequestTag,
 } from './IOU/UpdateMoneyRequest';
 import {createTransactionThreadReport} from './Report';
-
-/** Translation path, plus any values that path interpolates, for a rejected inline edit. */
-type InlineEditError =
-    | ['common.error.fieldRequired']
-    | ['iou.error.invalidMerchant']
-    | ['common.error.invalidCharacter']
-    | ['iou.error.invalidAmount']
-    | ['common.error.characterLimitExceedCounter', number, number];
 
 type TransactionEditPermissions = {
     canEditDate: boolean;
@@ -279,24 +273,18 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 }
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
-function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string): InlineEditError | undefined {
+function editTransactionMerchantInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newMerchant: string): string | undefined {
     // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
     // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
     // thread report for an edit we're about to discard, so validate first.
     const merchantError = getMerchantError(newMerchant, isMerchantRequired(params.parentReport, params.transaction));
-    if (merchantError?.type === 'required') {
-        return ['common.error.fieldRequired'];
-    }
-    if (merchantError?.type === 'invalidValue') {
-        return ['iou.error.invalidMerchant'];
-    }
-    if (merchantError?.type === 'tooLong') {
-        return ['common.error.characterLimitExceedCounter', merchantError.byteLength, CONST.MERCHANT_NAME_MAX_BYTES];
+    if (merchantError) {
+        return getMerchantErrorMessage(translate, merchantError);
     }
 
     // The merchant form rejects HTML through FormProvider. Inline edit skips that form, so check it here.
     if (containsHtmlTag(newMerchant)) {
-        return ['common.error.invalidCharacter'];
+        return translate('common.error.invalidCharacter');
     }
 
     const iouParams = getIouParamsForTransaction(params);
@@ -311,14 +299,14 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
 }
 
 /** Updates the description of an expense from the Search results table or the Expense Report page. */
-function editTransactionDescriptionInline(params: TransactionInlineEditParams, newDescription: string): InlineEditError | undefined {
+function editTransactionDescriptionInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newDescription: string): string | undefined {
     // The description step and FormProvider reject HTML and over-long text. Inline edit skips both, so reject here before any write.
     // HTML is checked first so a value that fails both shows the invalid character error.
     if (containsHtmlTag(newDescription)) {
-        return ['common.error.invalidCharacter'];
+        return translate('common.error.invalidCharacter');
     }
     if (newDescription.length > CONST.DESCRIPTION_LIMIT) {
-        return ['common.error.characterLimitExceedCounter', newDescription.length, CONST.DESCRIPTION_LIMIT];
+        return translate('common.error.characterLimitExceedCounter', newDescription.length, CONST.DESCRIPTION_LIMIT);
     }
 
     const iouParams = getIouParamsForTransaction(params);
@@ -344,7 +332,7 @@ function editTransactionCategoryInline(params: TransactionInlineEditParams, newC
 }
 
 /** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
-function editTransactionAmountInline(params: TransactionInlineEditParams, newAmount: number): InlineEditError | undefined {
+function editTransactionAmountInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newAmount: number): string | undefined {
     // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
     // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
     // thread report for an edit we're about to discard, so validate against params directly first.
@@ -353,7 +341,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
     const isP2P = isIOUReport(params.parentReport);
 
     if (!isValidMoneyRequestAmount(newAmount, iouType, allowNegative, isP2P)) {
-        return ['iou.error.invalidAmount'];
+        return translate('iou.error.invalidAmount');
     }
 
     const iouParams = getIouParamsForTransaction(params);
@@ -551,4 +539,4 @@ export {
     getTransactionEditPermissions,
 };
 
-export type {TransactionInlineEditParams, TransactionEditPermissions, TransactionEditPermissionsParams, InlineEditError};
+export type {TransactionInlineEditParams, TransactionEditPermissions, TransactionEditPermissionsParams};

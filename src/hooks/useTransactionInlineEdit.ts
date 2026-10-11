@@ -1,6 +1,6 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
-import type {InlineEditError, TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
+import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
     editTransactionCategoryInline,
@@ -11,10 +11,10 @@ import {
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Growl from '@libs/Growl';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -235,29 +235,16 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         };
     };
 
-    const showRejectionIfAny = (error: InlineEditError | undefined) => {
-        if (!error) {
-            return;
-        }
-
-        const bottomRight = {position: CONST.GROWL.POSITION.BOTTOM_RIGHT};
-        if (error[0] === 'common.error.characterLimitExceedCounter') {
-            Growl.error(translate(error[0], error[1], error[2]), bottomRight);
-            return;
-        }
-        Growl.error(translate(error[0]), bottomRight);
-    };
-
     const onEditDate = (newDate: string) => {
         editTransactionDateInline(getEditParams(), newDate, personalPolicy?.outputCurrency);
     };
 
     const onEditMerchant = (newMerchant: string) => {
-        showRejectionIfAny(editTransactionMerchantInline(getEditParams(), newMerchant));
+        showInlineEditError(editTransactionMerchantInline(translate, getEditParams(), newMerchant));
     };
 
     const onEditDescription = (newDescription: string) => {
-        showRejectionIfAny(editTransactionDescriptionInline(getEditParams(), newDescription));
+        showInlineEditError(editTransactionDescriptionInline(translate, getEditParams(), newDescription));
     };
 
     const onEditCategory = (newCategory: string) => {
@@ -265,7 +252,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     };
 
     const onEditAmount = (newAmount: number) => {
-        showRejectionIfAny(editTransactionAmountInline(getEditParams(), newAmount));
+        showInlineEditError(editTransactionAmountInline(translate, getEditParams(), newAmount));
     };
 
     const onEditTag = (newTag: string) => {
