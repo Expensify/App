@@ -131,7 +131,11 @@ describe('Middleware', () => {
                 jest.restoreAllMocks();
             });
 
-            test('applies the response and runs a full ReconnectApp to cover the gap', async () => {
+            test.each([
+                ['AddComment', 'AddComment'],
+                // DeleteMoneyRequest skips the OnyxUpdates flow but still moves lastUpdateID forward, so it can leave the same gap
+                ['DeleteMoneyRequest', WRITE_COMMANDS.DELETE_MONEY_REQUEST],
+            ])('applies the response and runs a full ReconnectApp to cover the gap for %s', async (_case, command) => {
                 // Given a device that was backgrounded for a long time, so the server no longer has its lastUpdateIDAppliedToClient
                 await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
                 await waitForBatchedUpdates();
@@ -141,7 +145,7 @@ describe('Middleware', () => {
                 // When a write returns a lastUpdateID but no previousUpdateID
                 jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: 200, lastUpdateID: 5001});
                 const result = await Request.processWithMiddleware({
-                    command: 'AddComment',
+                    command,
                     data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
                     successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_APP, value: false}],
                 });
@@ -162,6 +166,8 @@ describe('Middleware', () => {
                 ['the response is not newer than the client', 100, 'AddComment', {lastUpdateID: 100}],
                 ['the request is a ReconnectApp', 100, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, {lastUpdateID: 5001}],
                 ['the request is an OpenApp', 100, WRITE_COMMANDS.OPEN_APP, {lastUpdateID: 5001}],
+                ['the request is a GetMissingOnyxMessages', 100, SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, {lastUpdateID: 5001}],
+                ['the request is a CloseAccount', 100, WRITE_COMMANDS.CLOSE_ACCOUNT, {lastUpdateID: 5001}],
             ])('does not run a full ReconnectApp when %s', async (_case, clientLastUpdateID, command, updateIDs) => {
                 // Given a client whose lastUpdateID is either still known to the server or has nothing to lose
                 if (clientLastUpdateID) {
