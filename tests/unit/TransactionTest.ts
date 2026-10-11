@@ -2920,6 +2920,33 @@ describe('Transaction', () => {
             // And the new expense is sent with the trip's route alternative
             expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(200);
         });
+
+        it('converts routeDistanceMeters into the destination distanceUnit', async () => {
+            // Given a prior trip of 22.8 km (22800 meters)
+            const transactionID = 'txn-select-reusable-route-converted';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, generateTransaction({transactionID, reportID: '1'}));
+            const route: ReusableDistanceRoute = {
+                transactionID: 'source-transaction',
+                inserted: '2026-10-01 12:00:00',
+                distance: 22.8,
+                routeDistanceMeters: 22800,
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                },
+            };
+
+            // When the trip is reused in a workspace using miles
+            await selectReusableRoute(transactionID, route, undefined, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            // Then the draft converts the trip's route distance in meters to the destination unit
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.isReusedRoute).toBe(true);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(14.17);
+            expect(transaction?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(22800);
+        });
     });
 
     describe('setSelectedRoute', () => {

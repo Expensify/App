@@ -19,6 +19,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {filterRoutes, getRouteEndpoints, getRouteKey, getRouteThumbnailSource, setCachedRouteThumbnailIfEmpty} from '@libs/ReusableDistanceRoutesUtils';
@@ -166,12 +167,14 @@ function IOURequestStepReuseRoute({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- navigateToNextStep is rebuilt every render, only a new selection should trigger navigation
     }, [selectedRoute]);
 
+    const distanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction, policy});
+
     const selectRoute = (item: ReuseRouteListItemData) => {
         if (isNavigatingRef.current || selectedRoute) {
             return;
         }
         isNavigatingRef.current = true;
-        selectReusableRoute(transactionID, item.route, transaction?.comment?.waypoints)
+        selectReusableRoute(transactionID, item.route, transaction?.comment?.waypoints, distanceUnit)
             .then(() => setSelectedRoute(item.route))
             .catch(() => {
                 isNavigatingRef.current = false;
