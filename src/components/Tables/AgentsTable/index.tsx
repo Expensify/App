@@ -34,6 +34,7 @@ type AgentRowData = TableData & {
     role?: ValueOf<typeof CONST.POLICY.ROLE>;
     ownerAccountID?: number;
     ownerType?: AgentOwnerType;
+    canManage: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;

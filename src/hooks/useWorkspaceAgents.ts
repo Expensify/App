@@ -52,6 +52,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
             pendingAction,
             disabled: isPendingDeletion,
             isSelectionDisabled: true,
+            canManage: false,
             action: () => null,
             onChatPress: () => () => null,
             onCopilotPress: () => () => null,

@@ -91,6 +91,7 @@ function useAgents() {
                 pendingAction,
                 errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
                 disabled: isPendingDeletion,
+                canManage: true,
                 action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID)), {skipMatchingFullScreenRoute: true}),
                 onChatPress: () => chatWithAgent(accountID),
                 onCopilotPress: () => switchToDelegator(details.login ?? ''),
