@@ -148,7 +148,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Duplicate report** | Any report owned by submitter | Submitter | Creates a copy of the report |
 | **Download report** | Any report | All roles | Downloads a PDF copy |
 | **Print** | Any report except Draft | All roles | Opens print view |
-| **Reject** | Submitted reports | Approver | Sends report back for changes |
+| **Reject** | Submitted reports | Approver, Admin | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
 | **View details** | Any report | All roles | Opens report details |
 | **Cancel payment** | Before payment processing | Payer, or a Payments admin on a workspace that tracks payments made elsewhere | Cancels a pending payment |
@@ -165,7 +165,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Download report** | Any report state | All roles | Downloads a copy of the report as a PDF |
 | **Print** | Any report status except Draft | All roles | Opens the report in a printable format and triggers the browser's print dialog |
 | **Submit** | For draft reports | Submitter, Admin (on behalf of submitter) | Kicks off report approval workflow |
-| **Reject** | On Outstanding reports | Assigned approver | Returns the entire report to the submitter or a previous approver with a required reason. The report moves to Draft (if rejected to submitter) or stays Outstanding (if rejected to a previous approver) |
+| **Reject** | On Outstanding reports | Assigned approver, Admin | Returns the entire report to the submitter or a previous approver with a required reason. The report moves to Draft (if rejected to submitter) or stays Outstanding (if rejected to a previous approver) |
 | **Approve** | For outstanding reports | Admin | Skips current approver  |
 | **View details** | Any report | All roles | Opens details view with options to share, pin, view members |
 | **Received payment** | On approved, closed, or reimbursed expense reports where no bank payment has been initiated | Submitter | Confirms that payment was received outside of Expensify and marks the report as paid |
