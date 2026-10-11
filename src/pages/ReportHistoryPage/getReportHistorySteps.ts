@@ -40,7 +40,7 @@ function getCompletedStep(translate: LocalizedTranslate, reportAction: ReportAct
     const step = {key: reportAction.reportActionID, accountID: reportAction.actorAccountID, created: reportAction.created, isUpcoming: false};
 
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED)) {
-        return {...step, icon: 'Document', label: translate('reportHistoryPage.created')};
+        return {...step, icon: 'Receipt', label: translate('reportHistoryPage.created')};
     }
     if (isSubmittedAction(reportAction) || isSubmittedAndClosedAction(reportAction)) {
         return {...step, icon: 'Send', label: translate('reportHistoryPage.submitted')};
@@ -49,22 +49,22 @@ function getCompletedStep(translate: LocalizedTranslate, reportAction: ReportAct
         return {...step, icon: 'ThumbsUp', label: translate('reportHistoryPage.approved')};
     }
     if (isUnapprovedAction(reportAction)) {
-        return {...step, icon: 'ThumbsDown', label: translate('iou.unapproved')};
+        return {...step, icon: 'CircularArrowBackwards', label: translate('iou.unapproved')};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER)) {
         return {...step, icon: 'ThumbsDown', label: translate('iou.rejectedThisReport')};
     }
     if (isRetractedAction(reportAction)) {
-        return {...step, icon: 'Rotate', label: translate('iou.retracted')};
+        return {...step, icon: 'CircularArrowBackwards', label: translate('iou.retracted')};
     }
     if (isReopenedAction(reportAction)) {
-        return {...step, icon: 'Rotate', label: translate('iou.reopened')};
+        return {...step, icon: 'CircularArrowBackwards', label: translate('iou.reopened')};
     }
     if (isPayAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.paid')};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED)) {
-        return {...step, icon: 'Close', label: translate('reportHistoryPage.canceledPayment')};
+        return {...step, icon: 'Clear', label: translate('iou.adminCanceledRequest')};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
         // Auto-pay creates these without a new approver, and the report hides them too
@@ -72,14 +72,14 @@ function getCompletedStep(translate: LocalizedTranslate, reportAction: ReportAct
         if (originalMessage?.automaticAction && !originalMessage?.mentionedAccountIDs?.length) {
             return undefined;
         }
-        return {...step, icon: 'UserCheck', label: Parser.htmlToText(getChangedApproverActionMessage(translate, reportAction))};
+        return {...step, icon: 'Workflows', label: Parser.htmlToText(getChangedApproverActionMessage(translate, reportAction))};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)) {
-        return {...step, icon: 'ArrowRight', label: Parser.htmlToText(getChangedApproverActionMessage(translate, reportAction))};
+        return {...step, icon: 'Workflows', label: Parser.htmlToText(getChangedApproverActionMessage(translate, reportAction))};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
         const message = getDelegateSubmitMessage(translate, reportAction, currentUserEmail);
-        return message ? {...step, accountID: undefined, icon: 'ArrowRight', label: Parser.htmlToText(message)} : undefined;
+        return message ? {...step, accountID: undefined, icon: 'Workflows', label: Parser.htmlToText(message)} : undefined;
     }
     return undefined;
 }

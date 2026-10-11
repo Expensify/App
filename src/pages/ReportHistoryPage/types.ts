@@ -1,6 +1,6 @@
 import type {TupleToUnion} from 'type-fest';
 
-const REPORT_HISTORY_ICONS = ['Document', 'Send', 'ThumbsUp', 'ThumbsDown', 'Rotate', 'Close', 'ArrowRight', 'UserCheck', 'MoneyBag'] as const;
+const REPORT_HISTORY_ICONS = ['Receipt', 'Send', 'ThumbsUp', 'ThumbsDown', 'CircularArrowBackwards', 'Clear', 'Workflows', 'MoneyBag'] as const;
 
 type ReportHistoryIcon = TupleToUnion<typeof REPORT_HISTORY_ICONS>;
 

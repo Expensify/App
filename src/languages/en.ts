@@ -3466,13 +3466,12 @@ const translations = {
         submitted: 'submitted',
         approved: 'approved',
         paid: 'paid',
-        canceledPayment: 'canceled payment',
         toSubmit: 'to submit',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'to submit automatically';
+                return 'to automatically submit';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to submit automatically on the ${eta} of each month` : `to submit automatically ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
         },
         toApprove: 'to approve',
         toPay: 'to pay',
