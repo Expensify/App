@@ -226,8 +226,6 @@ function getPayMoneyRequestParams({
             conciergeChat,
             companySize: introSelected?.companySize as OnboardingCompanySize,
             isSelfTourViewed,
-            // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
-            hasActiveAdminPolicies: undefined,
             delegateAccountID,
             // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
@@ -406,7 +404,8 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
+                    // Same key as the preview copy below, so dismissing this one clears that one too.
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         },
@@ -425,7 +424,8 @@ function getPayMoneyRequestParams({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                // Clear only our own previous failure so a retry does not keep showing a stale RBR.
+                [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}},
             },
         });
         onyxData.failureData?.push({
@@ -434,6 +434,9 @@ function getPayMoneyRequestParams({
             value: {
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
+                    // The error above sits in the expense report, which the payer cannot reach once it is deleted.
+                    // Mirror it here. Only shown once the preview is deleted, see getVisibleReportActionErrors.
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         });
@@ -954,15 +957,13 @@ function markReportPaymentReceived(
     currentUserEmail: string,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
     isTrackIntentUser: boolean | undefined,
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (!chatReport || !iouReport) {
         return;
     }
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allTransactionViolations = getAllTransactionViolations();
     const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const total = getReimbursableTotal(iouReport);
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({

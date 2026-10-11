@@ -43,7 +43,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
     const {type} = queryJSON;
 
     const hasPendingWriteOnMount = hasPendingSearchWrite();
-    const initialWatchKey = getSearchWriteWatchKey();
+    const initialWatchKey = hasPendingWriteOnMount ? getSearchWriteWatchKey() : undefined;
 
     const mutableRef = useRef<TrackingMutableState>({
         hasPendingWriteOnMount,

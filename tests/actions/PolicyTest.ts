@@ -3,6 +3,7 @@ import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isPolicyPayer} from '@libs/PolicyUtils';
+// eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on ReportUtils without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -11,8 +12,20 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Onboarding, PolicyJoinMember, PolicyReportField, Policy as PolicyType, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    GovernmentMileageRate,
+    Onboarding,
+    PolicyJoinMember,
+    PolicyReportField,
+    Policy as PolicyType,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {Participant, ReportNextStep} from '@src/types/onyx/Report';
+import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -59,6 +72,22 @@ function requireCallArgument(call: unknown, index: number): unknown {
 jest.mock('@libs/GoogleTagManager');
 
 OnyxUpdateManager();
+/** Build the index-keyed object shape the rules API uses for lists */
+function indexMap<T>(...values: T[]): Record<string, T> {
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
+}
+
+async function getRulesCollection(): Promise<OnyxCollection<Rule>> {
+    let collection: OnyxCollection<Rule> = {};
+    await TestHelper.getOnyxData({
+        key: ONYXKEYS.COLLECTION.RULE,
+        callback: (value) => {
+            collection = value ?? {};
+        },
+    });
+    return collection;
+}
+
 describe('actions/Policy', () => {
     beforeAll(() => {
         Onyx.init({
@@ -625,8 +654,17 @@ describe('actions/Policy', () => {
                 address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
                 isTravelEnabled: true,
                 tax: {trackingEnabled: true},
-                rules: {codingRules: {rule1: {filters: {left: 'merchant', operator: 'eq', right: 'Acme'}, category: 'Travel'}}},
             };
+            const sourceRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: fakePolicy.id,
+                triggers: indexMap(CONST.RULES.TRIGGERS.CREATE_TRANSACTION),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
+                actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}),
+            };
+            // The copies are optimistic only - they are dropped once the server responds with its own rule IDs,
+            // so the request stays paused while they are asserted.
+            mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
@@ -657,6 +695,7 @@ describe('actions/Policy', () => {
                     codingRules: true,
                 },
                 localCurrency: 'USD',
+                rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -676,7 +715,77 @@ describe('actions/Policy', () => {
             expect(policy?.address).toEqual(fakePolicy.address);
             expect(policy?.isTravelEnabled).toBe(true);
             expect(policy?.tax).toEqual(fakePolicy.tax);
-            expect(policy?.rules).toEqual({codingRules: fakePolicy.rules?.codingRules});
+
+            // Merchant rules are copied into the rules collection as new rules scoped to the duplicate,
+            // rather than onto the duplicated policy object.
+            const duplicatedRules = Object.values((await getRulesCollection()) ?? {}).filter((rule) => rule?.scopeID === policyID);
+            expect(duplicatedRules).toHaveLength(1);
+            expect(duplicatedRules.at(0)).toMatchObject({
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policyID,
+                triggers: sourceRule.triggers,
+                filters: sourceRule.filters,
+                actions: sourceRule.actions,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('duplicate workspace without the rules and codingRules options copies no merchant rules', async () => {
+            // Given a source workspace with a merchant rule
+            const fakePolicy = createRandomPolicy(16, CONST.POLICY.TYPE.CORPORATE);
+            const sourceRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: fakePolicy.id,
+                triggers: indexMap(CONST.RULES.TRIGGERS.CREATE_TRANSACTION),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
+                actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}),
+            };
+            // The request stays paused so the assertions read the optimistic data, which is where a wrongly copied rule would appear.
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // When the workspace is duplicated with both the Rules and Merchant rules options unselected
+            Policy.duplicateWorkspace(fakePolicy, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'No Rules Workspace',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                    codingRules: false,
+                },
+                localCurrency: 'USD',
+                rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
+            });
+            await waitForBatchedUpdates();
+
+            // Then no merchant rule is scoped to the duplicate and the Rules feature stays off, because the admin chose not to copy either
+            const duplicatedRules = Object.values((await getRulesCollection()) ?? {}).filter((rule) => rule?.scopeID === policyID);
+            expect(duplicatedRules).toHaveLength(0);
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(policy?.areRulesEnabled).toBe(false);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
         });
 
         it('duplicate workspace with 3+ members creates optimistic announce chat using currentUserAccountID', async () => {
@@ -2214,9 +2323,69 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('unarchivePolicy', () => {
+        const archivedDate = '2026-08-01 00:00:00';
+
+        it('should call UnarchivePolicy with the policyID', async () => {
+            // Given an archived workspace
+            const policy = {...createRandomPolicy(0), archivedDate};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            // When unarchiving the workspace
+            Policy.unarchivePolicy({policyID: policy.id, policyName: policy.name, archivedDate});
+
+            // Then the UnarchivePolicy command should be called with only the policyID, since the backend does the rest
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UNARCHIVE_POLICY, {policyID: policy.id}, expect.anything());
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should clear archivedDate optimistically and succeed', async () => {
+            // Given an archived workspace
+            const policy = {...createRandomPolicy(0), archivedDate};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When unarchiving the workspace
+            Policy.unarchivePolicy({policyID: policy.id, policyName: policy.name, archivedDate});
+            await waitForBatchedUpdates();
+
+            // Then archivedDate should be cleared right away so the workspace shows as active and editable, with a pending update
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.archivedDate).toBeUndefined();
+            expect(updatedPolicy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the request succeeds
+            await mockFetch.resume();
+
+            // Then the pending action should be cleared and the workspace stays unarchived
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingAction).toBeUndefined();
+            expect(updatedPolicy?.archivedDate).toBeUndefined();
+        });
+
+        it('should restore archivedDate when the request fails', async () => {
+            // Given an archived workspace
+            const policy = {...createRandomPolicy(0), archivedDate};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When unarchiving the workspace fails
+            mockFetch.fail();
+            Policy.unarchivePolicy({policyID: policy.id, policyName: policy.name, archivedDate});
+            await waitForBatchedUpdates();
+
+            // Then the workspace should be archived again with its original archivedDate, and an error shown to the user
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.archivedDate).toBe(archivedDate);
+            expect(updatedPolicy?.pendingAction).toBeUndefined();
+            expect(updatedPolicy?.errors).not.toBeUndefined();
+        });
+    });
+
     describe('updateGeneralSettings', () => {
         const NEW_NAME = 'New Workspace Name';
         const NEW_CURRENCY = CONST.CURRENCY.EUR;
+        const deRate: GovernmentMileageRate = {sourceRateID: 'DE_2026-01-01', currency: 'EUR', name: '2026 Germany', rate: 30, startDate: '2026-01-01', enabled: true};
 
         it('should update workspace name optimistically and succeed', async () => {
             // Given a workspace and a paused fetch
@@ -2360,6 +2529,110 @@ describe('actions/Policy', () => {
             expect(updatedRate?.currency).toBe(policy.outputCurrency);
             expect(updatedRate?.pendingFields?.currency).toBeUndefined();
             expect(updatedRate?.errorFields?.currency).not.toBeUndefined();
+        });
+
+        it('sends the government rate country and the optimistic rate IDs when switching to a shared currency', async () => {
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const customUnitID = 'unit_123';
+            const policy = {
+                ...createRandomPolicy(0),
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        rates: {},
+                    },
+                },
+            };
+
+            Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.EUR, {}, {governmentRateCountry: 'DE', governmentMileageRates: [deRate]});
+
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
+            const params = requireRecord(requireCallArgument(apiCallArgs, 1));
+            expect(params.governmentRateCountry).toBe('DE');
+            expect(Object.keys(parseJSONRecord(params.optimisticRateIDs))).toEqual(['DE_2026-01-01']);
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('sets the government rate country and copies its reference rates optimistically when switching to a shared currency', async () => {
+            const customUnitID = 'unit_123';
+            const policy = {
+                ...createRandomPolicy(0),
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        rates: {},
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            mockFetch.pause();
+            Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.EUR, {}, {governmentRateCountry: 'DE', governmentMileageRates: [deRate]});
+            await waitForBatchedUpdates();
+
+            // Then the flag turns on, the country is stored and Germany's rates are copied with the unit corrected
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
+            expect(updatedPolicy?.autoUpdateGovernmentRateCountry).toBe('DE');
+            const copiedRates = Object.values(updatedPolicy?.customUnits?.[customUnitID]?.rates ?? {});
+            expect(copiedRates).toHaveLength(1);
+            expect(copiedRates.at(0)?.attributes?.governmentRate?.sourceRateID).toBe('DE_2026-01-01');
+            expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+
+            await mockFetch.resume();
+
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.autoUpdateGovernmentRateCountry).toBeUndefined();
+            expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        });
+
+        it('clears the stored government rate country when the currency changes without a new country', async () => {
+            const policy = {
+                ...createRandomPolicy(0),
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.EUR,
+                autoUpdateGovernmentRateCountry: 'DE',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            mockFetch.pause();
+            Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.USD);
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoUpdateGovernmentRateCountry ?? null).toBeNull();
+
+            // Release the paused request so it does not block the queue for the tests that follow
+            await mockFetch.resume();
+        });
+
+        it('restores the previous flag and country when the currency change with a country fails', async () => {
+            const policy = {
+                ...createRandomPolicy(0),
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                shouldAutoUpdateGovernmentDistanceRates: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            mockFetch.fail();
+            Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.EUR, {}, {governmentRateCountry: 'DE', governmentMileageRates: [deRate]});
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.outputCurrency).toBe(CONST.CURRENCY.USD);
+            expect(updatedPolicy?.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
+            expect(updatedPolicy?.autoUpdateGovernmentRateCountry ?? null).toBeNull();
         });
     });
 
@@ -3369,6 +3642,58 @@ describe('actions/Policy', () => {
     });
 
     describe('setWorkspaceApprovalMode', () => {
+        it('should delete the policy approval workflow rules but keep its expense default rules when disabling approvals', async () => {
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+
+            const policyID = Policy.generatePolicyID();
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: ESH_EMAIL,
+                owner: ESH_EMAIL,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const approvalRuleKey = `${ONYXKEYS.COLLECTION.RULE}approval1` as const;
+            const expenseDefaultRuleKey = `${ONYXKEYS.COLLECTION.RULE}merchant1` as const;
+            const rules: OnyxCollection<Rule> = {
+                [approvalRuleKey]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policyID,
+                    triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_SUBMIT),
+                    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [EMPLOYEE_EMAIL]},
+                    actions: indexMap({name: CONST.RULES.ACTIONS.FORWARD_TO, approver: ESH_EMAIL}),
+                },
+                [expenseDefaultRuleKey]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policyID,
+                    triggers: indexMap(CONST.RULES.TRIGGERS.CREATE_TRANSACTION),
+                    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, right: 'Starbucks'},
+                    actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}),
+                },
+            };
+
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, rules);
+            await waitForBatchedUpdates();
+
+            // The approval rule is removed with the workflow, the merchant rule on the same policy is left alone.
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DISABLE_POLICY_APPROVALS,
+                expect.anything(),
+                expect.objectContaining({optimisticData: expect.arrayContaining([expect.objectContaining({key: approvalRuleKey, value: null})])}),
+            );
+            expect(apiWriteSpy).not.toHaveBeenCalledWith(
+                WRITE_COMMANDS.DISABLE_POLICY_APPROVALS,
+                expect.anything(),
+                expect.objectContaining({optimisticData: expect.arrayContaining([expect.objectContaining({key: expenseDefaultRuleKey})])}),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
         it('should not change employee list when disabling approval', async () => {
             mockFetch?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
@@ -5325,6 +5650,96 @@ describe('actions/Policy', () => {
                     bankAccountID: String(FAKE_BANK_ACCOUNT_ID),
                 }),
             );
+        });
+
+        it('sends the request when the selected bank account already lists the workspace but the workspace points at another account', async () => {
+            // Given a workspace pointing at a deleted bank account, while the selected account already lists the workspace in its policyIDs
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+            fakePolicy.achAccount = {
+                bankAccountID: 99999,
+                accountNumber: FAKE_ACCOUNT_NUMBER,
+                routingNumber: '111000025',
+                addressName: FAKE_ADDRESS_NAME,
+                bankName: FAKE_BANK_NAME,
+                reimburser: FAKE_REIMBURSER_EMAIL,
+                state: CONST.BANK_ACCOUNT.STATE.DELETED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the account is selected for the workspace
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                accountNumber: FAKE_ACCOUNT_NUMBER,
+                addressName: FAKE_ADDRESS_NAME,
+                bankName: FAKE_BANK_NAME,
+                state: FAKE_BANK_STATE,
+                bankAccountList: {
+                    [FAKE_BANK_ACCOUNT_ID]: {
+                        methodID: FAKE_BANK_ACCOUNT_ID,
+                        bankCurrency: CONST.CURRENCY.USD,
+                        bankCountry: CONST.COUNTRY.US,
+                        accountData: {bankAccountID: FAKE_BANK_ACCOUNT_ID, state: FAKE_BANK_STATE, policyIDs: [FAKE_POLICY_ID]},
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then the request is sent and the workspace points at the selected account
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, 1);
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            expect(policy?.achAccount?.bankAccountID).toBe(FAKE_BANK_ACCOUNT_ID);
+        });
+
+        it('does not send the request when the selected bank account is already the workspace bank account', async () => {
+            // Given a workspace that already points at the selected account, which lists the workspace in its policyIDs
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+            fakePolicy.achAccount = {
+                bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                accountNumber: FAKE_ACCOUNT_NUMBER,
+                routingNumber: '111000025',
+                addressName: FAKE_ADDRESS_NAME,
+                bankName: FAKE_BANK_NAME,
+                reimburser: FAKE_REIMBURSER_EMAIL,
+                state: FAKE_BANK_STATE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the same account is selected again
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                accountNumber: FAKE_ACCOUNT_NUMBER,
+                addressName: FAKE_ADDRESS_NAME,
+                bankName: FAKE_BANK_NAME,
+                state: FAKE_BANK_STATE,
+                bankAccountList: {
+                    [FAKE_BANK_ACCOUNT_ID]: {
+                        methodID: FAKE_BANK_ACCOUNT_ID,
+                        bankCurrency: CONST.CURRENCY.USD,
+                        bankCountry: CONST.COUNTRY.US,
+                        accountData: {bankAccountID: FAKE_BANK_ACCOUNT_ID, state: FAKE_BANK_STATE, policyIDs: [FAKE_POLICY_ID]},
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then no request is sent
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, 0);
         });
     });
 
@@ -7769,6 +8184,11 @@ describe('actions/Policy', () => {
                 policyID: 'oldPolicyID',
                 currency: CONST.CURRENCY.USD,
                 total: 5000,
+                reimbursableTotal: 5000,
+                nonReimbursableTotal: 0,
+                unheldTotal: 5000,
+                unheldReimbursableTotal: 5000,
+                unheldNonReimbursableTotal: 0,
             };
 
             const transaction: Transaction = {
@@ -7815,6 +8235,31 @@ describe('actions/Policy', () => {
 
             expect(optimisticTransaction?.amount).toBe(-5000);
             expect(optimisticTransaction?.convertedAmount).toBe(-6000);
+
+            // The optimistic report merge has to flip every total column too, not just `total`, because the Total on
+            // screen is read from `reimbursableTotal` in preference to `total`.
+            const optimisticReport: OnyxEntry<Report> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(optimisticReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
+            expect(optimisticReport?.total).toBe(-5000);
+            expect(optimisticReport?.reimbursableTotal).toBe(-5000);
+            expect(optimisticReport?.unheldTotal).toBe(-5000);
+            expect(optimisticReport?.unheldReimbursableTotal).toBe(-5000);
+
+            // `toBe` is `Object.is`, so the already-zero columns have to be matched as -0.
+            expect(optimisticReport?.nonReimbursableTotal).toBe(-0);
+            expect(optimisticReport?.unheldNonReimbursableTotal).toBe(-0);
+
+            // And the Total rendered for the converted report is positive rather than -$50.00
+            expect(ReportUtils.getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
         });
     });
 });

@@ -15,6 +15,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,7 +47,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {addDays, format} from 'date-fns';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
@@ -76,6 +77,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
@@ -103,13 +105,11 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
-    const isConnectedWithPlaid = useMemo(() => {
-        const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
+    const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
 
-        // TODO: remove the extra check when plaidAccountID storing is aligned in https://github.com/Expensify/App/issues/47944
-        // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
-        return !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
-    }, [bankAccountList, paymentBankAccountID]);
+    // Admins who aren't shared on the settlement account don't have it in bankAccountList, so they rely on the card settings.
+    // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
+    const isConnectedWithPlaid = !!settings?.isPaymentBankAccountConnectedWithPlaid || !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {
@@ -135,7 +135,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         if (isGuidedSetupPending && !conciergeReportID) {
             // No Concierge chat exists yet: navigateToConciergeChat creates it and enqueues the onboarding OpenReport on
             // its create path. Wait for that promise so the limit-increase write lands after it in the queue.
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false}).then(() => {
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false}).then(() => {
                 requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
             });
             return;
@@ -158,7 +158,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             });
         }
         requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;

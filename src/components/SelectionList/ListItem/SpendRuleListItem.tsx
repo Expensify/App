@@ -11,13 +11,11 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ListItem, ListItemProps, SpendRuleListItemType} from './types';
+import type {ListItemProps, SpendRuleListItemType} from './types';
 
-function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: ListItemProps<TItem>) {
+function SpendRuleListItem<TItem extends SpendRuleListItemType>({item, onSelectRow}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {getMinimumWidth} = useStyleUtils();
-
-    const cardRule = item as unknown as SpendRuleListItemType;
 
     return (
         <ListItemComposed
@@ -31,10 +29,10 @@ function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: ListItem
                         numberOfLines={2}
                         style={[styles.textLabelSupporting, styles.fontSizeLabel]}
                     >
-                        {cardRule.summary}
+                        {item.summary}
                     </Text>
 
-                    {cardRule.summaryParts.map((part) => (
+                    {item.summaryParts.map((part) => (
                         <View
                             key={part.text}
                             style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}

@@ -29,7 +29,7 @@ function Backdrop({
         if (!backdropOpacity) {
             return;
         }
-        const FadeIn = new Keyframe(getModalInAnimation('fadeIn'));
+        const FadeIn = new Keyframe(getModalInAnimation('fadeIn', backdropOpacity));
         return FadeIn.duration(animationInTiming).reduceMotion(ReduceMotion.Never);
     }, [animationInTiming, backdropOpacity]);
 
@@ -37,7 +37,7 @@ function Backdrop({
         if (!backdropOpacity) {
             return;
         }
-        const FadeOut = new Keyframe(getModalOutAnimation('fadeOut'));
+        const FadeOut = new Keyframe(getModalOutAnimation('fadeOut', backdropOpacity));
         return FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
     }, [animationOutTiming, backdropOpacity]);
 

@@ -181,8 +181,6 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                 onBackButtonPress={goBack}
             />
 
-            <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pb4]}>{translate('workspace.rules.spendRules.permittedCurrenciesSubtitle')}</Text>
-
             <SelectionList
                 canSelectMultiple
                 shouldScrollToFocusedIndexOnMount={false}

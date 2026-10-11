@@ -10,7 +10,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import getIconForAction from './getIconForAction';
 import {getPerDiemCustomUnit, isControlPolicy, isPerDiemEnabled, isTimeTrackingEnabled} from './PolicyUtils';
-import {canCreateRequest} from './ReportUtils';
+import {canCreateRequest, isSupportTicket} from './ReportUtils';
 
 const getQuickActionIcon = (
     icons: Record<'CalendarSolid' | 'Car' | 'Task' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle' | 'Clock', IconAsset>,
@@ -108,6 +108,9 @@ const isQuickActionAllowed = (
     rules: OnyxCollection<Rule>,
     isRestrictedToPreferredPolicy = false,
 ) => {
+    if (isSupportTicket(quickActionReport)) {
+        return false;
+    }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM || quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM) {
         if (!isControlPolicy(quickActionPolicy) || !isPerDiemEnabled(quickActionPolicy)) {
             return false;
