@@ -30,6 +30,17 @@ function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBa
     }));
 }
 
+function getNetSuiteCreditCardAccountOptions(policy: Policy | undefined, selectedAccountId: string | undefined): SelectorType[] {
+    const creditCardAccounts = (policy?.connections?.netsuite?.options.data.payableList ?? []).filter((account) => account.type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD);
+
+    return creditCardAccounts.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: id === selectedAccountId,
+    }));
+}
+
 function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const receivableAccounts = policy?.connections?.netsuite?.options.data.receivableList;
 
@@ -201,6 +212,7 @@ function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList |
 export {
     getNetSuiteVendorOptions,
     getNetSuitePayableAccountOptions,
+    getNetSuiteCreditCardAccountOptions,
     getNetSuiteReceivableAccountOptions,
     getNetSuiteExpenseAccountOptions,
     getNetSuiteInvoiceItemOptions,
