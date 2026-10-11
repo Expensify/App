@@ -252,6 +252,7 @@ const SCREENS = {
             EARLY_RENEWAL: 'Settings_Subscription_EarlyRenewal',
             DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Dynamic_Settings_Subscription_DowngradeBlocked',
             PAYMENT_HISTORY: 'Settings_Subscription_PaymentHistory',
+            PAYMENT_DETAILS: 'Settings_Subscription_PaymentDetails',
         },
     },
     TWO_FACTOR_AUTH: {

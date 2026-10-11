@@ -555,6 +555,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_DETAILS]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_DETAILS.route,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },

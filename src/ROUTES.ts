@@ -2349,6 +2349,10 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_EARLY_RENEWAL: 'settings/subscription/early-renewal',
     SETTINGS_EMAIL_ISSUE: 'settings/email-issue',
     SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY: 'settings/subscription/payment-history',
+    SETTINGS_SUBSCRIPTION_PAYMENT_DETAILS: {
+        route: 'settings/subscription/payment-history/:purchaseID',
+        getRoute: (purchaseID: number | string) => `settings/subscription/payment-history/${purchaseID}` as const,
+    },
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',

@@ -20,6 +20,21 @@ type PaymentHistoryRow = {
     activeUserCount?: number;
 };
 
+/** The dynamic badge shown on the payment details page, carrying the extra detail that only renders there. */
+type PaymentDetailsBadge =
+    | {variant: 'balanceTransferTo'; email: string}
+    | {variant: 'balanceTransferFrom'; email: string}
+    | {variant: 'disputed'; created: string; status: 'pending' | 'refunded' | 'closed'}
+    | {variant: 'refunded'; created: string}
+    | {variant: 'refundedPartial'; created: string; amount: number; currency: string}
+    | {variant: 'default'};
+
+/** Dispute statuses that mean the dispute was closed in the user's favour, so the charge was refunded. */
+const DISPUTE_STATUSES_REFUNDED: ReadonlySet<string> = new Set(['lost', 'charge_refunded']);
+
+/** Dispute statuses that mean the dispute is closed, regardless of outcome. */
+const DISPUTE_STATUSES_CLOSED: ReadonlySet<string> = new Set(['won', 'warning_closed', 'lost', 'charge_refunded']);
+
 const FAILED_BILLING_TYPES: ReadonlySet<string> = new Set([
     CONST.BILLING.TYPE_FAILED,
     CONST.BILLING.TYPE_FAILED_2018,
@@ -38,14 +53,12 @@ const TRANSFER_BILLING_TYPES: ReadonlySet<string> = new Set([
  * Builds one table row per bill, newest first.
  * Refunds, disputes, balance transfers, and cleared payments are separate purchases that point at the bill they change, so they are folded onto that bill instead of listed on their own.
  */
-function getPaymentHistoryRows(purchases: Purchases | null | undefined): PaymentHistoryRow[] {
-    const purchaseList = Object.values(purchases ?? {});
-    if (!purchaseList.length) {
-        return [];
-    }
-
-    const purchaseIDs = new Set(purchaseList.map((purchase) => purchase.purchaseID));
-    const foldedState = new Map<number, {created: string; state: PaymentHistoryState}>();
+/**
+ * Maps each bill's purchaseID to the latest modifier purchase (refund, dispute, balance transfer, or clear) folded onto it.
+ * The modifier carries the dynamic badge detail the details page renders.
+ */
+function getFoldedModifiers(purchaseList: Purchase[], purchaseIDs: Set<number>): Map<number, {created: string; state: PaymentHistoryState; modifier: Purchase}> {
+    const foldedState = new Map<number, {created: string; state: PaymentHistoryState; modifier: Purchase}>();
 
     for (const purchase of purchaseList) {
         const parentPurchaseID = getParentPurchaseID(purchase);
@@ -60,9 +73,21 @@ function getPaymentHistoryRows(purchases: Purchases | null | undefined): Payment
 
         const current = foldedState.get(parentPurchaseID);
         if (!current || purchase.created >= current.created) {
-            foldedState.set(parentPurchaseID, {created: purchase.created, state});
+            foldedState.set(parentPurchaseID, {created: purchase.created, state, modifier: purchase});
         }
     }
+
+    return foldedState;
+}
+
+function getPaymentHistoryRows(purchases: Purchases | null | undefined): PaymentHistoryRow[] {
+    const purchaseList = Object.values(purchases ?? {});
+    if (!purchaseList.length) {
+        return [];
+    }
+
+    const purchaseIDs = new Set(purchaseList.map((purchase) => purchase.purchaseID));
+    const foldedState = getFoldedModifiers(purchaseList, purchaseIDs);
 
     const rows: PaymentHistoryRow[] = [];
     for (const purchase of purchaseList) {
@@ -208,5 +233,50 @@ function getBadgeAppearance(state: PaymentHistoryState): {success: boolean; erro
     }
 }
 
-export {getBadgeAppearance, getPaymentHistoryRows, getStateTranslationKey};
-export type {PaymentHistoryRow};
+/** Returns the single payment history row for a bill, or undefined when that bill isn't in Onyx. */
+function getPaymentHistoryRow(purchases: Purchases | null | undefined, purchaseID: number): PaymentHistoryRow | undefined {
+    return getPaymentHistoryRows(purchases).find((row) => row.purchaseID === purchaseID);
+}
+
+function getDisputeStatus(disputeStatus: string | undefined): 'pending' | 'refunded' | 'closed' {
+    if (!disputeStatus || !DISPUTE_STATUSES_CLOSED.has(disputeStatus)) {
+        return 'pending';
+    }
+    return DISPUTE_STATUSES_REFUNDED.has(disputeStatus) ? 'refunded' : 'closed';
+}
+
+/**
+ * Builds the dynamic badge for a bill's details page.
+ * The extra detail lives on the folded modifier when one exists, otherwise on the bill itself (a standalone refund, dispute, or transfer row).
+ */
+function getPaymentDetailsBadge(purchases: Purchases | null | undefined, purchaseID: number): PaymentDetailsBadge {
+    const purchaseList = Object.values(purchases ?? {});
+    const purchaseIDs = new Set(purchaseList.map((purchase) => purchase.purchaseID));
+    const modifier = getFoldedModifiers(purchaseList, purchaseIDs).get(purchaseID)?.modifier;
+    const carrier = modifier ?? purchases?.[purchaseID];
+    if (!carrier) {
+        return {variant: 'default'};
+    }
+
+    if (isDispute(carrier)) {
+        return {variant: 'disputed', created: carrier.created, status: getDisputeStatus(carrier.message.disputeStatus)};
+    }
+    if (isRefund(carrier)) {
+        if (carrier.message.isPartialRefund) {
+            return {variant: 'refundedPartial', created: carrier.created, amount: Math.abs(carrier.amount), currency: carrier.currency};
+        }
+        return {variant: 'refunded', created: carrier.created};
+    }
+    if (isBalanceTransfer(carrier)) {
+        if (carrier.message.transferTo) {
+            return {variant: 'balanceTransferTo', email: carrier.message.transferTo};
+        }
+        if (carrier.message.takenOverFrom) {
+            return {variant: 'balanceTransferFrom', email: carrier.message.takenOverFrom};
+        }
+    }
+    return {variant: 'default'};
+}
+
+export {getBadgeAppearance, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows, getStateTranslationKey};
+export type {PaymentDetailsBadge, PaymentHistoryRow};
