@@ -370,6 +370,8 @@ jest.mock('victory-native', () => ({
     CartesianChart: jest.fn(
         ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
     ),
+    Pie: {Chart: jest.fn(() => null)},
+    PolarChart: jest.fn(() => null),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up
