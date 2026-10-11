@@ -23,6 +23,7 @@ import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
+import useSaveMarketingAttribution from './hooks/useSaveMarketingAttribution';
 import {updateLastRoute} from './libs/actions/App';
 import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -67,6 +68,7 @@ function Expensify() {
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     useDebugShortcut();
+    useSaveMarketingAttribution();
 
     useEffect(() => {
         initializeTelemetryTrackers();
