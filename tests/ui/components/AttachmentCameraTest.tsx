@@ -4,6 +4,8 @@ import AttachmentCamera from '@components/AttachmentPicker/AttachmentCamera';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+
 import isInLandscapeMode from '@libs/isInLandscapeMode';
 
 import type {CameraDevice} from 'react-native-vision-camera';
@@ -20,7 +22,11 @@ const mockTakePhoto = jest.fn(() => Promise.resolve({path: '/tmp/photos/shot.jpg
 let mockPermissionStatus = 'granted';
 
 jest.mock('@libs/isInLandscapeMode');
-jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
+jest.mock('@hooks/useAccessibilityAnnouncement');
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {isHybridApp: jest.fn(() => false)},
+}));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/CameraPermission', () => ({
     getCameraPermissionStatus: jest.fn(() => Promise.resolve(mockPermissionStatus)),
@@ -33,8 +39,15 @@ const {View: MockView} = jest.requireActual('react-native');
 jest.mock(
     '@components/Modal',
     () =>
-        ({isVisible, children}: {isVisible: boolean; children: React.ReactNode}) =>
-            isVisible ? <MockView>{children}</MockView> : null,
+        ({isVisible, onClose, children}: {isVisible: boolean; onClose: () => void; children: React.ReactNode}) =>
+            isVisible ? (
+                <MockView
+                    testID="AttachmentCameraModal"
+                    onClose={onClose}
+                >
+                    {children}
+                </MockView>
+            ) : null,
 );
 
 jest.mock('react-native-vision-camera', () => {
@@ -44,18 +57,34 @@ jest.mock('react-native-vision-camera', () => {
         useCameraDevices: jest.fn(() => []),
         useCameraFormat: jest.fn(() => null),
         Camera: actualReact.forwardRef((_props: Record<string, unknown>, ref: React.ForwardedRef<unknown>) => {
-            actualReact.useImperativeHandle(ref, () => ({takePhoto: mockTakePhoto, focus: jest.fn(() => Promise.resolve())}));
+            actualReact.useImperativeHandle(ref, () => ({
+                takePhoto: mockTakePhoto,
+                focus: jest.fn(() => Promise.resolve()),
+            }));
             return null;
         }),
     };
 });
 
-const BACK_DEVICE = createMock<CameraDevice>({id: 'back', position: 'back', hasFlash: true, supportsFocus: true, neutralZoom: 1});
-const FRONT_DEVICE = createMock<CameraDevice>({id: 'front', position: 'front', hasFlash: false, supportsFocus: true, neutralZoom: 1});
+const BACK_DEVICE = createMock<CameraDevice>({
+    id: 'back',
+    position: 'back',
+    hasFlash: true,
+    supportsFocus: true,
+    neutralZoom: 1,
+});
+const FRONT_DEVICE = createMock<CameraDevice>({
+    id: 'front',
+    position: 'front',
+    hasFlash: false,
+    supportsFocus: true,
+    neutralZoom: 1,
+});
 
 const mockedUseCameraDevice = jest.mocked(useCameraDevice);
 const mockedUseCameraDevices = jest.mocked(useCameraDevices);
 const mockedIsInLandscapeMode = jest.mocked(isInLandscapeMode);
+const mockedUseAccessibilityAnnouncement = jest.mocked(useAccessibilityAnnouncement);
 
 function renderCamera(props: Partial<React.ComponentProps<typeof AttachmentCamera>> = {}) {
     const onCapture = jest.fn();
@@ -87,7 +116,11 @@ describe('AttachmentCamera', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockPermissionStatus = 'granted';
-        mockTakePhoto.mockResolvedValue({path: '/tmp/photos/shot.jpg', width: 3024, height: 4032});
+        mockTakePhoto.mockResolvedValue({
+            path: '/tmp/photos/shot.jpg',
+            width: 3024,
+            height: 4032,
+        });
         mockedUseCameraDevice.mockReturnValue(BACK_DEVICE);
         mockedUseCameraDevices.mockReturnValue([BACK_DEVICE, FRONT_DEVICE]);
         mockedIsInLandscapeMode.mockReturnValue(false);
@@ -115,15 +148,138 @@ describe('AttachmentCamera', () => {
         expect(screen.queryByText(translateLocal('receipt.cameraAccess'))).not.toBeOnTheScreen();
     });
 
-    it('passes the captured photo to onCapture', async () => {
+    it('shows the captured photo for review instead of sending it right away', async () => {
+        // Given an open camera with permission granted
         const {onCapture} = renderCamera();
         await waitForBatchedUpdatesWithAct();
 
+        // When the user presses the shutter
         fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
         await waitForBatchedUpdatesWithAct();
 
+        // Then the photo waits for the user to choose "Retake" or "Use photo", so nothing is sent yet
         expect(mockTakePhoto).toHaveBeenCalledTimes(1);
-        expect(onCapture).toHaveBeenCalledWith([expect.objectContaining({fileName: 'shot.jpg', type: 'image/jpeg', width: 3024, height: 4032})]);
+        expect(onCapture).not.toHaveBeenCalled();
+        expect(screen.getByLabelText(translateLocal('attachmentPicker.retake'))).toBeOnTheScreen();
+        expect(screen.getByLabelText(translateLocal('attachmentPicker.usePhoto'))).toBeOnTheScreen();
+        expect(screen.queryByLabelText(translateLocal('receipt.shutter'))).not.toBeOnTheScreen();
+        // And screen reader users can find the photo they are reviewing
+        expect(screen.getByRole('img', {name: translateLocal('attachmentPicker.capturedPhotoPreview')})).toBeOnTheScreen();
+    });
+
+    it('announces the review step to screen readers once a photo is taken', async () => {
+        // Given an open camera with nothing captured yet
+        renderCamera();
+        await waitForBatchedUpdatesWithAct();
+        const announcement = translateLocal('attachmentPicker.photoTakenAnnouncement');
+        expect(mockedUseAccessibilityAnnouncement).toHaveBeenLastCalledWith(announcement, false, {shouldAnnounceOnNative: true});
+
+        // When the user presses the shutter, which removes the control that had screen reader focus
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the announcement is enabled, including on Android where announcements are off by default
+        expect(mockedUseAccessibilityAnnouncement).toHaveBeenLastCalledWith(announcement, true, {shouldAnnounceOnNative: true});
+
+        // When the user retakes the photo
+        fireEvent.press(screen.getByLabelText(translateLocal('attachmentPicker.retake')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the announcement is reset, so the next capture is announced again
+        expect(mockedUseAccessibilityAnnouncement).toHaveBeenLastCalledWith(announcement, false, {shouldAnnounceOnNative: true});
+    });
+
+    it('passes the captured photo to onCapture once the user presses "Use photo"', async () => {
+        // Given a captured photo under review
+        const {onCapture} = renderCamera();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user confirms it
+        fireEvent.press(screen.getByLabelText(translateLocal('attachmentPicker.usePhoto')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the photo is handed to the picker
+        expect(onCapture).toHaveBeenCalledTimes(1);
+        expect(onCapture).toHaveBeenCalledWith([
+            expect.objectContaining({
+                fileName: 'shot.jpg',
+                type: 'image/jpeg',
+                width: 3024,
+                height: 4032,
+            }),
+        ]);
+    });
+
+    it('sends the photo only once when "Use photo" is pressed repeatedly', async () => {
+        // Given a captured photo under review
+        const {onCapture} = renderCamera();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user taps "Use photo" twice, e.g. while the modal is still animating out
+        const usePhotoButton = screen.getByLabelText(translateLocal('attachmentPicker.usePhoto'));
+        fireEvent.press(usePhotoButton);
+        fireEvent.press(usePhotoButton);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the photo is sent a single time
+        expect(onCapture).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns to the viewfinder when the user presses "Retake"', async () => {
+        // Given a captured photo under review
+        const {onCapture} = renderCamera();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user discards it with "Retake"
+        fireEvent.press(screen.getByLabelText(translateLocal('attachmentPicker.retake')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the shutter is back, nothing was sent, and a new photo can be taken
+        expect(onCapture).not.toHaveBeenCalled();
+        expect(screen.queryByLabelText(translateLocal('attachmentPicker.usePhoto'))).not.toBeOnTheScreen();
+        expect(screen.queryByLabelText(translateLocal('attachmentPicker.capturedPhotoPreview'))).not.toBeOnTheScreen();
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+        await waitForBatchedUpdatesWithAct();
+        expect(mockTakePhoto).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns to the viewfinder instead of closing when Android back is pressed during review', async () => {
+        // Given a captured photo under review
+        const {onCapture, onClose} = renderCamera();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the modal receives a close request, which is how Android's back button reaches it
+        fireEvent(screen.getByTestId('AttachmentCameraModal'), 'close');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then back acts like "Retake": the camera stays open on the viewfinder and nothing is sent
+        expect(onClose).not.toHaveBeenCalled();
+        expect(onCapture).not.toHaveBeenCalled();
+        expect(screen.getByLabelText(translateLocal('receipt.shutter'))).toBeOnTheScreen();
+    });
+
+    it('discards the photo under review when the close button is pressed', async () => {
+        // Given a captured photo under review
+        const {onCapture, onClose} = renderCamera();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user closes the camera with the X button
+        fireEvent.press(screen.getByLabelText(translateLocal('common.close')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the camera closes without sending the photo
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(onCapture).not.toHaveBeenCalled();
     });
 
     it('does not capture twice while a capture is already in flight', async () => {

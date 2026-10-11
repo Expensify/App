@@ -4,12 +4,14 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import Image from '@components/Image';
 import ImageSVG from '@components/ImageSVG';
 import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useIsPlatformMuted from '@hooks/useIsPlatformMuted';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -36,7 +38,7 @@ import CONST from '@src/CONST';
 import type {Camera, CameraRuntimeError, PhotoFile} from 'react-native-vision-camera';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {Alert, AppState, View} from 'react-native';
+import {Alert, AppState, StyleSheet, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated from 'react-native-reanimated';
@@ -54,7 +56,7 @@ type AttachmentCameraProps = {
     /** Whether the camera modal is visible */
     isVisible: boolean;
 
-    /** Callback when a photo is captured */
+    /** Callback when the user confirms a captured photo with "Use photo" */
     onCapture: (photos: CapturedPhoto[]) => void;
 
     /** Callback when the camera is closed */
@@ -79,7 +81,10 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
+    // The photo the user is reviewing before choosing "Retake" or "Use photo"
+    const [capturedPhoto, setCapturedPhoto] = useState<CapturedPhoto | null>(null);
     const isCapturing = useRef(false);
+    const isConfirmingPhoto = useRef(false);
     const isActiveRef = useRef(false);
     const cameraRef = useRef<Camera>(null);
 
@@ -103,7 +108,10 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const hasFlash = !!device?.hasFlash;
     const cameraAspectRatio = getCameraAspectRatio(format, isLandscape);
 
-    const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(cameraRef, device?.supportsFocus ?? false);
+    const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(cameraRef, !!device?.supportsFocus && !capturedPhoto);
+
+    // The shutter that held screen reader focus is replaced by the review controls, so tell the user what happened
+    useAccessibilityAnnouncement(translate('attachmentPicker.photoTakenAnnouncement'), !!capturedPhoto, {shouldAnnounceOnNative: true});
 
     const askForPermissions = () => requestCameraPermission(translate, setCameraPermissionStatus);
 
@@ -177,15 +185,13 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                 const uri = getPhotoSource(photo.path);
                 const fileName = getFileName(photo.path) || `photo_${Date.now()}.jpg`;
 
-                onCapture([
-                    {
-                        uri,
-                        fileName,
-                        type: 'image/jpeg',
-                        width: photo.width,
-                        height: photo.height,
-                    },
-                ]);
+                setCapturedPhoto({
+                    uri,
+                    fileName,
+                    type: 'image/jpeg',
+                    width: photo.width,
+                    height: photo.height,
+                });
             })
             .catch((error: Error) => {
                 if (!isActiveRef.current) {
@@ -207,9 +213,23 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
         logCameraRuntimeError({code: error.code, message: error.message});
     };
 
+    const retakePhoto = () => {
+        setCapturedPhoto(null);
+    };
+
+    const usePhoto = () => {
+        // The modal stays on screen during its hide animation, so a second tap must not send the photo twice
+        if (!capturedPhoto || isConfirmingPhoto.current) {
+            return;
+        }
+        isConfirmingPhoto.current = true;
+        onCapture([capturedPhoto]);
+    };
+
     const handleClose = () => {
         isActiveRef.current = false;
         isCapturing.current = false;
+        setCapturedPhoto(null);
         setFlash(false);
         setCameraPosition('back');
         onClose();
@@ -218,7 +238,8 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     return (
         <Modal
             isVisible={isVisible}
-            onClose={handleClose}
+            // On Android, the back button during review returns to the viewfinder like "Retake"
+            onClose={capturedPhoto ? retakePhoto : handleClose}
             onModalHide={onModalHide}
             type={CONST.MODAL.MODAL_TYPE.FULLSCREEN}
             style={styles.appBG}
@@ -287,65 +308,104 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                                             style={styles.flex1}
                                             zoom={device.neutralZoom}
                                             photo
-                                            isActive={isVisible}
+                                            isActive={isVisible && !capturedPhoto}
                                             photoQualityBalance="quality"
                                             onError={handleCameraError}
                                         />
                                         <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                                        {!!capturedPhoto && (
+                                            <View
+                                                style={[StyleSheet.absoluteFill, styles.appBG]}
+                                                accessible
+                                                accessibilityLabel={translate('attachmentPicker.capturedPhotoPreview')}
+                                                role={CONST.ROLE.IMG}
+                                            >
+                                                {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
+                                                <Image
+                                                    source={{uri: capturedPhoto.uri}}
+                                                    style={styles.flex1}
+                                                    resizeMode="contain"
+                                                />
+                                            </View>
+                                        )}
                                     </View>
                                 </GestureDetector>
                             </View>
                         )}
                     </View>
 
-                    <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.p3, !isLandscape && styles.flexRow]}>
-                        <PressableWithFeedback
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.flash')}
-                            style={[styles.alignItemsStart, !hasFlash && styles.opacity0]}
-                            disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                            onPress={() => setFlash((prevFlash) => !prevFlash)}
-                            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.FLASH}
-                        >
-                            <Icon
-                                height={variables.iconSizeMenuItem}
-                                width={variables.iconSizeMenuItem}
-                                src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
-                                fill={theme.textSupporting}
-                            />
-                        </PressableWithFeedback>
+                    {capturedPhoto ? (
+                        <View style={[styles.justifyContentCenter, styles.gap3, styles.p3, !isLandscape && styles.flexRow]}>
+                            <Button
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                style={!isLandscape && styles.flex1}
+                                accessibilityLabel={translate('attachmentPicker.retake')}
+                                onPress={retakePhoto}
+                                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.RETAKE}
+                            >
+                                <Button.Text>{translate('attachmentPicker.retake')}</Button.Text>
+                            </Button>
+                            <Button
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                style={!isLandscape && styles.flex1}
+                                accessibilityLabel={translate('attachmentPicker.usePhoto')}
+                                onPress={usePhoto}
+                                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.USE_PHOTO}
+                            >
+                                <Button.Text>{translate('attachmentPicker.usePhoto')}</Button.Text>
+                            </Button>
+                        </View>
+                    ) : (
+                        <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.p3, !isLandscape && styles.flexRow]}>
+                            <PressableWithFeedback
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('receipt.flash')}
+                                style={[styles.alignItemsStart, !hasFlash && styles.opacity0]}
+                                disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                                onPress={() => setFlash((prevFlash) => !prevFlash)}
+                                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.FLASH}
+                            >
+                                <Icon
+                                    height={variables.iconSizeMenuItem}
+                                    width={variables.iconSizeMenuItem}
+                                    src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
+                                    fill={theme.textSupporting}
+                                />
+                            </PressableWithFeedback>
 
-                        <PressableWithFeedback
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.shutter')}
-                            style={[styles.alignItemsCenter]}
-                            onPress={capturePhoto}
-                            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.SHUTTER}
-                        >
-                            <ImageSVG
-                                contentFit="contain"
-                                src={lazyIllustrations.Shutter}
-                                width={CONST.RECEIPT.SHUTTER_SIZE}
-                                height={CONST.RECEIPT.SHUTTER_SIZE}
-                            />
-                        </PressableWithFeedback>
+                            <PressableWithFeedback
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('receipt.shutter')}
+                                style={[styles.alignItemsCenter]}
+                                onPress={capturePhoto}
+                                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.SHUTTER}
+                            >
+                                <ImageSVG
+                                    contentFit="contain"
+                                    src={lazyIllustrations.Shutter}
+                                    width={CONST.RECEIPT.SHUTTER_SIZE}
+                                    height={CONST.RECEIPT.SHUTTER_SIZE}
+                                />
+                            </PressableWithFeedback>
 
-                        <PressableWithFeedback
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.flipCamera')}
-                            style={[styles.alignItemsEnd, !canFlipCamera && styles.opacity0]}
-                            disabled={cameraPermissionStatus !== RESULTS.GRANTED || !canFlipCamera}
-                            onPress={() => setCameraPosition((prev) => (prev === 'back' ? 'front' : 'back'))}
-                            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.FLIP_CAMERA}
-                        >
-                            <Icon
-                                height={variables.iconSizeMenuItem}
-                                width={variables.iconSizeMenuItem}
-                                src={lazyIcons.CameraFlip}
-                                fill={theme.textSupporting}
-                            />
-                        </PressableWithFeedback>
-                    </View>
+                            <PressableWithFeedback
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('receipt.flipCamera')}
+                                style={[styles.alignItemsEnd, !canFlipCamera && styles.opacity0]}
+                                disabled={cameraPermissionStatus !== RESULTS.GRANTED || !canFlipCamera}
+                                onPress={() => setCameraPosition((prev) => (prev === 'back' ? 'front' : 'back'))}
+                                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.FLIP_CAMERA}
+                            >
+                                <Icon
+                                    height={variables.iconSizeMenuItem}
+                                    width={variables.iconSizeMenuItem}
+                                    src={lazyIcons.CameraFlip}
+                                    fill={theme.textSupporting}
+                                />
+                            </PressableWithFeedback>
+                        </View>
+                    )}
                 </View>
             </View>
         </Modal>
