@@ -1635,6 +1635,11 @@ const CONST = {
             ADMIN: 'admin',
             MEMBER: 'member',
         },
+        UPCOMING_STEP_ACTION: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+        },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         // The backend rejects moving an expense into a report that already holds this many transactions, so the App

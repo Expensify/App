@@ -1,29 +1,27 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 
-const REPORT_HISTORY_ACTION = {
-    CREATED: 'created',
-    SUBMITTED: 'submitted',
-    APPROVED: 'approved',
-    REROUTED: 'rerouted',
-    HELD: 'held',
-    PAID: 'paid',
-} as const;
+const REPORT_HISTORY_ICONS = ['Document', 'Send', 'ThumbsUp', 'ThumbsDown', 'Rotate', 'Close', 'ArrowRight', 'UserCheck', 'MoneyBag'] as const;
 
-type ReportHistoryAction = ValueOf<typeof REPORT_HISTORY_ACTION>;
+type ReportHistoryIcon = TupleToUnion<typeof REPORT_HISTORY_ICONS>;
 
 type ReportHistoryStep = {
-    /** What happened, or what is expected to happen, at this step */
-    action: ReportHistoryAction;
+    /** Unique key of the row */
+    key: string;
 
-    /** The member who took or is expected to take the action */
-    accountID: number;
+    icon: ReportHistoryIcon;
+
+    /** The member who took or is expected to take the action. Missing when the label is a full sentence */
+    accountID?: number;
+
+    /** What happened, or what is expected to happen, at this step */
+    label: string;
 
     /** When the action was taken. Missing for upcoming steps */
     created?: string;
 
-    /** Whether the step already happened. Upcoming steps are dimmed */
-    isCompleted: boolean;
+    /** Upcoming steps are dimmed */
+    isUpcoming: boolean;
 };
 
-export {REPORT_HISTORY_ACTION};
-export type {ReportHistoryAction, ReportHistoryStep};
+export {REPORT_HISTORY_ICONS};
+export type {ReportHistoryIcon, ReportHistoryStep};

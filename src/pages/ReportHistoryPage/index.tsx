@@ -3,12 +3,14 @@ import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWith
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {openReportStatusPage} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportHistoryNavigatorParamList} from '@libs/Navigation/types';
@@ -21,25 +23,37 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-import getMockReportHistorySteps from './getMockReportHistorySteps';
+import getMockUpcomingSteps from './getMockUpcomingSteps';
+import getReportHistorySteps from './getReportHistorySteps';
 import ReportHistoryItem from './ReportHistoryItem';
-import useHoldActions from './useHoldActions';
 
 type ReportHistoryPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportHistoryNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_HISTORY>;
 
 function ReportHistoryPage({report, policy}: ReportHistoryPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_HISTORY.path);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [personalDetails] = useAllPersonalDetails();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
-    const holdActions = useHoldActions(report.reportID, reportActions);
+    const [reportUpcomingSteps] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS}${report.reportID}`);
 
-    const steps = getMockReportHistorySteps({report, policy, rules, personalDetails, reportActions, holdActions});
+    useEffect(() => {
+        openReportStatusPage(report.reportID);
+    }, [report.reportID]);
+
+    const steps = getReportHistorySteps({
+        translate,
+        dateFnsLocale,
+        currentUserEmail: currentUserPersonalDetails.login,
+        reportActions,
+        upcomingSteps: reportUpcomingSteps?.steps ?? getMockUpcomingSteps({report, policy, rules, personalDetails}),
+        nextStep: report.nextStep,
+    });
 
     return (
         <ScreenWrapper testID="ReportHistoryPage">
@@ -50,7 +64,7 @@ function ReportHistoryPage({report, policy}: ReportHistoryPageProps) {
                 />
                 <ScrollView contentContainerStyle={[styles.ph5, styles.pv3]}>
                     {steps.map((step, index) => (
-                        <View key={`${step.action}_${step.accountID}_${step.created ?? index}`}>
+                        <View key={step.key}>
                             {index > 0 && <View style={styles.reportHistoryConnector} />}
                             <ReportHistoryItem step={step} />
                         </View>

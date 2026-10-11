@@ -3462,13 +3462,18 @@ const translations = {
     },
     reportHistoryPage: {
         title: 'Report history',
-        created: 'created expense',
+        created: 'created report',
         submitted: 'submitted',
         approved: 'approved',
-        rerouted: 'rerouted approval',
-        held: 'held',
         paid: 'paid',
+        canceledPayment: 'canceled payment',
         toSubmit: 'to submit',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'to submit automatically';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to submit automatically on the ${eta} of each month` : `to submit automatically ${eta}`;
+        },
         toApprove: 'to approve',
         toPay: 'to pay',
         minutesAgo: (count: number) => `${count}m ago`,

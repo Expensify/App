@@ -1,0 +1,126 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {getNextStepETA} from '@libs/NextStepUtils';
+import Parser from '@libs/Parser';
+import {
+    getChangedApproverActionMessage,
+    getDelegateSubmitMessage,
+    getOriginalMessage,
+    isActionOfType,
+    isApprovedAction,
+    isForwardedAction,
+    isPayAction,
+    isReopenedAction,
+    isRetractedAction,
+    isSubmittedAction,
+    isSubmittedAndClosedAction,
+    isUnapprovedAction,
+} from '@libs/ReportActionsUtils';
+
+import CONST from '@src/CONST';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {ReportNextStep} from '@src/types/onyx/Report';
+import type {ReportUpcomingStep} from '@src/types/onyx/ReportUpcomingSteps';
+
+import type {Locale as DateFnsLocale} from 'date-fns';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import type {ReportHistoryStep} from './types';
+
+type GetReportHistoryStepsParams = {
+    translate: LocalizedTranslate;
+    dateFnsLocale: DateFnsLocale | undefined;
+    currentUserEmail: string | undefined;
+    reportActions: OnyxEntry<ReportActions>;
+    upcomingSteps: ReportUpcomingStep[];
+    nextStep: ReportNextStep | undefined;
+};
+
+function getCompletedStep(translate: LocalizedTranslate, reportAction: ReportAction, currentUserEmail: string | undefined): ReportHistoryStep | undefined {
+    const step = {key: reportAction.reportActionID, accountID: reportAction.actorAccountID, created: reportAction.created, isUpcoming: false};
+
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED)) {
+        return {...step, icon: 'Document', label: translate('reportHistoryPage.created')};
+    }
+    if (isSubmittedAction(reportAction) || isSubmittedAndClosedAction(reportAction)) {
+        return {...step, icon: 'Send', label: translate('reportHistoryPage.submitted')};
+    }
+    if (isApprovedAction(reportAction) || isForwardedAction(reportAction)) {
+        return {...step, icon: 'ThumbsUp', label: translate('reportHistoryPage.approved')};
+    }
+    if (isUnapprovedAction(reportAction)) {
+        return {...step, icon: 'ThumbsDown', label: translate('iou.unapproved')};
+    }
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER)) {
+        return {...step, icon: 'ThumbsDown', label: translate('iou.rejectedThisReport')};
+    }
+    if (isRetractedAction(reportAction)) {
+        return {...step, icon: 'Rotate', label: translate('iou.retracted')};
+    }
+    if (isReopenedAction(reportAction)) {
+        return {...step, icon: 'Rotate', label: translate('iou.reopened')};
+    }
+    if (isPayAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.paid')};
+    }
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED)) {
+        return {...step, icon: 'Close', label: translate('reportHistoryPage.canceledPayment')};
+    }
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        // Auto-pay creates these without a new approver, and the report hides them too
+        const originalMessage = getOriginalMessage(reportAction);
+        if (originalMessage?.automaticAction && !originalMessage?.mentionedAccountIDs?.length) {
+            return undefined;
+        }
+        return {...step, icon: 'UserCheck', label: Parser.htmlToText(getChangedApproverActionMessage(translate, reportAction))};
+    }
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)) {
+        return {...step, icon: 'ArrowRight', label: Parser.htmlToText(getChangedApproverActionMessage(translate, reportAction))};
+    }
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
+        const message = getDelegateSubmitMessage(translate, reportAction, currentUserEmail);
+        return message ? {...step, accountID: undefined, icon: 'ArrowRight', label: Parser.htmlToText(message)} : undefined;
+    }
+    return undefined;
+}
+
+function getUpcomingStep(
+    translate: LocalizedTranslate,
+    dateFnsLocale: DateFnsLocale | undefined,
+    upcomingStep: ReportUpcomingStep,
+    index: number,
+    nextStep: ReportNextStep | undefined,
+): ReportHistoryStep {
+    const step = {key: `${upcomingStep.action}_${upcomingStep.actorAccountID}_${index}`, accountID: upcomingStep.actorAccountID, isUpcoming: true};
+
+    if (upcomingStep.action === CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT) {
+        // The backend doesn't send the automatic submit date with the step, so it comes from the next step
+        if (nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT) {
+            const {eta, etaType} = getNextStepETA(nextStep, translate, dateFnsLocale);
+            return {...step, icon: 'Send', label: translate('reportHistoryPage.toSubmitAutomatically', eta, etaType)};
+        }
+        return {...step, icon: 'Send', label: translate('reportHistoryPage.toSubmit')};
+    }
+    if (upcomingStep.action === CONST.REPORT.UPCOMING_STEP_ACTION.APPROVE) {
+        return {...step, icon: 'ThumbsUp', label: translate('reportHistoryPage.toApprove')};
+    }
+    return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.toPay')};
+}
+
+function getReportHistorySteps({translate, dateFnsLocale, currentUserEmail, reportActions, upcomingSteps, nextStep}: GetReportHistoryStepsParams): ReportHistoryStep[] {
+    const completedSteps: ReportHistoryStep[] = [];
+    for (const reportAction of Object.values(reportActions ?? {})) {
+        if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        const step = getCompletedStep(translate, reportAction, currentUserEmail);
+        if (step) {
+            completedSteps.push(step);
+        }
+    }
+    completedSteps.sort((a, b) => ((a.created ?? '') < (b.created ?? '') ? -1 : 1));
+
+    return [...completedSteps, ...upcomingSteps.map((upcomingStep, index) => getUpcomingStep(translate, dateFnsLocale, upcomingStep, index, nextStep))];
+}
+
+export default getReportHistorySteps;

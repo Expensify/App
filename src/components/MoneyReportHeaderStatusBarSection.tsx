@@ -7,7 +7,8 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isProcessingReport} from '@libs/ReportUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
+import {isExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import {getUnsuppressibleBrokenConnectionTransactionID} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -48,7 +49,8 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
         return null;
     }
 
-    const openReportHistory = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_HISTORY.path));
+    // The history only covers expense reports on group policies, while status bars also show on IOU and invoice reports
+    const openReportHistory = isExpenseReport(moneyRequestReport) && isGroupPolicy(policy) ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_HISTORY.path)) : undefined;
 
     const getStatusIcon = (src: IconAsset) => (
         <Icon
