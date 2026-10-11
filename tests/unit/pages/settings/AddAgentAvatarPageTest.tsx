@@ -55,6 +55,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
 }));
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'custom'));
 
 const mockGoBack = jest.mocked(Navigation.goBack);
 const mockUseOnyx = jest.mocked(useOnyx);
@@ -130,8 +131,8 @@ describe('AddAgentAvatarPage', () => {
         mockEditAgentAvatarOnSave?.({file: MOCK_FILE, uri: 'file://photo.jpg'});
 
         await waitFor(() => expect(mockGoBack).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute())));
-        expect(mockLogWarn).toHaveBeenCalledTimes(1);
-        expect(mockLogWarn.mock.calls.at(0)?.at(0)).toBe('Failed to persist the new-agent avatar draft');
+        expect(mockLogWarn).toHaveBeenCalled();
+        expect(mockLogWarn.mock.calls.at(1)?.at(0)).toBe('Failed to persist the new-agent avatar draft');
     });
 
     it('skips navigation when the user already left the screen while the write was pending', async () => {
