@@ -206,7 +206,8 @@ jobs:
           mkdir -p /tmp/android-artifacts
 
           AAB_FILE=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' -print -quit 2>/dev/null || true)
-          if [ -z "$AAB_FILE" ] && [ -f "${ARTIFACT_PATH:-}" ]; then
+          # Adhoc builds produce an APK, so only use the Rock artifact when it is an AAB
+          if [ -z "$AAB_FILE" ] && [[ "${ARTIFACT_PATH:-}" == *.aab ]] && [ -f "$ARTIFACT_PATH" ]; then
             AAB_FILE="$ARTIFACT_PATH"
           fi
           if [ -n "$AAB_FILE" ]; then

@@ -2,7 +2,7 @@ import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 
 import useContainerWidth from '@hooks/useContainerWidth';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {View} from 'react-native';
@@ -11,8 +11,6 @@ const INDICATOR_SIZE = 20;
 const INDICATOR_GAP_X = 20;
 const AMOUNT_GAP_X = 20;
 const ROW_GAP_Y = 24;
-const ROW_PADDING_X_NARROW = 20;
-const ROW_PADDING_X_WIDE = 32;
 
 const LINE_HEIGHT = 20;
 const BAR_HEIGHT = 8;
@@ -30,8 +28,8 @@ type InsightsDataTableSkeletonProps = {
 function InsightsDataTableSkeleton({fixedNumItems}: InsightsDataTableSkeletonProps) {
     const styles = useThemeStyles();
     const {onLayout, containerWidth} = useContainerWidth();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const rowPaddingX = shouldUseNarrowLayout ? ROW_PADDING_X_NARROW : ROW_PADDING_X_WIDE;
+    const {values} = useLayoutSpacing();
+    const rowPaddingX = values.cardPadding;
 
     const textStartX = rowPaddingX + INDICATOR_SIZE + INDICATOR_GAP_X;
     const amountX = Math.max(containerWidth - rowPaddingX - AMOUNT_WIDTH, textStartX + LABEL_WIDTH + AMOUNT_GAP_X);

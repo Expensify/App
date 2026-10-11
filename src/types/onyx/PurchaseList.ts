@@ -136,6 +136,9 @@ type Purchase = {
 /** Array of purchases */
 type PurchaseList = Purchase[];
 
+/** Purchases keyed by purchaseID, so a single purchase can be merged without rewriting the whole set */
+type Purchases = Record<string, Purchase>;
+
 export default PurchaseList;
 
-export type {Purchase};
+export type {Purchase, Purchases};
