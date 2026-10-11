@@ -16,7 +16,7 @@ import React from 'react';
 
 type WorkspaceMemberRoleCellProps = {
     role: ValueOf<typeof CONST.POLICY.ROLE> | undefined;
-    policy: OnyxEntry<Policy>;
+    policy?: OnyxEntry<Policy>;
     memberLogin: string;
     canEdit?: boolean;
     onSave?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;

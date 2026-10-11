@@ -14,11 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
-import React from 'react';
 import {View} from 'react-native';
 
 import type {AgentRowData} from '.';
@@ -34,12 +30,9 @@ type AgentsTableRowProps = {
 
     /** Whether to show the role column */
     shouldShowRoleColumn?: boolean;
-
-    /** The policy to resolve the agent role against. Needed when shouldShowRoleColumn=true  */
-    policy?: OnyxEntry<Policy>;
 };
 
-export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowRoleColumn, policy}: AgentsTableRowProps) {
+export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowRoleColumn}: AgentsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -101,7 +94,6 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         >
                             <WorkspaceMemberRoleCell
                                 role={item.role}
-                                policy={policy}
                                 memberLogin={item.login}
                             />
                         </View>

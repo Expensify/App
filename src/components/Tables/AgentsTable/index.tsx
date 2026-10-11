@@ -10,17 +10,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
-import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
 import type {AgentOwnerType} from '@src/types/onyx/Agent';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
@@ -61,13 +58,10 @@ type AgentsTableProps = {
     /** Whether to show the role column */
     shouldShowRoleColumn?: boolean;
 
-    /** The policy to resolve the agents roles against. Needed when shouldShowRoleColumn=true  */
-    policy?: OnyxEntry<Policy>;
-
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, shouldShowRoleColumn, policy, onRowSelectionChange}: AgentsTableProps) {
+export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, shouldShowRoleColumn, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -89,17 +83,6 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
                       key: 'role' as const,
                       label: translate('common.role'),
                       sortable: true,
-                      styling: {
-                          // editableCellHeader matches the padded role cell so the label and value share an edge.
-                          containerStyles: [styles.editableCellHeader],
-                      },
-                      dynamicSizing: {
-                          getContentToMeasure: (item: AgentRowData) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
-                          // A role is one of a short, known set of labels, so the column always shows them in full.
-                          shouldFitContent: true,
-                          // Padding and border sit inside the track. A role is pinned to its text, so that chrome has to be measured or the label clips.
-                          extraWidth: variables.editableCellChromeWidth,
-                      },
                   },
               ]
             : []),
@@ -127,7 +110,6 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowRoleColumn={shouldShowRoleColumn}
-            policy={policy}
         />
     );
 

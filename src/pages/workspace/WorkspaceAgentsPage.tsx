@@ -136,7 +136,6 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                     canSelectAgents
                     selectedKeys={selectedAgentKeys}
                     onRowSelectionChange={setSelectedAgents}
-                    policy={policy}
                     shouldShowRoleColumn
                 />
             </WorkspacePageWithSections>
