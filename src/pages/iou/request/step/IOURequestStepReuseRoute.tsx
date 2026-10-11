@@ -216,6 +216,7 @@ function IOURequestStepReuseRoute({
                         customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
                         shouldShowListEmptyContent={false}
                         shouldSingleExecuteRowSelect
+                        disableMaintainingScrollPosition
                     />
                 </>
             )}
