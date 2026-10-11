@@ -44,7 +44,7 @@ jest.mock('@hooks/useOnyx', () => ({
 
 let mockEditAgentAvatarOnSave: jest.Mock | undefined;
 
-jest.mock('@pages/settings/Agents/Fields/EditAgentAvatarPage', () => ({
+jest.mock('@pages/settings/Agents/Fields/DynamicEditAgentAvatarPage', () => ({
     EditAgentAvatarContent: jest.fn((props: {onSave?: (params: OnSaveParams) => void; initialPresetID?: string}) => {
         mockEditAgentAvatarOnSave = props.onSave ? jest.fn(props.onSave) : undefined;
         return null;
@@ -71,7 +71,7 @@ describe('AddAgentAvatarPage', () => {
     });
 
     it('passes the persisted preset ID from the Onyx draft to EditAgentAvatarContent', () => {
-        const {EditAgentAvatarContent} = jest.requireMock<{EditAgentAvatarContent: jest.Mock}>('@pages/settings/Agents/Fields/EditAgentAvatarPage');
+        const {EditAgentAvatarContent} = jest.requireMock<{EditAgentAvatarContent: jest.Mock}>('@pages/settings/Agents/Fields/DynamicEditAgentAvatarPage');
 
         render(<AddAgentAvatarPage />);
 

@@ -272,7 +272,7 @@ describe('AddAgentPage', () => {
         mockAvatarOnPress?.();
 
         expect(mockSetNewAgentAvatarPreset).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()));
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()), {skipMatchingFullScreenRoute: true});
     });
 
     it('does not seed a default while the draft is still loading (avoids clobbering a saved avatar on refresh)', () => {

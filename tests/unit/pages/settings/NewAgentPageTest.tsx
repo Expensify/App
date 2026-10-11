@@ -207,7 +207,7 @@ describe('NewAgentPage', () => {
         });
         expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute()));
+            expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute()), {skipMatchingFullScreenRoute: true});
         });
     });
 
@@ -220,7 +220,7 @@ describe('NewAgentPage', () => {
         expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         expect(mockSetNewAgentTemplate).not.toHaveBeenCalled();
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute()));
+            expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute()), {skipMatchingFullScreenRoute: true});
         });
     });
 
@@ -230,7 +230,7 @@ describe('NewAgentPage', () => {
         fireEvent.press(screen.getByText('newAgentPage.buildCustomAgent'));
 
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute({policyID: 'POL_42'})));
+            expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD.getRoute({policyID: 'POL_42'})), {skipMatchingFullScreenRoute: true});
         });
     });
 });

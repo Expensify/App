@@ -11,14 +11,10 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Agent} from '@src/types/onyx';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
 import {useEffect, useRef, useState} from 'react';
-import {usePrevious} from 'victory-native';
 
 import useChatWithAgent from './useChatWithAgent';
 import useCleanupSelectedOptions from './useCleanupSelectedOptions';
@@ -26,6 +22,7 @@ import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePrevious from './usePrevious';
 import useRuleBotGuardModal from './useRuleBotGuardModal';
 import useSearchBackPress from './useSearchBackPress';
 import useSwitchToDelegator from './useSwitchToDelegator';

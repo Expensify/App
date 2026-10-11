@@ -70,6 +70,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}]));
+jest.mock('@hooks/usePrevious', () => jest.fn(() => []));
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: jest.fn(() => ({})),

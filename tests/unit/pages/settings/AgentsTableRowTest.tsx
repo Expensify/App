@@ -196,6 +196,7 @@ const BASE_ITEM: AgentRowData = {
     accountID: TEST_ACCOUNT_ID,
     displayName: 'Test Agent',
     login: 'agent@example.com',
+    canManage: true,
     action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(TEST_ACCOUNT_ID))),
     onChatPress: mockOnChatPress,
     onCopilotPress: mockOnCopilotPress,
