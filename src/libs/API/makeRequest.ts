@@ -1,3 +1,4 @@
+import getFullPolicySnapshotClearUpdates from '@libs/FullPolicySnapshotUtils';
 import Log from '@libs/Log';
 import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
@@ -55,6 +56,12 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     }
 
     const isWriteRequest = type === CONST.API_REQUEST_TYPE.WRITE;
+
+    // OpenReport runs in the same sequential queue, so a snapshot it returns after this point already reflects this write.
+    const fullPolicySnapshotClearUpdates = isWriteRequest ? getFullPolicySnapshotClearUpdates(onyxData) : [];
+    if (fullPolicySnapshotClearUpdates.length > 0) {
+        Onyx.update(fullPolicySnapshotClearUpdates);
+    }
     let pusherSocketID = Pusher.getPusherSocketID();
     if (pusherSocketID === 'null' && isWriteRequest) {
         Log.alert("Pusher socket ID is 'null'. This should not happen.", {command, pusherSocketID}, true);
