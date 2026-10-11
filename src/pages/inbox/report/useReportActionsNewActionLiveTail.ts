@@ -44,6 +44,7 @@ type UseReportActionsNewActionLiveTailParams = {
     reportScrollManager: ReportScrollManager;
     setIsFloatingMessageCounterVisible: (visible: boolean) => void;
     setActionIdToHighlight: (actionID: string) => void;
+    markNewestActionAsRead: () => void;
     unreadMarkerReportActionID: string | null;
     hasNewerActions: boolean;
     linkedReportActionID: string | undefined;
@@ -75,6 +76,7 @@ function useReportActionsNewActionLiveTail({
     reportScrollManager,
     setIsFloatingMessageCounterVisible,
     setActionIdToHighlight,
+    markNewestActionAsRead,
     unreadMarkerReportActionID,
     hasNewerActions,
     linkedReportActionID,
@@ -92,6 +94,12 @@ function useReportActionsNewActionLiveTail({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
+
+    // Scrolling to the user's own comment must also mark the report as read. Otherwise the "New" divider stays, and the
+    // unread marker it leaves behind turns the "New messages" pill back on. An effect event keeps it out of effect deps.
+    const markAsReadAfterScroll = useEffectEvent(() => {
+        markNewestActionAsRead();
+    });
 
     const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
         TransitionTracker.runAfterTransitions({
@@ -150,6 +158,7 @@ function useReportActionsNewActionLiveTail({
                 } else {
                     setIsFloatingMessageCounterVisible(false);
                     reportScrollManager.scrollToBottom();
+                    markAsReadAfterScroll();
                 }
 
                 setIsScrollToBottomEnabled(true);
@@ -207,6 +216,7 @@ function useReportActionsNewActionLiveTail({
 
         liveTailJumpRef.current = {stage: 'await_prune'};
         setIsFloatingMessageCounterVisible(false);
+        markAsReadAfterScroll();
         // Defer so this effect does not synchronously chain a second render from setState (eslint react-hooks/set-state-in-effect).
         queueMicrotask(() => {
             setIsScrollToBottomEnabled(true);
