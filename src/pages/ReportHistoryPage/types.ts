@@ -24,4 +24,4 @@ type ReportHistoryStep = {
 };
 
 export {REPORT_HISTORY_ICONS};
-export type {ReportHistoryIcon, ReportHistoryStep};
+export type {ReportHistoryStep};
